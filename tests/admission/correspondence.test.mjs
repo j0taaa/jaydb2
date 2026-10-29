@@ -32,28 +32,31 @@ test('nested template interning preserves the checked value in C', async t => {
 });
 
 // The certificate consumes a non-reflexive proof with Bool before recursive
-// Nat cases. Generated transports must preserve the original descent tree.
+// Nat cases and a linear function argument. Generated transports must preserve
+// the original descent tree and quantities.
 test('private checked Book links structural evidence and emitted C', async t => {
   const f = fixture(t), { info } = await loadToolchain();
   const r5 = `
+type ProofToken is Type:
+  ProofToken{f: @n: Nat -> Nat}
 def f(~p: Nat, n: Nat) -> Nat:
   match n:
     case Zero{}:
       p
     case Succ{x}:
       f(p, x)
-def helper(b: Bool, p: Nat, n: Nat) -> {f(p, n) == p : Nat}:
+def helper(b: Bool, p: Nat, t: ProofToken, n: Nat) -> {f(p, n) == p : Nat}:
   match b:
     case False{}:
       match n:
         case Zero{}: {==}
-        case Succ{x}: helper(b, p, x)
+        case Succ{x}: helper(b, p, t, x)
     case True{}:
       match n:
         case Zero{}: {==}
-        case Succ{x}: helper(b, p, x)
+        case Succ{x}: helper(b, p, t, x)
 def theorem(n: Nat) -> {f(3n, n) == 3n : Nat}:
-  helper(True{}, 3n, n)
+  helper(True{}, 3n, ProofToken{m => m}, n)
 `;
   f.write('Client.bend', f.read('Client.bend') + r5 +
     '\n# exact source: IO @unsafe ?todo 😀\n');

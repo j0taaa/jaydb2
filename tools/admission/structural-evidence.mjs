@@ -74,8 +74,7 @@ export class ProofBody {
      const head=bundle;let base=head;while(base.$==='App')base=base.f;
      const item=gen.declarations.find(([k])=>k===base.k);let U=item[1],value=head;
      const args=[];while(value.$==='App'){args.unshift(value.x);value=value.f;}
-     const replace=(o,l,x)=>o&&typeof o==='object'?(Array.isArray(o)?o.map(v=>replace(v,l,x)):o.$==='Var'&&o.l===l?x:Object.fromEntries(Object.entries(o).map(([k,v])=>[k,replace(v,l,x)]))):o;
-     for(const x of args){U=replace(U.B,U.l,x);}T=U;
+     for(const x of args){U=gen.substitute(U.B,U.l,x);}T=U;
      return app(ann(prj(lam(2,p,lam(2,e,V(p)))),all(1,z,T,A)),bundle);
    }
    T=sig(2,p,A,eq(V(p),source,A));

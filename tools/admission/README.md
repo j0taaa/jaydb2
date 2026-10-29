@@ -31,7 +31,7 @@ A extensão usa o corpo lógico paramétrico e relações compostas dos tipos e 
 
 O fingerprint interno existe apenas para detectar o ponto fixo do fechamento. Não há selagem de protótipos JavaScript, getters, descritores ou suporte a um embedding que adultere estruturas internas.
 
-O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre Data monomórficos, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores. Domínios lineares e dependentes mantêm o fechamento imediato; nenhum verdict provoca troca de rota.
+O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre famílias monomórficas independentes, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores e a quantidade dos campos lineares. Aplicações de lambdas usam a substituição comum do tradutor. Domínios dependentes mantêm o fechamento imediato; nenhum verdict provoca troca de rota.
 
 ## Fronteira IO do núcleo
 
@@ -43,4 +43,4 @@ Use os comandos do README raiz. O frontend é derivado offline das fontes oficia
 
 `verification.initialFuel` e `initialModelFuel` são controles de desenvolvimento do verificador. A exaustão aumenta o combustível sem teto; não se transforma em recusa matemática. Não há orçamento físico obrigatório.
 
-A tradução estrutural ainda não cobre todos os tipos originais: recursão por matches que exige transportar funções lineares entre os parâmetros, grupos gerados mutuamente recursivos, reflexão opaca, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.
+A tradução estrutural ainda não cobre todos os tipos originais: grupos gerados mutuamente recursivos, reflexão opaca, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.

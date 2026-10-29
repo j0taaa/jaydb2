@@ -1,6 +1,5 @@
 import {V,R,UV,tuple,lam,app,apps,bind,ann,eq,rfl,let1,rwt,split} from './structural-syntax.mjs';
 import {bound,family} from './structural-relations.mjs';
-import {DataValues} from './structural-data.mjs';
 
 // Typed composition over checked .e. Unsupported syntax fails technically;
 // it never supplies a substitute witness or bypasses a physical guard.
@@ -85,10 +84,19 @@ export class Bodies {
     return {p:physical,l:logical,r:ann(bind('Lam',bs,b),this.gen.plan(type,env).relation(physical,logical)),type};
   }
   definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
-    // Only duplicable Data use deferred opening; linear/dependent domains
-    // retain immediate transport in the same case-tree walk.
-    const data=new DataValues(this.gen);let T=type,n=0;
-    while(T.tag==='arrow'&&T.q>0&&T.A.tag==='family'&&data.supports(T.A.key)){n++;T=T.B;}
+    // Independent monomorphic families share deferred opening. Field
+    // quantities are preserved unless their checked relation is Data.
+    const independent=(A,seen=new Set())=>{
+      if(A.tag==='scalar')return A.T.$==='Enu'&&typeof A.quantity==='number';
+      if(A.tag==='arrow')return independent(A.A,seen)&&independent(A.B,seen);
+      if(A.tag!=='family'||A.args.length)return false;
+      const d=this.gen.families.get(A.key);
+      if(!d||d.parameters.length||![1,2].includes(d.quantity))return false;
+      if(seen.has(A.key))return true;
+      const next=new Set(seen);next.add(A.key);
+      return d.constructors.every(c=>c.fields.every(f=>independent(f.type,next)));
+    };let T=type,n=0;
+    while(T.tag==='arrow'&&T.q>0&&T.A.tag==='family'&&independent(T.A)){n++;T=T.B;}
     const cases=n>0&&T.tag==='identity'?{key,physical,logical,type,args:[],frames:[],skip:0}:null;
     const previous=this.caseDefinition;this.caseDefinition=key;
     try{return this.functionBody(body,sourceType,type,env,ctx,physical,logical,cases);}
@@ -242,15 +250,9 @@ export class Bodies {
     if(cases){let U=type;const keys=[];for(const field of ctor.fields){keys.push(U.key);U=U.B;}
       staged={...cases,frames:[...cases.frames,{...frame,keys}],skip:ctor.fields.length};}
     let result=this.functionBody(body,T,type,new Map(env),new Map(ctx),p,l,staged),U=type;
-    const ops=this.safe?.state.admissionViewOps;
-    const use=(f,x,q)=>{
-      // Expose the actual subfield to the original descent guard. This is
-      // ordinary capture-avoiding beta reduction of generated code, not a new
-      // descent rule and not an edit of the original physical .e.
-      if(f.$==='Lam'&&ops)return ops.sub(f.f,f.l,x);
-      return app(f,x,q);
-    };
-    for(const field of fields.records){result=use(use(use(result,field.p,0),field.l,0),field.r,U.q);U=U.B;}
+    // Use the common capture-avoiding application to expose actual subfields
+    // to the original descent guard, without editing the physical .e.
+    for(const field of fields.records){result=gen.applyTerm(gen.applyTerm(gen.applyTerm(result,field.p,0),field.l,0),field.r,U.q);U=U.B;}
     return result;
   }
   expression(t,env,ctx,expected) {

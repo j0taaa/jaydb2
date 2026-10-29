@@ -19,10 +19,13 @@ export class Relations {
   }
   fresh() { return this.syntax.fresh(); }
   emit(k,T,b) { this.declarations.push([k,T,b]); }
+  applyTerm(f,x,q=1) {
+    return f.$==='Lam'&&this.substitute?this.substitute(f.f,f.l,x):app(f,x,q);
+  }
   eta(T,value) {
     if(T.tag!=='arrow')return value;
     const v=this.fresh(),argument=this.eta(T.A,V(v));
-    return lam(T.q,v,this.eta(T.B,app(value,argument,T.q)));
+    return lam(T.q,v,this.eta(T.B,this.applyTerm(value,argument,T.q)));
   }
   carrier(d,env,side) {
     return apps(R(d.kernel),d.parameters.map(p=>[p.q,this.eta(p.type,env.get(p.key)[side])]));
@@ -289,7 +292,7 @@ export class Relations {
       // closure moves: deferred bodies close all their frames at a leaf.
       const goal=s=>bind('All',extra,motive(s.p,s.l,this.caseRecord(c,field.records,s.ep,s.el)));
       const body=defer?branchBody:this.transport(paths,goal,()=>branchBody);
-      const bs=defer?field.bs.map(([q,v])=>[q===0?0:2,v]):field.bs,q=defer?2:1;
+      const bs=defer?field.bs.map(([q,v],i)=>[q>0&&field.records[Math.floor(i/3)].plan.quantity===2?2:q,v]):field.bs,q=defer?2:1;
       return [c.kernel,prj(lam(1,fs,app(split(bs,split([[q,ep],[q,el]],body)),V(fs))))];
     });
     return prj(mats(branches));
