@@ -56,6 +56,7 @@ class NativeOwnershipPending(Exception):
 
 class SimpleModule:
     def __init__(self, file, loading_runtime=None, lifecycle_runtime=None, library_scope=None):
+        self._running = False
         self._library_owner = None
         self._lifecycle_runtime = LifecycleRuntime.current() if lifecycle_runtime is None else lifecycle_runtime
         runtime = Runtime.current() if loading_runtime is None else loading_runtime
@@ -120,6 +121,8 @@ class SimpleModule:
             raise
 
     def close(self):
+        if self._running:
+            raise NativeOwnershipPending('Close must wait until the active native call returns')
         if self._library_owner is None:
             return
         try:
@@ -129,6 +132,15 @@ class SimpleModule:
                 self._library_owner.close()
 
     def run(self, data: bytes, *, capacity: int) -> bytes:
+        if self._running:
+            raise NativeOwnershipPending('A native call is already using this module')
+        self._running = True
+        try:
+            return self._run_owned(data, capacity=capacity)
+        finally:
+            self._running = False
+
+    def _run_owned(self, data: bytes, *, capacity: int) -> bytes:
         if not isinstance(data, bytes):
             raise TypeError('Native input must be bytes')
         if type(capacity) is not int or capacity < 0:

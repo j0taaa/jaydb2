@@ -268,6 +268,8 @@ class Database:
             raise IncompleteIntegration('Request still owns helper, output or temporary library resources')
 
     def close(self):
+        if self._busy:
+            raise IncompleteIntegration('Close must wait until the active request returns')
         self._closed = True
         failure = None
         try:
