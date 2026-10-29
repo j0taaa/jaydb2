@@ -25,6 +25,8 @@ O bootstrap instala ferramentas locais em `.tools/`. É necessário fornecer pre
 
 Os comandos de build acima reproduzem artefatos sem atualizar os locks. O gate confere os resultados contra os hashes fixados. Se houver divergência de ambiente ou compilador, investigue a causa; `--write-lock` representa uma atualização deliberada da identidade e exige nova validação, não é uma etapa normal de instalação. A reprodução bit a bit em todo host novo ainda não foi demonstrada.
 
+O addon usa um caminho canônico em `__FILE__`; duas cópias em diretórios diferentes reproduziram o mesmo binário e manifest no toolchain registrado. A [validação do ajuste](tests/admission/evidence/v6/portable-addon.json) é separada dos resultados do V6 congelado.
+
 O Git contém fontes, provas, exemplos, locks e os quatro fixtures C/JSON exigidos pela suíte nativa. Instalações, binários, grandes checkpoints e capturas duplicadas ficam apenas no disco local e são ignorados; não são apagados. As suítes históricas de accounting/revisões podem depender dessas capturas e não fazem parte dos alvos ativos do Makefile.
 
 O cliente produz uma mensagem canônica enquadrada em stdout:
@@ -58,6 +60,8 @@ make test-integration
 A [revisão das provas](proof/REVISAO_RECURSOS_SIMPLES.md) registra 72 verificações oficiais do contrato revisado, wrappers, exemplos, agregados e negativos. Inclui as 692 leis gerais do Codec, com correção nos dois sentidos. O `--verdict` separado do lote legado de 222 exemplos excedeu o harness de desenvolvimento e continua explicitamente incompleto.
 
 O [runtime simples ABI6](native/SIMPLE_RUNTIME.md) passou 13 testes com execução C real, incluindo Codec original, inteiros largos, closures e falha real de alocação. Esses resultados não substituem uma prova geral de compilação ou de `Contrato(a,k)` para o serviço. A ligação integral entre admissão, emissão, runtime, host e canal permanece em desenvolvimento.
+
+A integração com a admissão V6 passou [28 testes reais do serviço](tests/service/ADMISSION_V6_INTEGRATION.json). A [revisão matemática independente](tests/admission/evidence/v6/root-review/REPORT.md) encontrou uma limitação ainda aberta: uma prova válida que casa Bool antes de recursar em Nat é recusada pelo avaliador gerado. Os controles executados não demonstraram aceitação de prova falsa; a generalidade da tradução permanece pendente.
 
 A [especificação ativa](ESPECIFICACAO.md) e os 14 módulos em `contrato/` definem o contrato revisado. O original está preservado literalmente em [history/contrato-v1](history/contrato-v1/contrato/README.md), além do snapshot anterior à migração. Os protótipos de accounting, deadlines e conclusão física permanecem como histórico; não são carregados nem exigidos pela entrada ativa. Relatórios antigos pertencem a seus próprios contratos e hashes.
 
