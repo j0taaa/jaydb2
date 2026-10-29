@@ -61,7 +61,8 @@ export async function buildFrontend(sourceDir = path.resolve(here, '../../.tools
   fs.writeFileSync(path.join(installed, 'generic.mjs'), genericJS);
   files['generic.mjs'] = hash(genericJS);
   const compile = child.spawnSync('/usr/bin/clang++-19', ['-std=c++20', '-O2', '-shared', '-fPIC',
-    '-I/usr/include/node', path.join(here, 'stack.cc'), '-o', path.join(installed, 'stack.node')], { encoding: 'utf8' });
+    '-I/usr/include/node', '-fmacro-prefix-map=' + here + '=tools/admission/',
+    path.join(here, 'stack.cc'), '-o', path.join(installed, 'stack.node')], { encoding: 'utf8' });
   if (compile.status !== 0) throw new Error('Frontend stack addon build: ' + compile.stderr);
   files['stack.node'] = hash(fs.readFileSync(path.join(installed, 'stack.node')));
   const manifest = { format: 'jaydb-offline-frontend-v1', node: process.version,

@@ -42,13 +42,13 @@
   "stackLoaderSha256": "c8737e6f72838814e2c2ebfeb218beca5e8ba01297788511f333cb85b594872b",
   "nativeBackendSha256": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
   "nativeSourceNormalizedSha256": "0de5606fb40bff796048eb4f609442f2b5a7ab2d3704a24a0051dbbfb31e40c5",
-  "builderSha256": "5edad903e2d03d614d455daa19499901e25229f65df9831e970788f00ef99682",
+  "builderSha256": "d04e46f2c751fba84acdf2300df79a74c20e6bca3cc2ea0cdc21c34caa8b9512",
   "files": {
     "bend.mjs": "b739d452ecc4a7f349cf43d657df5bf5b8c4935ffa94ce8d982b092fe82e3fe5",
     "safe.mjs": "929d6cb974034dd7e4e6e126dc001e6a5c4a13854ef7a44fc0013ecc5ac0cb2d",
     "safe-structural.mjs": "e47cf4f3993e76350447e4036a57964030078b384a093fed0bff606cd906a0d7",
     "comp.mjs": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4",
     "generic.mjs": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb",
-    "stack.node": "74a96ffd907bffddb08a8a7c5595482148e4496a83214de2588465ffac92368f"
+    "stack.node": "c78b4a0a23a295f673d21a33bcb8a27edb1016b7af1d6666e7ac2e05ee654b04"
   }
 }
