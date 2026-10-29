@@ -1,4 +1,4 @@
-// Research-only BendTT syntax. Every binder gets a fresh level; J reserves
+// BendTT output syntax. Every binder gets a fresh level; J reserves
 // its endpoint and evidence levels together. No changes to the kernel.
 export class Syntax {
   constructor(start = 20000) { this.next = start; }

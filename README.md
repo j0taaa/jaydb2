@@ -40,6 +40,6 @@ make test
 
 `make verify` verifica os agregados gerais nos dois modos oficiais e seis mutações causais. `make test` cobre as fronteiras que essas provas não verificam: admissão/emissão do mesmo Book, execução nativa, ownership normal, publicação/rollback e enquadramento. Os programas dos testes C são gerados de pequenos fixtures Bend; C compilado, logs e snapshots não são versionados como suítes paralelas.
 
-As [provas gerais](proof/README.md) incluem a equivalência canônica do Codec. A [admissão](tools/admission/README.md) mantém os corpos físicos e seus vínculos de origem, mas ainda tem formas estruturais não implementadas; uma prova válida com Bool casado antes de recursão em Nat é uma pendência conhecida. A correspondência geral do executável completo com `Contrato(a,k)` ainda não foi demonstrada.
+As [provas gerais](proof/README.md) incluem a equivalência canônica do Codec. A [admissão](tools/admission/README.md) mantém os corpos físicos e seus vínculos de origem. A recusa de provas com Bool casado antes de recursão em Nat foi corrigida no compositor comum. Ainda há formas estruturais não implementadas e a correspondência geral do executável completo com `Contrato(a,k)` não foi demonstrada.
 
 A [especificação](ESPECIFICACAO.md), o [contrato Bend](contrato/README.md), o [serviço](tools/service/SIMPLE_SERVICE.md) e o [runtime](native/SIMPLE_RUNTIME.md) descrevem o caminho atual. Os 18 originais permanecem em `history/contrato-v1/`; implementações e capturas retiradas da árvore corrente podem ser consultadas no histórico Git.

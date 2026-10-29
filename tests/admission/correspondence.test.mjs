@@ -31,7 +31,8 @@ test('nested template interning preserves the checked value in C', async t => {
   assert.equal(runC(f.root, emitC(admitted), 'nested'), '1n');
 });
 
-// R5 is used by the certificate; retain its original target and physical link.
+// The certificate consumes a non-reflexive proof with Bool before recursive
+// Nat cases. Generated transports must preserve the original descent tree.
 test('private checked Book links structural evidence and emitted C', async t => {
   const f = fixture(t), { info } = await loadToolchain();
   const r5 = `
@@ -41,10 +42,18 @@ def f(~p: Nat, n: Nat) -> Nat:
       p
     case Succ{x}:
       f(p, x)
-def reflexive(p: Nat, n: Nat) -> {f(p, n) == f(p, n) : Nat}:
-  {==}
-def theorem(n: Nat) -> {f(3n, n) == f(3n, n) : Nat}:
-  reflexive(3n, n)
+def helper(b: Bool, p: Nat, n: Nat) -> {f(p, n) == p : Nat}:
+  match b:
+    case False{}:
+      match n:
+        case Zero{}: {==}
+        case Succ{x}: helper(b, p, x)
+    case True{}:
+      match n:
+        case Zero{}: {==}
+        case Succ{x}: helper(b, p, x)
+def theorem(n: Nat) -> {f(3n, n) == 3n : Nat}:
+  helper(True{}, 3n, n)
 `;
   f.write('Client.bend', f.read('Client.bend') + r5 +
     '\n# exact source: IO @unsafe ?todo 😀\n');
@@ -71,6 +80,11 @@ def theorem(n: Nat) -> {f(3n, n) == f(3n, n) : Nat}:
   assert.equal(payloads.length, 1);
   assert.match(payloads[0], /Evidence\.Client\.theorem\.original_target/);
   assert.match(payloads[0], /Evidence\.Client\.theorem\.evidence_source_link/);
+  const input = path.join(f.root, 'checked.bendtt');
+  fs.writeFileSync(input, payloads[0]);
+  const original = spawn(info.kernelPath, [input], { encoding: 'utf8', timeout: 60000 });
+  assert.equal(original.status, 0, original.stdout + original.stderr);
+  assert.equal(original.stdout.trim(), 'ALL PROOFS CHECK');
   assert.equal(admitted.report.verifier.correspondence.route, 'structural');
   assert.ok(admitted.report.instanceClosure.sourceLinks.includes('Bindings:certificado'));
   assert.ok(admitted.report.verifier.instances.some(k => k.startsWith('Client:f~')));

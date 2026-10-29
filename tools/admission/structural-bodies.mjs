@@ -1,5 +1,6 @@
 import {V,R,UV,tuple,lam,app,apps,bind,ann,eq,rfl,let1,rwt,split} from './structural-syntax.mjs';
 import {bound,family} from './structural-relations.mjs';
+import {DataValues} from './structural-data.mjs';
 
 // Typed composition over checked .e. Unsupported syntax fails technically;
 // it never supplies a substitute witness or bypasses a physical guard.
@@ -18,7 +19,7 @@ export class Bodies {
     const plan=this.gen.plan(type),T=plan.relation(p,l);
     let b;
     if(this.scalarTelescope(type))b=this.liftScalars(record);
-    else b=this.functionBody(this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
+    else b=this.definitionBody(key,this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
     this.gen.emit(r.k,T,b);
     return record;
   }
@@ -83,9 +84,68 @@ export class Bodies {
     }
     return {p:physical,l:logical,r:ann(bind('Lam',bs,b),this.gen.plan(type,env).relation(physical,logical)),type};
   }
-  functionBody(body,sourceType,type,env,ctx,physical,logical) {
+  definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
+    // Only duplicable Data use deferred opening; linear/dependent domains
+    // retain immediate transport in the same case-tree walk.
+    const data=new DataValues(this.gen);let T=type,n=0;
+    while(T.tag==='arrow'&&T.q>0&&T.A.tag==='family'&&data.supports(T.A.key)){n++;T=T.B;}
+    const cases=n>0&&T.tag==='identity'?{key,physical,logical,type,args:[],frames:[],skip:0}:null;
+    const previous=this.caseDefinition;this.caseDefinition=key;
+    try{return this.functionBody(body,sourceType,type,env,ctx,physical,logical,cases);}
+    finally{this.caseDefinition=previous;}
+  }
+  caseEnvironment(base,frames,state) {
+    const env=new Map(base);
+    // Rebuild children before parents, preserving the supplied evidence.
+    for(const f of [...frames].reverse()){
+      const fields=f.keys.map(key=>env.get(key)),cp=this.gen.construct(f.ctor,fields,'p'),cl=this.gen.construct(f.ctor,fields,'l');
+      env.set(f.key,{...base.get(f.key),p:state[f.id+'.p']??cp,l:state[f.id+'.l']??cl,
+        r:this.gen.caseRecord(f.ctor,fields,state[f.id+'.ep']??rfl,state[f.id+'.el']??rfl),expression:bound(f.key)});
+    }
+    return env;
+  }
+  caseLeaf(body,type,base,ctx,cases) {
+    const {frames,args}=cases,goal=env=>this.gen.plan(type,env).relation(
+      apps(cases.physical,args.map(([key,q])=>[q,env.get(key).p])),apps(cases.logical,args.map(([key,q])=>[q,env.get(key).l])));
+    const canonical=this.caseEnvironment(base,frames,{}),slots=[],oldApply=this.gen.application;
+    const key=this.safe?.state.admissionViewOps?.key??JSON.stringify,equal=(a,b)=>key(a)===key(b);
+    const build=state=>{
+      const env=this.caseEnvironment(base,frames,state),calls=[];let position=0;
+      this.gen.application=(f,a,e)=>{
+        const result=oldApply.call(this.gen,f,a,e);
+        if(this.caseDefinition!==cases.key)return result;
+        const chain=f.caseChain??(f.key===cases.key?{head:f,args:[]}:null);
+        if(!chain)return result;
+        const next={head:chain.head,args:[...chain.args,a]};result.caseChain=next;
+        if(result.type.tag==='arrow')return result;
+        const actual=next.args.map((arg,i)=>{
+          const formal=args[i-this.book.tlds[cases.key].x]?.[0],origin=canonical.get(formal),target=env.get(formal);
+          return origin&&equal(arg.p,origin.p)&&equal(arg.l,origin.l)&&equal(arg.r,origin.r)?target:arg;
+        });
+        let value=next.head;for(const arg of actual)value=oldApply.call(this.gen,value,arg,env);
+        const slot=slots[position]??(slots[position]=this.gen.fresh());position++;
+        calls.push({slot,value,T:this.gen.plan(value.type,env).relation(value.p,value.l)});
+        return {...value,r:V(slot)};
+      };
+      let value;try{value=this.expression(body,env,ctx,type);}finally{this.gen.application=oldApply;}
+      return {value,calls,env};
+    };
+    const count=build({}).calls.length;
+    const describe=state=>{const b=build(state);if(b.calls.length!==count)throw Error('The recursive call inventory changed under endpoint substitution');return b;};
+    const paths=[...frames].reverse().flatMap(f=>['p','l'].map(side=>({index:f.id+'.'+side,proof:f.id+'.e'+side,A:f.type[side],q:2,
+      value:f[side],evidence:f['e'+side],start:state=>this.gen.construct(f.ctor,f.keys.map(key=>this.caseEnvironment(base,frames,state).get(key)),side)})));
+    const final=state=>{const b=describe(state);return bind('All',b.calls.map(c=>[2,c.slot,c.T]),goal(b.env));};
+    const derive=state=>{const b=describe(state);return bind('Lam',b.calls.map(c=>[2,c.slot,c.T]),ann(b.value.r,goal(b.env)));};
+    const actualState={};for(const f of frames)Object.assign(actualState,{[f.id+'.p']:f.p,[f.id+'.l']:f.l,[f.id+'.ep']:f.ep,[f.id+'.el']:f.el});
+    const actual=describe(actualState);
+    // Results are dependent J arguments, supplied by actual checked recursive
+    // calls outside J with the original ep/el and the real smaller fields.
+    return apps(this.gen.transport(paths,final,derive),actual.calls.map(c=>[2,c.value.r]));
+  }
+  functionBody(body,sourceType,type,env,ctx,physical,logical,cases=null) {
     const {x}=this.open(body);
     if(type.tag!=='arrow') {
+      if(cases?.frames.length)return this.caseLeaf(body,type,env,ctx,cases);
       const value=this.expression(body,env,ctx,type);
       return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
     }
@@ -94,11 +154,13 @@ export class Bodies {
     const A=this.gen.plan(type.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
     const arg={p:V(p),l:V(l),r:V(r),type:type.A,q:type.q,expression:bound(type.key)};
     const e=new Map(env);e.set(type.key,arg);
+    const nextCases=cases&&{...cases,type:cases.skip?cases.type:type.B,args:cases.skip?cases.args:[...cases.args,[type.key,type.q]],skip:Math.max(0,cases.skip-1)};
+    const remainingType=cases?.skip===1?cases.type:type.B;
     const opened=this.source.open(F,ctx,type.key),cctx=opened.ctx;
     if(x.$==='Lam')cctx.set(x.i,type.key);
     const nextSource=F.B(opened.v),pp=app(physical,this.gen.eta(type.A,V(p)),type.q),ll=app(logical,this.gen.eta(type.A,V(l)),type.q);
     let b;
-    if(x.$==='Lam')b=this.functionBody(x.f(opened.v),nextSource,type.B,e,cctx,pp,ll);
+    if(x.$==='Lam')b=this.functionBody(x.f(opened.v),nextSource,remainingType,e,cctx,pp,ll,nextCases);
     else if((x.$==='Mat'||x.$==='Efq'&&this.gen.families.get(type.A.key)?.constructors.length===0)&&type.A.tag==='family') {
       const familyPlan=this.gen.plan(type.A,env),g=familyPlan.family;
       const familyEnv=new Map(e);
@@ -107,7 +169,8 @@ export class Bodies {
         const t=new Map(e);t.set(type.key,{...arg,p,l,r});
         return this.gen.plan(type.B,t).relation(app(physical,this.gen.eta(type.A,p),type.q),app(logical,this.gen.eta(type.A,l),type.q));
       };
-      const eliminator=this.gen.eliminate(g,familyEnv,V(p),V(l),motive,(ctor,fields)=>{
+      const eliminator=this.gen.eliminate(g,familyEnv,V(p),V(l),motive,(ctor,fields,extra,frame)=>{
+        Object.assign(frame,{key:type.key,keys:[]});
         let branch=x;
         while(branch.$==='Mat'&&branch.k!==ctor.key)branch=this.open(branch.m).x;
         const defaultBranch=branch.$!=='Mat';
@@ -117,14 +180,14 @@ export class Bodies {
         fieldSource=this.B.tele_fill(this.book,fieldSource,domain.x,this.B.ctx_nil());
         let fctx=new Map(cctx),fenv=new Map(fields.env);const sourceFields=[];
         const cp=this.gen.construct(ctor,fields.records,'p'),cl=this.gen.construct(ctor,fields.records,'l');
-        const packet=tuple(fields.records.flatMap(r=>[[0,r.p],[0,r.l],[r.q,r.r]]));
-        const rv=tuple([[1,{$:'Lab',k:ctor.kernel}],[1,packet],[1,rfl],[1,rfl]]);
+        const rv=this.gen.caseRecord(ctor,fields.records);
         fenv.set(type.key,{...arg,p:cp,l:cl,r:rv});
         for(let i=0;i<ctor.fields.length;i++) {
           const H=this.B.term_wnf(this.book,fieldSource),node=defaultBranch?null:this.open(h).x;
           if(H.$!=='All')throw Error('Structural constructor field lacks its checked All');
-          if(!defaultBranch&&node.$!=='Lam')return this.caseFieldBranch(branch.h,ctor,F,physical,logical,env,cctx,fields);
+          if(!defaultBranch&&node.$!=='Lam')return this.caseFieldBranch(branch.h,ctor,F,physical,logical,cases?familyEnv:env,cctx,fields,nextCases,frame);
           const localKey='pattern.'+this.sequence++,fieldType=this.source.type(H.A,fctx);
+          frame.keys.push(localKey);
           const v=this.source.open(H,fctx,localKey);fctx=v.ctx;
           if(!defaultBranch)fctx.set(node.i,localKey);
           sourceFields.push(v.v);
@@ -137,21 +200,29 @@ export class Bodies {
         // constructor. Word(n), for example, exposes a different datatype in
         // each Nat branch. Retaining the pre-branch opaque application loses
         // exactly the source checker's dependent reduction.
-        const branchType=this.specializeType(branchSource,fctx,type.B,fenv);
-        return this.functionBody(h,branchSource,branchType,fenv,fctx,app(physical,cp,type.q),app(logical,cl,type.q));
-      });
+        // A deferred motive must still vary the original parameter. Reading
+        // the branch's source type here would freeze that endpoint to its
+        // constructor before J (for example n to Zero).
+        const branchType=cases?remainingType:this.specializeType(branchSource,fctx,type.B,fenv);
+        const branchCases=nextCases&&{...nextCases,frames:[...nextCases.frames,frame]};
+        return this.functionBody(h,branchSource,branchType,fenv,fctx,app(physical,cp,type.q),app(logical,cl,type.q),branchCases);
+      },{defer:cases!==null});
       b=app(eliminator,V(r),type.q);
     } else if(x.$!=='Mat'&&x.$!=='Efq') {
       // A returned or partially applied function already has a pointwise
       // representation. Conversion checks its applications; no function
       // equality or duplicate execution is introduced.
-      const value=this.expression(body,env,ctx,type);
-      return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
+      if(cases?.skip)b=this.functionBody(this.B.Ann(this.B.App(body,opened.v),nextSource),nextSource,remainingType,e,cctx,pp,ll,nextCases);
+      else {
+        if(cases?.frames.length)return this.caseLeaf(body,type,env,ctx,cases);
+        const value=this.expression(body,env,ctx,type);
+        return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
+      }
     } else throw Error('Structural function body not implemented: '+x.$+' over '+type.A.tag);
     return bind('Lam',[[0,p,A.p],[0,l,A.l],[type.q,r,A.relation(V(p),V(l))]],b);
   }
   specializeType(sourceType,ctx,prior,env){return this.source.type(sourceType,ctx);}
-  caseFieldBranch(body,ctor,F,physical,logical,env,ctx,fields){
+  caseFieldBranch(body,ctor,F,physical,logical,env,ctx,fields,cases=null,frame=null){
     const B=this.B,gen=this.gen,domain=B.term_wnf(this.book,F.A),base=B.tele_fill(this.book,this.book.ctrs[ctor.key].T,domain.x,B.ctx_nil());
     const goal=(T,j,xs)=>{
       if(j===ctor.fields.length)return F.B(B.Ctr(ctor.key,xs));
@@ -165,7 +236,12 @@ export class Bodies {
       return raw(side,U.B,[...records,r],[...bindings,[U.q,v]]);
     };
     const p=raw('p',type,[],[]),l=raw('l',type,[],[]);
-    let result=this.functionBody(body,T,type,new Map(env),new Map(ctx),p,l),U=type;
+    let staged=cases;
+    // Constructor fields are synthetic binders, not additional parameters
+    // of the original recursive function.
+    if(cases){let U=type;const keys=[];for(const field of ctor.fields){keys.push(U.key);U=U.B;}
+      staged={...cases,frames:[...cases.frames,{...frame,keys}],skip:ctor.fields.length};}
+    let result=this.functionBody(body,T,type,new Map(env),new Map(ctx),p,l,staged),U=type;
     const ops=this.safe?.state.admissionViewOps;
     const use=(f,x,q)=>{
       // Expose the actual subfield to the original descent guard. This is

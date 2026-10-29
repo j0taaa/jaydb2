@@ -72,7 +72,7 @@ export class BoundaryBodies extends Bodies {
    }
    const previous=this.symbolic;this.symbolic=true;
    let body;
-   try{body=this.functionBody(this.B.term_higher(d.e),T,ir,env,ctx,pp,ll);}finally{this.symbolic=previous;}
+   try{body=this.definitionBody(key,this.B.term_higher(d.e),T,ir,env,ctx,pp,ll);}finally{this.symbolic=previous;}
    if(live)this.gen.emit(name,U,bind('Lam',bs,body));
    else {const a=this.gen.fresh();this.gen.emit(name,sig(0,a,U,UT),tup(0,bind('Lam',bs,body),UV));}
    return record;
@@ -118,7 +118,7 @@ export class BoundaryBodies extends Bodies {
    const r=R(this.gen.prefix+'.Function.'+this.source.name(key)+'.evaluate');
    const record={p,l,r,type,key};this.functions.set(key,record);
    const T=this.gen.plan(type).relation(p,l);
-   const b=this.functionBody(this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
+   const b=this.definitionBody(key,this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
    this.gen.emit(r.k,T,b);return record;
  }
 }

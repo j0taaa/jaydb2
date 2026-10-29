@@ -257,36 +257,40 @@ export class Relations {
     return [[armsName,bind('All',bs,all(1,tag,tags,G)),bind('Lam',bs,mats(branches))],
       [d.kernel,bind('All',bs,G),bind('Lam',bs,{$:'Sig',q:1,l:tag,A:tags,B:app(arms,V(tag))})]];
   }
-  eliminate(g,env,p,l,motive,handler,{extra=[]}={}) {
+  transport(paths,goal,base) {
+    // J carries each endpoint and its exact equality evidence through the
+    // remaining telescope. No equality of proof values is assumed.
+    const next=(s,path,p,e)=>({...s,[path.index]:p,[path.proof]:e});
+    const telescope=(s,i)=>{
+      if(i===paths.length)return goal(s);
+      const path=paths[i],v=this.fresh(),e=this.fresh();
+      return all(0,v,path.A,all(path.q,e,eq(path.start(s),V(v),path.A),telescope(next(s,path,V(v),V(e)),i+1)));
+    };
+    const derive=(s,i)=>{
+      if(i===paths.length)return base(s);
+      const path=paths[i],v=this.fresh(),e=this.fresh(),z=this.fresh();
+      return lam(0,v,lam(path.q,e,rwt(V(e),z,telescope(next(s,path,V(z),V(z+1)),i+1),derive(next(s,path,path.start(s),rfl),i+1))));
+    };
+    return apps(ann(derive({},0),telescope({},0)),paths.flatMap(path=>[[0,path.value],[path.q,path.evidence]]));
+  }
+  caseRecord(c,records,ep=rfl,el=rfl) {
+    return tuple([[1,{$:'Lab',k:c.kernel}],[1,tuple(records.flatMap(r=>[[0,r.p],[0,r.l],[r.q,r.r]]))],[1,ep],[1,el]]);
+  }
+  eliminate(g,env,p,l,motive,handler,{extra=[],defer=false}={}) {
     const branches=g.definition.constructors.map(c=>{
       const fs=this.fresh(),ep=this.fresh(),el=this.fresh();
       const field=this.fields(g.definition,c,env),cp=this.construct(c,field.records,'p'),cl=this.construct(c,field.records,'l');
       const pTy=this.plan(family(g.definition.key,g.definition.parameters.map(p=>bound(p.key))),env);
-      const packet=tuple(field.records.flatMap(r=>[[0,r.p],[0,r.l],[r.q,r.r]]));
-      const record=(ep,el)=>tuple([[1,{$:'Lab',k:c.kernel}],[1,packet],[1,ep],[1,el]]);
-      const branchBody=bind('Lam',extra,handler(c,field,extra));
-      const ip=this.fresh(),il=this.fresh(),np=this.fresh(),nl=this.fresh();
-      const paths=[{index:'p',proof:'ep',A:pTy.p,a:cp},{index:'l',proof:'el',A:pTy.l,a:cl}];
-      const goal=s=>bind('All',extra,motive(s.p,s.l,record(s.ep,s.el)));
-      const telescope=(s,i)=>{
-        if(i===paths.length)return goal(s);
-        const path=paths[i],v=this.fresh(),e=this.fresh();
-        return all(0,v,path.A,all(1,e,eq(path.a,V(v),path.A),telescope({...s,[path.index]:V(v),[path.proof]:V(e)},i+1)));
-      };
-      const derive=(s,i)=>{
-        if(i===paths.length)return branchBody;
-        const path=paths[i],v=this.fresh(),e=this.fresh(),z=this.fresh();
-        return lam(0,v,lam(1,e,rwt(V(e),z,telescope({...s,[path.index]:V(z),[path.proof]:V(z+1)},i+1),derive({...s,[path.index]:path.a,[path.proof]:rfl},i+1))));
-      };
-      const endpoint=ann(derive({},0),telescope({},0));
-      const eps=[[1,ip,eq(cp,p,pTy.p)],[1,il,eq(cl,l,pTy.l)]];
-      const invoke=apps(endpoint,[[0,p],[1,V(ip)],[0,l],[1,V(il)]]);
-      // The motive tracks the WHOLE record, including its exact endpoint
-      // evidence. Keeping a fixed old R while changing its indices is invalid.
-      const cont=ann(bind('Lam',eps,invoke),bind('All',eps,goal({p,l,ep:V(ip),el:V(il)})));
-      const inner=split(field.bs,cont);
-      const call=apps(inner,[[1,V(fs)],[1,V(ep)],[1,V(el)],...extra.map(([q,n])=>[q,V(n)])]);
-      return [c.kernel,split([[1,fs],[1,ep],[1,el]],bind('Lam',extra,call))];
+      const frame={id:fs,ctor:c,p,l,ep:V(ep),el:V(el),type:pTy};
+      const branchBody=bind('Lam',extra,handler(c,field,extra,frame));
+      const paths=[{index:'p',proof:'ep',A:pTy.p,start:()=>cp,value:p,evidence:V(ep),q:1},
+        {index:'l',proof:'el',A:pTy.l,start:()=>cl,value:l,evidence:V(el),q:1}];
+      // Immediate and deferred cases share the same opening. Only the J
+      // closure moves: deferred bodies close all their frames at a leaf.
+      const goal=s=>bind('All',extra,motive(s.p,s.l,this.caseRecord(c,field.records,s.ep,s.el)));
+      const body=defer?branchBody:this.transport(paths,goal,()=>branchBody);
+      const bs=defer?field.bs.map(([q,v])=>[q===0?0:2,v]):field.bs,q=defer?2:1;
+      return [c.kernel,prj(lam(1,fs,app(split(bs,split([[q,ep],[q,el]],body)),V(fs))))];
     });
     return prj(mats(branches));
   }
