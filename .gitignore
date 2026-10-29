@@ -35,6 +35,8 @@ node_modules/
 /tests/accounting/REVIEW*RESULTS.json
 /tests/native/review_accounted*/
 /tests/*/checkpoints/*.tar.gz
+/tests/admission/checkpoints/resources_v[1-5].json
+/tests/admission/checkpoints/review_v5_literal.json
 /tests/service/evidence/
 /tests/admission/evidence/**/*.tar.gz
 /tests/native/evidence/*
