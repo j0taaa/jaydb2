@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "archiveSha256": "0e1681cb261ca6ffe5988b7d6712e7323ad41c405693340dc510213eb76e7956",
+  "destination": "/tmp/jaydb2-resources-v6-final-extracted",
+  "preparedPrerequisites": "/home/jota/projects/jaydb2",
+  "frontendFiles": {
+    "bend.mjs": {
+      "expected": "b739d452ecc4a7f349cf43d657df5bf5b8c4935ffa94ce8d982b092fe82e3fe5",
+      "rebuilt": "b739d452ecc4a7f349cf43d657df5bf5b8c4935ffa94ce8d982b092fe82e3fe5"
+    },
+    "safe.mjs": {
+      "expected": "929d6cb974034dd7e4e6e126dc001e6a5c4a13854ef7a44fc0013ecc5ac0cb2d",
+      "rebuilt": "929d6cb974034dd7e4e6e126dc001e6a5c4a13854ef7a44fc0013ecc5ac0cb2d"
+    },
+    "safe-structural.mjs": {
+      "expected": "e47cf4f3993e76350447e4036a57964030078b384a093fed0bff606cd906a0d7",
+      "rebuilt": "e47cf4f3993e76350447e4036a57964030078b384a093fed0bff606cd906a0d7"
+    },
+    "comp.mjs": {
+      "expected": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4",
+      "rebuilt": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4"
+    },
+    "generic.mjs": {
+      "expected": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb",
+      "rebuilt": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb"
+    },
+    "stack.node": {
+      "expected": "74a96ffd907bffddb08a8a7c5595482148e4496a83214de2588465ffac92368f",
+      "rebuilt": "f3ddceb297fcd1c10ba12eef7e97e5692ffd766cc8919146cb3b82ce937bfc9b"
+    }
+  },
+  "javascriptIdentical": true,
+  "nativeAddon": "absolute __FILE__ metadata differs by directory; original pinned addon restored before API checks",
+  "verifierManifestAndBinaryIdentical": true,
+  "verifierKernelSha256": "d319c362c63aca9aed94a68b2f54826356ba02b98ad87198673b6a884a533ec9",
+  "apiSmoke": {
+    "pass": 2,
+    "fail": 0,
+    "cases": [
+      "R4 intern_self_minimal",
+      "R5 ordinary_reflexive_boundary"
+    ]
+  },
+  "logs": {
+    "api-r4-r5.log": "be9cb15ddfde93351648c1aaa75637fd128f074e6b08545c0c9405eb86ff5cff",
+    "frontend-build.log": "72eed6027c47c99960e2f8be62960648add539ef11c79b5853c195bec0b990a1",
+    "source-audit.json": "b1aa697d0c1decafed353d4aa454efcd9634bd26f0e784f4b463c5ca2db85030",
+    "source-audit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verifier-build.log": "2ec5286f87375e8fe6817d6ae4c95a5607c5fd6c9eaf242ad4ac5812c41fbcc3"
+  }
+}

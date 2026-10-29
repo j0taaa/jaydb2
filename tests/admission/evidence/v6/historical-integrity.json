@@ -1,0 +1,30 @@
+{
+  "checkpointFiles": 67,
+  "changedCheckpointFiles": [],
+  "historicalArchives": {
+    "resources_v1.tar.gz": {
+      "sha256": "e4aad606cc9797befd4dae44ea09cca7d4afb763d27e6063fb5d246a0cb348c1",
+      "expected": "e4aad606cc9797befd4dae44ea09cca7d4afb763d27e6063fb5d246a0cb348c1"
+    },
+    "resources_v2.tar.gz": {
+      "sha256": "bb9280e33ec0c71a10f9e232c998ac798e272d5d4829a396af4c29b5de959e6b",
+      "expected": "bb9280e33ec0c71a10f9e232c998ac798e272d5d4829a396af4c29b5de959e6b"
+    },
+    "resources_v3.tar.gz": {
+      "sha256": "80ea97ee473afad0ea47dbed707d5b292c775b9e4a60dc7ebca2bd1b7d19746f",
+      "expected": "80ea97ee473afad0ea47dbed707d5b292c775b9e4a60dc7ebca2bd1b7d19746f"
+    },
+    "resources_v4.tar.gz": {
+      "sha256": "86fc99d699d272f1236fc6af51c488695e6dab53c242eea8fb00c56a9f090079",
+      "expected": "86fc99d699d272f1236fc6af51c488695e6dab53c242eea8fb00c56a9f090079"
+    },
+    "resources_v5.tar.gz": {
+      "sha256": "5b25af281096b44c682559c83c56d49a89c90b41ad964d1b30a0749531de5bba",
+      "expected": "5b25af281096b44c682559c83c56d49a89c90b41ad964d1b30a0749531de5bba"
+    },
+    "review_v5_literal.tar.gz": {
+      "sha256": "1afcd9fbdec1cec348aa3cc650b1917e3ff7f2a6dfd83d24401c472a7fc0f69f",
+      "expected": "1afcd9fbdec1cec348aa3cc650b1917e3ff7f2a6dfd83d24401c472a7fc0f69f"
+    }
+  }
+}

@@ -1,0 +1,443 @@
+{
+  "contrato-original.sha256.json": {
+    "files": 18,
+    "mismatches": [],
+    "sha256": {
+      "history/contrato-v1/contrato/Bytes.bend": {
+        "expected": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+        "actual": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f"
+      },
+      "history/contrato-v1/contrato/Dados.bend": {
+        "expected": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+        "actual": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81"
+      },
+      "history/contrato-v1/contrato/DadosExemplos.bend": {
+        "expected": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+        "actual": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db"
+      },
+      "history/contrato-v1/contrato/ESPECIFICACAO.original.md": {
+        "expected": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882",
+        "actual": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882"
+      },
+      "history/contrato-v1/contrato/Interface.bend": {
+        "expected": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+        "actual": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a"
+      },
+      "history/contrato-v1/contrato/LAWS.bend": {
+        "expected": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+        "actual": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd"
+      },
+      "history/contrato-v1/contrato/LEMAS.bend": {
+        "expected": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+        "actual": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164"
+      },
+      "history/contrato-v1/contrato/Logica.bend": {
+        "expected": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+        "actual": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4"
+      },
+      "history/contrato-v1/contrato/Protocolo.bend": {
+        "expected": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+        "actual": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976"
+      },
+      "history/contrato-v1/contrato/README.md": {
+        "expected": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94",
+        "actual": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94"
+      },
+      "history/contrato-v1/contrato/Recursos.bend": {
+        "expected": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+        "actual": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a"
+      },
+      "history/contrato-v1/contrato/Requisitos.bend": {
+        "expected": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+        "actual": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946"
+      },
+      "history/contrato-v1/contrato/Semantica.bend": {
+        "expected": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+        "actual": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb"
+      },
+      "history/contrato-v1/contrato/TestesProtocolo.bend": {
+        "expected": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+        "actual": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c"
+      },
+      "history/contrato-v1/contrato/VERIFICACAO.json": {
+        "expected": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754",
+        "actual": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754"
+      },
+      "history/contrato-v1/contrato/VERIFICAR.bend": {
+        "expected": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+        "actual": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876"
+      },
+      "history/contrato-v1/contrato/Vinculos.bend": {
+        "expected": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+        "actual": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0"
+      },
+      "history/contrato-v1/contrato/verificar.py": {
+        "expected": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1",
+        "actual": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1"
+      }
+    }
+  },
+  "contrato.sha256.json": {
+    "files": 14,
+    "mismatches": [],
+    "sha256": {
+      "contrato/Bytes.bend": {
+        "expected": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+        "actual": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f"
+      },
+      "contrato/Dados.bend": {
+        "expected": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+        "actual": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81"
+      },
+      "contrato/DadosExemplos.bend": {
+        "expected": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+        "actual": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db"
+      },
+      "contrato/Interface.bend": {
+        "expected": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0",
+        "actual": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0"
+      },
+      "contrato/LAWS.bend": {
+        "expected": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae",
+        "actual": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae"
+      },
+      "contrato/LEMAS.bend": {
+        "expected": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+        "actual": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164"
+      },
+      "contrato/Logica.bend": {
+        "expected": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+        "actual": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4"
+      },
+      "contrato/Protocolo.bend": {
+        "expected": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+        "actual": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976"
+      },
+      "contrato/Recursos.bend": {
+        "expected": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2",
+        "actual": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2"
+      },
+      "contrato/Requisitos.bend": {
+        "expected": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef",
+        "actual": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef"
+      },
+      "contrato/Semantica.bend": {
+        "expected": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f",
+        "actual": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f"
+      },
+      "contrato/TestesProtocolo.bend": {
+        "expected": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+        "actual": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c"
+      },
+      "contrato/VERIFICAR.bend": {
+        "expected": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+        "actual": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876"
+      },
+      "contrato/Vinculos.bend": {
+        "expected": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+        "actual": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0"
+      }
+    }
+  },
+  "officialSources": {
+    "files": 5,
+    "mismatches": [],
+    "sha256": {
+      ".tools/bend-source-2.0.39/bend2/bend.ts": {
+        "expected": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "actual": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e"
+      },
+      ".tools/bend-source-2.0.39/bend2/safe.ts": {
+        "expected": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "actual": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0"
+      },
+      ".tools/bend-source-2.0.39/bend2/comp.ts": {
+        "expected": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "actual": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef"
+      },
+      ".tools/bend-source-2.0.39/bend2/base.bend": {
+        "expected": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "actual": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce"
+      },
+      ".tools/bend-source-2.0.39/bend2/bendtt.lean": {
+        "expected": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80",
+        "actual": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      }
+    }
+  },
+  "originalExecutables": {
+    "files": 2,
+    "mismatches": [],
+    "sha256": {
+      ".tools/bendtt-e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18": {
+        "expected": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "actual": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18"
+      },
+      ".tools/bend-2.0.39/bin/bend": {
+        "expected": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+        "actual": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      }
+    }
+  },
+  "installedFrontend": {
+    "files": 6,
+    "mismatches": [],
+    "sha256": {
+      "tools/admission/installed/bend.mjs": {
+        "expected": "b739d452ecc4a7f349cf43d657df5bf5b8c4935ffa94ce8d982b092fe82e3fe5",
+        "actual": "b739d452ecc4a7f349cf43d657df5bf5b8c4935ffa94ce8d982b092fe82e3fe5"
+      },
+      "tools/admission/installed/safe.mjs": {
+        "expected": "929d6cb974034dd7e4e6e126dc001e6a5c4a13854ef7a44fc0013ecc5ac0cb2d",
+        "actual": "929d6cb974034dd7e4e6e126dc001e6a5c4a13854ef7a44fc0013ecc5ac0cb2d"
+      },
+      "tools/admission/installed/safe-structural.mjs": {
+        "expected": "e47cf4f3993e76350447e4036a57964030078b384a093fed0bff606cd906a0d7",
+        "actual": "e47cf4f3993e76350447e4036a57964030078b384a093fed0bff606cd906a0d7"
+      },
+      "tools/admission/installed/comp.mjs": {
+        "expected": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4",
+        "actual": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4"
+      },
+      "tools/admission/installed/generic.mjs": {
+        "expected": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb",
+        "actual": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb"
+      },
+      "tools/admission/installed/stack.node": {
+        "expected": "74a96ffd907bffddb08a8a7c5595482148e4496a83214de2588465ffac92368f",
+        "actual": "74a96ffd907bffddb08a8a7c5595482148e4496a83214de2588465ffac92368f"
+      }
+    }
+  },
+  "frontendTransforms": {
+    "files": 27,
+    "mismatches": [],
+    "sha256": {
+      "tools/admission/frontend-observer.mjs": {
+        "expected": "6f21dc64e09ca208a1eb828b8eed142c97d984dd77637a0cf8fd9bf77564be4c",
+        "actual": "6f21dc64e09ca208a1eb828b8eed142c97d984dd77637a0cf8fd9bf77564be4c"
+      },
+      "tools/admission/conversion.mjs": {
+        "expected": "304c045d21ea500bb1ab4081294714609ff22555d51ad47cf727569836153c82",
+        "actual": "304c045d21ea500bb1ab4081294714609ff22555d51ad47cf727569836153c82"
+      },
+      "tools/admission/frontend-resources.mjs": {
+        "expected": "32b62e7335787525f27220dfc858a6113cd1cb4d709170f2fcae034b89a67393",
+        "actual": "32b62e7335787525f27220dfc858a6113cd1cb4d709170f2fcae034b89a67393"
+      },
+      "tools/admission/safe-numerals.mjs": {
+        "expected": "e7d63209532444ee649041f2704b2e987e93b5c3d9f8478ac8a8143b2cb95fc6",
+        "actual": "e7d63209532444ee649041f2704b2e987e93b5c3d9f8478ac8a8143b2cb95fc6"
+      },
+      "tools/admission/safe-strings.mjs": {
+        "expected": "b02c3c7fd4d05a713f9636c717108afba7f4db1e0d28cb094e0f052f1e743121",
+        "actual": "b02c3c7fd4d05a713f9636c717108afba7f4db1e0d28cb094e0f052f1e743121"
+      },
+      "tools/admission/safe-templates.mjs": {
+        "expected": "ef0641827fb34b381b27659e8afcb134109cddaccf871bfd0faf53c9b527a9f5",
+        "actual": "ef0641827fb34b381b27659e8afcb134109cddaccf871bfd0faf53c9b527a9f5"
+      },
+      "tools/admission/closed-instances.mjs": {
+        "expected": "87b36d75187fa8b624673357d50e860d2a5c8485350c3b09be37ebea0b8363a6",
+        "actual": "87b36d75187fa8b624673357d50e860d2a5c8485350c3b09be37ebea0b8363a6"
+      },
+      "tools/admission/book-graph.mjs": {
+        "expected": "0f0431365768f3178c71b63121514ea06c8b775f10b469aa33376f8943aa2151",
+        "actual": "0f0431365768f3178c71b63121514ea06c8b775f10b469aa33376f8943aa2151"
+      },
+      "tools/admission/instance-keys.mjs": {
+        "expected": "e241775a0fe73329592ba2f9ed645560818501f6b30c2e7ba405895941b63c93",
+        "actual": "e241775a0fe73329592ba2f9ed645560818501f6b30c2e7ba405895941b63c93"
+      },
+      "tools/admission/structural-bodies.mjs": {
+        "expected": "255b4b1aeafe0bf3049cdd9931c90495c1d5e7f3bc63685d04a61f4e3a60b958",
+        "actual": "255b4b1aeafe0bf3049cdd9931c90495c1d5e7f3bc63685d04a61f4e3a60b958"
+      },
+      "tools/admission/structural-boundary.mjs": {
+        "expected": "b11f34730d6ad339213206ba201508b74b3d38ed66e1076e7c4e6e08ae0e6f32",
+        "actual": "b11f34730d6ad339213206ba201508b74b3d38ed66e1076e7c4e6e08ae0e6f32"
+      },
+      "tools/admission/structural-data.mjs": {
+        "expected": "c2e770099adce83f26cfd07a57cc0615d7ece44976d8c27607a58288f000312a",
+        "actual": "c2e770099adce83f26cfd07a57cc0615d7ece44976d8c27607a58288f000312a"
+      },
+      "tools/admission/structural-emitter.mjs": {
+        "expected": "3549d032ff307416917d418c7c02141598f0f47e4cb653b3fc89f02dbf383e7f",
+        "actual": "3549d032ff307416917d418c7c02141598f0f47e4cb653b3fc89f02dbf383e7f"
+      },
+      "tools/admission/structural-entry.mjs": {
+        "expected": "c9c9f055dd655c49efd24face90c617461f56976ce4325bc7778a9c17ba3f8d3",
+        "actual": "c9c9f055dd655c49efd24face90c617461f56976ce4325bc7778a9c17ba3f8d3"
+      },
+      "tools/admission/structural-evidence.mjs": {
+        "expected": "286d3061db1f73b5fadca8537dcd02620d80fa34d6abfc10c912fb88e004ed6f",
+        "actual": "286d3061db1f73b5fadca8537dcd02620d80fa34d6abfc10c912fb88e004ed6f"
+      },
+      "tools/admission/structural-identity.mjs": {
+        "expected": "4cddce248f7612891312f718356108b28022a4122de9ce2e3c9b86a99463f6e4",
+        "actual": "4cddce248f7612891312f718356108b28022a4122de9ce2e3c9b86a99463f6e4"
+      },
+      "tools/admission/structural-order.mjs": {
+        "expected": "ddca160699cf32bdb32f05be95510d9750dd55eab685ec50f9fb49cb8d5aeda9",
+        "actual": "ddca160699cf32bdb32f05be95510d9750dd55eab685ec50f9fb49cb8d5aeda9"
+      },
+      "tools/admission/structural-position.mjs": {
+        "expected": "2c4f69ab20086cecd0aad6f866d8017d641592c0772bb3537ab76587b12c252a",
+        "actual": "2c4f69ab20086cecd0aad6f866d8017d641592c0772bb3537ab76587b12c252a"
+      },
+      "tools/admission/structural-reflection.mjs": {
+        "expected": "8f91cd4c9a6fbe5f05ebb9eb3df9b5fe754dcf423eb764ac6ca4b3850b4037a9",
+        "actual": "8f91cd4c9a6fbe5f05ebb9eb3df9b5fe754dcf423eb764ac6ca4b3850b4037a9"
+      },
+      "tools/admission/structural-relations.mjs": {
+        "expected": "d7f95b14f949451cb9302eb6d194c3f9353614363fba9b308732c8143f40db16",
+        "actual": "d7f95b14f949451cb9302eb6d194c3f9353614363fba9b308732c8143f40db16"
+      },
+      "tools/admission/structural-syntax.mjs": {
+        "expected": "09bf3614dee8c10e511845e651c653f0010397a8b8a52bab4bd1ddd66275550a",
+        "actual": "09bf3614dee8c10e511845e651c653f0010397a8b8a52bab4bd1ddd66275550a"
+      },
+      "tools/admission/structural-types.mjs": {
+        "expected": "bd33ff198a39ed8cc3c90dcee1dc99179c8e84437272480c5b32050a8896b526",
+        "actual": "bd33ff198a39ed8cc3c90dcee1dc99179c8e84437272480c5b32050a8896b526"
+      },
+      "tools/admission/structural-views.mjs": {
+        "expected": "fb81f0b868dad91e668c8e9a2b0f99d4643c8b4d355a5049619460ad576a3f85",
+        "actual": "fb81f0b868dad91e668c8e9a2b0f99d4643c8b4d355a5049619460ad576a3f85"
+      },
+      "tools/admission/template-affected.mjs": {
+        "expected": "f293a667988a685b7ae7aab744545be9306d6932db5492a3e1c8d8cd4c1e9511",
+        "actual": "f293a667988a685b7ae7aab744545be9306d6932db5492a3e1c8d8cd4c1e9511"
+      },
+      "tools/admission/safe-canonical.mjs": {
+        "expected": "adef7f23666ac23172e2022f11b6a95bba176d83edcd97df1e4f35601d5dea32",
+        "actual": "adef7f23666ac23172e2022f11b6a95bba176d83edcd97df1e4f35601d5dea32"
+      },
+      "tools/admission/safe-state.mjs": {
+        "expected": "8d58fe022611ec99fda23e77d626f272c372f5e3e052228c033d8841927e2bb2",
+        "actual": "8d58fe022611ec99fda23e77d626f272c372f5e3e052228c033d8841927e2bb2"
+      },
+      "tools/admission/safe-routing.mjs": {
+        "expected": "970c868fc374db46e1d43c9ddf2555b6f7b1ee9a47e2d90bd6e4bdfdc6a9fa0d",
+        "actual": "970c868fc374db46e1d43c9ddf2555b6f7b1ee9a47e2d90bd6e4bdfdc6a9fa0d"
+      }
+    }
+  },
+  "frontendManifest": {
+    "files": 1,
+    "mismatches": [],
+    "sha256": {
+      "tools/admission/installed/manifest.json": {
+        "expected": "088998b49d373d87cf0529b39408fe3bbfb4c7121e2ef7b79af5d8a83400fe3a",
+        "actual": "088998b49d373d87cf0529b39408fe3bbfb4c7121e2ef7b79af5d8a83400fe3a"
+      }
+    }
+  },
+  "nativeGeneric": {
+    "files": 1,
+    "mismatches": [],
+    "sha256": {
+      "tools/native/generic.mjs": {
+        "expected": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+        "actual": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3"
+      }
+    }
+  },
+  "literalV5Fixtures": {
+    "files": 15,
+    "mismatches": [],
+    "sha256": {
+      "tests/admission/cases/v6/ordinary_domain_boundary.bend": {
+        "expected": "21b4a6ed20ff9f1866d46b350bcb8de4465369b185d0775f682db023a92f6c54",
+        "actual": "21b4a6ed20ff9f1866d46b350bcb8de4465369b185d0775f682db023a92f6c54"
+      },
+      "tests/admission/cases/v6/quantity_prefix.bend": {
+        "expected": "54ea9b55d924b2e1a0ecbe8cede2f3e41b545773ebae2b39fbd075d095f2098b",
+        "actual": "54ea9b55d924b2e1a0ecbe8cede2f3e41b545773ebae2b39fbd075d095f2098b"
+      },
+      "tests/admission/cases/v6/intern_self_preseed_control.bend": {
+        "expected": "253ab86db0a4c0a3f23ca5e78d92fac3615de1eb49a34a3bd9368aff0c2cac50",
+        "actual": "253ab86db0a4c0a3f23ca5e78d92fac3615de1eb49a34a3bd9368aff0c2cac50"
+      },
+      "tests/admission/cases/v6/ordinary_cases_equation.bend": {
+        "expected": "3b6197226d86abf90db90ab25a41984894ba20b7230bbd37109c91185c76beaa",
+        "actual": "3b6197226d86abf90db90ab25a41984894ba20b7230bbd37109c91185c76beaa"
+      },
+      "tests/admission/cases/v6/ordinary_reflexive_boundary.bend": {
+        "expected": "1aee616083fbde0cdad42559ed57662a4d66c8731d036757d58e7f18fb482ed2",
+        "actual": "1aee616083fbde0cdad42559ed57662a4d66c8731d036757d58e7f18fb482ed2"
+      },
+      "tests/admission/cases/v6/vacuous_open.bend": {
+        "expected": "dfcdc6302af78af24574da87dd289d5534ab0a202dbfd9f680bc1ea59f98c7e2",
+        "actual": "dfcdc6302af78af24574da87dd289d5534ab0a202dbfd9f680bc1ea59f98c7e2"
+      },
+      "tests/admission/cases/v6/ordinary_boundary_closed_control.bend": {
+        "expected": "e626ff11110b59f38bd28112c4bba74e04fa65cd8e3c9cd4c429a76003083d4a",
+        "actual": "e626ff11110b59f38bd28112c4bba74e04fa65cd8e3c9cd4c429a76003083d4a"
+      },
+      "tests/admission/cases/v6/ordinary_boundary_lambda_control.bend": {
+        "expected": "2c5a438a635e81b824b634f84a6f982af9faccb9911eef5b7bf7e671d921e4b9",
+        "actual": "2c5a438a635e81b824b634f84a6f982af9faccb9911eef5b7bf7e671d921e4b9"
+      },
+      "tests/admission/cases/v6/dependent_eta.bend": {
+        "expected": "d92e42201a76a90f3d80105ef86d60098f4184eb8671df41b3198a0bd015103f",
+        "actual": "d92e42201a76a90f3d80105ef86d60098f4184eb8671df41b3198a0bd015103f"
+      },
+      "tests/admission/cases/v6/dependent_local_let.bend": {
+        "expected": "4d6982e32cae77fb3a22d3d91fa60215146724ebb0c9f36efe0e160d993a628d",
+        "actual": "4d6982e32cae77fb3a22d3d91fa60215146724ebb0c9f36efe0e160d993a628d"
+      },
+      "tests/admission/cases/v6/intern_self_minimal.bend": {
+        "expected": "fc9f91c97412e5cc219d9ab6b1a297b3d282c15f90b2c8290c93cffe340d3bad",
+        "actual": "fc9f91c97412e5cc219d9ab6b1a297b3d282c15f90b2c8290c93cffe340d3bad"
+      },
+      "tests/admission/cases/v6/ordinary_boundary_nonrecursive.bend": {
+        "expected": "b600fe5358e7987aedaa8455ab0b0e9482726bc9fabde272ccdd622757c570da",
+        "actual": "b600fe5358e7987aedaa8455ab0b0e9482726bc9fabde272ccdd622757c570da"
+      },
+      "tests/admission/cases/v6/quantity_equation.bend": {
+        "expected": "ff8cfbf849ea988e6c818c4c636921910494eb4f7d7bb7f48ae35e3f7a147526",
+        "actual": "ff8cfbf849ea988e6c818c4c636921910494eb4f7d7bb7f48ae35e3f7a147526"
+      },
+      "tests/admission/cases/v6/conversion_nested.bend": {
+        "expected": "0043790475f6e22dab9feebecbe2f4ebd73381031fda8a9785e97a61baffe262",
+        "actual": "0043790475f6e22dab9feebecbe2f4ebd73381031fda8a9785e97a61baffe262"
+      },
+      "tests/admission/cases/v6/intern_self_proof.bend": {
+        "expected": "3be4cec2c2395f346ffbcfbb468d9ea2078c96376146b6d6471408f65e839e8e",
+        "actual": "3be4cec2c2395f346ffbcfbb468d9ea2078c96376146b6d6471408f65e839e8e"
+      }
+    }
+  },
+  "historicalArchives": {
+    "files": 6,
+    "mismatches": [],
+    "sha256": {
+      "tests/admission/checkpoints/resources_v1.tar.gz": {
+        "expected": "e4aad606cc9797befd4dae44ea09cca7d4afb763d27e6063fb5d246a0cb348c1",
+        "actual": "e4aad606cc9797befd4dae44ea09cca7d4afb763d27e6063fb5d246a0cb348c1"
+      },
+      "tests/admission/checkpoints/resources_v2.tar.gz": {
+        "expected": "bb9280e33ec0c71a10f9e232c998ac798e272d5d4829a396af4c29b5de959e6b",
+        "actual": "bb9280e33ec0c71a10f9e232c998ac798e272d5d4829a396af4c29b5de959e6b"
+      },
+      "tests/admission/checkpoints/resources_v3.tar.gz": {
+        "expected": "80ea97ee473afad0ea47dbed707d5b292c775b9e4a60dc7ebca2bd1b7d19746f",
+        "actual": "80ea97ee473afad0ea47dbed707d5b292c775b9e4a60dc7ebca2bd1b7d19746f"
+      },
+      "tests/admission/checkpoints/resources_v4.tar.gz": {
+        "expected": "86fc99d699d272f1236fc6af51c488695e6dab53c242eea8fb00c56a9f090079",
+        "actual": "86fc99d699d272f1236fc6af51c488695e6dab53c242eea8fb00c56a9f090079"
+      },
+      "tests/admission/checkpoints/resources_v5.tar.gz": {
+        "expected": "5b25af281096b44c682559c83c56d49a89c90b41ad964d1b30a0749531de5bba",
+        "actual": "5b25af281096b44c682559c83c56d49a89c90b41ad964d1b30a0749531de5bba"
+      },
+      "tests/admission/checkpoints/review_v5_literal.tar.gz": {
+        "expected": "1afcd9fbdec1cec348aa3cc650b1917e3ff7f2a6dfd83d24401c472a7fc0f69f",
+        "actual": "1afcd9fbdec1cec348aa3cc650b1917e3ff7f2a6dfd83d24401c472a7fc0f69f"
+      }
+    }
+  },
+  "status": "PASS"
+}

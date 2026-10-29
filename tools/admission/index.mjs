@@ -314,6 +314,7 @@ async function admit(options, kernelOnly) {
       verifierRunnerSha256: tc.info.verifierRunnerSha256,
       verifier: Object.freeze({ ...tc.info.verifier, fuel: state.verifier.fuel, attempts: state.verifier.attempts,
         modelFuel: state.verifier.modelFuel, modelAttempts: state.verifier.modelAttempts,
+        ...(state.verifier.correspondence?{correspondence:Object.freeze(state.verifier.correspondence)}:{}),
         schemas: Object.freeze(state.verifier.schemas), instances: Object.freeze(state.verifier.instances), inputSha256: state.verifier.inputSha256 }),
       instanceClosure: Object.freeze({ ...state.instanceClosure,
         created: Object.freeze(state.instanceClosure.created), sourceLinks: Object.freeze(state.instanceClosure.sourceLinks) }),

@@ -175,13 +175,18 @@ function admission_snapshot(book: Book): Book {
 function admission_source_links(e: Safe): void {
   for (const [k, expected] of ADMISSION_SOURCE_CLAIMS) {
     admission_deadline();
-    const T = e.book.tlds[k].T;
+    const def = e.book.tlds[k] as Def;
+    const T = def.T;
     const s = scope_nil();
+    // A closed literal root is transparent and already checks the physical
+    // .e. Name that exact root rather than serializing its large body twice
+    // in this equality. Recursive/function bodies retain direct comparison.
+    const literal = def.n === 0 && open(B.term_higher(def.e as B.LTerm))[0].$ === "Lit";
     const equality: O = { $: "Eql", T: term(e, s, T, false),
       // Compare the actual physical body itself. The kernel intentionally
       // keeps recursive references opaque in conversion, so eta(explicit Ref)
       // need not convert to its own lambda-match even for an unchanged body.
-      a: arg_term(e, s, B.term_higher((e.book.tlds[k] as Def).e as B.LTerm), T, false),
+      a: literal ? { $: "Ref", k: item_ref(e, k, [], true) } : arg_term(e, s, B.term_higher((e.book.tlds[k] as Def).e as B.LTerm), T, false),
       b: arg_term(e, s, B.term_higher(expected), T, false) };
     const payload: O = { $: "Ann", x: { $: "Rfl" }, T: equality };
     e.out.push([fresh(e, name_tt(k) + ".source_link"), UT, { $: "Let", q: 0, l: 0, v: payload, f: UV }, false]);

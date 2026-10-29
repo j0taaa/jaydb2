@@ -2,8 +2,9 @@
 """Host launcher: growing OS stack and V8 limits above reachable resources.
 
 The Linux x86_64 / 4 KiB deployment domain is checked explicitly. No address
-space limit is installed. The caller still enforces the original public
-deadline and aggregate allocated bytes for this whole process tree.
+space limit is installed. Optional launcher memory settings are development
+controls; the active contract contains only the three logical message, state
+and response sizes and imposes no physical memory or time quota.
 """
 import argparse
 import json

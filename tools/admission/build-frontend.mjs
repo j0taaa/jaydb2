@@ -13,22 +13,29 @@ import { adaptSafeNumerals } from './safe-numerals.mjs';
 import { adaptSafeStrings } from './safe-strings.mjs';
 import { adaptSafeTemplates } from './safe-templates.mjs';
 import { internEquivalentInstances } from './instance-keys.mjs';
+import { canonicalTypes } from './safe-canonical.mjs';
+import { adaptSafeState } from './safe-state.mjs';
 
 const here = fileURLToPath(new URL('./', import.meta.url));
 const hash = b => createHash('sha256').update(b).digest('hex');
 const lock = JSON.parse(fs.readFileSync(new URL('./toolchain.lock.json', import.meta.url)));
-export const transforms = ['frontend-observer.mjs', 'conversion.mjs', 'frontend-resources.mjs', 'safe-numerals.mjs', 'safe-strings.mjs', 'safe-templates.mjs', 'closed-instances.mjs', 'book-graph.mjs', 'instance-keys.mjs'];
+export const transforms = ['frontend-observer.mjs', 'conversion.mjs', 'frontend-resources.mjs', 'safe-numerals.mjs', 'safe-strings.mjs', 'safe-templates.mjs', 'closed-instances.mjs', 'book-graph.mjs', 'instance-keys.mjs', ...fs.readdirSync(here).filter(f=>f.startsWith('structural-')&&f.endsWith('.mjs')).sort(), 'template-affected.mjs', 'safe-canonical.mjs', 'safe-state.mjs', 'safe-routing.mjs'];
 
 export async function buildFrontend(sourceDir = path.resolve(here, '../../.tools/bend-source-' + lock.version)) {
   const installed = path.join(here, 'installed');
   fs.mkdirSync(installed, { recursive: true });
   const files = {};
-  for (const name of ['bend', 'safe', 'comp']) {
-    const original = fs.readFileSync(path.join(sourceDir, 'bend2', name + '.ts'));
-    if (hash(original) !== lock.files['bend2/' + name + '.ts']) throw new Error('Pinned frontend source mismatch: ' + name);
+  for (const name of ['bend', 'safe', 'safe-structural', 'comp']) {
+    const originalName=name==='safe-structural'?'safe':name;
+    const original = fs.readFileSync(path.join(sourceDir, 'bend2', originalName + '.ts'));
+    if (hash(original) !== lock.files['bend2/' + originalName + '.ts']) throw new Error('Pinned frontend source mismatch: ' + name);
     let source = original.toString('utf8');
     if (name === 'bend') source = internEquivalentInstances(uncapTemplates(preserveRigidSubterms(instrumentFrontend(source))));
-    if (name === 'safe') source = adaptSafeTemplates(adaptSafeStrings(adaptSafeNumerals(source)));
+    if (originalName === 'safe') {
+      source=adaptSafeTemplates(adaptSafeStrings(adaptSafeNumerals(source)));
+      if(name==='safe-structural')source=canonicalTypes(source);
+      source=adaptSafeState(source,{canonical:name==='safe-structural'});
+    }
     const js = stripTypeScriptTypes(source, { mode: 'transform' });
     fs.writeFileSync(path.join(installed, name + '.mjs'), js);
     files[name + '.mjs'] = hash(js);

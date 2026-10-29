@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import child from 'node:child_process';
-import { validateVerifier, checkKernelFile, VerifierInfrastructure } from '../../tools/verifier/check.mjs';
+import { validateVerifier, checkBook, checkKernelFile, VerifierInfrastructure } from '../../tools/verifier/check.mjs';
 
 const info = validateVerifier();
 function input(t, text) {
@@ -79,4 +79,12 @@ test('provas genéricas mantêm os axiomas da fonte oficial', () => {
     assert.ok(info.proofLog.includes(`'${theorem}' depends on axioms: [propext, Classical.choice, Quot.sound]`));
   }
   assert.doesNotMatch(info.proofLog, /sorryAx/);
+});
+
+// An incomplete representation is a technical result before a kernel verdict;
+// it must not be reported as the absence of a supplied certificate.
+test('tradução sem representação é infraestrutura e não um veredito matemático', () => {
+  const unsupported = {admission_safe_emit() {return {oos:['unsupported typed representation'],schemas:[],instances:[]};},
+    SafeResourceExhausted:class extends Error {},SafeDeadlineExceeded:class extends Error {}};
+  assert.throws(() => checkBook(unsupported, {}, info),e => e instanceof VerifierInfrastructure && /representation unsupported/.test(e.message));
 });

@@ -1,0 +1,314 @@
+import {V,R,UV,tuple,lam,app,apps,bind,ann,eq,rfl,let1,rwt,split} from './structural-syntax.mjs';
+import {bound,family} from './structural-relations.mjs';
+
+// Typed composition over checked .e. Unsupported syntax fails technically;
+// it never supplies a substitute witness or bypasses a physical guard.
+export class Bodies {
+  constructor(source,relations) {
+    this.source=source;this.gen=relations;this.B=source.B;this.book=source.book;this.functions=new Map();this.sequence=0;
+    relations.sourceValue=(x,env,expected)=>this.expression(x.expected===null?x.term:this.B.Ann(x.term,x.expected),env,x.context,expected);
+  }
+  open(t) { let T=null;t=this.B.term_force(t);while(t.$==='Ann'){T??=this.B.term_force(t.T);t=this.B.term_force(t.x);}return {x:t,T}; }
+  reference(key) {
+    const old=this.functions.get(key);if(old!==undefined)return old;
+    const d=this.book.tlds[key];
+    if(d?.$!=='Def'||d.e===undefined||d.x!==0)throw Error('A checked ordinary source body is required: '+key);
+    const type=this.source.type(d.T),p=R(this.source.name(key)),l=p,r=R(this.gen.prefix+'.Function.'+this.source.name(key)+'.evaluate');
+    const record={p,l,r,type,key};this.functions.set(key,record);
+    const plan=this.gen.plan(type),T=plan.relation(p,l);
+    let b;
+    if(this.scalarTelescope(type))b=this.liftScalars(record);
+    else b=this.functionBody(this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
+    this.gen.emit(r.k,T,b);
+    return record;
+  }
+  scalarTelescope(T) {
+    while(T.tag==='arrow') {
+      if(T.q===0||T.A.tag!=='scalar')return false;
+      T=T.B;
+    }
+    return T.tag==='scalar';
+  }
+  liftScalars(f) {
+    let T=f.type;const bs=[],xs=[],env=new Map();
+    while(T.tag==='arrow') {
+      const A=this.gen.plan(T.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
+      bs.push([0,p,A.p],[0,l,A.l],[T.q,r,A.relation(V(p),V(l))]);
+      const x={p:V(p),l:V(l),r:V(r),type:T.A,q:T.q};xs.push(x);env.set(T.key,x);T=T.B;
+    }
+    const result=this.gen.plan(T,env),y=this.gen.fresh();
+    const slots=xs.map(x=>({...x,y:this.gen.fresh(),ep:this.gen.fresh(),el:this.gen.fresh()}));
+    const call=args=>apps(f.p,args.map((x,i)=>[xs[i].q,x]));
+    const ys=slots.map(x=>V(x.y));
+    const proof=side=>{
+      let e=rfl,current=[...ys];
+      for(let i=0;i<slots.length;i++) {
+        const z=this.gen.fresh(),next=[...current];next[i]=V(z);
+        e=rwt(V(slots[i][side==='p'?'ep':'el']),z,eq(V(y),call(next),result.p),e);
+        current[i]=slots[i][side];
+      }
+      return e;
+    };
+    let body=let1(y,call(ys),tuple([[1,V(y)],[1,proof('p')],[1,proof('l')]]));
+    for(let i=slots.length-1;i>=0;i--) {
+      const x=slots[i];body=app(split([[2,x.y],[2,x.ep],[2,x.el]],body),x.r);
+    }
+    return bind('Lam',bs,body);
+  }
+  liftSharedEvaluator(type,physical,logical,evaluator,env=new Map()) {
+    if(!this.scalarTelescope(type))throw Error('A shared scalar evaluator telescope is required in this structural bridge');
+    let T=type;const bs=[],xs=[];
+    while(T.tag==='arrow') {
+      const A=this.gen.plan(T.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
+      bs.push([0,p,A.p],[0,l,A.l],[T.q,r,A.relation(V(p),V(l))]);
+      xs.push({p:V(p),l:V(l),r:V(r),q:T.q,y:this.gen.fresh(),ep:this.gen.fresh(),el:this.gen.fresh()});T=T.B;
+    }
+    const result=this.gen.plan(T,env),z=this.gen.fresh(),ep=this.gen.fresh(),el=this.gen.fresh();
+    const ys=xs.map(x=>V(x.y));
+    const call=(head,args)=>apps(head,args.map((x,i)=>[xs[i].q,x]));
+    const proof=side=>{
+      let evidence=V(side==='p'?ep:el),current=[...ys];
+      for(let i=0;i<xs.length;i++) {
+        const endpoint=this.gen.fresh(),next=[...current];next[i]=V(endpoint);
+        evidence=rwt(V(xs[i][side==='p'?'ep':'el']),endpoint,eq(V(z),call(side==='p'?physical:logical,next),result.p),evidence);
+        current[i]=xs[i][side];
+      }
+      return evidence;
+    };
+    let b=tuple([[1,V(z)],[1,proof('p')],[1,proof('l')]]);
+    const once=this.gen.fresh();
+    b=let1(once,call(evaluator,ys),app(split([[2,z],[2,ep],[2,el]],b),V(once)));
+    for(let i=xs.length-1;i>=0;i--) {
+      const x=xs[i];b=app(split([[2,x.y],[2,x.ep],[2,x.el]],b),x.r);
+    }
+    return {p:physical,l:logical,r:ann(bind('Lam',bs,b),this.gen.plan(type,env).relation(physical,logical)),type};
+  }
+  functionBody(body,sourceType,type,env,ctx,physical,logical) {
+    const {x}=this.open(body);
+    if(type.tag!=='arrow') {
+      const value=this.expression(body,env,ctx,type);
+      return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
+    }
+    const F=this.B.term_wnf(this.book,sourceType);
+    if(F.$!=='All')throw Error('Source and relation telescope disagree');
+    const A=this.gen.plan(type.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
+    const arg={p:V(p),l:V(l),r:V(r),type:type.A,q:type.q,expression:bound(type.key)};
+    const e=new Map(env);e.set(type.key,arg);
+    const opened=this.source.open(F,ctx,type.key),cctx=opened.ctx;
+    if(x.$==='Lam')cctx.set(x.i,type.key);
+    const nextSource=F.B(opened.v),pp=app(physical,this.gen.eta(type.A,V(p)),type.q),ll=app(logical,this.gen.eta(type.A,V(l)),type.q);
+    let b;
+    if(x.$==='Lam')b=this.functionBody(x.f(opened.v),nextSource,type.B,e,cctx,pp,ll);
+    else if((x.$==='Mat'||x.$==='Efq'&&this.gen.families.get(type.A.key)?.constructors.length===0)&&type.A.tag==='family') {
+      const familyPlan=this.gen.plan(type.A,env),g=familyPlan.family;
+      const familyEnv=new Map(e);
+      g.definition.parameters.forEach((p,i)=>familyEnv.set(p.key,familyPlan.values[i]));
+      const motive=(p,l,r)=>{
+        const t=new Map(e);t.set(type.key,{...arg,p,l,r});
+        return this.gen.plan(type.B,t).relation(app(physical,this.gen.eta(type.A,p),type.q),app(logical,this.gen.eta(type.A,l),type.q));
+      };
+      const eliminator=this.gen.eliminate(g,familyEnv,V(p),V(l),motive,(ctor,fields)=>{
+        let branch=x;
+        while(branch.$==='Mat'&&branch.k!==ctor.key)branch=this.open(branch.m).x;
+        const defaultBranch=branch.$!=='Mat';
+        if(defaultBranch&&branch.$!=='Lam')throw Error('A source-tree branch must be an explicit arm or checked default binder');
+        let h=defaultBranch?null:branch.h,fieldSource=this.book.ctrs[ctor.key].T;
+        const domain=this.B.term_wnf(this.book,F.A);
+        fieldSource=this.B.tele_fill(this.book,fieldSource,domain.x,this.B.ctx_nil());
+        let fctx=new Map(cctx),fenv=new Map(fields.env);const sourceFields=[];
+        const cp=this.gen.construct(ctor,fields.records,'p'),cl=this.gen.construct(ctor,fields.records,'l');
+        const packet=tuple(fields.records.flatMap(r=>[[0,r.p],[0,r.l],[r.q,r.r]]));
+        const rv=tuple([[1,{$:'Lab',k:ctor.kernel}],[1,packet],[1,rfl],[1,rfl]]);
+        fenv.set(type.key,{...arg,p:cp,l:cl,r:rv});
+        for(let i=0;i<ctor.fields.length;i++) {
+          const H=this.B.term_wnf(this.book,fieldSource),node=defaultBranch?null:this.open(h).x;
+          if(H.$!=='All')throw Error('Structural constructor field lacks its checked All');
+          if(!defaultBranch&&node.$!=='Lam')return this.caseFieldBranch(branch.h,ctor,F,physical,logical,env,cctx,fields);
+          const localKey='pattern.'+this.sequence++,fieldType=this.source.type(H.A,fctx);
+          const v=this.source.open(H,fctx,localKey);fctx=v.ctx;
+          if(!defaultBranch)fctx.set(node.i,localKey);
+          sourceFields.push(v.v);
+          fenv.set(localKey,{...fields.records[i],type:fieldType,expression:bound(localKey)});
+          if(!defaultBranch)h=node.f(v.v);fieldSource=H.B(v.v);
+        }
+        if(defaultBranch){fctx.set(branch.i,type.key);h=branch.f(this.B.Ctr(ctor.key,sourceFields));}
+        const branchSource=F.B(this.B.Ctr(ctor.key,sourceFields));
+        // Dependent domains must be read after substituting this actual
+        // constructor. Word(n), for example, exposes a different datatype in
+        // each Nat branch. Retaining the pre-branch opaque application loses
+        // exactly the source checker's dependent reduction.
+        const branchType=this.specializeType(branchSource,fctx,type.B,fenv);
+        return this.functionBody(h,branchSource,branchType,fenv,fctx,app(physical,cp,type.q),app(logical,cl,type.q));
+      });
+      b=app(eliminator,V(r),type.q);
+    } else if(x.$!=='Mat'&&x.$!=='Efq') {
+      // A returned or partially applied function already has a pointwise
+      // representation. Conversion checks its applications; no function
+      // equality or duplicate execution is introduced.
+      const value=this.expression(body,env,ctx,type);
+      return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
+    } else throw Error('Structural function body not implemented: '+x.$+' over '+type.A.tag);
+    return bind('Lam',[[0,p,A.p],[0,l,A.l],[type.q,r,A.relation(V(p),V(l))]],b);
+  }
+  specializeType(sourceType,ctx,prior,env){return this.source.type(sourceType,ctx);}
+  caseFieldBranch(body,ctor,F,physical,logical,env,ctx,fields){
+    const B=this.B,gen=this.gen,domain=B.term_wnf(this.book,F.A),base=B.tele_fill(this.book,this.book.ctrs[ctor.key].T,domain.x,B.ctx_nil());
+    const goal=(T,j,xs)=>{
+      if(j===ctor.fields.length)return F.B(B.Ctr(ctor.key,xs));
+      const H=B.term_wnf(this.book,T),q=H.q.$==='None'?B.None():H.q.$==='Many'?B.Many():F.q;
+      return B.All(q,H.k,H.i,H.A,x=>goal(H.B(x),j+1,[...xs,x]));
+    };
+    const T=goal(base,0,[]),type=this.source.type(T,ctx);
+    const raw=(side,U,records,bindings)=>{
+      if(records.length===ctor.fields.length)return bind('Lam',bindings,app(side==='p'?physical:logical,gen.construct(ctor,records,side),this.source.q(F.q)));
+      const v=gen.fresh(),r={p:V(v),l:V(v),type:U.A};
+      return raw(side,U.B,[...records,r],[...bindings,[U.q,v]]);
+    };
+    const p=raw('p',type,[],[]),l=raw('l',type,[],[]);
+    let result=this.functionBody(body,T,type,new Map(env),new Map(ctx),p,l),U=type;
+    const ops=this.safe?.state.admissionViewOps;
+    const use=(f,x,q)=>{
+      // Expose the actual subfield to the original descent guard. This is
+      // ordinary capture-avoiding beta reduction of generated code, not a new
+      // descent rule and not an edit of the original physical .e.
+      if(f.$==='Lam'&&ops)return ops.sub(f.f,f.l,x);
+      return app(f,x,q);
+    };
+    for(const field of fields.records){result=use(use(use(result,field.p,0),field.l,0),field.r,U.q);U=U.B;}
+    return result;
+  }
+  expression(t,env,ctx,expected) {
+    return {...this.expressionValue(t,env,ctx,expected),sourceTerm:t,sourceContext:new Map(ctx)};
+  }
+  expressionValue(t,env,ctx,expected) {
+    const {x,T}=this.open(t);
+    if(x.$==='Var') {
+      const key=ctx.get(x.i),record=env.get(key);
+      if(record===undefined)throw Error('Unbound checked source value '+x.i);
+      return record;
+    }
+    if(x.$==='Ref') {
+      if(this.book.tlds[x.k]?.$==='ADT') {
+        const expression={tag:'type',T:this.source.type(x,ctx)};
+        return {...this.gen.value(expression,env),expression};
+      }
+      return this.reference(x.k);
+    }
+    if(x.$==='Lit') {
+      if(x.k!=='Nat')return this.expression(this.B.Ann(this.B.lit_step(x),T??this.B.Ref(x.k)),env,ctx,expected);
+      const v=this.source.value(x,T,ctx);return {...this.gen.value(v,env),expression:v};
+    }
+    if(x.$==='Rfl') {
+      const type=T===null?expected:this.source.type(T,ctx);
+      if(type===undefined)throw Error('Reflexivity needs its original checked proposition');
+      if(type.tag!=='identity')throw Error('Reflexivity needs an identity type');
+      return {p:rfl,l:rfl,r:tuple(Array.from({length:5},()=>[1,rfl])),type};
+    }
+    if(x.$==='Qua'||x.$==='Min'){
+      const expression=this.source.value(x,this.B.Qnt(),ctx);return {...this.gen.value(expression,env),expression};
+    }
+    if(x.$==='Typ'||x.$==='All'||x.$==='ADT'||x.$==='Eql'||x.$==='Qnt') {
+      const expression={tag:'type',T:this.source.type(x,ctx)};
+      return {...this.gen.value(expression,env),expression};
+    }
+    if(x.$==='Rwt')return this.rewrite(x,T,env,ctx);
+    if(x.$==='Ctr') {
+      if(T===null){if(!expected)throw Error('A constructor needs its checked annotation');return this.expression(this.B.Ann(x,this.source.originalType(expected,env,ctx)),env,ctx,expected);}
+      const type=this.source.type(T,ctx);
+      if(type.tag!=='family')throw Error('Structural scalar constructor construction needs its separate scalar lifting');
+      const plan=this.gen.plan(type,env),values=[];
+      const A=this.B.term_wnf(this.book,T);let fieldT=this.B.tele_fill(this.book,this.book.ctrs[x.k].T,A.x,this.B.ctx_nil());
+      for(const field of x.x){const F=this.B.term_wnf(this.book,fieldT);values.push(this.expression(this.B.Ann(field,F.A),env,ctx));fieldT=F.B(field);}
+      const result=this.gen.constructorValue(type.key,x.k,values,plan.values);result.type=type;
+      return result;
+    }
+    if(x.$==='Lam') {
+      if(T===null){if(!expected)throw Error('A lambda needs its checked annotation');return this.expression(this.B.Ann(x,this.source.originalType(expected,env,ctx)),env,ctx,expected);}
+      const type=this.source.type(T,ctx),p=this.render(t,T,'p',env,ctx),l=this.render(t,T,'l',env,ctx);
+      return {p,l,r:ann(this.functionBody(t,T,type,env,ctx,p,l),this.gen.plan(type,env).relation(p,l)),type};
+    }
+    if(x.$==='Let') {
+      const values=x.v.map(v=>this.expression(v,env,ctx)),e=new Map(env),c=new Map(ctx),vars=[],bindings=[];
+      for(let i=0;i<values.length;i++) {
+        const key='local.'+this.sequence++,id=this.source.depth++,v=this.B.Var(x.k[i],id),r=this.gen.fresh();
+        const record={...values[i],r:V(r),expression:bound(key)};
+        e.set(key,record);c.set(id,key);c.set(x.i[i],key);vars.push(v);bindings.push([this.source.q(x.q[i]),r,values[i]]);
+      }
+      const result=this.expression(x.f(vars),e,c);let r=result.r;
+      for(let i=bindings.length-1;i>=0;i--) {
+        const [q,l,value]=bindings[i],T=this.gen.plan(value.type,env).relation(value.p,value.l);
+        r={$:'Let',q,l,v:ann(value.r,T),f:r};
+      }
+      return {...result,r};
+    }
+    if(x.$==='App') {
+      const f=this.expression(x.f,env,ctx);let a=this.expression(x.x,env,ctx,f.type.A);
+      if(a.expression===undefined){
+        const key='argument.'+this.sequence++;
+        a={...a,expression:bound(key)};env.set(key,a);
+      }
+      const record=this.gen.application(f,a,env);
+      // This local semantic name is not a Book instance or a numerical
+      // specialization. It only binds the typed argument under substitution.
+      const key='expression.'+this.sequence++;
+      env.set(key,record);record.expression=bound(key);
+      return record;
+    }
+    throw Error('Structural source expression not implemented: '+x.$);
+  }
+  render(t,sourceType,side,env,ctx) {
+    const {x,T}=this.open(t),U=T??sourceType;
+    if(x.$==='Var') {
+      const value=env.get(ctx.get(x.i));if(value===undefined)throw Error('Unbound rendering source level '+x.i);
+      return value[side];
+    }
+    if(x.$==='Ref')return R(this.source.name(x.k));
+    if(x.$==='Typ'||x.$==='All'||x.$==='ADT'||x.$==='Eql'||x.$==='Qnt')return this.gen.plan(this.source.type(x,ctx),env)[side];
+    if(x.$==='Qua'||x.$==='Min')return this.gen.value(this.source.value(x,this.B.Qnt(),ctx),env)[side];
+    if(x.$==='Lit')return x.k==='Nat'?this.gen.value(this.source.value(x,U,ctx),env)[side]:this.render(this.B.Ann(this.B.lit_step(x),U??this.B.Ref(x.k)),U,side,env,ctx);
+    if(x.$==='Ctr'){
+      const A=this.B.term_wnf(this.book,U),type=this.source.type(U,ctx),descriptor=this.source.families.get(type.key),ctor=descriptor.constructors.find(c=>c.key===x.k),values=[];
+      let T=this.B.tele_fill(this.book,this.book.ctrs[x.k].T,A.x,this.B.ctx_nil());
+      for(const field of x.x){const F=this.B.term_wnf(this.book,T),type=this.source.type(F.A,ctx),value=this.gen.eta(type,this.render(this.B.Ann(field,F.A),F.A,side,env,ctx));values.push(value);T=F.B(field);}
+      return {$:'Tup',q:1,a:{$:'Lab',k:ctor.kernel},b:tuple(values.map((v,i)=>[ctor.fields[i].q,v]))};
+    }
+    if(x.$==='Lam') {
+      const F=this.B.term_wnf(this.book,U);if(F.$!=='All')throw Error('A rendered lambda needs a checked function type');
+      const key='render.'+this.sequence++,opened=this.source.open(F,ctx,key),v=this.gen.fresh(),e=new Map(env);
+      opened.ctx.set(x.i,key);
+      e.set(key,{p:V(v),l:V(v),r:V(this.gen.fresh()),type:this.source.type(F.A,ctx)});
+      return lam(this.source.q(F.q),v,this.render(x.f(opened.v),F.B(opened.v),side,e,opened.ctx));
+    }
+    if(x.$==='App') {
+      const ft=this.open(x.f).T??this.source.value(x.f,null,ctx).sourceType;if(ft===undefined||ft===null)throw Error('An application needs its checked callee type');
+      const F=this.B.term_wnf(this.book,ft);if(F.$!=='All')throw Error('A checked application needs an All');
+      let f=this.render(x.f,ft,side,env,ctx);
+      if(!['Var','Ref','App','Ann'].includes(f.$))f=ann(f,this.gen.plan(this.source.type(ft,ctx),env)[side]);
+      return app(f,this.render(x.x,F.A,side,env,ctx),this.source.q(F.q));
+    }
+    throw Error('Structural erased expression rendering not implemented: '+x.$);
+  }
+  rewrite(x,T,env,ctx) {
+    if(T===null)throw Error('Equality elimination needs its checked result type');
+    const evidence=this.expression(x.e,env,ctx);
+    if(evidence.type.tag!=='identity')throw Error('J needs represented identity evidence');
+    const motive=this.expression(x.p,env,ctx),base=this.expression(x.f,env,ctx);
+    const Id=evidence.type,A=this.gen.plan(Id.A,env),ar=this.gen.value(Id.a,env),br=this.gen.value(Id.b,env);
+    const mq=motive.type.q,hq=motive.type.B.q;
+    const ap=this.gen.eta(Id.A,ar.p),al=this.gen.eta(Id.A,ar.l),bp=this.gen.eta(Id.A,br.p),bl=this.gen.eta(Id.A,br.l);
+    const pCarrier=eq(ap,bp,A.p),lCarrier=eq(al,bl,A.l);
+    const J=(side,b,proof)=>{
+      const z=this.gen.fresh(),carrier=eq(side==='p'?ap:al,b,A[side]);
+      return rwt(ann(proof,carrier),z,apps(motive[side],[[mq,V(z)],[hq,V(z+1)]]),base[side]);
+    };
+    const p=J('p',bp,evidence.p),l=J('l',bl,evidence.l);
+    const mp=this.gen.fresh(),ml=this.gen.fresh(),mr=this.gen.fresh(),ep=this.gen.fresh(),el=this.gen.fresh(),er=this.gen.fresh();
+    const P=bind('Lam',[[0,mp],[0,ml],[0,mr],[0,ep],[0,el],[0,er]],
+      apps(motive.r,[[0,V(mp)],[0,V(ml)],[mq,V(mr)],[0,V(ep)],[0,V(el)],[hq,V(er)],
+        [0,J('p',V(mp),V(ep))],[0,J('l',V(ml),V(el))]]));
+    const rp=this.gen.fresh(),rl=this.gen.fresh(),RT=lam(0,rp,lam(0,rl,A.relation(V(rp),V(rl))));
+    const r=apps(R(this.gen.prefix+'.Equality.induct'),[[0,A.p],[0,A.l],[0,RT],[0,ap],[0,al],[0,ar.r],
+      [0,P],[1,base.r],[0,bp],[0,bl],[0,br.r],[0,evidence.p],[0,evidence.l],[1,evidence.r]]);
+    return {p,l,r,type:this.source.type(T,ctx)};
+  }
+}

@@ -36,6 +36,7 @@ node_modules/
 /tests/native/review_accounted*/
 /tests/*/checkpoints/*.tar.gz
 /tests/service/evidence/
+/tests/admission/evidence/**/*.tar.gz
 /tests/native/evidence/*
 
 # Immutable source fixtures required by the active native test suite.

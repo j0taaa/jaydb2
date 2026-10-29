@@ -1,5 +1,10 @@
 # Admissão Bend 2.0.39
 
+O contrato ativo possui três limites de tamanho: mensagem, estado e resposta.
+Memória e tempos físicos não são requisitos da API. O desenho da correspondência
+V6 e suas limitações técnicas estão em [CORRESPONDENCE.md](CORRESPONDENCE.md).
+A integração funcional não constitui prova de generalidade total ou das oito leis.
+
 API Node 24.19 sem dependências npm. As fontes oficiais do diretório externo são
 conferidas por hash. A transformação TypeScript do próprio Node é feita offline
 por `node tools/admission/build-frontend.mjs --write-lock`; a admissão carrega os
@@ -192,20 +197,16 @@ cujos demais dados já estão imutáveis. A emissão repetida reutiliza o mesmo 
 Os protótipos globais JS não são congelados: uma mudança posterior neles é
 recusada pelo selo antes de retornar ou gerar C, inclusive na emissão repetida.
 
-O host deve iniciar cada processo público pelo launcher de recursos:
+O launcher instalado usa stack Linux expansível e a API nativa de stack do V8:
 
 ```sh
-python3 -B tools/admission/run.py --resources-json compiler-resources.json -- node tools/service/compile.mjs ...
+python3 -B tools/admission/run.py -- node tools/service/compile.mjs ...
 ```
 
-`compiler_memory_bytes` no JSON é uma string decimal de tamanho arbitrário.
-`--memory-bytes DECIMAL` também está disponível. O launcher usa stack Linux
-expansível e o endereço mínimo de usuário na API nativa do V8; não usa o flag
-`--stack_size`, cuja multiplicação interna transborda para orçamentos de 4 GiB.
-O processo principal mantém o deadline original e mede as alocações de toda a
-árvore. O launcher não instala limite de espaço virtual nem reduz o orçamento
-por uma fração. Detalhes, domínio físico e artefatos de confiança estão em
-[tools/verifier/README.md](../verifier/README.md).
+As opções `--memory-bytes` e `--resources-json` continuam disponíveis para
+experimentos externos; são opcionais e não pertencem ao contrato ativo. Não há
+monitor obrigatório de memória ou deadline do serviço. O launcher não usa
+`--stack_size`, cuja aritmética interna transbordava para 4 GiB.
 
 `emitC(admitted)` passa **esse mesmo Book** a `compile_book`. Um selo estrutural
 recusa alterações feitas pelo chamador entre checagem e emissão. O compilador
@@ -362,7 +363,8 @@ nativos e associa explicitamente os CIDs do namespace admitido.
 O Safe oficial decompõe literais Nat grandes em `q * NAT_MAX + r`, mas o bloco
 unário padrão de 4096 causa `RangeError: Maximum call stack size exceeded` no
 Node (`term_higher → Safe.term → arg_term → ctr_term → term`). Isso foi reproduzido
-com memória `536870912n` e tempos `Nat.mul(120n, 1000000000n)` do staging real.
+na configuração histórica de memória/tempos. A regressão ativa usa tamanhos
+lógicos e conserva testes independentes de numerais grandes.
 
 `safe-numerals.mjs` muda em memória somente `NAT_MAX = 4096` para `128`, com
 âncora exata na fonte oficial fixada. A decomposição aritmética é a mesma, os
@@ -387,7 +389,7 @@ somente na raiz; comparar duas cópias de uma expressão como `Nat.mul(120n,
 O adaptador reutiliza o próprio julgamento rígido, sem acrescentar equações ou
 primitivas. O mesmo BendTT independente continua verificando a derivação inteira.
 Seu hash `conversionSha256` integra a identidade da toolchain. Os testes de
-regressão verificam um certificado de sucesso com limites reais e recusam suas
+regressão verificam um certificado de sucesso com tamanhos lógicos e recusam suas
 mutações de valor e programa. Exaustão da pilha do frontend é infraestrutura,
 separada de uma prova que o checker demonstrou incorreta.
 
@@ -444,9 +446,9 @@ dos módulos do host. Um estado real não deve ser reificado em bibliotecas púb
 ou exports públicos; a API barra capturas de símbolos privados, mas não reconhece
 um segredo que o próprio host decidiu tornar público.
 
-A verificação é síncrona no processo Node e o kernel é um subprocesso. Ainda cabe
-ao controlador impor os limites físicos de tempo/memória em um processo isolado e
-classificar limites/falhas no protocolo. Um erro de infraestrutura do BendTT é
-separado de uma prova recusada; nenhum deles produz um Book admitido. Uma construção
-que o próprio BendTT reporta fora de seu escopo é recusada com seu diagnóstico,
-sem alegar uma prova que esse kernel não verificou.
+A verificação é síncrona no processo Node e o kernel é um subprocesso. Opções
+`verification` são controles de desenvolvimento opcionais, com o mesmo prazo
+entre tentativas quando fornecido. Uma limitação de tradução é infraestrutura;
+não demonstra inexistência de certificado. Não se tenta outro payload após uma
+recusa matemática de um guard. Veja [CORRESPONDENCE.md](CORRESPONDENCE.md) para
+as representações ainda não implementadas e a obrigação operacional de Stringmax.

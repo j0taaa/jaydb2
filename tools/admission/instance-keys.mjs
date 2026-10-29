@@ -14,7 +14,7 @@ export function admission_instance(book: Book, name: Name, xs: HTerm[]): Name | 
   if (exact !== undefined) return exact;
   for (const [encoded, physical] of variants) {
     const def = book.tlds[physical];
-    if (def?.$ !== "Def" || def.x !== 0) continue;
+    if (def?.$ !== "Def" || def.x !== 0 || def.v === null || def.e === undefined) continue;
     const prior = encoded.split("\\n").map(a => term_higher(JSON.parse(a) as LTerm));
     if (prior.length === xs.length && xs.every((x, i) => term_compare("EQ", book, x, prior[i]))) {
       return physical;

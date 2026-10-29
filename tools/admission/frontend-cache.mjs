@@ -13,7 +13,7 @@ export function loadFrontendCache() {
     if (hash(fs.readFileSync(new URL(name, import.meta.url))) !== pin[key]) throw new Error('Frontend installation pin mismatch: ' + name);
   }
   const sources = {};
-  for (const name of ['bend', 'safe', 'comp', 'generic']) {
+  for (const name of ['bend', 'safe', 'safe-structural', 'comp', 'generic']) {
     const js = fs.readFileSync(new URL('./installed/' + name + '.mjs', import.meta.url));
     if (hash(js) !== pin.files[name + '.mjs']) throw new Error('Frontend compiled artifact pin mismatch: ' + name);
     sources[name] = js.toString('utf8');

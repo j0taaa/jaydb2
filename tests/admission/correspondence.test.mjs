@@ -181,7 +181,7 @@ test('igualdade direta chama o mesmo físico de main, inclusive depois de mutaç
   const positive = rawBook(B, code);
   assert.equal(verify(S, positive, info).why, null);
   const name = [...positive.tmps.inner.values()].find(k => positive.tlds[k]);
-  assert.equal(B.term_lower(positive.tlds.direct.T).a.k, name);
+  assert.ok(B.term_compare('EQ', positive, B.term_wnf(positive, positive.tlds.direct.T).a, B.Ref(name)), 'erased source indices preserve original conversion without requiring textual physical heads');
   const text = path.join(f.root, 'closed.bendtt');
   S.admission_safe_emit(positive, text);
   assert.doesNotMatch(fs.readFileSync(text, 'utf8'), /^inner\.q/m, 'closed calls cannot receive a separate logical specialization');

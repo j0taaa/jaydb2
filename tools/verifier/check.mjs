@@ -111,13 +111,13 @@ export function checkBook(S, book, info, options = {}) {
         emitted = S.admission_safe_emit(book, input, { modelFuel: budget.toString(), deadlineNs: options.deadlineNs });
         break;
       } catch (error) {
-        if (error instanceof S.SafeDeadlineExceeded) throw new VerifierDeadline(error.message, { cause: error });
+        if (error instanceof S.SafeDeadlineExceeded || error?.code === 'HOST_VERIFICATION_DEADLINE') throw new VerifierDeadline(error.message, { cause: error });
         if (!(error instanceof S.SafeResourceExhausted)) throw error;
         budget *= 2n;
       }
     }
-    const model = { modelFuel: emitted.modelFuel ?? budget.toString(), modelAttempts: emitted.modelAttempts ?? modelAttempts.toString(), schemas: emitted.schemas, instances: emitted.instances };
-    if (emitted.oos.length) return { why: 'BendTT: out of scope:\n' + emitted.oos.join(''), attempts: '0', fuel: '0', ...model };
+    const model = { modelFuel: emitted.modelFuel ?? budget.toString(), modelAttempts: emitted.modelAttempts ?? modelAttempts.toString(), schemas: emitted.schemas, instances: emitted.instances, ...(emitted.correspondence?{correspondence:emitted.correspondence}:{}) };
+    if (emitted.oos.length) throw new VerifierInfrastructure('BendTT representation unsupported:\n' + emitted.oos.join(''));
     return { ...checkKernelFile(input, info, options), ...model, inputSha256: sha256(fs.readFileSync(input)) };
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 }

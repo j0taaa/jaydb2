@@ -1,0 +1,5 @@
+{
+  "identical": true,
+  "kernelSha256": "d319c362c63aca9aed94a68b2f54826356ba02b98ad87198673b6a884a533ec9",
+  "proofLog": "@book_check : \u2200 [inst : FuelBudget], Claim.sound\n@consistent : \u2200 [inst : FuelBudget], Claim.consistent\n@adequate : \u2200 [inst : FuelBudget], Claim.adequate\n'book_check' depends on axioms: [propext, Classical.choice, Quot.sound]\n'consistent' depends on axioms: [propext, Classical.choice, Quot.sound]\n'adequate' depends on axioms: [propext, Classical.choice, Quot.sound]\n"
+}

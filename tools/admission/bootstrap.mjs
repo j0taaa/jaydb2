@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { registerHooks } from 'node:module';
 import { loadFrontendCache } from './frontend-cache.mjs';
+import { routeSafe } from './safe-routing.mjs';
 import { verifierInfo, validateVerifier } from '../verifier/check.mjs';
 
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -63,19 +64,24 @@ export async function loadToolchain(options = {}) {
     // safe.ts has a TS parameter property. Node's default strip-only loader
     // cannot read it; use Node's own transformer, confined to the pinned files.
     const urls = new Map(['bend.ts', 'safe.ts', 'comp.ts'].map(f => [pathToFileURL(path.join(info.sourceDir, 'bend2', f)).href, info.files['bend2/' + f]]));
+    const structuralURL=pathToFileURL(path.join(info.sourceDir,'bend2/safe.ts')).href+'?admission-route=structural';
+    urls.set(structuralURL,info.files['bend2/safe.ts']);
     const hook = registerHooks({ resolve(specifier, context, nextResolve) {
       if (specifier === 'jaydb:admission-closure') return { url: new URL('./closed-instances.mjs', import.meta.url).href, shortCircuit: true };
+      if (specifier === 'jaydb:admission-affected') return {url:new URL('./template-affected.mjs',import.meta.url).href,shortCircuit:true};
       return nextResolve(specifier, context);
     }, load(url, context, nextLoad) {
       if (!urls.has(url)) return nextLoad(url, context);
       const bytes = fs.readFileSync(fileURLToPath(url));
       if (sha256(bytes) !== urls.get(url)) throw new Error(`hash divergente durante import: ${url}`);
-      const name = path.basename(fileURLToPath(url), '.ts');
+      const name = url===structuralURL?'safe-structural':path.basename(fileURLToPath(url), '.ts');
       return { format: 'module', source: frontend.sources[name], shortCircuit: true };
     } });
     try {
       const B = await import(pathToFileURL(path.join(info.sourceDir, 'bend2/bend.ts')).href);
-      const S = await import(pathToFileURL(path.join(info.sourceDir, 'bend2/safe.ts')).href);
+      const physical = await import(pathToFileURL(path.join(info.sourceDir, 'bend2/safe.ts')).href);
+      const structural = await import(structuralURL);
+      const S=routeSafe(B,physical,structural);
       const C = await import(pathToFileURL(path.join(info.sourceDir, 'bend2/comp.ts')).href);
       return { B, S, C, info };
     } finally { hook.deregister(); }

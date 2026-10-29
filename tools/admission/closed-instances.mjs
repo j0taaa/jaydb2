@@ -74,7 +74,7 @@ export function prepareClosedInstances(B, book, options = {}) {
     return visit(root, new Set());
   };
   let rewrites = 0;
-  const transform = node => {
+  const transform = (node, erased = false) => {
     checkTime();
     if (!node || typeof node !== 'object') return node;
     // Preserve the original official key before rewriting nested arguments.
@@ -85,16 +85,36 @@ export function prepareClosedInstances(B, book, options = {}) {
       const def = head.$ === 'Ref' ? book.tlds[head.k] : undefined;
       if (def?.$ === 'Def' && def.x > 0 && xs.length >= def.x && xs.slice(0, def.x).every(isClosed)) {
         const name = resolvePhysicalInstance(B, book, head.k, xs.slice(0, def.x).map(x => B.term_higher(x)));
+        if (erased) return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, k === 's' ? v : transform(v, true)]));
         rewrites++;
         return xs.slice(def.x).reduce((f, x) => B.App(f, transform(x)), B.Ref(name, head.s, head.b));
       }
     }
-    if (Array.isArray(node)) return node.map(transform);
-    return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, k === 's' ? v : transform(v)]));
+    if (Array.isArray(node)) return node.map(x => transform(x, erased));
+    return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, k === 's' ? v : transform(v, erased)]));
   };
   const before = new Set(Object.keys(book.tlds));
   const done = new Set();
   const links = new Map();
+  const liveDeclarations=()=>{
+    const needed=new Set(Object.entries(book.tlds).filter(([,d])=>d.b!==true).map(([k])=>k));
+    const parents=new Map(Object.entries(book.tlds).flatMap(([k,d])=>d.$==='ADT'?d.c.map(c=>[c.k,k]):[]));
+    const visit=node=>{
+      if(!node||typeof node!=='object')return;
+      if(['Ref','ADT','Ctr','Mat'].includes(node.$)){
+        const k=book.tlds[node.k]!==undefined?node.k:parents.get(node.k);
+        if(k!==undefined)needed.add(k);
+      }
+      for(const [k,v]of Object.entries(node))if(k!=='s')visit(v);
+    };
+    for(const k of needed){
+      const d=book.tlds[k];if(d===undefined)continue;
+      visit(B.term_lower(d.T));
+      if(d.$==='ADT')for(const c of d.c)visit(B.term_lower(c.T));
+      else {if(d.e!==undefined)visit(d.e);if(d.v!==null)visit(B.term_lower(d.v));}
+    }
+    return needed;
+  };
   // Newly minted instances can reveal further applications in T/e. No bound
   // on passes, instances, key length or depth is introduced.
   for (;;) {
@@ -113,22 +133,33 @@ export function prepareClosedInstances(B, book, options = {}) {
         links.set(name, alignSourceResolution(B, book, expectedTree, physicalTree));
         more = true;
       }
+      // Ordinary and Base dependencies have independent source claims too.
+      // Their existing .e is never used as the expected source body.
+      for(const name of liveDeclarations()) {
+        const def=book.tlds[name];
+        if(links.has(name)||def.$!=='Def'||def.x!==0||def.e===undefined||def.v===null||def.u||def.i!==undefined)continue;
+        checkTime();
+        const checked=B.def_check(book,name,{...def});
+        const expectedTree=transform(B.term_lower(B.term_higher(checked)));
+        const actualTree=B.term_lower(B.term_higher(def.e));
+        links.set(name,alignSourceResolution(B,book,expectedTree,actualTree));more=true;
+      }
       if (more || Object.keys(book.tlds).some(k => !done.has(k))) continue;
       break;
     }
     done.add(next); checkTime();
     const def = book.tlds[next];
     if (def.b === true) continue;
-    const higher = (object, field) => {
+    const higher = (object, field, erased = false) => {
       if (object[field] == null) return;
       const old = B.term_lower(object[field]); const count = rewrites;
-      const value = transform(old);
+      const value = transform(old, erased);
       if (rewrites !== count) object[field] = B.term_higher(value);
     };
-    higher(def, 'T');
-    if (def.$ === 'ADT') for (const c of def.c) higher(c, 'T');
+    higher(def, 'T', true);
+    if (def.$ === 'ADT') for (const c of def.c) higher(c, 'T', true);
     else {
-      higher(def, 'v');
+      higher(def, 'v', true);
       if (def.e !== undefined) { const count = rewrites; const value = transform(B.term_lower(B.term_higher(def.e))); if (rewrites !== count) def.e = value; }
     }
   }

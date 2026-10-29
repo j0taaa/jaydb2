@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "scope": "actual Bindings.certificado uses Client.theorem(n) through original J; exact evidence and physical dependency link required",
+  "correspondence": {
+    "route": "structural",
+    "views": {
+      "declarations": [
+        "Semantica.prefixo_inicial",
+        "Semantica.recusa_preserva_publicado",
+        "Semantica.sucesso_publica_trabalho",
+        "Semantica.escrita_nao_entrega_estado",
+        "Semantica.erro_de_operacao_preserva_trabalho",
+        "Client.reflexive",
+        "Client.theorem",
+        "Recursos.eof_entre_mensagens_encerra",
+        "Recursos.cabecalho_truncado_encerra",
+        "Recursos.corpo_malformado_completo_preserva_canal"
+      ],
+      "rounds": 1,
+      "promotions": [],
+      "unresolved": []
+    },
+    "generated": 22,
+    "originalTargets": [
+      "Client:reflexive",
+      "Client:theorem"
+    ],
+    "identityRoots": [
+      "main"
+    ],
+    "entries": [],
+    "sameCheckedBook": true,
+    "dispatch": {
+      "relevant": [
+        "Client.reflexive",
+        "Client.theorem"
+      ],
+      "unresolved": [
+        {
+          "path": "Client.theorem.lambda.a.f",
+          "want": "Ref",
+          "got": "App"
+        },
+        {
+          "path": "Client.theorem.lambda.b.f",
+          "want": "Ref",
+          "got": "App"
+        }
+      ]
+    }
+  },
+  "physicalDependency": "Client:f~0",
+  "mutatedDependency": {
+    "why": "In Client.f_7e_0.source_link:\nexpected: λx0 => (.Succ, ((.Succ, ((.Zero, ()), ())), ()))\nobserved: λ{(,): λ{.Zero: λ{(): (.Succ, ((.Succ, ((.Succ, ((.Zero, ()), ())), ())), ())); λ{}}; λ{.Succ: λ{(,): λx0 => λ{(): (Client.f_7e_0 x0); λ{}}}; λ{}}}}",
+    "originalBodyPreservedByCheck": true
+  },
+  "originalKernels": {
+    "certificate": {
+      "status": 0,
+      "stdout": "ALL PROOFS CHECK\n",
+      "stderr": ""
+    },
+    "mutated-dependency": {
+      "status": 1,
+      "stdout": "SOME PROOFS FAIL\nIn Client.f_7e_0.source_link:\nexpected: λx0 => (.Succ, ((.Succ, ((.Zero, ()), ())), ()))\nobserved: λ{(,): λ{.Zero: λ{(): (.Succ, ((.Succ, ((.Succ, ((.Zero, ()), ())), ())), ())); λ{}}; λ{.Succ: λ{(,): λx0 => λ{(): (Client.f_7e_0 x0); λ{}}}; λ{}}}}\n",
+      "stderr": ""
+    }
+  },
+  "cOutput": "Dados.VInt{0, 6}",
+  "sameBook": true,
+  "noDeclarationAfterKernel": true,
+  "files": {
+    "certificate.bendtt": "9a25da0c672e7a4e0ea9e1efa4a16e3bbfa8d0aa03008a95dcac5444982eccc9",
+    "certificate.c": "51c812c3a0a424e0db0b669801c4e79e1e91bef639c4e53a55daea14f1df350d",
+    "certificate.original.log": "61b73cda11b6b665b9f99f2defd3d3b57f985c865225e942a5bdaa594a503e47",
+    "mutated-dependency.bendtt": "8fb460b903c929d492efb3b7586643bebcfa9d28fcded71dc7bdd1750491cee2",
+    "mutated-dependency.original.log": "0b3e7214b1db4f2299e29cea41fa4b962787678d7f0e0faa6f4342f29240df2e",
+    "submission.json": "06db11b495a4a34929c5c274614a48cd85aabecd8895b7c1e276491b23a89061"
+  }
+}
