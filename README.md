@@ -8,19 +8,24 @@ Autenticação, pureza, terminação matemática, vínculo entre programa e prov
 
 ## Executar
 
-O perfil atual usa Linux x86_64, páginas de 4096 bytes, Clang 19, Python 3.12 e Node 24.19+. Bend 2.0.39, kernels, frontend e backend são fixados por hash. O runtime usa CPU no thread principal do mesmo processo, com stack Linux expansível. Helpers de verificação e compilação têm inicialização Python isolada. Opções que substituem ferramentas ou injetam carregadores externos são recusadas para preservar o ambiente verificado.
+O perfil atual usa Linux x86_64, páginas de 4096 bytes, Clang/Clang++ 19, headers Node em `/usr/include/node`, Python 3.12 e a versão exata de Node indicada em `tools/admission/frontend.lock.json` (atualmente v24.19.0, ABI137). Bend 2.0.39, kernels, frontend e backend são fixados por hash. O runtime usa CPU no thread principal do mesmo processo, com stack Linux expansível e hard limit que permita esse perfil. Helpers de verificação e compilação têm inicialização Python isolada. Opções que substituem ferramentas ou injetam carregadores externos são recusadas para preservar o ambiente verificado.
 
 ```sh
 python3 tools/bootstrap.py --source /caminho/bend-2.0.39 --kernel /caminho/bendtt
+python3 tools/bend.py version
 python3 -m tools.service.build_loading .tools/service/loading.so
 python3 -m tools.service.build_lifecycle .tools/service/lifecycle.so
-node tools/admission/build-frontend.mjs --write-lock
-node tools/verifier/build.mjs --write-lock
+node tools/admission/build-frontend.mjs
+node tools/verifier/build.mjs
 python3 jaydb2.py --configuration examples/sem-observacoes/Configuration.bend \
   --seed examples/sem-observacoes/Seed.bend
 ```
 
-O bootstrap instala ferramentas locais em `.tools/`. A construção do verificador derivado requer Lean 4.34.0 e preserva o kernel original. Loader e lifecycle são preparados antes do serviço; seus recibos mantêm ownership de subprocessos, bibliotecas e saídas mesmo se Python receber uma exceção. Não se compila esses shims durante uma requisição.
+O bootstrap instala ferramentas locais em `.tools/`. É necessário fornecer previamente o BendTT original Linux de SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`; o bootstrap não o compila nem aceita um substituto. A construção do verificador derivado requer Lean 4.34.0 instalado pelo Elan em `~/.elan/toolchains/leanprover--lean4---v4.34.0/bin` e preserva o kernel original. Loader e lifecycle são preparados antes do serviço; seus recibos mantêm ownership de subprocessos, bibliotecas e saídas mesmo se Python receber uma exceção. Não se compila esses shims durante uma requisição.
+
+Os comandos de build acima reproduzem artefatos sem atualizar os locks. O gate confere os resultados contra os hashes fixados. Se houver divergência de ambiente ou compilador, investigue a causa; `--write-lock` representa uma atualização deliberada da identidade e exige nova validação, não é uma etapa normal de instalação. A reprodução bit a bit em todo host novo ainda não foi demonstrada.
+
+O Git contém fontes, provas, exemplos, locks e os quatro fixtures C/JSON exigidos pela suíte nativa. Instalações, binários, grandes checkpoints e capturas duplicadas ficam apenas no disco local e são ignorados; não são apagados. As suítes históricas de accounting/revisões podem depender dessas capturas e não fazem parte dos alvos ativos do Makefile.
 
 O cliente produz uma mensagem canônica enquadrada em stdout:
 

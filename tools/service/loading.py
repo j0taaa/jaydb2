@@ -10,9 +10,8 @@ Host API::
 
 One fixed shim is retained for the process lifetime, including its initial
 dlopen reference. Both RTLD_NODELETE and the linker's NODELETE flag keep the shim
-mapped while its FFI calls return. Installation is explicit: include its real
-backing in the host baseline/window, along with libdl/loader work and dependencies.
-There is no byte estimate here that can serve as a memory-limit witness.
+mapped while its FFI calls return. Installation is explicit. This retention is
+an ownership requirement; the active service has no physical-memory budget.
 
 Bootstrap precedes availability of our receipt API. Its one attempt is reserved
 in the process singleton BEFORE ctypes loads it. An exceptional bootstrap poisons

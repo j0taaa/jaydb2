@@ -1,9 +1,8 @@
 """Private additive process/lease receipt owners. See LIFECYCLE.md for contracts.
 
 Installation is an explicit offline host operation. No runtime build/import of
-the builder occurs here. The fixed NODELETE image is retained until OS teardown;
-all real loader, libc, pipes, argument storage, stacks and child backing belong
-to the host's complete accounting window/baseline, without a static byte witness.
+the builder occurs here. The fixed NODELETE image is retained until OS teardown.
+These receipts track acquisition and release, without physical-resource budgets.
 """
 from __future__ import annotations
 import ctypes as C
@@ -329,7 +328,7 @@ class OutputLease:
             raise LifecycleError('Explicit lifecycle installation required')
         if not isinstance(library_owner, LibraryOwner) or library_owner.library is None:
             raise LifecycleError('A live LibraryOwner is required')
-        # Validate the unchanged native V3 PREFIX, including accounted.native.
+        # Validate the byte-output prefix shared by the supported native ABIs.
         offsets = dict(status=0, output=16, output_len=24, output_capacity=32, lease=40)
         if not isinstance(native_result, C.Structure) or C.sizeof(native_result) != 136 or \
                 any(getattr(type(native_result), k, None) is None or
