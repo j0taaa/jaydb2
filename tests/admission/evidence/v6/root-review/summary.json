@@ -1,0 +1,28 @@
+{
+  "candidateCommit": "86ea257",
+  "candidateArchiveSha256": "0e1681cb261ca6ffe5988b7d6712e7323ad41c405693340dc510213eb76e7956",
+  "review": "independent, read-only, completed",
+  "reportSha256": "fc1a840daa7c855e423d20e8083eafb553d4fda57fe8d71ffc6df6f39e272b4d",
+  "finding": {
+    "severity": "P2",
+    "status": "open",
+    "kind": "valid source rejected by generated evaluator",
+    "trigger": "Bool case analysis before structural recursion on Nat",
+    "publicCode": "BENDTT_CHECK",
+    "generatedDeclaration": "AdmissionRepresentation.Function.Client.helper.evaluate",
+    "kernelDiagnostic": "affine live code, calls that descend",
+    "officialPrimaryAccepts": true,
+    "actualCertificateVariantReproduced": true,
+    "bothKernelsRejectGeneratedPayload": true,
+    "bothKernelsAcceptPhysicalRootsAndSourceLinksAlone": true,
+    "falseAcceptanceDemonstrated": false
+  },
+  "payloadSha256": "3494d1da80abd30cba819ac49d4bc752493e197e8af2adb2cc3cada366444326",
+  "actualCertificatePayloadSha256": "f1b8f0fa5e35a0241b6ae24ab5389d6ee6afbba858150351a64d92f63361e13d",
+  "completeLocalEvidence": "/tmp/jaydb2-v6-new-math-review-hf2iwaca.tar.gz",
+  "completeLocalEvidenceSha256": "eab44831c885acca3e9c696547fab1a83029a88b1939a094b02d1102e0be20c2",
+  "protectedLivePathsUnchanged": 201,
+  "frozenArchiveMembersVerified": 174,
+  "generalCorrespondenceApproved": false,
+  "fullExecutableContractProved": false
+}
