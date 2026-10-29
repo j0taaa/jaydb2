@@ -37,6 +37,6 @@ def prepare_entry():
     # This changes only this process and reserves no corresponding backing.
     resource.setrlimit(resource.RLIMIT_STACK,(resource.RLIM_INFINITY,resource.RLIM_INFINITY))
     # This is the selected helper core-dump profile, not an allocation quota.
-    # Preserve the hard limit; the C spawn primitive checks the soft limit.
+    # Preserve the hard limit for trusted compiler helpers.
     _, hard_core = resource.getrlimit(resource.RLIMIT_CORE)
     resource.setrlimit(resource.RLIMIT_CORE,(0,hard_core))

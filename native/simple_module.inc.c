@@ -199,7 +199,7 @@ static void jaydb_execute(const struct jaydb_simple_request *request,
 
 static const struct jaydb_simple_descriptor jaydb_descriptor_v6 = {
   6, sizeof(struct jaydb_simple_descriptor), sizeof(struct jaydb_simple_request),
-  sizeof(struct jaydb_simple_result), 48, JAYDB_CPU1_GPU_OFF, sizeof(Term), 0,
+  sizeof(struct jaydb_simple_result), JAYDB_CPU1_GPU_OFF, sizeof(Term),
   JAYDB_SOURCE_HASH, JAYDB_BUILD_ID
 };
 
@@ -254,9 +254,8 @@ uint32_t jaydb_native_run_v6(const struct jaydb_simple_request *request,
   return result->status;
 }
 
-/* Compatibility symbol consumed by the existing durable lifecycle shim. */
 __attribute__((visibility("default")))
-uint32_t jaydb_native_release_v3(uint64_t lease) {
+uint32_t jaydb_native_release_v6(uint64_t lease) {
   if (!lease || !atomic_compare_exchange_strong(&jaydb_live_lease, &lease, 0))
     return JAYDB_ARGUMENT;
   if (jaydb_owned_output && munmap(jaydb_owned_output, jaydb_owned_capacity)) {

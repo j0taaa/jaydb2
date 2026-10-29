@@ -15,22 +15,18 @@ import selectors
 import shutil
 import tempfile
 
-from .abi_simple import SimpleModule as Module, NativeFailure, NativeOwnershipPending
+from .abi_simple import SimpleModule as Module, NativeFailure
 from .entry import prepare_entry
 from .frames import error_frame
 from .isolated import command as isolated_python
-from .lifecycle import LifecycleRuntime, ProcessOwner
-from .loading import Runtime as LoadingRuntime, LibraryScope
+from .lifecycle import ProcessOwner
+from .loading import OwnershipError
 from .naturals import parse_decimal
 from .staging import Environment, ROOT
 
 # The private byte transport uses uint64 extents. This is a representation
 # bound, not a RAM quota, reservation or configured processing budget.
 TRANSPORT_MAX = 2**64 - 1
-
-
-class IncompleteIntegration(Exception):
-    """An unresolved owner cannot authorize a public response or publication."""
 
 
 class CompileFailure(RuntimeError):
@@ -64,14 +60,8 @@ def split(data):
     return data[8:8+size], data[8+size:]
 
 
-def helper(command, error_file=None, *, lifecycle_runtime=None):
-    runtime = LifecycleRuntime.current() if lifecycle_runtime is None else lifecycle_runtime
-    if runtime.live_processes:
-        raise IncompleteIntegration('An earlier helper still has unresolved ownership')
-    process = None
-    try:
-        process = ProcessOwner.prepare(runtime, command)
-        process.start()
+def helper(command, error_file=None):
+    with ProcessOwner(command) as process:
         streams = (process.stdout, process.stderr)
         collected = {stream.fileno(): [] for stream in streams}
         with selectors.DefaultSelector() as ready:
@@ -83,8 +73,7 @@ def helper(command, error_file=None, *, lifecycle_runtime=None):
                 if not exited:
                     exited = process.poll()
                     if exited:
-                        # WNOWAIT still pins the leader while descendants are
-                        # stopped, so a reused group ID can never be signalled.
+                        # Stop descendants before reaping the pinned leader.
                         process.stop_and_wait()
                 if exited and not ready.get_map():
                     break
@@ -100,16 +89,6 @@ def helper(command, error_file=None, *, lifecycle_runtime=None):
                     else:
                         ready.unregister(event.fileobj)
             out, err = (b''.join(collected[stream.fileno()]) for stream in streams)
-    finally:
-        try:
-            for owner in runtime.live_processes:
-                owner.close()
-            if runtime.live_processes:
-                raise IncompleteIntegration('Helper ownership remains unresolved')
-        except BaseException as error:
-            if runtime.live_processes:
-                raise IncompleteIntegration('Helper cleanup remains unresolved') from error
-            raise
     if process.returncode:
         detail = None
         if error_file and error_file.exists():
@@ -128,7 +107,7 @@ def helper(command, error_file=None, *, lifecycle_runtime=None):
 
 
 def build(environment, directory, purpose, toolchain, *, metadata=None,
-          tools_root=ROOT, loading_runtime=None, lifecycle_runtime=None, library_scope=None):
+          tools_root=ROOT):
     try:
         environment.stage(directory, purpose, metadata)
     except ValueError as error:
@@ -138,7 +117,7 @@ def build(environment, directory, purpose, toolchain, *, metadata=None,
         '--', 'node', str(tools_root / 'tools/service/compile.mjs'),
         str(directory / 'manifest.json'), str(source_file),
         str(toolchain[0]), str(toolchain[1])]),
-        Path(str(source_file) + '.error.json'), lifecycle_runtime=lifecycle_runtime)
+        Path(str(source_file) + '.error.json'))
     report = json.loads(Path(str(source_file) + '.json').read_text())
     limits = {key: parse_decimal(value) for key, value in report['limits'].items()}
     if set(limits) != {'mensagem', 'estado', 'resposta'}:
@@ -164,10 +143,8 @@ def build(environment, directory, purpose, toolchain, *, metadata=None,
         if len(states) != 1:
             raise RuntimeError('Layout exato do estado de execução não encontrado')
         args.extend(['--state-cid', states[0]])
-    helper(isolated_python(tools_root, 'native_simple', args),
-           lifecycle_runtime=lifecycle_runtime)
-    module = Module(output, loading_runtime=loading_runtime,
-                    lifecycle_runtime=lifecycle_runtime, library_scope=library_scope)
+    helper(isolated_python(tools_root, 'native_simple', args))
+    module = Module(output)
     try:
         if module.report['sourceSha256'] != report['cSha256']:
             raise RuntimeError('O módulo carregado difere do C verificado')
@@ -200,15 +177,10 @@ def deliver(fd, data):
 
 
 class Database:
-    def __init__(self, environment: Environment, toolchain, *,
-                 loading_runtime=None, lifecycle_runtime=None):
+    def __init__(self, environment: Environment, toolchain):
         prepare_entry()
         self._closed = self._fatal = self._channel_ended = self._busy = False
         self._published = Published(b'')
-        self.loading_runtime = LoadingRuntime.current() if loading_runtime is None else loading_runtime
-        self.lifecycle_runtime = LifecycleRuntime.current() if lifecycle_runtime is None else lifecycle_runtime
-        self._request_libraries = LibraryScope()
-        self._permanent_libraries = LibraryScope()
         self.environment, self.toolchain = environment, toolchain
         self.modules = {}
         self.last_failure = None
@@ -220,8 +192,7 @@ class Database:
                 directory = root / purpose
                 directory.mkdir(mode=0o700)
                 module, limits = build(environment, directory, purpose, toolchain,
-                    tools_root=self.runtime, loading_runtime=self.loading_runtime,
-                    lifecycle_runtime=self.lifecycle_runtime, library_scope=self._permanent_libraries)
+                    tools_root=self.runtime)
                 if self.modules and limits != self.limits:
                     module.close()
                     raise RuntimeError('A configuração mudou durante a inicialização')
@@ -254,38 +225,17 @@ class Database:
         # allocation or helper invocation follows this one publication store.
         self._published = prepared
 
-    def _close_libraries(self, scope):
-        for owner in scope.live_owners:
-            if self.lifecycle_runtime.has_live_leases(owner):
-                raise IncompleteIntegration('A temporary library still owns output')
-            owner.close()
-        if scope.live_owners:
-            raise IncompleteIntegration('Library ownership remains unresolved')
-
-    def _require_resolved_ownership(self):
-        runtime = self.lifecycle_runtime
-        if runtime.live_processes or runtime.live_leases or self._request_libraries.live_owners:
-            raise IncompleteIntegration('Request still owns helper, output or temporary library resources')
-
     def close(self):
         if self._busy:
-            raise IncompleteIntegration('Close must wait until the active request returns')
+            raise OwnershipError('Close must wait until the active request returns')
+        if self._closed:
+            return
         self._closed = True
         failure = None
-        try:
-            for owner in self.lifecycle_runtime.live_processes:
-                owner.close()
-        except BaseException as error:
-            failure = error
         for name in tuple(self.modules):
             try:
                 self.modules[name].close()
                 del self.modules[name]
-            except BaseException as error:
-                failure = failure or error
-        for scope in (self._request_libraries, self._permanent_libraries):
-            try:
-                self._close_libraries(scope)
             except BaseException as error:
                 failure = failure or error
         if failure is not None:
@@ -306,18 +256,16 @@ class Database:
             raise RuntimeError('Database is closed, unusable or already processing a request')
         if type(body) is not bytes:
             raise TypeError('Request body must be immutable bytes')
-        self._require_resolved_ownership()
         self._busy = True
         try:
-            try:
-                proposal = self._propose_request(body)
-            finally:
-                self._close_libraries(self._request_libraries)
-            self._require_resolved_ownership()
+            proposal = self._propose_request(body)
             if proposal.state is not None:
                 prepared = Published(proposal.state, proposal.response)
                 self._publish(prepared)
             return proposal.response
+        except BaseException:
+            self._fatal = True
+            raise
         finally:
             self._busy = False
 
@@ -336,10 +284,8 @@ class Database:
             instance, bindings = split(rest)
             with tempfile.TemporaryDirectory(prefix='request-', dir=self.directory.name) as temp:
                 module, limits = build(self.environment, Path(temp), 'execute', self.toolchain,
-                    metadata=(code, proof, instance, bindings), tools_root=self.runtime,
-                    loading_runtime=self.loading_runtime, lifecycle_runtime=self.lifecycle_runtime,
-                    library_scope=self._request_libraries)
-                try:
+                    metadata=(code, proof, instance, bindings), tools_root=self.runtime)
+                with module:
                     if limits != self.limits:
                         raise RuntimeError('Configuração da requisição divergente')
                     result = module.run(data,
@@ -355,8 +301,6 @@ class Database:
                     if len(response) < 8 or int.from_bytes(response[:8], 'big') != len(response) - 8 \
                             or len(response) - 8 > self.limits['resposta']:
                         raise RuntimeError('Resposta preparada inválida')
-                finally:
-                    module.close()
             return RequestProposal(response, state)
         except NativeFailure as error:
             self._fatal = error.fatal
@@ -374,7 +318,11 @@ class Database:
         except MemoryError:
             self._fatal = True
             raise
+        except OwnershipError:
+            self._fatal = True
+            raise
         except (OSError, RuntimeError) as error:
+            self._fatal = True
             self.last_failure = {'code': type(error).__name__, 'message': str(error)}
             return RequestProposal(error_frame('falha'))
 

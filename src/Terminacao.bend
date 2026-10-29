@@ -1,5 +1,5 @@
 # Profundidade e testemunha matematica, nunca uma quota do runtime.
-# O servico executa Acao incrementalmente sob os limites fisicos publicados.
+# O servico executa Acao incrementalmente, preservando o percurso ja realizado.
 import Base
 import ../contrato/Dados.bend as D
 import ../contrato/Semantica.bend as S

@@ -1,74 +1,67 @@
 # Serviço com três limites lógicos
 
-Esta é a entrada ativa após a revisão autorizada em 2026-10-29. `jaydb2.py` usa
-`controller.Database`, `abi_simple.SimpleModule` e `tools/native/build_simple.py`.
-Não carrega accounting, N1/N2, relógios por etapa, guardas de memória, o decoder
-C alternativo ou os módulos antigos de conclusão física. Os arquivos anteriores
-continuam preservados; sua existência no repositório não os torna dependências
-da entrada atual.
+A entrada ativa é `jaydb2.py` → `controller.Database` →
+`abi_simple.SimpleModule`. A configuração contém somente `mensagem`, `estado`
+e `resposta`, medidos em bytes canônicos. Igualdade com o teto é permitida.
+Não há orçamento físico, relógio por etapa ou prazo de execução.
 
 ## Caminho da chamada
 
 1. O host lê o enquadramento e verifica o teto de mensagem.
-2. Módulos Bend compilados decodificam e autenticam pelo estado publicado.
+2. Os módulos Bend compilados decodificam e autenticam pelo estado publicado.
 3. A admissão verifica fonte, dependências e prova contra a configuração,
-   contexto e argumentos reais. A emissão recebe o mesmo Book admitido.
-4. O hash do C lido pelo builder deve coincidir com a emissão; o descritor do
-   módulo carregado deve identificar esse mesmo C e seu build.
-5. O programa Bend executa no mesmo PID, em CPU no thread principal. O estado
-   de trabalho é privado. O Codec é o programa original compilado.
-6. O host obtém os bytes completos de estado e resposta, verifica o transporte,
-   resolve leases, fecha o módulo temporário e remove seu diretório.
-7. Um sucesso substitui uma única referência por `Published(state, response)`
-   imutável. Uma recusa ou erro anterior mantém a referência anterior.
-8. A entrega vem depois da publicação. Uma falha posterior conserva o par
-   publicado; não há repetição automática nem deduplicação de requisições.
+   contexto e argumentos reais; o emissor recebe o mesmo Book admitido.
+4. O builder confere o hash do C. O host confere o hash do DSO e seu descritor,
+   que identifica o C emitido e os insumos do build.
+5. O programa executa sincronicamente na thread principal do mesmo processo.
+   O estado de trabalho é privado; o Codec é o programa Bend compilado.
+6. O host copia a saída completa, libera seu lease, fecha o módulo temporário,
+   valida estado/resposta e remove o diretório de compilação.
+7. O sucesso substitui uma referência por `Published(state, response)`
+   imutável. Toda recusa ou falha anterior conserva a publicação anterior.
+8. A entrega vem depois. Uma falha de entrega conserva o par publicado e
+   encerra o canal, sem repetição automática nem deduplicação.
 
-Os diretórios de compilação recebem configuração, fonte, prova, contexto e
-argumentos; nunca recebem o estado privado da instância ou o seed de outra
-requisição. O seed só participa da inicialização, é removido depois e não
-entra na identidade pública.
+Os diretórios de compilação recebem fonte, prova e dados públicos da admissão;
+não recebem o estado privado da instância. O seed só participa da inicialização,
+é removido depois e não entra na identidade pública do ambiente.
 
 ## Ownership e falhas
 
-Os recibos existentes de loading/lifecycle continuam necessários para não
-perder um subprocesso, biblioteca ou saída quando uma exceção ocorre dentro
-de uma chamada C. O registro forte precede a aquisição. Um owner pendente
-impede publicação e resposta normal; o host conserva a referência para cleanup.
-Esses recibos são sobre ownership, sem orçamento físico ou epoch de verificação.
+Cada módulo possui seu DSO e a saída da chamada corrente. Context managers
+concluem a limpeza antes de devolver uma proposta ao publicador. Não existem
+shims C de loading/lifecycle, instalação adicional, recibos ou registries de
+recuperação. `run` e `close` recusam uso reentrante. O DSO permanece carregado
+enquanto uma chamada ou saída ainda o possui.
 
-Helpers usam pipes e são recolhidos antes da conclusão. O líder permanece
-identificável por WNOWAIT até o encerramento do grupo, antes do reap. A pausa
-de 50 ms do seletor só permite observar o fim do líder quando um descendente
-mantém o pipe aberto; ela não limita a duração da chamada.
+Os helpers confiáveis usam sessão própria, pipes e um dono Python curto.
+`waitid(WNOWAIT)` conserva a identidade do líder até `killpg`, antes do reap.
+A pausa de 50 ms do seletor observa o fim do líder quando um descendente
+mantém um pipe aberto; ela não limita a duração da compilação.
 
-Somente mensagem, estado e resposta têm teto configurado em bytes canônicos.
-Igualdade é permitida. O transporte privado usa extensões u64; a capacidade
-indicada ao runtime não pré-aloca essa quantidade de memória. Falha efetiva de
-alocação nativa torna o módulo inutilizável, sem fingir um `limite` físico
-recuperável. Falha fatal pode encerrar a instância RAM sem resposta.
+O teto de saída é lógico e não pré-aloca memória. Status nativo 7 permite nova
+chamada após exceder esse teto. Falhas nativas de alocação, representação,
+efeito ou invariante tornam a instância inutilizável. Ownership incerto escapa
+do mapper de respostas, impede publicação e exige encerrar a instância; uma
+operação possivelmente consumida não é repetida.
 
-O serviço não repete uma leitura ou escrita cujo consumo ficou incerto após
-uma exceção. O canal é encerrado. Um EOF ou erro de framing conhecido também
-encerra aquela sessão; um consumidor confiável da API pode fornecer outro canal.
-A CLI usa uma única sessão e depois fecha a instância.
+O perfil é uma CLI Linux serial, com ferramentas e host confiáveis. Não promete
+recuperar handlers Python arbitrários, cancelamento de threads, falhas fatais
+ou morte do processo. Uma falha fatal pode encerrar o banco RAM sem resposta.
+
+`prepare_entry()` exige Linux x86_64, páginas de 4096 bytes, thread principal,
+SIGCHLD padrão e ausência de loaders externos. Permite o crescimento da stack
+principal e desliga core dumps. Os helpers usam `/usr/bin/python3 -I -S -B`
+com bootstrap fixo e root materializado dos bytes imutáveis do ambiente;
+argumentos são elementos de argv, sem shell. O launcher de admissão faz exec
+do Node. `build_simple.py` usa Clang 19 com `--no-default-config` e
+`-fstack-clash-protection`, registrando hashes dos insumos e flags. A instalação
+dessas ferramentas e bibliotecas faz parte do perfil confiável.
 
 ## Verificação
 
-`make test-host` verifica a publicação, rollback, ownership, pipes, sinais,
-staging imutável e vínculos de emissão. Os positivos simulados são explicitamente
-fixtures de fronteira. `make test-integration` admite, compila e executa Bend
-real para inicialização, autenticação, certificados, framing e transações de
-credenciais. `make test-native` verifica a ABI6 e o runtime geral.
-
-A revisão do contrato e as provas estão em
-[REVISAO_RECURSOS_SIMPLES.md](../../proof/REVISAO_RECURSOS_SIMPLES.md).
-Os registros novos da integração ficam em
-[recursos-simples-v2](../../tests/service/evidence/recursos-simples-v2/).
-As primeiras tentativas com erros de fixtures e os timeouts de desenvolvimento
-permanecem registradas; não são contados como aprovação.
-
-Não há uma prova geral de `Contrato(a,k)` para o executável. A extensão da
-tradução de templates dependentes e as relações completas de compilação,
-runtime e host continuam obrigações abertas. Hashes ligam artefatos, mas não
-substituem essas provas.
+`make test-host` cobre publicação, rollback e enquadramento com fixtures de
+fronteira. `make test-integration` admite, compila e executa Bend real.
+`make test-native` cobre o runtime e a ABI com C emitido de poucos Books.
+Esses controles não provam a correspondência geral do compilador/runtime nem
+o contrato inteiro. Hashes identificam artefatos; não substituem essas provas.

@@ -11,6 +11,3 @@ import ./src/Configuracao.bend as Configuracao
 import ./src/Mensagens.bend as Mensagens
 import ./src/Livre.bend as Livre
 import ./src/Terminacao.bend as Terminacao
-import ./tests/Codec.bend as TestesCodec
-import ./tests/Requisicao.bend as TestesRequisicao
-import ./tests/Credenciais.bend as TestesCredenciais

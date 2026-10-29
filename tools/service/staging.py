@@ -17,9 +17,7 @@ VERIFIER_BINARY = 'tools/verifier/installed/bendtt-budget'
 VERIFIER_MANIFEST = 'tools/verifier/installed/manifest.json'
 SERVICE_TOOLING = frozenset({
     'abi_simple.py', 'controller.py', 'entry.py', 'frames.py', 'isolated.py',
-    'staging.py', 'compile.mjs', 'naturals.py', 'paired_loading.py',
-    'loading.py', 'loading.c', 'loading.h', 'build_loading.py',
-    'lifecycle.py', 'lifecycle.c', 'lifecycle.h', 'build_lifecycle.py',
+    'staging.py', 'compile.mjs', 'naturals.py', 'loading.py', 'lifecycle.py',
 })
 NATIVE_TOOLING = frozenset({
     'effects.bend', 'effects.c', 'simple.h', 'simple_arena.inc.c',

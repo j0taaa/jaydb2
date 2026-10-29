@@ -16,7 +16,6 @@ import {closedEntry,scalarEntryLink} from './structural-entry.mjs';
 export function structuralEmitter(B,S,{proofRoots=[],entries=[],executionRoots}={}){
  return {
    SafeResourceExhausted:S.SafeResourceExhausted,
-   SafeDeadlineExceeded:S.SafeDeadlineExceeded,
    admission_safe_emit(book,out,options={}){
      const before=instanceClosureFingerprint(B,book),names=Object.keys(book.tlds);
      

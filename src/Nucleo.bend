@@ -1,6 +1,6 @@
 # Interpretador incremental: cada avancar consome exatamente a acao corrente.
 # O combustivel de percorrer e exclusivo da caracterizacao matematica;
-# o servidor avanca a maquina sob os limites fisicos, sem reexecutar prefixos.
+# o servidor avanca a maquina sem reexecutar prefixos.
 import Base
 import ../contrato/Dados.bend as D
 import ../contrato/Semantica.bend as S

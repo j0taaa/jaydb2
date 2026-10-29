@@ -48,14 +48,7 @@ export function resolvePhysicalInstance(B, book, k, args) {
     }
     return B.def_inst(book, { t: B.Ref(k), n: 0, def: '', qs: [] }, B.Ref(k), def, args, B.ctx_nil(), 0);
   }
-export function prepareClosedInstances(B, book, options = {}) {
-  const deadline = options.deadlineNs === undefined ? null : BigInt(options.deadlineNs);
-  const checkTime = () => {
-    if (deadline !== null && process.hrtime.bigint() >= deadline) {
-      const error = new Error('Host verification deadline expired during instance closure');
-      error.code = 'HOST_VERIFICATION_DEADLINE'; throw error;
-    }
-  };
+export function prepareClosedInstances(B, book) {
   const isClosed = root => {
     const visit = (node, bound) => {
       if (!node || typeof node !== 'object') return true;
@@ -75,7 +68,6 @@ export function prepareClosedInstances(B, book, options = {}) {
   };
   let rewrites = 0;
   const transform = (node, erased = false) => {
-    checkTime();
     if (!node || typeof node !== 'object') return node;
     // Preserve the original official key before rewriting nested arguments.
     if (node.$ === 'App') {
@@ -138,8 +130,7 @@ export function prepareClosedInstances(B, book, options = {}) {
       for(const name of liveDeclarations()) {
         const def=book.tlds[name];
         if(links.has(name)||def.$!=='Def'||def.x!==0||def.e===undefined||def.v===null||def.u||def.i!==undefined)continue;
-        checkTime();
-        const checked=B.def_check(book,name,{...def});
+            const checked=B.def_check(book,name,{...def});
         const expectedTree=transform(B.term_lower(B.term_higher(checked)));
         const actualTree=B.term_lower(B.term_higher(def.e));
         links.set(name,alignSourceResolution(B,book,expectedTree,actualTree));more=true;
@@ -147,7 +138,7 @@ export function prepareClosedInstances(B, book, options = {}) {
       if (more || Object.keys(book.tlds).some(k => !done.has(k))) continue;
       break;
     }
-    done.add(next); checkTime();
+    done.add(next);
     const def = book.tlds[next];
     if (def.b === true) continue;
     const higher = (object, field, erased = false) => {
@@ -163,7 +154,7 @@ export function prepareClosedInstances(B, book, options = {}) {
       if (def.e !== undefined) { const count = rewrites; const value = transform(B.term_lower(B.term_higher(def.e))); if (rewrites !== count) def.e = value; }
     }
   }
-  checkTime();
+
   claims.set(book, links);
   return { rewrites, created: Object.keys(book.tlds).filter(k => !before.has(k)), sourceLinks: [...links.keys()] };
 }

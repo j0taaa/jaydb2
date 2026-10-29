@@ -1,93 +1,70 @@
 # Runtime nativo simples, ABI6
 
-`tools/native/build_simple.py checked.c output.so` prepara e compila C do emissor
-genérico que recebeu o mesmo Book admitido. O builder não admite C ou Bend e
-não verifica provas. Usa clang 19 com `--no-default-config`, CPU1, GPU desligada,
-sem observador, callbacks de cobertura, orçamento físico ou relógio por etapa.
+`tools/native/build_simple.py checked.c output.so` prepara e compila C do
+emissor genérico que recebeu o mesmo Book admitido. O builder não admite C ou
+Bend e não verifica provas. Usa Clang 19, CPU1, GPU desligada e execução
+síncrona na thread principal do processo do banco, sem orçamento físico,
+observador ou relógio por etapa.
 
-O host fornece as macros presentes no C pelos argumentos `--input-cid`,
+O host fornece os CIDs de efeitos presentes no C por `--input-cid`,
 `--output-cid`, `--enter-cid`, `--loop-cid`, `--state-cid`, `--continue-cid`,
 `--prepare-cid`, `--finish-cid` e `--inconsistent-cid`. `none` desliga uma ligação
-opcional. Todas as macros fornecidas precisam existir e ser distintas.
-`--state-cid` recebe o CID real de `E.EstadoExecucao` quando seus campos são
-achatados no efeito; não interpreta campos da configuração para achar recursos.
+opcional. As macros fornecidas devem existir e ser distintas. O CID de estado
+é o de `E.EstadoExecucao`; não se procuram recursos na configuração.
 
-A adaptação geral mantém os segmentos emitidos e os helpers existentes de
-Nat arbitrário, Array como construtores gerais, IDs e aridades de máquina,
-refcounts saturantes e F32. Ajusta o portador de Term para 192 bits, o banco
-de registradores, a pilha lógica e os acessos ao heap. Remove os drivers de
-IO/scheduling do emissor e implementa apenas os efeitos admitidos na fronteira
-de bytes. O Codec continua sendo o programa Bend original compilado. Não há
-parser C alternativo, recipes de campos ou lowered decoder de accounting.
+A adaptação conserva os segmentos emitidos e os helpers de Nat arbitrário,
+Array como construtores gerais, IDs e aridades de máquina, refcounts saturantes
+e F32. Ajusta Term para 192 bits, banco de registradores, pilha lógica e heap.
+A fronteira implementa somente os efeitos admitidos de bytes. O Codec continua
+sendo Bend compilado, sem um parser C alternativo.
 
-## Interface
+## Interface Linux x86_64
 
-| Estrutura | Layout Linux x86_64 |
+| Estrutura | Layout |
 | --- | --- |
-| Request, 32 bytes | versão u32=6; tamanho u32=32; entrada ponteiro; comprimento u64; capacidade lógica de saída u64 |
-| Result, 136 bytes | status0; runtime_code4; stage8; reserved12; output16; len24; capacity32; lease40; 88 bytes reservados zerados |
-| Descriptor, 160 bytes | versão/tamanhos/perfil/Term; hash do C emitido e identidade do build carregado |
+| Request, 32 bytes | abi_version u32=6; size u32=32; input ponteiro; input_len u64; output_capacity u64 |
+| Result, 48 bytes | status0; runtime_code4; stage8; reserved12=0; output16; output_len24; output_capacity32; lease40 |
+| Descriptor, 152 bytes | seis u32: versão, tamanho, request_bytes, result_bytes, flags, term_bytes; source_sha256[64]; build_identity_sha256[64] |
 
-`jaydb_native_run_v6(request*, result*)` executa sincronicamente na thread
-principal do mesmo processo do banco. O host estabelece o perfil Linux com
-stack principal grow-down e soft `RLIMIT_STACK=unlimited` antes de executar.
-O runtime confere o perfil; não altera os limites do processo nem cria threads.
+Os únicos exports são `jaydb_native_describe_v6()`,
+`jaydb_native_run_v6(request*, result*)` e `jaydb_native_release_v6(lease)`.
+O descritor identifica os insumos do build e o C emitido. Não contém uma cauda
+ou prefixo de compatibilidade com outras ABIs.
 
-`jaydb_native_describe_v6()` descreve a imagem carregada. A identidade inclui os
-insumos, flags e hashes reais. Ela permite identificar o build; não demonstra
-equivalência semântica ou as leis do contrato.
+O host estabelece a stack principal Linux grow-down com soft
+`RLIMIT_STACK=unlimited`; o runtime confere esse perfil sem criar threads.
+Toda chamada bem-sucedida adquire um lease não nulo, inclusive com saída vazia,
+e ocupa o módulo até a liberação. A saída tem armazenamento próprio e só
+permanece viva até release. Lease expirado é inválido; falhas não retêm saída.
 
-`jaydb_native_release_v3(lease)` conserva o nome e assinatura usados pelo
-lifecycle existente. Toda chamada bem-sucedida adquire um lease não nulo,
-inclusive com saída vazia, e ocupa o módulo até a liberação. Um lease expirado
-é inválido. A saída tem armazenamento próprio, separado da entrada e do estado
-publicado, e só continua viva até sua liberação. Uma falha não conserva saída.
-O tamanho temporário de 136 bytes permite reutilizar os recibos duráveis sem
-criar outro protocolo; a cauda reservada não contém orçamento ou medição.
-
-`tools.service.abi_simple.SimpleModule(file, loading_runtime=None,
-lifecycle_runtime=None, library_scope=None)` usa os runtimes de loading e
-lifecycle instalados explicitamente. `run(data: bytes, *, capacity: int)` copia
-a saída para `bytes` e resolve seu lease. `close()` resolve leases antes do
-dlclose. Uma exceção não perde os owners: um lease pendente mantém o DSO vivo e
-gera `NativeOwnershipPending` até a resolução.
+`tools.service.abi_simple.SimpleModule(file)` confere manifesto/hash/descritor,
+possui o DSO e oferece `run(data: bytes, *, capacity: int) -> bytes`, `close()`
+e context manager. Copia a saída antes de release e recusa `run/close`
+reentrantes. Não há runtime auxiliar, registro de leases ou protocolo de
+recuperação. Retorno/release incerto mantém o DSO e resultado retidos e exige
+terminar a instância, sem nova tentativa de consumo.
 
 ## Falhas
 
-O status 7 identifica exclusivamente o teto lógico de bytes da saída; não há
-truncamento. O módulo pode executar outra chamada depois dessa falha. A
-capacidade real de um mapeamento pode ultrapassar o teto lógico por arredondar
-páginas; isso não autoriza mais bytes na resposta e não é memória pública.
+Status 7 significa exclusivamente teto lógico de saída, sem truncamento, e
+permite outra chamada. Arredondar uma alocação a páginas não autoriza emitir
+bytes além desse teto. A capacidade fornecida é um máximo lógico, sem reserva
+antecipada de seu tamanho.
 
-Uma falha real de mmap/mremap retorna status 5, com errno quando disponível,
-descarta a saída e envenena a instância do módulo. Falhas de representação,
-efeitos ou invariantes também impedem sua reutilização. O host trata esses
-casos como falha fatal/infraestrutura, sem apresentá-los como limite físico
-recuperável. Falhas do processo podem encerrar a instância sem resposta.
+Falha de mmap/mremap retorna status 5, com errno disponível, descarta a saída e
+envenena o módulo. Representação, efeitos, invariantes e cleanup nativo também
+podem torná-lo inutilizável. O host trata esses casos como fatais e conserva a
+publicação anterior; não os apresenta como excesso de uma quota física.
+Falha fatal pode terminar o banco RAM sem resposta.
 
-`stage` permanece uma identificação do protocolo, sem duração, epoch ou prazo.
-Enter e Preparar conservam a ordem monotônica do protocolo. O heap e a pilha
-continuam rastreando páginas, ownership, refcounts e índices para alocar,
-liberar e evitar overflow; não comparam consumo a uma quota.
+`stage` identifica setup, execução ou preparação; não contém duração ou prazo.
+Heap e pilha acompanham páginas, ownership e índices para alocar e liberar com
+segurança, sem comparar consumo com uma quota. O perfil é serial e confiável;
+não promete recuperar handlers arbitrários, cancelamento ou morte do processo.
 
 ## Verificação
 
-Execute `python3 tests/native/test_simple_runtime.py`. A suíte compila e executa
-C real, incluindo bytes 0..255, entrada binária e sem NUL, repetição, limite
-lógico, recursão, closures e Nat largos, Array geral, F32 e protocolo de loop.
-Os C arquivados do Codec e da closure com 2048 campos são copiados para `/tmp`
-e conferidos contra seus registros anteriores de ambos os checkers e do mesmo
-Book; seus arquivos originais permanecem intactos. Os demais positivos são
-fixtures primários explicitamente rotulados, não admissão de produção.
-
-Os testes de ownership cobrem saída vazia, liberação durável, busy, exceção
-após retorno C e bloqueio de dlclose com lease pendente. Um subprocesso impõe
-uma restrição externa para provocar ENOMEM real; ela não integra o runtime.
-Também se conferem símbolos sem observer/relógio/cobertura e ausência de novos
-workers ou tracers nas chamadas.
-
-Para produzir uma evidência nova, defina `JAYDB_SIMPLE_EVIDENCE_DIR` com um
-diretório ainda inexistente. A suíte recusa sobrescrever um diretório existente
-e guarda C emitido/preparado, módulos, manifests, insumos e resultado. Esses
-testes de runtime não declaram o contrato revisado completo. Os testes físicos
-legados e os snapshots anteriores não são executados ou regravados.
+`make test-native` compila e executa C real emitido de Books pequenos: entrada
+binária, teto lógico, Nat, Array, F32 e loop. `make test-integration` cobre a
+admissão, emissão e execução do caminho do banco. Fixtures isoladas de runtime
+não são admissão de produção nem prova da correspondência geral do executável.

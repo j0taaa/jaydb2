@@ -351,8 +351,8 @@ def build_module(c_file, output, *, input_cid='CID_Native_read', output_cid='CID
         if forbidden:
             raise BuildError('runtime_layout', 'Unexpected resource observer/check symbols: '+str(forbidden))
         report = dict(**inputs, buildIdentitySha256=identity, moduleSha256=digest(binary),
-            simpleABI6=True, requestBytes=32, resultBytes=136, resultPrefixBytes=48,
-            descriptorBytes=160, termBytes=24, flags=1, ownedOutput=True,
+            simpleABI6=True, requestBytes=32, resultBytes=48,
+            descriptorBytes=152, termBytes=24, flags=1, ownedOutput=True,
             nativeExecution='same-process-main-thread', nativeStack='linux-main-growdown',
             nativeStackClashProtection=True, semanticCorrespondenceProved=False,
             identityMeaning='Build input identity; hashes do not prove semantic equivalence',

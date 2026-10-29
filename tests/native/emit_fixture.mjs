@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { loadGenericCompiler } from '../../tools/native/generic.mjs';
-const [directory, input, output, mode = 'generic'] = process.argv.slice(2);
+const [directory, input, output] = process.argv.slice(2);
 const B = await import(pathToFileURL(path.join(directory, 'bend.ts')).href);
 const book = B.book_nil();
 try {
@@ -14,6 +14,5 @@ try {
   process.exit(1);
 }
 if (book.hols) throw new Error('fixture has holes');
-const C = mode === 'generic' ? await loadGenericCompiler(directory)
-  : await import(pathToFileURL(path.join(directory, 'comp.ts')).href);
+const C = await loadGenericCompiler(directory);
 fs.writeFileSync(output, C.compile_book(book));

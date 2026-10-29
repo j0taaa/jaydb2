@@ -9,33 +9,26 @@ export function adaptSafeTemplates(source) {
   source = once(source, 'type Probe = { left: number; depth: number; cut: boolean };',
     'type Probe = { left: bigint; depth: number; cut: boolean };');
   source = once(source, 'const MODEL_FUEL = 1 << 22;', `let MODEL_FUEL = 1n << 22n;
-let ADMISSION_DEADLINE: bigint | null = null;
 let ADMISSION_SCHEMAS: string[] = [];
 let ADMISSION_INSTANCES: string[] = [];
 let ADMISSION_SOURCE_CLAIMS = new Map<string, B.LTerm>();
 export class SafeResourceExhausted extends Error {
   code = "SAFE_MODEL_EXHAUSTED";
 }
-export class SafeDeadlineExceeded extends Error {
-  code = "HOST_VERIFICATION_DEADLINE";
-}
 class AdmissionInstanceRequest extends Error {
   constructor(public name: string, public parameters: HTerm[]) { super("Closed template instance needed: " + name); }
 }
-function admission_deadline(): void {
-  if (ADMISSION_DEADLINE !== null && process.hrtime.bigint() >= ADMISSION_DEADLINE)
-    throw new SafeDeadlineExceeded("Host verification deadline expired during Safe elaboration");
-}`);
+`);
   source = once(source, 'for (; probe.cut && probe.left > 0; probe.depth *= 2)',
     'for (; probe.cut && probe.left > 0n; probe.depth *= 2)');
   source = once(source, '  return m;\n}\n\n// a datatype\'s key',
     '  if (probe.cut && probe.left <= 0n) throw new SafeResourceExhausted("Safe model budget exhausted");\n  return m;\n}\n\n// a datatype\'s key');
   source = once(source, '  if (path.length + d > probe.depth || probe.left <= 0) {',
-    '  admission_deadline();\n  if (path.length + d > probe.depth || probe.left <= 0n) {');
+    '  if (path.length + d > probe.depth || probe.left <= 0n) {');
   source = once(source, '  probe.left -= 1;', '  probe.left -= 1n;');
   source = once(source, '      probe.left -= key.length;', '      probe.left -= BigInt(key.length);');
   source = once(source, '  const tld = e.book.tlds[k];\n  const ns: string[] = [];',
-    '  admission_deadline();\n  const tld = e.book.tlds[k];\n  if (tld.$ === "Def" && tld.x > 0) return admission_schema(e, k);\n  const ns: string[] = [];');
+    '  const tld = e.book.tlds[k];\n  if (tld.$ === "Def" && tld.x > 0) return admission_schema(e, k);\n  const ns: string[] = [];');
   source = once(source, 'function term(e: Safe, s0: Scope, t: HTerm, live: boolean): O {\n  const [x, T] = open(t);',
     'function term(e: Safe, s0: Scope, t: HTerm, live: boolean): O {\n  if ((e as any).admissionStage && !live) { const annotation = open(t)[1]; t = typed(B.term_snf(e.book, t), annotation); }\n  const [x, T] = open(t);');
   source = once(source, '  const [f, T] = open(h);\n  if (f.$ !== "Ref") {', `  const [f, T] = open(h);
@@ -123,26 +116,24 @@ function admission_open_argument(e: Safe, s: Scope, value: HTerm): boolean {
   };
   return visit(B.term_lower(value, s.d));
 }
-export function admission_prepare_book(book: Book, options: {deadlineNs?: string} = {}) {
-  try {
+export function admission_prepare_book(book: Book) {
     const initial = new Set(Object.keys(book.tlds));
     let rewrites = 0;
     let fuel = 1n << 22n;
     for (;;) {
-      const prepared = prepareClosedInstances(B, book, options);
+      const prepared = prepareClosedInstances(B, book);
       rewrites += prepared.rewrites;
-      const previous = [MODEL_FUEL, ADMISSION_DEADLINE, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] as const;
+      const previous = [MODEL_FUEL, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] as const;
       MODEL_FUEL = fuel;
-      ADMISSION_DEADLINE = options.deadlineNs === undefined ? null : BigInt(options.deadlineNs);
       ADMISSION_SCHEMAS = []; ADMISSION_INSTANCES = [];
       ADMISSION_SOURCE_CLAIMS = instanceSourceClaims(book);
       try {
-        admission_deadline();
+
         // Run the real translator prospectively too: beta substitutions in
         // codomains can reveal closed calls absent from the original syntax.
         const before = instanceClosureFingerprint(B, book);
         safe_book(admission_snapshot(book));
-        admission_deadline();
+
         // Trusted WNF may change sharing cells during the prospective pass.
         // Repeat until their represented graph is stable too, so no fresh
         // argument key can first appear after the final primary/audit phase.
@@ -156,14 +147,9 @@ export function admission_prepare_book(book: Book, options: {deadlineNs?: string
         if (error instanceof SafeResourceExhausted) { fuel *= 2n; continue; }
         throw error;
       } finally {
-        [MODEL_FUEL, ADMISSION_DEADLINE, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] = previous;
+        [MODEL_FUEL, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] = previous;
       }
     }
-  }
-  catch (error) {
-    if ((error as any)?.code === "HOST_VERIFICATION_DEADLINE") throw new SafeDeadlineExceeded((error as Error).message);
-    throw error;
-  }
 }
 
 function admission_snapshot(book: Book): Book {
@@ -174,7 +160,7 @@ function admission_snapshot(book: Book): Book {
 // Both the certificate and compiler still name the exact physical declaration.
 function admission_source_links(e: Safe): void {
   for (const [k, expected] of ADMISSION_SOURCE_CLAIMS) {
-    admission_deadline();
+
     const def = e.book.tlds[k] as Def;
     const T = def.T;
     const s = scope_nil();
@@ -226,7 +212,7 @@ function admission_body(e: Safe, k: Name): AdmissionBody {
   const bodies: Map<Name, AdmissionBody> = (e as any).admissionBodies ??= new Map();
   const prior = bodies.get(k);
   if (prior !== undefined) return prior;
-  admission_deadline();
+
   const tld = e.book.tlds[k] as Def;
   if (tld.e === undefined) oos("a template without its primary checked tree");
   const item: AdmissionBody = { name: fresh(e, name_tt(k) + ".template_body") };
@@ -248,7 +234,7 @@ function admission_body(e: Safe, k: Name): AdmissionBody {
   let s = scope_nil(), T = tld.T;
   const binders: Binder[] = [];
   for (let j = 0; j < tld.x; j++) {
-    admission_deadline();
+
     const F = B.term_wnf(book, T);
     if (F.$ !== "All") oos("template prefix exceeds its telescope");
     const name = k + "~" + F.k;
@@ -274,26 +260,25 @@ function admission_schema(e: Safe, k: Name): [string[], string | null] {
   return [[n], null];
 }
 
-export function admission_safe_emit(book: Book, out: string, options: { modelFuel?: string, deadlineNs?: string } = {}): {oos: string[], schemas: string[], instances: string[], modelFuel: string, modelAttempts: string} {
-  admission_prepare_book(book, options);
-  const previous = [MODEL_FUEL, ADMISSION_DEADLINE, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] as const;
+export function admission_safe_emit(book: Book, out: string, options: { modelFuel?: string } = {}): {oos: string[], schemas: string[], instances: string[], modelFuel: string, modelAttempts: string} {
+  admission_prepare_book(book);
+  const previous = [MODEL_FUEL, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] as const;
   MODEL_FUEL = BigInt(options.modelFuel ?? "4194304");
-  ADMISSION_DEADLINE = options.deadlineNs === undefined ? null : BigInt(options.deadlineNs);
   ADMISSION_SCHEMAS = [];
   ADMISSION_INSTANCES = [];
   ADMISSION_SOURCE_CLAIMS = instanceSourceClaims(book);
   try {
     // Closure is already final. Fuel retries rerun only the translator, on a
     // fresh table snapshot of the SAME Book; they cannot mint declarations or
-    // restart either the closure or the host deadline.
+    // restart the closure.
     let attempts = 0n;
     for (;;) {
-      admission_deadline();
+
       attempts++;
       ADMISSION_SCHEMAS = []; ADMISSION_INSTANCES = [];
       try {
         const oos = safe_emit(admission_snapshot(book), out);
-        admission_deadline();
+
         return { oos, schemas: [...new Set(ADMISSION_SCHEMAS)], instances: [...new Set(ADMISSION_INSTANCES)],
           modelFuel: MODEL_FUEL.toString(), modelAttempts: attempts.toString() };
       } catch (error) {
@@ -302,7 +287,7 @@ export function admission_safe_emit(book: Book, out: string, options: { modelFue
       }
     }
   } finally {
-    [MODEL_FUEL, ADMISSION_DEADLINE, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] = previous;
+    [MODEL_FUEL, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] = previous;
   }
 }
 `;

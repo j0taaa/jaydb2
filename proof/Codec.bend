@@ -1,5 +1,5 @@
 # Parte geral da Lei 2: validade de TODO valor realmente aceito pelo Codec.
-# A igualdade com Protocolo.codificar ainda exige as obrigacoes em CODEC.md.
+# A equivalencia publica completa esta demonstrada em CodecLei2.bend.
 import Base
 import ../contrato/Bytes.bend as B
 import ../contrato/Dados.bend as D

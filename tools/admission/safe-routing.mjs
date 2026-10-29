@@ -23,7 +23,6 @@ export function routeSafe(B,legacy,extended){
   ...legacy,
   admission_prepare_book:legacy.admission_prepare_book,
   SafeResourceExhausted:legacy.SafeResourceExhausted,
-  SafeDeadlineExceeded:legacy.SafeDeadlineExceeded,
   admission_safe_emit(book,out,options={}){
    // This is dispatch by typing structure, before any kernel verdict. The
    // legacy payload is complete and unmodified when its route is selected.
@@ -49,7 +48,6 @@ export function routeSafe(B,legacy,extended){
    try{got=structuralEmitter(B,extended,{executionRoots:['main'],proofRoots:[...relevant].map(n=>[...live.state.names].find(([,v])=>v===n)[0])}).admission_safe_emit(book,out,options);}
    catch(e){
     if(e instanceof extended.SafeResourceExhausted)throw new legacy.SafeResourceExhausted(e.message);
-    if(e instanceof extended.SafeDeadlineExceeded)throw new legacy.SafeDeadlineExceeded(e.message);
     throw e;
    }
    return {...got,correspondence:{route:'structural',...got.structural,dispatch:{relevant:[...relevant],unresolved:plan.unresolved}}};

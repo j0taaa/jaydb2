@@ -2,47 +2,22 @@
 build/
 __pycache__/
 *.pyc
-
-# Local installations and generated build products.
+*.pyo
 **/.build/
 node_modules/
 .pytest_cache/
-*.pyo
 *.o
 *.so
 *.a
 *.node
-/core
-/core.[0-9]*
 /tools/admission/installed/
 /tools/verifier/installed/
-
-# Secrets and local configuration.
+*.log
+*.jsonl
+/core
+/core.[0-9]*
 .env
 .env.*
 !.env.example
 *.pem
 *.key
-
-# Large, duplicated local captures stay on disk, outside Git.
-*.jsonl
-*.log
-/tests/reviews/
-/tests/accounting/review_v*/
-/tests/accounting/checkpoints/
-/tests/accounting/history/
-/tests/accounting/RESULTS*.json
-/tests/accounting/REVIEW*RESULTS.json
-/tests/native/review_accounted*/
-/tests/*/checkpoints/*.tar.gz
-/tests/admission/checkpoints/resources_v[1-5].json
-/tests/admission/checkpoints/review_v5_literal.json
-/tests/service/evidence/
-/tests/admission/evidence/**/*.tar.gz
-/tests/native/evidence/*
-
-# Immutable source fixtures required by the active native test suite.
-!/tests/native/evidence/field-codec.c
-!/tests/native/evidence/field-codec.c.constructors.json
-!/tests/native/evidence/stack-arity2048.c
-!/tests/native/evidence/stack-arity2048.c.gate.json

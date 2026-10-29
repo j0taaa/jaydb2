@@ -168,29 +168,18 @@ pode não produzir resposta e pode perder toda a instância em RAM. Uma falha de
 entrega posterior à publicação não desfaz o sucesso publicado. O núcleo não
 pode ignorar um erro conhecido e continuar com dados incorretos.
 
-## 7. Verificação desta revisão
-
-`contrato/VERIFICAR.bend` passou em `--check-only` e `--verdict` da distribuição
-oficial Bend 2.0.39, em processos separados, com `ALL PROOFS CHECK` nos dois.
-Isso verifica as definições e provas incluídas; não produz um termo de
-`Contrato(a, k)` do executável completo.
+## 7. Verificação
 
 ```sh
-python3 tools/check.py contrato/VERIFICAR.bend
-python3 tests/proof/test_revision.py --record
-python3 tests/proof/test_proofs.py --record
+make verify-contract
+make verify
 ```
 
-O primeiro runner de provas verifica contrato, wrappers puros e exemplos.
-O lote legado de 222 casos fechados do Codec teve checker primário aprovado,
-mas o `--verdict` excedeu 600 segundos do harness; essa tentativa é registrada
-separadamente como INCOMPLETE, sem aprovação secundária alegada.
-O segundo verifica os agregados e as mutações negativas relevantes. O prazo
-do harness é apenas uma proteção do desenvolvimento, não um orçamento do banco.
-Os relatórios novos têm identificação própria e hashes das fontes verificadas;
-resultados anteriores permanecem literais e não são validação desta revisão.
-As provas exclusivamente físicas foram retiradas dos agregados ativos e
-preservadas em [history/provas-recursos-v1](../history/provas-recursos-v1/).
+O primeiro comando verifica este contrato nos dois modos oficiais. O segundo
+confere os agregados gerais e seis mutações causais. Os runners não criam um
+termo de `Contrato(a,k)` para o executável completo. O timeout do desenvolvimento
+não é um orçamento do banco. Relatórios e implementações anteriores permanecem
+no histórico Git; o original literal está em `history/contrato-v1/`.
 
 ## 8. Fontes da linguagem
 

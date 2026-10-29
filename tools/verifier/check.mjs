@@ -7,9 +7,6 @@ import { derivedInfo } from './build.mjs';
 import { sha256 } from './derive.mjs';
 
 export class VerifierInfrastructure extends Error {}
-export class VerifierDeadline extends VerifierInfrastructure {
-  code = 'HOST_VERIFICATION_DEADLINE';
-}
 
 export function verifierInfo(sourceDir, options = {}) {
   const info = derivedInfo(sourceDir);
@@ -48,25 +45,14 @@ function modelBudget(n) {
   catch { throw new VerifierInfrastructure('initialModelFuel must be an exact positive decimal integer'); }
 }
 
-/** Same immutable input and host deadline for every retry; no maximum fuel. */
+/** Retry the same immutable input with increasing fuel; no maximum. */
 export function checkKernelFile(input, info, options = {}) {
   let fuel = fuelValue(options.initialFuel ?? '400000000');
   let attempts = 0n;
-  const deadline = options.deadlineNs === undefined ? null : BigInt(options.deadlineNs);
-  const remaining = () => {
-    if (deadline === null) return undefined;
-    const left = deadline - process.hrtime.bigint();
-    if (left <= 0n) throw new VerifierDeadline('Host verification deadline expired');
-    // spawnSync's timer uses milliseconds. The authoritative deadline is
-    // checked again before accepting any response; it never restarts on retry.
-    const millis = (left + 999999n) / 1000000n;
-    return millis > BigInt(Number.MAX_SAFE_INTEGER) ? undefined : Number(millis);
-  };
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jaydb-verifier-log-'));
   const log = path.join(directory, 'out');
   try {
     for (;;) {
-      const timeout = remaining();
       if (sha256(fs.readFileSync(info.kernelPath)) !== info.kernelSha256) throw new VerifierInfrastructure('Verifier changed during admission');
       const fd = fs.openSync(log, 'w', 0o600);
       let got;
@@ -78,10 +64,9 @@ export function checkKernelFile(input, info, options = {}) {
         env.LEAN_NUM_THREADS = '0';
         env.LEAN_MAIN_USE_THREAD = '0';
         got = child.spawnSync(info.kernelPath, [input, fuel.toString()], { env,
-          stdio: ['ignore', fd, fd], ...(timeout === undefined ? {} : { timeout }) });
+          stdio: ['ignore', fd, fd] });
       } finally { fs.closeSync(fd); }
       attempts++;
-      remaining();
       const out = fs.readFileSync(log, 'utf8').trim();
       if (got.error || got.signal || got.status === null) throw new VerifierInfrastructure(got.error?.message ?? 'Verifier terminated by ' + got.signal);
       if (got.status === 75 && out === 'BENDTT BUDGET EXHAUSTED') { fuel *= 2n; continue; }
@@ -100,23 +85,11 @@ export function checkBook(S, book, info, options = {}) {
   try {
     const input = path.join(directory, 'in.bendtt');
     if (typeof S.admission_safe_emit !== 'function') throw new VerifierInfrastructure('Pinned Safe stage adapter is unavailable');
-    let budget = modelBudget(options.initialModelFuel ?? '4194304');
-    let modelAttempts = 0n;
-    const deadline = options.deadlineNs === undefined ? null : BigInt(options.deadlineNs);
-    let emitted;
-    for (;;) {
-      if (deadline !== null && process.hrtime.bigint() >= deadline) throw new VerifierDeadline('Host verification deadline expired during Safe elaboration');
-      modelAttempts++;
-      try {
-        emitted = S.admission_safe_emit(book, input, { modelFuel: budget.toString(), deadlineNs: options.deadlineNs });
-        break;
-      } catch (error) {
-        if (error instanceof S.SafeDeadlineExceeded || error?.code === 'HOST_VERIFICATION_DEADLINE') throw new VerifierDeadline(error.message, { cause: error });
-        if (!(error instanceof S.SafeResourceExhausted)) throw error;
-        budget *= 2n;
-      }
-    }
-    const model = { modelFuel: emitted.modelFuel ?? budget.toString(), modelAttempts: emitted.modelAttempts ?? modelAttempts.toString(), schemas: emitted.schemas, instances: emitted.instances, ...(emitted.correspondence?{correspondence:emitted.correspondence}:{}) };
+    const budget = modelBudget(options.initialModelFuel ?? '4194304');
+    const emitted = S.admission_safe_emit(book, input, { modelFuel: budget.toString() });
+    const model = { modelFuel: emitted.modelFuel, modelAttempts: emitted.modelAttempts,
+      schemas: emitted.schemas, instances: emitted.instances,
+      ...(emitted.correspondence ? { correspondence: emitted.correspondence } : {}) };
     if (emitted.oos.length) throw new VerifierInfrastructure('BendTT representation unsupported:\n' + emitted.oos.join(''));
     return { ...checkKernelFile(input, info, options), ...model, inputSha256: sha256(fs.readFileSync(input)) };
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }

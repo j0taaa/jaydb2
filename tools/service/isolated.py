@@ -1,6 +1,6 @@
 """Explicit Python startup for the selected trusted service entrypoints.
 
-This constructs argv only. Request helpers use the durable lifecycle owner;
+This constructs argv only. Request helpers use a synchronous subprocess owner;
 no resource observer is required. The source directory and Python installation
 still need the environment's immutable-file contract.
 """
@@ -11,7 +11,6 @@ PYTHON = '/usr/bin/python3'
 ENTRIES = {
     'service': 'jaydb2.py',
     'admission': 'tools/admission/run.py',
-    'native': 'tools/native/build.py',
     'native_simple': 'tools/native/build_simple.py',
 }
 

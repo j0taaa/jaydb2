@@ -3,9 +3,8 @@
 // physical source link and representation still goes through both kernels.
 // A promotion records the occurrence in the original header, not an inferred
 // branch type containing escaped pattern variables.
-export function constrainProofViews(safe,names,options={}){
+export function constrainProofViews(safe,names){
  const state=safe.state,items=new Map(state.out.map(x=>[x[0],x])),ids=new WeakMap();let next=0,fresh=50000000;
- const deadline=()=>{if(options.deadlineNs!==undefined&&process.hrtime.bigint()>=BigInt(options.deadlineNs)){const e=Error('Physical type-view deadline expired');e.code='HOST_VERIFICATION_DEADLINE';throw e;}};
  const identify=x=>{if(!x||typeof x!=='object')return;if(!Array.isArray(x)&&!ids.has(x))ids.set(x,next++);for(const v of Object.values(x))identify(v);};
  const clone=x=>{
    if(!x||typeof x!=='object')return x;
@@ -59,7 +58,7 @@ export function constrainProofViews(safe,names,options={}){
  const protectedLogical=new Set(),protectedPhysical=new Set();
  const preserve=(from,to)=>{if(ids.has(from))ids.set(to,ids.get(from));return to;};
  const unfold=(x,seen=new Set(),typeHead=false)=>{
-   deadline();
+
    if(!typeHead&&(protectedLogical.has(key(x))||(x.$==='Ref'&&protectedPhysical.has(x.k))))return x;
    if(x.$==='Ann')return unfold(x.x,seen,typeHead);
    if(x.$==='Let')return unfold(sub(x.f,x.l,x.v),seen,typeHead);
@@ -150,7 +149,7 @@ export function constrainProofViews(safe,names,options={}){
    if(id!==undefined)ids.set(out,id);return out;
  };
  const infer=(x,ctx)=>{
-   deadline();
+
    if(x.$==='Ann')return x.T;
    if(x.$==='Var'){if(!ctx.has(x.l))throw Error('Unbound view-inference binder '+x.l);return ctx.get(x.l);}
    if(x.$==='Ref'){if(!items.has(x.k))throw Error('Missing view-inference head '+x.k);return items.get(x.k)[1];}
@@ -163,7 +162,7 @@ export function constrainProofViews(safe,names,options={}){
    throw Error('Physical view inference needs an expected type for '+x.$);
  };
  const walk=(body,expected,ctx,changes,path)=>{
-   deadline();
+
    if(body.$==='Lam'){
      const F=expose(expected);if(F.$!=='All')throw Error('A physical lambda view needs an All');
      const next=new Map(ctx);next.set(body.l,F.A);walk(body.f,sub(F.B,F.l,V(body.l)),next,changes,path+'.lambda');return;
@@ -189,7 +188,7 @@ export function constrainProofViews(safe,names,options={}){
  };
  let rounds=0;
  for(;;){
-   deadline();rounds++;let changed=false;conflicts.length=0;
+   rounds++;let changed=false;conflicts.length=0;
    for(const name of names){
      const item=items.get(name),changes=new Map();walk(item[2],item[1],new Map(),changes,name);
      if(changes.size){const next=replace(item[1],changes);if(!same(next,item[1])){item[1]=next;changed=true;}}

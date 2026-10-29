@@ -4,8 +4,8 @@ import { loadPinnedGenericCompiler } from './generic.mjs';
 import { AdmissionError, loadToolchain, sha256 } from './bootstrap.mjs';
 import { preflight } from './preflight.mjs';
 import { prepareKernel, auditLoopCalls, validateKernelEntry, validateForeignSnapshot, removeForeignSnapshot } from './kernel.mjs';
-import { checkBook, VerifierDeadline } from '../verifier/check.mjs';
-import { bookFingerprint as seal, closeEmissionBook } from './book-graph.mjs';
+import { checkBook } from '../verifier/check.mjs';
+import { bookFingerprint as seal } from './book-graph.mjs';
 
 export { AdmissionError, bootstrapInfo } from './bootstrap.mjs';
 export { preflight } from './preflight.mjs';
@@ -204,7 +204,7 @@ function audit(B, state) {
   return closure;
 }
 
-/** Returns the checked Book and exact source snapshots. All options are host-owned. */
+/** Returns an opaque checked handle and exact source snapshots. */
 export async function admitSubmission(options) {
   return admit(options, false);
 }
@@ -244,7 +244,7 @@ async function admit(options, kernelOnly) {
       const created = new Set();
       let rewrites = 0;
       for (;;) {
-        const closed = S.admission_prepare_book(state.book, options.verification);
+        const closed = S.admission_prepare_book(state.book);
         for (const k of closed.created) created.add(k);
         rewrites += closed.rewrites;
         const preparedState = seal(B, state.book);
@@ -253,7 +253,7 @@ async function admit(options, kernelOnly) {
         for (const [k, t] of Object.entries(state.book.tlds)) {
           if (t.$ === 'Def' && t.b !== true && t.e !== undefined && !ordered.has(k)) t.e = B.def_check(state.book, k, t);
         }
-        const final = S.admission_prepare_book(state.book, options.verification);
+        const final = S.admission_prepare_book(state.book);
         for (const k of final.created) created.add(k);
         rewrites += final.rewrites;
         // The original checker can rebuild an annotation which closure then
@@ -265,8 +265,6 @@ async function admit(options, kernelOnly) {
         }
       }
     } catch (cause) {
-      if (cause instanceof S.SafeDeadlineExceeded) throw new AdmissionError('HOST_VERIFICATION_DEADLINE', 'primary', cause.message,
-        { cause: new VerifierDeadline(cause.message, { cause }) });
     if (cause instanceof RangeError) {
       const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
       throw new AdmissionError('FRONTEND_INFRASTRUCTURE', 'primary',
@@ -294,7 +292,6 @@ async function admit(options, kernelOnly) {
       }
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;
-      if (cause instanceof VerifierDeadline) throw new AdmissionError(cause.code, 'bendtt', cause.message, { cause });
       throw new AdmissionError('BENDTT_INFRASTRUCTURE', 'bendtt', cause.stack ?? cause.message, { cause });
     }
     const sourceRecords = [...plan.records.values(), ...(plan.kernel ? [{ ...plan.kernel.foreign, role: 'kernel-foreign' }] : [])];
@@ -321,8 +318,8 @@ async function admit(options, kernelOnly) {
       sourceSetSha256: sha256(JSON.stringify(sources.map(({ path, sha256 }) => [path, sha256]).sort())),
       sources: Object.freeze(sources.map(({ text, ...r }) => Object.freeze(r))),
       targets: Object.freeze(Object.keys(plan.openTargets)), clientClosureSize: closure.size });
-    const result = Object.freeze({ book: state.book, sources, report });
-    admittedBooks.set(result, { tc, book: state.book, fingerprint: seal(B, state.book), foreignSnapshot });
+    const result = Object.freeze({ sources, report });
+    admittedBooks.set(result, { tc, book: state.book, foreignSnapshot });
     if (foreignSnapshot) sourceCleanup.register(result, foreignSnapshot, result);
     return result;
   } catch (e) { removeForeignSnapshot(foreignSnapshot); throw e; }
@@ -337,28 +334,51 @@ function diagnostic(B, cause) {
 }
 
 /** Emits from the very same checked object; never reloads request files. */
-function matchesSeal(state, admitted) {
-  if (!state || state.book !== admitted.book) return false;
-  try { return seal(state.tc.B, state.book) === state.fingerprint; }
-  catch { return false; } // Malformed graph/prototype changes cannot reach C.
+function checkedState(admitted) {
+  const state = admittedBooks.get(admitted);
+  if (!state) throw new AdmissionError('BOOK_CHANGED', 'compile', 'Handle de admissão inválido');
+  return state;
+}
+
+/** Read only the three logical limits; never expose the checked AST. */
+export function configurationLimits(admitted) {
+  const { tc: { B }, book } = checkedState(admitted);
+  const nat = value => {
+    let count = 0n;
+    for (;;) {
+      value = B.term_strip(value);
+      if (value.$ === 'Lit' && value.k === 'Nat') {
+        if (!Number.isSafeInteger(value.v) || value.v < 0) throw new Error('Inexact Nat metadata');
+        return count + BigInt(value.v);
+      }
+      let head = value, args = [];
+      while (head.$ === 'App') { args.unshift(head.x); head = B.term_strip(head.f); }
+      if (head.$ === 'Ref' && args.length === 2 && ['Nat.add', 'Nat.mul', 'Nat.sub', 'Nat.min', 'Nat.max'].includes(head.k)) {
+        const a = nat(args[0]), b = nat(args[1]);
+        return count + ({ 'Nat.add': () => a + b, 'Nat.mul': () => a * b,
+          'Nat.sub': () => a > b ? a - b : 0n, 'Nat.min': () => a < b ? a : b,
+          'Nat.max': () => a > b ? a : b }[head.k])();
+      }
+      if (value.$ === 'Ctr' && value.k === 'Zero') return count;
+      if (value.$ === 'Ctr' && value.k === 'Succ') { count++; value = value.x[0]; continue; }
+      const reduced = B.term_wnf(book, value);
+      if (reduced === value) throw new Error('Expected closed Nat in configuration');
+      value = reduced;
+    }
+  };
+  const limits = B.term_wnf(book, B.App(B.Ref('Semantica:limites'), B.Ref('Configuration:config')));
+  if (limits.$ !== 'Ctr' || limits.k !== 'Semantica:Limites' || limits.x.length !== 3) throw new Error('Invalid configuration limits');
+  return Object.freeze(Object.fromEntries(['mensagem', 'estado', 'resposta'].map((name, i) => [name, String(nat(limits.x[i]))])));
 }
 
 export function emitC(admitted) {
-  const s = admittedBooks.get(admitted);
-  if (!matchesSeal(s, admitted)) {
-    throw new AdmissionError('BOOK_CHANGED', 'compile', 'Book não admitido ou modificado após verificação');
-  }
+  const s = checkedState(admitted);
   if (s.emitter && s.emitter !== 'official') throw new AdmissionError('BACKEND_CHANGED', 'compile', 'Um Book admite apenas um backend de emissão');
   try {
     if (s.c !== undefined) return s.c;
     s.emitter = 'official';
     validateForeignSnapshot(s.foreignSnapshot);
-    closeEmissionBook(s.tc.B, s.book);
     s.c = s.tc.C.compile_book(s.book);
-    // The official compiler memoizes reductions in the Book. Keep its emitted
-    // artifact, and distinguish those mutations from subsequent caller edits.
-    closeEmissionBook(s.tc.B, s.book);
-    s.fingerprint = seal(s.tc.B, s.book);
     removeForeignSnapshot(s.foreignSnapshot);
     sourceCleanup.unregister(admitted);
     return s.c;
@@ -369,9 +389,7 @@ export function emitC(admitted) {
 
 /** Generic Nat/Array representation; accepts a pinned backend hash, no callback. */
 export async function emitGenericC(admitted, options = {}) {
-  const s = admittedBooks.get(admitted);
-  const validBook = () => matchesSeal(s, admitted);
-  if (!validBook()) throw new AdmissionError('BOOK_CHANGED', 'compile', 'Book não admitido ou modificado após verificação');
+  const s = checkedState(admitted);
   if (!options || Object.keys(options).some(k => k !== 'backendSha256') || !/^[a-f0-9]{64}$/.test(options.backendSha256)) {
     throw new AdmissionError('BACKEND', 'compile', 'backendSha256 do emissor genérico deve ser fixado pelo host');
   }
@@ -382,14 +400,8 @@ export async function emitGenericC(admitted, options = {}) {
   s.emission = (async () => {
     try {
       const compiler = await loadPinnedGenericCompiler(s.tc.info.sourceDir, options.backendSha256);
-      // Loading a backend is async. Recheck the same object immediately before
-      // the synchronous compiler so caller mutations during await cannot pass.
-      if (!validBook()) throw new AdmissionError('BOOK_CHANGED', 'compile', 'Book modificado durante carregamento do emissor');
       validateForeignSnapshot(s.foreignSnapshot);
-      closeEmissionBook(s.tc.B, s.book);
       const c = compiler.compile_book(s.book);
-      closeEmissionBook(s.tc.B, s.book);
-      s.fingerprint = seal(s.tc.B, s.book);
       return Object.freeze({ c, backendSha256: options.backendSha256, compilerSha256: compiler.sourceSha256,
         cSha256: sha256(c), sourceSetSha256: admitted.report.sourceSetSha256,
         toolchainSha256: admitted.report.toolchainSha256, sameCheckedBook: true });

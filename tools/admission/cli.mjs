@@ -32,5 +32,5 @@ try {
   }
 } catch (error) {
   console.error(JSON.stringify({ code: error.code ?? 'CLI', phase: error.phase ?? 'cli', message: error.message }));
-  process.exitCode = error instanceof AdmissionError && !['TOOLCHAIN', 'SOURCE_IO', 'FRONTEND_INFRASTRUCTURE', 'BENDTT_INFRASTRUCTURE', 'HOST_VERIFICATION_DEADLINE', 'COMPILE', 'BACKEND', 'BACKEND_CHANGED', 'BOOK_CHANGED'].includes(error.code) ? 2 : 3;
+  process.exitCode = error instanceof AdmissionError && !['TOOLCHAIN', 'SOURCE_IO', 'FRONTEND_INFRASTRUCTURE', 'BENDTT_INFRASTRUCTURE', 'COMPILE', 'BACKEND', 'BACKEND_CHANGED', 'BOOK_CHANGED'].includes(error.code) ? 2 : 3;
 }

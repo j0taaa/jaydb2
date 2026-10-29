@@ -26,18 +26,17 @@ struct jaydb_simple_result {
   uint32_t status, runtime_code, stage, reserved;
   const uint8_t *output;
   uint64_t output_len, output_capacity, lease;
-  uint8_t compatibility_reserved[88]; /* zero; durable lifecycle V3 size */
 };
 struct jaydb_simple_descriptor {
   uint32_t abi_version, size, request_bytes, result_bytes;
-  uint32_t result_prefix_bytes, flags, term_bytes, reserved;
+  uint32_t flags, term_bytes;
   char source_sha256[64], build_identity_sha256[64];
 };
 _Static_assert(sizeof(struct jaydb_simple_request)==32, "ABI6 request");
-_Static_assert(sizeof(struct jaydb_simple_result)==136, "lifecycle-compatible result");
+_Static_assert(sizeof(struct jaydb_simple_result)==48, "ABI6 result");
 _Static_assert(offsetof(struct jaydb_simple_result, output)==16, "output prefix");
 _Static_assert(offsetof(struct jaydb_simple_result, lease)==40, "lease prefix");
-_Static_assert(sizeof(struct jaydb_simple_descriptor)==160, "ABI6 descriptor");
+_Static_assert(sizeof(struct jaydb_simple_descriptor)==152, "ABI6 descriptor");
 
 /* One synchronous evaluator in the caller's process and thread. The host
  * establishes the Linux main grow-down stack profile before calling. */
@@ -57,5 +56,5 @@ static void jaydb_resize(void *owner, uint64_t *capacity, uint64_t bytes);
 
 const struct jaydb_simple_descriptor *jaydb_native_describe_v6(void);
 uint32_t jaydb_native_run_v6(const struct jaydb_simple_request *, struct jaydb_simple_result *);
-uint32_t jaydb_native_release_v3(uint64_t lease);
+uint32_t jaydb_native_release_v6(uint64_t lease);
 #endif
