@@ -1,0 +1,123 @@
+{
+  "checkedAt": "2026-10-29T02:36:30.206976+00:00",
+  "generalLaws": 7,
+  "universalTestLaws": 2,
+  "checks": [
+    {
+      "file": "proof/AlocacoesComprimentos.bend",
+      "mode": "--check-only",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "proof/AlocacoesComprimentos.bend",
+      "mode": "--verdict",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "tests/proof/AlocacoesComprimentos.bend",
+      "mode": "--check-only",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "tests/proof/AlocacoesComprimentos.bend",
+      "mode": "--verdict",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoSemGuard.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoSemGuard.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : C.Curto{}\n- observed : C.Cabe{}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : C.Curto{}\n- observed : C.Cabe{}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    }
+  ],
+  "dependenciesSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "proof/AlocacoesComprimentos.bend": "c1bbb5dc50237a6150e121456082705845180b723465087d75dd6793aaa47b20",
+    "proof/CodecAceitacaoPilha.bend": "4db28af3c09b559a2b1ebd190f731ab27593673459b3ed33a4469bbecf4ad9ff",
+    "proof/CodecCanonico.bend": "c19ce46bc8991cf2a0f2ba479111735c8c45ffc525dc9b4419ad001d21e0817f",
+    "proof/CodecContadores.bend": "71f626162e32866faf846a8347a163e5154aae769e0f8da8d72bb2d1337f9e6c",
+    "proof/CodecConteudo.bend": "3746cc9078698a0db070f90061757f7c772ff8b364f0572ad3bbae20b3536191",
+    "proof/CodecEstruturas.bend": "0a6c340a9709322c1f80dc99dd9e51611d7487c215d1038f7c6d036529e26c9b",
+    "proof/CodecLimitesNomes.bend": "a9eecb5c3e7e226cd2379e8de42133e54e211b2ded746d7b45f7f85cecba27b6",
+    "proof/CodecLimitesSequencias.bend": "1a54b75d9de47ff1f7e6ccaf64bc57052f8d06cc06cad60b486e13dbbc760d27",
+    "proof/CodecMinimos.bend": "26b0f58ecafa0f5b1c48d345dd4e4c3f3ba22b2476d5321a4eba6f6150cf3eae",
+    "proof/CodecMinimosPilha.bend": "c7b880ee70090d2bd00524667218ed1053fc79bd40667e4799da0445c4d93fd1",
+    "proof/CodecPalavrasBE64.bend": "db39ac80c88a3e88858569d24591f03dd17b6f61a34df3e08a04862efb780d1e",
+    "proof/CodecPalavrasWord.bend": "350920693228254f939f65d79ba2b2d673e29cd3b0937f9d42aaa2afdc41b289",
+    "proof/CodecPercurso.bend": "ae59a058597aa46a6ea01ab59fdafa344fc64fe52ac4730d3bb4d5657ebb36e3",
+    "proof/CodecRelaxarAritmetica.bend": "b3e1dbd547e43f643da0fd70cbec55040d61440ef50200bb95ad5ad7e9fd2fae",
+    "proof/CodecRelaxarAritmeticaNat.bend": "701040ce010bff29df7d3f0f3271ef49ce42f3d63fe69184f60576e455ec5770",
+    "proof/CodecRelaxarAritmeticaWord.bend": "38ce1e3b1d472b7acefa2da3960e35e16f7cc57504bda04ddd293d06e675cc93",
+    "proof/CodecSomas.bend": "b70a9311d793413b516ef09b132f0df6ebbd85e4a1125c1ca758eb1fa8b8352a",
+    "proof/CodecSomas64.bend": "f0a9a3f2a2733241bede72c6be71b99a942052ed1fff2bd96c32b68b33426309",
+    "proof/CodecSomasBits.bend": "34c85339e9002a8cbb523bc599cb7d8c7532d22a454b01ecd03ce9be0e3f5feb",
+    "proof/CodecSomasMinimos.bend": "0662beff741dc3062cb32c89db61f91af69ba6dac77885d6fd22c6b1ea1db767",
+    "proof/CodecSomasOrdem.bend": "979648fb7d1464484dab065c07fa3f2b0375efb0a66a06409c9dc7d104410dc8",
+    "proof/CodecTamanhos.bend": "8e2f157ce8c96164f4041ef7554a81d40b3b3777735a935d7a90fced65e327bb",
+    "proof/CodecUTF8.bend": "7380c3defdd5be791950babc9cbac4f81e642725d5441c154a3c5a2e92d1e507",
+    "proof/CodecUTF8Bits.bend": "e60bf6ea7cbebd75788bf6b771972a44c06ae39cb17a2e91c08187d1f30d8db4",
+    "proof/CodecUnicode.bend": "4525b5084f1247ce84ab0faae958553181191267a755449ac760a1831370dacc",
+    "proof/Fundamentos.bend": "579b6490ef94b66f62b87c03cea147fbfaa630eb4bf326ed38e804f4e2ea109d",
+    "proof/Ordens.bend": "46ab1e5c89ec5d64228c81fea25ffa079ea0ccbc10a720695ae2ccb1654188b7",
+    "src/Codec.bend": "0713bee457e028815bd83a3b067494c59d6162b09b7359aad15d183c5153da8a",
+    "tests/proof/AlocacoesComprimentos.bend": "bd4360eb411ca6ff022f03e0a824473a7aef101c49d0f623dbaa09722d20375b",
+    "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend": "400964dd36ffc2387bc99019762981fc09900d4288c41cc0988405eeb87afc07",
+    "tests/proof/rejeitados/AlocacaoSemGuard.bend": "4f52b6d9ed10162b1b8035c33536fa613b8668825004f526a02bb07ae23e1a44"
+  },
+  "originalsSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/ESPECIFICACAO.original.md": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882",
+    "contrato/Interface.bend": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+    "contrato/LAWS.bend": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/README.md": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94",
+    "contrato/Recursos.bend": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+    "contrato/Requisitos.bend": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+    "contrato/Semantica.bend": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICACAO.json": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "contrato/verificar.py": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1"
+  },
+  "fullLaw2Proved": false,
+  "hostAllocationEventsIntegrated": false,
+  "fullExecutableContractProved": false
+}

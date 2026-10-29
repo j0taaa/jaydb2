@@ -1,0 +1,15 @@
+{
+  "payloadFields": 2048,
+  "sourceSha256": "cb7b71c9bddd3aa311cc520c7ad5861cb8ccfef4dd2bc7c5296bc37f156c4fd2",
+  "primary": true,
+  "bendtt": true,
+  "sourceSetSha256": "746c138e2981f85c62bf9d9d5ff12419aebfb667e839a8e881121ce963ec0973",
+  "targets": [
+    "Bindings:certificado",
+    "Bindings:termina"
+  ],
+  "emitted": true,
+  "sameCheckedBook": true,
+  "cSha256": "da201996c175550ec74ba8cb9c9b9dd30d1c104e251072724d0bbb21dcd3fdd7",
+  "derivedCompilerSha256": "f8b67cfec107f24a5143c3e41ac597c1d6ade97807af2050954860c873ed620a"
+}

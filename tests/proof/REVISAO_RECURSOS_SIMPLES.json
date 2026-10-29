@@ -1,0 +1,197 @@
+{
+  "checkedAt": "2026-10-29T15:26:14.393094+00:00",
+  "contractRevision": "tres-tamanhos-sem-orcamentos-fisicos-v2",
+  "compiler": "/home/jota/projects/jaydb2/.tools/bend-2.0.39/bin/bend",
+  "version": "bend 2.0.39",
+  "compilerSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+  "durationSeconds": 9.496,
+  "harnessTimeoutIsDevelopmentOnly": true,
+  "fullExecutableContractProved": false,
+  "scope": "Contrato, wrappers puros com o mesmo Codec e certificados/terminacao/seeds de seis exemplos; sem execucao nativa ou Ambiente instanciado; nao inclui o lote legado de 222 casos fechados",
+  "checks": [
+    {
+      "file": "contrato/VERIFICAR.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "contrato/VERIFICAR.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "tests/proof/NucleoVerificar.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "tests/proof/NucleoVerificar.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/sem-observacoes/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/sem-observacoes/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/sem-observacoes/Sucesso.bend + SucessoProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/sem-observacoes/Sucesso.bend + SucessoProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/credenciais/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/credenciais/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/credenciais/Eco.bend + EcoProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/credenciais/Eco.bend + EcoProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/troca-credenciais/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/troca-credenciais/Client.bend + ClientProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "examples/troca-credenciais/Quem.bend + QuemProof.bend + Seed.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "examples/troca-credenciais/Quem.bend + QuemProof.bend + Seed.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    }
+  ],
+  "sourcesSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/Interface.bend": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0",
+    "contrato/LAWS.bend": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/Recursos.bend": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2",
+    "contrato/Requisitos.bend": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef",
+    "contrato/Semantica.bend": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "examples/credenciais/Client.bend": "bd02b55bf19643019d66880341664be9071b9ede1f683505094be2b6787b67c5",
+    "examples/credenciais/ClientProof.bend": "172ddba9f68e6c74fc9f2c900205d67ae3390cc4564501dc92c27e3062f1a881",
+    "examples/credenciais/Configuration.bend": "d22057a4f19ba57a05d2e45dabb1d7d4d62bad5187cc4a06f457b01a231e4a7c",
+    "examples/credenciais/Eco.bend": "129838b3d7bf5707abab675f5bd74248bf8b38c17bb5ee400787f9584ed090de",
+    "examples/credenciais/EcoProof.bend": "e3b92095ba6fea8eeb76dafc3217c1529eb24c2b1f63f899e174d840e85cdcf4",
+    "examples/credenciais/Seed.bend": "23432188d9b29d871557a043d5a617367b3b134a454d4d82bb1420c0de9e9349",
+    "examples/sem-observacoes/Client.bend": "4c2fb15d288459f65d61dc025006783634e053951c398ff4d70e120b6e3c208d",
+    "examples/sem-observacoes/ClientProof.bend": "509350b34631f9742235e465b31b96e2bde875034e49859f0149223ac5e8b49a",
+    "examples/sem-observacoes/Configuration.bend": "80600b8c8ec6c42efd6030031fa8e0b979a9bf59edd7e9ed591b7e99409b6f17",
+    "examples/sem-observacoes/Seed.bend": "4e15b4da499474dc7b1b2855da36a613062a6b1fe56f315370cb3c30a4889573",
+    "examples/sem-observacoes/Sucesso.bend": "00515276ccca0937dc2b773514c67da136ff678c15d77e182154cc8ffe2b0d27",
+    "examples/sem-observacoes/SucessoProof.bend": "78a0b9511813c19adc891dc15359f0cbb96eb53a93a243af02dbb110977ed305",
+    "examples/troca-credenciais/Client.bend": "c2d6c9e5ce8bd40d7b914bed5d2ae52cf2fb084bd303228280f0bcdb718bbd9c",
+    "examples/troca-credenciais/ClientProof.bend": "e0e7ffaa05875b6ec69d27184ded73e4d83f6f50120a63f9658f968d301c885b",
+    "examples/troca-credenciais/Configuration.bend": "d22057a4f19ba57a05d2e45dabb1d7d4d62bad5187cc4a06f457b01a231e4a7c",
+    "examples/troca-credenciais/Quem.bend": "199a96f550ab2ddfc71ea960ba5bc76a482d7000d4257785d5f8196ab3689d74",
+    "examples/troca-credenciais/QuemProof.bend": "4fbec105d27b9ce500fa103c9beb5bf2e0d9fbba7cbbff2d3f32121144e6510f",
+    "examples/troca-credenciais/Seed.bend": "cb6a65b08f964358a9dd0d9359c672dc4fbb8ccae12fae8b4c2de9fd693552c4",
+    "src/Codec.bend": "9a02cae713ebdd45fe65308829c7507776b8b982206d8efa5699b663b2576919",
+    "src/Configuracao.bend": "c4024f595e296d4d4391b90772288a74fe3e7bd015d2a6abc169de2d61105d7f",
+    "src/Entrada.bend": "cdaeb8251b8fb455cb00e7ae1203d0d4a7855ffb10d81ca96bceb346f3d9ca8b",
+    "src/Estado.bend": "235626f31f1f95629a9e906a47d9e196cb74606725cc3e2e5abbd8293f2eae2e",
+    "src/Execucao.bend": "d28c0ae9945778514824309129f0a3a3d8f0abe5f42019a38707e2b72af05b6e",
+    "src/Gerar.bend": "1cf71271223944cd3415f0147b9eef6c74f5ba1bd51a0203639592593ac28e41",
+    "src/Livre.bend": "8b94c702c3ee3c963dd795612e308e98848cc5ad197b0e8c0c46039a8cdf6184",
+    "src/Mensagens.bend": "563b560e042c10f48e0ca1a30ebc600652d6e8169f2735e599fbf7c3d3d3f1c3",
+    "src/Nucleo.bend": "926c84e1b38c79551c53f9767fc299fbe96a57edf74eda9823847a34d6012993",
+    "src/Reificacao.bend": "1c1beed67c3f14c9e447efa8c34c629a0f70997ff1f9f2523f307b994f797545",
+    "src/Requisicao.bend": "be5176c4d78bc3a0cd26e34d810944f900b06928a0e1fddb333898750988ba69",
+    "src/Terminacao.bend": "a0ba689d322829496fbd7c53fe9b68d1873a4de314a8c004fceeaa2686c562ef",
+    "src/Transporte.bend": "d1bd685814cc325b26b7649cbc6a40a5027f81bb59c5b6f22e251503e72dc2f2",
+    "tests/proof/NucleoVerificar.bend": "0ded5fb8a1355918e42b69cf1395b004c965bf6975dec4f834cf3a50b0f5d032",
+    "tests/proof/test_revision.py": "214837d08816e53c1740af2da26f34cffa051ec9fc4958d79d4561bc332f943a"
+  },
+  "generatedTestModules": {
+    "examples/sem-observacoes/Client.bend + ClientProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}def somar(xs: List<U32>, acc: U32) -> U32:\\u{0a}  match xs:\\u{0a}    case Nil{}:\\u{0a}      acc\\u{0a}    case Con{h, t}:\\u{0a}      somar(t, (acc + h : U32))\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{ctx => args => S.Recusar{D.VInt{0, somar([1, 2, 3], 0)}}}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    },
+    "examples/sem-observacoes/Sucesso.bend + SucessoProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}def somar(xs: List<U32>, acc: U32) -> U32:\\u{0a}  match xs:\\u{0a}    case Nil{}:\\u{0a}      acc\\u{0a}    case Con{h, t}:\\u{0a}      somar(t, (acc + h : U32))\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{ctx => args => S.Terminar{D.VInt{0, somar([1, 2, 3], 0)}}}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    },
+    "examples/credenciais/Client.bend + ClientProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}def token(args: D.Valor) -> D.Valor:\\u{0a}  match args:\\u{0a}    case D.VTexto{s}:\\u{0a}      D.VTexto{s}\\u{0a}    case _:\\u{0a}      D.VTexto{\\\"nova\\\"}\\u{0a}\\u{0a}def responder(r: S.Retorno) -> S.Acao:\\u{0a}  match r:\\u{0a}    case S.Dado{D.Celula{valor}}:\\u{0a}      S.Terminar{valor}\\u{0a}    case _:\\u{0a}      S.Recusar{D.VAusente{}}\\u{0a}\\u{0a}def ler(id: String) -> S.Acao:\\u{0a}  S.Acessar{D.LerCelula{D.Usuarios{}, id, \\\"credencial\\\"}, responder}\\u{0a}\\u{0a}def escrever(+id: String, args: D.Valor) -> S.Acao:\\u{0a}  S.Acessar{D.DefinirColuna{D.Usuarios{}, id, \\\"credencial\\\", token(args)},\\u{0a}    unidade => ler(id)}\\u{0a}\\u{0a}def iniciar(ctx: D.Contexto, args: D.Valor) -> S.Acao:\\u{0a}  D.Contexto{+id, tipo} = ctx\\u{0a}  S.Acessar{D.DefinirColuna{D.Usuarios{}, id, \\\"credencial\\\", D.VTexto{\\\"\\\"}},\\u{0a}    unidade => escrever(id, args)}\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{iniciar}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    },
+    "examples/credenciais/Eco.bend + EcoProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{ctx => args => S.Terminar{args}}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    },
+    "examples/troca-credenciais/Client.bend + ClientProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}type Credenciais is Data:\\u{0a}  Credenciais{alice: String, bob: String}\\u{0a}\\u{0a}def argumentos(v: D.Valor) -> Credenciais:\\u{0a}  match v:\\u{0a}    case D.VLista{D.VTexto{a}, D.VLista{D.VTexto{b}, D.VListaVazia{}}}:\\u{0a}      Credenciais{a, b}\\u{0a}    case _:\\u{0a}      Credenciais{\\\"bob-token\\\", \\\"alice-token\\\"}\\u{0a}\\u{0a}def responder(r: S.Retorno) -> S.Acao:\\u{0a}  match r:\\u{0a}    case S.Dado{D.Celula{valor}}:\\u{0a}      S.Terminar{valor}\\u{0a}    case _:\\u{0a}      S.Recusar{D.VAusente{}}\\u{0a}\\u{0a}def ler(id: String) -> S.Acao:\\u{0a}  S.Acessar{D.LerCelula{D.Usuarios{}, id, \\\"credencial\\\"}, responder}\\u{0a}\\u{0a}def escrever_bob(bob: String, id: String) -> S.Acao:\\u{0a}  S.Acessar{D.DefinirColuna{D.Usuarios{}, \\\"bob\\\", \\\"credencial\\\", D.VTexto{bob}},\\u{0a}    unidade => ler(id)}\\u{0a}\\u{0a}def trocar(c: Credenciais, ctx: D.Contexto) -> S.Acao:\\u{0a}  Credenciais{alice, bob} = c\\u{0a}  D.Contexto{id, tipo} = ctx\\u{0a}  S.Acessar{D.DefinirColuna{D.Usuarios{}, \\\"alice\\\", \\\"credencial\\\", D.VTexto{alice}},\\u{0a}    unidade => escrever_bob(bob, id)}\\u{0a}\\u{0a}def iniciar(ctx: D.Contexto, args: D.Valor) -> S.Acao:\\u{0a}  trocar(argumentos(args), ctx)\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{iniciar}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    },
+    "examples/troca-credenciais/Quem.bend + QuemProof.bend + Seed.bend": {
+      "Environment.bend": "import Base\ndef identidade() -> String:\n  \"Bend-2.0.39-tres-limites-testes\"\n",
+      "Instance.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuracao:\n  C.config()\ndef contexto() -> D.Contexto:\n  D.Contexto{\"alice\", \"usuario\"}\ndef argumentos() -> D.Valor:\n  D.VAusente{}\n",
+      "Bindings.bend": "import Base\nimport ./Dados.bend as D\nimport ./Semantica.bend as S\nimport ./Requisitos.bend as R\nimport ./Interface.bend as F\nimport ./Instance.bend as I\nimport ./Client.bend as Client\ndef codigo() -> String:\n  \"import Base\\u{0a}import ./Dados.bend as D\\u{0a}import ./Semantica.bend as S\\u{0a}\\u{0a}def iniciar(ctx: D.Contexto, args: D.Valor) -> S.Acao:\\u{0a}  D.Contexto{id, tipo} = ctx\\u{0a}  S.Terminar{D.VTexto{id}}\\u{0a}\\u{0a}def programa() -> S.Programa:\\u{0a}  S.Programa{iniciar}\\u{0a}\"\nlaw certificado:\n  R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())\nlaw termina:\n  F.ProgramaTermina(I.config(), Client.programa())\n",
+      "Verificar.bend": "import Base\nimport ./Configuration.bend as Configuration\nimport ./Seed.bend as Seed\nimport ./ClientProof.bend as ClientProof\n"
+    }
+  }
+}

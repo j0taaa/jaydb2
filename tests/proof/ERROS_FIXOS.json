@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-29T03:57:42.820497+00:00",
+  "generalLaw": "todos_os_erros_preparados_sao_exatamente_mensagens_originais",
+  "allSixHostErrorsCovered": true,
+  "positiveChecks": 2,
+  "rejectedMutationChecks": 2,
+  "artifactsLinkedBy": "test_fixed_host_frames_are_the_exact_artifacts_in_the_bend_proof",
+  "files": {
+    "proof/ErrosFixos.bend": "6dfcacfb922621240d90c267b31ab11e299f6321fa0085effb77a0fec18640ac",
+    "tools/service/frames.py": "37bc8dbb121dfad5ff4d2a40cf9af7a5328f1ac4d1ad55aa4110c438a6947825",
+    "tests/service/test_controller.py": "4bd71d2e2168a7ee350f248163efe719a01ff8c0dd22da3e69c402020d2bc361",
+    "tests/proof/rejeitados/ErroFixoTrocado.bend": "1e95e72d26b6d6f285b09c066056d82b8e13bb839ad9b7bbede2d9c41a033e05",
+    ".tools/bend-2.0.39/bin/bend": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+  },
+  "logs": {
+    "positivePrimary": {
+      "path": "/tmp/jaydb2-erros-fixos-check.log",
+      "sha256": "931f1e664a679af1355a9ca547ac1daef9f7b14137bc7cc21b110b0cc504b5b1"
+    },
+    "positiveKernel": {
+      "path": "/tmp/jaydb2-erros-fixos-verdict.log",
+      "sha256": "61b73cda11b6b665b9f99f2defd3d3b57f985c865225e942a5bdaa594a503e47"
+    },
+    "negativePrimary": {
+      "path": "/tmp/jaydb2-erros-fixos-negative-check.log",
+      "sha256": "2f91123e5fe98a046ab9ae7dbd8f7bbb9987c44dd2a0e96bee8e972a27f8f9eb"
+    },
+    "negativeKernel": {
+      "path": "/tmp/jaydb2-erros-fixos-negative-verdict.log",
+      "sha256": "2f91123e5fe98a046ab9ae7dbd8f7bbb9987c44dd2a0e96bee8e972a27f8f9eb"
+    }
+  },
+  "original18Unchanged": true,
+  "statusJustificationProved": false,
+  "fullExecutableContractProved": false
+}

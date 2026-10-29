@@ -1,0 +1,99 @@
+{
+  "checkedAt": "2026-10-29T06:10:55.100298+00:00",
+  "stage": "native-accounted-priority-v2; awaiting complete source freeze and new independent review",
+  "originalFinding": "NATIVE-ACCOUNTED-1, fixed integer pending guard changed Entrada/Limite and intermediate constructions",
+  "response": "Pending minimum only for variable tags4..6 in decoder, recipeV3 and spansV2; primitive tags check only their own fixed extent",
+  "tests": {
+    "accounted": 20,
+    "fieldV2": 27,
+    "recipeV3": 7,
+    "legacyConstructorBridge": 10,
+    "realInitializationWithReceiptOwnedModule": 1
+  },
+  "reviewDifferential": {
+    "beforeConfirmedDifferences": 3,
+    "cases": 13,
+    "afterRepeats": 3,
+    "afterDifferences": 0,
+    "beforeLog": "tests/native/evidence/priority-v2/before-targeted.json",
+    "afterLogs": "tests/native/evidence/priority-v2/after-targeted-*.json"
+  },
+  "logsSha256": {
+    "accounted20.log": "b53466203e1cc925021e0f4a8797cc40c76d1ab7856a345be9b1ba8a4f198cf4",
+    "field27.log": "72ed002b1aa79d72e2498bd09bd3f081d59d5547c2973622cef0f019e711475e",
+    "recipe7.log": "53f35d2f11622881396382f7f391b7b102b3717eae21acea2e9ddd70726f0704",
+    "constructor10.log": "d16f2ac2f8b2929a7501c848bdcf94cc4014c84d5e12c770472e4df8389b5fc6",
+    "real-init1.log": "a614b6b67797de7b593d4c470905651c0622389bfa15c38d28c588eed0f4c9cf",
+    "rebuild.log": "33dcf938e077be486efb8218906eaae06fe7755a38984464a7b4f59411795010"
+  },
+  "sourcesSha256": {
+    "native/decoder.inc.c": "43c989608aef5351a5a0c3bfd63c9b94368928be57bb6d9401e6f33faaf105fc",
+    "native/field_recipe.c": "dc4dce5500aab240515c016c1dbc935b3aa5ae5b3c61a8652e0483679f58c401",
+    "native/field.c": "4e8b10a5396e7cedf8087b97832a2ca428ce55f0a342db458733a05d8e1de773",
+    "native/field.h": "f22fc2a4290697d20019097a6f1e01ce5565dfae893086555ab860cea7b2b399",
+    "native/field_recipe.h": "d22c0d25ae4628d1478e9b8dae45e396931b964a542f4e228548f47cdd603b1e",
+    "native/abi_accounted.h": "092f9b5829718c01c2117a233addc8e07a05a5e72c17808cac3d6ed7b28f5639",
+    "native/accounting/deadline.h": "33acf1a236f31bedd64e3a6a265cc1fa187ee8770fb6e5eca6139966a082e15f",
+    "tools/native/accounted.py": "2c2a9f39051c5233d9a3bbd51cc96d943dfa69c91b04cb1cded8899affb7d59d",
+    "tools/native/generic.mjs": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+    "tools/native/accounted_generic.next.mjs": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+    "tests/native/test_accounted.py": "822223aa6a2a78d21e4e97034f9d7c5f6b1b30619553983fe2fb52cefed1c0f2",
+    "tests/native/test_field.py": "e9ec8f762e1d387d184f5614b5c7976ff6df86a675a20893a4886ebff0ace939",
+    "tests/native/test_recipe.py": "71a49cd88ae40765e6fa7b357f2c16aae17948b4f11c5d14c03a5c37eed97e32",
+    "tests/native/build_accounted_evidence.py": "bea9ba1e20f3e536301da0d502745ca90ed43f3f952ec50d38129b9d05f593f0",
+    "tests/native/test_native.py": "cc41d45590e7db9f6dfa9e27e48365b030e00970a303707c9a366689b704168a"
+  },
+  "artifacts": {
+    "production": {
+      "moduleSha256": "3e486ee8fff4aee088cea091babc1ed5929cd6e395cb1ffc9ebdaea2ef94044b",
+      "sourceSha256": "4de38b08049038ae284aab572fb475cbe04986be1e7966af8aec45df77bd6f61"
+    },
+    "fixture": {
+      "moduleSha256": "8044333ac25b927577ed12556ed2aef67d4e6d9f5e78ae86243df3f6ea433ec1",
+      "sourceSha256": "4de38b08049038ae284aab572fb475cbe04986be1e7966af8aec45df77bd6f61"
+    },
+    "legacy": {
+      "moduleSha256": "35bbca2b4c62d6eb6240866fb0b4c4c63c414c0766ee15cc483fc10314373ec7",
+      "sourceSha256": "96ca5106460ccd92081c032ed90d5d40e8112241e0df7d170ba4cf37d054dbcf"
+    },
+    "helper": {
+      "moduleSha256": "d636eefe2a45e7c7c0f307168b4d797fd390c8d1c9dfa910f622005fcec8d568",
+      "sourceSha256": "9fb506d2461b9388164af2c776cd7156f3d7a594227a5fb46c623cb7750e8f38"
+    },
+    "no-codec": {
+      "moduleSha256": "e6f937d427d6506fdecafc7e19538d85ab9cc37272c8c76efccdaa9dbb7531ca",
+      "sourceSha256": "d92bd9120a6e44b40c9e6b204a4625d9b0b13790866e41d835d5e71f21318702"
+    }
+  },
+  "sameBookCOriginalUnchanged": true,
+  "currentEmitterSwapPerformed": false,
+  "original18Sha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/ESPECIFICACAO.original.md": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882",
+    "contrato/Interface.bend": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+    "contrato/LAWS.bend": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/README.md": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94",
+    "contrato/Recursos.bend": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+    "contrato/Requisitos.bend": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+    "contrato/Semantica.bend": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICACAO.json": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "contrato/verificar.py": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1"
+  },
+  "priorFreezeSha256": "df8b8778a68255550fee9212734d94c9e5522f94c18b2018c03ef8e63a3b2526",
+  "legacyMainStackSha256": "bc39567b346433d73f1328b9b955212d405c8a361e523182c89d79424cdf7db9",
+  "realObserverCoverageComplete": false,
+  "positiveObservationsAreExplicitFixtures": true,
+  "fullCodecLoweringEquivalenceProved": false,
+  "wholeEntryIntegrated": false,
+  "fullExecutableContractProved": false,
+  "wideNative82": "Not repeated for this local fix; prior80/82 with2blocked preserved in history/ACCOUNTED_V1_RESULTS.json",
+  "newIndependentReview": "pending"
+}

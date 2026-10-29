@@ -1,0 +1,16 @@
+{
+  "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+  "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+  "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+  "contrato/Interface.bend": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0",
+  "contrato/LAWS.bend": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae",
+  "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+  "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+  "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+  "contrato/Recursos.bend": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2",
+  "contrato/Requisitos.bend": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef",
+  "contrato/Semantica.bend": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f",
+  "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+  "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+  "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0"
+}

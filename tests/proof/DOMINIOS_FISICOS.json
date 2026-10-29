@@ -1,0 +1,76 @@
+{
+  "lawCount": 9,
+  "allLawsQuantified": true,
+  "checks": [
+    {
+      "file": "proof/DominiosFisicos.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "expectedAcceptance": true,
+      "elapsedNs": "131916781",
+      "log": "tests/proof/dominios/logs/DominiosFisicos-check-only.log"
+    },
+    {
+      "file": "proof/DominiosFisicos.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "expectedAcceptance": true,
+      "elapsedNs": "168754036",
+      "log": "tests/proof/dominios/logs/DominiosFisicos-verdict.log"
+    },
+    {
+      "file": "tests/proof/dominios/rejeitados/TempoNaBorda.bend",
+      "mode": "--check-only",
+      "exitCode": 1,
+      "expectedAcceptance": false,
+      "elapsedNs": "122465376",
+      "log": "tests/proof/dominios/logs/TempoNaBorda-check-only.log"
+    },
+    {
+      "file": "tests/proof/dominios/rejeitados/TempoNaBorda.bend",
+      "mode": "--verdict",
+      "exitCode": 1,
+      "expectedAcceptance": false,
+      "elapsedNs": "121807117",
+      "log": "tests/proof/dominios/logs/TempoNaBorda-verdict.log"
+    },
+    {
+      "file": "tests/proof/dominios/rejeitados/MemoriaIgual.bend",
+      "mode": "--check-only",
+      "exitCode": 1,
+      "expectedAcceptance": false,
+      "elapsedNs": "118892874",
+      "log": "tests/proof/dominios/logs/MemoriaIgual-check-only.log"
+    },
+    {
+      "file": "tests/proof/dominios/rejeitados/MemoriaIgual.bend",
+      "mode": "--verdict",
+      "exitCode": 1,
+      "expectedAcceptance": false,
+      "elapsedNs": "132406783",
+      "log": "tests/proof/dominios/logs/MemoriaIgual-verdict.log"
+    }
+  ],
+  "sourcesSha256": {
+    "proof/DominiosFisicos.bend": "3ffba559658985015abfc80fa196df47cbca7122d7583a3c92ae32e17f34ba4c",
+    "tests/proof/dominios/rejeitados/TempoNaBorda.bend": "12b9860be38a17107bfcb81029ce657464c143b94406c49f51dc7e415f9e1197",
+    "tests/proof/dominios/rejeitados/MemoriaIgual.bend": "616ea62c90b01f2757174a056f6afbc55da90af38afc731c28dedc65b82eac43"
+  },
+  "officialBendSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "original18Unchanged": true,
+  "wholeHostDomainProved": false,
+  "fullLaw2": false,
+  "fullContract": false,
+  "globalProofAggregateRerun": {
+    "checks": 52,
+    "rejectedMutations": 24,
+    "report": "tests/proof/history/RESULTADOS_DOMINIOS_FISICOS_52_CHECKS.json",
+    "reportSha256": "7bf61b0c569409209778a019261af640d89cd7c75e96b6b7c9237849aa2be820"
+  },
+  "latestGlobalProofAggregate": {
+    "checks": 60,
+    "rejectedMutations": 28,
+    "report": "tests/proof/RESULTADOS.json",
+    "reportSha256": "28debcba9bd0eba4d1d832edad07e36bf136ead4bb1647c9ee32fd406a682e5d"
+  }
+}

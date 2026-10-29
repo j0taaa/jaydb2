@@ -1,0 +1,17 @@
+{
+  "format": "jaydb-bendtt-budget-v1",
+  "originalSourceSha256": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80",
+  "sourceSha256": "e38e2f469967ef1e2936e4e264bf4f17ab9d0c5b8de6882f8d32fd6768d791d2",
+  "generatorSha256": "b8e35af4f850c357e9dc04b127c58ef904534fe1e0e55acc8423f9fc148cecb2",
+  "leanVersion": "4.34.0",
+  "leanSha256": "e8baaa71855a616dc351028f3ad2200051b0671f423a1696a100e809302d5550",
+  "leancSha256": "68a45f8329e2d79133cdcc7b1fa494e37844282d7b5f8908ce1deda7cfdf161a",
+  "generatedCSha256": "9cb0f372b2e33fe4d2b8f158f41bc27388246d894de564d2761c1b1113b62461",
+  "linkedCSha256": "670d87c447a0a622ae3df21805269473ee9bc7128211d0fd6edf8b20d46aef77",
+  "mainAdapterSha256": "f2faeed3515c8ec53a8a5be43cfd58b63d0e2eec11e375fd1486283d9c768e81",
+  "kernelSha256": "d319c362c63aca9aed94a68b2f54826356ba02b98ad87198673b6a884a533ec9",
+  "proofLogSha256": "59a176c028bddb9d988927df2a86483a652c61ac268b9b10717fad648eeabfa2",
+  "proofLog": "@book_check : ∀ [inst : FuelBudget], Claim.sound\n@consistent : ∀ [inst : FuelBudget], Claim.consistent\n@adequate : ∀ [inst : FuelBudget], Claim.adequate\n'book_check' depends on axioms: [propext, Classical.choice, Quot.sound]\n'consistent' depends on axioms: [propext, Classical.choice, Quot.sound]\n'adequate' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "acceptance": "Book.checkBudget AND Book.check; generic book_check/consistent/adequate",
+  "builderSha256": "e3ac3f65d4878ab2442754bbb556e0d2399e2c60e070d1c112b928ffe1fd8a93"
+}

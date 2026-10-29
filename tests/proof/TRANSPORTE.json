@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-28T22:23:38.544346+00:00",
+  "compilerVersion": "bend 2.0.39",
+  "checks": [
+    {
+      "file": "proof/Transporte.bend",
+      "checkOnly": "accepted",
+      "verdict": "accepted"
+    },
+    {
+      "file": "tests/proof/Transporte.bend",
+      "checkOnly": "accepted",
+      "verdict": "accepted"
+    },
+    {
+      "file": "tests/proof/rejeitados/transporte_segundo_bloco.bend",
+      "verdict": "rejected at falso"
+    }
+  ],
+  "scope": "General exactness in both directions of src/Transporte; accepted cuts reconstruct the original count and byte prefix.",
+  "fullExecutableContractProved": false,
+  "sha256": {
+    "proof/Transporte.bend": "44bc6631d3369cb636cfb6c9c7711191f53beb7db2292d3a1f2aa5e3ba365e80",
+    "tests/proof/Transporte.bend": "c3c9cb1ae64a632eb91036602601c5b282bdc0d9eb9c3c91a914d4ddfca59780",
+    "tests/proof/rejeitados/transporte_segundo_bloco.bend": "764719bb86141d66561056dc761104ce6181f0a35f363e82c9d54a9b4c5f8747"
+  },
+  "originalContractFilesChecked": 18
+}

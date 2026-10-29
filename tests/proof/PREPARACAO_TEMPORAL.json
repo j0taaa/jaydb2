@@ -1,0 +1,36 @@
+{
+  "generalLawCount": 1,
+  "checks": [
+    {
+      "file": "proof/PreparacaoTemporal.bend",
+      "mode": "--check-only",
+      "exitCode": 0,
+      "expected": "accepted",
+      "elapsedNs": "1747547676",
+      "log": "tests/proof/preparacao_temporal/logs/check-only.log",
+      "logSha256": "931f1e664a679af1355a9ca547ac1daef9f7b14137bc7cc21b110b0cc504b5b1"
+    },
+    {
+      "file": "proof/PreparacaoTemporal.bend",
+      "mode": "--verdict",
+      "exitCode": 0,
+      "expected": "accepted",
+      "elapsedNs": "3239547614",
+      "log": "tests/proof/preparacao_temporal/logs/verdict.log",
+      "logSha256": "61b73cda11b6b665b9f99f2defd3d3b57f985c865225e942a5bdaa594a503e47"
+    }
+  ],
+  "moduleSha256": "84c6cd96b346c5d8ca0dcea634f49f3e3c16550fa565c0f7c16ea8ea98b332b0",
+  "compilerSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "original18Unchanged": true,
+  "memoryMeasurementRequired": false,
+  "actualClockOccurrenceProved": false,
+  "serviceCompletionProved": false,
+  "fullExecutableContractProved": false,
+  "globalReport": "tests/proof/history/RESULTADOS_PREPARACAO_TEMPORAL_56_CHECKS.json",
+  "globalReportSha256": "146b70006b304d31f520c7cc8fcd2c8bcf160c2067f3023ec2c95e88f57e240b",
+  "globalChecks": 56,
+  "globalRejectedMutations": 26,
+  "history56Report": "tests/proof/history/RESULTADOS_PRAZOS_MEDIDOS_56_CHECKS.json",
+  "history56ReportSha256": "1df78c49a4e15e958cf5c2c9c52c2dfafee0dfb9280faca04a101912acd1495d"
+}

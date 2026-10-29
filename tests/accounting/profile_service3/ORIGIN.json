@@ -1,0 +1,11 @@
+{
+  "archive": "tests/service/checkpoints/completion_v3.tar.gz",
+  "archiveSha256": "542717e2e3165b7fe57e1db372bf9b50b89722d992baed411e89aa0af482087e",
+  "files": {
+    "lifecycle.h": "35d95135c5bcfb9bbf931fd78751e8a4d18d13ad2a6f3ec3bc2934197d1bd661",
+    "lifecycle.c": "468f4204578d8fc15cfc995a6f4adc3c399f7740efc212ef0ace05b129698634",
+    "LIFECYCLE.md": "6e34a0e63e725afe8008c7441b586202735a813e34397d6f12c331166002964f"
+  },
+  "scope": "literal source subset; local C probe only, snapshot service3 not ratified",
+  "completeServiceMeasurement": false
+}

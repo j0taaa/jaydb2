@@ -1,0 +1,89 @@
+{
+  "purpose": "Durable subsequent-read receipts and preservation of complete-frame synchronization after a resource/FFI-return error",
+  "previousCandidate": {
+    "manifest": "tests/service/checkpoints/completion_v6.json",
+    "manifestSha256": "c1e4acf646b4676fdbe3303cad6eda05e49ba6fede5ef0f88f945c942e495587",
+    "archiveSha256": "eb3ef86714be4297d16903d13935459c086500e3f4a18815239289329acc4e96"
+  },
+  "causalBefore": {
+    "artifact": "tests/service/evidence/receiving_v7/LEGACY_RESULTS.json",
+    "actualOSReadsAndSignal": true,
+    "pythonReturnBoundaryExplicitlyInstrumented": true,
+    "consumed": 6,
+    "requested": 3,
+    "notAPassingTest": true,
+    "fullDatabaseExecuted": false
+  },
+  "implementation": {
+    "requestBytes": 40,
+    "receiptBytes": 56,
+    "priorFirstByteResultBytes": 368,
+    "descriptorBytes": 40,
+    "rawReturnedOutcomeBeforeFFIReturn": true,
+    "uncertainCallingCannotRetry": true,
+    "originalEpochRetained": true,
+    "noPythonReadRetryOnUnknownConsumption": true,
+    "productionBuild": "tests/service/evidence/receiving_v7/production-build.json",
+    "productionModuleSha256": "6336ce1c9bfcb5f401379ce12f9171ed5e33f5385e00d7309c86ad397f198a0e"
+  },
+  "checks": {
+    "extractedHostExecutions": 249,
+    "extractedDistinctIds": 242,
+    "extractedLog": "tests/service/evidence/receiving_v7/extracted-host249.log",
+    "extractedLogSha256": "4131522729bc6886c4e4097a56c382f4d27492dd9ac054f57fbeccbe05f14c58",
+    "elapsedNs": "18108483943",
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "tests.service.test_controller",
+      "tests.service.test_delivery",
+      "tests.service.test_abi",
+      "tests.service.test_entry",
+      "tests.service.test_commit",
+      "tests.service.test_completion",
+      "tests.service.test_completion_review",
+      "tests.service.test_completion_v5",
+      "tests.service.test_memory",
+      "tests.service.test_receiving",
+      "tests.service.test_channel",
+      "tests.service.test_loading",
+      "tests.service.test_loading_consumers",
+      "tests.service.test_lifecycle",
+      "tests.service.test_lifecycle_consumers"
+    ],
+    "extractionWorkingDirectory": "/tmp/jaydb2-completion-v7-work-axvqs_9i/source",
+    "oldTestMethodsUnchanged": true,
+    "excludedModules": [
+      "test_errors (1 external proof fixture)",
+      "test_staging (2 external example/toolchain fixtures)"
+    ],
+    "priorFailedRunPreserved": "tests/service/evidence/receiving_v7/initial-host249-failed-run.json"
+  },
+  "counterDependency": {
+    "manifest": "tests/accounting/checkpoints/retention_v9.json",
+    "manifestSha256": "3646278e06f6f33be55f06c7d2fd29a6fec65f9d1959e63dd503a1b41b3eb875",
+    "archiveSha256": "ad602408c48f6a8e307765daf68f473ed2a51384b0697190484ad6b5abf44fff",
+    "complete": false,
+    "payload": "The V9 bytes inherited from completion_v6; not live V10",
+    "INCOMPLETE": true
+  },
+  "priorIndependentReview": {
+    "report": "tests/reviews/completion5/independent/REPORT.md",
+    "staticOnly": true,
+    "newCandidateApproval": false
+  },
+  "unresolved": [
+    "fresh independent review of V6 delivery and V7 receiving changes pending",
+    "whole-stage cancellation / K / blocking read progress",
+    "complete memory / Field / whole counted entry / real channel facts",
+    "Safe V5 R4/R5 prototypes not promoted",
+    "general backend correspondence"
+  ],
+  "allOriginal18Unchanged": true,
+  "completeServiceMeasurement": false,
+  "fullLaw2": false,
+  "fullContract": false
+}

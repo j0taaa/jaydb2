@@ -1,0 +1,308 @@
+{
+  "stage": "experimental-private-accounted-native-v1-staged",
+  "privateAbi": {
+    "version": 1,
+    "hostBytes": 88,
+    "resultBytes": 656,
+    "descriptorBytes": 64,
+    "frozen": true,
+    "entry": "jaydb_native_run_accounted_v3",
+    "describe": "jaydb_native_describe_accounted_v3",
+    "progressEntry": "jaydb_native_progress_accounted_v1",
+    "progressBytes": 104
+  },
+  "tests": {
+    "accounted": {
+      "passed": 19,
+      "log": "tests/native/ACCOUNTED_RUN.log"
+    },
+    "fieldV2": {
+      "passed": 26,
+      "log": "tests/native/FIELD_RUN.log"
+    },
+    "recipe": {
+      "passed": 6,
+      "log": "tests/native/RECIPE_RUN.log"
+    },
+    "legacyBridge": {
+      "passed": 10,
+      "log": "tests/native/ACCOUNTED_CONSTRUCTOR_RUN.log"
+    },
+    "leafs": {
+      "passed": 3,
+      "log": "tests/native/ACCOUNTED_LEAF_RUN.log"
+    },
+    "postProgressV3Stage": {
+      "passed": 1,
+      "log": "tests/native/ACCOUNTED_STAGE_REGRESSION.log"
+    }
+  },
+  "stagingPinNegative": {
+    "stagingStable": true,
+    "changedCodecRefused": true,
+    "stagedSha256": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0"
+  },
+  "sameBookGates": {
+    "decoder": {
+      "primary": true,
+      "bendtt": true,
+      "sameCheckedBook": true,
+      "checkedBookFrozen": true,
+      "backendSha256": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+      "cSha256": "4de38b08049038ae284aab572fb475cbe04986be1e7966af8aec45df77bd6f61",
+      "sourceSetSha256": "29d7cc35fcfae8f44b889747fa8e6122f01d5edbf1ac66e303992137fa65910f",
+      "trustedCodecEntryUsesRecipe": true,
+      "absenceDecodeEstablished": false,
+      "uncoveredExternalEntries": false,
+      "fullExecutableContractProved": false
+    },
+    "externalHelper": {
+      "primary": true,
+      "bendtt": true,
+      "sameCheckedBook": true,
+      "checkedBookFrozen": true,
+      "backendSha256": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+      "cSha256": "9fb506d2461b9388164af2c776cd7156f3d7a594227a5fb46c623cb7750e8f38",
+      "sourceSetSha256": "6da63d8aec4d4619c870d2e92f8f53267eb8a5aac09faf6516b2b9e9fcb337a3",
+      "trustedCodecEntryUsesRecipe": true,
+      "absenceDecodeEstablished": false,
+      "uncoveredExternalEntries": true,
+      "fullExecutableContractProved": false
+    },
+    "noDecoder": {
+      "primary": true,
+      "bendtt": true,
+      "sameCheckedBook": true,
+      "checkedBookFrozen": true,
+      "backendSha256": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+      "cSha256": "d92bd9120a6e44b40c9e6b204a4625d9b0b13790866e41d835d5e71f21318702",
+      "sourceSetSha256": "135f70bb0c992a9f02e5debc42c3657cac4ae49d532c09abb1c4b1dd2fb4e334",
+      "trustedCodecEntryUsesRecipe": false,
+      "absenceDecodeEstablished": true,
+      "uncoveredExternalEntries": false,
+      "fullExecutableContractProved": false
+    }
+  },
+  "modules": {
+    "production": {
+      "moduleSha256": "a833fe7e258390920d296ad740706dccdc80b1d3e92fbcc29352c80fd79158ea",
+      "sourceSha256": "4de38b08049038ae284aab572fb475cbe04986be1e7966af8aec45df77bd6f61",
+      "accountedModeV3": true,
+      "accountedCodecV3": true,
+      "accountedDecoderFreeV3": false,
+      "accountedTestFixture": false,
+      "accountedLoweringIdentitySha256": "78e4644ecedb36d6150a029da55a0feb385d67d4763b1808f8800ef931fa251d",
+      "accountedLoweringAudit": {
+        "version": 1,
+        "entries": [
+          {
+            "name": "Codec:decodificar",
+            "fid": "FID_Codec_decodificar",
+            "constructors": [
+              "CID_Dados_VAusente",
+              "CID_Dados_VBool",
+              "CID_Dados_VInt",
+              "CID_Dados_VTexto",
+              "CID_Dados_VListaVazia",
+              "CID_Dados_VLista",
+              "CID_Dados_VRegistroVazio",
+              "CID_Dados_VRegistro",
+              "CID_Dados_Campo"
+            ]
+          }
+        ],
+        "dominatingPrivateReturn": true,
+        "completeEntryCut": true,
+        "decoderFree": false,
+        "uncoveredEntries": [],
+        "semanticCorrespondenceProved": false,
+        "measurementComplete": false
+      }
+    },
+    "fixture": {
+      "moduleSha256": "f2e88a844736853c47f2c5d2957bdcd49ca62669e142d6aa7e812e6d7f18c0b5",
+      "sourceSha256": "4de38b08049038ae284aab572fb475cbe04986be1e7966af8aec45df77bd6f61",
+      "accountedModeV3": true,
+      "accountedCodecV3": true,
+      "accountedDecoderFreeV3": false,
+      "accountedTestFixture": true,
+      "accountedLoweringIdentitySha256": "b0bc1342df1fa27cb8157d75d112ee3ff5b02ae31536eb4a67c7ac0e48c66c46",
+      "accountedLoweringAudit": {
+        "version": 1,
+        "entries": [
+          {
+            "name": "Codec:decodificar",
+            "fid": "FID_Codec_decodificar",
+            "constructors": [
+              "CID_Dados_VAusente",
+              "CID_Dados_VBool",
+              "CID_Dados_VInt",
+              "CID_Dados_VTexto",
+              "CID_Dados_VListaVazia",
+              "CID_Dados_VLista",
+              "CID_Dados_VRegistroVazio",
+              "CID_Dados_VRegistro",
+              "CID_Dados_Campo"
+            ]
+          }
+        ],
+        "dominatingPrivateReturn": true,
+        "completeEntryCut": true,
+        "decoderFree": false,
+        "uncoveredEntries": [],
+        "semanticCorrespondenceProved": false,
+        "measurementComplete": false
+      }
+    },
+    "legacy": {
+      "moduleSha256": "35bbca2b4c62d6eb6240866fb0b4c4c63c414c0766ee15cc483fc10314373ec7",
+      "sourceSha256": "96ca5106460ccd92081c032ed90d5d40e8112241e0df7d170ba4cf37d054dbcf",
+      "accountedModeV3": false,
+      "accountedCodecV3": false,
+      "accountedDecoderFreeV3": false,
+      "accountedTestFixture": false,
+      "accountedLoweringIdentitySha256": null,
+      "accountedLoweringAudit": null
+    },
+    "helper": {
+      "moduleSha256": "d251f8eeb5797d7826019fd0c9f00d8d4daeee97d403dce2bc02822cadf19d03",
+      "sourceSha256": "9fb506d2461b9388164af2c776cd7156f3d7a594227a5fb46c623cb7750e8f38",
+      "accountedModeV3": false,
+      "accountedCodecV3": false,
+      "accountedDecoderFreeV3": false,
+      "accountedTestFixture": false,
+      "accountedLoweringIdentitySha256": "3684d91a3fd55ce94b3f333f1f03081d29e4eaf21f350801e81689b6badc588b",
+      "accountedLoweringAudit": {
+        "version": 1,
+        "entries": [
+          {
+            "name": "Codec:decodificar",
+            "fid": "FID_Codec_decodificar",
+            "constructors": [
+              "CID_Dados_VAusente",
+              "CID_Dados_VBool",
+              "CID_Dados_VInt",
+              "CID_Dados_VTexto",
+              "CID_Dados_VListaVazia",
+              "CID_Dados_VLista",
+              "CID_Dados_VRegistroVazio",
+              "CID_Dados_VRegistro",
+              "CID_Dados_Campo"
+            ]
+          }
+        ],
+        "dominatingPrivateReturn": true,
+        "completeEntryCut": false,
+        "decoderFree": false,
+        "uncoveredEntries": [
+          "Codec:montar_lista"
+        ],
+        "semanticCorrespondenceProved": false,
+        "measurementComplete": false
+      }
+    },
+    "no-codec": {
+      "moduleSha256": "e6f937d427d6506fdecafc7e19538d85ab9cc37272c8c76efccdaa9dbb7531ca",
+      "sourceSha256": "d92bd9120a6e44b40c9e6b204a4625d9b0b13790866e41d835d5e71f21318702",
+      "accountedModeV3": true,
+      "accountedCodecV3": false,
+      "accountedDecoderFreeV3": true,
+      "accountedTestFixture": false,
+      "accountedLoweringIdentitySha256": "029e2e67010a0076343dc0975b1c305f6a643a108220956548d33fd01eb78411",
+      "accountedLoweringAudit": {
+        "version": 1,
+        "entries": [],
+        "dominatingPrivateReturn": true,
+        "completeEntryCut": true,
+        "decoderFree": true,
+        "uncoveredEntries": [],
+        "semanticCorrespondenceProved": false,
+        "measurementComplete": false
+      }
+    }
+  },
+  "realPtraceNegative": {
+    "incomplete": true,
+    "firstFieldStores": 0,
+    "activeAfterReturn": true,
+    "releasedPeer": true,
+    "partialTextOriginalN": 2,
+    "noCodecIncompleteRefused": true
+  },
+  "metadataTimeout": {
+    "phase": 1,
+    "decode_id": 1,
+    "stage": 1,
+    "wire_size": 16046,
+    "wire_copied": 0,
+    "cursor": 0,
+    "scalar_start": 0,
+    "utf8_consumed": 0,
+    "utf8_value": 0,
+    "utf8_needed": 0,
+    "sampled_ns": 112788141288812,
+    "deadline_ns": 112788141288755,
+    "native_status": 3,
+    "syntheticMemoryObservation": true
+  },
+  "legacyRegression": {
+    "ran": 82,
+    "passed": 80,
+    "failures": 2,
+    "log": "tests/native/ACCOUNTED_LEGACY_REGRESSION.log",
+    "blockingError": "Frontend adapter pin mismatch: closed-instances.mjs",
+    "sharedAdmissionCacheRebuilt": false
+  },
+  "nativeBackendSha256": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+  "stagedBackendSha256": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+  "mainStackCheckpointSha256": "bc39567b346433d73f1328b9b955212d405c8a361e523182c89d79424cdf7db9",
+  "sharedGenericChanged": false,
+  "sharedFrontendCacheChanged": false,
+  "cacheRefreshAfterCoordinatedSwap": true,
+  "actualTrustedDecoderStoresUseRecipe": true,
+  "noDecoderContextSupported": true,
+  "counterComplete": false,
+  "lei2Complete": false,
+  "medicaoRealComplete": false,
+  "runtimeCorrespondenceProved": false,
+  "fullExecutableContractProved": false,
+  "publicServiceIntegrated": false,
+  "pending": [
+    "C-to-Codec/effects semantic correspondence and observed-fact proof",
+    "complete observer/environment memory coverage",
+    "root-owned startup/framing/completion integration",
+    "coordinated generic/frontend-cache swap after Safe review"
+  ],
+  "changedSourceSha256": {
+    "native/abi_accounted.h": "092f9b5829718c01c2117a233addc8e07a05a5e72c17808cac3d6ed7b28f5639",
+    "native/decoder.inc.c": "f7b5ae31d16449109fbd93f8b8e20e314947cd8a3f95217f03ea2e25a614c22d",
+    "native/decoder_memory.h": "4193e87346285c628919933ccb00b227d57bc5870f448ac1ce5b6c713a3e3f63",
+    "native/decoder_memory.c": "3f6d5d2adfae59f886436b95ddab3dcebe58894b2af48fe3bf44c3fdce82bb96",
+    "native/field_recipe.h": "d22c0d25ae4628d1478e9b8dae45e396931b964a542f4e228548f47cdd603b1e",
+    "native/field_recipe.c": "5596d52d78657508cdf2af67230cabf5920d768ac7671628c847277c93f2c0a3",
+    "native/field_recipe.S": "5a0758c2ab8f82b19269d75d368f77860b0808ba48a32a05ec967f103b637912",
+    "native/field.h": "e458392fb2f7e0e58bc34ae1e3839babffd60a3e4d86c1595822d5f297228546",
+    "native/field.c": "43f6b449d7c0b75a9aecb956cbdcc196a42a34e1d78b36f32177c0252b621ce0",
+    "native/guard.h": "bc9fcd75389228602da636acf9f51028e46c32ef0a3a6b5d139d8ae3876a9cf3",
+    "native/guard.c": "321aa050682c33333e0c51c0ac2a6e0516fd203007c6e6e79d1da8c7a8c0a689",
+    "native/arena.inc.c": "23178eb2a9964833694caef69de2ae93bd3b0e7592a69279fa9e769b6a6d45ea",
+    "native/module_v3.c": "279923dea36aac77b343fae85a09f58f40cf604da9a8426786dcb68afa94b0d8",
+    "native/ACCOUNTED.md": "56909aacdc699234de50916e8505553c8ab14888d18d74edefcb19f505ecfddc",
+    "native/FIELD.md": "b182bde85db78e99c97f7f782cc05821c4b77c1e725c28da08f8045482fe8049",
+    "native/README.md": "18c8d9efd6655f2e1bce38febded874692a87992d9d6ef1eb139a41c1cc32463",
+    "tools/native/build.py": "b598cf92f29ddf3d925e3ce74bc168eda6fdf1df0b0f9d0b6993ea838c6d0f02",
+    "tools/native/build_recipe.py": "6325b2bac543cdd922d77bc2bb006f1346a1991e5505f0b155a8748a5dab8844",
+    "tools/native/accounted.py": "2c2a9f39051c5233d9a3bbd51cc96d943dfa69c91b04cb1cded8899affb7d59d",
+    "tools/native/accounted_emitter.mjs": "c83a05947d75abbb1d277c017d846adc12d6c0255d4f2861a08431298f442903",
+    "tools/native/accounted_generic.next.mjs": "1135c5a0b0e121feac3051fbd671dfea0527ca5f3c35ca543ad7cc3c3cba00c0",
+    "tools/native/prepare_accounted_gate.py": "633f151d64f2f171fb992eb307faffe6935f6c9033d80b7841405ccd70100a01",
+    "tests/native/test_accounted.py": "84e78fdc530d3c7f5abbd23fca52349bdb8fab676b1769b03b33f59e0156974e",
+    "tests/native/accounted_gate.mjs": "f95d04ab5922337c0f126228473749e843fdee87b8a16d7b76efd85a4f49edc8",
+    "tests/native/test_recipe.py": "800c681f69395e099961bbf15a38372aa5f381882dde61646864969e8f2f93f4",
+    "tests/native/test_field.py": "90c4ec47c43c4302e8e7abb2a319e3201fca3ea882dba619a19387e86caa14ca",
+    "tests/native/recipe_fixture.c": "1081b1fd2fea14378dd7cadc57ce6453ee079f357bd98b5ce8dad312edc52eac",
+    "tests/native/field_fixture.c": "9190b933f32fd4c42196e03d9a71311c3d9dc475d5896f17956a774a3a129765",
+    "tests/native/build_accounted_evidence.py": "2740a52448a7bfc5bf60e8469b082872474df4bf43e9e7c51fe2ac586702dcdc",
+    "tests/native/test_accounted_emitter.mjs": "6ebf253b2a03f04913cad94681b0cb84943fa1de9bb8324ac5a7f8fc0434c241"
+  }
+}

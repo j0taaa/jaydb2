@@ -1,0 +1,92 @@
+{
+  "recordedAt": "2026-10-29T15:58:52.311661+00:00",
+  "contractRevision": "tres-tamanhos-sem-orcamentos-fisicos-v2",
+  "physicalResourceBudgetsInActivePath": false,
+  "checks": {
+    "host": {
+      "log": "tests/service/evidence/recursos-simples-v2/host-final.log",
+      "sha256": "2c47968add0216a56eb5be013082ac6ab8c970199bb52385d6df884e6dc62397",
+      "tests": 110,
+      "durationSeconds": 2.711,
+      "passed": true
+    },
+    "endToEnd": {
+      "log": "tests/service/evidence/recursos-simples-v2/e2e-completo.log",
+      "sha256": "126db303518a7be2cebda2a155ef813e97f65001901a484767ca230fc0681f71",
+      "tests": 27,
+      "durationSeconds": 710.979,
+      "passed": true
+    },
+    "initializationIdentity": {
+      "log": "tests/service/evidence/recursos-simples-v2/inicializacao-final.log",
+      "sha256": "af8ff602236bacc21eff32b0ab60c86224148a414a2d06b9cb3abda49f5204e6",
+      "tests": 1,
+      "durationSeconds": 16.95,
+      "passed": true
+    },
+    "admission": {
+      "log": "tests/service/evidence/recursos-simples-v2/admission-final.log",
+      "sha256": "58058a69fa037da10d1de062dc4be8738b6c7abb62df4d71fd9eb9b5186ebd23",
+      "tests": 146,
+      "passed": true,
+      "developmentFileConcurrency": 1
+    },
+    "cli": {
+      "request": "tests/service/evidence/recursos-simples-v2/cli-request.bin",
+      "response": "tests/service/evidence/recursos-simples-v2/cli-final-response.bin",
+      "responseSha256": "d871c5cd1fe07ea4afb407bf98818c1bb9d9757b5a666bebb9c4e1301212e509",
+      "decoded": {
+        "status": "recusa",
+        "valor": 6
+      },
+      "passed": true,
+      "command": "python3 -B jaydb2.py --configuration examples/sem-observacoes/Configuration.bend --seed examples/sem-observacoes/Seed.bend"
+    }
+  },
+  "proofResults": [
+    "tests/proof/REVISAO_RECURSOS_SIMPLES.json",
+    "tests/proof/RESULTADOS_RECURSOS_SIMPLES.json"
+  ],
+  "nativeResults": "tests/native/evidence/simple-runtime-v6-20261029/result.json",
+  "remaining": {
+    "generalDependentTemplateTranslation": "in development; production frontend V5 unchanged",
+    "fullExecutableContractProved": false,
+    "legacy222CodecVerdict": "INCOMPLETE; development harness exceeded600s; general692laws passed separately"
+  },
+  "attribution": [
+    "Host tests include explicit boundary fixtures; positives are not Bend proofs.",
+    "The27 E2Es use real admission, both checkers, compilation and same-process ABI6 execution.",
+    "Earlier instances retained their frozen tooling while staging was narrowed. FinalCLI and final initialization use final staging plus the emitted-C/loaded-module hash check.",
+    "Earlier failures/timeouts are preserved, not counted as passes or resource-limit responses.",
+    "Repeated and subset runs are not added to these counts."
+  ],
+  "preservedDevelopmentAttempts": [
+    "host-fixture-inicial-falhou.log",
+    "inicializacao-sem-perfil-falhou.log",
+    "admission.log"
+  ],
+  "finalToolingCapture": "tests/service/evidence/recursos-simples-v2/tooling-final.json",
+  "sourceHashesAtReport": {
+    "tools/service/controller.py": "62fe21c4dbc6618ce2599c3f8d2666cca02142a6c9a50a385323f360f100ca3d",
+    "tools/service/staging.py": "828b1f2d571ba05631e45b3787aba08b95095f9b5d8da0dc8f4f503854589a3a",
+    "tools/service/compile.mjs": "71f10e3c1257b56201c7aab75e73e6e97a48eb7c3ce3a75bea65272df56d9166",
+    "tools/service/abi_simple.py": "301cfc55417a88cf4afa6c6851b0e3e01ac71cd5fa229a2d585a364d73ee0773",
+    "tools/service/isolated.py": "28607b7d973de187fd02cbb4851b41b8747a54908e78f47cbd07223bf242ffae",
+    "tools/service/entry.py": "a54f31192516798eeb413ee93d279463f5c09d4450fee0db00bc469382c4b40c",
+    "tools/native/build_simple.py": "5cd4ab8268bc809f70562bf953dccc637e34cbfeab082b8ab11cf90a5dc4fbd0",
+    "tools/native/generic.mjs": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+    "tests/service/test_simple_service.py": "26a61b9abbf987da3d4218bdb7792ebb5cb38b9cec809618179cf2272901a5b5",
+    "tests/service/test_staging.py": "2ac057ec75c8daadda6f3cde06f69385c35dc771367a377765b6a88d2e8a3665",
+    "tests/service/test_initialization.py": "841c95b4f6305aa9e062912bd95035bc4cd4ba128a9bc21c849bab25b4dc9b54",
+    "tests/service/test_delivery.py": "abd87b51b91008036b15b4d4ad5cd1e8b07605ea2f13dfa6cbbc65ed0131a297",
+    "tests/service/test_end_to_end.py": "29a7b92c900658f41395276802755b3114047195939e61f5eb32bd238d307cb4",
+    "tests/service/test_credentials_end_to_end.py": "7c79ed7c2474fad1eff5350c5bdd1a194c741a59b77f5f93110f3da021f2f4a7",
+    "tests/service/test_swap_end_to_end.py": "9bec660bce1c6d1806d53ab1a960c256358abc3958efd852b88e4c8bcd6da806",
+    "tests/service/test_isolated.py": "0c084e266dc7478483662682bcbe0061fac5f6dd7aa518e4746f56a195a80fa4",
+    "Makefile": "14792d1be1ebb955dd174a1caeae1f02c9d273a460e85f1acac8c2545f2671a7",
+    "README.md": "d4760d17dd44e7614a5a62c35e77cd73ef379dec2997685b3b4884acc6a56f7c",
+    "ESPECIFICACAO.md": "09479f6df347c17250304b8922f4db2ab0fb074c756b60d0b5a71d1b3adc6f42"
+  },
+  "activeContractManifestSha256": "d0773645c09320b08188e52e7227e40a2b2d464612fe9bbf14633d22273545e3",
+  "historicContractManifestSha256": "17cf5387a1766415d26f99fba1b95734a85bbaa26a6d16b6ed7e6a5496796ad3"
+}

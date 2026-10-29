@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-29T04:20:10.910662+00:00",
+  "completionTests": 7,
+  "controllerTests": 17,
+  "memoryReaderTests": 7,
+  "passed": 31,
+  "logs": {
+    "/tmp/jaydb2-completion-artifact-7.log": "992d4415ee91d681ec337024210901809398f9c539826a0f59ae20a42313f31d",
+    "/tmp/jaydb2-controller-fixed-frames-17.log": "44b5eaad10790dc02e0e0f638e52071a3ed1ff610eb4bcf5ce257bf729c03a09",
+    "/tmp/jaydb2-memory-fixed-frames-7.log": "34f24d70483e36704fdf63098d7d42154eee1e9ff52050132f0ba4b28b3949ba"
+  },
+  "sources": {
+    "tests/service/test_completion.py": "dd38cc8ddeff93fde85d38a090f0b4d38fc36bccee29a88eb6ce670647902588",
+    "tools/service/memory.py": "6cde11f8d98592cf5ac231a6f2941c912acd5828ea933f8cdb0dc2fa39efe143",
+    "tools/service/commit.c": "ccea3ac567639c1eb168e6d44578fa5be8c822261a155cf8693edcde456a4117",
+    "tools/service/controller.py": "29ef8ffcf24891f88b2099ed0a97efe89b82eeec0ba9673aee991c657ad8eccd",
+    "tests/service/test_controller.py": "4bd71d2e2168a7ee350f248163efe719a01ff8c0dd22da3e69c402020d2bc361",
+    "tests/service/test_memory.py": "257849688fa56de9e694490c7510b838c74b2d27289edcf41ad803af74933c37",
+    "tools/service/commit.S": "c9baddff466ed42c2285b0c5e37f82cbe3debe1eec172fefccf7cdd3f8b70979",
+    "tools/service/completion.py": "1cb008cc07d73f8709be3556a6f19ed7f5f2c596d731b49c432fd5976e68f136",
+    "tools/service/commit.py": "7e06a1f7ab2acb40032a1bd849cbec197b9010edfabf6066b928c2a1f55c48cf",
+    "tools/service/commit.h": "383004c50448de5325973a8be4d718a5a36d8b26cf00832de30e7d7b6753d7dd",
+    "tools/service/frames.py": "37bc8dbb121dfad5ff4d2a40cf9af7a5328f1ac4d1ad55aa4110c438a6947825",
+    "tools/service/build_commit.py": "0fa9fc9f06349e559bb1f3ce4458eae49c1e936fdeee8327c95af0de26a236ad",
+    "tests/service/commit_fixture.c": "7fc8efab6febe3fb04a2b45fef18ed835c346bff84c539213cc4e01b170f2c6d"
+  },
+  "syntheticPositiveObservationsAreFixtures": true,
+  "wholeEntryConnected": false,
+  "initializationAndFramingScoped": false,
+  "nativeFieldIntegrationRequired": true,
+  "unaccountedNativeFallbackAllowed": false,
+  "realObserverCoverageComplete": false,
+  "cliUsesCompletionRoot": false,
+  "original18Unchanged": true,
+  "fullExecutableContractProved": false
+}

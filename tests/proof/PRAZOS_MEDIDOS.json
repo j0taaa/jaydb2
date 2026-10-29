@@ -1,0 +1,86 @@
+{
+  "sixGeneralLaws": true,
+  "checks": [
+    {
+      "file": "proof/PrazosMedidos.bend",
+      "mode": "--check-only",
+      "expected": "accepted",
+      "exitCode": 0,
+      "log": "tests/proof/prazos/logs/PrazosMedidos-check-only.log",
+      "logSha256": "931f1e664a679af1355a9ca547ac1daef9f7b14137bc7cc21b110b0cc504b5b1"
+    },
+    {
+      "file": "proof/PrazosMedidos.bend",
+      "mode": "--verdict",
+      "expected": "accepted",
+      "exitCode": 0,
+      "log": "tests/proof/prazos/logs/PrazosMedidos-verdict.log",
+      "logSha256": "61b73cda11b6b665b9f99f2defd3d3b57f985c865225e942a5bdaa594a503e47"
+    },
+    {
+      "file": "tests/proof/prazos/rejeitados/EventoNaoProvaMedida.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "log": "tests/proof/prazos/logs/EventoNaoProvaMedida-check-only.log",
+      "logSha256": "d12caec08e1cc63be1a22308bcadc36f780e549af35fc594e483b2ecd57a6572"
+    },
+    {
+      "file": "tests/proof/prazos/rejeitados/EventoNaoProvaMedida.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "log": "tests/proof/prazos/logs/EventoNaoProvaMedida-verdict.log",
+      "logSha256": "d12caec08e1cc63be1a22308bcadc36f780e549af35fc594e483b2ecd57a6572"
+    },
+    {
+      "file": "tests/proof/prazos/rejeitados/ReiniciarEpoch.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "log": "tests/proof/prazos/logs/ReiniciarEpoch-check-only.log",
+      "logSha256": "07ff580eab07e26e5cf754f2ffe49969f5560fb82c38c5f1e2681517445efe4a"
+    },
+    {
+      "file": "tests/proof/prazos/rejeitados/ReiniciarEpoch.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "log": "tests/proof/prazos/logs/ReiniciarEpoch-verdict.log",
+      "logSha256": "07ff580eab07e26e5cf754f2ffe49969f5560fb82c38c5f1e2681517445efe4a"
+    }
+  ],
+  "sourcesSha256": {
+    "proof/PrazosMedidos.bend": "f9cdac42442b8c4758c03c801fd31b77a8da0d358210fcf331c8501d36ae2a5e",
+    "tests/proof/prazos/rejeitados/EventoNaoProvaMedida.bend": "16643e191ff7691674cd4a8afb292c553554b9970f7357da17bd186b1964a528",
+    "tests/proof/prazos/rejeitados/ReiniciarEpoch.bend": "287cf80b9e1d4538be2f980d8e7adb58227534b7a72c27ac6f147cd275cd9ee2"
+  },
+  "compilerSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "original18Sha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/ESPECIFICACAO.original.md": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882",
+    "contrato/Interface.bend": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+    "contrato/LAWS.bend": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/README.md": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94",
+    "contrato/Recursos.bend": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+    "contrato/Requisitos.bend": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+    "contrato/Semantica.bend": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICACAO.json": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "contrato/verificar.py": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1"
+  },
+  "measurementOccurrenceProved": false,
+  "fullExecutableContractProved": false,
+  "history52Sha256": "7bf61b0c569409209778a019261af640d89cd7c75e96b6b7c9237849aa2be820",
+  "globalReport": "tests/proof/history/RESULTADOS_PRAZOS_MEDIDOS_56_CHECKS.json",
+  "globalReportSha256": "1df78c49a4e15e958cf5c2c9c52c2dfafee0dfb9280faca04a101912acd1495d",
+  "globalChecks": 56,
+  "globalRejectedMutations": 26
+}

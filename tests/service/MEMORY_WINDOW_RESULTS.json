@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-29T04:20:10.911121+00:00",
+  "windowReaderTests": 7,
+  "controllerTests": 17,
+  "passed": 24,
+  "sourceHashes": {
+    "tools/service/memory.py": "6cde11f8d98592cf5ac231a6f2941c912acd5828ea933f8cdb0dc2fa39efe143",
+    "tools/service/controller.py": "29ef8ffcf24891f88b2099ed0a97efe89b82eeec0ba9673aee991c657ad8eccd",
+    "tests/service/test_memory.py": "257849688fa56de9e694490c7510b838c74b2d27289edcf41ad803af74933c37",
+    "tests/service/test_controller.py": "4bd71d2e2168a7ee350f248163efe719a01ff8c0dd22da3e69c402020d2bc361"
+  },
+  "logs": {
+    "/tmp/jaydb2-controller-fixed-frames-17.log": "44b5eaad10790dc02e0e0f638e52071a3ed1ff610eb4bcf5ce257bf729c03a09",
+    "/tmp/jaydb2-memory-fixed-frames-7.log": "34f24d70483e36704fdf63098d7d42154eee1e9ff52050132f0ba4b28b3949ba"
+  },
+  "rssIsPublicMemoryWitness": false,
+  "realPtraceRefusesIncomplete": true,
+  "globalScenarioWindowIntegrated": false,
+  "fieldStoreAuthorization": false,
+  "fullExecutableContractProved": false
+}

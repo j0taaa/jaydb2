@@ -1,0 +1,64 @@
+{
+  "recordedAtUtc": "2026-10-29T11:21:34.007070+00:00",
+  "implementationStatus": "original representation/stack work delivered; experimental field work not integrated; waiting for updated scope to avoid duplicating root original-Codec front",
+  "stableCheckpoint": {
+    "path": "tests/native/checkpoints/main_stack.tar.gz",
+    "sha256": "bc39567b346433d73f1328b9b955212d405c8a361e523182c89d79424cdf7db9"
+  },
+  "localExperimentalBridge": {
+    "testsPassed": 10,
+    "seconds": 1.649,
+    "productionCriticalFrameBytes": 168,
+    "explicitStackBytes": 4096,
+    "realObserverOutcome": "INCOMPLETE refused before destination stores; hold released",
+    "completePositiveObservationsAreSynthetic": true,
+    "integratedIntoNativeEvaluator": false,
+    "lengthProvenanceProved": false,
+    "semanticCampoEventsBound": false
+  },
+  "localMetadataInspection": {
+    "bothCheckers": true,
+    "sameFrozenBookObject": true,
+    "emittedCByteIdentical": true,
+    "staticSiteRecords": 1489,
+    "runtimeEventsClaimed": false,
+    "fullBookFingerprintAudited": false,
+    "jitlessProductionFrontend": false
+  },
+  "rootLatestPartialMap": {
+    "report": "tests/research/original_codec/EMISSOR-ORIGENS-2026-10-29-ha0kM9ve.md",
+    "sha256": "0c3094c1f956ca203116184f050b39d41213edec5d6b994777223af3a5ae3bbf",
+    "artifacts": "/tmp/jaydb2-codegen-origin-ha0kM9ve",
+    "remainingRecordsAreNotCoveragePercentage": 318,
+    "notASecondCParser": true,
+    "notACompleteFieldMap": true,
+    "remaining": [
+      "parallel origins for actual frames and children/ancestors",
+      "Con/D.Campo flattened, VLista/VRegistro/empty containers",
+      "Unicode intermediate constructions",
+      "rfc_wrap/term_keep/term_dup ownership and temporaries",
+      "global counter completeness and witness transport",
+      "true raw acquire versus object claim and all partial stores"
+    ]
+  },
+  "temporalDecisionReceived": "CLOCK_MONOTONIC; first safe check after expiration; no fixed maximum Linux delay; never renew origins/budgets in retry/cleanup",
+  "productionPinsChanged": false,
+  "checkpointsChanged": false,
+  "lawsOrSourceChanged": false,
+  "fullLei2OrMedicaoRealOrContratoClaimed": false,
+  "sha256": {
+    "native/constructor_bridge.h": "0825ee7963c693ea79551c54cca1bd2f5ff1cfbd3ca62b9baae2e5f23f37f2db",
+    "native/constructor_bridge.c": "b40c3bb5cc42443eeb8ea978a9035cc61036aa49f613512c2fc2ae493ea7cb21",
+    "native/constructor_bridge.S": "cd57b6b6f3fca88780365fd27ca7e5d4b9d4ddd169ba9d792c1acf46e5aa5462",
+    "native/CONSTRUCTION_HANDOFF.md": "587f1feef940f1b403f4ec963fdc3b14745da36bdbc2b25449103253fda8646c",
+    "tools/native/build_constructor.py": "509206f74efb2e33216fb6278e57ac8d558e6ff7a903eaf20ac185f8dc1c3b10",
+    "tools/native/construction_metadata.mjs": "a180d58f19a4a162346cdd382b7dec5462006046eaf8c1332dee4fcf59bfe142",
+    "tests/native/test_constructor.py": "51a470dd7fd208fb5a00e103eb761b0e8a6e3fb69ed99b6945b71831d0b226e2",
+    "tests/native/constructor_fixture.c": "ca173d94018f1720033d9196cce4c27b8278078a762abaab95494f61b21b9e64",
+    "tests/native/construction_gate.mjs": "95f1e8c186887a0f1512f9b4ef68f6ee17910b37d7f74169cdef4d637915e21f",
+    "tests/native/CONSTRUCTOR_BRIDGE_FINAL_RUN.log": "7d1e6559de8ee4547b145a8215d9f96c5940f00b4d293d616810b2aade261b96",
+    "tests/native/CODEC_CONSTRUCTION_READY_RUN.log": "22d9bf1369fce4da1ca91cc902495640fd5e04fb79e9a868e814fe071d1b6ca6",
+    "tests/native/evidence/codec-construction.c.constructors.json": "f2971c64305ce3367389e994769fac61d6fb3d9918fccf7af1c753ea26251c7d",
+    "tests/native/evidence/constructor-production-audit.json": "1b28bc9fc7ff66b1f6c7f96df56f89337cad315774800b988b0f13506cb12e51"
+  }
+}

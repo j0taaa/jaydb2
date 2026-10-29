@@ -1,0 +1,4 @@
+{
+  "frames": "native/owner.c:15:jaydb_owner_get\t8\tstatic\nnative/owner.c:20:jaydb_owner_set\t8\tstatic\n",
+  "undefinedSymbols": ""
+}

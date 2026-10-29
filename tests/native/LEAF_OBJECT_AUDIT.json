@@ -1,0 +1,10 @@
+{
+  "leaves": {
+    "frames": "native/leaves.c:27:jaydb_os_clock_gettime\t8\tstatic\nnative/leaves.c:31:jaydb_os_mmap\t8\tstatic\nnative/leaves.c:38:jaydb_os_mremap\t8\tstatic\nnative/leaves.c:43:jaydb_os_munmap\t8\tstatic\nnative/leaves.c:47:jaydb_os_mprotect\t8\tstatic\n",
+    "undefinedSymbols": ""
+  },
+  "memory": {
+    "frames": "native/memory.c:8:memcpy\t56\tstatic\nnative/memory.c:15:memmove\t88\tstatic\nnative/memory.c:26:memset\t72\tstatic\nnative/memory.c:32:memcmp\t56\tstatic\nnative/memory.c:40:strlen\t40\tstatic\nnative/memory.c:46:strchr\t56\tstatic\n/home/jota/projects/jaydb2/native/memory.c:sancov.module_ctor_trace_pc_guard\t8\tstatic\n",
+    "undefinedSymbols": "                 U __sanitizer_cov_trace_pc_guard\n                 U __sanitizer_cov_trace_pc_guard_init\n                 w __start___sancov_guards\n                 w __stop___sancov_guards\n"
+  }
+}

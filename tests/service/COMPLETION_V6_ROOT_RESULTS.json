@@ -1,0 +1,80 @@
+{
+  "purpose": "Delivery fix: a raised InterruptedError cannot authorize retry after a committed partial write",
+  "previousCandidate": {
+    "manifest": "tests/service/checkpoints/completion_v5.json",
+    "manifestSha256": "a8dc9b4987bac42a2b24d1cd450521d986fbc744e45f909102164ea07a37285c",
+    "archiveSha256": "236cd6e730686b23547ae7d9f45b0a74ce23bcd1dac44051ae863cd104b091f3"
+  },
+  "causalBefore": {
+    "artifact": "tests/service/evidence/delivery_v6/portable-before.json",
+    "oldBehaviorConfirmed": true,
+    "extraBytes": 65536,
+    "notAPassingTest": true
+  },
+  "causalAfter": {
+    "artifact": "tests/service/evidence/delivery_v6/portable-after.json",
+    "errorPropagated": true,
+    "exactPrefixBytes": 65536,
+    "frameDuplicated": false
+  },
+  "checks": {
+    "targetedDeliveryAndChannel": 10,
+    "affectedControllerCompletion": 46,
+    "extractedHostExecutions": 237,
+    "extractedDistinctIds": 230,
+    "extractedLog": "tests/service/evidence/delivery_v6/extracted-host237.log",
+    "extractedLogSha256": "914037dea6f6967f082dc1340990356b89ff8899dcb96fa41368c4db8aa4de48",
+    "elapsedNs": "14993480478",
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "tests.service.test_controller",
+      "tests.service.test_delivery",
+      "tests.service.test_abi",
+      "tests.service.test_entry",
+      "tests.service.test_commit",
+      "tests.service.test_completion",
+      "tests.service.test_completion_review",
+      "tests.service.test_completion_v5",
+      "tests.service.test_memory",
+      "tests.service.test_receiving",
+      "tests.service.test_channel",
+      "tests.service.test_loading",
+      "tests.service.test_loading_consumers",
+      "tests.service.test_lifecycle",
+      "tests.service.test_lifecycle_consumers"
+    ],
+    "extractionWorkingDirectory": "/tmp/jaydb2-completion-v6-work-bu2_tlzz/source",
+    "excludedModules": [
+      "test_errors (1 external proof fixture)",
+      "test_staging (2 external example/toolchain fixtures)"
+    ]
+  },
+  "counterDependency": {
+    "manifest": "tests/accounting/checkpoints/retention_v9.json",
+    "manifestSha256": "3646278e06f6f33be55f06c7d2fd29a6fec65f9d1959e63dd503a1b41b3eb875",
+    "archiveSha256": "ad602408c48f6a8e307765daf68f473ed2a51384b0697190484ad6b5abf44fff",
+    "complete": false,
+    "payload": "The frozen V9 bytes inherited from completion_v5; never live in-progress V10",
+    "INCOMPLETE": true
+  },
+  "priorIndependentReview": {
+    "report": "tests/reviews/completion5/independent/REPORT.md",
+    "staticOnly": true,
+    "newCandidateApproval": false
+  },
+  "unresolved": [
+    "fresh independent delivery review pending",
+    "durable subsequent-read receipts and uncertain signal returns",
+    "complete memory / Field / whole entry / K / channel facts",
+    "Safe V5 R4/R5 prototypes not promoted",
+    "general backend correspondence"
+  ],
+  "allOriginal18Unchanged": true,
+  "completeServiceMeasurement": false,
+  "fullLaw2": false,
+  "fullContract": false
+}

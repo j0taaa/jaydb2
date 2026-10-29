@@ -1,0 +1,87 @@
+{
+  "bend_version": "bend 2.0.39",
+  "command": [
+    "bend",
+    "VERIFICAR.bend",
+    "--check-only"
+  ],
+  "exit_code": 0,
+  "stdout": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n",
+  "stderr": "",
+  "secondary_kernel_requested": false,
+  "native_implementation_included": false,
+  "native_contract_proved": false,
+  "scope": "Tipos dos enunciados/definicoes; provas dos lemas incluidos; exemplos fechados.",
+  "sources": [
+    {
+      "file": "Bytes.bend",
+      "sha256": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+      "lines": 202
+    },
+    {
+      "file": "Dados.bend",
+      "sha256": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+      "lines": 608
+    },
+    {
+      "file": "DadosExemplos.bend",
+      "sha256": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+      "lines": 52
+    },
+    {
+      "file": "Interface.bend",
+      "sha256": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+      "lines": 285
+    },
+    {
+      "file": "LAWS.bend",
+      "sha256": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+      "lines": 340
+    },
+    {
+      "file": "LEMAS.bend",
+      "sha256": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+      "lines": 80
+    },
+    {
+      "file": "Logica.bend",
+      "sha256": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+      "lines": 232
+    },
+    {
+      "file": "Protocolo.bend",
+      "sha256": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+      "lines": 216
+    },
+    {
+      "file": "Recursos.bend",
+      "sha256": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+      "lines": 220
+    },
+    {
+      "file": "Requisitos.bend",
+      "sha256": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+      "lines": 159
+    },
+    {
+      "file": "Semantica.bend",
+      "sha256": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+      "lines": 258
+    },
+    {
+      "file": "TestesProtocolo.bend",
+      "sha256": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+      "lines": 92
+    },
+    {
+      "file": "VERIFICAR.bend",
+      "sha256": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+      "lines": 8
+    },
+    {
+      "file": "Vinculos.bend",
+      "sha256": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+      "lines": 77
+    }
+  ]
+}

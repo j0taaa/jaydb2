@@ -1,0 +1,25 @@
+{
+  "compiler": "/usr/bin/clang-19",
+  "sourcesSha256": {
+    "split": "8cabfe7870136e8226571d6e13e8f8a0743a6c5a93e1b607b2cd56c1d37667e2",
+    "ordinary": "96b48e015be78da19b6a78f251a7bae36be92a1606f26ed5e28b82bd74c554e4"
+  },
+  "stackUsage": {
+    "split": "/tmp/jaydb-split-probe-llnf635t/split.c:24:main\t88\tstatic\n/tmp/jaydb-split-probe-llnf635t/split.c:18:worker\t56\tstatic\n/tmp/jaydb-split-probe-llnf635t/split.c:9:segment\t80024\tstatic\n",
+    "ordinary": "/tmp/jaydb-split-probe-llnf635t/ordinary.c:3:ordinary\t2097160\tstatic\n"
+  },
+  "linkedMorestackNonSplit": true,
+  "cases": [
+    {
+      "case": "all-split-preserve-none",
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "external-nonsplit-frame",
+      "returncode": -11,
+      "stderr": ""
+    }
+  ],
+  "backendIntegrated": false
+}

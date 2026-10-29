@@ -1,0 +1,369 @@
+{
+  "sources": [
+    {
+      "name": "clang-19.1.1-driver",
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-19.1.1/clang/lib/Driver/Compilation.cpp",
+      "sha256": "b608c3d10341bf5332feee3bf4bd9d319fa3db3d98913303d07e311bd956cb1c",
+      "bytes": 10501
+    },
+    {
+      "name": "cpython-3.12.3-alloc",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.12.3/Objects/obmalloc.c",
+      "sha256": "2a26dd25525a83f1576c85cc896300fd9fe82aa3a4305e3b8b6a547233ff2f35",
+      "bytes": 84255
+    },
+    {
+      "name": "cpython-3.12.3-fileutils",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.12.3/Python/fileutils.c",
+      "sha256": "0742dd5d83b9e1b2642feb09de9a4489e84272d96e16309f44362deb278df652",
+      "bytes": 83336
+    },
+    {
+      "name": "cpython-3.12.3-posixsubprocess",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.12.3/Modules/_posixsubprocess.c",
+      "sha256": "eb1074585ce62af638d15680bd13ba99aab25c9b6cbed7ac88ae21b60f060f3b",
+      "bytes": 42634
+    },
+    {
+      "name": "cpython-3.12.3-subprocess",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.12.3/Lib/subprocess.py",
+      "sha256": "baa9f9138d8d20df6284f67e7d2e790f847f65e2c5370de322d54cccd737f2d9",
+      "bytes": 88725
+    },
+    {
+      "name": "glibc-2.39-fcntl",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/unix/sysv/linux/fcntl.c",
+      "sha256": "d70e0a70f68a0efb90233be9f436c3601e75b7e4fa59dbe135c65b465df9eea7",
+      "bytes": 3250
+    },
+    {
+      "name": "glibc-2.39-malloc",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/malloc/malloc.c",
+      "sha256": "5c2e41a83c1c4d1ddaaad761088b93469110a79067ba6485eb594a0423048663",
+      "bytes": 197020
+    },
+    {
+      "name": "glibc-2.39-mmap",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/unix/sysv/linux/mmap64.c",
+      "sha256": "8d7fce267d736bcd5a471b3875741a6abbf111a0a4c3b0a0c06a3cf64aa52706",
+      "bytes": 2386
+    },
+    {
+      "name": "glibc-2.39-pthread-stack",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/nptl/allocatestack.c",
+      "sha256": "558ed8a632e4dd04497017674a3207473b551e3933077a70c4afd999380498cf",
+      "bytes": 19444
+    },
+    {
+      "name": "glibc-2.39-start",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/csu/libc-start.c",
+      "sha256": "2c8cd8f029954b381492b237415e89a1af518ee997ca4dbb7a224cb52c236a97",
+      "bytes": 12524
+    },
+    {
+      "name": "glibc-2.39-static-support",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/elf/dl-support.c",
+      "sha256": "82162256b72c7eafb5494b88d47ab44450ad841c09ebbb1c394eaeac06864df5",
+      "bytes": 10843
+    },
+    {
+      "name": "glibc-2.39-static-tls",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/csu/libc-tls.c",
+      "sha256": "dda665639db8b61b7ebdb9338dfd0e62b68bf9d2ecd3cd84ae6fc0b52ce58fbe",
+      "bytes": 7416
+    },
+    {
+      "name": "installed-lean-mimalloc-header",
+      "path": "/home/jota/.elan/toolchains/leanprover--lean4---v4.34.0/include/lean/mimalloc.h",
+      "sha256": "b457b2365eb25d852efe02f0b5808c99f822b2934d6bcf9acf3a06254c8dcdd1",
+      "bytes": 47671
+    },
+    {
+      "name": "lean-4.34.0-alloc",
+      "url": "https://raw.githubusercontent.com/leanprover/lean4/v4.34.0/src/runtime/alloc.cpp",
+      "sha256": "5e5b442b04380781fbb8cc696fc0fcedc352a47c8fca43bddc2ccfcfea54cf32",
+      "bytes": 789
+    },
+    {
+      "name": "lean-4.34.0-cmake",
+      "url": "https://raw.githubusercontent.com/leanprover/lean4/v4.34.0/src/CMakeLists.txt",
+      "sha256": "037075df7198856d4b14095ebcde87733922c045a23c26b897e52cb6c5bda3a7",
+      "bytes": 48384
+    },
+    {
+      "name": "lean-4.34.0-io",
+      "url": "https://raw.githubusercontent.com/leanprover/lean4/v4.34.0/src/runtime/io.cpp",
+      "sha256": "426bd6862706a516dbdf70fe7d8993efc028b115d386cef06fe0b081c14a5dcf",
+      "bytes": 59777
+    },
+    {
+      "name": "lean-4.34.0-root-cmake",
+      "url": "https://raw.githubusercontent.com/leanprover/lean4/v4.34.0/CMakeLists.txt",
+      "bytes": 8456,
+      "sha256": "63c9b1499f090896c4008963d99bb1fa6a5b950bdf753997edb44ab253589eb4"
+    },
+    {
+      "name": "lean-4.34.0-thread",
+      "url": "https://raw.githubusercontent.com/leanprover/lean4/v4.34.0/src/runtime/thread.cpp",
+      "sha256": "5f3295a4691b633e436c448d7d795d914ad5525a939c22c145cd226ab7631697",
+      "bytes": 7226
+    },
+    {
+      "name": "libuv-1.52.1-core",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.52.1/src/unix/core.c",
+      "sha256": "18bfd5f2045417f8ace5d76e222bf7441b31ead5fc2cbaf6225965e0afea8767",
+      "bytes": 50911
+    },
+    {
+      "name": "libuv-1.52.1-fs",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.52.1/src/unix/fs.c",
+      "sha256": "7406d729f667053febfac84fa1fed6f9423ecead70ec2d05b060f92f360ed19c",
+      "bytes": 59973
+    },
+    {
+      "name": "libuv-1.52.1-linux",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.52.1/src/unix/linux.c",
+      "sha256": "215185d94697e05cd75ba9466bb9ea93076769a7767218d4183eaf0723ccf2d2",
+      "bytes": 73200
+    },
+    {
+      "name": "libuv-1.52.1-process",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.52.1/src/unix/process.c",
+      "sha256": "e79f9bd90787011d59d9395f46658caca2ca01d1daad84c36e3b86eba50a4a52",
+      "bytes": 31377
+    },
+    {
+      "name": "libuv-1.52.1-source-archive",
+      "url": "https://codeload.github.com/libuv/libuv/tar.gz/refs/tags/v1.52.1",
+      "sha256": "478baf2599bfbc882c355288c9cb6f92e0e7dda435fa04031fa5b607cf3f414c",
+      "bytes": 1361196
+    },
+    {
+      "name": "linux-7.0-entry-header",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/linux/entry-common.h",
+      "sha256": "61f40f02e9c0610fdd976f51c7576a6f2266b5cfafa69616018f28432c4dad03",
+      "bytes": 10286
+    },
+    {
+      "name": "linux-7.0-exec",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/exec.c",
+      "sha256": "af1d3a7298fae9c0b52b8e7017f2aa88958ad3787294bf1f1a816a3ee7a95a64",
+      "bytes": 50073
+    },
+    {
+      "name": "linux-7.0-exit",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/kernel/exit.c",
+      "sha256": "b76cee0df63eca5fd64bfa5ff82db64241415b37366a707ba41986fc1122cf3a",
+      "bytes": 50907
+    },
+    {
+      "name": "linux-7.0-falloc-uapi",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/uapi/linux/falloc.h",
+      "fetched_from": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux/+/refs/tags/v7.0/include/uapi/linux/falloc.h?format=TEXT",
+      "sha256": "dd02df96f5632b84968e3ab3fd7ce22a71ad7237ab1e0932a1827f498fbf3afd",
+      "bytes": 4492
+    },
+    {
+      "name": "linux-7.0-fcntl",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/fcntl.c",
+      "sha256": "bd9cb6e3f2b2fa7aa547844eaffd22fd4385282f7f2c2f8c7108591d29c006af",
+      "bytes": 27116
+    },
+    {
+      "name": "linux-7.0-fcntl-uapi",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/uapi/linux/fcntl.h",
+      "sha256": "530fa75ae9611598705eefb5ed6068f800fc26d97a2997fae4a3f7c2dadbaddf",
+      "bytes": 7297
+    },
+    {
+      "name": "linux-7.0-file",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/file.c",
+      "sha256": "cd819a560e4483396a2e5c386427952f8c62d61828bad435f74efdbe03a09be6",
+      "bytes": 40388
+    },
+    {
+      "name": "linux-7.0-fork",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/kernel/fork.c",
+      "sha256": "b393692a3f342f9a197da17a3f94754faafc4a44ef06b35e9867d5dc6dc8baa0",
+      "bytes": 82890
+    },
+    {
+      "name": "linux-7.0-locks",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/locks.c",
+      "sha256": "306a5eaabb72ff5a57e4c4107c33bd5a7bff6553ef247d7301256ce0623c7b40",
+      "bytes": 82852
+    },
+    {
+      "name": "linux-7.0-memfd",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/mm/memfd.c",
+      "sha256": "def98756f031c032aa213ec5ab0a6ed2d8e5e42bf08d926329a675d38f2cdef0",
+      "bytes": 13227
+    },
+    {
+      "name": "linux-7.0-mmap",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/mm/mmap.c",
+      "sha256": "88471d482e3300dbd88f97acbe28c8a1e3fcfc4cdb98387f0761deb9e8e0f08c",
+      "bytes": 51232
+    },
+    {
+      "name": "linux-7.0-namei",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/namei.c",
+      "sha256": "a113b4abe299d4b0ba6cc6e958a70914e0e8d86147f5e81967fe4495dcd6e063",
+      "bytes": 177814
+    },
+    {
+      "name": "linux-7.0-namei-header",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/linux/namei.h",
+      "fetched_from": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux/+/refs/tags/v7.0/include/linux/namei.h?format=TEXT",
+      "sha256": "b83523a45f8bdf8d45ba4e12aac05a9d47aff64809dfe32c33ffffe374b7d052",
+      "bytes": 9053
+    },
+    {
+      "name": "linux-7.0-open",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/open.c",
+      "sha256": "b6ff4b7518d02373493294981ebdc0e4a9ad9989a102ec13f44185db6b74e51c",
+      "bytes": 39662
+    },
+    {
+      "name": "linux-7.0-openat2-uapi",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/uapi/linux/openat2.h",
+      "sha256": "1c694c33d2d60cb8767c34bf52e536dc9e30dc78b90cbeaf73ac9c6b2271a23c",
+      "bytes": 1465
+    },
+    {
+      "name": "linux-7.0-proc-self",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/proc/self.c",
+      "fetched_from": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux/+/refs/tags/v7.0/fs/proc/self.c?format=TEXT",
+      "sha256": "873361dfeaa386470fa1c8012012e68d23ab8e275341b1c28cfd175c70f8629e",
+      "bytes": 1626
+    },
+    {
+      "name": "linux-7.0-proc-thread-self",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/proc/thread_self.c",
+      "fetched_from": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux/+/refs/tags/v7.0/fs/proc/thread_self.c?format=TEXT",
+      "sha256": "fac7274658c41baca82e7417a9d7ce4c1bd68c2a6987d562731b248013427af8",
+      "bytes": 1750
+    },
+    {
+      "name": "linux-7.0-ptrace",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/kernel/ptrace.c",
+      "sha256": "413b33102ea1218add2c772ac8406168dc1c55a865882bb4230b2d8e64305211",
+      "bytes": 41143
+    },
+    {
+      "name": "linux-7.0-ptrace-header",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/linux/ptrace.h",
+      "sha256": "1150f9a6c9e4dea3247183c16995f8ef4420cdfdb91bf3e4281cfc52e5f9c04c",
+      "bytes": 17194
+    },
+    {
+      "name": "linux-7.0-read_write",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/read_write.c",
+      "sha256": "58fe9b05f89c830accaf97a4f4b680c48e94f7c59ea22e2c2b6dbeb0b063c59f",
+      "bytes": 44844
+    },
+    {
+      "name": "linux-7.0-shmem",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/mm/shmem.c",
+      "sha256": "88632bf8651412f217edb34cfd3c9b4668754eee0e12898d474eab06466dba90",
+      "bytes": 162566
+    },
+    {
+      "name": "linux-7.0-uring",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/io_uring/io_uring.c",
+      "sha256": "e40e01e36e1c578a17eec539f34b5b90167cce946f6ee3b24f54dbd81ef9a1ec",
+      "bytes": 88711
+    },
+    {
+      "name": "linux-7.0-uring-memmap",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/io_uring/memmap.c",
+      "sha256": "8f5bac4ac48502879f23314991e72930b3e41896f1bad3103d292b1d4749472d",
+      "bytes": 9947
+    },
+    {
+      "name": "linux-7.0-uring-register",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/io_uring/register.c",
+      "sha256": "6d7e96e6058d841e2541d408a90ad9b989bd74d206d5032e4f0a628a9fc6dcdd",
+      "bytes": 26579
+    },
+    {
+      "name": "linux-7.0-vma",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/mm/vma.c",
+      "sha256": "6fdee21de12ceae67149df1a51e23fbf5193d9b174f12298153181d2efe903de",
+      "bytes": 92088
+    },
+    {
+      "name": "linux-7.0-x86-mmap",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/arch/x86/kernel/sys_x86_64.c",
+      "sha256": "c420bbe736508dca2621632b67498b0b6e28b6a57694872d96d812e1fe925abb",
+      "bytes": 6315
+    },
+    {
+      "name": "linux-7.0-x86-syscall",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v7.0/arch/x86/entry/syscall_64.c",
+      "sha256": "b97e396c4816ed2b8256957861bc976eb25c4e6953f66c97af7bd1383c2b612b",
+      "bytes": 3787
+    },
+    {
+      "name": "llvm-19.1.1-memory",
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-19.1.1/llvm/lib/Support/Unix/Memory.inc",
+      "sha256": "cc0d9fdeb4eebc10da8b0cff37d61221d7b7e65249f16e1f80717705e34cb61a",
+      "bytes": 8050
+    },
+    {
+      "name": "llvm-19.1.1-path",
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-19.1.1/llvm/lib/Support/Unix/Path.inc",
+      "sha256": "db640581be1ff21ba279f61beb2f40502cb46a2704b61ed4784fbbfdb1e0f1a9",
+      "bytes": 47400
+    },
+    {
+      "name": "llvm-19.1.1-program",
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-19.1.1/llvm/lib/Support/Unix/Program.inc",
+      "sha256": "e33c2c934991932bda35ad4a80c971fd19e5b0aec1801bba45f6465790e9fb74",
+      "bytes": 18445
+    },
+    {
+      "name": "mimalloc-3.4.4-arena",
+      "url": "https://raw.githubusercontent.com/microsoft/mimalloc/v3.4.4/src/arena.c",
+      "sha256": "0919ab2a7a69a90ff88b7cfcdb3d4c67a2bfc791b8a6617cd31b37b7b9295093",
+      "bytes": 108915
+    },
+    {
+      "name": "mimalloc-3.4.4-os",
+      "url": "https://raw.githubusercontent.com/microsoft/mimalloc/v3.4.4/src/os.c",
+      "sha256": "e55a179cbbe6035133e0d76f5a09b0958044af9cc91b49174ca660505814454c",
+      "bytes": 38207
+    },
+    {
+      "name": "mimalloc-3.4.4-unix",
+      "url": "https://raw.githubusercontent.com/microsoft/mimalloc/v3.4.4/src/prim/unix/prim.c",
+      "sha256": "14c9e5a2e6c585bb4e6ab4c34534d2dd15fac7b7def6c5b210cd158420f54d3f",
+      "bytes": 36752
+    },
+    {
+      "name": "node-24.19.0-child-process",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.19.0/lib/child_process.js",
+      "sha256": "df028ee287a6adad4bb69bd5daf4975311ceffe19c95c18fdc9f0662ea32ef68",
+      "bytes": 29162
+    },
+    {
+      "name": "node-24.19.0-internal-child-process",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.19.0/lib/internal/child_process.js",
+      "sha256": "ace05809adf0d02482984f6b9fb8418b3c788df2d8fb8fec3527bfcfd7465d2f",
+      "bytes": 32777
+    },
+    {
+      "name": "node-24.19.0-memory",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.19.0/deps/v8/src/base/platform/platform-posix.cc",
+      "sha256": "ab02c74ee5acc2e517e6452e9e7ccf5be2c72140bf70bfdc2ca7626378c84a11",
+      "bytes": 45116
+    },
+    {
+      "name": "node-24.19.0-spawn-sync",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.19.0/src/spawn_sync.cc",
+      "sha256": "57ce2e62104b374d868360e79d12efcfc43df6f448533cf13f2ac34712efcb38",
+      "bytes": 34346
+    }
+  ],
+  "kernel_note": "Upstream pinned explanation; not a build provenance claim for Ubuntu 7.0.0-38-generic."
+}

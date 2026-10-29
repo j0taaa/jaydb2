@@ -1,0 +1,19 @@
+{
+  "reviewedAt": "2026-10-29T08:21:46.187050+00:00",
+  "candidateArchiveSha256": "236cd6e730686b23547ae7d9f45b0a74ce23bcd1dac44051ae863cd104b091f3",
+  "report": "tests/reviews/completion5/independent/REPORT.md",
+  "reportSha256": "7fa14932e0131c52a1d6f45a40289f055dac050b5896b8b8c87bf39ada97d211",
+  "findingsSha256": "f99d889d139c6071418a13a493ebd8e1061ca4f2e5edbad2055e4c8f206d27ed",
+  "staticOnly": true,
+  "independentCandidateExecutions": 0,
+  "S1S2SupportedInDeclaredScope": true,
+  "newFindings": 0,
+  "completeServiceMeasurement": false,
+  "fullLaw2": false,
+  "fullContract": false,
+  "postReviewTestTargetChange": {
+    "file": "Makefile",
+    "sha256": "33736167034b0e90ba8a629c59cefad90120e6e150b3c6d3db6e4fdf77b4833b",
+    "scope": "test-host now includes existing V5 regression module; same module set already passed root236; frozen V5 archive not rewritten"
+  }
+}

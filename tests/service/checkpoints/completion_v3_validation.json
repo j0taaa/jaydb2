@@ -1,0 +1,41 @@
+{
+  "archiveSha256": "542717e2e3165b7fe57e1db372bf9b50b89722d992baed411e89aa0af482087e",
+  "fileCount": 184,
+  "directory": "/tmp/jaydb2-completion-v3-validation-1vhg6aw6",
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.service.test_controller",
+    "tests.service.test_abi",
+    "tests.service.test_entry",
+    "tests.service.test_commit",
+    "tests.service.test_completion",
+    "tests.service.test_completion_review",
+    "tests.service.test_memory",
+    "tests.service.test_receiving",
+    "tests.service.test_channel",
+    "tests.service.test_loading",
+    "tests.service.test_loading_consumers",
+    "tests.service.test_lifecycle",
+    "tests.service.test_lifecycle_consumers",
+    "-v"
+  ],
+  "exitCode": 0,
+  "elapsedNs": "13879114718",
+  "log": "/tmp/jaydb2-completion-v3-validation-1vhg6aw6/validation-with-pinned-support.log",
+  "logSha256": "e5392b31a381b319d2214bdc8d31f59570f5a998ec1e71b744ad0ba2a3f428ce",
+  "changedFrozenFiles": [],
+  "successful": true,
+  "fullExecutableContractProved": false,
+  "completeServiceMeasurement": false,
+  "initialMissingTestDependency": "proof/ErrosFixos.bend",
+  "supportingFrozenDependencies": {
+    "archive": "tests/service/checkpoints/completion_v2.tar.gz",
+    "archiveSha256": "05dea8047ad96c064a576d580100ed74398c9931130bd0b901bd9944abff7abd",
+    "filesSha256": {
+      "proof/ErrosFixos.bend": "6dfcacfb922621240d90c267b31ab11e299f6321fa0085effb77a0fec18640ac"
+    }
+  }
+}

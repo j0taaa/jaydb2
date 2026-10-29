@@ -1,0 +1,35 @@
+{
+  "format": "jaydb-offline-frontend-v1",
+  "node": "v24.19.0",
+  "nodeModuleVersion": "137",
+  "originalFiles": {
+    "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+    "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+    "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+    "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+    "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+  },
+  "transforms": {
+    "frontend-observer.mjs": "6f21dc64e09ca208a1eb828b8eed142c97d984dd77637a0cf8fd9bf77564be4c",
+    "conversion.mjs": "304c045d21ea500bb1ab4081294714609ff22555d51ad47cf727569836153c82",
+    "frontend-resources.mjs": "32b62e7335787525f27220dfc858a6113cd1cb4d709170f2fcae034b89a67393",
+    "safe-numerals.mjs": "e7d63209532444ee649041f2704b2e987e93b5c3d9f8478ac8a8143b2cb95fc6",
+    "safe-strings.mjs": "b02c3c7fd4d05a713f9636c717108afba7f4db1e0d28cb094e0f052f1e743121",
+    "safe-templates.mjs": "720cbd9fad5962326391f0ad63f820e383e4e1955a0a5c3e67b3dfe7b067c09b",
+    "closed-instances.mjs": "a98e403dc681e9a38e4aca0df2d1723184e7ee76c132115cf74fc367a4ae5329",
+    "book-graph.mjs": "0f0431365768f3178c71b63121514ea06c8b775f10b469aa33376f8943aa2151",
+    "instance-keys.mjs": "314f9fdf2b11dba7c3b42d89eb4899124c5d9d8e2a7c77d354ed2e5b5df6958a"
+  },
+  "stackSourceSha256": "e7739a01c0443cbef80c7c174090929ba3dad550501d17e54da7aeffd6f8bcae",
+  "stackLoaderSha256": "c8737e6f72838814e2c2ebfeb218beca5e8ba01297788511f333cb85b594872b",
+  "nativeBackendSha256": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+  "nativeSourceNormalizedSha256": "0de5606fb40bff796048eb4f609442f2b5a7ab2d3704a24a0051dbbfb31e40c5",
+  "builderSha256": "e8fd20a8c60d51a7af173ed58af45cbee76313a968daa37bea986d8354893937",
+  "files": {
+    "bend.mjs": "f4b5efae6e089c091b2686c94900855f98db22c5f1168488809cdf9fc65b612d",
+    "safe.mjs": "5018407f965cc49c8a9b47997326a8e159fd3bae0f0b4e713aa96b6482ea9b4d",
+    "comp.mjs": "f6904453c0a7e5bc63318e5d12c065aeb6a5a2bb01f430248456fc9f1a8feff4",
+    "generic.mjs": "d596581399d6db354c3e535f87b0d85fe3e88ed714f0b4f2cd813c9a0b458aeb",
+    "stack.node": "74a96ffd907bffddb08a8a7c5595482148e4496a83214de2588465ffac92368f"
+  }
+}

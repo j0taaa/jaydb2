@@ -1,0 +1,82 @@
+{
+  "stage": "experimental-native-field-boundary-v2",
+  "fieldTestsPassed": 25,
+  "legacyBridgeTestsPassed": 10,
+  "codecInspection": {
+    "guards": 10,
+    "fieldSites": 43,
+    "actualNativeStoresInstrumented": false,
+    "publicationRefused": true,
+    "unchangedC": true,
+    "primary": true,
+    "bendtt": true
+  },
+  "realPtraceNegative": {
+    "incompleteRefused": true,
+    "actualBackingAcquired": true,
+    "noFieldStores": true,
+    "windowRemainedActive": true,
+    "holdReleased": true
+  },
+  "productionAudit": {
+    "abi": 2,
+    "testFixture": false,
+    "stackBytes": 4096,
+    "criticalFrameBytes": 232,
+    "criticalIsLeaf": true,
+    "finalObjectHasNoCalls": true,
+    "nativeStackClashProtection": true,
+    "frames": {
+      "jaydb_field_stack_bytes_v2": 0,
+      "jaydb_field_construct_v2": 184,
+      "field_critical": 232
+    },
+    "activeWindowPreserved": true,
+    "realBackingBeforeFinalBarrier": true,
+    "effectiveWireLengthCheck": true,
+    "noNativeEvaluatorIntegration": true,
+    "noCounterCompletenessClaim": true,
+    "noLengthProvenanceClaim": true,
+    "noFullContractClaim": true,
+    "moduleSha256": "ad4bc3bbadd631031df7b112963666919e211aede7710662068d8ae8a322122d",
+    "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+    "sources": {
+      "native/field.h": "9b20dbf5875bbf97fa3d808492783a78a895e4f11bb65da9c26b3b4f43236c48",
+      "native/field.c": "4b5617614abe2959dcf25ad403c0f537f69345a7589c0340ff179e54cf50f79d",
+      "native/field.S": "1133ee83a3fa2e23db6de768d2a23ee05e3fe8d08bfc9a28f90dcdd9cc02a888",
+      "native/accounting/counter.h": "7de2a9f93a12fc95c3cfade4aa86a8d73b263f14515966c19073107dd0833b98",
+      "native/accounting/window.h": "25113cd0a58efa5113ea188180756f2e6a185c80267e7a6aed2325eea6f34d32",
+      "native/accounting/deadline.h": "97fd96765cece1f927beff655e9849ee0e7d8c86caad6ed41db879010778441f",
+      "tools/native/build_field.py": "fff1cb05c58388fe7b97dbe9d69c4f5080b87c73bd984a636d04e6be3ead4c62"
+    }
+  },
+  "nativeBackendSha256": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+  "mainStackCheckpointSha256": "bc39567b346433d73f1328b9b955212d405c8a361e523182c89d79424cdf7db9",
+  "actualNativeStoresInstrumented": false,
+  "counterComplete": false,
+  "lei2Complete": false,
+  "medicaoRealComplete": false,
+  "runtimeCorrespondenceProved": false,
+  "fullExecutableContractProved": false,
+  "publicServiceIntegrated": false,
+  "admissionFrontendCacheRefreshRequired": false,
+  "pending": [
+    "executed Cabe branch and original wire cursor binding",
+    "length origins across partial fields and ancestor completion",
+    "all actual decoder stores lowered through the C boundary",
+    "complete real backing coverage and environment correspondence"
+  ],
+  "changedSources": {
+    "native/field.h": "9b20dbf5875bbf97fa3d808492783a78a895e4f11bb65da9c26b3b4f43236c48",
+    "native/field.c": "4b5617614abe2959dcf25ad403c0f537f69345a7589c0340ff179e54cf50f79d",
+    "native/field.S": "1133ee83a3fa2e23db6de768d2a23ee05e3fe8d08bfc9a28f90dcdd9cc02a888",
+    "native/FIELD.md": "2c55909e0995d9f7b02972f9e4170927bc30445caa2643702d636ae97a27bb61",
+    "native/README.md": "3d20d6ee6e8b84e34ddcc295c51602e5a0d20020fcea025413a906aee15579c4",
+    "tools/native/build_field.py": "fff1cb05c58388fe7b97dbe9d69c4f5080b87c73bd984a636d04e6be3ead4c62",
+    "tools/native/field_plan.mjs": "696e84266862f625e3512352cffffa36915a1f206fe234aead00a50ff205211c",
+    "tools/native/construction_metadata.mjs": "39136f4304df14bfc88c5f6637f05a65327e7399f7871aaa73b8ee592c94f17b",
+    "tests/native/field_fixture.c": "4c0caf215063dc10a77677da9596362f6267bc8ec7dad39cb28614e38fd85eb8",
+    "tests/native/test_field.py": "281f3522c9fa49e9ad1e1df157a5a87b7bde5ddf6932706d5292862e15e319ac",
+    "tests/native/test_field_plan.mjs": "2f6494ab76e05821dcac2a26fef3aff3732f81c98e452856fcce108cb0f7a302"
+  }
+}

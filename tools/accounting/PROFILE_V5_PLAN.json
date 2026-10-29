@@ -1,0 +1,1800 @@
+{
+  "format": "jaydb2-accounting-selected-profile-plan-v1",
+  "createdAt": "2026-10-29T09:10:15.314345+00:00",
+  "status": "INCOMPLETE",
+  "taskKind": "proposal and bounded local diagnostic only",
+  "productionVersion": "retention_v9 immutable",
+  "serviceReference": "completion_v5 immutable",
+  "claimsGranted": [],
+  "immutableInterfaces": {
+    "counterBytes": 120,
+    "windowBytes": 280,
+    "deadlineHeaderSha256": "33acf1a236f31bedd64e3a6a265cc1fa187ee8770fb6e5eca6139966a082e15f",
+    "counterSourceSha256": "8dda9cf6cebf43e26056257ef7e83a238c744706622aa49759524174d813eec6",
+    "releaseOperation": 6
+  },
+  "workTree": "/tmp/jaydb2-profile-v5-plan-zc7quybe",
+  "productionEdits": [],
+  "allowedNewDeliverables": [
+    "tools/accounting/PROFILE_V5_PLAN.md",
+    "tools/accounting/PROFILE_V5_PLAN.json"
+  ],
+  "measurementChoice": "Backing userspace adquirido e ainda retido de todos os processos, observer/helpers/arenas/stacks/libs e payload userspace FD; temporários internos kernel e padding não exposto excluídos. PROT_NONE reserva inicial0, revogação retém; aliases união por objeto/offset, submalloc não soma; fork privado distinto. Sem redefinição de unidade/Processavel/leis.",
+  "evidenceAttribution": {
+    "V9_root2": "20 métodos/64 runs/95 JSONLs/8008 snapshots próprios da revisão, nenhum novo achado LOCAL; não execuções desta tarefa. Índice3469 verificado aqui.",
+    "V9_root1": "Parcial sem parecer final; 223 runs/1027 textos atribuídos somente àquela rodada.",
+    "service5_review": "Somente estática; ZERO execução candidata, S1/S2 local.",
+    "root_V9": "86 métodos/566 registros; causal142; extração22/185 históricos, não reexecutados aqui.",
+    "root_service5": "236 execuções/229 IDs; native20; extração233 históricos, não nossa cobertura.",
+    "temporal_theorem": "PreparacaoTemporal.bend integrado e protótipo ConclusaoTempo lidos/copiados fora do freeze; ROOT informa ambos agregados +26 mutações nos dois modos/56 resultados oficiais; não reexecutados nesta tarefa."
+  },
+  "causalMatrix": [
+    {
+      "id": "P01",
+      "entry": "Observer estático → primeiro baseline → --service-window → fork/exec Python",
+      "mechanism": "Scope1 aponta ao baseline real seq1, antes de setenv/gate/slabs/fork/exec; default genérico NONE preservado.",
+      "status": "cobertura_local_condicional",
+      "remainingObligation": "Demonstrar que cada backing adquirido antes do counter permanece no baseline e que nenhum pico anterior excede-o; auditar crt/TLS/libc.a/linker/stack e ordenação, não supor monotonicidade porque o ELF é estático. Novos pipes/maps de controle também devem entrar nesse baseline.",
+      "evidence": "A:trace.c:1133,1207; A:SERVICE_WINDOW.md; BUILD.json; jayacct-trace-program-headers.txt",
+      "nextValidation": "Análise de prefixo do ELF/crt efetivo e chamadas até baseline; controle constructor pré-main em escopo inicial. PT_INTERP ausente cobre somente este observer."
+    },
+    {
+      "id": "P02",
+      "entry": "Python startup/imports → jaydb2.main → loading/lifecycle → Environment → Database.prepare_entry",
+      "mechanism": "O guard Linux/main-thread/SIGCHLD/env é tardio: imports e loaders já executaram.",
+      "status": "contraexemplo_concreto_de_perfil",
+      "remainingObligation": "Fechar user/system site, .pth, sitecustomize/usercustomize, cwd/importpath, Python stdlib/extensões e inicializadores antes de afirmar perfil fechado. Um gate deve executar dentro da janela do observer e antes de exec Python. Preservar o ambiente efetivamente escolhido; não apagar hooks para aparentar prova.",
+      "evidence": "S:jaydb2.py:8-12,38-41; S:entry.py:28-46; PROBE_RESULTS.json",
+      "nextValidation": "Dois modos próprios: .pth em HOME executou mmap1048576 antes de prepare_entry, guard aceitou; helper Python herdou o efeito. Primeira tentativa com sitecustomize foi inconclusiva e está preservada."
+    },
+    {
+      "id": "P03",
+      "entry": "Ambiente herdado em Python, ProcessOwner e cadeia de ferramentas",
+      "mechanism": "Entry rejeita lista finita de loaders; ProcessOwner copia env e acrescenta BEND_NO_TELEMETRY=1.",
+      "status": "condicao_externa_e_enforcement",
+      "remainingObligation": "Fixar independentemente do candidato a tupla completa env/argv/cwd/umask/rlimits/sinais/fds e resolver semântica das variáveis influentes, incluindo HOME/PATH/TMPDIR, configurações Python/Clang/ld, allocators e GLIBC_TUNABLES. Um envhash identifica bytes; não prova comportamento. Não truncar env para produzir PASS.",
+      "evidence": "S:entry.py:18-25; S:lifecycle.py:ProcessOwner.prepare; X:tools/admission/run.py; X:tools/verifier/check.mjs",
+      "nextValidation": "Inventário de consumo por fase + controles de cada influência escolhida; capture antes de exec e compare antes de spawn, não somente no request."
+    },
+    {
+      "id": "P04",
+      "entry": "FDs iniciais do DB / stdin0 herdado / stdout-stderr pipes / closefrom3 dos helpers",
+      "mechanism": "C dup2(1,2), closefrom(3) conserva stdin0 e fecha counterfd nos helpers; observer segue PID.",
+      "status": "cobertura_local_e_condicao_externa",
+      "remainingObligation": "Inventariar todos os FDs do DB antes de exec e o objeto/OFD/payload userspace que retêm. Closefrom não remove backing já importado no pai nem garante inocuidade de stdin0. Pipe buffer interno kernel excluído não autoriza ignorar ring/memfd/objetos expostos ou transferidos. Resolver reaberturas procfd e compartilhamentos externos reais.",
+      "evidence": "S:lifecycle.c:130-150; S:lifecycle.py:216-255; probe helper.fd_canary_and_counter_closed",
+      "nextValidation": "Probe real confirma canário e counter fechados, stdin dev/ino preservado. Futuro teste de FD inicial com payload conhecido deve cobrar pai e retenção mesmo sem view; não basta proibir FD no candidato."
+    },
+    {
+      "id": "P05",
+      "entry": "Caller DB serial, C FFI síncrono, loading NODELETE e lifecycle NODELETE",
+      "mechanism": "Caller main-thread e recibos prearmados; C grava entrada/retorno/consumo antes de FFI; refs incertas retidas.",
+      "status": "contrato_tecnico_parcial",
+      "remainingObligation": "Precisar que os entrypoints confiáveis selecionados não fazem callback, nonlocal exit, cancelamento de thread nem mutação deliberada de privados; wrappers Python podem falhar. Serial main não elimina threads Node/loader, sinais, GC ou todos os callers externos. NODELETE é backing retido a contar.",
+      "evidence": "S:loading.c; S:loading.py:169-206,271-310; S:lifecycle.c:230-263; S:abi.py:107-174; revisão V5 S1/S2",
+      "nextValidation": "Provas locais de recibos + perda real de retorno/erro de consumo/registro persistente; manter guards fora do mapper e validar bindings de cada função concreta."
+    },
+    {
+      "id": "P06",
+      "entry": "Helpers externos via lifecycle C: posix_spawnp/setsid/dup2/closefrom",
+      "mechanism": "PID gravado em owner C; WEXITED|WNOHANG|WNOWAIT, killpg enquanto líder reserva PID/PGID, depois reap; sole waiter.",
+      "status": "cobertura_local_condicional",
+      "remainingObligation": "Fixar SIGCHLD default/sem SA_NOCLDWAIT/sem reaper alheio; os helpers escolhidos e seus descendentes não escapam do grupo com setsid/setpgid. Posix_spawnp e glibc podem usar CLONE_VM|CLONE_VFORK; a condição de mm emprestado é real e não se pode retomar pai precocemente. Falhas de cleanup não são lista vazia.",
+      "evidence": "S:lifecycle.c:113-150,169-226; S:controller.py:92-151; probe WNOWAIT/group",
+      "nextValidation": "Fechar callgraph de criação/grupo nas dependências; testar leader exit0/1 + descendente stdio destacado no mesmo grupo. Nenhum novo certificado de Linux universal."
+    },
+    {
+      "id": "P07",
+      "entry": "Ferramenta nativa Python → compilador; Node → BTT spawnSync",
+      "mechanism": "Troca do outer Popen por C não remove inner subprocess.Popen do builder nem SpawnSync.",
+      "status": "vinculo_de_bytes_pendente",
+      "remainingObligation": "Materialização V5 congela tooling escolhido, mas snapshot245 não contém a imagem inteira dessa materialização. Ligar os fontes suplementares lidos e binários efetivos ao capsule de execução; auditar ambos os níveis de fork/exec/wait/kill e memória de Python/clang/ld.",
+      "evidence": "S:controller.py:187-215; S:staging.py:172-213; X:tools/native/build.py:482; X:tools/verifier/check.mjs:80",
+      "nextValidation": "Próximo inventário deve incluir a cópia materializada, intérpretes e argv efetivos; não substituir pelo antigo probe service3 ou pelo fato de o C externo ser posix_spawnp."
+    },
+    {
+      "id": "P08",
+      "entry": "Node --jitless + stack.cjs/stack.node + frontend/cache instalados",
+      "mechanism": "Sem shell/script cliente; argv do host, installed manifest, emissão do mesmo Book; --jitless não significa ausência de workers/TLS.",
+      "status": "contrato_de_runtime_pendente",
+      "remainingObligation": "Fechar V8/Node/libuv, GC/threads, allocator e módulos carregados, inclusive initializers; pin frontend TS/JS/stack.node e bytes reais Node escolhidos por PATH. O contrato deve enumerar mecanismos de aquisição, não assumir soma correta.",
+      "evidence": "S:controller.py:187-192; S:staging.py:179-185; X:tools/admission/run.py:32,59; S:tools/accounting/CLOSURE histórico não ratificado",
+      "nextValidation": "Auditoria do callgraph selecionado e ELF/DSOs reais; observar um caminho ajuda inventário mas ausência em trace não prova inalcançabilidade."
+    },
+    {
+      "id": "P09",
+      "entry": "BTT derivado síncrono / Lean / mimalloc lazy / retry fuel",
+      "mechanism": "Input é Book de dados, não Lean IO executável; spawnSync [input,fuel], stdio ignore/FD; retries mantêm prazo original, fuel sem teto fixo.",
+      "status": "exclusao_de_API_direta_condicional",
+      "remainingObligation": "Fechar main derivado, initialize e linked runtime, mimalloc mprotect/purge/arenas/stacks/TLS, variáveis Lean e deps finais. Lean Handle.lock usa flock; não implica ausência de leases em todo ELF. Arena PROT_NONE inicial0, ativação e revogação seguem retenção escolhida.",
+      "evidence": "X:tools/verifier/check.mjs:51-94; A:ENTRY_PROFILE_V6.md; fontes Lean/libuv pinadas",
+      "nextValidation": "Vincular adapter+C/Lean+ELF realmente instalado e provar que as chamadas de IO enumeradas não recebem comando lease vindo do input; cobrir lazy commit/purge com ledger sem somar submalloc."
+    },
+    {
+      "id": "P10",
+      "entry": "Clang19 → linker / configs / arquivos de entrada e saídas",
+      "mechanism": "Builder fornece argv separado e C gerado; o compilador não executa o programa Bend durante build.",
+      "status": "condicao_externa_e_callgraph_pendente",
+      "remainingObligation": "Fixar driver efetivo, ld efetivo, headers/sysroot, configs defaults de sistema/HOME, plugins e deps do compilador. Arquivos/configs mutáveis e PATH podem mudar código carregado. LLVM F_SETLK/W não é F_SETLEASE; não transformar essa inspeção parcial em prova de todo Clang/ld.",
+      "evidence": "X:tools/native/build.py:24,448-507; fontes LLVM Unix Path/Program e Compilation.cpp pinadas",
+      "nextValidation": "Auditar configs habilitadas pelo argv real e mapa de inicializadores/DSOs. Eventual --no-default-config seria nova seleção explícita de perfil para ROOT decidir, não sanitização silenciosa."
+    },
+    {
+      "id": "P11",
+      "entry": "Instalação offline do verifier/frontend/loading/lifecycle versus requisição",
+      "mechanism": "Environment exige artefatos instalados e copia bytes; CLI pede instalação explícita.",
+      "status": "exclusao_por_entrada_escolhida",
+      "remainingObligation": "tools/verifier/build e bootstrap de instalação não são subprocessos por request nesta entrada. Se o operador escolher instalação dentro da instância observada, seu backing e tempo entram; não excluí-los globalmente. Clang por request e builds initialize/decode/authenticate continuam dentro.",
+      "evidence": "S:staging.py:186-196; S:jaydb2.py:27-37; S:controller.py:315-330",
+      "nextValidation": "Callgraph direto e ausência de fallback de build na entrada congelada. Não requer executar ferramentas offline como falso fechamento de request."
+    },
+    {
+      "id": "P12",
+      "entry": "Identidade de fonte, Book, C compilado, artefato carregado e DSOs",
+      "mechanism": "Environment identidade cobre fontes/tooling; report.cSha256 nomeia .so; loader confere manifest/ELF/descritor.",
+      "status": "vinculo_semantico_e_identidade_abertos",
+      "remainingObligation": "Conectar Book checado/serializado/codegen/C/ELF efetivamente aberto sem troca de path nem arquivo, e comportamento dos entrypoints ao runtime. Hash de fontes não prova ELF em execução nem corretude de codegen/Safe. R4/R5/Codec pertencem à frente ROOT; protótipo V6 e next não são produção.",
+      "evidence": "S:staging.py:197-206; S:controller.py:193-219; S:loading.py:125-147; revisão V5",
+      "nextValidation": "Capsule futuro com relações fonte→build→ELF→dep e handles/OFD reais; prova/correspondência separada, sem assumir Leis4/8 ou contador correto."
+    },
+    {
+      "id": "P13",
+      "entry": "Leases adaptadas/mapped / operações bloqueantes de backing",
+      "mechanism": "Repro histórico adapted_lease em memfd/shmem: SIGIO do peer precisa executar enquanto syscall exclusiva aguarda liberação.",
+      "status": "contraexemplo_geral_reachability_DB_nao_demonstrada",
+      "remainingObligation": "V9 não recupera progresso desse caso. Seleção pura Bend não oferece API lease direta nos caminhos examinados; initializers/FDs importados/participantes externos ainda não fechados. É preciso excluir causalmente criadores de lease no perfil independente ou mudar scheduler sem rodar mutações de backing arbitrárias em paralelo.",
+      "evidence": "A:ENTRY_PROFILE_V6.md; P:Linux fcntl/locks/shmem; CPython/libuv/Lean/LLVM pinados",
+      "nextValidation": "Prova de callsites/argumentos e ausência de carriers de lease herdados/externos, não grep ou trace sem F_SETLEASE. Não repetir espera45s nem mudar lease-break-time; negativo histórico permanece aberto."
+    },
+    {
+      "id": "P14",
+      "entry": "Paths/open_how/dirfd/root/cwd/mount/proc magic links",
+      "mechanism": "Preflight segue contexto TGID/TID e flags finais, mas check→kernel use pode divergir.",
+      "status": "TOCTOU_aberto",
+      "remainingObligation": "Private temp0700 ajuda apenas contra outros UIDs; mesmo UID/externos, symlinks, dirfd compartilhado, mount namespace e buffers open_how externamente graváveis não estão fechados. Precisar quem pode escrever cada objeto/input; usar namespace/RO/OFD estável quando aplicável. Não serializar todo open/O_TRUNC: FIFO/lease podem bloquear.",
+      "evidence": "A:trace.c path preflight; A:RETENTION_V4/V5/V6; S:staging.py:208-240",
+      "nextValidation": "Ledger de escritores e caminhos do perfil; controle positivo de FIFO/procfd/RESOLVE_IN_ROOT já histórico, futuro alteração externa controlada deve impedir afirmação falsa e não impor syscall veto ao Bend."
+    },
+    {
+      "id": "P15",
+      "entry": "Payload importado, FD especial, SCM_RIGHTS/pidfd_getfd, objetos não mapeados, hugetlb",
+      "mechanism": "Memfd/ring conhecidos têm adapters locais; proc maps e st_size não identificam toda aquisição.",
+      "status": "cobertura_aberta",
+      "remainingObligation": "Identificar objetos de todos os FDs do pai/helpers/baseline e formas reais de importação; fechamento de APIs diretas não apaga objetos herdados. Precisar alternativas de adapter ou condição externa independente para objetos ausentes. Não inventar pagecache de regular FD, st_size como alocação, nem incluir slab/padding não entregue.",
+      "evidence": "A:objects.inc.c; A:RETENTION_V9.md; P04/P08-P10",
+      "nextValidation": "Teste causal apenas de adapter do perfil realmente escolhido; contraexemplo importado permanece negativo até ter identidade/payload real, nunca exclusão arbitrária de recursos."
+    },
+    {
+      "id": "P16",
+      "entry": "Faults genéricos, stacks automáticas, COW e invalidação de file mappings",
+      "mechanism": "Regras locais de regiões/proteções/alias/fork e histórico não observam todo evento genérico.",
+      "status": "cobertura_aberta_relevante_ao_perfil",
+      "remainingObligation": "Python/Node/Lean/loader fazem faults reais e stacks dinâmicas; ABI puro não os torna inalcançáveis. Fechar contrato VM com capacidades/retentores escolhidos e transições efetivas, incluindo invalidação externa. Nenhuma equivalência geral maps/RSS/PSS/st_size→backing adquirido é admitida.",
+      "evidence": "A:trace.c:scan_maps/snapshot; A:objects.inc.c; S:field.h; S:tools/accounting/CLOSURE provisório",
+      "nextValidation": "Pequeno inventário VM do runtime e análise de cada primitiva presente; medir stores/faults de caminho selecionado somente como testemunhas, não generalizar por silêncio."
+    },
+    {
+      "id": "P17",
+      "entry": "Clone3 input / flags VM,FILES,THREAD / criação",
+      "mechanism": "V9 captura argumentos reais sob all-stop antes de liberar; evento/PID real vincula owners; filas preservam EXIT anterior.",
+      "status": "cobertura_local_condicional",
+      "remainingObligation": "Bytes clone3 usados pelo kernel devem permanecer iguais aos capturados: stack privada glibc pode dar contrato pequeno, mas não se presume sem fonte/ELF; nenhum writer externo, shared memory kernel ou userfaultfd pode alterar input no intervalo.",
+      "evidence": "A:trace.c:502-557; A:PTRACE_AUDIT_V9.md; revisão V9 root2",
+      "nextValidation": "Ratificar glibc posix_spawn/pthread e CPython/Node reais; demonstrar ownership do buffer. Input curto/ilegível conserva erro real do kernel, não vira filtro Processavel."
+    },
+    {
+      "id": "P18",
+      "entry": "PID namespace / eventos clone/exec / de-thread",
+      "mechanism": "Evento normal fornece PID real; fallback retorno exige ns/pid dev/ino igual; exec usa transação exclusiva real.",
+      "status": "cobertura_local_e_condicao_externa",
+      "remainingObligation": "Operador fixa topologia de PID/mount/proc e acesso ptrace/proc da instância, sem trocar namespace durante vida selecionada, ou implementa tradução demonstrável. Unshare/setns não é eliminado pela simples ausência em trace.",
+      "evidence": "A:trace.c:502-557,617-644; A:PTRACE_AUDIT_V9.md; P:Linux fork/ptrace",
+      "nextValidation": "Contrato de namespace concreto e mapa task↔wait PID; testes positivos/negativos locais existentes. Namespace diferente sem tradução permanece aberto, não owner vazio."
+    },
+    {
+      "id": "P19",
+      "entry": "Metadado ptrace perdido no EXIT/exec/clone; resultados commitados e leitores alternativos",
+      "mechanism": "V9 salva retorno real antes de aplicar ownership; usa mesma mm para bytes e mesma fdtable para fd/status, inclusive mm diferente; pending barra snapshots.",
+      "status": "reparo_local_com_negativo_aberto",
+      "remainingObligation": "Nenhuma API ressuscita todo retorno/descritor após perder último leitor. Sem resultado real/reader elegível, qualificar evento como instrumento indisponível, impedir observação/publicação e conservar pendências; V9125+EXITKILL não é conclusão justificada nem FalhaReal externa. Novo perfil deve analisar self-timeout kill nos pontos reais, não presumir que só falha externa causa perda.",
+      "evidence": "A:trace.c:687-707,755-797,973-978; A:objects.inc.c:82-148; P:ptrace.c:239,proc-base.c:916,exit.c:913,964",
+      "nextValidation": "Fronteira executável explícita para erro de instrumento e teardown sem fatos; resultado perdido terminal continua sem solução de progresso geral. Não exigir recuperar impossível GETREGS, mas não reivindicar Lei8."
+    },
+    {
+      "id": "P20",
+      "entry": "Kernel ordering / syscall exit / EXIT / exec mm / FD e retenção compartilhada",
+      "mechanism": "Fonte upstream explica retorno/evento/exit_mm; observer valida bancos antes da publicação e reconcilia owners.",
+      "status": "contrato_OS_por_mecanismo_pendente",
+      "remainingObligation": "Vincular kernel Ubuntu efetivo/config/patchset às propriedades usadas: retorno e evento, destruição mm/files, stop/retirement e acesso proc. uname/notes/hash sozinho não demonstra essas propriedades. Confiar num contrato pequeno do Linux por mecanismo é admissível; assumir contador correto não.",
+      "evidence": "P:Linux v7.0 fork/exit/ptrace/proc-base; A:PTRACE_AUDIT_V9.md; SOURCE_PINS.json",
+      "nextValidation": "Tabela propriedade→fonte/config/patch→ponto de uso; distinguir explicação upstream de proveniência completa da imagem Ubuntu."
+    },
+    {
+      "id": "P21",
+      "entry": "Hold/Campo/C leaf / stack preativa / sinais / publicação",
+      "mechanism": "Hold e barrier final precedem stores sem alloc; op6 não escaneia; C rejeita INCOMPLETE e valida pico/proveniência.",
+      "status": "fronteira_local_nao_integracao_completa",
+      "remainingObligation": "Relacionar cada store real ao Campo anterior, extensão de stack/fixedframe preativada, sinais mascarados, buffers vivos e ausência de alloc/callback no trecho crítico. Hold não bloqueia kernel assíncrono nem escritores externos. Caller-saved/deadline33acf permanecem congelados.",
+      "evidence": "S:commit.c:83-164,180-215; S:field.h; A:HOLD.md; ABI estável",
+      "nextValidation": "Análise IR/ASM/stack com fontes efetivas e teste host real negativo INCOMPLETE; não usar fixture flags completas como prova de medida. Saída temporal futura não dispensa AlocouCampo já emitido."
+    },
+    {
+      "id": "P22",
+      "entry": "Epoch original: Python verificação, nativo execute/preparação, adapters e recibo raw",
+      "mechanism": "V5 EpochAuthority retém Result656/deadline624 e consulta fora do mapper, inclusive após unload; não renova epoch.",
+      "status": "cobertura_estatica_local",
+      "remainingObligation": "Ligar instantes reais a eventos Mediu e MedicaoReal temporais, unidades e subtração original; cinco etapas e captura antes de ações reais continuam a integrar. Não inferir epoch de timeout relativo renovado ou de diagnóstico Python falho.",
+      "evidence": "S:tools/native/accounted.py:60-70,208-279; S:controller.py:395-447,481-496; X:proof/PRAZOS_MEDIDOS.md",
+      "nextValidation": "Testes de época original igualdade/fora do mapper já atribuídos; futura integração do controle automático deve compartilhar autoridade original antes do helper e dentro das transições C, não depois do retorno."
+    },
+    {
+      "id": "P23",
+      "entry": "K em observações AUTOMÁTICAS causadas por helpers",
+      "mechanism": "Python pode estar ptrace-stopped em stop_world/scan. deadline_tick retorna imediatamente sem deadline_task; só marker _until arma timer atual.",
+      "status": "lacuna_concreta_de_watchdog",
+      "remainingObligation": "Watcher Python não preempta observer. Associar estágio original ao observer antes de spawn e cancelar observação automática em safepoints, sem depender de marker. Provar condições de retomada/cleanup e limite de tempo OS; timer sozinho não produz K.",
+      "evidence": "A:deadline.inc.c:13-45; A:trace.c:814-830,973-1025,1228-1291; S:controller.py:helper",
+      "nextValidation": "Próxima implementação proposta N1: guarda de epoch também em scan automático, com cancel receipt, sem publicação parcial, casos com e sem report, DB realmente parado. Não implementada nesta tarefa."
+    },
+    {
+      "id": "P24",
+      "entry": "Cancelamento automático / retomar host / helper kill / cleanup / cenário seguinte",
+      "mechanism": "Rollback de scan não é rollback de syscall completada; SIGKILL próprio pode perder metadado essencial; vfork e mutator em kernel impedem thaw arbitrário.",
+      "status": "maquina_de_estados_a_implementar",
+      "remainingObligation": "Retomar só owner host qualificado sob exclusão de mutações reais; preservar resultados commitados, fila EXIT e retenção basefile/COW. Escopo cancelado não recebe close fictício. Próximo cenário requer resync que preserve histórico de todo backing sobrevivente; não zerar banco nem adotar current antigo.",
+      "evidence": "A:deadline.inc.c:71-95; A:trace.c scheduler; S:lifecycle.c:169-226; P19",
+      "nextValidation": "N2 separado de N1: testes de cancel antes/depois syscall, helper EXIT, vfork, último owner, FDtable compartilhada, retorno irrecuperável e geração nova. Terminal irrecuperável continua sem conclusão de progresso."
+    },
+    {
+      "id": "P25",
+      "entry": "Erro fixo temporal sem MedicaoMemoria completa",
+      "mechanism": "V5 commit após ETIMEDOUT pode status TIME por clock próprio, mas não completed nem escolha limited; gate de memória completa permanece.",
+      "status": "decisao_de_integracao_com_componente_matematico",
+      "remainingObligation": "Novo PreparacaoTemporal demonstra Regra7(Preparou limite/frame62) e conserva MedicaoReal de TEMPO com evento anterior, limites válidos, início original e monotônico; não requer memória completa. Não prova Concluiu, cleanup/window/K/host, nem libera AlocouCampo. Não representar cancel como Mediu memoria0.",
+      "evidence": "S:commit.c:106-164; X:proof/PreparacaoTemporal.bend; protótipo X:build/temporal-proof-probe/ConclusaoTempo.bend; X:proof/PRAZOS_MEDIDOS.md",
+      "nextValidation": "ROOT decide branch separado no futuro: frame fixo já preativado, clock original real, estado sem publicação, conclusão única/delivery e ownership resolvido. Nenhum patch/ABI/flag complete nesta proposta."
+    },
+    {
+      "id": "P26",
+      "entry": "Recepção/framing/init/CLI / primeira janela e cenário posterior",
+      "mechanism": "--service-window existe; CLI jaydb2.serve é runner experimental; Receiver/Channel/RequestCompletion são APIs distintas.",
+      "status": "integracao_do_perfil_pendente",
+      "remainingObligation": "Definir entry operacional contado e adoção de scope1 antes de init; fechar init pela barreira real do host, preservar pico local, ativar requests só depois. Initializer sem prazo público definido não ganha quota CLOCK_END_NS. Não confundir módulos fixture __new__ com init/admission/Bend reais.",
+      "evidence": "A:SERVICE_WINDOW.md; S:jaydb2.py; S:controller.py:315-340,599-624; S:channel.py; revisão V5",
+      "nextValidation": "Caminho mínimo E2E selecionado startup→helpers→initialize→request→release→framing real, usando fontes materializadas pinadas e aceitando negativo INCOMPLETE. Fora do escopo de execução desta tarefa."
+    },
+    {
+      "id": "P27",
+      "entry": "Participantes externos: mesmos UID/ptrace, writers/mounts/leases/clock/scheduler",
+      "mechanism": "Parar tracees só congela aqueles tasks; kernel e processos externos podem continuar alterando objetos.",
+      "status": "condicao_externa_independente",
+      "remainingObligation": "Operador pode fixar exclusividade de paths/objetos do serviço e ausência de writers dos buffers críticos, com RO/FDs/namespace/permissions concretos. Deve declarar quais externos permanecem e seus efeitos contáveis/temporais. Isso não torna Processavel falso se o candidato atrasa/recusa.",
+      "evidence": "P14-P20; contrato Interface:126-132",
+      "nextValidation": "Contrato de implantação verificável por mecanismo, não envhash/uname e não veto em runtime. Omitir recursos/kill interno como FalhaReal não é uma alternativa."
+    },
+    {
+      "id": "P28",
+      "entry": "K físico: agendamento observer/host, syscalls bloqueantes, clocks, signals e teardown",
+      "mechanism": "CLOCK_MONOTONIC absoluto é testemunha de tempo; SIGALRM cooperativo não garante latência máxima universal.",
+      "status": "contrato_temporal_pendente",
+      "remainingObligation": "Precisar bound de despacho+safepoint+syscall qualificada+thaw+cleanup+entrega, ou reconhecer o trecho sem bound. Não escolher novo K a partir de maior tempo medido, aumentar clocklimite, mudar kernel settings ou chamar kill interno de FalhaReal. Memoria/K/Campo/host não se fecham por testes.",
+      "evidence": "A:deadline.inc.c; S:controller.py:60-82,92-166; X:tools/native/budget.py; X:proof/PRAZOS_MEDIDOS.md",
+      "nextValidation": "N1 testa cancel real; N2 testa protocolo; prova de K exige contrato técnico de execução/scheduling e caminhos syscall do perfil efetivo. Nenhum bound numérico foi fixado aqui."
+    }
+  ],
+  "identityDistinctions": [
+    {
+      "name": "V9 produção accounting",
+      "identity": "archive ad602408… + manifest3646278…; counter120/window280/deadline33acf/op6",
+      "means": "Bytes e ABI imutáveis do candidato local; não MedicaoReal."
+    },
+    {
+      "name": "Environment.identity V5",
+      "identity": "hash de fontes/tooling escolhidos, não seed/mutable data",
+      "means": "Não inclui sozinho kernel/env/DSOs efetivos/fds/ordenação; não contrato comportamental."
+    },
+    {
+      "name": "Artefato Book→C→ELF→handle",
+      "identity": "relações a construir com bytes do Book e produto realmente aberto",
+      "means": "Mesmo path/hash do report não resolve TOCTOU ou correspondência semântica."
+    },
+    {
+      "name": "Observer ELF sem PT_INTERP",
+      "identity": "readelf do novo build V9 próprio em /tmp",
+      "means": "Somente observer estático; não elimina loader/DSOs de Python/Node/Clang ou TLS/crt."
+    },
+    {
+      "name": "15 selected_elf / 28 dependencies do CLOSURE antigo",
+      "identity": "listas históricas provisórias, misturam executáveis e DSOs",
+      "means": "Não é contagem de DSOs atuais nem inventário V5 ratificado; CLOSURE não foi regravado."
+    },
+    {
+      "name": "loading descriptor flags=1; lifecycle flags=15",
+      "identity": "convenções de descritor de cada shim; NODELETE efetivo confirmado no ELF histórico usado",
+      "means": "Não são contagens de bibliotecas, nem flag completa de accounting."
+    },
+    {
+      "name": "native/commit descriptor produção flags=0 versus fixture flags=1",
+      "identity": "interface do artefato crítico e seams de teste",
+      "means": "Não confundir flags de fixtures completas com cobertura real de memória."
+    },
+    {
+      "name": "Kernel7.0 upstream preservado vs Ubuntu7.0.0-38 efetivo",
+      "identity": "hashes primários de mecanismo vs release/notes do experimento",
+      "means": "Não se afirmou proveniência/demonstração de ordenação completa do Ubuntu."
+    }
+  ],
+  "technicalContracts": [
+    {
+      "id": "C-VM",
+      "statement": "Para cada primitiva VM/objeto realmente alcançável nas imagens selecionadas, enumerar capacidade/backing entregue e retido e o evento que adquire/libera; mapear esse evento a syscall/fault/lifecycle específico que o observer recebe antes da observação qualificada.",
+      "evidence": "Regras locais V3–V9 e primárias VM/allocator; faltam faults/invalidation/imports gerais.",
+      "forbiddenShortcut": "O contador coincide com toda memória / maps é medida por definição."
+    },
+    {
+      "id": "C-SPAWN",
+      "statement": "glibc posix_spawnp selecionado grava PID em owner síncrono; sucesso mantém líder waitable para sole waiter; filho executa ações de FD/grupo especificadas e descendants selecionados permanecem no grupo até kill-before-reap.",
+      "evidence": "C V5 e probe próprio no subset; inicializadores/deps/inner Popen precisam fechamento.",
+      "forbiddenShortcut": "C wrapper é infalível ou todo helper Linux mantém grupo."
+    },
+    {
+      "id": "C-INPUT",
+      "statement": "Cada clone3_args/open_how/path crítico é privado ou protegido contra todos os escritores até consumo kernel, incluindo writers externos/assíncronos explicitados; leitores alternativos usam identidade mm/fdtable registrada.",
+      "evidence": "V9 all-stop e leitores por identidade; input externo/namespace continuam abertos.",
+      "forbiddenShortcut": "All-stop congela tudo no sistema."
+    },
+    {
+      "id": "C-OS",
+      "statement": "Kernel efetivo respeita propriedades listadas de syscall/evento/EXIT/mm/files e clock; ptrace indisponível não prova morte e não há recuperação prometida após perda de último dado real.",
+      "evidence": "Upstream pinado explica mecanismos; proveniência Ubuntu e fronteira terminal não fechadas.",
+      "forbiddenShortcut": "GETREGS sempre disponível ou ESRCH permite zerar ownership."
+    },
+    {
+      "id": "C-HOST",
+      "statement": "Entry C confiável é síncrono, sem callback/nonlocal exit/thread-cancel no trecho declarado, caller selecionado serial; owners/recibos retêm bytes/DSOs e errors conhecidos sem consumo só admitem retry segundo contrato real.",
+      "evidence": "V5 S1/S2 estático e fixtures históricas; não imunidade a exceções Python.",
+      "forbiddenShortcut": "Assumir corretude do host ou das Leis4/8."
+    },
+    {
+      "id": "C-DEPLOY",
+      "statement": "Operador escolhe antes do cenário todos os env/argv/fds/arquivos/init/deps e topologia OS influentes; mecanismos RO/identidade/namespace/controle de escritores realmente preservam a escolha até consumo.",
+      "evidence": "Environment materializa tooling; .pth real mostra fronteira ausente; declaração independente precisa ser fixada pelo ROOT.",
+      "forbiddenShortcut": "Somente hash/envhash/uname/ausência no trace ou truncar ambiente."
+    },
+    {
+      "id": "C-K",
+      "statement": "Uma execução com K declarado fornece bounds independentes para despacho do observer, intervalos até safepoint, syscalls qualificadas, thaw e cleanup/entrega; prazo original continua sendo a autoridade para expiração.",
+      "evidence": "Ainda não há tal bound completo. Timer atual cobre somente marker. N1/N2 abaixo não provam C-K.",
+      "forbiddenShortcut": "Máximo observado em teste é K ou timeout instrumentador é FalhaReal."
+    }
+  ],
+  "recommendedNextImplementation": {
+    "id": "N1",
+    "name": "Prazo original também na observação automática",
+    "implemented": false,
+    "guaranteeToEstablish": "Toda observação automática do estágio armado consulta o mesmo deadline original nos safepoints e cancela sem publicar scan parcial quando a expiração real é observada; cancelamento é recibo de controle, não medida. Essa garantia independe da existência de deadline_task de marcador.",
+    "notGuaranteed": [
+      "K físico completo",
+      "thaw de mutator in-flight",
+      "recuperação de metadado irrecuperável",
+      "resync de retenção após cleanup arbitrário",
+      "conclusão/entrega temporal",
+      "medição completa"
+    ],
+    "apis": [
+      {
+        "name": "stage_arm",
+        "proposalOnly": true,
+        "arguments": [
+          "scope_id u128 real já ACTIVE",
+          "stage_generation monotônico sem reúso",
+          "stage enum do host",
+          "start_ns e decision_deadline_ns originais, CLOCK_MONOTONIC, com origem/autoridade retida",
+          "host task/mm e grupo do helper vinculados pelo observer a identidades reais"
+        ],
+        "result": "ACK armado ligado à geração/escopo e a leitura real de clock; nunca snapshot nem autorização de Campo. ACK deve preceder ProcessOwner.start. Native execute/preparação exigem arm na transição C original, não reparo tardio Python."
+      },
+      {
+        "name": "stage_read_receipt",
+        "proposalOnly": true,
+        "arguments": [
+          "geração esperada",
+          "registro pré-alocado retido pelo chamador"
+        ],
+        "result": "Estado, clock real de observação de cancel, deadline original, motivo, scan descartado, última publicação válida e pendências de lifecycle. Não retorna peak substituto nem CompleteMem. Lido sem alocação no trecho C crítico quando aplicável."
+      },
+      {
+        "name": "stage_cancel_ack",
+        "proposalOnly": true,
+        "arguments": [
+          "geração",
+          "cancel receipt original"
+        ],
+        "result": "Reconhece entrega de cancelamento; não fecha a janela e não apaga owners. Inicia protocolo separado de cleanup quiescente quando sua condição é demonstrada."
+      },
+      {
+        "name": "stage_retire",
+        "proposalOnly": true,
+        "arguments": [
+          "geração",
+          "prova/recibo de cleanup efetivo + resync real de todos os owners sobreviventes"
+        ],
+        "result": "Só permite próxima geração após resolução; conserva histórico de retenção e provenance original. Sem resync demonstrável permanece UNRESOLVED. Eventual estado ABANDONED é metadado de controle separado, não window CLOSED inventado."
+      }
+    ],
+    "tests": [
+      {
+        "id": "N1-T1",
+        "kind": "real positivo",
+        "scenario": "Armar prazo original; iniciar helper local real; DB parado pelo observer durante scan automático sem marcador _until. Diagnóstico separado atrasa apenas safepoint do scan com relógio real, não substitui valores/errno.",
+        "assert": "timer/safepoint observa now>=D original; receipt da geração; rollback O1, scan_fd fechado, zero nova observação parcial; report/no-report equivalentes; DB não recebe SIGKILL."
+      },
+      {
+        "id": "N1-T2",
+        "kind": "controles reais",
+        "scenario": "Prazo futuro/passado/igualdade, default sem stage_arm, --service-window, cancel em waitpid e scan; marker deadline anterior/posterior ao stage.",
+        "assert": "Default genérico invariável; min dos deadlines aplicáveis sem renovar; mesma scope/proveniência anterior; counter120/window280/header33acf/op6 intactos."
+      },
+      {
+        "id": "N1-T3",
+        "kind": "integridade causal",
+        "scenario": "Helper conclui write/close/open/truncate e é morto pelo próprio host; pai conserva fdtable/basefile_owner/COW/última view. Cancel em pontos pré/pós aplicação real do retorno.",
+        "assert": "Nunca desfazer resultado commitado ou zerar owner; filas criação/exec/EXIT e leitores elegíveis verdadeiros; nenhum snapshot posterior a resultado desconhecido até recuperação."
+      },
+      {
+        "id": "N2-T1",
+        "kind": "retomada qualificada",
+        "scenario": "All-stop confirmado, nenhum mutator in-flight, vfork/mm emprestado ausente, input/retorno crítico resolvido; helpers estacionados; host único autor de cleanup.",
+        "assert": "Host retoma para cleanup controlado, mata grupo com WNOWAIT antes de reap, observer drena EXIT reais, sem paralelo de mutações e sem KillDB; se condições falham não declarar thaw resolvido."
+      },
+      {
+        "id": "N2-T2",
+        "kind": "negativos reais",
+        "scenario": "Mutator helper bloqueado em kernel; vfork pai ainda dependente; último mm perde metadado sem leitor; grupo/lease externo não fechado.",
+        "assert": "PENDING_KERNEL/UNRESOLVED explícito; nenhum zero/partial/CompleteMem/FalhaReal inventado. Não chamar este teste de progresso recuperado nem aumentar deadline."
+      },
+      {
+        "id": "N2-T3",
+        "kind": "janela e futuro",
+        "scenario": "Cancelar após backing adquirido; host faz cleanup com mmap/mprotect/munmap e retention prévia PROT_NONE, alias e file_owner ainda vivos. Depois tenta novo cenário.",
+        "assert": "Se ledger de sobreviventes não puder ser reconstruído sem perder história, bloquear próxima geração honestamente; só resync demonstrado permite nova janela real. Cancel não é close nem reset do pico."
+      },
+      {
+        "id": "TIME-T1",
+        "kind": "integração futura ROOT",
+        "scenario": "Frame limite original62 pré-preparado/preativado, clock real e época original vencida, janela INCOMPLETE/cancelada, sem Field novo; ownership realmente resolvido.",
+        "assert": "Com decisão explícita do ROOT, branch temporal pode preparar/possivelmente concluir apenas erro fixo, sem published/fieldstores; Mediu TEMPO real separado e quantidade now-start. A prova de Preparou não é prova de Concluiu."
+      },
+      {
+        "id": "TIME-T2",
+        "kind": "negativos futuros",
+        "scenario": "clock antes do original, renovação de época, só errno ETIMEDOUT, receipt desconhecido, owner/hold pendente ou AlocouCampo sem garantia.",
+        "assert": "Nunca completar/publicar nem usar memória0; manter a recusa fora do mapper, guard de ownership e cobertura normal."
+      }
+    ]
+  },
+  "sourcePins": {
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/receiving.h": {
+      "sha256": "4592bc4418b9ee4c8e7f530a69768a5b84ad99d17dc481d394943311ed60c5b5",
+      "bytes": 1770,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/receiving.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/build_commit.py": {
+      "sha256": "9f6150361df32fd29040ee268284f87d4d54d40ad92bc77c5dd01e4e962ef890",
+      "bytes": 6364,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/build_commit.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/compile.mjs": {
+      "sha256": "4093ec5468b1a4bf12164fda935acf902da2ad2cfeccca096def401f260b19e1",
+      "bytes": 3509,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/compile.mjs"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/loading.c": {
+      "sha256": "bdcd0194e4837df4d63b1020f1c3d908945292161d3ab2a20ba42beacf6a2513",
+      "bytes": 3932,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/loading.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/abi.py": {
+      "sha256": "caee23c648040770dcb5a0e3e8dcfb130c9cd98273f1dc8e957cbacca774718b",
+      "bytes": 13124,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/abi.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/loading.py": {
+      "sha256": "780c2e3381890b8f544bbd89496ab9a49380116ee2d87fefb8000226a60198b9",
+      "bytes": 14950,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/loading.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/RECEIVING.md": {
+      "sha256": "950d00eec520b0afba3ba4dce243413408de930f62cbaffc0d6e8824f997eaf3",
+      "bytes": 4598,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/RECEIVING.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/lifecycle.py": {
+      "sha256": "2f242616814e0b8e3dc6c92e540edfd1e32cf602300d954628ce58f5ef248638",
+      "bytes": 20601,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/lifecycle.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/commit.c": {
+      "sha256": "ccea3ac567639c1eb168e6d44578fa5be8c822261a155cf8693edcde456a4117",
+      "bytes": 9352,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/commit.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/entry.py": {
+      "sha256": "32343943953355988139145a7645a994b2db36915ecbedf7ce786914a59b3ff6",
+      "bytes": 2230,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/entry.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/LIFECYCLE.md": {
+      "sha256": "e230b2c791d20e4804ebbecbf2645a8c995fb6402971e3580944be481b0640db",
+      "bytes": 14591,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/LIFECYCLE.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/MEMORY.md": {
+      "sha256": "11229916417b422244d99dfc17ca1feb85564a13a8545117bb22ad8f410bd0b3",
+      "bytes": 23613,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/MEMORY.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/build_receiving.py": {
+      "sha256": "9b8fbacd1f59fa88304ba1b9976430ab761ccff9dc6aafc4690eccd140b9f46c",
+      "bytes": 3923,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/build_receiving.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/lifecycle.h": {
+      "sha256": "35d95135c5bcfb9bbf931fd78751e8a4d18d13ad2a6f3ec3bc2934197d1bd661",
+      "bytes": 3348,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/lifecycle.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/channel.py": {
+      "sha256": "7b1da55a4e993109cf5cf29863f1c2ece1fe3c4135a6cb8be9cdee3dd1d30ccc",
+      "bytes": 3863,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/channel.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/staging.py": {
+      "sha256": "c02588782dcdb9ce6e8d3fd00fbb7b733cb669480cff5629c158972efdfe06f4",
+      "bytes": 13951,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/staging.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/commit.S": {
+      "sha256": "c9baddff466ed42c2285b0c5e37f82cbe3debe1eec172fefccf7cdd3f8b70979",
+      "bytes": 514,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/commit.S"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/receiving.py": {
+      "sha256": "35cb60f9ecc65d7a326a8b7923f223646d03407e461babd7818a6b8a9aced9c7",
+      "bytes": 9005,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/receiving.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/loading.h": {
+      "sha256": "2de432a88158821f47940691adea1ee94be64aff59673b35a3b707242e3e6ef1",
+      "bytes": 2196,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/loading.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/naturals.py": {
+      "sha256": "6ed425a51b2f9ad3236f7212c007be305421b83b5fe807d3f310a0af086f7df9",
+      "bytes": 1118,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/naturals.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/completion.py": {
+      "sha256": "9fdc52cc9fa67dcb1c0e55934ed425f1851d6c6a647869e86020c85a00a5738a",
+      "bytes": 2448,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/completion.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/commit.h": {
+      "sha256": "383004c50448de5325973a8be4d718a5a36d8b26cf00832de30e7d7b6753d7dd",
+      "bytes": 3439,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/commit.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/LOADING.md": {
+      "sha256": "f20e318f317372f0a6ec3c19cb42e7c57956ab1abc2e91706dbb0311994ed3f3",
+      "bytes": 5946,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/LOADING.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/memory.py": {
+      "sha256": "6cde11f8d98592cf5ac231a6f2941c912acd5828ea933f8cdb0dc2fa39efe143",
+      "bytes": 2919,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/memory.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/lifecycle.c": {
+      "sha256": "468f4204578d8fc15cfc995a6f4adc3c399f7740efc212ef0ace05b129698634",
+      "bytes": 12525,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/lifecycle.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/frames.py": {
+      "sha256": "37bc8dbb121dfad5ff4d2a40cf9af7a5328f1ac4d1ad55aa4110c438a6947825",
+      "bytes": 1334,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/frames.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/controller.py": {
+      "sha256": "76f4e5dcbc9b7a17abaf7ed2741fcbd87879c3b0cc0bbceaa017accba0704850",
+      "bytes": 30130,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/controller.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/build_loading.py": {
+      "sha256": "539cfbf0b38f558c8914bf18fe9878c7b6511286cdac9c055b60de2f7eead3c9",
+      "bytes": 3479,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/build_loading.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/receiving.c": {
+      "sha256": "fd9eb4104a274a3ec460ddebbb37eb275b7480c702bfa925ddf51df5f85c9398",
+      "bytes": 4688,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/receiving.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/build_lifecycle.py": {
+      "sha256": "79afddfdbd9f273955899a73e4d1cc422e113b7ba264188390970c4a347cbaa7",
+      "bytes": 3132,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/build_lifecycle.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/COMMIT.md": {
+      "sha256": "73077ebb0cc88210d5d86ec5cb9df18015bbff175314c437064614c61c740f70",
+      "bytes": 8670,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/COMMIT.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/commit.py": {
+      "sha256": "cf66d1226818064619a33711672ec52dbffdd0372170e367fae99fba02123335",
+      "bytes": 13956,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/commit.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/service/paired_loading.py": {
+      "sha256": "943c9cd33937de309e2016109bd7050d0091a716cb97539f666c605b1ccdc724",
+      "bytes": 607,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/service/paired_loading.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/inventory.py": {
+      "sha256": "02097f2c032c72dfe610f185baeadd6ba4032fd9ab8d4e75ce2c78092cbe3ace",
+      "bytes": 7328,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/inventory.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/SOURCES.json": {
+      "sha256": "7a27688d8dd4e6829a0810db8667bb38cb199a4ee6ee4e1efe7f39eb5ce00fa0",
+      "bytes": 15566,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/SOURCES.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/replay_v7_review.py": {
+      "sha256": "821874260758585e1c588551b9dd4d474a118fff2afbc82f81532ca3b678d9ab",
+      "bytes": 4251,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/replay_v7_review.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V6.md": {
+      "sha256": "a12884a27ca639bd5f1be3c76d04d575e4a2298f67f6cd46481ba8e3ef1a5fa2",
+      "bytes": 7829,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V6.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/ENTRY_PROFILE_V6.md": {
+      "sha256": "a48c4a8d4c204e9bd060ee7cf6588568bcc5950fd77933f0343afbfce3066792",
+      "bytes": 5071,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/ENTRY_PROFILE_V6.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/HOLD.md": {
+      "sha256": "260890868a0c4d9c90f761ded6e0bbaacb5cf0e6b2e2cd42ef531b9fbeded66e",
+      "bytes": 6838,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/HOLD.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/build.py": {
+      "sha256": "2b68239a87724a091b43135f26c57414d016d66a6a201a19ee5348a68486708d",
+      "bytes": 2915,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/build.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/replay_retention_review.py": {
+      "sha256": "2784d383cedfb22ba439a3cb57678da9c1cd95ef8605f2e87024cacbef09a6e8",
+      "bytes": 6990,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/replay_retention_review.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/PTRACE_AUDIT_V8.md": {
+      "sha256": "c1bbbfaabca1d707dd5bb4de244a8d338b2c57363644acb5303e1654081e2345",
+      "bytes": 5202,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/PTRACE_AUDIT_V8.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/ABI_AUDIT_V5.md": {
+      "sha256": "5e375121a5ae74663ea0d3c78bc1b60644d3d4c4cc13f4702bfa4bd104afdc72",
+      "bytes": 3951,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/ABI_AUDIT_V5.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V5.md": {
+      "sha256": "9285a670848e254ce5274a588ccc818bf6ed73937a02df950f410e25fc1e67c9",
+      "bytes": 7953,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V5.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V9.md": {
+      "sha256": "cf6f6645a8a91c10edd2699bed2269efa4125d82c396712bd4e13df6983069ba",
+      "bytes": 4304,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V9.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/replay_v5_review.py": {
+      "sha256": "0b4de82489c2ebe3b344c3b740cf0815bed54a527b014097ed9029e451896923",
+      "bytes": 4664,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/replay_v5_review.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V7.md": {
+      "sha256": "8d38dc231a97b6105b962b523a52e9964784004a166764fc1ef0c393162e10f3",
+      "bytes": 7733,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V7.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V4.md": {
+      "sha256": "de4a1d411daef22ac51c4724bc4b60fab20478542e7ff24ec5d9ac6ec20dba60",
+      "bytes": 6974,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V4.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/replay_v4_review.py": {
+      "sha256": "7aadd1fcf95e51cb741418321c82f0c61c144ccc70622676c669e4ad8aaeadc4",
+      "bytes": 5670,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/replay_v4_review.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/probe_closure.py": {
+      "sha256": "8a2841c32c29d0fcd3d3089210709e8ec3c2ece70a8037b84eb9f128219ffd89",
+      "bytes": 4467,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/probe_closure.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/replay_v6_review.py": {
+      "sha256": "a8bdf3cc0ca80ed6522d24fc407b45ddba1f6a663f3c8a94a0979eb6ce5dc0c3",
+      "bytes": 4386,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/replay_v6_review.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/SERVICE_WINDOW.md": {
+      "sha256": "09ed85332d0fbb03b69dce7d7ba3ed9e289c9aa92280f123ea18c3a4c531ffec",
+      "bytes": 3213,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/SERVICE_WINDOW.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/README.md": {
+      "sha256": "a2f46655686caa752b6fe765f3aef9959abef69c835434700180578a877c2f32",
+      "bytes": 22095,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/README.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/run.py": {
+      "sha256": "82ab2d81ee5dec9af9445562500251b4db2e8c14d397f21944c3868734574cdb",
+      "bytes": 1542,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/run.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/client.py": {
+      "sha256": "b8e3d7b01841d41ba8241fd0d891636a145c0cab2191619614c5a976ad3c59d2",
+      "bytes": 11066,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/client.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/RETENTION_V8.md": {
+      "sha256": "b1830a698cfad5e01a6569ac58fb23281517b55cf80115b8b9dedac1d435d9ff",
+      "bytes": 5868,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/RETENTION_V8.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/tools/accounting/PTRACE_AUDIT_V9.md": {
+      "sha256": "dec46f1808738628f636657627678d14e7fda498616d3738ac61f253980de40b",
+      "bytes": 6708,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "tools/accounting/PTRACE_AUDIT_V9.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/window.h": {
+      "sha256": "25113cd0a58efa5113ea188180756f2e6a185c80267e7a6aed2325eea6f34d32",
+      "bytes": 2257,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/window.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/deadline.inc.c": {
+      "sha256": "eb9250bb88fa0ceea572c5ec1d0f21f764f5d08f6223ee9416bb91be2ca0d05e",
+      "bytes": 5670,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/deadline.inc.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/objects.inc.c": {
+      "sha256": "ee833c276e959763bbe313cbdfda2a6f270f3a90655ec8c27eb73b4ccca54381",
+      "bytes": 21250,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/objects.inc.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/deadline.h": {
+      "sha256": "33acf1a236f31bedd64e3a6a265cc1fa187ee8770fb6e5eca6139966a082e15f",
+      "bytes": 3120,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/deadline.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/trace.c": {
+      "sha256": "fcaa00b3acc1c4f53e497aecbada8a969bc0d17ae928e4b0a2aa2d82ff7e6b54",
+      "bytes": 66306,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/trace.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/README.md": {
+      "sha256": "bc2efd8a25b49249bab84012b3384da9b7be884c4d74e3f3925ecef6c2068528",
+      "bytes": 1552,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/README.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/counter.c": {
+      "sha256": "8dda9cf6cebf43e26056257ef7e83a238c744706622aa49759524174d813eec6",
+      "bytes": 14635,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/counter.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/accounting9/native/accounting/counter.h": {
+      "sha256": "7de2a9f93a12fc95c3cfade4aa86a8d73b263f14515966c19073107dd0833b98",
+      "bytes": 3753,
+      "origin": "accounting9 authenticated snapshot",
+      "relativePath": "native/accounting/counter.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/jaydb2.py": {
+      "sha256": "9d2454e996e523c75754744ba901feddd152ba6c1b943f74014f4ed0d605f05b",
+      "bytes": 2230,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "jaydb2.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/native/accounted.py": {
+      "sha256": "152124b7678ab5ad40e1c7348e25ed2bc8cb2160c51af32658ca79c6d4c39786",
+      "bytes": 14251,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/native/accounted.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/contrato/Interface.bend": {
+      "sha256": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+      "bytes": 12066,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "contrato/Interface.bend"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/contrato/Recursos.bend": {
+      "sha256": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+      "bytes": 6810,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "contrato/Recursos.bend"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/contrato/LAWS.bend": {
+      "sha256": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+      "bytes": 14549,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "contrato/LAWS.bend"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/native/field.h": {
+      "sha256": "f22fc2a4290697d20019097a6f1e01ce5565dfae893086555ab860cea7b2b399",
+      "bytes": 4124,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "native/field.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/native/abi_accounted.h": {
+      "sha256": "092f9b5829718c01c2117a233addc8e07a05a5e72c17808cac3d6ed7b28f5639",
+      "bytes": 3484,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "native/abi_accounted.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/accounting/CLOSURE.json": {
+      "sha256": "98b2c4ab165c6db48b6d0e9477dc51ec193b8fe9842559a79d598ff6cb7f8421",
+      "bytes": 30465,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/accounting/CLOSURE.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tools/accounting/CLOSURE.md": {
+      "sha256": "315a11360d37be66c3821ce6c96eda56146239adce284464f8b92750f1f30262",
+      "bytes": 15650,
+      "origin": "service5 authenticated snapshot",
+      "relativePath": "tools/accounting/CLOSURE.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/tools/admission/run.py": {
+      "sha256": "393fc15eece8ae4e73ae6664d2ce5eabf25ec71bf1328bdd0b6fbb2a244adb03",
+      "bytes": 3149,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "tools/admission/run.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/tools/admission/bootstrap.mjs": {
+      "sha256": "05d316c01b7ec404e7516cb13d76ddd74eae397f660be953d8ce45ab22d713ad",
+      "bytes": 4842,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "tools/admission/bootstrap.mjs"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/tools/verifier/check.mjs": {
+      "sha256": "b35e1bb5e89334130f9110e3b2880275ba4ba755a739b378795a915c31d8300a",
+      "bytes": 6688,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "tools/verifier/check.mjs"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/tools/native/build.py": {
+      "sha256": "b598cf92f29ddf3d925e3ce74bc168eda6fdf1df0b0f9d0b6993ea838c6d0f02",
+      "bytes": 45588,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "tools/native/build.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/tools/native/budget.py": {
+      "sha256": "3d7a0de99078e3eda57b424d9a95975c5079b35acc570bb5a4eda873e04ae4e0",
+      "bytes": 2596,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "tools/native/budget.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/proof/PRAZOS_MEDIDOS.md": {
+      "sha256": "b56d0b84e2095aed2563782bdbc5a4ae794790c8f915721364b3b4fdb3f78dca",
+      "bytes": 1748,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "proof/PRAZOS_MEDIDOS.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/proof/PrazosMedidos.bend": {
+      "sha256": "f9cdac42442b8c4758c03c801fd31b77a8da0d358210fcf331c8501d36ae2a5e",
+      "bytes": 5152,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "proof/PrazosMedidos.bend"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/build/temporal-proof-probe/ConclusaoTempo.bend": {
+      "sha256": "076180e93df9d3b915d554a6a31a207d4a6425f2989c4a376ec42ed5ff546c3c",
+      "bytes": 2698,
+      "origin": "supplemental live read; not claimed a member of service5 snapshot",
+      "relativePath": "build/temporal-proof-probe/ConclusaoTempo.bend"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/clang-19.1.1-driver.cpp": {
+      "sha256": "b608c3d10341bf5332feee3bf4bd9d319fa3db3d98913303d07e311bd956cb1c",
+      "bytes": 10501,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/clang-19.1.1-driver.cpp"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-child-process.js": {
+      "sha256": "df028ee287a6adad4bb69bd5daf4975311ceffe19c95c18fdc9f0662ea32ef68",
+      "bytes": 29162,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-child-process.js"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-fileutils.c": {
+      "sha256": "0742dd5d83b9e1b2642feb09de9a4489e84272d96e16309f44362deb278df652",
+      "bytes": 83336,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-fileutils.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-process.c": {
+      "sha256": "e79f9bd90787011d59d9395f46658caca2ca01d1daad84c36e3b86eba50a4a52",
+      "bytes": 31377,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-process.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/lean-4.34.0-io.cpp": {
+      "sha256": "426bd6862706a516dbdf70fe7d8993efc028b115d386cef06fe0b081c14a5dcf",
+      "bytes": 59777,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/lean-4.34.0-io.cpp"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-core.c": {
+      "sha256": "18bfd5f2045417f8ace5d76e222bf7441b31ead5fc2cbaf6225965e0afea8767",
+      "bytes": 50911,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-core.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-posixsubprocess.c": {
+      "sha256": "eb1074585ce62af638d15680bd13ba99aab25c9b6cbed7ac88ae21b60f060f3b",
+      "bytes": 42634,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-posixsubprocess.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/llvm-19.1.1-path.inc": {
+      "sha256": "db640581be1ff21ba279f61beb2f40502cb46a2704b61ed4784fbbfdb1e0f1a9",
+      "bytes": 47400,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/llvm-19.1.1-path.inc"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/INDEX.json": {
+      "sha256": "9d14656a29c1bd81768f7bc6f9335837f09ae88cd08a4b6392c034e659b30798",
+      "bytes": 4657,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/INDEX.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/glibc-2.39-fcntl.c": {
+      "sha256": "d70e0a70f68a0efb90233be9f436c3601e75b7e4fa59dbe135c65b465df9eea7",
+      "bytes": 3250,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/glibc-2.39-fcntl.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-internal-child-process.js": {
+      "sha256": "ace05809adf0d02482984f6b9fb8418b3c788df2d8fb8fec3527bfcfd7465d2f",
+      "bytes": 32777,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-internal-child-process.js"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/llvm-19.1.1-program.inc": {
+      "sha256": "e33c2c934991932bda35ad4a80c971fd19e5b0aec1801bba45f6465790e9fb74",
+      "bytes": 18445,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/llvm-19.1.1-program.inc"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-subprocess.py": {
+      "sha256": "baa9f9138d8d20df6284f67e7d2e790f847f65e2c5370de322d54cccd737f2d9",
+      "bytes": 88725,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/cpython-3.12.3-subprocess.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-fs.c": {
+      "sha256": "7406d729f667053febfac84fa1fed6f9423ecead70ec2d05b060f92f360ed19c",
+      "bytes": 59973,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/libuv-1.52.1-fs.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-spawn-sync.cc": {
+      "sha256": "57ce2e62104b374d868360e79d12efcfc43df6f448533cf13f2ac34712efcb38",
+      "bytes": 34346,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v6-qkb_s_5o/node-24.19.0-spawn-sync.cc"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-proc-base.c": {
+      "sha256": "d0132fbbd6e949bf4eed76e990871d7a0dc82274aaa81f44a27da84b05f17ee8",
+      "bytes": 98558,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-proc-base.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/INDEX.json": {
+      "sha256": "14207f4951dca6f3818ee534ac2f7108695ba4cb77dbe4b51bfb8b23bea47db3",
+      "bytes": 1197,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/INDEX.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-ptrace.c": {
+      "sha256": "413b33102ea1218add2c772ac8406168dc1c55a865882bb4230b2d8e64305211",
+      "bytes": 41143,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-ptrace.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-exit.c": {
+      "sha256": "b76cee0df63eca5fd64bfa5ff82db64241415b37366a707ba41986fc1122cf3a",
+      "bytes": 50907,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-exit.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-fork.c": {
+      "sha256": "b393692a3f342f9a197da17a3f94754faafc4a44ef06b35e9867d5dc6dc8baa0",
+      "bytes": 82890,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-fork.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-entry-common.c": {
+      "sha256": "898b4d839464609e6a1ac5f58e20e459393a3f7a40ea83539460d8bf8b1edd63",
+      "bytes": 8245,
+      "origin": "preserved pinned upstream explanation; not distribution-build provenance",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/jaydb2-accounting-v9-yfa50lew/linux-7.0-entry-common.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/service5-static/REPORT.md": {
+      "sha256": "7fa14932e0131c52a1d6f45a40289f055dac050b5896b8b8c87bf39ada97d211",
+      "bytes": 22528,
+      "origin": "literal official review report/index; historical attribution retained",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/service5-static/REPORT.md"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/REVIEW_EVIDENCE.json": {
+      "sha256": "d58702ad396fc4fa4308c8f5cc9e4e2e45683a3e9c23e46d971910d43b55c588",
+      "bytes": 3461,
+      "origin": "literal official review report/index; historical attribution retained",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/REVIEW_EVIDENCE.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/INDEX.json": {
+      "sha256": "2956d5fa0eabd759717da7f60978b3e92bab7a35ad1b50505ddfbc7578519832",
+      "bytes": 968598,
+      "origin": "literal official review report/index; historical attribution retained",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/INDEX.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/REPORT.md": {
+      "sha256": "293c6f9aa9f7a4c60deb40b2eb96af46e9e89c869d10e71788a555a46050f88f",
+      "bytes": 20368,
+      "origin": "literal official review report/index; historical attribution retained",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/reviews/accounting9-root2/REPORT.md"
+    },
+    "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9.tar.gz": {
+      "sha256": "ad602408c48f6a8e307765daf68f473ed2a51384b0697190484ad6b5abf44fff",
+      "bytes": 2079126,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9.tar.gz"
+    },
+    "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9.json": {
+      "sha256": "3646278e06f6f33be55f06c7d2fd29a6fec65f9d1959e63dd503a1b41b3eb875",
+      "bytes": 286217,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9.json"
+    },
+    "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9_validation.json": {
+      "sha256": "ccd8801c4a6a89ed58cee26947a994b61edc9d064b54c6181ef10de56cb30dda",
+      "bytes": 10486,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9_validation.json"
+    },
+    "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9_review.json": {
+      "sha256": "3bed0e831f0ec1aa93aa4b2f148c5da565fb4779e22ca0fdd89e19a273517c09",
+      "bytes": 493,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/accounting/checkpoints/retention_v9_review.json"
+    },
+    "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5.tar.gz": {
+      "sha256": "236cd6e730686b23547ae7d9f45b0a74ce23bcd1dac44051ae863cd104b091f3",
+      "bytes": 670920,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5.tar.gz"
+    },
+    "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5.json": {
+      "sha256": "a8dc9b4987bac42a2b24d1cd450521d986fbc744e45f909102164ea07a37285c",
+      "bytes": 34200,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5.json"
+    },
+    "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5_validation.json": {
+      "sha256": "fed0cac1cbc6836f222fe7201a012869928b75ecfdb89b907b1ea35bdca86850",
+      "bytes": 1253,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5_validation.json"
+    },
+    "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5_review.json": {
+      "sha256": "77d0caa73cb470aad5751001fd5380be56fb5d162a721161f8cfd2ce6c10025a",
+      "bytes": 880,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/service/checkpoints/completion_v5_review.json"
+    },
+    "/home/jota/projects/jaydb2/tests/reviews/accounting9/independent/RETAINED.json": {
+      "sha256": "6ec05130c43868d11f2663ce2d9072ad8c1980a262a54f09badc7f1e794e2df9",
+      "bytes": 46689,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/reviews/accounting9/independent/RETAINED.json"
+    },
+    "/home/jota/projects/jaydb2/tests/reviews/completion5/independent/RETAINED.json": {
+      "sha256": "3f19b1ae0cd6fab7f26822fac257bbdc3dd11e6fcabfa9d0a94ca00ba9636254",
+      "bytes": 2901,
+      "origin": "immutable archive/sidecar/durable review index; read only",
+      "relativePath": "/home/jota/projects/jaydb2/tests/reviews/completion5/independent/RETAINED.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/profile_probe.py": {
+      "sha256": "e98b5131021e3313711394581777765f88e74d6e5e2a688181d6c42e7a36eca5",
+      "bytes": 3567,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/profile_probe.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/run_probe.py": {
+      "sha256": "973a8d8f5d259c9b48352f740f775f73dca82f083129d0b126ecff0ea705e55c",
+      "bytes": 2720,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/run_probe.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/PROBE_RESULTS.json": {
+      "sha256": "d3b54594eab6f86910d017f1c5d8753c621dbe10335383a6540b931e66dec796",
+      "bytes": 16380,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/PROBE_RESULTS.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/BUILD.json": {
+      "sha256": "f19611a144d50383a0ad10d94b6bad51df2306226aed80667f45b9591d03dbb9",
+      "bytes": 2216,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/BUILD.json"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/jayacct-trace": {
+      "sha256": "2eb08c89928f9ca1ba8c5a12f3bdf7a667a9644852fa3227d9b9ae751b2f1e45",
+      "bytes": 1070000,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/jayacct-trace"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so": {
+      "sha256": "fb6322c959321b3b4c3ccdd68a3db6f9cdeb579e0f369f5174e9812196d37540",
+      "bytes": 42104,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.jsonl": {
+      "sha256": "0f6f857474a830a75275d5ea906ad2087ba957db7833acd529303c4369358db7",
+      "bytes": 396813,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.jsonl"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.stdout": {
+      "sha256": "c504405ec28c6804e1ab4b12582807f3e0f08f30a3066f4733b0a26a1500a373",
+      "bytes": 3538,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.stdout"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.stderr"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.jsonl": {
+      "sha256": "6c903306c0850d9a267e13ba3a8427c0126787fbc430ab81e6e371ecc8ddefda",
+      "bytes": 424131,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.jsonl"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.stdout": {
+      "sha256": "8c2438e94167f9a3a6ad4ebb56b4a15fa76d600a2d50c809600464fe7febc64b",
+      "bytes": 3658,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.stdout"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.stderr"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe.log": {
+      "sha256": "9b68b147499333f55349f89fc3a663d5ec94353d4376665ca32d9622fd6e4442",
+      "bytes": 128,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe.log"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site/.local/lib/python3.12/site-packages/profile_startup_inject.py": {
+      "sha256": "dcf1080d0a9c114778f5ec2d843dd45125c5367a81bd574e63ba1747b72e813a",
+      "bytes": 114,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site/.local/lib/python3.12/site-packages/profile_startup_inject.py"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site/.local/lib/python3.12/site-packages/profile-startup.pth": {
+      "sha256": "a948703ac971452cfe53247e7eea240dd1a679b8852099a608d24ecb14153deb",
+      "bytes": 30,
+      "origin": "this task local diagnostic probe; not a full service execution",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site/.local/lib/python3.12/site-packages/profile-startup.pth"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so": {
+      "sha256": "14c14aa99db02763b9d6f30b94bea8772ff5359f2a147394ad9f00a74ca2c51f",
+      "bytes": 15552,
+      "origin": "historical ELF literally contained in service5; used only by this task local probe",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so": {
+      "sha256": "054c5465dea306a5c85335e5863ed9f9a6419a0aed95c7c62e27d7877745d473",
+      "bytes": 17120,
+      "origin": "historical ELF literally contained in service5; used only by this task local probe",
+      "relativePath": "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so"
+    },
+    "/usr/bin/python3.12": {
+      "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "bytes": 8020928,
+      "origin": "interpreter actually executed by local probe; not future profile choice",
+      "relativePath": "/usr/bin/python3.12"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_read_write.c": {
+      "sha256": "58fe9b05f89c830accaf97a4f4b680c48e94f7c59ea22e2c2b6dbeb0b063c59f",
+      "bytes": 44844,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_read_write.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/read_write.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_open.c": {
+      "sha256": "b6ff4b7518d02373493294981ebdc0e4a9ad9989a102ec13f44185db6b74e51c",
+      "bytes": 39662,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_open.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/open.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_file.c": {
+      "sha256": "cd819a560e4483396a2e5c386427952f8c62d61828bad435f74efdbe03a09be6",
+      "bytes": 40388,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_file.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/file.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_namei.c": {
+      "sha256": "a113b4abe299d4b0ba6cc6e958a70914e0e8d86147f5e81967fe4495dcd6e063",
+      "bytes": 177814,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_namei.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/namei.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_locks.c": {
+      "sha256": "306a5eaabb72ff5a57e4c4107c33bd5a7bff6553ef247d7301256ce0623c7b40",
+      "bytes": 82852,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_locks.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/locks.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_proc_self.c": {
+      "sha256": "873361dfeaa386470fa1c8012012e68d23ab8e275341b1c28cfd175c70f8629e",
+      "bytes": 1626,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_proc_self.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/proc/self.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/fs_proc_thread_self.c": {
+      "sha256": "fac7274658c41baca82e7417a9d7ce4c1bd68c2a6987d562731b248013427af8",
+      "bytes": 1750,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/fs_proc_thread_self.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/proc/thread_self.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/include_uapi_linux_openat2.h": {
+      "sha256": "1c694c33d2d60cb8767c34bf52e536dc9e30dc78b90cbeaf73ac9c6b2271a23c",
+      "bytes": 1465,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/include_uapi_linux_openat2.h",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/include/uapi/linux/openat2.h"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/primary/retention-v5-kernel/shmem.c": {
+      "sha256": "88632bf8651412f217edb34cfd3c9b4668754eee0e12898d474eab06466dba90",
+      "bytes": 162566,
+      "origin": "literal hash-checked upstream source preserved by V5 review; explanation only, not Ubuntu build provenance",
+      "originalPath": "/tmp/jaydb2-retention-v5-independent-o9ke6r3x/kernel/shmem.c",
+      "sourceURL": "https://raw.githubusercontent.com/torvalds/linux/v7.0/mm/shmem.c"
+    },
+    "/tmp/jaydb2-profile-v5-plan-zc7quybe/supplemental/proof/PreparacaoTemporal.bend": {
+      "sha256": "84c6cd96b346c5d8ca0dcea634f49f3e3c16550fa565c0f7c16ea8ea98b332b0",
+      "bytes": 2647,
+      "origin": "ROOT mathematical integration after immutable service5/accounting9; read only; official runs attributed to ROOT"
+    }
+  },
+  "integrity": {
+    "accounting9": {
+      "expected": 990,
+      "verifiedExtracted": 990,
+      "extraExtractedFiles": [],
+      "liveDifferences": []
+    },
+    "original18": {
+      "expected": 18,
+      "matching": 18
+    },
+    "preservedHistoricalFiles": {
+      "expected": 1000,
+      "matching": 1000
+    },
+    "service5": {
+      "expected": 245,
+      "verifiedExtracted": 245,
+      "extraExtractedFiles": [],
+      "liveDifferences": [
+        "Makefile"
+      ]
+    },
+    "accountingBaseline": {
+      "expected": 2324,
+      "matching": 2323,
+      "differences": [
+        "tests/service/checkpoints/completion_v5_review.json"
+      ]
+    },
+    "officialV9ReviewIndex": {
+      "expected": 3469,
+      "verified": 3469
+    },
+    "workspaceWriteScope": "Only new PROFILE_V5_PLAN.md and PROFILE_V5_PLAN.json will be written at delivery; concurrent unrelated root work is not globally attested.",
+    "documentedRootChanges": {
+      "Makefile": {
+        "expectedPostReviewSha256": "33736167034b0e90ba8a629c59cefad90120e6e150b3c6d3db6e4fdf77b4833b",
+        "actualSha256": "33736167034b0e90ba8a629c59cefad90120e6e150b3c6d3db6e4fdf77b4833b"
+      },
+      "tests/service/checkpoints/completion_v5_review.json": {
+        "baselineSha256": "0f70191d9e71153f7be533b2171b222aed45e5f90e55998339fa2c9a1b5e6977",
+        "currentSha256": "77d0caa73cb470aad5751001fd5380be56fb5d162a721161f8cfd2ce6c10025a",
+        "reason": "Root documented the legitimate Makefile test-host target update after this task baseline; not this task edit"
+      }
+    }
+  },
+  "probe": {
+    "scope": "two local startup/receipt/helper runs; no admission/Book/native request execution or full service claim",
+    "results": [
+      {
+        "mode": "control",
+        "command": [
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/jayacct-trace",
+          "--report",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/control.jsonl",
+          "--service-window",
+          "--",
+          "/usr/bin/python3",
+          "-B",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/profile_probe.py",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/canary.txt"
+        ],
+        "envDelta": {
+          "HOME": "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_control"
+        },
+        "status": 0,
+        "result": {
+          "prepare_entry_passed": true,
+          "startup": {
+            "user_site_code_executed_before_prepare_entry": false,
+            "foreign_loader_names_present": [],
+            "startup_mapping_bytes": 0,
+            "startup_mapping_byte42": null,
+            "observed_current": 34394112,
+            "flags": 3,
+            "scope": 1,
+            "begin_sequence": 1
+          },
+          "helper": {
+            "pid": 1044804,
+            "sid": 1044804,
+            "pgid": 1044804,
+            "fd_canary_and_counter_closed": [
+              true,
+              true
+            ],
+            "stdin_dev": 7,
+            "stdin_ino": 5,
+            "telemetry": "1",
+            "user_site_ran": false,
+            "env_names": [
+              "BEND_NO_TELEMETRY",
+              "BROWSER_USE_AVAILABLE_BACKENDS",
+              "CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS",
+              "CODEX_CI",
+              "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+              "CODEX_MANAGED_BY_NPM",
+              "CODEX_MANAGED_PACKAGE_ROOT",
+              "CODEX_SESSION_ID",
+              "CODEX_THREAD_ID",
+              "CODEX_TOOL_CALL_ID",
+              "CODEX_VERSION",
+              "COLORTERM",
+              "DBUS_SESSION_BUS_ADDRESS",
+              "DEBUGINFOD_URLS",
+              "GH_PAGER",
+              "GIT_PAGER",
+              "GSM_SKIP_SSH_AGENT_WORKAROUND",
+              "GTK_MODULES",
+              "HOME",
+              "INVOCATION_ID",
+              "JAYDB_ACCOUNTING_FD",
+              "LANG",
+              "LC_ALL",
+              "LC_CTYPE",
+              "LOGNAME",
+              "MANAGERPID",
+              "MEMORY_PRESSURE_WATCH",
+              "MEMORY_PRESSURE_WRITE",
+              "NIX_PROFILES",
+              "NIX_SSL_CERT_FILE",
+              "NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S",
+              "NODE_REPL_TRUSTED_CODE_PATHS",
+              "NO_COLOR",
+              "NoDefaultCurrentDirectoryInExePath",
+              "PAGER",
+              "PATH",
+              "PWD",
+              "QT_ACCESSIBILITY",
+              "SHELL",
+              "SHLVL",
+              "SSH_AUTH_SOCK",
+              "SYSTEMD_EXEC_PID",
+              "T3CODE_HOME",
+              "T3_BOOT_SERVICE_UNIT",
+              "T3_SERVICE_LAUNCHER_CONTEXT",
+              "TERM",
+              "USER",
+              "XDG_DATA_DIRS",
+              "XDG_RUNTIME_DIR",
+              "_"
+            ],
+            "mapped_files": [
+              "/usr/bin/python3.12",
+              "/usr/lib/locale/C.utf8/LC_CTYPE",
+              "/usr/lib/locale/locale-archive",
+              "/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so",
+              "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+              "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1",
+              "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+              "[heap]",
+              "[stack]",
+              "[vdso]",
+              "[vsyscall]",
+              "[vvar]",
+              "[vvar_vclock]"
+            ]
+          },
+          "helper_stderr": "",
+          "leader_waitable_before_stop_and_wait": true,
+          "lifecycle_and_loading_retained_paths": [
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so"
+          ],
+          "parent_mapped_files": [
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so",
+            "/usr/bin/python3.12",
+            "/usr/lib/locale/C.utf8/LC_CTYPE",
+            "/usr/lib/locale/locale-archive",
+            "/usr/lib/python3.12/lib-dynload/_ctypes.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/_hashlib.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/mmap.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/resource.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+            "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+            "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+            "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1",
+            "/usr/lib/x86_64-linux-gnu/libffi.so.8.1.4",
+            "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+            "[heap]",
+            "[stack]",
+            "[vdso]",
+            "[vsyscall]",
+            "[vvar]",
+            "[vvar_vclock]"
+          ],
+          "completeServiceMeasurement": false,
+          "scope_closed": 1,
+          "scope_peak_flags": 3,
+          "scope_peak": 56061952
+        },
+        "reportSha256": "0f6f857474a830a75275d5ea906ad2087ba957db7833acd529303c4369358db7",
+        "summary": {
+          "type": "summary",
+          "root_status": 0,
+          "snapshots": 873,
+          "syscall_stops": 4574,
+          "current": "1359872",
+          "peak": "56061952",
+          "peak_time_ns": "127908200049174",
+          "peak_sequence": "834",
+          "invalidated_observations": 0,
+          "nonleader_execs": 0,
+          "group_stops": 0,
+          "uring_objects_created": 0,
+          "unsupported_object_events": 0,
+          "deadline_cancellations": 0,
+          "recovered_syscall_results": 0,
+          "unavailable_syscall_stops": 0,
+          "recovered_event_metadata": 0,
+          "proc_memory_reads": 0,
+          "alternate_fd_reads": 0,
+          "complete": false,
+          "observer_included": true
+        }
+      },
+      {
+        "mode": "user_site",
+        "command": [
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/jayacct-trace",
+          "--report",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/user_site.jsonl",
+          "--service-window",
+          "--",
+          "/usr/bin/python3",
+          "-B",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/profile_probe.py",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so",
+          "/tmp/jaydb2-profile-v5-plan-zc7quybe/canary.txt"
+        ],
+        "envDelta": {
+          "HOME": "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site"
+        },
+        "status": 0,
+        "result": {
+          "prepare_entry_passed": true,
+          "startup": {
+            "user_site_code_executed_before_prepare_entry": true,
+            "foreign_loader_names_present": [],
+            "startup_mapping_bytes": 1048576,
+            "startup_mapping_byte42": 42,
+            "observed_current": 35446784,
+            "flags": 3,
+            "scope": 1,
+            "begin_sequence": 1
+          },
+          "helper": {
+            "pid": 1044807,
+            "sid": 1044807,
+            "pgid": 1044807,
+            "fd_canary_and_counter_closed": [
+              true,
+              true
+            ],
+            "stdin_dev": 7,
+            "stdin_ino": 5,
+            "telemetry": "1",
+            "user_site_ran": true,
+            "env_names": [
+              "BEND_NO_TELEMETRY",
+              "BROWSER_USE_AVAILABLE_BACKENDS",
+              "CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS",
+              "CODEX_CI",
+              "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+              "CODEX_MANAGED_BY_NPM",
+              "CODEX_MANAGED_PACKAGE_ROOT",
+              "CODEX_SESSION_ID",
+              "CODEX_THREAD_ID",
+              "CODEX_TOOL_CALL_ID",
+              "CODEX_VERSION",
+              "COLORTERM",
+              "DBUS_SESSION_BUS_ADDRESS",
+              "DEBUGINFOD_URLS",
+              "GH_PAGER",
+              "GIT_PAGER",
+              "GSM_SKIP_SSH_AGENT_WORKAROUND",
+              "GTK_MODULES",
+              "HOME",
+              "INVOCATION_ID",
+              "JAYDB_ACCOUNTING_FD",
+              "LANG",
+              "LC_ALL",
+              "LC_CTYPE",
+              "LOGNAME",
+              "MANAGERPID",
+              "MEMORY_PRESSURE_WATCH",
+              "MEMORY_PRESSURE_WRITE",
+              "NIX_PROFILES",
+              "NIX_SSL_CERT_FILE",
+              "NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S",
+              "NODE_REPL_TRUSTED_CODE_PATHS",
+              "NO_COLOR",
+              "NoDefaultCurrentDirectoryInExePath",
+              "PAGER",
+              "PATH",
+              "PWD",
+              "QT_ACCESSIBILITY",
+              "SHELL",
+              "SHLVL",
+              "SSH_AUTH_SOCK",
+              "SYSTEMD_EXEC_PID",
+              "T3CODE_HOME",
+              "T3_BOOT_SERVICE_UNIT",
+              "T3_SERVICE_LAUNCHER_CONTEXT",
+              "TERM",
+              "USER",
+              "XDG_DATA_DIRS",
+              "XDG_RUNTIME_DIR",
+              "_"
+            ],
+            "mapped_files": [
+              "/dev/zero (deleted)",
+              "/usr/bin/python3.12",
+              "/usr/lib/locale/C.utf8/LC_CTYPE",
+              "/usr/lib/locale/locale-archive",
+              "/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so",
+              "/usr/lib/python3.12/lib-dynload/mmap.cpython-312-x86_64-linux-gnu.so",
+              "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+              "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1",
+              "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+              "[heap]",
+              "[stack]",
+              "[vdso]",
+              "[vsyscall]",
+              "[vvar]",
+              "[vvar_vclock]"
+            ]
+          },
+          "helper_stderr": "",
+          "leader_waitable_before_stop_and_wait": true,
+          "lifecycle_and_loading_retained_paths": [
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so"
+          ],
+          "parent_mapped_files": [
+            "/dev/zero (deleted)",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so",
+            "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so",
+            "/usr/bin/python3.12",
+            "/usr/lib/locale/C.utf8/LC_CTYPE",
+            "/usr/lib/locale/locale-archive",
+            "/usr/lib/python3.12/lib-dynload/_ctypes.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/_hashlib.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/mmap.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/python3.12/lib-dynload/resource.cpython-312-x86_64-linux-gnu.so",
+            "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+            "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+            "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+            "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1",
+            "/usr/lib/x86_64-linux-gnu/libffi.so.8.1.4",
+            "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+            "[heap]",
+            "[stack]",
+            "[vdso]",
+            "[vsyscall]",
+            "[vvar]",
+            "[vvar_vclock]"
+          ],
+          "completeServiceMeasurement": false,
+          "scope_closed": 1,
+          "scope_peak_flags": 3,
+          "scope_peak": 58560512
+        },
+        "reportSha256": "6c903306c0850d9a267e13ba3a8427c0126787fbc430ab81e6e371ecc8ddefda",
+        "summary": {
+          "type": "summary",
+          "root_status": 0,
+          "snapshots": 930,
+          "syscall_stops": 4814,
+          "current": "1359872",
+          "peak": "58560512",
+          "peak_time_ns": "127908364128726",
+          "peak_sequence": "885",
+          "invalidated_observations": 0,
+          "nonleader_execs": 0,
+          "group_stops": 0,
+          "uring_objects_created": 0,
+          "unsupported_object_events": 0,
+          "deadline_cancellations": 0,
+          "recovered_syscall_results": 0,
+          "unavailable_syscall_stops": 0,
+          "recovered_event_metadata": 0,
+          "proc_memory_reads": 0,
+          "alternate_fd_reads": 0,
+          "complete": false,
+          "observer_included": true
+        }
+      }
+    ],
+    "sha256": {
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/profile_probe.py": "e98b5131021e3313711394581777765f88e74d6e5e2a688181d6c42e7a36eca5",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/run_probe.py": "973a8d8f5d259c9b48352f740f775f73dca82f083129d0b126ecff0ea705e55c",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/home_user_site/.local/lib/python3.12/site-packages/profile_startup_inject.py": "dcf1080d0a9c114778f5ec2d843dd45125c5367a81bd574e63ba1747b72e813a",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/BUILD.json": "f19611a144d50383a0ad10d94b6bad51df2306226aed80667f45b9591d03dbb9",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/jayacct-trace": "2eb08c89928f9ca1ba8c5a12f3bdf7a667a9644852fa3227d9b9ae751b2f1e45",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/probe-build/libjayacct.so": "fb6322c959321b3b4c3ccdd68a3db6f9cdeb579e0f369f5174e9812196d37540",
+      "/usr/bin/python3.12": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/receiving.so.json": "3d7a51b7bd915606f7169dba7307df42bcfc9a73e47e6210f4396e447c5366c9",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so.json": "4e9f8076394c3dcbf76959efe240419c74c323127a4d74a6826243b6a4d1dbb5",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/receiving.so": "c437fd205ac3d7a4bbcafdc5e18ff6b806c001c594cec175e77313c73d6bfa2d",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/lifecycle.so": "054c5465dea306a5c85335e5863ed9f9a6419a0aed95c7c62e27d7877745d473",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/commit.so.loading.so.json": "6a617cca36fb98527b6c5fbcca4136121716df151998b9cbfdd745b5521e06b5",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so": "14c14aa99db02763b9d6f30b94bea8772ff5359f2a147394ad9f00a74ca2c51f",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/receiving.so.loading.so": "14c14aa99db02763b9d6f30b94bea8772ff5359f2a147394ad9f00a74ca2c51f",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/commit.so": "6de47405f31e71e55dc37e0206b3780c06a3850cd59f24223b7e8f6c5d594b97",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/commit.so.loading.so": "14c14aa99db02763b9d6f30b94bea8772ff5359f2a147394ad9f00a74ca2c51f",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/loading.so.json": "6a617cca36fb98527b6c5fbcca4136121716df151998b9cbfdd745b5521e06b5",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/receiving.so.loading.so.json": "6a617cca36fb98527b6c5fbcca4136121716df151998b9cbfdd745b5521e06b5",
+      "/tmp/jaydb2-profile-v5-plan-zc7quybe/service5/tests/service/evidence/completion_v4/commit.so.json": "35fbcba8d1b717418a6f8917e24f3c58f127112f70c153f29e1469d8456c2ec2"
+    },
+    "completeServiceMeasurement": false
+  },
+  "humanDecisionsForROOT": [
+    "Integrar ou não branch temporal-only separado do gate CompleteMem para frame limite original, com testemunha real e resolução de ownership/window; o teorema de Preparou não decide Concluiu.",
+    "Fixar o capsule operacional escolhido e mecanismos externos de estabilidade/exclusividade/scheduling; não chamar de garantia um contrato que o deployment não cumpre.",
+    "Caso deseje Python -I/-S ou Clang sem configs default, declarar nova seleção de runtime e reauditar; esta tarefa preserva V5 e o ambiente atual, sem sanitização silenciosa."
+  ],
+  "routineImplementationDetails": [
+    "novo canal de controle separado dos headers congelados",
+    "generation/identity e ACK antes do helper",
+    "timer e safepoints fora das transações de aquisição/publicação",
+    "separação entre ledger de syscall commitada e banco de scan descartável",
+    "diagnósticos separados do observer produção",
+    "relatório negativo de fronteiras sem facts inventados"
+  ]
+}

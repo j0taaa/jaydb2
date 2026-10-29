@@ -1,0 +1,18 @@
+{
+  "status": "INCOMPLETE",
+  "contractRevision": "tres-tamanhos-sem-orcamentos-fisicos-v2",
+  "entry": "tests/proof/NucleoVerificar.bend",
+  "entryAtAttempt": "Wrapper de todos os modulos src e import ../Codec.bend as Codec (222 casos fechados)",
+  "primaryChecker": "ALL PROOFS CHECK",
+  "verdict": "Nao concluido: subprocess.TimeoutExpired apos 600 segundos do harness",
+  "harnessTimeoutIsDevelopmentOnly": true,
+  "compiler": ".tools/bend-2.0.39/bin/bend",
+  "kernel": ".tools/bendtt-e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+  "fullExecutableContractProved": false,
+  "followup": "Lote legado retirado do wrapper de smoke; equivalencia canonica geral continua no agregado proof/VERIFICAR.bend. Nenhuma aprovacao secundaria alegada para os 222 casos.",
+  "entrySourceAtAttempt": "# Wrappers puros de producao e regressoes do mesmo Codec.\nimport Base\nimport ../../src/Configuracao.bend as Configuracao\nimport ../../src/Entrada.bend as Entrada\nimport ../../src/Estado.bend as Estado\nimport ../../src/Execucao.bend as Execucao\nimport ../../src/Gerar.bend as Gerar\nimport ../../src/Livre.bend as Livre\nimport ../../src/Mensagens.bend as Mensagens\nimport ../../src/Nucleo.bend as Nucleo\nimport ../../src/Reificacao.bend as Reificacao\nimport ../../src/Requisicao.bend as Requisicao\nimport ../../src/Terminacao.bend as Terminacao\nimport ../../src/Transporte.bend as Transporte\nimport ../Codec.bend as Codec\n",
+  "entrySha256AtAttempt": "65906b99cc914390c908d989ac43441d257cf54f63d0735ea7a680baf85a390b",
+  "compilerSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+  "legacyCodecSha256": "9c447ad59da0234b5cbc20fb7a71bd3a66da9b897570ef963298e9c949cff003"
+}

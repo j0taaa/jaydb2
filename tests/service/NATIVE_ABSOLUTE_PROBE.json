@@ -1,0 +1,100 @@
+{
+  "fullExecutableContractProved": false,
+  "testOnlyEmitter": "primary-only fixture; production admission unchanged",
+  "sourcesSha256": {
+    "native/terms_address.inc.c": "5a481000749a317621b50c0f8934e21bfe7047421d960cdb1329729ae3fe407c",
+    "native/numeric.inc.c": "e7b3aaa74d1c2d2bdf28d846b0fe6024d34a728cae8f43bd9be2341347e16b2f",
+    "native/f32_parse.inc.c": "10975083717dc238ca4c1ddabba676feeb21b1af7b1f434d875d8c0de3fc407d",
+    "native/leaves.c": "0e85b709a58c36d10dea89da9340e42794ff19ee129d0563d4feba1327d5ec6d",
+    "native/effects.bend": "e67602f1bd08aff8b5e898192ff12d2cda7fe8e6d1c31ba9768ca5f71a924f1f",
+    "native/leaves.h": "f7112a1b2ff99aa9f3241ea993ed8dc2ac497cbdf86df5322a256b28d925d760",
+    "native/abi_v3.h": "d29a13ba16b5e9fa0fe02813e19a5b6c7c83fe63d8ec5bb9594e46f6c8fce83a",
+    "native/arena.inc.c": "cde9ae4f9597ccaba658fa9012852201915218c192ad3bdb4830511db169ba78",
+    "native/text.inc.c": "23b1cfcc581bced1839240a8edb48c87faf87fd8b0748bd6cd0b246a4a3c790a",
+    "native/abi.h": "38bb8b40f3b73937d11cd56addba475507fb9604c16010d9e535155d43edae95",
+    "native/owner.h": "e7d1c2ac1e5dc92ff70e74979a4d044f11a675ea502d4656d472ef11f3749cfe",
+    "native/owner.c": "c521a37c826a9af27cd2805b2fe1e7dd303ae8f80b83df0303a6430491f1e4d8",
+    "native/guard.c": "1c752c3b0e2154f5dcd017c9968acb4d1e7b3661dbf20061252b5b47c9957f87",
+    "native/guard.h": "419cb615a8a4cf2e529659010b09e5d68a3d4741fe0c27debccaba3e07ebe5bc",
+    "native/terms.inc.c": "601e935535b47bc6e6124404c0b478f4d3c7574fd9259c8dd7b0c0606992d31f",
+    "native/stack.inc.c": "14906402cfe3aa408d775a4d48e1bfbcf89d60420248a9b30dcc321992164490",
+    "native/heap.inc.c": "700f7071d20ee5ec49fd03c9b9eda1177d65e1e6b9e47e30f2961fad66e78e3b",
+    "native/module_tail.c": "de0c46d0cb7e189ef06ad088d06f5243b1282eccfc0d4b6cbdb69e00210c37af",
+    "native/leaves_alias.h": "49e1a1047ee258f085623a44532baf2369b9685b61f102d290359ad168794a18",
+    "native/nat.inc.c": "3148e5be1b77274d2ab161916703d16014415be49f8de0e01251fb98effc0bdd",
+    "native/abi_deadline.h": "0a1b91b2d25fe86b08b03d55105b8bc0a3ce43a8d9205f9f8bca957b0c9661fe",
+    "native/effects.c": "5313b9aad4308c978f56b2f04e137345d071b1475fed5ef19e8d65d4d561452d",
+    "native/memory.c": "c82e61872757ac693d23227b6aa10c7836451f59e42243f420ba3cc2833e20b2",
+    "native/module_v3.c": "b440d886f9f1fb9d05ee0e834b316c6f31088d4c621cbe27120790ec7b7af028",
+    "native/drop.inc.c": "07e6677427fc0d787758fcd174b583db88cad2cd89501a0e3d4e77506e637f33",
+    "tools/native/stack_audit.py": "dfe590a01f0dea85ca59b71f153e437eb0b3550891078e3fe2b38a2cdc918bdc",
+    "tools/native/build.py": "0592e085d5f15a1c9cb6c20250eeebc35188990b7abdf149f90d22e6c2ceb7c6",
+    "tools/native/generic.mjs": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+    "tools/native/budget.py": "3d7a0de99078e3eda57b424d9a95975c5079b35acc570bb5a4eda873e04ae4e0",
+    "tests/native/emit_fixture.mjs": "c88ca3fc3e8d27197188478dbf36dc1858756e2c970e3e06564886949c33c210",
+    "tests/native/fixtures/echo.bend": "c3b98efc824a371fa9e74965955a219bde202a240d3cf181c4795cf6a108b4c3"
+  },
+  "moduleSha256": "5a9e1ba5b06c8698e6caf6e7acf7b100f392da295cac9a628fb477da007a589d",
+  "absoluteSetupDeadlineV3": true,
+  "automaticTermStackV3": true,
+  "outcomes": {
+    "echo": "61637475616c206279746573",
+    "expired": {
+      "status": 3,
+      "stage": 0,
+      "charged": 0,
+      "lease": 0
+    },
+    "recovered": "78"
+  },
+  "nativeStackAudit": {
+    "roots": [
+      "jaydb_worker"
+    ],
+    "functions": 61,
+    "reachableFunctions": 36,
+    "musttailEdges": 91,
+    "maximumFrameBytes": 824,
+    "moduleBytesExcludingExternal": 1272,
+    "moduleBoundAvailable": true,
+    "wholeNativeBoundProved": false,
+    "returnAddressBytes": 8,
+    "missingFrameMetadata": [],
+    "stackGrowingCycles": [],
+    "unknownIndirectCalls": [],
+    "externalCallees": [
+      "_setjmp",
+      "abort",
+      "longjmp"
+    ],
+    "maximumPath": [
+      "jaydb_worker",
+      "corpus_eval",
+      "work_loop",
+      "WL_FID_main_c6",
+      "task_node",
+      "heap_alloc",
+      "jaydb_leaf",
+      "jaydb_pages_leaf",
+      "__sanitizer_cov_trace_pc_guard",
+      "jaydb_poll",
+      "jaydb_abort",
+      "jaydb_owner_get"
+    ],
+    "tailComponents": [
+      [
+        "WL_FID_Clo_apply",
+        "WL_FID_ENTER",
+        "WL_FID_EXIT",
+        "WL_FID_IO_emit",
+        "WL_FID__________native_effects_read",
+        "WL_FID__________native_effects_write",
+        "WL_FID_main",
+        "WL_FID_main_c4",
+        "WL_FID_main_c5",
+        "WL_FID_main_c6",
+        "WL_FID_main_k7"
+      ]
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "purpose": "Root V3: durable helper/output receipts and retry of stack cleanup after independent V2 R1/R2/R3",
+  "checks": {
+    "host211": {
+      "log": "tests/service/evidence/completion_v3/host211.log",
+      "sha256": "b99a4ada4e113207faa891ff3dd7c01ee4405142da8314742a5ace4fb1c39b53"
+    },
+    "causal11": {
+      "log": "tests/service/evidence/completion_v3/causal11.log",
+      "sha256": "d7103df0ad492f1a6f4bac0f8529ac183fb81f16a9ae99c6ab431a1424321f79"
+    },
+    "native20": {
+      "log": "tests/service/evidence/completion_v3/native20.log",
+      "sha256": "b8edeedf4dd8d5faff17d7dbc52cbc600147aa50e785cd8697ed86616a54a5cd"
+    },
+    "mainstack4": {
+      "log": "tests/service/evidence/completion_v3/mainstack4.log",
+      "sha256": "e32f7de1398f54a28bd887c513273a205b985da8c123632faabdbcda6b9d3c3d"
+    },
+    "initialization1": {
+      "log": "tests/service/evidence/completion_v3/initialization1.log",
+      "sha256": "a62f95f9f867d078ab3d3d78ee7bcb73f3c0340e3f221f150b0b3eb543a25e4c"
+    }
+  },
+  "fixes": {
+    "R1": "C process owner registered before pipe and posix_spawn, PID/finish receipts survive interruption; unresolved cleanup blocks public completion",
+    "R2": "Result/DSO owner retained before native invoke; C release receipt prevents repeat after consumption; unresolved lease blocks dlclose and public completion",
+    "R3": "Database retains root until both stack and DSO cleanup are complete"
+  },
+  "fixtures": "Positive counted observations and consumer ABI payloads are explicit fixtures; real observer remains INCOMPLETE",
+  "fullExecutableContractProved": false,
+  "completeServiceMeasurement": false,
+  "fullLaw2": false,
+  "independentReview": "pending"
+}

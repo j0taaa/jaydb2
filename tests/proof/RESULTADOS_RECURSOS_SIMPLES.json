@@ -1,0 +1,610 @@
+{
+  "checkedAt": "2026-10-29T15:33:29.215680+00:00",
+  "compiler": "/home/jota/projects/jaydb2/.tools/bend-2.0.39/bin/bend",
+  "version": "bend 2.0.39",
+  "compilerSha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+  "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+  "durationSeconds": 412.246,
+  "contractRevision": "tres-tamanhos-sem-orcamentos-fisicos-v2",
+  "harnessTimeoutIsDevelopmentOnly": true,
+  "physicalProofsArchive": "history/provas-recursos-v1",
+  "fullExecutableContractProved": false,
+  "acceptedAggregates": 2,
+  "rejectedMutations": 26,
+  "checks": [
+    {
+      "file": "proof/VERIFICAR.bend",
+      "mode": "--check-only",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "proof/VERIFICAR.bend",
+      "mode": "--verdict",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "tests/proof/VERIFICAR.bend",
+      "mode": "--check-only",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n"
+    },
+    {
+      "file": "tests/proof/VERIFICAR.bend",
+      "mode": "--verdict",
+      "expected": "accepted",
+      "exitCode": 0,
+      "output": "ALL PROOFS CHECK\n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaArgumentos.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VAusente{}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\n- observed : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\nLocation: falso\n12 | def falso():\n13>|   F.pronta_exata_nos_dois_limites_inclusivos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaArgumentos.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VAusente{}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\n- observed : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\nLocation: falso\n12 | def falso():\n13>|   F.pronta_exata_nos_dois_limites_inclusivos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaBlocoOmitido.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.ErroMensagem{S.Entrada{}}\n- observed : E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaBlocoOmitido.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.ErroMensagem{S.Entrada{}}\n- observed : E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaContexto.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} == E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"a\", \"pessoa\"}} : E.Analise}\n- observed : {E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} == E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} : E.Analise}\nLocation: falso\n12 | def falso():\n13>|   F.autenticacao_no_fim_do_cadastro_com_unicode_e_bits_exatos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaContexto.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} == E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"a\", \"pessoa\"}} : E.Analise}\n- observed : {E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} == E.Recebida{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}, D.Contexto{\"é\", \"pessoa\"}} : E.Analise}\nLocation: falso\n12 | def falso():\n13>|   F.autenticacao_no_fim_do_cadastro_com_unicode_e_bits_exatos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaEnvelope.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.Rejeitada{S.Entrada{}}\n- observed : E.Rejeitada{S.Autenticacao{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaEnvelope.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.Rejeitada{S.Entrada{}}\n- observed : E.Rejeitada{S.Autenticacao{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaEstado.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], []}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\n- observed : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\nLocation: falso\n12 | def falso():\n13>|   F.pronta_exata_nos_dois_limites_inclusivos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaEstado.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], []}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\n- observed : {E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} == E.Pronta{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"é\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"é\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}, P.Requisicao{\"segunda\", \"fonte exata\\n𝄞\", D.VLista{D.VInt{2147483648, 0}, D.VLista{D.VInt{2147483647, 4294967295}, D.VLista{D.VAusente{}, D.VLista{D.VTexto{\"é\\n𝄞\"}, D.VListaVazia{}}}}}, \"π\\n\\\\prova\"}} : E.PreAutenticacao}\nLocation: falso\n12 | def falso():\n13>|   F.pronta_exata_nos_dois_limites_inclusivos()\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaLimite.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.Rejeitada{S.Limite{}}\n- observed : E.Rejeitada{S.Autenticacao{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaLimite.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.Rejeitada{S.Limite{}}\n- observed : E.Rejeitada{S.Autenticacao{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaLimiteInterno.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.ErroMensagem{S.Entrada{}}\n- observed : E.ErroMensagem{S.Limite{}}\nLocation: falso\n10 | def falso():\n11>|   {==}\n   |   ^^^^\n12 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaLimiteInterno.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.ErroMensagem{S.Entrada{}}\n- observed : E.ErroMensagem{S.Limite{}}\nLocation: falso\n10 | def falso():\n11>|   {==}\n   |   ^^^^\n12 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaTrabalho.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{D.Contexto{\"a\", \"pessoa\"}}\n- observed : None{}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaTrabalho.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{D.Contexto{\"a\", \"pessoa\"}}\n- observed : None{}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaTransporte.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.TransporteInvalido{}\n- observed : E.Rejeitada{S.Entrada{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/EntradaRejeitaTransporte.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : E.TransporteInvalido{}\n- observed : E.Rejeitada{S.Entrada{}}\nLocation: falso\n12 | def falso():\n13>|   {==}\n   |   ^^^^\n14 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : C.Curto{}\n- observed : C.Cabe{}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : C.Curto{}\n- observed : C.Cabe{}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoNaoProvaConferencia.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Sigma<&1, &1, Nat, u => ../../../contrato/Logica.E<{Cmp.is_lt(Nat.cmp(u, t)) == True{} : Bool}, I.Acontece(a, k, x, u, I.ConferiuComprimento{pos, n})>>\n- observed : I.Acontece(a, k, x, t, I.AlocouCampo{pos, n})\nContext:\n- a      : I.Ambiente\n- k      : String\n- x      : I.Cenario\n- t      : Nat\n- pos    : Nat\n- n      : Nat\n- alocou : I.Acontece(a, k, x, t, I.AlocouCampo{pos, n})\nLocation: falso\n14 | def falso(a, k, x, t, pos, n, alocou):\n15>|   alocou\n   |   ^^^^^^\n16 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoNaoProvaConferencia.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Sigma<&1, &1, Nat, u => ../../../contrato/Logica.E<{Cmp.is_lt(Nat.cmp(u, t)) == True{} : Bool}, I.Acontece(a, k, x, u, I.ConferiuComprimento{pos, n})>>\n- observed : I.Acontece(a, k, x, t, I.AlocouCampo{pos, n})\nContext:\n- a      : I.Ambiente\n- k      : String\n- x      : I.Cenario\n- t      : Nat\n- pos    : Nat\n- n      : Nat\n- alocou : I.Acontece(a, k, x, t, I.AlocouCampo{pos, n})\nLocation: falso\n14 | def falso(a, k, x, t, pos, n, alocou):\n15>|   alocou\n   |   ^^^^^^\n16 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoSemGuard.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/AlocacaoSemGuard.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ArgumentosTrocados.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : R.SegurancaPercurso(../../../contrato/Semantica.observar(n, ../../../contrato/Semantica.Acessar{D.ContarLinhas{D.Usuarios{}}, retorno => ../../../contrato/Semantica.Terminar{D.VAusente{}}}, D.Esquema{[]}, s), ../../../contrato/Semantica.Configuracao{D.Esquema{[]}, ../../../contrato/Semantica.MaisUmaLei{T.estado_inalterado, ../../../contrato/Semantica.MaisUmaLei{T.so_a_leitura_declarada, ../../../contrato/Semantica.MaisUmaLei{T.origem_fixa, ../../../contrato/Semantica.NenhumaLei{}}}}, ../../../contrato/Semantica.Limites{1024n, 1024n, 256n}, \"Bend-2.0.39-testes\"}, s, D.Contexto{\"b\", \"pessoa\"}, \"programa de teste: contar usuarios e terminar\", D.VTexto{\"trocados\"})\n- observed : R.SegurancaPercurso(../../../contrato/Semantica.observar(n, ../../../contrato/Semantica.Acessar{D.ContarLinhas{D.Usuarios{}}, retorno => ../../../contrato/Semantica.Terminar{D.VAusente{}}}, D.Esquema{[]}, s), ../../../contrato/Semantica.Configuracao{D.Esquema{[]}, ../../../contrato/Semantica.MaisUmaLei{T.estado_inalterado, ../../../contrato/Semantica.MaisUmaLei{T.so_a_leitura_declarada, ../../../contrato/Semantica.MaisUmaLei{T.origem_fixa, ../../../contrato/Semantica.NenhumaLei{}}}}, ../../../contrato/Semantica.Limites{1024n, 1024n, 256n}, \"Bend-2.0.39-testes\"}, s, D.Contexto{\"b\", \"pessoa\"}, \"programa de teste: contar usuarios e terminar\", D.VTexto{\"argumento exato\"})\nContext:\n- s          : D.Estado\n- valido     : ../../../contrato/Logica.E<{Bool.and(D.estrutura(D.Esquema{[]}, s), R.cabe_resultado(../../../contrato/Protocolo.codificar_casos(D.valor_valido(D.estado_valor(s)), ../../../contrato/Protocolo.finalizar(../../../contrato/Protocolo.codificar_parcial(D.estado_valor(s)))), 1024n)) == True{} : Bool}, ../../../contrato/Logica.E<Unit, ../../../contrato/Logica.E<Unit, ../../../contrato/Logica.E<Unit, Unit>>>>\n- identidade : {D.contexto_presente(s, D.Contexto{\"b\", \"pessoa\"}) == True{} : Bool}\n- n          : Nat\nLocation: falso\n 8 | def falso(s, valido, identidade, n):\n 9>|   T.certificado()(s, valido, identidade, n)\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ArgumentosTrocados.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : R.SegurancaPercurso(../../../contrato/Semantica.observar(n, ../../../contrato/Semantica.Acessar{D.ContarLinhas{D.Usuarios{}}, retorno => ../../../contrato/Semantica.Terminar{D.VAusente{}}}, D.Esquema{[]}, s), ../../../contrato/Semantica.Configuracao{D.Esquema{[]}, ../../../contrato/Semantica.MaisUmaLei{T.estado_inalterado, ../../../contrato/Semantica.MaisUmaLei{T.so_a_leitura_declarada, ../../../contrato/Semantica.MaisUmaLei{T.origem_fixa, ../../../contrato/Semantica.NenhumaLei{}}}}, ../../../contrato/Semantica.Limites{1024n, 1024n, 256n}, \"Bend-2.0.39-testes\"}, s, D.Contexto{\"b\", \"pessoa\"}, \"programa de teste: contar usuarios e terminar\", D.VTexto{\"trocados\"})\n- observed : R.SegurancaPercurso(../../../contrato/Semantica.observar(n, ../../../contrato/Semantica.Acessar{D.ContarLinhas{D.Usuarios{}}, retorno => ../../../contrato/Semantica.Terminar{D.VAusente{}}}, D.Esquema{[]}, s), ../../../contrato/Semantica.Configuracao{D.Esquema{[]}, ../../../contrato/Semantica.MaisUmaLei{T.estado_inalterado, ../../../contrato/Semantica.MaisUmaLei{T.so_a_leitura_declarada, ../../../contrato/Semantica.MaisUmaLei{T.origem_fixa, ../../../contrato/Semantica.NenhumaLei{}}}}, ../../../contrato/Semantica.Limites{1024n, 1024n, 256n}, \"Bend-2.0.39-testes\"}, s, D.Contexto{\"b\", \"pessoa\"}, \"programa de teste: contar usuarios e terminar\", D.VTexto{\"argumento exato\"})\nContext:\n- s          : D.Estado\n- valido     : ../../../contrato/Logica.E<{Bool.and(D.estrutura(D.Esquema{[]}, s), R.cabe_resultado(../../../contrato/Protocolo.codificar_casos(D.valor_valido(D.estado_valor(s)), ../../../contrato/Protocolo.finalizar(../../../contrato/Protocolo.codificar_parcial(D.estado_valor(s)))), 1024n)) == True{} : Bool}, ../../../contrato/Logica.E<Unit, ../../../contrato/Logica.E<Unit, ../../../contrato/Logica.E<Unit, Unit>>>>\n- identidade : {D.contexto_presente(s, D.Contexto{\"b\", \"pessoa\"}) == True{} : Bool}\n- n          : Nat\nLocation: falso\n 8 | def falso(s, valido, identidade, n):\n 9>|   T.certificado()(s, valido, identidade, n)\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/BytesForjados.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{[0, 0, 0, 0, 0, 0, 0, 55, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 7, 115, 117, 99, 101, 115, 115, 111, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\n- observed : Some{[0]}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/BytesForjados.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{[0, 0, 0, 0, 0, 0, 0, 55, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 7, 115, 117, 99, 101, 115, 115, 111, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\n- observed : Some{[0]}\nLocation: falso\n 8 | def falso():\n 9>|   {==}\n   |   ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ConfiguracaoIdentidadeTrocada.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {S.ambiente(c) == SCon{'\\0', id} : String}\n- observed : {S.ambiente(c) == id : String}\nContext:\n- c         : S.Configuracao\n- id        : String\n- aceito    : {C.valida(c, id) == True{} : Bool}\n- estrutura : {R.configuracao_valida(c) == True{} : Bool}\n- igual     : {S.ambiente(c) == id : String}\nLocation: falso\n17 |     {R.configuracao_valida(c) == True{} : Bool}, {S.ambiente(c) == id : String},\n18>|     P.aceita_exige_estrutura_e_identidade_exatas(c, id, aceito), estrutura => igual => igual)\n   |                                                                                        ^^^^^\n19 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ConfiguracaoIdentidadeTrocada.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {S.ambiente(c) == SCon{'\\0', id} : String}\n- observed : {S.ambiente(c) == id : String}\nContext:\n- c         : S.Configuracao\n- id        : String\n- aceito    : {C.valida(c, id) == True{} : Bool}\n- estrutura : {R.configuracao_valida(c) == True{} : Bool}\n- igual     : {S.ambiente(c) == id : String}\nLocation: falso\n17 |     {R.configuracao_valida(c) == True{} : Bool}, {S.ambiente(c) == id : String},\n18>|     P.aceita_exige_estrutura_e_identidade_exatas(c, id, aceito), estrutura => igual => igual)\n   |                                                                                        ^^^^^\n19 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ErroFixoTrocado.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{[0, 0, 0, 0, 0, 0, 0, 55, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 7, 101, 110, 116, 114, 97, 100, 97, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\n- observed : Some{[0, 0, 0, 0, 0, 0, 0, 59, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 11, 99, 101, 114, 116, 105, 102, 105, 99, 97, 100, 111, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\nLocation: falso\n 9 | def falso():\n10>|   {==}\n   |   ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ErroFixoTrocado.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{[0, 0, 0, 0, 0, 0, 0, 55, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 7, 101, 110, 116, 114, 97, 100, 97, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\n- observed : Some{[0, 0, 0, 0, 0, 0, 0, 59, 6, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 6, 115, 116, 97, 116, 117, 115, 4, 0, 0, 0, 0, 0, 0, 0, 11, 99, 101, 114, 116, 105, 102, 105, 99, 97, 100, 111, 4, 0, 0, 0, 0, 0, 0, 0, 5, 118, 97, 108, 111, 114, 0]}\nLocation: falso\n 9 | def falso():\n10>|   {==}\n   |   ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/EstadoTrocado.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"b\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"b\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}}\n- observed : Some{D.Estado{[], []}}\nLocation: falso\n10 | def falso():\n11>|   {==}\n   |   ^^^^\n12 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/EstadoTrocado.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{D.Estado{[], [D.Linha{\"a\", [D.Campo{\"credencial\", D.VTexto{\"primeira\"}}, D.Campo{\"id\", D.VTexto{\"a\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}, D.Linha{\"b\", [D.Campo{\"credencial\", D.VTexto{\"segunda\"}}, D.Campo{\"id\", D.VTexto{\"b\"}}, D.Campo{\"tipo\", D.VTexto{\"pessoa\"}}]}]}}\n- observed : Some{D.Estado{[], []}}\nLocation: falso\n10 | def falso():\n11>|   {==}\n   |   ^^^^\n12 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/EventoNaoProvaFalha.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : I.FalhaReal(a, k, x, t, etapa, id, fatal)\n- observed : I.Acontece(a, k, x, t, I.FalhouAmbiente{etapa, id, fatal})\nContext:\n- a      : I.Ambiente\n- k      : String\n- x      : I.Cenario\n- t      : Nat\n- etapa  : X.Etapa\n- id     : String\n- fatal  : Bool\n- falhou : I.Acontece(a, k, x, t, I.FalhouAmbiente{etapa, id, fatal})\nLocation: falso\n15 | def falso(a, k, x, t, etapa, id, fatal, falhou):\n16>|   falhou\n   |   ^^^^^^\n17 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/EventoNaoProvaFalha.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : I.FalhaReal(a, k, x, t, etapa, id, fatal)\n- observed : I.Acontece(a, k, x, t, I.FalhouAmbiente{etapa, id, fatal})\nContext:\n- a      : I.Ambiente\n- k      : String\n- x      : I.Cenario\n- t      : Nat\n- etapa  : X.Etapa\n- id     : String\n- fatal  : Bool\n- falhou : I.Acontece(a, k, x, t, I.FalhouAmbiente{etapa, id, fatal})\nLocation: falso\n15 | def falso(a, k, x, t, etapa, id, fatal, falhou):\n16>|   falhou\n   |   ^^^^^^\n17 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/LeiAdministrativaOmitida.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : L.E<L.E<{../../../contrato/Dados.Contexto{\"b\", \"pessoa\"} == ../../../contrato/Dados.Contexto{\"b\", \"pessoa\"} : ../../../contrato/Dados.Contexto}, L.E<{\"programa de teste: contar usuarios e terminar\" == \"programa de teste: contar usuarios e terminar\" : String}, {../../../contrato/Dados.VTexto{\"argumento exato\"} == ../../../contrato/Dados.VTexto{\"argumento exato\"} : ../../../contrato/Dados.Valor}>>, Unit>\n- observed : Unit\nLocation: falso\n 8 | def falso():\n 9>|   L.Ambos{{==}, L.Ambos{L.Esquerda{{==}}, Unit{}}}\n   |                                           ^^^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/LeiAdministrativaOmitida.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : L.E<L.E<{../../../contrato/Dados.Contexto{\"b\", \"pessoa\"} == ../../../contrato/Dados.Contexto{\"b\", \"pessoa\"} : ../../../contrato/Dados.Contexto}, L.E<{\"programa de teste: contar usuarios e terminar\" == \"programa de teste: contar usuarios e terminar\" : String}, {../../../contrato/Dados.VTexto{\"argumento exato\"} == ../../../contrato/Dados.VTexto{\"argumento exato\"} : ../../../contrato/Dados.Valor}>>, Unit>\n- observed : Unit\nLocation: falso\n 8 | def falso():\n 9>|   L.Ambos{{==}, L.Ambos{L.Esquerda{{==}}, Unit{}}}\n   |                                           ^^^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/PrefixoApagado.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : S.Prefixo{../../../contrato/Dados.Estado{[], [../../../contrato/Dados.Linha{\"a\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"primeira\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"a\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}, ../../../contrato/Dados.Linha{\"b\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"segunda\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"b\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}]}, [S.Evento{../../../contrato/Dados.ContarLinhas{../../../contrato/Dados.Usuarios{}}, S.Leitura{../../../contrato/Dados.Quantidade{2n}}}]}\n- observed : S.Prefixo{../../../contrato/Dados.Estado{[], [../../../contrato/Dados.Linha{\"a\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"primeira\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"a\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}, ../../../contrato/Dados.Linha{\"b\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"segunda\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"b\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}]}, []}\nLocation: falso\n 9 | def falso():\n10>|   {==}\n   |   ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/PrefixoApagado.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : S.Prefixo{../../../contrato/Dados.Estado{[], [../../../contrato/Dados.Linha{\"a\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"primeira\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"a\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}, ../../../contrato/Dados.Linha{\"b\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"segunda\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"b\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}]}, [S.Evento{../../../contrato/Dados.ContarLinhas{../../../contrato/Dados.Usuarios{}}, S.Leitura{../../../contrato/Dados.Quantidade{2n}}}]}\n- observed : S.Prefixo{../../../contrato/Dados.Estado{[], [../../../contrato/Dados.Linha{\"a\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"primeira\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"a\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}, ../../../contrato/Dados.Linha{\"b\", [../../../contrato/Dados.Campo{\"credencial\", ../../../contrato/Dados.VTexto{\"segunda\"}}, ../../../contrato/Dados.Campo{\"id\", ../../../contrato/Dados.VTexto{\"b\"}}, ../../../contrato/Dados.Campo{\"tipo\", ../../../contrato/Dados.VTexto{\"pessoa\"}}]}]}, []}\nLocation: falso\n 9 | def falso():\n10>|   {==}\n   |   ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/PublicacaoInvalida.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 9 | def falso():\n10>|   L.Ambos{{==}, L.Ambos{Unit{}, L.Ambos{Unit{}, L.Ambos{Unit{}, Unit{}}}}}\n   |           ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/PublicacaoInvalida.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 9 | def falso():\n10>|   L.Ambos{{==}, L.Ambos{Unit{}, L.Ambos{Unit{}, L.Ambos{Unit{}, Unit{}}}}}\n   |           ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/RecepcaoCabecalhoTrocado.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{B.Numero64{0, 1}}\n- observed : Some{B.Numero64{0, 0}}\nLocation: falso\n 9 | def falso():\n10>|   Q.cabecalho_medido_estabelece_declaracao_original(0,0,1n,{==})\n   |                                                            ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/RecepcaoCabecalhoTrocado.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : Some{B.Numero64{0, 1}}\n- observed : Some{B.Numero64{0, 0}}\nLocation: falso\n 9 | def falso():\n10>|   Q.cabecalho_medido_estabelece_declaracao_original(0,0,1n,{==})\n   |                                                            ^^^^\n11 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/RecepcaoIgnoraRestante.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   Q.consumo_confirmado_respeita_declarado_e_limite(0n,0n,1n,1n,1n,{==},{==},{==})\n   |                                                                        ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/RecepcaoIgnoraRestante.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : False{}\n- observed : True{}\nLocation: falso\n 8 | def falso():\n 9>|   Q.consumo_confirmado_respeita_declarado_e_limite(0n,0n,1n,1n,1n,{==},{==},{==})\n   |                                                                        ^^^^\n10 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ReificacaoTrocada.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : D.VInt{0, 1}\n- observed : D.VInt{0, 2}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/ReificacaoTrocada.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : D.VInt{0, 1}\n- observed : D.VInt{0, 2}\nLocation: falso\n7 | def falso():\n8>|   {==}\n  |   ^^^^\n9 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/SemIdentidade.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : None{}\n- observed : Some{D.Contexto{\"b\", \"pessoa\"}}\nLocation: falso\n13 |   G.certificado_cobre_execucao_autenticada(T.configuracao(), T.codigo(), T.programa(), T.contexto(), T.argumentos(),\n14>|     T.certificado(), T.inicial(), T.inicial_valido(), \"credencial invalida\", {==}, 0n)\n   |                                                                              ^^^^\n15 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/SemIdentidade.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : None{}\n- observed : Some{D.Contexto{\"b\", \"pessoa\"}}\nLocation: falso\n13 |   G.certificado_cobre_execucao_autenticada(T.configuracao(), T.codigo(), T.programa(), T.contexto(), T.argumentos(),\n14>|     T.certificado(), T.inicial(), T.inicial_valido(), \"credencial invalida\", {==}, 0n)\n   |                                                                              ^^^^\n15 | \n"
+    },
+    {
+      "file": "tests/proof/rejeitados/transporte_segundo_bloco.bend",
+      "mode": "--check-only",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {Some{T.Partes{[255], [7]}} == Some{T.Partes{[255], []}} : Maybe<&2, T.Partes>}\n- observed : {Some{T.Partes{[255], [7]}} == Some{T.Partes{[255], [7]}} : Maybe<&2, T.Partes>}\nLocation: falso\n10 | def falso():\n11>|   G.separar_inverte_toda_montagem_valida([255], [7],\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n12 |     [0, 0, 0, 0, 0, 0, 0, 1, 255, 7], {==}, {==}, {==})\n"
+    },
+    {
+      "file": "tests/proof/rejeitados/transporte_segundo_bloco.bend",
+      "mode": "--verdict",
+      "expected": "rejected",
+      "exitCode": 1,
+      "output": "SOME PROOFS FAIL\nError:\n- expected : {Some{T.Partes{[255], [7]}} == Some{T.Partes{[255], []}} : Maybe<&2, T.Partes>}\n- observed : {Some{T.Partes{[255], [7]}} == Some{T.Partes{[255], [7]}} : Maybe<&2, T.Partes>}\nLocation: falso\n10 | def falso():\n11>|   G.separar_inverte_toda_montagem_valida([255], [7],\n   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n12 |     [0, 0, 0, 0, 0, 0, 0, 1, 255, 7], {==}, {==}, {==})\n"
+    }
+  ],
+  "dependenciesSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/Interface.bend": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0",
+    "contrato/LAWS.bend": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/Recursos.bend": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2",
+    "contrato/Requisitos.bend": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef",
+    "contrato/Semantica.bend": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "proof/Adaptadores.bend": "18464e57b7422efa8b7f6f010d1a28b1c1afddf606bc5c0e4e634a4cc5b1adc1",
+    "proof/AlocacoesComprimentos.bend": "ad7f2ac797f81cbc9ced5dee7bdd5784a3d5947cbe62573c40b85d27bd4b17ab",
+    "proof/Autenticacao.bend": "7ad457f7bbf428eb3bcaa64f4cb0dc5a7863755c57c839f801b0aeff2a1c9f1b",
+    "proof/Codec.bend": "563ff2ea25becc66d28c797fdccfcccfc99199c8b25a7bcb108d911d509a037d",
+    "proof/CodecAceitacao.bend": "b908177e66d9d76448d3fb0b9307707a6429077f8bea111d7376a7f722782e73",
+    "proof/CodecAceitacaoFilhos.bend": "6a6d480b86cd751b902d3f63f0f09978eeec70c6dc50b3ffbef161d598f01cef",
+    "proof/CodecAceitacaoInducao.bend": "fcfd8b1487d579ae8a9998473662948e3ff6d6f3374da9eb7d728ccde9261c9d",
+    "proof/CodecAceitacaoLista.bend": "0343e08c3d3d073ab3949b1bcf48785eaeb69adc8a7aa5c106bf446c1f9c68da",
+    "proof/CodecAceitacaoNome.bend": "51582678db01f5d3432cdcc61057f8906375f2503c28dd1d3315bbfbcffa08ed",
+    "proof/CodecAceitacaoPalavra.bend": "85898bf7c125d876c8f19bddce69e7ff33615a02734399ab712657d0f98405ef",
+    "proof/CodecAceitacaoPilha.bend": "4db28af3c09b559a2b1ebd190f731ab27593673459b3ed33a4469bbecf4ad9ff",
+    "proof/CodecAceitacaoPrefixo.bend": "5be0faef479e56f878707a707382f41bc2f5703b304f5fbff519b143ba44fd08",
+    "proof/CodecAceitacaoPreparacao.bend": "3cbe5285fe046bfacaec879e708c94319792f7af4004e21acc00e52120faa9f3",
+    "proof/CodecAceitacaoRaiz.bend": "e1f9d3550633ef445de309c1ec1afe4e87a76ffcac473e0f237ab5d3cc8077ee",
+    "proof/CodecAceitacaoRegistro.bend": "10fb782c92645ceee5a90643247408e70eb39afb0713da9214879e21e8afe72b",
+    "proof/CodecAceitacaoTags.bend": "0600bf483503e382be66aed428b795b05f3a233dc73805caa61a8a79140a5243",
+    "proof/CodecAceitacaoTexto.bend": "efd3b64799278888e9228cab43e4139c43187cc2be1af4f02bff7e086ce6b722",
+    "proof/CodecAridades.bend": "11b43862073c2527e6d9d393564633a0a650d51d41103881ff4e8263ae31d91c",
+    "proof/CodecCampos.bend": "5441e0e8771d4e2e99cd57b0240fda7ceaea55b3876ae9725c92596d89219cce",
+    "proof/CodecCanonico.bend": "c19ce46bc8991cf2a0f2ba479111735c8c45ffc525dc9b4419ad001d21e0817f",
+    "proof/CodecCompleto.bend": "5e492fff3c794f9c98df6b2d44284c394c80a6b8040b0a375ddd7415e2902947",
+    "proof/CodecCompletoEstrutura.bend": "4c8e6610d49fa063da0db4df95c8330b073ab7e31b4cc9e30bd2a2a430d35cca",
+    "proof/CodecComposicao.bend": "3b83a21943cd2a9e8985d8e19f86370a380cff777da21086e3d54d101d3d2fde",
+    "proof/CodecContadores.bend": "71f626162e32866faf846a8347a163e5154aae769e0f8da8d72bb2d1337f9e6c",
+    "proof/CodecConteudo.bend": "3746cc9078698a0db070f90061757f7c772ff8b364f0572ad3bbae20b3536191",
+    "proof/CodecEstruturas.bend": "0a6c340a9709322c1f80dc99dd9e51611d7487c215d1038f7c6d036529e26c9b",
+    "proof/CodecInteiros.bend": "858f27f644238b27b91e337f138cc94870608779fb7c1230a01ffe4275c9c031",
+    "proof/CodecLei2.bend": "26f7a931bba32742cb280f0bcf0c1891e08888fe12c865e11657b77e38d06c0c",
+    "proof/CodecLimitesCopia.bend": "f76741e740dc3b63ef35a8418596f3065d41e2b292fdd8af06c94ba477cb40a3",
+    "proof/CodecLimitesNomes.bend": "a9eecb5c3e7e226cd2379e8de42133e54e211b2ded746d7b45f7f85cecba27b6",
+    "proof/CodecLimitesParciais.bend": "db4418f1b87d06db2ee05a3f3de99dea5f3c9eb6f002ee31dc8abcc0924cd2c3",
+    "proof/CodecLimitesPilha.bend": "f786d5c9858ba255685f836f318a89703b3bb648a1a1a9eef677d55c01ecfd8b",
+    "proof/CodecLimitesSequencias.bend": "1a54b75d9de47ff1f7e6ccaf64bc57052f8d06cc06cad60b486e13dbbc760d27",
+    "proof/CodecLocais.bend": "c6a576f5cdbea7309576a9cbce7f878f65c8206f75507522fc975c2a123e2a09",
+    "proof/CodecMinimos.bend": "26b0f58ecafa0f5b1c48d345dd4e4c3f3ba22b2476d5321a4eba6f6150cf3eae",
+    "proof/CodecMinimosPilha.bend": "c7b880ee70090d2bd00524667218ed1053fc79bd40667e4799da0445c4d93fd1",
+    "proof/CodecMontagem.bend": "02ec26c4084a434cd84bbdff734c1e6a8f94410cb9a451fcdc124bb4e32457a5",
+    "proof/CodecMontagemExposicao.bend": "260ff574d3bbc0e6c0fc948fda439ff7696add4bac5de1f7230666dd897d6eb1",
+    "proof/CodecMontagemExposicaoRegistro.bend": "231f23af80e70c95a3d944130f7fc20a57d6e5a8af70f5df467f44b9b6fea335",
+    "proof/CodecMontagemFechada.bend": "87963a136485cf7e09dd750ef1ceb258f299ffbe4b91ee4682643ac1a4050191",
+    "proof/CodecMontagemNomes.bend": "5e90abe4cd58a7c0e672558832527ab06ad71a19d806e1a5d78a972a3792b724",
+    "proof/CodecMontagemOrdem.bend": "108b1a69a262207ee65b1194b882e8c081ddde8cb51712f67d7f2d5290e07668",
+    "proof/CodecMontagemVerificar.bend": "1d5c2d26359a2ad810243c1e9b999e9c90e535bc817beb2afce66c86e8988b98",
+    "proof/CodecNomesASCII.bend": "c7d90a75270716dcf526dc4816f9a9606bc6ca8cf7496ee45720cbe3cb66e1bf",
+    "proof/CodecNomesAbertura.bend": "02d9a58d31f906ecc18c945dca1e50d9ad23a4d3c674fb99daf9d4526b537d88",
+    "proof/CodecNomesChar.bend": "af8b95df61834ecb383e84d1f7eefc62c804c090aa66a779362d10318a6f6d74",
+    "proof/CodecNomesLocais.bend": "e453882dc763f7cc2b15fbdaf0d4eb54be50f58bc6eed3bf27b2b1cfa487a7d5",
+    "proof/CodecOctetos.bend": "473199b35c7a914d23b8749e3b7d8b377113598df1b6c95321b5dff434ba47ca",
+    "proof/CodecPalavrasBE64.bend": "db39ac80c88a3e88858569d24591f03dd17b6f61a34df3e08a04862efb780d1e",
+    "proof/CodecPalavrasInversa.bend": "cf810203ec0c87246a8cf2c9dce9f8fa070f3ad250481ee6ba89fb5daf68c893",
+    "proof/CodecPalavrasWord.bend": "350920693228254f939f65d79ba2b2d673e29cd3b0937f9d42aaa2afdc41b289",
+    "proof/CodecPercurso.bend": "ae59a058597aa46a6ea01ab59fdafa344fc64fe52ac4730d3bb4d5657ebb36e3",
+    "proof/CodecPrimitivos.bend": "7aa900fcd9a36c4a70bd73ceda6985a775c795a1259939df6252d52268413e69",
+    "proof/CodecPublico.bend": "f38ec22c5e2a9ddeb6d8a59ac34a93f69491ed0586fe14f62d78eab0dba42c6f",
+    "proof/CodecRecusas.bend": "7cab5a6de8ef3f1c2dd7456a6e0be49627bd7a06c47fd2a9be2d7139fa51fb93",
+    "proof/CodecRegistros.bend": "c2a8a06ccad3398fd67fda839c3a38ee8f0c17987362290d58a8828a5c12ebb0",
+    "proof/CodecRelaxar.bend": "4113316800077bfac3a84034f92fe5dd90fcb4fd960cb4b9148407014601f64c",
+    "proof/CodecRelaxarAritmetica.bend": "b3e1dbd547e43f643da0fd70cbec55040d61440ef50200bb95ad5ad7e9fd2fae",
+    "proof/CodecRelaxarAritmeticaNat.bend": "701040ce010bff29df7d3f0f3271ef49ce42f3d63fe69184f60576e455ec5770",
+    "proof/CodecRelaxarAritmeticaWord.bend": "38ce1e3b1d472b7acefa2da3960e35e16f7cc57504bda04ddd293d06e675cc93",
+    "proof/CodecReservas.bend": "7275bfafed47f05dede0cfeef3635a7c652cce2b4ea899410b2fc867edf1af01",
+    "proof/CodecSequencias.bend": "675f20a4659a764ad0e6790f4397ab8bbcecec024cad676cea9f98a8d6f4e6e3",
+    "proof/CodecSomas.bend": "b70a9311d793413b516ef09b132f0df6ebbd85e4a1125c1ca758eb1fa8b8352a",
+    "proof/CodecSomas64.bend": "f0a9a3f2a2733241bede72c6be71b99a942052ed1fff2bd96c32b68b33426309",
+    "proof/CodecSomasBits.bend": "34c85339e9002a8cbb523bc599cb7d8c7532d22a454b01ecd03ce9be0e3f5feb",
+    "proof/CodecSomasMinimos.bend": "0662beff741dc3062cb32c89db61f91af69ba6dac77885d6fd22c6b1ea1db767",
+    "proof/CodecSomasOrdem.bend": "979648fb7d1464484dab065c07fa3f2b0375efb0a66a06409c9dc7d104410dc8",
+    "proof/CodecTamanhos.bend": "8e2f157ce8c96164f4041ef7554a81d40b3b3777735a935d7a90fced65e327bb",
+    "proof/CodecTextoAceito.bend": "c411d9e95b8fd606990238753a45c5e0e3186c078751dbac8a67596ce021de42",
+    "proof/CodecTextos.bend": "0bea97a29faf2c8bbd53510e96270a34eca599003dc4993c194fa24393f2e58d",
+    "proof/CodecUTF8.bend": "7380c3defdd5be791950babc9cbac4f81e642725d5441c154a3c5a2e92d1e507",
+    "proof/CodecUTF8Bits.bend": "e60bf6ea7cbebd75788bf6b771972a44c06ae39cb17a2e91c08187d1f30d8db4",
+    "proof/CodecUTF8Inversa.bend": "d68a9e5de04236d4e7c4a6b7ef415ec495a9e5a9e7fe59df4e76bb371d6e42ff",
+    "proof/CodecUTF8InversaBits.bend": "f3d437f1832fdc80dc63d5aaf54e8fa1bb47f11e415275e7e64f7ea16e688844",
+    "proof/CodecUTF8InversaCanonica.bend": "7e4e6d9de91446a4aef380a924155cb5fc645c763f10854fa8cb4094ff1f7b63",
+    "proof/CodecUTF8InversaOctetos.bend": "00fe53a7a0dfc53bc4d8fe4f501ad290da61f0547e9017adc78585af87f4729d",
+    "proof/CodecUTF8InversaTexto.bend": "6c11164a61f8e2011c1f964c917a22ec523e32ef63a1eead10ee100d1bf12258",
+    "proof/CodecUnicode.bend": "4525b5084f1247ce84ab0faae958553181191267a755449ac760a1831370dacc",
+    "proof/CodecVerificar.bend": "22e93eb81a9fa7befafef2d032db178acf49650c1e35c4c968625dde5b70ae82",
+    "proof/Configuracao.bend": "9ee3bd2b6fcf522926f65c937dc8aa944a304c0768797e758768e51d29d2b9ef",
+    "proof/Entrada.bend": "9c011ca1617e5ba24a55df40dd0e1756070d7e6f7da25d11475028e2df7a94e2",
+    "proof/EntradaErros.bend": "874511396e4e4fb0e0ae900caeb4bd8c294ea7dd36192904bbbe764e90cf356d",
+    "proof/EntradaMedida.bend": "8e075f768ab2e1919d8de64607e3cc3fb55d98506e91acf7f0beda9eeab84e7d",
+    "proof/EntradaRecusas.bend": "064b3b9f2dbb72158d76ff6ad8b9f97421762b0eb3071ebea273e9b320bb1897",
+    "proof/EntradaRelacoes.bend": "23cbd81dec1e15376e283e2145c5b876e457204dc7492c121cf0ad4363d8269a",
+    "proof/EntradaVerificar.bend": "1cfe309f96f0d0a5db724ea7c0ce07c90f46dbe337ba77afc4351a2e743bab56",
+    "proof/ErroLimiteFixo.bend": "b1e29a8a006e85a6bc9252aac7e1d99c412571161cfad1d68b1b47c894b09b9e",
+    "proof/ErrosFixos.bend": "6dfcacfb922621240d90c267b31ab11e299f6321fa0085effb77a0fec18640ac",
+    "proof/Fundamentos.bend": "579b6490ef94b66f62b87c03cea147fbfaa630eb4bf326ed38e804f4e2ea109d",
+    "proof/Maquina.bend": "8c604535b016f492ccd44637f319739a889dce4caf09a62571060700c5c7041e",
+    "proof/Ordens.bend": "46ab1e5c89ec5d64228c81fea25ffa079ea0ccbc10a720695ae2ccb1654188b7",
+    "proof/Preparacao.bend": "e7df95f3cdeb219e1332aaab3ce4f9f161389c9b4fe0c0a216757bca653b4222",
+    "proof/Publicacao.bend": "9d3da401c643a94bd73f8c4a14ab733b4d284102c668bb1a488196390544c4f8",
+    "proof/RecepcaoLimites.bend": "d62322885ab9123fe594b0adfd54f03957d95886885a47baee43eb1a71084888",
+    "proof/Recursos.bend": "48c9efc3757fe5abe6125f81ec90d5496dee357390c4569cdb378f2a5449077d",
+    "proof/Reificacao.bend": "f9aab151e1014e9b540cc8e50e1bd21ddaf3cc82886c5eae171ca17c3d4f36f0",
+    "proof/Representacao.bend": "820b74ad8814ede5b4e4ecc61814b33d8dca7f9aae21182d1660c19e48d98fc0",
+    "proof/Seguranca.bend": "8bf2430a977ab41a0fb8dd64d60102ec8d1c8c58e0aa9fabee655d1739d54e79",
+    "proof/Transporte.bend": "44bc6631d3369cb636cfb6c9c7711191f53beb7db2292d3a1f2aa5e3ba365e80",
+    "proof/VERIFICAR.bend": "3902dd85c00161276f810e06a6e1940c0ecd7273adc220a0c9a73af402db89cc",
+    "src/Codec.bend": "9a02cae713ebdd45fe65308829c7507776b8b982206d8efa5699b663b2576919",
+    "src/Configuracao.bend": "c4024f595e296d4d4391b90772288a74fe3e7bd015d2a6abc169de2d61105d7f",
+    "src/Entrada.bend": "cdaeb8251b8fb455cb00e7ae1203d0d4a7855ffb10d81ca96bceb346f3d9ca8b",
+    "src/Estado.bend": "235626f31f1f95629a9e906a47d9e196cb74606725cc3e2e5abbd8293f2eae2e",
+    "src/Execucao.bend": "d28c0ae9945778514824309129f0a3a3d8f0abe5f42019a38707e2b72af05b6e",
+    "src/Nucleo.bend": "926c84e1b38c79551c53f9767fc299fbe96a57edf74eda9823847a34d6012993",
+    "src/Reificacao.bend": "1c1beed67c3f14c9e447efa8c34c629a0f70997ff1f9f2523f307b994f797545",
+    "src/Requisicao.bend": "be5176c4d78bc3a0cd26e34d810944f900b06928a0e1fddb333898750988ba69",
+    "src/Transporte.bend": "d1bd685814cc325b26b7649cbc6a40a5027f81bb59c5b6f22e251503e72dc2f2",
+    "tests/proof/AlocacoesComprimentos.bend": "bd4360eb411ca6ff022f03e0a824473a7aef101c49d0f623dbaa09722d20375b",
+    "tests/proof/Certificado.bend": "ef77609f236f43102f85832533932c1a6ea45eb8ce1810f122e24ffe692a5a7e",
+    "tests/proof/Codec.bend": "0347191be0dad36ef3a822cfe32f8719e4a7ee5276fb6f370cc28c4c421c1d97",
+    "tests/proof/CodecCompletude.bend": "b9862471890a24fecc1ee5e456b43c6e64511de70a0922f9f86d749ca74de9cd",
+    "tests/proof/CodecLei2.bend": "221f9869a8afe8ea761df651224c912f04bb37b88a1821ac66c5b91cabae40c7",
+    "tests/proof/Entrada.bend": "f32e7ce9e51114a6f13acacd0ab667a1538e6b36867565b1d7881d4ea2bd909e",
+    "tests/proof/EntradaErros.bend": "f61262dd3f945376be99bcee998dc93cf4eb52a408876a400ea8bd49e1f9744e",
+    "tests/proof/EntradaLimite.bend": "aee94e28a632ef3c249b10ed1a5b54563d3ebbf466c94528a8b56dae1977506b",
+    "tests/proof/EntradaMedida.bend": "26e8b9fdd4526ebe576fe97e93ec0686b5b9217a0c132a5b9db4a4d3a4df1224",
+    "tests/proof/EntradaRecusas.bend": "8d51bab178dd7468d09535e78092c0fb01b78efced5003d1ef2c3aadce42006c",
+    "tests/proof/EntradaRejeitaArgumentos.bend": "581e416cecb1dad851db1970945020b0f14f6a13011ebcf467d71de475daf827",
+    "tests/proof/EntradaRejeitaBlocoOmitido.bend": "d218467b50da831df8a4893d4c8643fe2e714dc109d73fa7018e342e1e9e48fa",
+    "tests/proof/EntradaRejeitaContexto.bend": "bba8dd864fc4005ee4bf3242ae8f49ef74e5d6096f624f886242d9fa6b916ff4",
+    "tests/proof/EntradaRejeitaEnvelope.bend": "e901fe949082a502dfd0ef9342cf68edc690d3dc4676678b41f33152448495be",
+    "tests/proof/EntradaRejeitaEstado.bend": "48b03df39c612ef05a9301913744f29e8ade685fcbc58b5bb13f21551b091994",
+    "tests/proof/EntradaRejeitaLimite.bend": "47f1df4c0f45e8332796c948a2d3994554df25b7545fdfd6f41cc8bd4d1abfe9",
+    "tests/proof/EntradaRejeitaLimiteInterno.bend": "727cdf8388a73a2767c1e37b13e78af097ee2e617022467d35a76f2669b2fca1",
+    "tests/proof/EntradaRejeitaTrabalho.bend": "b0088fe17472ca5c594be8e042297423707766b2eba59805f44fa994c0e68a11",
+    "tests/proof/EntradaRejeitaTransporte.bend": "d6cfa6c92b5e01c8a81b51babc67cca64f0c6a82d057be588b9eb6ea1ba84421",
+    "tests/proof/EntradaRelacoes.bend": "beb33483862205a617d82ea84c19a834e6a16417ae83345f8119ea70962a172b",
+    "tests/proof/EntradaVerificar.bend": "91089cb5a1113f453ac9b2cc78407948044c4ca5588b13ea06f6e6b16d945f27",
+    "tests/proof/Preparacao.bend": "8b1a207aefe09928262b9a653a65e85de62008e2a388dfd5c029be1015603026",
+    "tests/proof/RecepcaoLimites.bend": "cbaf77884794dd17f04522f4283af7b683a1868a5d7c47fd725fcd5160c058ca",
+    "tests/proof/RecursosLogicos.bend": "9bbe9d4d8249b91a2fbb4ce5e372f815fb7f4c3787953b1b20ffe4640469d856",
+    "tests/proof/Reificacao.bend": "6441520a73dbc0b3ea7984116672b5c2af6ebc05b645a1dcb0d2184a7cb4b004",
+    "tests/proof/Representacao.bend": "3e65779f4e0a6ade696871cecbd0e2c616a0806f290b08325d99fa2fe5a416f6",
+    "tests/proof/Transporte.bend": "c3c9cb1ae64a632eb91036602601c5b282bdc0d9eb9c3c91a914d4ddfca59780",
+    "tests/proof/VERIFICAR.bend": "75fedb838314200bdb0ff02fc6a1a377d5ab8dfb084e0ede8c1537a03c69dd4c",
+    "tests/proof/rejeitados/AlocacaoIgnoraCorpo.bend": "400964dd36ffc2387bc99019762981fc09900d4288c41cc0988405eeb87afc07",
+    "tests/proof/rejeitados/AlocacaoNaoProvaConferencia.bend": "3bb3909ed221032a845e3ef7b7389de774cadaeb1388bde36fc740c06bfb23d2",
+    "tests/proof/rejeitados/AlocacaoSemGuard.bend": "4f52b6d9ed10162b1b8035c33536fa613b8668825004f526a02bb07ae23e1a44",
+    "tests/proof/rejeitados/ArgumentosTrocados.bend": "f2c5e03444caffd31de222018f968d60fc11ff198e0a36f5a32a67f156761323",
+    "tests/proof/rejeitados/BytesForjados.bend": "7b4061ac9f28a10573197033f0ac19e09e8a11b5db94e993451027e9686ba515",
+    "tests/proof/rejeitados/ConfiguracaoIdentidadeTrocada.bend": "26b32ee6d10ef77fd3ee81b5f0aa1310b2325cbd0bad69e378c266cdac2e0af3",
+    "tests/proof/rejeitados/ErroFixoTrocado.bend": "1e95e72d26b6d6f285b09c066056d82b8e13bb839ad9b7bbede2d9c41a033e05",
+    "tests/proof/rejeitados/EstadoTrocado.bend": "dbd6abda2e8b8d457718d952c8bf33fe7740eb53bdb96bb8fa639a9e83a8c935",
+    "tests/proof/rejeitados/EventoNaoProvaFalha.bend": "263f2866c3afdf5e05d2bb46332e940091ef120d295b030f3c1238eb89a51dcb",
+    "tests/proof/rejeitados/LeiAdministrativaOmitida.bend": "d8b200962c5c00b80bc55b48c921608b218c07bcb4ada06fe332efacb3db497e",
+    "tests/proof/rejeitados/PrefixoApagado.bend": "f7707e78e1824b5471868229c4a95451ea10981d718f88c20869031f3faeed63",
+    "tests/proof/rejeitados/PublicacaoInvalida.bend": "73b495664e641c23a2e745b5cf30d11e60180da80ae425294a9ad87e19570dfe",
+    "tests/proof/rejeitados/RecepcaoCabecalhoTrocado.bend": "d72798c1f8dcdbcd077e497ff59d5a4ea72c14740a76f51eb897d0112fd0dcfa",
+    "tests/proof/rejeitados/RecepcaoIgnoraRestante.bend": "0dbeafd33e50db8e31100386ad94b38cf1fc07baee4bd2231050a5cbe05b23ec",
+    "tests/proof/rejeitados/ReificacaoTrocada.bend": "207dce5af05ddc3f4d3d56f2092d6bd495e05fa63d63ad7a0e939dbb0b850b91",
+    "tests/proof/rejeitados/SemIdentidade.bend": "ab24216d63c86150fdb407cfb753db98369810ea76db798a2f209a3b7e711240",
+    "tests/proof/rejeitados/transporte_segundo_bloco.bend": "764719bb86141d66561056dc761104ce6181f0a35f363e82c9d54a9b4c5f8747"
+  },
+  "originalsSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/ESPECIFICACAO.original.md": "c88c5a92c70687f618cc7652366057edcaca73f19d7340548f50ed5e3ac69882",
+    "contrato/Interface.bend": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
+    "contrato/LAWS.bend": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/README.md": "c2328f9ac9ad91ff1486e0d5ed8024c40d6949da7dd217f0a24124a2c5e8cf94",
+    "contrato/Recursos.bend": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
+    "contrato/Requisitos.bend": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
+    "contrato/Semantica.bend": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICACAO.json": "ac514247627389a7e69f1470de1fe12d135a7064ac72a0b298939cbaa0131754",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
+    "contrato/verificar.py": "73ca1e3cfd3869463f72ea6d853f8393ccda9b871820863119c2956e905199e1"
+  },
+  "activeContractSha256": {
+    "contrato/Bytes.bend": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+    "contrato/Dados.bend": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+    "contrato/DadosExemplos.bend": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+    "contrato/Interface.bend": "e031741e3851c62bf1dc89fff3bc93210c084931c0f8f07803e8a5c996a02cf0",
+    "contrato/LAWS.bend": "1c3a67e8b02715a23866e3236502c1be20ad55c0e8bfba41b677625f784bafae",
+    "contrato/LEMAS.bend": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+    "contrato/Logica.bend": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+    "contrato/Protocolo.bend": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+    "contrato/Recursos.bend": "3c7cae73f13d20d020564d25c228184ea48f03c10553d8c0e078b2c9ac5437c2",
+    "contrato/Requisitos.bend": "53f605a94510105215fda19964341eaf86d33e50536fe615d0dcdfdfb82f4aef",
+    "contrato/Semantica.bend": "a17bd88495d2d11528d13e24a82a65e3483ade3247fe81aac51baead496b603f",
+    "contrato/TestesProtocolo.bend": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+    "contrato/VERIFICAR.bend": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
+    "contrato/Vinculos.bend": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0"
+  }
+}

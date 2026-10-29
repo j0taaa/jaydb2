@@ -1,0 +1,98 @@
+{
+  "purpose": "Explicit no-default-config compiler profile for selected native and service builders",
+  "previousCandidate": {
+    "manifest": "tests/service/checkpoints/completion_v8.json",
+    "manifestSha256": "89985931556bb574d6e5c822ce624ac1b5b329febb9a39b1b619dcefe80abbba",
+    "archiveSha256": "4983923793f94af846494243e3394d9644f16dc6cb38debf60b57d18dde167ae"
+  },
+  "productionChanges": [
+    "tools/native/build.py",
+    "tools/native/build_recipe.py",
+    "tools/native/build_field.py",
+    "tools/native/build_constructor.py",
+    "tools/service/build_loading.py",
+    "tools/service/build_lifecycle.py",
+    "tools/service/build_commit.py",
+    "tools/service/build_receiving.py"
+  ],
+  "implementation": {
+    "compiler": "/usr/bin/clang-19",
+    "driverFlags": [
+      "--no-default-config"
+    ],
+    "budgetsUnchanged": true,
+    "compilerHashRecordedAndRecheckedByModuleBuilder": true,
+    "moduleHashIsNotSemanticProof": true,
+    "noBendOrLawChange": true
+  },
+  "checks": {
+    "extractedHostExecutions": 256,
+    "extractedDistinctIds": 249,
+    "old253MethodsUnchanged": true,
+    "elapsedNs": "32192453977",
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "tests.service.test_controller",
+      "tests.service.test_delivery",
+      "tests.service.test_abi",
+      "tests.service.test_entry",
+      "tests.service.test_commit",
+      "tests.service.test_completion",
+      "tests.service.test_completion_review",
+      "tests.service.test_completion_v5",
+      "tests.service.test_memory",
+      "tests.service.test_receiving",
+      "tests.service.test_channel",
+      "tests.service.test_loading",
+      "tests.service.test_loading_consumers",
+      "tests.service.test_lifecycle",
+      "tests.service.test_lifecycle_consumers",
+      "tests.service.test_isolated",
+      "tests.service.test_compiler_profile"
+    ],
+    "extractedLog": "tests/service/evidence/compiler_profile_v9/extracted-host256.log",
+    "extractedLogSha256": "78b82bc08188e601efb761981cce35d8d80131ac5fe69b5bc4fda048ad1d6b46",
+    "extractionWorkingDirectory": "/tmp/jaydb2-completion-v9-work-4tkktpy0/source",
+    "newProfileMethods": 3,
+    "nativeSupportMethods": 42,
+    "nativeSupportFixturePositivesNotMemoryProof": true,
+    "excludedNativeMethods": [
+      "test_real_observer_incomplete_refuses_and_releases_hold",
+      "test_real_ptrace_incomplete_refuses_after_actual_acquisition_preserving_active_window"
+    ],
+    "preliminarySuccessfulRunsPreserved": true,
+    "noCompleteBendDatabaseE2ERerun": true
+  },
+  "counterDependency": {
+    "manifest": "tests/accounting/checkpoints/retention_v9.json",
+    "manifestSha256": "3646278e06f6f33be55f06c7d2fd29a6fec65f9d1959e63dd503a1b41b3eb875",
+    "archiveSha256": "ad602408c48f6a8e307765daf68f473ed2a51384b0697190484ad6b5abf44fff",
+    "complete": false,
+    "payload": "Frozen V9 inherited from completion_v8, no live observer build",
+    "INCOMPLETE": true
+  },
+  "priorIndependentReview": {
+    "report": "tests/reviews/completion8/independent/REPORT.md",
+    "reportSha256": "430ca08d1bac8767a9511c7656f1baea54ac3bcf9a5fe116f91f6e17a4fd839a",
+    "newCandidateApproval": false
+  },
+  "unchangedFrontendPins": {
+    "generic": "4b71ed5150db96dd46a87ceeaf91819ba0e42b571818f98698eddc6319037ac3",
+    "frontendLock": "244841e2e74a128afbd4809332ab9a039f2fdc2283546c21c7ea04b9c2c5715c"
+  },
+  "unresolved": [
+    "fresh independent review of compiler profile selection",
+    "complete tool/header/linker/stdlib/ELF/env stability and initial capsule",
+    "N2 cooperative integration and nonqualified cases / actual lifecycle and progress",
+    "complete memory / Field / real channel / original-codec instrumentation",
+    "Safe V6 research not promoted / general compiler correspondence"
+  ],
+  "allOriginal18Unchanged": true,
+  "completeServiceMeasurement": false,
+  "fullLaw2": false,
+  "fullContract": false
+}

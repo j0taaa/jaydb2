@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-29T04:20:10.910065+00:00",
+  "tests": 22,
+  "passed": 22,
+  "log": "/tmp/jaydb2-commit-artifact-22.log",
+  "logSha256": "fcc0097f9f01e7fd9c0f632ff3150caa87468ba4efb55729e82699980c5c52d2",
+  "originalEncodingChecks": [
+    "--check-only",
+    "--verdict"
+  ],
+  "encodingLogSha256": "72bc2d3da4a4cc06752da47c421308682a6193bbfbf91f9fff39a7c333f25ef0",
+  "productionAudit": {
+    "testFixture": false,
+    "stackBytes": 4096,
+    "criticalFrameBytes": 40,
+    "criticalIsLeaf": true,
+    "criticalFixedLoopsAndRawSyscallsOnly": true,
+    "stackUsage": "tools/service/commit.c:151:jaydb_commit_describe\t0\tstatic\ntools/service/commit.c:163:jaydb_commit_stack_bytes\t0\tstatic\ntools/service/commit.c:196:jaydb_commit_finish\t88\tstatic\ntools/service/commit.c:164:finish\t168\tstatic\ntools/service/commit.c:203:jaydb_commit_resolve\t0\tstatic\ntools/service/commit.c:78:critical\t40\tstatic\n",
+    "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+    "moduleSha256": "d0860c3a088ed3ae07a17b6e566c0a10cc63220bc070b164b932f6a826e97550",
+    "buildIdentitySha256": "426e89095e866895c2a9a3e893f53fdc64a02a29c5c373ce181279c351e52b16",
+    "sources": {
+      "tools/service/commit.c": "ccea3ac567639c1eb168e6d44578fa5be8c822261a155cf8693edcde456a4117",
+      "tools/service/commit.h": "383004c50448de5325973a8be4d718a5a36d8b26cf00832de30e7d7b6753d7dd",
+      "tools/service/commit.S": "c9baddff466ed42c2285b0c5e37f82cbe3debe1eec172fefccf7cdd3f8b70979",
+      "tools/service/build_commit.py": "0fa9fc9f06349e559bb1f3ce4458eae49c1e936fdeee8327c95af0de26a236ad",
+      "native/accounting/counter.h": "7de2a9f93a12fc95c3cfade4aa86a8d73b263f14515966c19073107dd0833b98",
+      "native/accounting/window.h": "25113cd0a58efa5113ea188180756f2e6a185c80267e7a6aed2325eea6f34d32",
+      "native/accounting/deadline.h": "97fd96765cece1f927beff655e9849ee0e7d8c86caad6ed41db879010778441f"
+    },
+    "fullExecutableContractProved": false,
+    "integratedIntoController": false
+  },
+  "sourceHashes": {
+    "tests/service/test_completion.py": "dd38cc8ddeff93fde85d38a090f0b4d38fc36bccee29a88eb6ce670647902588",
+    "tools/service/commit.c": "ccea3ac567639c1eb168e6d44578fa5be8c822261a155cf8693edcde456a4117",
+    "tests/service/test_commit.py": "8f5e9c522a21df24ec34e6961206a6aab0f94c20138d9f881aa9f4f88283a213",
+    "proof/ErrosFixos.bend": "6dfcacfb922621240d90c267b31ab11e299f6321fa0085effb77a0fec18640ac",
+    "tools/service/commit.S": "c9baddff466ed42c2285b0c5e37f82cbe3debe1eec172fefccf7cdd3f8b70979",
+    "proof/ErroLimiteFixo.bend": "b1e29a8a006e85a6bc9252aac7e1d99c412571161cfad1d68b1b47c894b09b9e",
+    "tools/service/completion.py": "1cb008cc07d73f8709be3556a6f19ed7f5f2c596d731b49c432fd5976e68f136",
+    "tools/service/commit.py": "7e06a1f7ab2acb40032a1bd849cbec197b9010edfabf6066b928c2a1f55c48cf",
+    "tools/service/commit.h": "383004c50448de5325973a8be4d718a5a36d8b26cf00832de30e7d7b6753d7dd",
+    "tools/service/frames.py": "37bc8dbb121dfad5ff4d2a40cf9af7a5328f1ac4d1ad55aa4110c438a6947825",
+    "tools/service/build_commit.py": "0fa9fc9f06349e559bb1f3ce4458eae49c1e936fdeee8327c95af0de26a236ad",
+    "tests/service/commit_fixture.c": "7fc8efab6febe3fb04a2b45fef18ed835c346bff84c539213cc4e01b170f2c6d"
+  },
+  "original18Unchanged": true,
+  "syntheticPositiveObservationsAreFixtures": true,
+  "realPtraceRefusesIncomplete": true,
+  "integratedIntoController": false,
+  "fullExecutableContractProved": false,
+  "privateControllerHookAvailable": true,
+  "wholeEntryIntegrated": false,
+  "loadedArtifactDescriptorValidated": true,
+  "atomicArtifactPublication": true
+}
