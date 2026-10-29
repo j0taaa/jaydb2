@@ -43,4 +43,4 @@ Use os comandos do README raiz. O frontend é derivado offline das fontes oficia
 
 `verification.initialFuel` e `initialModelFuel` são controles de desenvolvimento do verificador. A exaustão aumenta o combustível sem teto; não se transforma em recusa matemática. Não há orçamento físico obrigatório.
 
-A tradução estrutural ainda não cobre todos os tipos originais: grupos gerados mutuamente recursivos, reflexão opaca, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.
+A tradução estrutural ainda não cobre todos os tipos originais: recursão por matches que exige transportar funções lineares entre os parâmetros, grupos gerados mutuamente recursivos, reflexão opaca, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.
