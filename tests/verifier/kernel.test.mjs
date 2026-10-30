@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import child from 'node:child_process';
 import { validateVerifier, checkBook, checkKernelFile, VerifierInfrastructure } from '../../tools/verifier/check.mjs';
 
 const info = validateVerifier();
@@ -38,4 +39,20 @@ test('unsupported representation is infrastructure', () => {
   };
   assert.throws(() => checkBook(unsupported, {}, info),
     error => error instanceof VerifierInfrastructure && /representation out of scope/.test(error.message));
+});
+
+// This tests our CLI-result mapping, using the pinned kernel's exact format.
+test('official fuel exhaustion is infrastructure, not a false certificate', t => {
+  const file = input(t, 'unit : <ok> = .ok\n'), spawn = child.spawnSync;
+  try {
+    for (const why of ['In proof:\nout of fuel', 'out of fuel', 'In proof:\nexpected: <out of fuel>\nobserved: .wrong']) {
+      child.spawnSync = (_bin, _args, options) => {
+        fs.writeSync(options.stdio[1], 'SOME PROOFS FAIL\n' + why + '\n');
+        return { status: 1 };
+      };
+      if (why.endsWith('\nout of fuel') || why === 'out of fuel') {
+        assert.throws(() => checkKernelFile(file, info), e => e instanceof VerifierInfrastructure && /out of fuel/.test(e.message));
+      } else assert.equal(checkKernelFile(file, info).why, why);
+    }
+  } finally { child.spawnSync = spawn; }
 });

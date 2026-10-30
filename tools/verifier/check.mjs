@@ -34,7 +34,13 @@ export function checkKernelFile(input, info) {
     const out = fs.readFileSync(log, 'utf8').trim();
     if (got.error || got.signal || got.status === null) throw new VerifierInfrastructure(got.error?.message ?? 'Verifier terminated by ' + got.signal);
     if (got.status === 0 && out === 'ALL PROOFS CHECK') return { why: null };
-    if (got.status === 1 && out.startsWith('SOME PROOFS FAIL\n')) return { why: out.slice('SOME PROOFS FAIL\n'.length) };
+    if (got.status === 1 && out.startsWith('SOME PROOFS FAIL\n')) {
+      const why = out.slice('SOME PROOFS FAIL\n'.length);
+      // Book.check prefixes the original checker's exhaustion with its def.
+      // A stopped check establishes no mathematical rejection of the proof.
+      if (/^(?:In [^\r\n]+:\n)?out of fuel$/.test(why)) throw new VerifierInfrastructure(why);
+      return { why };
+    }
     throw new VerifierInfrastructure(out || 'Verifier exited without a verdict: ' + got.status);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 }
