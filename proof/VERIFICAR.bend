@@ -8,6 +8,7 @@ import ./Maquina.bend as Maquina
 import ./Seguranca.bend as Seguranca
 import ./Preparacao.bend as Preparacao
 import ./Publicacao.bend as Publicacao
+import ./Chamada.bend as Chamada
 import ./Representacao.bend as Representacao
 import ./Adaptadores.bend as Adaptadores
 import ./Recursos.bend as Recursos
