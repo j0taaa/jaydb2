@@ -29,22 +29,28 @@ def f(~p: Nat, n: Nat) -> Nat:
       p
     case Succ{x}:
       f(p, x)
-def helper(b: Bool, p: Nat, t: ProofToken, n: Nat) -> {f(p, n) == p : Nat}:
+def helper(b: Bool, p: Nat, ts: List<&1, ProofToken>, n: Nat) -> {f(p, n) == p : Nat}:
   match b:
     case False{}:
-      match n:
-        case Zero{}: {==}
-        case Succ{x}: helper(b, p, t, x)
+      match ts:
+        case Nil{}:
+          match n:
+            case Zero{}: {==}
+            case Succ{x}: helper(b, p, ts, x)
+        case Con{head, tail}: helper(b, p, tail, n)
     case True{}:
-      match n:
-        case Zero{}: {==}
-        case Succ{x}: helper(b, p, t, x)
+      match ts:
+        case Nil{}:
+          match n:
+            case Zero{}: {==}
+            case Succ{x}: helper(b, p, ts, x)
+        case Con{head, tail}: helper(b, p, tail, n)
 def ordinary(n: Nat) -> Nat:
   f(3n, n)
 def goal(n: Nat) -> Type:
   {ordinary(n) == 3n : Nat}
 def theorem(n: Nat) -> goal(n):
-  helper(True{}, 3n, ProofToken{m => m}, n)
+  helper(True{}, 3n, Con{ProofToken{m => m}, Nil{}}, n)
 `;
 
 // R4 must reuse the checked nested specialization when C executes id(id(1)).
@@ -59,7 +65,7 @@ test('nested template interning preserves the checked value in C', async t => {
 });
 
 // The certificate consumes a non-reflexive proof with Bool before recursive
-// Nat cases and a linear function argument. Generated transports must preserve
+// Nat cases and a list of linear functions. Generated transports must preserve
 // the original descent tree and quantities.
 test('private checked Book links structural evidence and emitted C', async t => {
   const f = fixture(t), { info } = await loadToolchain();

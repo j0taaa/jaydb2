@@ -35,7 +35,7 @@ Além da checagem dos alvos no frontend, o kernel verifica o corpo fornecido con
 
 O fingerprint interno existe apenas para detectar o ponto fixo do fechamento. Não há selagem de protótipos JavaScript, getters, descritores ou suporte a um embedding que adultere estruturas internas.
 
-O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre famílias monomórficas independentes, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores e a quantidade dos campos lineares. Aplicações de lambdas usam a substituição comum do tradutor. Domínios dependentes mantêm o fechamento imediato; nenhum verdict provoca troca de rota.
+O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre famílias independentes, incluindo coleções com tipos e quantidades fixados, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores. Relações de Data podem ser reutilizadas; campos que contêm funções continuam lineares. As relações de entrada são construídas dos campos reais da coleção, sem hipótese externa. Aplicações de lambdas usam a substituição comum do tradutor. Domínios dependentes mantêm o fechamento imediato; nenhum verdict provoca troca de rota.
 
 ## Fronteira IO do núcleo
 
@@ -47,4 +47,4 @@ Use os comandos do README raiz. O frontend é derivado offline das fontes oficia
 
 `verification.initialFuel` e `initialModelFuel` são controles de desenvolvimento do verificador. A exaustão aumenta o combustível sem teto; não se transforma em recusa matemática. Não há orçamento físico obrigatório.
 
-A tradução estrutural ainda não cobre todos os tipos originais: grupos gerados mutuamente recursivos, reflexão opaca, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.
+A tradução estrutural ainda não cobre todos os tipos originais: grupos gerados mutuamente recursivos, reflexão opaca, famílias recursivas que mudam seus parâmetros, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.

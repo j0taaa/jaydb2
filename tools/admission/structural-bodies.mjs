@@ -10,17 +10,23 @@ export class Bodies {
   }
   open(t) { let T=null;t=this.B.term_force(t);while(t.$==='Ann'){T??=this.B.term_force(t.T);t=this.B.term_force(t.x);}return {x:t,T}; }
   definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
-    // Independent monomorphic families share deferred opening. Field
-    // quantities are preserved unless their checked relation is Data.
-    const independent=(A,seen=new Set())=>{
+    // Independent family instances share deferred opening. Field quantities
+    // are preserved unless their checked relation is Data.
+    const independent=(A,seen=new Map())=>{
       if(A.tag==='scalar')return A.T.$==='Enu'&&typeof A.quantity==='number';
       if(A.tag==='arrow')return independent(A.A,seen)&&independent(A.B,seen);
-      if(A.tag!=='family'||A.args.length)return false;
+      if(A.tag!=='family'||A.args.some(x=>x.tag!=='type'&&!(x.tag==='constant'&&/^Q[012]$/.test(x.value.k))))return false;
       const d=this.gen.families.get(A.key);
-      if(!d||d.parameters.length||![1,2].includes(d.quantity))return false;
-      if(seen.has(A.key))return true;
-      const next=new Set(seen);next.add(A.key);
-      return d.constructors.every(c=>c.fields.every(f=>independent(f.type,next)));
+      if(!d)return false;
+      const plan=this.gen.plan(A);if(![1,2].includes(plan.quantity))return false;
+      const key=this.gen.termKey(plan.p);
+      if(seen.has(A.key))return seen.get(A.key)===key;
+      const next=new Map(seen);next.set(A.key,key);
+      return d.constructors.every(c=>c.fields.every(f=>{
+        let type=f.type;
+        d.parameters.forEach((p,i)=>{type=this.gen.substituteType(type,p.key,A.args[i]);});
+        return independent(type,next);
+      }));
     };let T=type,n=0;
     while(T.tag==='arrow'&&T.q>0&&T.A.tag==='family'&&independent(T.A)){n++;T=T.B;}
     const cases=n>0&&T.tag==='identity'?{key,physical,logical,type,args:[],frames:[],skip:0}:null;
@@ -153,7 +159,8 @@ export class Bodies {
         return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
       }
     } else throw Error('Structural function body not implemented: '+x.$+' over '+type.A.tag);
-    return bind('Lam',[[0,p,A.p],[0,l,A.l],[type.q,r,A.relation(V(p),V(l))]],b);
+    const rq=type.q>0&&A.quantity===2?2:type.q;
+    return bind('Lam',[[0,p,A.p],[0,l,A.l],[rq,r,A.relation(V(p),V(l))]],b);
   }
   specializeType(sourceType,ctx,prior,env){return this.source.type(sourceType,ctx);}
   caseFieldBranch(body,ctor,F,physical,logical,env,ctx,fields,cases=null,frame=null){

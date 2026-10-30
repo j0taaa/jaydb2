@@ -10,6 +10,7 @@ export class BoundaryBodies extends Bodies {
  constructor(source,relations,safe) {
    super(source,relations);this.safe=safe;this.origins=new Map();this.generics=new Map();
    relations.substitute=safe.state.admissionViewOps.sub;
+   relations.termKey=safe.state.admissionViewOps.key;
    relations.erasedReference=(k,views)=>this.erasedReference(k,views);
    relations.resolveMeta=(f,a,expression)=>this.resolveMeta(f,a,expression);
    relations.physicalReference=k=>this.reference(k);

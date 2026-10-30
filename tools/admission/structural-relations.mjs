@@ -85,7 +85,14 @@ export class Relations {
         const p=apps(R(d.kernel),values.map((x,i)=>[d.parameters[i].q,x.p]));
         const l=apps(R(d.kernel),values.map((x,i)=>[d.parameters[i].q,x.l]));
         const rs=values.flatMap(x=>[[0,x.p],[0,x.l],[0,x.r]]);
-        return {p,l,quantity:d.quantity??1,relation:(p,l)=>apps(R(generated.name),[...rs,[0,p],[0,l]]),family:generated,values};
+        let quantity=d.quantity??1;
+        if(typeof quantity!=='number'){
+          d.parameters.forEach((param,i)=>{quantity=this.substituteValue(quantity,param.key,T.args[i]);});
+          const grade=q=>q.$==='Lab'&&/^Q[012]$/.test(q.k)?Number(q.k[1]):q.$==='Min'?Math.min(grade(q.a),grade(q.b)):NaN;
+          const kind=this.kind(quantity,env),a=grade(kind.p),b=grade(kind.l);
+          if(a===b)quantity=a;
+        }
+        return {p,l,quantity,relation:(p,l)=>apps(R(generated.name),[...rs,[0,p],[0,l]]),family:generated,values};
       }
       default: throw Error('Unimplemented structural type constructor: '+T.tag);
     }
