@@ -172,7 +172,7 @@ def ConclusaoIntegral(-c: S.Configuracao, -s: D.Estado, -w: D.Estado,
       L.E<Q.Fiel(w, ts, R.finalizar(proposta, c, w), preparada),
         R.Valido(c, U.publicado(N.concluir(preparada, s)))>>
 
-def duplicar_igualdade(-A: Data, -x: A, -y: A, igualdade: {x == y : A}) ->
+def duplicar_igualdade(-A: Type, -x: A, -y: A, igualdade: {x == y : A}) ->
   L.E<{x == y : A}, {x == y : A}>:
   %igualdade : L.E<{x == _ : A}, {x == _ : A}>
   L.Ambos{{==}, {==}}

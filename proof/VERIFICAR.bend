@@ -9,6 +9,10 @@ import ./Seguranca.bend as Seguranca
 import ./Preparacao.bend as Preparacao
 import ./Publicacao.bend as Publicacao
 import ./Chamada.bend as Chamada
+import ./Proposta.bend as Proposta
+import ./HistoricoServico.bend as HistoricoServico
+import ./CenariosServico.bend as CenariosServico
+import ./EntradaServico.bend as EntradaServico
 import ./Representacao.bend as Representacao
 import ./Adaptadores.bend as Adaptadores
 import ./Recursos.bend as Recursos
