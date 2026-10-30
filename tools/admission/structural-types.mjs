@@ -29,11 +29,7 @@ export class SourceTypes {
     if(A.$==='ADT') {
       const d=this.book.tlds[A.k];
       if(d?.$!=='ADT')throw Error('Missing checked datatype '+A.k);
-      const kind=this.B.term_wnf(this.book,d.T);
-      // Monomorphic Data have the scalar value+two endpoint relation. This
-      // criterion applies to every such source family, not only Nat.
-      // This experiment uses source constructor relations for Data as well:
-      // their defining equations must survive under an open representation.
+      // Constructor relations preserve defining equations under open inputs.
       this.descriptor(A.k);
       let U=d.T;const args=[];
       for(const x of A.x) {

@@ -8,12 +8,11 @@ import {constrainProofViews} from './structural-views.mjs';
 import {identityElimination} from './structural-identity.mjs';
 import {ProofBody} from './structural-evidence.mjs';
 import {orderDeclarations} from './structural-order.mjs';
-import {closedEntry,scalarEntryLink} from './structural-entry.mjs';
 
 // Structural integration with the actual checkBook API. It receives the original
 // checked Book; it neither parses another source nor installs another Book.
 // There is no fallback from a kernel/guard verdict in this adapter.
-export function structuralEmitter(B,S,{proofRoots=[],entries=[],executionRoots}={}){
+export function structuralEmitter(B,S,{proofRoots=[],executionRoots=['main']}={}){
  return {
    SafeResourceExhausted:S.SafeResourceExhausted,
    admission_safe_emit(book,out,options={}){
@@ -49,38 +48,27 @@ export function structuralEmitter(B,S,{proofRoots=[],entries=[],executionRoots}=
          allProofRoots.add(key);
        }
      const identityRoots=[];
-     // Every raw physical root and source link remains above. Operational
-     // evaluators follow the actual executed/transported roots; dependencies
-     // are generated compositionally from their real checked bodies.
-     if(executionRoots===undefined){for(const[k,d]of Object.entries(book.tlds))if(!d.b&&d.$==='Def'&&d.x===0)bodies.reference(k);}
-     else {
-       // No representation transport is needed for a literally unchanged
-       // execution root. It remains a mandatory live raw root with its
-       // independent physical source link. Any transported root/proof must
-       // construct its relation from checked bodies and actual inputs.
-       for(const key of executionRoots){
-         const name=source.name(key),logical=safe.logical(key),physical={$:'Ref',k:name};
-         const raw=safe.state.out.find(([n])=>n===name),view=safe.state.admissionTypeViews?.get(name);
-         const sameHeader=!view||safe.state.admissionViewOps.key(view.original)===safe.state.admissionViewOps.key(view.observed);
-         // The exact same checked reference at the exact same type needs no
-         // second evaluator. Its raw body and source links remain mandatory.
-         const identical=raw!==undefined&&sameHeader&&JSON.stringify(logical)===JSON.stringify(physical);
-         if(!identical)bodies.reference(key);else identityRoots.push(key);
-       }
-       for(const key of allProofRoots)bodies.reference(key);
+     // Raw bodies and source guards remain mandatory. Only entries whose
+     // checked reference or type differs need an operational evaluator.
+     for(const key of executionRoots){
+       const name=source.name(key),logical=safe.logical(key),physical={$:'Ref',k:name};
+       const raw=safe.state.out.find(([n])=>n===name),view=safe.state.admissionTypeViews?.get(name);
+       const sameHeader=!view||safe.state.admissionViewOps.key(view.original)===safe.state.admissionViewOps.key(view.observed);
+       const identical=raw!==undefined&&sameHeader&&JSON.stringify(logical)===JSON.stringify(physical);
+       if(!identical)bodies.reference(key);else identityRoots.push(key);
      }
+     for(const key of allProofRoots)bodies.reference(key);
      const proofBody=new ProofBody(bodies);
      for(const key of allProofRoots){
        const name=proofBody.exact(key),view=safe.state.admissionTypeViews.get(source.name(key));
        if(!view)throw Error('Missing exact original target '+key);
        gen.declarations.push([gen.prefix+'.Evidence.'+source.name(key)+'.original_target',view.original,{$:'Ref',k:name}]);
      }
-     for(const[head,...arguments_]of entries)scalarEntryLink(bodies,closedEntry(bodies,head,arguments_),gen.prefix+'.Entry.'+source.name(head));
      if(instanceClosureFingerprint(B,book)!==before||JSON.stringify(Object.keys(book.tlds))!==JSON.stringify(names))throw Error('The structural emitter changed the final checked Book');
      const ordered=orderDeclarations(gen.declarations);
      const payload=safe.text()+'\n'+declarationsText(ordered);
      fs.writeFileSync(out,payload);
-     return {...result,structural:{views,generated:gen.declarations.length,originalTargets:[...allProofRoots],identityRoots,entries:entries.map(x=>[...x]),sameCheckedBook:true}};
+     return {...result,structural:{views,generated:gen.declarations.length,originalTargets:[...allProofRoots],identityRoots,sameCheckedBook:true}};
    }
  };
 }

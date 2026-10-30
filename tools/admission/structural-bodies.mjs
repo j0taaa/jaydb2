@@ -1,5 +1,5 @@
-import {V,R,UV,tuple,lam,app,apps,bind,ann,eq,rfl,let1,rwt,split} from './structural-syntax.mjs';
-import {bound,family} from './structural-relations.mjs';
+import {V,R,tuple,lam,app,apps,bind,ann,eq,rfl,rwt} from './structural-syntax.mjs';
+import {bound} from './structural-relations.mjs';
 
 // Typed composition over checked .e. Unsupported syntax fails technically;
 // it never supplies a substitute witness or bypasses a physical guard.
@@ -9,80 +9,6 @@ export class Bodies {
     relations.sourceValue=(x,env,expected)=>this.expression(x.expected===null?x.term:this.B.Ann(x.term,x.expected),env,x.context,expected);
   }
   open(t) { let T=null;t=this.B.term_force(t);while(t.$==='Ann'){T??=this.B.term_force(t.T);t=this.B.term_force(t.x);}return {x:t,T}; }
-  reference(key) {
-    const old=this.functions.get(key);if(old!==undefined)return old;
-    const d=this.book.tlds[key];
-    if(d?.$!=='Def'||d.e===undefined||d.x!==0)throw Error('A checked ordinary source body is required: '+key);
-    const type=this.source.type(d.T),p=R(this.source.name(key)),l=p,r=R(this.gen.prefix+'.Function.'+this.source.name(key)+'.evaluate');
-    const record={p,l,r,type,key};this.functions.set(key,record);
-    const plan=this.gen.plan(type),T=plan.relation(p,l);
-    let b;
-    if(this.scalarTelescope(type))b=this.liftScalars(record);
-    else b=this.definitionBody(key,this.B.term_higher(d.e),d.T,type,new Map(),new Map(),p,l);
-    this.gen.emit(r.k,T,b);
-    return record;
-  }
-  scalarTelescope(T) {
-    while(T.tag==='arrow') {
-      if(T.q===0||T.A.tag!=='scalar')return false;
-      T=T.B;
-    }
-    return T.tag==='scalar';
-  }
-  liftScalars(f) {
-    let T=f.type;const bs=[],xs=[],env=new Map();
-    while(T.tag==='arrow') {
-      const A=this.gen.plan(T.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
-      bs.push([0,p,A.p],[0,l,A.l],[T.q,r,A.relation(V(p),V(l))]);
-      const x={p:V(p),l:V(l),r:V(r),type:T.A,q:T.q};xs.push(x);env.set(T.key,x);T=T.B;
-    }
-    const result=this.gen.plan(T,env),y=this.gen.fresh();
-    const slots=xs.map(x=>({...x,y:this.gen.fresh(),ep:this.gen.fresh(),el:this.gen.fresh()}));
-    const call=args=>apps(f.p,args.map((x,i)=>[xs[i].q,x]));
-    const ys=slots.map(x=>V(x.y));
-    const proof=side=>{
-      let e=rfl,current=[...ys];
-      for(let i=0;i<slots.length;i++) {
-        const z=this.gen.fresh(),next=[...current];next[i]=V(z);
-        e=rwt(V(slots[i][side==='p'?'ep':'el']),z,eq(V(y),call(next),result.p),e);
-        current[i]=slots[i][side];
-      }
-      return e;
-    };
-    let body=let1(y,call(ys),tuple([[1,V(y)],[1,proof('p')],[1,proof('l')]]));
-    for(let i=slots.length-1;i>=0;i--) {
-      const x=slots[i];body=app(split([[2,x.y],[2,x.ep],[2,x.el]],body),x.r);
-    }
-    return bind('Lam',bs,body);
-  }
-  liftSharedEvaluator(type,physical,logical,evaluator,env=new Map()) {
-    if(!this.scalarTelescope(type))throw Error('A shared scalar evaluator telescope is required in this structural bridge');
-    let T=type;const bs=[],xs=[];
-    while(T.tag==='arrow') {
-      const A=this.gen.plan(T.A,env),p=this.gen.fresh(),l=this.gen.fresh(),r=this.gen.fresh();
-      bs.push([0,p,A.p],[0,l,A.l],[T.q,r,A.relation(V(p),V(l))]);
-      xs.push({p:V(p),l:V(l),r:V(r),q:T.q,y:this.gen.fresh(),ep:this.gen.fresh(),el:this.gen.fresh()});T=T.B;
-    }
-    const result=this.gen.plan(T,env),z=this.gen.fresh(),ep=this.gen.fresh(),el=this.gen.fresh();
-    const ys=xs.map(x=>V(x.y));
-    const call=(head,args)=>apps(head,args.map((x,i)=>[xs[i].q,x]));
-    const proof=side=>{
-      let evidence=V(side==='p'?ep:el),current=[...ys];
-      for(let i=0;i<xs.length;i++) {
-        const endpoint=this.gen.fresh(),next=[...current];next[i]=V(endpoint);
-        evidence=rwt(V(xs[i][side==='p'?'ep':'el']),endpoint,eq(V(z),call(side==='p'?physical:logical,next),result.p),evidence);
-        current[i]=xs[i][side];
-      }
-      return evidence;
-    };
-    let b=tuple([[1,V(z)],[1,proof('p')],[1,proof('l')]]);
-    const once=this.gen.fresh();
-    b=let1(once,call(evaluator,ys),app(split([[2,z],[2,ep],[2,el]],b),V(once)));
-    for(let i=xs.length-1;i>=0;i--) {
-      const x=xs[i];b=app(split([[2,x.y],[2,x.ep],[2,x.el]],b),x.r);
-    }
-    return {p:physical,l:logical,r:ann(bind('Lam',bs,b),this.gen.plan(type,env).relation(physical,logical)),type};
-  }
   definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
     // Independent monomorphic families share deferred opening. Field
     // quantities are preserved unless their checked relation is Data.
@@ -293,7 +219,7 @@ export class Bodies {
     if(x.$==='Ctr') {
       if(T===null){if(!expected)throw Error('A constructor needs its checked annotation');return this.expression(this.B.Ann(x,this.source.originalType(expected,env,ctx)),env,ctx,expected);}
       const type=this.source.type(T,ctx);
-      if(type.tag!=='family')throw Error('Structural scalar constructor construction needs its separate scalar lifting');
+      if(type.tag!=='family')throw Error('A constructor needs its checked family type');
       const plan=this.gen.plan(type,env),values=[];
       const A=this.B.term_wnf(this.book,T);let fieldT=this.B.tele_fill(this.book,this.book.ctrs[x.k].T,A.x,this.B.ctx_nil());
       for(const field of x.x){const F=this.B.term_wnf(this.book,fieldT);values.push(this.expression(this.B.Ann(field,F.A),env,ctx));fieldT=F.B(field);}
