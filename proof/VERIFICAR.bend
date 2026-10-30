@@ -1,4 +1,4 @@
-# Entrada de provas gerais. Nao afirma Contrato(a,k) do executavel completo.
+# Provas gerais e composicoes do protocolo; a entrada conjunta e separada.
 import Base
 import ../contrato/LAWS.bend as OitoLeisRevisadas
 import ./Fundamentos.bend as Fundamentos
@@ -13,6 +13,10 @@ import ./Proposta.bend as Proposta
 import ./HistoricoServico.bend as HistoricoServico
 import ./CenariosServico.bend as CenariosServico
 import ./EntradaServico.bend as EntradaServico
+import ./Lei1Servico.bend as Lei1Servico
+import ./Lei2Servico.bend as Lei2Servico
+import ./Lei34Servico.bend as Lei34Servico
+import ./Lei5Servico.bend as Lei5Servico
 import ./Representacao.bend as Representacao
 import ./Adaptadores.bend as Adaptadores
 import ./Recursos.bend as Recursos
