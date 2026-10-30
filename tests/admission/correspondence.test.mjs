@@ -50,7 +50,7 @@ def ordinary(n: Nat) -> Nat:
 def goal(n: Nat) -> Type:
   {ordinary(n) == 3n : Nat}
 def theorem(n: Nat) -> goal(n):
-  helper(True{}, 3n, Con{ProofToken{m => m}, Nil{}}, n)
+  helper(True{}, 3n, Con{ProofToken{m => next = m; next}, Nil{}}, n)
 `;
 
 // R4 must reuse the checked nested specialization when C executes id(id(1)).

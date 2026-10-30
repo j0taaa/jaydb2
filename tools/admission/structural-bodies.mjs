@@ -9,6 +9,15 @@ export class Bodies {
     relations.sourceValue=(x,env,expected)=>this.expression(x.expected===null?x.term:this.B.Ann(x.term,x.expected),env,x.context,expected);
   }
   open(t) { let T=null;t=this.B.term_force(t);while(t.$==='Ann'){T??=this.B.term_force(t.T);t=this.B.term_force(t.x);}return {x:t,T}; }
+  locals(x,env,ctx,read) {
+    const values=x.v.map(read),e=new Map(env),c=new Map(ctx),vars=[],bindings=[];
+    for(let i=0;i<values.length;i++) {
+      const key='local.'+this.sequence++,id=this.source.depth++,v=this.B.Var(x.k[i],id),r=this.gen.fresh();
+      e.set(key,{...values[i],r:V(r),expression:bound(key)});
+      c.set(id,key);c.set(x.i[i],key);vars.push(v);bindings.push([this.source.q(x.q[i]),r,values[i]]);
+    }
+    return {body:x.f(vars),env:e,ctx:c,bindings};
+  }
   definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
     // Independent family instances share deferred opening. Field quantities
     // are preserved unless their checked relation is Data.
@@ -239,13 +248,8 @@ export class Bodies {
       return {p,l,r:ann(this.functionBody(t,T,type,env,ctx,p,l),this.gen.plan(type,env).relation(p,l)),type};
     }
     if(x.$==='Let') {
-      const values=x.v.map(v=>this.expression(v,env,ctx)),e=new Map(env),c=new Map(ctx),vars=[],bindings=[];
-      for(let i=0;i<values.length;i++) {
-        const key='local.'+this.sequence++,id=this.source.depth++,v=this.B.Var(x.k[i],id),r=this.gen.fresh();
-        const record={...values[i],r:V(r),expression:bound(key)};
-        e.set(key,record);c.set(id,key);c.set(x.i[i],key);vars.push(v);bindings.push([this.source.q(x.q[i]),r,values[i]]);
-      }
-      const result=this.expression(x.f(vars),e,c);let r=result.r;
+      const {body,env:e,ctx:c,bindings}=this.locals(x,env,ctx,v=>this.expression(v,env,ctx));
+      const result=this.expression(body,e,c);let r=result.r;
       for(let i=bindings.length-1;i>=0;i--) {
         const [q,l,value]=bindings[i],T=this.gen.plan(value.type,env).relation(value.p,value.l);
         r={$:'Let',q,l,v:ann(value.r,T),f:r};
@@ -269,6 +273,10 @@ export class Bodies {
   }
   render(t,sourceType,side,env,ctx) {
     const {x,T}=this.open(t),U=T??sourceType;
+    if(x.$==='Let') {
+      const locals=this.locals(x,env,ctx,v=>({[side]:this.render(v,this.open(v).T,side,env,ctx),sourceTerm:v,sourceContext:new Map(ctx)}));
+      return this.render(locals.body,U,side,locals.env,locals.ctx);
+    }
     if(x.$==='Var') {
       const value=env.get(ctx.get(x.i));if(value===undefined)throw Error('Unbound rendering source level '+x.i);
       return value[side];
