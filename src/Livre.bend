@@ -52,7 +52,7 @@ def prefixo(-e: D.Esquema, -l: S.Limites, -amb: String,
   -s: D.Estado, -ctx: D.Contexto, -codigo: String, -args: D.Valor,
   -w: D.Estado, -ts: List<&2, S.Evento>) ->
   R.SegurancaPrefixo(configuracao(e, l, amb), s, ctx, codigo, args, w, ts):
-  L.Ambos{Unit{}, L.Ambos{Unit{}, Unit{}}}
+  L.Ambos{Unit{}, Unit{}}
 
 law percurso_livre_cobre_prefixos_e_final:
   for percurso: S.Percurso

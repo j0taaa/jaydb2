@@ -89,14 +89,12 @@ def leis_encerrada(-s: D.Estado, -ts: List<&2, S.Evento>, -r: S.Resposta,
 def prefixo_zero(-s: D.Estado) -> R.SegurancaPrefixo(configuracao(), s,
   contexto(), codigo(), argumentos(), s, Nil{}):
   L.Ambos{leis_executando(s, Nil{}, L.Esquerda{{==}}),
-    L.Ambos{leis_encerrada(s, Nil{}, S.resposta_erro(S.Limite{}), L.Esquerda{{==}}),
-      leis_encerrada(s, Nil{}, S.resposta_erro(S.Falha{}), L.Esquerda{{==}})}}
+    leis_encerrada(s, Nil{}, S.resposta_erro(S.Falha{}), L.Esquerda{{==}})}
 
 def prefixo_lido(-s: D.Estado) -> R.SegurancaPrefixo(configuracao(), s,
   contexto(), codigo(), argumentos(), s, traco(s)):
   L.Ambos{leis_executando(s, traco(s), L.Direita{{==}}),
-    L.Ambos{leis_encerrada(s, traco(s), S.resposta_erro(S.Limite{}), L.Direita{{==}}),
-      leis_encerrada(s, traco(s), S.resposta_erro(S.Falha{}), L.Direita{{==}})}}
+    leis_encerrada(s, traco(s), S.resposta_erro(S.Falha{}), L.Direita{{==}})}
 
 def publicacao_inalterada(r: S.Resposta, -s: D.Estado,
   valido: R.Valido(configuracao(), s)) -> R.PublicacaoValida(r, configuracao(), s):

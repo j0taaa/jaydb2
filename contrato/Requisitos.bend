@@ -102,12 +102,13 @@ def SegurancaFinal(-c: S.Configuracao, -s: D.Estado, -ctx: D.Contexto,
   L.E<S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, r}),
     PublicacaoValida(r, c, w)>
 
+# O prefixo admite falha real a qualquer ponto, mas nao um limite ficticio.
+# Limites logicos de estado/resposta pertencem ao resultado de finalizar.
 def SegurancaPrefixo(-c: S.Configuracao, -s: D.Estado, -ctx: D.Contexto,
   -codigo: String, -args: D.Valor, -w: D.Estado,
   -ts: List<&2, S.Evento>) -> Type:
   L.E<S.Cumpre(c, S.Executando{s, ctx, codigo, args, w, ts}),
-    L.E<S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Limite{})}),
-      S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})})>>
+    S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})})>
 
 def SegurancaPercurso(p: S.Percurso, -c: S.Configuracao, -s: D.Estado,
   -ctx: D.Contexto, -codigo: String, -args: D.Valor) -> Type:

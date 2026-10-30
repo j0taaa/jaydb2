@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { header } from '../admission/preflight.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -91,16 +92,11 @@ def main() -> IO(Unit):
 
 function imports(data) {
   const result = [];
-  for (const raw of utf8(data).split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line || line.startsWith('#')) continue;
-    if (!line.startsWith('import ')) break;
-    const match = /^import\s+(\S+)(?:\s+as\s+[A-Za-z_]\w*)?\s*(?:#.*)?$/.exec(line);
-    if (!match) fail('DEPENDENCY', 'Import inválido no ambiente do administrador');
-    if (match[1] === 'Base') continue;
-    if (!/^(?:\.\/)?(?:[A-Za-z_][\w-]*\/)*[A-Za-z_][\w-]*\.bend$/.test(match[1]))
+  for (const { specifier } of header(utf8(data), 'staging').imports) {
+    if (specifier === 'Base') continue;
+    if (!/^(?:\.\/)?(?:[A-Za-z_][\w-]*\/)*[A-Za-z_][\w-]*\.bend$/.test(specifier))
       fail('DEPENDENCY', 'O ambiente deve usar imports locais dentro de seu diretório');
-    result.push(match[1].replace(/^\.\//, ''));
+    result.push(specifier.replace(/^\.\//, ''));
   }
   return result;
 }

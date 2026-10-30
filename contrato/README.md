@@ -114,7 +114,7 @@ Nas condições externas especificadas, configurações e certificados iniciais 
 
 ## 4. O certificado de cada requisição
 
-`Requisitos.Certifica` é universal nos estados válidos que contêm o mesmo contexto autenticado. Para todos os prefixos da execução, exige cumprimento da lista inteira de leis. Para uma publicação tecnicamente possível, exige também validade do estado final.
+`Requisitos.Certifica` é universal nos estados válidos que contêm o mesmo contexto autenticado. Para todos os prefixos da execução, exige cumprimento da lista inteira de leis durante a execução e em caso de falha real. Não exige um encerramento hipotético por `limite` em cada prefixo: os limites de estado e resposta são avaliados na finalização. O desfecho efetivo de `Requisitos.finalizar`, inclusive `limite` quando ocorrer, continua sujeito às leis. Para uma publicação tecnicamente possível, exige também validade do estado final.
 
 O número `n` utilizado na semântica enumera prefixos matemáticos. Ele não é um parâmetro público, uma nova quota ou um limite de instruções do banco. `ProgramaTermina` continua obrigatório, sem duração máxima prometida. A certificação cobre a semântica abstrata inteira e não usa uma interrupção como premissa para autorizar uma inspeção proibida mais adiante.
 

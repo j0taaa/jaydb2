@@ -76,13 +76,10 @@ def seguranca_prefixo(percurso: S.Percurso, -c: S.Configuracao, -s: D.Estado,
         R.SegurancaFinal(c, s, ctx, codigo, args, w, ts, R.finalizar(proposta, c, w)), segura)
 
 type Interrupcao is Data:
-  PorLimite{}
   PorFalha{}
 
 def resposta_interrupcao(i: Interrupcao) -> S.Resposta:
   match i:
-    case PorLimite{}:
-      S.resposta_erro(S.Limite{})
     case PorFalha{}:
       S.resposta_erro(S.Falha{})
 
@@ -91,18 +88,9 @@ def leis_da_interrupcao(i: Interrupcao, -c: S.Configuracao, -s: D.Estado,
   -ts: List<&2, S.Evento>, segura: R.SegurancaPrefixo(c, s, ctx, codigo, args, w, ts)) ->
   S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, resposta_interrupcao(i)}):
   match i:
-    case PorLimite{}:
-      L.e_esquerda(S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Limite{})}),
-        S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})}),
-        L.e_direita(S.Cumpre(c, S.Executando{s, ctx, codigo, args, w, ts}),
-          L.E<S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Limite{})}),
-            S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})})>, segura))
     case PorFalha{}:
-      L.e_direita(S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Limite{})}),
-        S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})}),
-        L.e_direita(S.Cumpre(c, S.Executando{s, ctx, codigo, args, w, ts}),
-          L.E<S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Limite{})}),
-            S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})})>, segura))
+      L.e_direita(S.Cumpre(c, S.Executando{s, ctx, codigo, args, w, ts}),
+        S.Cumpre(c, S.Encerrada{s, ctx, codigo, args, w, ts, S.resposta_erro(S.Falha{})}), segura)
 
 law interrupcao_nao_publica:
   for i: Interrupcao
@@ -111,8 +99,6 @@ law interrupcao_nao_publica:
   {S.publica(resposta_interrupcao(i), s, w) == s : D.Estado}
 def interrupcao_nao_publica(i, s, w):
   match i:
-    case PorLimite{}:
-      {==}
     case PorFalha{}:
       {==}
 

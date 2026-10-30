@@ -10,3 +10,4 @@ import ./Representacao.bend as Representacao
 import ./Preparacao.bend as Preparacao
 import ./RecursosLogicos.bend as RecursosLogicos
 import ./AlocacoesComprimentos.bend as AlocacoesComprimentos
+import ./RecusaSemLimite.bend as RecusaSemLimite

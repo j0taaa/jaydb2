@@ -1,6 +1,6 @@
 # Provas gerais
 
-`proof/VERIFICAR.bend` agrega as provas da implementação pura. `tests/proof/VERIFICAR.bend` reaplica suas interfaces públicas em leis quantificadas. Nenhum desses agregados constrói, por si, `Contrato(a,k)` para o executável C/Python completo.
+`proof/VERIFICAR.bend` agrega as provas da implementação pura. `tests/proof/VERIFICAR.bend` reaplica suas interfaces públicas em leis quantificadas. Nenhum desses agregados constrói, por si, `Contrato(a,k)` para o serviço completo com controlador Rust, auxiliar Node e executáveis Bend.
 
 - `Fundamentos`, `Ordens`, `Autenticacao`: estrutura e identidade autenticada.
 - `Maquina`, `Seguranca`, `Preparacao`, `Publicacao`: percurso incremental, leis do administrador e preparação da proposta.

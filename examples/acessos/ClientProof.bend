@@ -112,7 +112,7 @@ def programa_seguro(ctx: D.Contexto, args: D.Valor) -> Segura(3n, ctx, S.iniciar
 def prefixo(-s: D.Estado, -ctx: D.Contexto, -codigo: String, -args: D.Valor,
   -w: D.Estado, -ts: List<&2, S.Evento>, +h: C.Permitidos(ctx, ts)) ->
   R.SegurancaPrefixo(C.config(), s, ctx, codigo, args, w, ts):
-  L.Ambos{L.Ambos{h, Unit{}}, L.Ambos{L.Ambos{h, Unit{}}, L.Ambos{h, Unit{}}}}
+  L.Ambos{L.Ambos{h, Unit{}}, L.Ambos{h, Unit{}}}
 
 def percurso(p: S.Percurso, -s: D.Estado, -ctx: D.Contexto, -codigo: String, -args: D.Valor,
   +h: C.Permitidos(ctx, S.eventos_percurso(p))) -> R.SegurancaPercurso(p, C.config(), s, ctx, codigo, args):

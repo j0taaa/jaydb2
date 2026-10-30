@@ -29,8 +29,7 @@ def publicacao_inalterada(r: S.Resposta, -s: D.Estado,
 
 def prefixo(-s: D.Estado) -> R.SegurancaPrefixo(I.config(), s,
   I.contexto(), B.codigo(), I.argumentos(), s, Nil{}):
-  L.Ambos{L.Ambos{{==}, Unit{}},
-    L.Ambos{L.Ambos{{==}, Unit{}}, L.Ambos{{==}, Unit{}}}}
+  L.Ambos{L.Ambos{{==}, Unit{}}, L.Ambos{{==}, Unit{}}}
 
 def final(s: D.Estado, valido: R.Valido(I.config(), s)) ->
   R.SegurancaFinal(I.config(), s, I.contexto(), B.codigo(), I.argumentos(), s,

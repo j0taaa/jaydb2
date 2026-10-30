@@ -57,8 +57,25 @@ parte do ambiente confiável.
 
 ## Verificação
 
+As provas Bend cobrem a máquina pura, os certificados e suas consequências
+para autenticação, operações, observações e preparação/publicação no modelo.
+As leis do administrador continuam obrigatórias para todos os prefixos,
+inclusive antes de uma recusa ou falha.
+
+A base confiável da execução inclui as ferramentas oficiais fixadas, Node,
+Clang, o sistema operacional e o código de integração do JayDB: o controlador
+Rust, a preparação/admissão em Node e `native/effects.c`. Esse código liga
+fontes verificadas, argumentos, pipes e publicação concreta; seus corpos não
+são formalmente verificados pelos checkers Bend. Isso não permite dispensar
+uma prova do cliente nem trocar as leis por testes do resultado final.
+
 Os testes Rust cobrem publicação, rollback e enquadramento. `make test-native`
 compila C oficial e exercita efeitos, representação e os limites reais da
 toolchain. `make test-integration` admite, compila e executa transações Bend reais.
 Hashes e testes identificam artefatos e sustentam os casos executados; não
 substituem a demonstração das oito leis para o executável completo.
+
+`make build`, `make verify-contract`, `make verify` e `make test` são etapas
+separadas: compilar ou passar os testes não implica ter executado os dois
+checkers sobre os agregados de provas. Não há prova conjunta de
+`Contrato(a,k)` para esse serviço concreto.

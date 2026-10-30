@@ -76,7 +76,19 @@ class EndToEndTests(unittest.TestCase):
         # A final duplicate rolls back; exchanging credentials publishes once
         # and changes authentication, while each call keeps its initial actor.
         folder = ROOT/'examples/troca-credenciais'
-        server = self.server(folder)
+        temporary = tempfile.TemporaryDirectory(prefix='jaydb-import-test-')
+        self.addCleanup(temporary.cleanup)
+        instance = Path(temporary.name)
+        # This library has no other import path. Staging must collect TAB just
+        # as preflight does, so the actual checker/compiler can resolve it.
+        (instance/'Sizes.bend').write_text('import Base\ndef message() -> Nat:\n  32768n\n')
+        configuration = (folder/'Configuration.bend').read_text()
+        self.assertEqual(configuration.count('S.Limites{32768n, 65536n, 32768n}'), 1)
+        (instance/'Configuration.bend').write_text('import\t./Sizes.bend\tas\tSizes\n' +
+            configuration.replace('S.Limites{32768n, 65536n, 32768n}',
+                                  'S.Limites{Sizes.message(), 65536n, 32768n}'))
+        (instance/'Seed.bend').write_bytes((folder/'Seed.bend').read_bytes())
+        server = self.server(instance)
         code = (folder/'Client.bend').read_text()
         proof = (folder/'ClientProof.bend').read_text()
         self.assertEqual(server.call(code, proof, 'alice-token', ['same', 'same']),

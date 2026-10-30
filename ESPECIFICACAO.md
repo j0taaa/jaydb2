@@ -126,6 +126,8 @@ Proposta Sucesso(W, v) ∧ CondiçõesTécnicasFinais(C, W, v)
 
 As condições técnicas finais são estrutura e tipos válidos, limites de estado e resposta atendidos e preparação concluída sem interrupção. Não incluem testar leis do administrador. A prova estabelece essas leis para toda publicação tecnicamente possível, além de cobrir os acessos e as interrupções. Assim, exceder um limite pode encerrar a chamada sem exigir que o programa inspecione o banco inteiro para calcular seu tamanho.
 
+Os prefixos exigem as leis durante a execução e em caso de falha real. Não exigem autorização para um encerramento hipotético por `limite`: os limites de estado e resposta são avaliados na finalização, cujo resultado efetivo continua sujeito às leis.
+
 Isso inclui interrupções antes da publicação, mesmo depois de leituras ou alterações provisórias. Uma lei que dependa de uma conclusão futura inevitável pode impedir a certificação de um programa interrompível; o núcleo não altera essa lei para conseguir aceitar a requisição.
 
 Não existe uma premissa privada arbitrária que o cliente possa simplesmente declarar verdadeira. Condições que não decorrem dos invariantes estabelecidos precisam ser tratadas no próprio programa, com seus acessos permitidos, incluindo o caminho de recusa. O cliente pode raciocinar simbolicamente sobre o estado sem receber seus valores privados.
