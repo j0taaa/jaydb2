@@ -177,6 +177,15 @@ function admission_source_links(e: Safe): void {
     const payload: O = { $: "Ann", x: { $: "Rfl" }, T: equality };
     e.out.push([fresh(e, name_tt(k) + ".source_link"), UT, { $: "Let", q: 0, l: 0, v: payload, f: UV }, false]);
   }
+  // Check the supplied body LIVE at the host's actual, physical goal too.
+  // These closed goals come from the same binding checks as the primary.
+  const pe = { ...e, physicalBody: true, canonicalType: false, admissionStage: undefined } as any;
+  for (const [k, T] of Object.entries((e.book as any).admissionActualTargets ?? {}) as Array<[Name, HTerm]>) {
+    const def = e.book.tlds[k] as Def;
+    if (def?.e === undefined) oos("missing actual target body: " + k);
+    const payload: O = { $: "Ann", x: arg_term(pe, scope_nil(), B.term_higher(def.e as B.LTerm), T, false), T: term(pe, scope_nil(), T, false) };
+    e.out.push([fresh(e, name_tt(k) + ".actual_target"), UT, { $: "Let", q: 1, l: 0, v: payload, f: UV }, false]);
+  }
 }
 
 // All physical closed instances minted by the primary are claims too, even
@@ -260,7 +269,7 @@ function admission_schema(e: Safe, k: Name): [string[], string | null] {
   return [[n], null];
 }
 
-export function admission_safe_emit(book: Book, out: string, options: { modelFuel?: string } = {}): {oos: string[], schemas: string[], instances: string[], modelFuel: string, modelAttempts: string} {
+export function admission_safe_emit(book: Book, out: string, options: { modelFuel?: string, actualTargets?: Record<Name, HTerm> } = {}): {oos: string[], schemas: string[], instances: string[], modelFuel: string, modelAttempts: string} {
   admission_prepare_book(book);
   const previous = [MODEL_FUEL, ADMISSION_SCHEMAS, ADMISSION_INSTANCES, ADMISSION_SOURCE_CLAIMS] as const;
   MODEL_FUEL = BigInt(options.modelFuel ?? "4194304");
@@ -277,7 +286,9 @@ export function admission_safe_emit(book: Book, out: string, options: { modelFue
       attempts++;
       ADMISSION_SCHEMAS = []; ADMISSION_INSTANCES = [];
       try {
-        const oos = safe_emit(admission_snapshot(book), out);
+        const snapshot = admission_snapshot(book);
+        (snapshot as any).admissionActualTargets = options.actualTargets ?? {};
+        const oos = safe_emit(snapshot, out);
 
         return { oos, schemas: [...new Set(ADMISSION_SCHEMAS)], instances: [...new Set(ADMISSION_INSTANCES)],
           modelFuel: MODEL_FUEL.toString(), modelAttempts: attempts.toString() };

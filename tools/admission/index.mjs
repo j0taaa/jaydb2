@@ -66,10 +66,11 @@ function assertBindings(B, book, plan, mustBeOpen) {
       || v?.$ !== 'Lit' || v.k !== 'String' || v.v !== plan.records.get(canonical.client).text) {
     reject('SOURCE_BINDING', `${bind}.codigo deve ser o literal exato da fonte ${canonical.client}`);
   }
+  return expected;
 }
 
 function assertInitialization(B, book, plan) {
-  if (plan.purpose !== 'initialize') return;
+  if (plan.purpose !== 'initialize') return {};
   const { configuration, state, proof } = plan.initialization;
   const T = B.App(B.App(B.Ref(plan.canonicalRefs.contractPrefix + 'Requisitos:Valido'), B.Ref(configuration)), B.Ref(state));
   const p = book.tlds[proof];
@@ -80,6 +81,7 @@ function assertInitialization(B, book, plan) {
     const t = book.tlds[k];
     if (t?.$ !== 'Def' || t.n !== 0 || t.v === null || t.i !== undefined || t.u) reject('INITIALIZATION', `Valor inicial não é uma definição pura fechada: ${k}`);
   }
+  return { [proof]: T };
 }
 
 function parseSnapshots(B, plan, base) {
@@ -278,12 +280,12 @@ async function admit(options, kernelOnly) {
     for (const k of state.primitives) state.book.tlds[k].b = true;
     const closure = audit(B, state);
     auditLoopCalls(B, state);
-    if (!kernelOnly) assertBindings(B, state.book, plan, false);
-    assertInitialization(B, state.book, plan);
+    const actualTargets = kernelOnly ? {} : assertBindings(B, state.book, plan, false);
+    Object.assign(actualTargets, assertInitialization(B, state.book, plan));
     const primaryClosure = Object.entries(state.book.tlds).map(([k, t]) => [k, t, t.T, t.v, t.e, t.n, t.x, t.b]);
     try {
       if (sha256(fs.readFileSync(tc.info.kernelPath)) !== tc.info.kernelSha256) throw new Error('BendTT mudou durante admissão');
-      state.verifier = checkBook(S, state.book, tc.info.verifier, options.verification);
+      state.verifier = checkBook(S, state.book, tc.info.verifier, { ...options.verification, actualTargets });
       const why = state.verifier.why;
       if (why !== null) throw new AdmissionError('BENDTT_CHECK', 'bendtt', why);
       if (Object.keys(state.book.tlds).length !== primaryClosure.length || primaryClosure.some(([k, t, T, v, e, n, x, b]) =>

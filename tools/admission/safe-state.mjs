@@ -22,7 +22,7 @@ export function admission_safe_state() {
   }
  };
  return {state:e,
-  logical:(k:string)=>inside(()=>${canonical?'admission_affected(e,k)?admission_projection(admission_body(e,k)):({$:"Ref",k:item_ref(e,k,[],true)} as O)':'admission_projection(admission_body(e,k))'}),
+  logical:(k:string)=>inside(()=>${canonical?'admission_type_affected(e,k)?admission_projection(admission_body(e,k)):({$:"Ref",k:item_ref(e,k,[],true)} as O)':'admission_projection(admission_body(e,k))'}),
   term:(t:HTerm)=>inside(()=>term(e,scope_nil(),t,false)),text:()=>inside(()=>book_show(e))};
 }\n`;
 }

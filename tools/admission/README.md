@@ -29,6 +29,10 @@ Há dois layouts Safe compartilhando essas verificações: o físico e a extens�
 
 A extensão usa o corpo lógico paramétrico e relações compostas dos tipos e corpos checados. Funções têm um avaliador vivo; seus índices são apagados. Igualdades mantêm a evidência exata por J, sem funext, irrelevância de provas ou axioma novo. A execução fechada constrói suas relações; não recebe uma hipótese externa de correção do helper.
 
+Uma dependência apenas computacional não exige duplicar a representação de uma função. A análise conserva as dependências das famílias de tipos e dos valores usados em igualdades. O corpo bruto e seu vínculo de origem continuam obrigatórios; schemas simbólicos conservam as equações completas.
+
+Além da checagem dos alvos no frontend, o kernel verifica o corpo fornecido contra o alvo físico do certificado e da terminação, com as referências reais de configuração, programa, contexto, argumentos e código. A inicialização recebe a mesma checagem para configuração e seed. Esses corpos são conferidos como termos vivos, sem extrair provas de campos apagados.
+
 O fingerprint interno existe apenas para detectar o ponto fixo do fechamento. Não há selagem de protótipos JavaScript, getters, descritores ou suporte a um embedding que adultere estruturas internas.
 
 O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre famílias monomórficas independentes, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores e a quantidade dos campos lineares. Aplicações de lambdas usam a substituição comum do tradutor. Domínios dependentes mantêm o fechamento imediato; nenhum verdict provoca troca de rota.

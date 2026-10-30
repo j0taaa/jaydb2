@@ -86,7 +86,7 @@ export function checkBook(S, book, info, options = {}) {
     const input = path.join(directory, 'in.bendtt');
     if (typeof S.admission_safe_emit !== 'function') throw new VerifierInfrastructure('Pinned Safe stage adapter is unavailable');
     const budget = modelBudget(options.initialModelFuel ?? '4194304');
-    const emitted = S.admission_safe_emit(book, input, { modelFuel: budget.toString() });
+    const emitted = S.admission_safe_emit(book, input, { modelFuel: budget.toString(), actualTargets: options.actualTargets });
     const model = { modelFuel: emitted.modelFuel, modelAttempts: emitted.modelAttempts,
       schemas: emitted.schemas, instances: emitted.instances,
       ...(emitted.correspondence ? { correspondence: emitted.correspondence } : {}) };

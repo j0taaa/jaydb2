@@ -62,9 +62,9 @@ export function structuralEmitter(B,S,{proofRoots=[],entries=[],executionRoots}=
          const name=source.name(key),logical=safe.logical(key),physical={$:'Ref',k:name};
          const raw=safe.state.out.find(([n])=>n===name),view=safe.state.admissionTypeViews?.get(name);
          const sameHeader=!view||safe.state.admissionViewOps.key(view.original)===safe.state.admissionViewOps.key(view.observed);
-         // The graph closure inspects source T/v/e and every datatype field,
-         // so a dependency that changes representation prevents this cut.
-         const identical=raw!==undefined&&!safe.state.admissionAffected?.has(key)&&sameHeader&&JSON.stringify(logical)===JSON.stringify(physical);
+         // The exact same checked reference at the exact same type needs no
+         // second evaluator. Its raw body and source links remain mandatory.
+         const identical=raw!==undefined&&sameHeader&&JSON.stringify(logical)===JSON.stringify(physical);
          if(!identical)bodies.reference(key);else identityRoots.push(key);
        }
        for(const key of allProofRoots)bodies.reference(key);

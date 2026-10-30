@@ -20,23 +20,7 @@ function runC(root, source, name) {
   return run.stdout.trim();
 }
 
-// R4 must reuse the checked nested specialization when C executes id(id(1)).
-test('nested template interning preserves the checked value in C', async t => {
-  const f = fixture(t);
-  f.write('Main.bend', f.read('Main.bend').split('def resultado')[0] +
-    'def intern(~p: Nat) -> Nat:\n  p\ndef main() -> Nat:\n  intern(intern(1n))\n');
-  const admitted = await admitSubmission(f.manifest());
-  assert.equal(admitted.report.primary, true);
-  assert.equal(admitted.report.bendtt, true);
-  assert.equal(runC(f.root, emitC(admitted), 'nested'), '1n');
-});
-
-// The certificate consumes a non-reflexive proof with Bool before recursive
-// Nat cases and a linear function argument. Generated transports must preserve
-// the original descent tree and quantities.
-test('private checked Book links structural evidence and emitted C', async t => {
-  const f = fixture(t), { info } = await loadToolchain();
-  const r5 = `
+const r5 = `
 type ProofToken is Type:
   ProofToken{f: @n: Nat -> Nat}
 def f(~p: Nat, n: Nat) -> Nat:
@@ -55,10 +39,35 @@ def helper(b: Bool, p: Nat, t: ProofToken, n: Nat) -> {f(p, n) == p : Nat}:
       match n:
         case Zero{}: {==}
         case Succ{x}: helper(b, p, t, x)
-def theorem(n: Nat) -> {f(3n, n) == 3n : Nat}:
+def ordinary(n: Nat) -> Nat:
+  f(3n, n)
+def goal(n: Nat) -> Type:
+  {ordinary(n) == 3n : Nat}
+def theorem(n: Nat) -> goal(n):
   helper(True{}, 3n, ProofToken{m => m}, n)
 `;
-  f.write('Client.bend', f.read('Client.bend') + r5 +
+
+// R4 must reuse the checked nested specialization when C executes id(id(1)).
+test('nested template interning preserves the checked value in C', async t => {
+  const f = fixture(t);
+  f.write('Main.bend', f.read('Main.bend').split('def resultado')[0] +
+    'def intern(~p: Nat) -> Nat:\n  p\ndef main() -> Nat:\n  intern(intern(1n))\n');
+  const admitted = await admitSubmission(f.manifest());
+  assert.equal(admitted.report.primary, true);
+  assert.equal(admitted.report.bendtt, true);
+  assert.equal(runC(f.root, emitC(admitted), 'nested'), '1n');
+});
+
+// The certificate consumes a non-reflexive proof with Bool before recursive
+// Nat cases and a linear function argument. Generated transports must preserve
+// the original descent tree and quantities.
+test('private checked Book links structural evidence and emitted C', async t => {
+  const f = fixture(t), { info } = await loadToolchain();
+
+  const client = f.read('Client.bend')
+    .replace('def programa()', 'def typed(~p: U32) -> U32:\n  p\n\ndef programa()')
+    .replace('contar([1, 2, 3], 0)', 'contar([typed(1), typed(2), typed(3)], 0)');
+  f.write('Client.bend', client + r5 +
     '\n# exact source: IO @unsafe ?todo 😀\n');
   f.bindCode();
   const motive = 'R.SegurancaPercurso(S.executar(n, Client.programa(), S.esquema(I.config()), s, I.contexto(), I.argumentos()), I.config(), s, I.contexto(), B.codigo(), I.argumentos())';
@@ -83,6 +92,8 @@ def theorem(n: Nat) -> {f(3n, n) == 3n : Nat}:
   assert.equal(payloads.length, 1);
   assert.match(payloads[0], /Evidence\.Client\.theorem\.original_target/);
   assert.match(payloads[0], /Evidence\.Client\.theorem\.evidence_source_link/);
+  assert.match(payloads[0], /Bindings\.certificado\.actual_target/);
+  assert.match(payloads[0], /Bindings\.termina\.actual_target/);
   const input = path.join(f.root, 'checked.bendtt');
   fs.writeFileSync(input, payloads[0]);
   const original = spawn(info.kernelPath, [input], { encoding: 'utf8', timeout: 60000 });
@@ -111,9 +122,11 @@ function rawBook(B, code) {
 // be rejected. Checking must neither overwrite it nor prove a separate body.
 test('physical specialization mutation is causally rejected', async t => {
   const { B, S, C, info } = await loadToolchain(), f = fixture(t);
-  const code = 'def inner(~p: Nat) -> Nat:\n  p\ndef main() -> Nat:\n  inner(1n)\nlaw direct:\n  {inner(1n) == 1n : Nat}\ndef direct():\n  {==}\n';
+  const code = 'def inner(~p: Nat) -> Nat:\n  p\ndef main() -> Nat:\n  inner(1n)\n' + r5;
   const book = rawBook(B, code);
-  assert.equal(checkBook(S, book, info.verifier).why, null);
+  const checked = checkBook(S, book, info.verifier);
+  assert.equal(checked.why, null);
+  assert.equal(checked.correspondence.route, 'structural');
   assert.equal(runC(f.root, C.compile_book(book), 'before'), '1n');
   const name = [...book.tmps.inner.values()].find(k => book.tlds[k]);
   assert.ok(name);
@@ -121,7 +134,7 @@ test('physical specialization mutation is causally rejected', async t => {
   book.tlds[name].e = changed;
   assert.equal(runC(f.root, C.compile_book(book), 'changed'), '2n');
   const result = checkBook(S, book, info.verifier);
-  assert.ok(result.why);
+  assert.match(result.why, /source_link/);
   assert.doesNotMatch(result.why, /parse error|out of fuel/i);
   assert.equal(book.tlds[name].e, changed);
 });

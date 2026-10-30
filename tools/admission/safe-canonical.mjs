@@ -12,7 +12,7 @@ export function canonicalTypes(source) {
     const origin=e.inst.get(f.k);
     if(origin) return args(e,s,admission_projection(admission_body(e,origin[0])),e.book.tlds[origin[0]].T,[...origin[1],...xs],false);
     const d=e.book.tlds[f.k];
-    if(d?.$ === "Def" && d.e !== undefined && d.x === 0 && admission_affected(e,f.k))
+    if(d?.$ === "Def" && d.e !== undefined && d.x === 0 && admission_type_affected(e,f.k))
       return args(e,s,admission_projection(admission_body(e,f.k)),d.T,xs,false);
   }
 ${anchor}`);
@@ -21,5 +21,5 @@ ${anchor}`);
   const nx = tld?.$ === "Def" ? tld.x : 0;`);
  source=source.replace('arg_term(e, s, B.term_higher((e.book.tlds[k] as Def).e as B.LTerm), T, false),','arg_term({...e,physicalBody:true,canonicalType:false} as any, s, B.term_higher((e.book.tlds[k] as Def).e as B.LTerm), T, false),');
  source=source.replace('b: arg_term(e, s, B.term_higher(expected), T, false)', 'b: arg_term({...e,physicalBody:true,canonicalType:false} as any, s, B.term_higher(expected), T, false)');
- return source+'\nfunction admission_affected(e:Safe,k:string):boolean { return ((e as any).admissionAffected ??= templateAffected(B,e.book)).has(k); }\n';
+ return source+'\nfunction admission_affected(e:Safe,k:string):boolean { return ((e as any).admissionAffected ??= templateAffected(B,e.book)).has(k); }\nfunction admission_type_affected(e:Safe,k:string):boolean { return ((e as any).admissionTypeAffected ??= templateAffected(B,e.book,true)).has(k); }\n';
 }
