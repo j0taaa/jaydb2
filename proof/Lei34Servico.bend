@@ -15,8 +15,6 @@ import ./ProtocoloServico.bend as Q
 import ./PrimitivasServico.bend as M
 import ./Lei5Servico.bend as Cinco
 import ./Fundamentos.bend as F
-import ./Chamada.bend as Chamada
-import ./Publicacao.bend as Publicacao
 import ../src/Configuracao.bend as Config
 import ./CenariosServico.bend as Cenarios
 import ./HistoricoServico.bend as Historico

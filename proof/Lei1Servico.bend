@@ -10,11 +10,9 @@ import ../contrato/Semantica.bend as S
 import ./FonteServico.bend as Fonte
 import ./RotasServico.bend as R
 import ./ProtocoloServico.bend as Q
-import ./PrimitivasServico.bend as M
 import ./FasesServico.bend as Fases
 import ./Configuracao.bend as Configuracao
 import ../src/Configuracao.bend as Config
-import ./Fundamentos.bend as F
 import ./Chamada.bend as Chamada
 import ../contrato/Recursos.bend as X
 import ./RefinamentoServico.bend as Ref

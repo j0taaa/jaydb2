@@ -1,65 +1,83 @@
 # Composição das oito leis
 
-Alvo: construir `LAWS.Contrato(a,k)` para o serviço serial em
-`server/main.rs`, com admissão em `tools/admission`, preparação em
-`tools/service` e execução das funções Bend de `src`. As oito leis e a
-arquitetura permanecem as atuais. Este mapa não é uma prova desse alvo.
+A entrada [ContratoServico.bend](ContratoServico.bend) constrói exatamente
+`LAWS.Contrato(a,k)`, reunindo as oito leis atuais para o núcleo Bend e seu
+protocolo serial. Não altera as leis nem recebe suas conclusões como premissas.
+`make verify` inclui essa composição nos dois verificadores oficiais.
 
-A base `e0b3bbb` passou `make build`, `make verify-contract`, `make verify`
-e `make test` antes desta composição. A aceitação dos agregados comprova os
-termos neles contidos, não instancia automaticamente `Interface.Ambiente`.
+O resultado é **condicional aos contratos de ferramentas e integração abaixo**.
+O protocolo usa as funções reais de `src`; a correspondência entre seus passos
+e os blocos Rust/Node/C é uma hipótese operacional explícita, sustentada por
+revisão e testes. Não é uma prova mecanizada do Rust, Node, C ou compilador.
 
-| Lei | Código responsável | Provas existentes | Lacuna de composição | Contratos externos utilizados |
-| --- | --- | --- | --- | --- |
-| 1 — inicialização/configuração | `stage.INITIALIZE`, `assertInitialization`, `Database::initialize` | `Configuracao.aceita_satisfaz_configuracao_valida_original`; reconstrução de estado em `Representacao` | Ordenar verificação do seed e início; excluir início após recusa; conservar a configuração entre chamadas. | Verificador correto para o alvo inicial; mesmos fontes/seed no executável; transporte exato. |
-| 2 — representação/operações | `Codec`, `Entrada`, `Estado`, `Transporte`, `Nucleo`; `packet`, `split`, `serve_stream` | `CodecLei2.decodificar_satisfaz_relacao_original`; `Representacao.transporte_privado_preserva_estado`; `EntradaRelacoes`; `RecepcaoLimites`; `AlocacoesComprimentos`; `Maquina.operacao_real_vincula_transicao` | Ligar os resultados a todos os fatos reais, incluindo leitura do corpo e conferência anterior à construção dos campos. | Compilação fiel; pipes preservam bytes; ligação dos fatos às chamadas reais, sem omissões. |
-| 3 — identidade | `Entrada.autenticar`, `D.autenticar`; `Database::propose` | `Adaptadores.entrada_recebida_tem_identidade_autentica`; `Autenticacao.autenticacao_implica_contexto_presente` | Ordenar recebimento/autenticação/início e manter o snapshot publicado inicial nos workers. | Transporte do estado e da requisição; execução das fontes congeladas. A identidade não é uma premissa externa. |
-| 4 — certificado | `assertBindings`, `assertInitialization`, `audit`, `checkBook`, `emitC` | Reificação dos argumentos; alvo exato `R.Certifica` e término; `Seguranca.certificado_cobre_execucao_autenticada` | Relacionar a fonte e a derivação com `Elabora`/`Deriva`; aceitação antes de executar; rejeição matemática distinta de falha técnica. | Correção das ferramentas oficiais; fechamento de dependências e vínculos exatos da admissão. |
-| 5 — execução/observações | `Nucleo.avancar`, `Execucao.avancar`, `native/effects.c` | `Nucleo.fidelidade_de_todos_os_prefixos`; `Maquina.prefixos_da_maquina_em_ordem`; `operacao_real_vincula_transicao`; `Seguranca` | Provar ordem e exclusividade dos passos: cada operação ocupa uma única janela; nenhum passo após término; nenhuma observação omitida. | Compilação fiel; os efeitos C invocam o passo fechado segundo sua implementação; refinamento das fases concretas. |
-| 6 — publicação | `Nucleo.preparar/concluir`; Rust `propose`, `checked_proposal`, `Published::finish` | `Preparacao.preparar_preserva_resposta_estado_eventos_e_bytes`; `Publicacao.conclusao_de_preparacao_certificada_e_valida`; `Chamada.chamada_autenticada_prepara_e_conclui`; rollback para todo não-sucesso | Provar a única troca do publicado após preparação/cleanup; validade preservada entre chamadas; entrega não desfaz publicação. | Refinamento das operações concretas de bytes/store para o protocolo de fases. Não assumir “publica corretamente”. |
-| 7 — respostas/falhas/canal | `R.finalizar`, `Nucleo.preparar`; `Error::response`, `capture`, `serve_stream` | `Preparacao.finalizar_garante_payload_e_tamanho`; `ErrosFixos`; `Recursos`; `Transporte` | Ordenar causa/preparação/conclusão/entrega; exclusão entre entrega completa e interrompida; mapear cada falha efetiva. | Contratos de erro/EOF dos processos e canais; classificação da admissão; refinamento dos blocos do host. |
-| 8 — progresso | `ProgramaTermina`, `Native.loop`, sequência serial Rust/Node | `Terminacao.finita_termina`; `Maquina.terminacao_da_referencia_implica_terminacao_incremental`; `Chamada.finalizacao_tem_preparacao_real`; completude do Codec/configuração | Progresso das fases externas; completude da admissão no fragmento fixado independentemente do resultado do candidato. | Término das ferramentas e IO quando o ambiente é processável; completude no fragmento declarado. Sem prazo ou quota física. |
+## Uma prova por lei
 
-## Composição a construir
+| Lei | Termo que a demonstra | Código e propriedade demonstrada |
+| --- | --- | --- |
+| 1 — inicialização/configuração | `Lei1Servico.lei1_do_modelo` | `Configuracao.valida` e verificação do seed: início somente depois da prova inicial; configuração preservada; recusa exclui início. |
+| 2 — representação/operações | `Lei2Servico.lei2_do_modelo` | `Codec`, `Entrada`, `Estado`, `Transporte`, `Nucleo`: bytes e operações exatos, leitura enquadrada e conferência do comprimento antes de construir campos. |
+| 3 — identidade | `Lei34Servico.lei3_do_modelo` | `Dados.autenticar` sobre a requisição e o snapshot publicado: recebimento antes da autenticação e autenticação correta antes do programa. |
+| 4 — certificado | `Lei34Servico.lei4_do_modelo` | Julgamentos das declarações exatas: fonte, configuração, contexto e argumentos ligados ao certificado; autenticação antes da admissão, admissão antes da execução. |
+| 5 — execução/observações | `Lei5Servico.lei5_do_modelo` | `Nucleo.avancar/percorrer`: passos fiéis, observações ordenadas, operação ligada à transição correspondente, único início e nenhum passo depois do término. |
+| 6 — publicação | `Lei6Servico.lei6_do_modelo` | `Nucleo.preparar/concluir`: preparação anterior à publicação única, validade derivada do certificado, rollback de não-sucesso e continuidade com o publicado corrente. |
+| 7 — respostas/falhas/canal | `Lei7Servico.lei7_do_modelo` | `Requisitos.finalizar`, preparação e ramos de erro: causas corretas, conteúdo completo, prefixo real de entrega interrompida e encerramento correto. |
+| 8 — progresso | `Lei8Servico.lei8_do_modelo` | `ProgramaTermina`, máquina incremental e fases do protocolo: início, admissão e conclusão nas condições originais de `Processavel`, usando o retorno das primitivas. |
 
-A sequência de fases deve chamar as funções existentes: configuração,
-recepção, autenticação, admissão, máquina incremental, preparação, publicação
-e entrega. As transições devem produzir os fatos `Interface.Fato`; uma
-indução de suas execuções deve estabelecer ordem, unicidade e invariantes.
-Os lemas existentes estabelecem o conteúdo dos resultados dessas transições.
-Não é necessário adicionar logs, observador ou novos efeitos ao servidor.
+`HistoricoServico` deriva a validade do estado corrente por indução a partir
+do seed e das conclusões anteriores de `Nucleo`. Validade pós-publicação não é
+um dado recebido do host. `FechosServico` e `LigacaoServico` relacionam os
+fatos ao mesmo percurso, inclusive falhas antes da publicação, falhas fatais
+posteriores e entregas incompletas. Uma falha de entrega não desfaz um store.
 
-O primeiro fechamento matemático está em `Chamada.bend`: existência da
-preparação real e composição do caminho autenticado e certificado nas funções
-`Nucleo.iniciar/percorrer/preparar/concluir`. Sua conclusão não é
-`Contrato(a,k)`; falta a sequência composta de fatos das fases do serviço.
-O teorema de conclusão recebe a igualdade do percurso final efetivamente
-calculado. `Maquina.terminacao_da_referencia_implica_terminacao_incremental`
-fornece esse antecedente a partir da testemunha de término, em um lema
-separado; não se afirma que o novo termo já compõe também essa passagem.
+## Premissas explícitas
 
-## Fronteira com a execução concreta
+`ContratoServico.Premissas` reúne cinco grupos; suas definições expõem as
+obrigações, em vez de ocultá-las em um callback que afirma uma lei:
 
-As hipóteses sobre ferramentas são preservação da semântica pelo compilador
-e runtime oficiais e correção do checker/Safe/BendTT para os fontes e o
-fragmento fixados. Os imports, os alvos e a seleção dos mesmos insumos são
-responsabilidade da aplicação; hashes identificam bytes, não demonstram essas
-hipóteses.
+- `Iniciais`: julgamento da declaração fechada de validade do seed realmente
+  usada na inicialização.
+- `Observacoes`: resultados de Codec, cópias e enquadramento dos bytes reais,
+  incluindo os comprimentos declarados e os limites do protocolo.
+- `FontesExecucao`: configuração, seed, histórico e execução das fontes
+  verificadas. Cada passo refere-se à autenticação calculada e às equações
+  das funções reais de `Nucleo`. `JuizoRecusado` exige rejeição correta da
+  declaração no domínio admitido; ausência de veredito ou esgotamento da
+  ferramenta não demonstra ausência de certificado.
+- `Comunicacao`: origem dos bytes, erros efetivos, prefixos escritos e retorno
+  das operações de IO. Não fornece `RespostaJustificada` nem `Regra7`.
+- `DisponibilidadeDoModelo`: sob `Processavel`, as primitivas de verificação,
+  execução, cleanup e IO retornam de acordo com seus contratos. Não fornece
+  `Concluiu`, `ProgramaComecou` ou publicação.
 
-A ligação Rust/Node/C deve ser um refinamento operacional identificado por
-bloco: bytes enviados/recebidos, fase executada, resultado das funções Bend e
-store efetuado. Se essa ligação for sustentada por revisão e testes, continua
-sendo hipótese explícita para a garantia aplicada ao executável, não uma
-prova mecanizada do Rust. O protocolo correspondente ainda precisa ser
-construído e demonstrado, antes de receber tal hipótese.
+O parâmetro `reabrir` denota a mesma declaração fechada dessas premissas; a
+igualdade de seu tipo com `Premissas` é exigida. Ele permite reutilizar as
+provas sem copiar valores afins ou acrescentar axiomas.
 
-Para segurança, todo fato real deve corresponder a uma transição do protocolo.
-Para a Lei 8, isso não basta: um observador vazio também satisfaria tal inclusão.
-É necessário provar progresso/reflexão sob `Processavel`, que é externo e
-independente da decisão do candidato. Não se pode defini-lo como “o servidor
-terminou” nem presumir que uma chamada válida foi atendida.
+`Processavel` é o predicado externo original, preservado pelo modelo. Não é
+“aquilo que o servidor aceitou” ou “aquilo que terminou”. O fragmento e os
+limites normais da ferramenta oficial permanecem declarados. Não há promessa
+de prazo físico ou consumo de RAM.
 
-Não constituem solução: receber `Lei1`…`Lei8` ou `Regra1`…`Regra8` como oito
-callbacks, conceder publicação/execução corretas como premissas, ou aceitar uma
-lista de fatos escolhida pelo candidato que possa esconder operações reais.
-Não há ainda termo final de `Contrato(a,k)` para o serviço.
+## Ligação com o servidor executado
+
+| Bloco concreto | Contrato da integração utilizado pela composição |
+| --- | --- |
+| `stage.freeze/reopen`, admissão e `emitC` | Mesmas fontes públicas, dependências e declarações; configuração congelada; julgamentos oficiais dos alvos exatos; nenhum estado privado na compilação do cliente. |
+| `packet`, `Program::run`, `Native.read/write` | Pipes preservam os bytes e transportam o snapshot publicado e o corpo real. Saída parcial ou processo malsucedido não é proposta completa. |
+| `Native.loop` e `Execucao.avancar` | Cada passo e efeito corresponde à função Bend indicada, sem omitir operações, leituras, construções ou erros relevantes. |
+| `checked_proposal`, `request.remove`, `Published::finish` | A proposta inteira é o resultado de `Nucleo.concluir`; término do filho e cleanup antecedem o único store. Os demais ramos não fazem esse store. |
+| `serve_stream`, `write_all/flush` | Consumo e entrega reais, em ordem serial; erro de leitura/entrega corresponde ao resultado observado; a próxima chamada usa o publicado corrente. Não há reconexão implícita. |
+| Ferramentas oficiais, processos e IO | Correção do checker e preservação semântica do compilador/runtime; progresso das primitivas sob as condições externas previstas. |
+
+Esses contratos devem cobrir **todos** os fatos relevantes da execução real,
+sem escolher um traço conveniente que esconda acessos ou falhas. O histórico
+é uma estrutura da demonstração, não um log novo no servidor. `Guardou`
+refere-se às fronteiras de serialização/cópia de estados publicados; estados
+de trabalho podem ter credenciais provisórias vazias ou duplicadas quando
+as leis do administrador permitirem.
+
+Assim, a conclusão aplicada ao executável é: **sob os contratos explícitos das
+ferramentas e dessa integração, o núcleo e o protocolo satisfazem as oito
+leis**. Hashes identificam as fontes e testes sustentam a ligação operacional;
+eles não demonstram sozinhos esses contratos. Uma prova mecanizada dessa
+ligação com Rust/Node/C permanece fora do resultado.

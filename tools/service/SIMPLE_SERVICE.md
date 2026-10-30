@@ -77,5 +77,9 @@ substituem a demonstração das oito leis para o executável completo.
 
 `make build`, `make verify-contract`, `make verify` e `make test` são etapas
 separadas: compilar ou passar os testes não implica ter executado os dois
-checkers sobre os agregados de provas. Não há prova conjunta de
-`Contrato(a,k)` para esse serviço concreto.
+checkers sobre os agregados de provas. A entrada
+`proof/ContratoServico.bend`, incluída em `make verify`, compõe exatamente
+`Contrato(a,k)` para o núcleo e protocolo serial sob os contratos explícitos
+das ferramentas e da integração. O [mapa das leis](../../proof/CONTRATO_SERVICO.md)
+delimita as premissas; a ligação dos blocos Rust/Node/C permanece confiada e
+sustentada por revisão/testes, sem prova mecanizada desses componentes.

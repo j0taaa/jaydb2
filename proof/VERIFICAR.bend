@@ -1,4 +1,4 @@
-# Provas gerais e composicoes do protocolo; a entrada conjunta e separada.
+# Provas gerais e composicao conjunta das oito leis do protocolo serial.
 import Base
 import ../contrato/LAWS.bend as OitoLeisRevisadas
 import ./Fundamentos.bend as Fundamentos
@@ -17,6 +17,7 @@ import ./Lei1Servico.bend as Lei1Servico
 import ./Lei2Servico.bend as Lei2Servico
 import ./Lei34Servico.bend as Lei34Servico
 import ./Lei5Servico.bend as Lei5Servico
+import ./ContratoServico.bend as ContratoServico
 import ./Representacao.bend as Representacao
 import ./Adaptadores.bend as Adaptadores
 import ./Recursos.bend as Recursos

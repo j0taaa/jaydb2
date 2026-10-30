@@ -18,8 +18,6 @@ import ../src/Entrada.bend as E
 import ./EntradaRelacoes.bend as Mensagens
 import ./FasesServico.bend as Fases
 import ../src/Configuracao.bend as Config
-import ./Configuracao.bend as Configuracao
-import ../contrato/LAWS.bend as K
 import ../src/Transporte.bend as T
 import ./Transporte.bend as Transporte
 import ./Fundamentos.bend as F
@@ -393,14 +391,6 @@ def configuracao_da_fonte(fonte, k, x, t, observada, fato):
 # fixa seus corpos/alvos; o contrato da ferramenta liga a derivacao original
 # a esses termos. Nao ha eliminador para Type arbitrario, axioma novo, ou
 # callback de Lei4/Regra4/validade publicada.
-def tornar_aceito(~fonte: Fonte, -c: S.Configuracao, -r: P.Requisicao,
-  -ctx: D.Contexto, +origem: JuizoSintatico, +juizo: R.Juizo,
-  aceito: {juizo == R.Aceitou{} : R.Juizo},
-  prova: JuizoClienteReal(fonte, c, r, ctx, origem, juizo)) ->
-  JuizoAceito(fonte, c, r, ctx, origem):
-  %aceito : JuizoClienteReal(fonte, c, r, ctx, origem, _)
-  prova
-
 def certificado_de_juizo(~fonte: Fonte, -c: S.Configuracao,
   -r: P.Requisicao, -ctx: D.Contexto, +origem: JuizoSintatico,
   juizo: JuizoAceito(fonte, c, r, ctx, origem)) ->
@@ -408,21 +398,6 @@ def certificado_de_juizo(~fonte: Fonte, -c: S.Configuracao,
   match juizo:
     case L.Ambos{elaborada, L.Ambos{derivada, L.Ambos{certificado, L.Ambos{td, termina}}}}:
       L.Ambos{L.Ambos{elaborada, termina}, L.Ambos{derivada, certificado}}
-
-law fonte_aceita_fornece_certificado_exato:
-  for ~fonte: Fonte
-  for ~c: S.Configuracao
-  for ~requisicoes: Nat -> P.Requisicao
-  for ~contextos: Nat -> D.Contexto
-  for ~origens: Nat -> JuizoSintatico
-  for ~juizos: Nat -> R.Juizo
-  for +mundo: Nat
-  for aceito: {juizos(mundo) == R.Aceitou{} : R.Juizo}
-  for testemunho: JuizoClienteReal(fonte, c, requisicoes(mundo), contextos(mundo), origens(mundo), juizos(mundo))
-  I.CertificadoValido(ambiente(fonte), c, requisicoes(mundo), contextos(mundo), programa(fonte, origens(mundo)))
-def fonte_aceita_fornece_certificado_exato(fonte, c, requisicoes, contextos, origens, juizos, mundo, aceito, testemunho):
-  certificado_de_juizo(fonte, c, requisicoes(mundo), contextos(mundo), origens(mundo),
-    tornar_aceito(fonte, c, requisicoes(mundo), contextos(mundo), origens(mundo), juizos(mundo), aceito, testemunho))
 
 # Inicializacao: somente a declaracao fechada de validade do seed, nunca a
 # validade de um estado publicado depois de executar uma transacao.
@@ -438,19 +413,6 @@ def inicial_tornar_aceito(~fonte: Fonte, -c: S.Configuracao, -s: D.Estado,
   L.E<derivacao(fonte, c, pi, Req.Valido(c, s)), Req.Valido(c, s)>:
   %igual : JuizoInicialReal(fonte, c, s, pi, _)
   origem
-
-law fonte_inicial_aceita_e_valida:
-  for ~fonte: Fonte
-  for ~c: S.Configuracao
-  for ~estados: Nat -> D.Estado
-  for ~provas: Nat -> String
-  for ~juizos: Nat -> R.Juizo
-  for +mundo: Nat
-  for aceito: {juizos(mundo) == R.Aceitou{} : R.Juizo}
-  for testemunho: JuizoInicialReal(fonte, c, estados(mundo), provas(mundo), juizos(mundo))
-  L.E<I.Deriva(ambiente(fonte), c, provas(mundo), Req.Valido(c, estados(mundo))), Req.Valido(c, estados(mundo))>
-def fonte_inicial_aceita_e_valida(fonte, c, estados, provas, juizos, mundo, aceito, testemunho):
-  inicial_tornar_aceito(fonte, c, estados(mundo), provas(mundo), juizos(mundo), aceito, testemunho)
 
 # A mensagem pode falhar. Se ela devolve Pronta, o snapshot privado e o mesmo
 # que o controlador publicou; a identidade e calculada, nao presumida.
@@ -535,64 +497,6 @@ law inicializacao_aprovada_atinge_inicio:
 def inicializacao_aprovada_atinge_inicio(fonte, c, mundo, s, pi, cf, sf, pf, micro, canonico, origem, configurada, valido):
   iniciar_da_consulta(fonte, c, mundo, s, pi, cf, sf, pf, micro, canonico, origem,
     Fases.seed_valido_tem_instancia_apos_aprovacao(c, identidade(fonte), s, micro, configurada, valido))
-
-# Este antecedente e composto dos retornos das primitivas de verificacao,
-# worker e cleanup. Entrega somente dados/fonte/resultados, nunca o evento
-# de inicio. Nao e uma nova definicao de Processavel nem progresso assumido.
-def InicialCompleta(~fonte: Fonte, -c: S.Configuracao, -mundo: Nat,
-  -s: D.Estado, -pi: String) -> Type:
-  I.Processavel(ambiente(fonte), I.Inicializar{mundo, c, s, pi}) ->
-    I.Deriva(ambiente(fonte), c, pi, Req.Valido(c, s)) ->
-      &cf: JuizoSintatico -> &sf: JuizoSintatico -> &pf: JuizoSintatico -> &micro: R.Micro ->
-        L.E<{I.Inicializar{mundo, c, s, pi} == cenario(fonte, mundo) : I.Cenario},
-          {inicial(fonte, mundo) == InicialData{cf, sf, pf, R.Aceitou{}, R.Finalizada{}, micro} : InicialData}>
-
-def inicio_apos_checker(~fonte: Fonte, ~c: S.Configuracao, +mundo: Nat,
-  +s: D.Estado, +pi: String, configurada: {Config.valida(c, identidade(fonte)) == True{} : Bool},
-  valido: Req.Valido(c, s), resultado: &cf: JuizoSintatico -> &sf: JuizoSintatico ->
-    &pf: JuizoSintatico -> &micro: R.Micro ->
-      L.E<{I.Inicializar{mundo, c, s, pi} == cenario(fonte, mundo) : I.Cenario},
-        {inicial(fonte, mundo) == InicialData{cf, sf, pf, R.Aceitou{}, R.Finalizada{}, micro} : InicialData}>) ->
-  I.EmAlgumMomento(ambiente(fonte), artefato(fonte), I.Inicializar{mundo, c, s, pi}, I.InstanciaIniciou{s}):
-  match resultado:
-    case (cf, sf, pf, micro, L.Ambos{canonico, origem}):
-      inicializacao_aprovada_atinge_inicio(fonte, c, mundo, s, pi, cf, sf, pf, micro, canonico, origem, configurada, valido)
-
-def progresso_inicial_possivel(~fonte: Fonte, ~c: S.Configuracao, +mundo: Nat,
-  +s: D.Estado, +pi: String, completa: InicialCompleta(fonte, c, mundo, s, pi),
-  possivel: K.InicializacaoPossivel(ambiente(fonte), c, s, pi),
-  processavel: I.Processavel(ambiente(fonte), I.Inicializar{mundo, c, s, pi})) ->
-  I.EmAlgumMomento(ambiente(fonte), artefato(fonte), I.Inicializar{mundo, c, s, pi}, I.InstanciaIniciou{s}):
-  match possivel:
-    case L.Ambos{configurada, L.Ambos{derivada, valido}}:
-      inicio_apos_checker(fonte, c, mundo, s, pi,
-        Configuracao.configuracao_original_valida_e_aceita(ambiente(fonte), c, configurada), valido,
-        completa(processavel, derivada))
-
-law progresso_da_inicializacao:
-  for ~fonte: Fonte
-  for ~c: S.Configuracao
-  for +mundo: Nat
-  for +s: D.Estado
-  for +pi: String
-  for completa: InicialCompleta(fonte, c, mundo, s, pi)
-  K.Progresso(I.Inicializar{mundo, c, s, pi}, ambiente(fonte), artefato(fonte))
-def progresso_da_inicializacao(fonte, c, mundo, s, pi, completa):
-  possivel => processavel => progresso_inicial_possivel(fonte, c, mundo, s, pi, completa, possivel, processavel)
-
-# Os dois marcos do fim completo existem por construcao, inclusive em recusa.
-law fim_completo_pontos:
-  for +s: D.Estado
-  for +r: S.Resposta
-  for +bs: List<&2, U32>
-  for +proxima: Bool
-  L.E<{Q.consultar(R.render_conclusao(N.Conclusao{s, r, bs}, False{}, R.Completa{proxima}),
-      Q.tamanho(Con{Q.Preparada{r, bs}, R.render_publicacao(r, s)})) == Some{Q.Concluida{r, s, False{}}} : Maybe<&2, Q.Quadro>},
-    {Q.consultar(R.render_conclusao(N.Conclusao{s, r, bs}, False{}, R.Completa{proxima}),
-      Succ{Q.tamanho(Con{Q.Preparada{r, bs}, R.render_publicacao(r, s)})}) == Some{Q.Entregue{bs}} : Maybe<&2, Q.Quadro>}>
-def fim_completo_pontos(s, r, bs, proxima):
-  Q.dois_quadros_apos_prefixo(Con{Q.Preparada{r, bs}, R.render_publicacao(r, s)},
-    R.depois_entrega(False{}, s, proxima), Q.Concluida{r, s, False{}}, Q.Entregue{bs})
 
 # A origem da requisicao e o segundo bloco REAL montado no pipe privado.
 # Nao pressupoe que o decoder ou a autenticacao devolveram o pedido correto.

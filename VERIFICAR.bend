@@ -1,5 +1,5 @@
-# Componentes puros implementados e seus testes. A prova do contrato completo
-# do servidor nativo e uma obrigacao separada desta entrada de desenvolvimento.
+# Componentes puros implementados. A composicao das oito leis e conferida
+# em proof/VERIFICAR.bend, incluida no agregado de testes de make verify.
 import Base
 import ./contrato/VERIFICAR.bend as ContratoOriginal
 import ./src/Nucleo.bend as Nucleo
