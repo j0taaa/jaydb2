@@ -184,6 +184,18 @@ export function constrainProofViews(safe,names){
    if(body.$==='Let'){
      const next=new Map(ctx);next.set(body.l,infer(body.v,ctx));walk(body.f,expected,next,changes,path+'.let');return;
    }
+   if(body.$==='App'){
+     const [head,args]=spine(body);
+     // The source checker can convoy arguments across a match. Check that
+     // applied case tree against its known domains and expected result;
+     // a bare projection has no type that can be inferred in isolation.
+     if(['Lam','Prj','Mat'].includes(head.$)&&args.every(a=>a.$==='Var')&&new Set(args.map(a=>a.l)).size===args.length){
+       let T=expected,application=body;const qs=[];
+       while(application.$==='App'){qs.unshift(application.q);application=application.f;}
+       for(let i=args.length-1;i>=0;i--){const l=fresh++;T={$:'All',q:qs[i],l,A:infer(args[i],ctx),B:sub(T,args[i].l,V(l))};}
+       walk(head,T,ctx,changes,path+'.applied');return;
+     }
+   }
    refine(expected,infer(body,ctx),changes,path);
  };
  let rounds=0;

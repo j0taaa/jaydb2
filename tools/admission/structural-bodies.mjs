@@ -21,7 +21,27 @@ export class Bodies {
   definitionBody(key,body,sourceType,type,env,ctx,physical,logical) {
     // Independent family instances share deferred opening. Field quantities
     // are preserved unless their checked relation is Data.
+    const matched=new Set();
+    const depends=x=>{
+      if(!x||typeof x!=='object')return false;
+      if(x.tag==='bound')return matched.has(x.key);
+      if(x.tag==='source')return [...x.context.values()].some(k=>matched.has(k));
+      return Object.entries(x).some(([k,v])=>!['sourceTerm','sourceType','sourceContext','physicalViews'].includes(k)&&depends(v));
+    };
+    // Read binder/pattern shape only. A proof domain depending on an earlier
+    // scrutinized value keeps the immediate, dependent transport.
+    const consume=(body,n)=>{
+      if(n===0)return [body];const {x}=this.open(body);
+      if(x.$==='Lam')return consume(x.f(this.B.Var('_',this.source.depth++)),n-1);
+      if(x.$==='Efq')return [];
+      if(x.$==='Mat'){
+        const h=consume(x.h,n-1+this.book.ctrs[x.k].n),m=consume(x.m,n);
+        return h===null||m===null?null:[...h,...m];
+      }
+      return null;
+    };
     const independent=(A,seen=new Map())=>{
+      if(A.tag==='identity')return independent(A.A,seen)&&!depends(A);
       if(A.tag==='scalar')return A.T.$==='Enu'&&typeof A.quantity==='number';
       if(A.tag==='arrow')return independent(A.A,seen)&&independent(A.B,seen);
       if(A.tag!=='family'||A.args.some(x=>x.tag!=='type'&&!(x.tag==='constant'&&/^Q[012]$/.test(x.value.k))))return false;
@@ -37,7 +57,12 @@ export class Bodies {
         return independent(type,next);
       }));
     };let T=type,n=0;
-    while(T.tag==='arrow'&&T.q>0&&T.A.tag==='family'&&independent(T.A)){n++;T=T.B;}
+    let heads=[body];
+    while(T.tag==='arrow'&&T.q>0&&['family','identity'].includes(T.A.tag)&&independent(T.A)){
+      if(heads===null||heads.some(b=>this.open(b).x.$!=='Lam'))matched.add(T.key);
+      if(heads!==null){const next=heads.map(b=>consume(b,1));heads=next.some(x=>x===null)?null:next.flat();}
+      n++;T=T.B;
+    }
     const cases=n>0&&T.tag==='identity'?{key,physical,logical,type,args:[],frames:[],skip:0}:null;
     const previous=this.caseDefinition;this.caseDefinition=key;
     try{return this.functionBody(body,sourceType,type,env,ctx,physical,logical,cases);}
@@ -168,7 +193,7 @@ export class Bodies {
         return ann(value.r,this.gen.plan(type,env).relation(physical,logical));
       }
     } else throw Error('Structural function body not implemented: '+x.$+' over '+type.A.tag);
-    const rq=type.q>0&&A.quantity===2?2:type.q;
+    const rq=this.gen.useQuantity(type.q,A);
     return bind('Lam',[[0,p,A.p],[0,l,A.l],[rq,r,A.relation(V(p),V(l))]],b);
   }
   specializeType(sourceType,ctx,prior,env){return this.source.type(sourceType,ctx);}

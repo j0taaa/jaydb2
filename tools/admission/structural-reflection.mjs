@@ -1,14 +1,28 @@
-import {R,V,all,app,apps,ann,prj,mats,split,tuple,let1,bind,rfl} from './structural-syntax.mjs';
+import {R,V,all,app,apps,ann,prj,mats,split,tuple,let1,bind,rfl,eq,rwt} from './structural-syntax.mjs';
 import {DataValues} from './structural-data.mjs';
 
 // Construct reflexive input relations only when this type-directed operation
 // is justified. An opaque higher-order domain never receives a fictitious R_h.
 export class Reflection {
  constructor(gen){this.gen=gen;this.data=new DataValues(gen);this.cache=new Map();this.active=new Set();}
- at(T,value){
+ at(T,value,env=new Map()){
    if(T.tag==='family'&&T.args.length===0&&this.data.supports(T.key))
      return app(R(this.data.ensure(T.key).reflect),value);
    if(T.tag==='family')return app(R(this.family(T)),value);
+   if(T.tag==='identity'){
+     const gen=this.gen,A=gen.plan(T.A,env),a=gen.value(T.a,env),b=gen.value(T.b,env);
+     if(![[A.p,A.l],[a.p,a.l],[b.p,b.l]].every(([p,l])=>gen.termKey(p)===gen.termKey(l)))throw Error('An equality input needs identical physical and logical indices');
+     const z=gen.fresh(),left=gen.fresh(),right=gen.fresh();
+     const motive=(endpoint,e)=>{
+       const moveP=rwt(e,left,A.relation(V(left),a.l),a.r);
+       const moveL=rwt(e,right,A.relation(endpoint,V(right)),moveP);
+       return eq(moveL,this.at(T.A,endpoint,env),A.relation(endpoint,endpoint));
+     };
+     // J proves coherence for this exact supplied evidence. It is neither
+     // replaced by Rfl nor assumed irrelevant.
+     const coherence=rwt(value,z,motive(V(z),V(z+1)),rfl);
+     return tuple([[1,value],[1,value],[1,rfl],[1,rfl],[1,coherence]]);
+   }
    if(T.tag==='arrow')return this.function(T,value);
    throw Error('An actual closed construction is required at this abstract input; no reflexive relation was assumed: '+T.tag);
  }

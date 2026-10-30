@@ -30,10 +30,10 @@ export class ProofBody {
  representedBundle(value,type,env,original){
    if(type.tag==='arrow'){
      const argument=this.gen.fresh(),plan=this.gen.plan(type.A,env),next=new Map(env);
-     const input={p:V(argument),l:V(argument),r:this.reflection.at(type.A,V(argument)),type:type.A,expression:bound(type.key)};
+     const input={p:V(argument),l:V(argument),r:this.reflection.at(type.A,V(argument),env),type:type.A,expression:bound(type.key)};
      next.set(type.key,input);
      const result=this.representedBundle(this.gen.application(value,input,next),type.B,next,app(original,V(argument),type.q));
-     return {T:all(type.q,argument,plan.l,result.T),b:lam(type.q,argument,result.b)};
+     return {T:all(type.q,argument,plan.l,result.T),b:lam(this.gen.useQuantity(type.q,plan),argument,result.b)};
    }
    if(type.tag!=='identity')throw Error('An exact identity evidence result is required');
    const wanted=this.gen.plan(type,env).l,slots=Array.from({length:5},()=>[1,this.gen.fresh()]);
@@ -46,9 +46,9 @@ export class ProofBody {
    const gen=this.gen;
    if(type.tag==='arrow'){
      const x=gen.fresh(),A=gen.plan(type.A,env),next=new Map(env);
-     next.set(type.key,{p:V(x),l:V(x),r:this.reflection.at(type.A,V(x)),type:type.A,expression:bound(type.key)});
+     next.set(type.key,{p:V(x),l:V(x),r:this.reflection.at(type.A,V(x),env),type:type.A,expression:bound(type.key)});
      const rest=this.exactEliminate(type.B,app(proof,V(x),type.q),app(original,V(x),type.q),app(link,V(x),type.q),next);
-     return {T:all(type.q,x,A.l,rest.T),b:lam(type.q,x,rest.b)};
+     return {T:all(type.q,x,A.l,rest.T),b:lam(gen.useQuantity(type.q,A),x,rest.b)};
    }
    const A=gen.plan(type,env).l,P=gen.fresh(),v=gen.fresh(),x=gen.fresh(),e=gen.fresh(),z=gen.fresh();
    const motive=all(1,x,A,all(1,e,eq(proof,V(x),A),K(1)));
@@ -60,10 +60,10 @@ export class ProofBody {
    const gen=this.gen;
    if(type.tag==='arrow'){
      const x=gen.fresh(),plan=gen.plan(type.A,env),next=new Map(env);
-     next.set(type.key,{p:V(x),l:V(x),r:this.reflection.at(type.A,V(x)),type:type.A,expression:bound(type.key)});
+     next.set(type.key,{p:V(x),l:V(x),r:this.reflection.at(type.A,V(x),env),type:type.A,expression:bound(type.key)});
      const rest=this.projectBundle(type.B,app(bundle,V(x),type.q),mode,proof&&app(proof,V(x),type.q),original&&app(original,V(x),type.q),next);
-     if(mode==='proof')return lam(type.q,x,rest);
-     return {T:all(type.q,x,plan.l,rest.T),b:lam(type.q,x,rest.b)};
+     if(mode==='proof')return lam(gen.useQuantity(type.q,plan),x,rest);
+     return {T:all(type.q,x,plan.l,rest.T),b:lam(gen.useQuantity(type.q,plan),x,rest.b)};
    }
    const A=gen.plan(type,env).l,p=gen.fresh(),e=gen.fresh(),z=gen.fresh();
    const source=original;

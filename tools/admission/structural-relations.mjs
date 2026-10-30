@@ -19,6 +19,9 @@ export class Relations {
   }
   fresh() { return this.syntax.fresh(); }
   emit(k,T,b) { this.declarations.push([k,T,b]); }
+  // Only checked Data relations are reusable; erased and linear inputs keep
+  // their source quantity. The kernel checks every resulting binder.
+  useQuantity(q,plan) { return q>0&&plan.quantity===2?2:q; }
   applyTerm(f,x,q=1) {
     return f.$==='Lam'&&this.substitute?this.substitute(f.f,f.l,x):app(f,x,q);
   }

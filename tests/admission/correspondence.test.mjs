@@ -29,28 +29,28 @@ def f(~p: Nat, n: Nat) -> Nat:
       p
     case Succ{x}:
       f(p, x)
-def helper(b: Bool, p: Nat, ts: List<&1, ProofToken>, n: Nat) -> {f(p, n) == p : Nat}:
+def helper(b: Bool, p: Nat, q: Nat, e: {p == q : Nat}, ts: List<&1, ProofToken>, n: Nat) -> {f(p, n) == q : Nat}:
   match b:
     case False{}:
       match ts:
         case Nil{}:
           match n:
-            case Zero{}: {==}
-            case Succ{x}: helper(b, p, ts, x)
-        case Con{head, tail}: helper(b, p, tail, n)
+            case Zero{}: e
+            case Succ{x}: helper(b, p, q, e, ts, x)
+        case Con{head, tail}: helper(b, p, q, e, tail, n)
     case True{}:
       match ts:
         case Nil{}:
           match n:
-            case Zero{}: {==}
-            case Succ{x}: helper(b, p, ts, x)
-        case Con{head, tail}: helper(b, p, tail, n)
+            case Zero{}: e
+            case Succ{x}: helper(b, p, q, e, ts, x)
+        case Con{head, tail}: helper(b, p, q, e, tail, n)
 def ordinary(n: Nat) -> Nat:
   f(3n, n)
 def goal(n: Nat) -> Type:
   {ordinary(n) == 3n : Nat}
 def theorem(n: Nat) -> goal(n):
-  helper(True{}, 3n, Con{ProofToken{m => next = m; next}, Nil{}}, n)
+  helper(True{}, 3n, 3n, {==}, Con{ProofToken{m => next = m; next}, Nil{}}, n)
 `;
 
 // R4 must reuse the checked nested specialization when C executes id(id(1)).
