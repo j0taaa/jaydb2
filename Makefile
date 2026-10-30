@@ -1,4 +1,9 @@
-.PHONY: verify-contract verify test test-host test-admission test-native test-integration
+.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration
+
+all: build
+
+build:
+	cargo build --locked --release
 
 verify-contract:
 	python3 -B tools/check.py
@@ -10,7 +15,7 @@ verify:
 test: test-admission test-native test-host test-integration
 
 test-host:
-	python3 -B -m unittest tests.service.test_simple_service -v
+	cargo test --locked
 
 test-admission:
 	node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs

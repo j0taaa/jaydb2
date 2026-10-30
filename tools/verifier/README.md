@@ -1,19 +1,17 @@
-# Verificador
+# Verificador oficial
 
-O kernel oficial BendTT e suas fontes permanecem intactos e fixados por hash. O derivado `bendtt-budget` parametriza o combustível, mantendo as regras e exigindo tanto o checker guardado quanto `Book.check` na aceitação. Todas as normalizações guardadas propagam esgotamento de combustível; esse estado nunca vira erro matemático definitivo.
+O JayDB usa o **Safe e o BendTT originais do Bend 2.0.39**, sem derivação ou alteração de regras, quantidades, combustível, axiomas ou runtime. Seus hashes estão em `tools/admission/toolchain.lock.json`.
 
-A geração verifica em Lean 4.34.0 `Claim.sound`, consistência e adequação para todo `FuelBudget`. Os axiomas continuam `propext`, `Classical.choice` e `Quot.sound`, sem sorry ou axiomas adicionais. Fonte, gerador, main adapter, prova e binário constam no lock.
+`checkBook` pede ao `safe_emit` oficial o payload do Book já checado pelo frontend. `checkKernelFile` executa o BendTT original sobre esse arquivo. Não há kernel alternativo, retry com combustível alterado ou fallback após rejeição.
+
+Uma falha de processo ou representação não implementada pelo Safe é distinta de uma prova recusada pelo kernel. O JayDB não reescreve o certificado nem fornece uma testemunha substituta para obter aceitação.
+
+A instalação apenas copia o kernel oficial já compilado e verifica seu hash:
 
 ```sh
-node tools/verifier/build.mjs
+python3 tools/bootstrap.py --source /caminho/bend-2.0.39 --kernel /caminho/bendtt
 ```
 
-É necessário o Lean pelo Elan, no caminho documentado no README raiz. O build normal reproduz o artefato; `--write-lock` altera deliberadamente a identidade e não é instalação comum.
+O kernel esperado tem SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`. Não é necessário gerar um novo verificador Lean para usar o banco.
 
-`checkKernelFile` usa o mesmo arquivo imutável em cada tentativa e dobra BigInt quando o kernel retorna exclusivamente o código reservado de exaustão. `checkBook` traduz o Book já checado e verifica o payload final. Safe também aumenta seu próprio combustível quando necessário. Não há máximo de retries nem deadline do banco.
-
-Uma saída diferente do protocolo esperado, sinal ou erro de execução é falha técnica. Uma forma não representada pelo tradutor também é falha técnica; não prova que um certificado matemático inexiste.
-
-O main derivado é síncrono, com stack Linux expansível e alocador configurado sem eager commit desnecessário. Essas opções não alteram os termos nem as regras. O kernel original continua disponível para controles independentes; os mesmos payloads podem ser verificados por ele quando seu combustível fixo comporta o cálculo.
-
-Os testes correntes cobrem retry positivo/negativo, recusa de exportar evidência apagada para código vivo e distinção entre representação não implementada e prova falsa. Os agregados gerais pertencem a `make verify`; logs e binários de rodadas antigas ficam no histórico, fora da suíte atual.
+`make verify` confere as provas gerais com os dois modos oficiais. A aprovação desses componentes não demonstra, sozinha, o contrato do executável completo.

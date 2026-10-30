@@ -2,18 +2,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { admitSubmission, admitKernel, emitC, emitGenericC, bootstrapInfo, AdmissionError } from './index.mjs';
+import { admitSubmission, admitKernel, emitC, bootstrapInfo, AdmissionError } from './index.mjs';
 
 try {
   const { values } = parseArgs({ options: {
     manifest: { type: 'string' }, 'emit-c': { type: 'string' },
     'source-dir': { type: 'string' }, kernel: { type: 'string' },
-    'generic-backend-sha256': { type: 'string' },
     bootstrap: { type: 'boolean' }, help: { type: 'boolean' },
   } });
   const toolchain = { sourceDir: values['source-dir'], kernelPath: values.kernel };
   if (values.help) {
-    console.log('node tools/admission/cli.mjs --manifest HOST.json [--emit-c out.c] [--generic-backend-sha256 SHA] [--source-dir DIR] [--kernel BIN]\nnode tools/admission/cli.mjs --bootstrap');
+    console.log('node tools/admission/cli.mjs --manifest HOST.json [--emit-c out.c] [--source-dir DIR] [--kernel BIN]\nnode tools/admission/cli.mjs --bootstrap');
   } else if (values.bootstrap) {
     console.log(JSON.stringify(bootstrapInfo(toolchain), null, 2));
   } else {
@@ -25,8 +24,7 @@ try {
     manifest.submissionDir = path.resolve(path.dirname(manifestPath), manifest.submissionDir);
     const result = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
     if (values['emit-c']) {
-      const c = values['generic-backend-sha256'] ? (await emitGenericC(result, { backendSha256: values['generic-backend-sha256'] })).c : emitC(result);
-      fs.writeFileSync(values['emit-c'], c, { flag: 'wx' });
+      fs.writeFileSync(values['emit-c'], emitC(result), { flag: 'wx' });
     }
     console.log(JSON.stringify(result.report, null, 2));
   }

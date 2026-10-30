@@ -19,7 +19,7 @@ Uma aplicação pode instalar leis que restrinjam essas escritas ou os estados
 intermediários.
 
 ```sh
-python3 jaydb2.py --configuration examples/troca-credenciais/Configuration.bend \
+./jaydb2 --configuration examples/troca-credenciais/Configuration.bend \
   --seed examples/troca-credenciais/Seed.bend
 ```
 

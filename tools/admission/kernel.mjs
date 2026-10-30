@@ -24,9 +24,6 @@ def read() -> IO(List<&2, U32>):
 def write(bytes: List<&2, U32>) -> IO(Unit):
   import "./effects.c"
 
-def enter(etapa: U32) -> IO(Unit):
-  import "./effects.c"
-
 def loop(-A: Type, step: A -> Iteracao<A>, initial: A) -> IO(Unit):
   import "./effects.c"
 `;
@@ -74,7 +71,6 @@ export function prepareKernel(B, state) {
 export function auditLoopCalls(B, state) {
   if (!state.plan.kernel) return;
   const loop = state.plan.kernel.ns + ':loop', step = state.plan.kernel.loopStep;
-  const enter = state.plan.kernel.ns + ':enter';
   function visit(t, owner) {
     if (!t || typeof t !== 'object') return;
     if (t.$ === 'App') {
@@ -85,15 +81,8 @@ export function auditLoopCalls(B, state) {
         for (const a of args) visit(a, owner);
         return;
       }
-      if (head.$ === 'Ref' && head.k === enter) {
-        if (state.owners.get(owner)?.path !== state.plan.entry || args.length !== 1 || args[0].$ !== 'Lit' || args[0].k !== 'U32' || ![1, 2].includes(args[0].v)) {
-          fail('enter só pode ser chamado diretamente no módulo de entrada com etapa literal 1 ou 2');
-        }
-        return;
-      }
     }
     if (t.$ === 'Ref' && t.k === loop) fail('loop não pode ser usado como alias ou valor de primeira classe');
-    if (t.$ === 'Ref' && t.k === enter) fail('enter não pode ser usado como alias ou valor de primeira classe');
     for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') visit(v, owner);
   }
   for (const [k, t] of Object.entries(state.book.tlds)) {

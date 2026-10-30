@@ -1,70 +1,51 @@
-# Runtime nativo simples, ABI6
+# Execução nativa oficial
 
-`tools/native/build_simple.py checked.c output.so` prepara e compila C do
-emissor genérico que recebeu o mesmo Book admitido. O builder não admite C ou
-Bend e não verifica provas. Usa Clang 19, CPU1, GPU desligada e execução
-síncrona na thread principal do processo do banco, sem orçamento físico,
-observador ou relógio por etapa.
+A admissão entrega o mesmo Book checado ao `compile_book` oficial do Bend 2.
+O C emitido é compilado literalmente por `tools/service/stage.mjs`, com
+Clang 19. Não há reescrita do C, substituição de runtime, representação própria
+de Nat/Array, ABI de DSO ou verificador derivado.
 
-O host fornece os CIDs de efeitos presentes no C por `--input-cid`,
-`--output-cid`, `--enter-cid`, `--loop-cid`, `--state-cid`, `--continue-cid`,
-`--prepare-cid`, `--finish-cid` e `--inconsistent-cid`. `none` desliga uma ligação
-opcional. As macros fornecidas devem existir e ser distintas. O CID de estado
-é o de `E.EstadoExecucao`; não se procuram recursos na configuração.
+Cada chamada executa esse programa em um processo auxiliar novo, com as opções
+oficiais `+RTS --threads 1 --gpu off -RTS`. O estado publicado pertence ao host.
+Entrada e saída trafegam por pipes; o estado não é gravado no diretório de
+compilação. O processo termina e seus recursos são liberados pelo sistema
+antes de o host aceitar uma proposta para publicação.
 
-A adaptação conserva os segmentos emitidos e os helpers de Nat arbitrário,
-Array como construtores gerais, IDs e aridades de máquina, refcounts saturantes
-e F32. Ajusta Term para 192 bits, banco de registradores, pilha lógica e heap.
-A fronteira implementa somente os efeitos admitidos de bytes. O Codec continua
-sendo Bend compilado, sem um parser C alternativo.
+## Efeitos da aplicação
 
-## Interface Linux x86_64
+`effects.bend` declara os únicos efeitos confiáveis do kernel. `effects.c`
+implementa-os pelo mecanismo foreign documentado do Bend (`io_eff`):
 
-| Estrutura | Layout |
-| --- | --- |
-| Request, 32 bytes | abi_version u32=6; size u32=32; input ponteiro; input_len u64; output_capacity u64 |
-| Result, 48 bytes | status0; runtime_code4; stage8; reserved12=0; output16; output_len24; output_capacity32; lease40 |
-| Descriptor, 152 bytes | seis u32: versão, tamanho, request_bytes, result_bytes, flags, term_bytes; source_sha256[64]; build_identity_sha256[64] |
+- `read` recebe os bytes até EOF e constrói a lista com `io_list` oficial.
+- `write` usa `io_cbuf` e `io_out` oficiais, sem conversão UTF-8 dos octetos.
+- `loop` aplica um passo fechado à célula linear do estado até o encerramento.
 
-Os únicos exports são `jaydb_native_describe_v6()`,
-`jaydb_native_run_v6(request*, result*)` e `jaydb_native_release_v6(lease)`.
-O descritor identifica os insumos do build e o C emitido. Não contém uma cauda
-ou prefixo de compatibilidade com outras ABIs.
+O wrapper Bend carrega essa célula como função `Unit -> EstadoExecucao`. Isso
+usa o BOX oficial para funções e transfere a captura uma vez; não reconstrói o
+layout interno do estado nem altera o compilador para forçar uma representação.
+A função do passo é fechada e fixada pelo host. Código cliente não recebe esses
+efeitos nem a célula de estado.
 
-O host estabelece a stack principal Linux grow-down com soft
-`RLIMIT_STACK=unlimited`; o runtime confere esse perfil sem criar threads.
-Toda chamada bem-sucedida adquire um lease não nulo, inclusive com saída vazia,
-e ocupa o módulo até a liberação. A saída tem armazenamento próprio e só
-permanece viva até release. Lease expirado é inválido; falhas não retêm saída.
+## Identidade e falhas
 
-`tools.service.abi_simple.SimpleModule(file)` confere manifesto/hash/descritor,
-possui o DSO e oferece `run(data: bytes, *, capacity: int) -> bytes`, `close()`
-e context manager. Copia a saída antes de release e recusa `run/close`
-reentrantes. Não há runtime auxiliar, registro de leases ou protocolo de
-recuperação. Retorno/release incerto mantém o DSO e resultado retidos e exige
-terminar a instância, sem nova tentativa de consumo.
+O manifesto registra SHA-256 do C literal, executável e Clang, mais os argumentos
+reais do compilador. O host Rust confere o executável antes de cada chamada.
+Uma falha do filho conserva o estado publicado. O host só
+publica após receber e validar a saída integral e recolher o processo.
 
-## Falhas
+Os tamanhos de estado e resposta são conferidos sobre a proposta completa;
+não são quotas de RAM. Não há timeout do programa ou observador de recursos.
+Uma falha fatal do processo do banco ainda pode perder a instância em RAM.
 
-Status 7 significa exclusivamente teto lógico de saída, sem truncamento, e
-permite outra chamada. Arredondar uma alocação a páginas não autoriza emitir
-bytes além desse teto. A capacidade fornecida é um máximo lógico, sem reserva
-antecipada de seu tamanho.
+## Limites oficiais observados
 
-Falha de mmap/mremap retorna status 5, com errno disponível, descarta a saída e
-envenena o módulo. Representação, efeitos, invariantes e cleanup nativo também
-podem torná-lo inutilizável. O host trata esses casos como fatais e conserva a
-publicação anterior; não os apresenta como excesso de uma quota física.
-Falha fatal pode terminar o banco RAM sem resposta.
+A toolchain oficial possui limitações que o JayDB não contorna. Em particular,
+o caminho nativo imediato de Bend 2.0.39 recusa o cálculo observado de `Nat`
+maior que `2^48-1`, e o caminho nativo de `Array`
+exige a representação de árvore balanceada. Os antigos casos de Nat de 129 bits
+e Array desequilibrado agora são controles explícitos de falha da toolchain,
+não funcionalidades declaradas como suportadas. F32, funções capturadas dentro
+do domínio suportado, octetos e iteração são exercitados com C oficial real.
 
-`stage` identifica setup, execução ou preparação; não contém duração ou prazo.
-Heap e pilha acompanham páginas, ownership e índices para alocar e liberar com
-segurança, sem comparar consumo com uma quota. O perfil é serial e confiável;
-não promete recuperar handlers arbitrários, cancelamento ou morte do processo.
-
-## Verificação
-
-`make test-native` compila e executa C real emitido de Books pequenos: entrada
-binária, teto lógico, Nat, Array, F32 e loop. `make test-integration` cobre a
-admissão, emissão e execução do caminho do banco. Fixtures isoladas de runtime
-não são admissão de produção nem prova da correspondência geral do executável.
+Essas verificações não demonstram a correspondência geral do compilador nem o
+`Contrato` completo do executável. O JayDB não modifica Bend para alegá-los.

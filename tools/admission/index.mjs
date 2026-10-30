@@ -1,11 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadPinnedGenericCompiler } from './generic.mjs';
 import { AdmissionError, loadToolchain, sha256 } from './bootstrap.mjs';
 import { preflight } from './preflight.mjs';
 import { prepareKernel, auditLoopCalls, validateKernelEntry, validateForeignSnapshot, removeForeignSnapshot } from './kernel.mjs';
 import { checkBook } from '../verifier/check.mjs';
-import { bookFingerprint as seal } from './book-graph.mjs';
 
 export { AdmissionError, bootstrapInfo } from './bootstrap.mjs';
 export { preflight } from './preflight.mjs';
@@ -90,19 +88,11 @@ function parseSnapshots(B, plan, base) {
   const baseNames = new Set(Object.keys(book.tlds));
   const baseCtors = new Set(Object.keys(book.ctrs));
   for (const k of baseNames) book.tlds[k].b = true;
-  const owners = new Map(), fillers = new Map(), rawTrees = new Map();
+  const owners = new Map(), fillers = new Map();
   for (const rec of plan.ordered) {
     const before = new Map(Object.entries(book.tlds).map(([k, t]) => [k, { ...t }]));
     const beforeCtors = new Map(Object.entries(book.ctrs));
-    B.admission_observe((owner, term) => {
-      if (owner !== null) {
-        if (!rawTrees.has(owner)) rawTrees.set(owner, new Set());
-        rawTrees.get(owner).add(term);
-      }
-    });
-    try {
-      B.parse_book(book, path.join(plan.root, path.posix.dirname(rec.path)) + '/', rec.body, rec.ns, rec.aliases);
-    } finally { B.admission_observe(null); }
+    B.parse_book(book, path.join(plan.root, path.posix.dirname(rec.path)) + '/', rec.body, rec.ns, rec.aliases);
     for (const [k, t] of Object.entries(book.tlds)) {
       const old = before.get(k);
       if (!old) {
@@ -131,8 +121,7 @@ function parseSnapshots(B, plan, base) {
   for (const k of Object.keys(plan.openTargets)) if (!fillers.has(k)) reject('OPEN_LAW', `Alvo não preenchido: ${k}`);
   if (!plan.kernelOnly) assertBindings(B, book, plan, false);
   assertInitialization(B, book, plan);
-  const rawRefs = new Map([...rawTrees].map(([k, trees]) => [k, references([...trees])]));
-  return { book, baseNames, baseCtors, owners, fillers, rawRefs, plan, primitives: new Set() };
+  return { book, baseNames, baseCtors, owners, fillers, plan, primitives: new Set() };
 }
 
 function audit(B, state) {
@@ -157,7 +146,7 @@ function audit(B, state) {
       baseForbidden.add(k);
     }
     if (t.$ === 'Def' && t.v === null && !isBase && !state.primitives.has(k)) reject('OPEN_LAW', `Axioma ou lei aberta: ${k}`);
-    const refs = new Set(state.rawRefs.get(k) ?? []);
+    const refs = new Set();
     for (const term of terms(B, t)) for (const r of references(term)) refs.add(r);
     // ~ binders are scoped constants in Def.e, not global capabilities. Their
     // domains were already traversed in T; only the exact binder names qualify.
@@ -240,32 +229,6 @@ async function admit(options, kernelOnly) {
     }
     try {
       B.book_valid(state.book);
-      // First preserve the original source checks. Then close erased calls and
-      // replay the original checker on the final graph before capability audit.
-      // No checker/emitter is allowed to add a declaration after this loop.
-      const created = new Set();
-      let rewrites = 0;
-      for (;;) {
-        const closed = S.admission_prepare_book(state.book);
-        for (const k of closed.created) created.add(k);
-        rewrites += closed.rewrites;
-        const preparedState = seal(B, state.book);
-        B.book_valid(state.book);
-        const ordered = new Set(state.book.order);
-        for (const [k, t] of Object.entries(state.book.tlds)) {
-          if (t.$ === 'Def' && t.b !== true && t.e !== undefined && !ordered.has(k)) t.e = B.def_check(state.book, k, t);
-        }
-        const final = S.admission_prepare_book(state.book);
-        for (const k of final.created) created.add(k);
-        rewrites += final.rewrites;
-        // The original checker can rebuild an annotation which closure then
-        // rewrites back to the SAME prepared graph. Events are diagnostics;
-        // equality of the complete prepared state is the fixed-point test.
-        if (seal(B, state.book) === preparedState) {
-          state.instanceClosure = { created: [...created], rewrites, sourceLinks: final.sourceLinks };
-          break;
-        }
-      }
     } catch (cause) {
     if (cause instanceof RangeError) {
       const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
@@ -280,17 +243,17 @@ async function admit(options, kernelOnly) {
     for (const k of state.primitives) state.book.tlds[k].b = true;
     const closure = audit(B, state);
     auditLoopCalls(B, state);
-    const actualTargets = kernelOnly ? {} : assertBindings(B, state.book, plan, false);
-    Object.assign(actualTargets, assertInitialization(B, state.book, plan));
-    const primaryClosure = Object.entries(state.book.tlds).map(([k, t]) => [k, t, t.T, t.v, t.e, t.n, t.x, t.b]);
+    if (!kernelOnly) assertBindings(B, state.book, plan, false);
+    assertInitialization(B, state.book, plan);
+    const checkedDefinitions = Object.entries(state.book.tlds).map(([k, t]) => [k, t, t.T, t.v, t.e, t.n, t.x, t.b]);
     try {
-      if (sha256(fs.readFileSync(tc.info.kernelPath)) !== tc.info.kernelSha256) throw new Error('BendTT mudou durante admissão');
-      state.verifier = checkBook(S, state.book, tc.info.verifier, { ...options.verification, actualTargets });
-      const why = state.verifier.why;
-      if (why !== null) throw new AdmissionError('BENDTT_CHECK', 'bendtt', why);
-      if (Object.keys(state.book.tlds).length !== primaryClosure.length || primaryClosure.some(([k, t, T, v, e, n, x, b]) =>
+      state.verifier = checkBook(S, state.book, tc.info.verifier);
+      if (state.verifier.why !== null) throw new AdmissionError('BENDTT_CHECK', 'bendtt', state.verifier.why);
+      // Official Safe may add symbolic template constants. Preserve those,
+      // while the existing checked definitions remain the ones sent to C.
+      if (checkedDefinitions.some(([k, t, T, v, e, n, x, b]) =>
         state.book.tlds[k] !== t || t.T !== T || t.v !== v || t.e !== e || t.n !== n || t.x !== x || t.b !== b)) {
-        throw new Error('Safe changed the primary checked closure');
+        throw new Error('Official Safe changed a checked definition');
       }
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;
@@ -301,22 +264,12 @@ async function admit(options, kernelOnly) {
     const kernel = plan.kernel && Object.freeze({ module: plan.kernel.module,
       primitives: Object.freeze([...state.primitives]), foreign: Object.freeze({ path: plan.kernel.foreign.path, sha256: plan.kernel.foreign.sha256 }),
       loopStep: plan.kernel.loopStep,
-      contract: plan.kernel.primitives.some(k => ['loop', 'enter'].includes(k)) ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
+      contract: plan.kernel.primitives.includes('loop') ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
     const report = Object.freeze({ version: tc.info.version, primary: true, bendtt: true,
       purpose: plan.purpose, canonicalRefs: plan.canonicalRefs, kernel,
       initialization: plan.purpose === 'initialize' ? Object.freeze({ ...plan.initialization }) : null,
-    toolchainSha256: sha256(JSON.stringify([tc.info.files, tc.info.kernelSha256, tc.info.frontendObserverSha256, tc.info.safeNumeralsSha256, tc.info.safeStringsSha256, tc.info.safeTemplatesSha256, tc.info.conversionSha256, tc.info.frontendResourcesSha256, tc.info.verifierRunnerSha256, tc.info.verifier, tc.info.frontend])),
-      safeNumeralsSha256: tc.info.safeNumeralsSha256,
-      safeStringsSha256: tc.info.safeStringsSha256,
-      safeTemplatesSha256: tc.info.safeTemplatesSha256,
-      frontendResourcesSha256: tc.info.frontendResourcesSha256,
-      verifierRunnerSha256: tc.info.verifierRunnerSha256,
-      verifier: Object.freeze({ ...tc.info.verifier, fuel: state.verifier.fuel, attempts: state.verifier.attempts,
-        modelFuel: state.verifier.modelFuel, modelAttempts: state.verifier.modelAttempts,
-        ...(state.verifier.correspondence?{correspondence:Object.freeze(state.verifier.correspondence)}:{}),
-        schemas: Object.freeze(state.verifier.schemas), instances: Object.freeze(state.verifier.instances), inputSha256: state.verifier.inputSha256 }),
-      instanceClosure: Object.freeze({ ...state.instanceClosure,
-        created: Object.freeze(state.instanceClosure.created), sourceLinks: Object.freeze(state.instanceClosure.sourceLinks) }),
+      toolchainSha256: sha256(JSON.stringify([tc.info.version, tc.info.files, tc.info.kernelSha256])),
+      verifier: Object.freeze({ ...tc.info.verifier, inputSha256: state.verifier.inputSha256 }),
       sourceSetSha256: sha256(JSON.stringify(sources.map(({ path, sha256 }) => [path, sha256]).sort())),
       sources: Object.freeze(sources.map(({ text, ...r }) => Object.freeze(r))),
       targets: Object.freeze(Object.keys(plan.openTargets)), clientClosureSize: closure.size });
@@ -375,10 +328,8 @@ export function configurationLimits(admitted) {
 
 export function emitC(admitted) {
   const s = checkedState(admitted);
-  if (s.emitter && s.emitter !== 'official') throw new AdmissionError('BACKEND_CHANGED', 'compile', 'Um Book admite apenas um backend de emissão');
   try {
     if (s.c !== undefined) return s.c;
-    s.emitter = 'official';
     validateForeignSnapshot(s.foreignSnapshot);
     s.c = s.tc.C.compile_book(s.book);
     removeForeignSnapshot(s.foreignSnapshot);
@@ -387,35 +338,4 @@ export function emitC(admitted) {
   } catch (cause) {
     throw new AdmissionError('COMPILE', 'compile', cause.message ?? String(cause), { cause });
   }
-}
-
-/** Generic Nat/Array representation; accepts a pinned backend hash, no callback. */
-export async function emitGenericC(admitted, options = {}) {
-  const s = checkedState(admitted);
-  if (!options || Object.keys(options).some(k => k !== 'backendSha256') || !/^[a-f0-9]{64}$/.test(options.backendSha256)) {
-    throw new AdmissionError('BACKEND', 'compile', 'backendSha256 do emissor genérico deve ser fixado pelo host');
-  }
-  const emitter = 'generic:' + options.backendSha256;
-  if (s.emitter && s.emitter !== emitter) throw new AdmissionError('BACKEND_CHANGED', 'compile', 'Um Book admite apenas um backend de emissão');
-  if (s.emission) return s.emission;
-  s.emitter = emitter;
-  s.emission = (async () => {
-    try {
-      const compiler = await loadPinnedGenericCompiler(s.tc.info.sourceDir, options.backendSha256);
-      validateForeignSnapshot(s.foreignSnapshot);
-      const c = compiler.compile_book(s.book);
-      return Object.freeze({ c, backendSha256: options.backendSha256, compilerSha256: compiler.sourceSha256,
-        cSha256: sha256(c), sourceSetSha256: admitted.report.sourceSetSha256,
-        toolchainSha256: admitted.report.toolchainSha256, sameCheckedBook: true });
-    } catch (cause) {
-      if (cause instanceof AdmissionError) throw cause;
-      throw new AdmissionError('COMPILE', 'compile', cause.message ?? String(cause), { cause });
-    } finally { removeForeignSnapshot(s.foreignSnapshot); sourceCleanup.unregister(admitted); }
-  })();
-  return s.emission;
-}
-
-export async function buildKernel(options, emissionOptions) {
-  const admitted = await admitKernel(options);
-  return Object.freeze({ admitted, emission: await emitGenericC(admitted, emissionOptions) });
 }

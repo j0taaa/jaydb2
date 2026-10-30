@@ -1,50 +1,32 @@
 # Admissão
 
-O gate recebe o programa e seu certificado para uma configuração, identidade e argumentos fixados pelo host. Apenas Bend puro e terminante é admitido; metas, leis abertas, unsafe, foreign e IO externos são recusados também em definições sem uso. Dependências registradas, bytes de fonte e alvos do certificado precisam coincidir exatamente.
+O gate recebe o programa e seu certificado para uma configuração, identidade e argumentos fixados pelo host. Dependências registradas, bytes de fonte e alvos do certificado precisam coincidir exatamente. Metas, leis abertas, unsafe e efeitos externos do cliente são recusados, inclusive em definições sem uso.
 
 ```js
-import { admitSubmission, emitC, emitGenericC } from './index.mjs';
+import { admitSubmission, emitC } from './index.mjs';
 const admitted = await admitSubmission(hostManifest);
-const report = admitted.report;
 const c = emitC(admitted);
-// Ou emitGenericC(admitted, {backendSha256: hashFixadoPeloHost}).
 ```
 
-O handle público expõe `sources` e `report`. O Book checado fica privado no módulo e é o mesmo objeto passado ao emissor fixado. Não há API para editar declarações após a checagem; um objeto que imite o relatório não autoriza emissão. `configurationLimits(admitted)` lê somente os três tamanhos lógicos para o helper do serviço.
+O handle público expõe `sources` e `report`. O Book checado fica privado e é o mesmo objeto entregue ao compilador oficial. Não há API para alterar declarações após a checagem. `configurationLimits(admitted)` lê os três tamanhos lógicos para o serviço.
 
-## Caminho de confiança
+## Ferramentas oficiais
 
-1. Preflight congela bytes e dependências autorizadas, antes de executar o frontend.
-2. O checker primário original verifica a fonte. O fechamento de templates usa o elaborador original; o primário verifica o grafo final e a auditoria de capacidades é repetida.
-3. Safe traduz as mesmas declarações e o BendTT verifica o payload completo.
-4. A emissão usa o Book privado, sem reler fontes da submissão. Apenas um backend é escolhido para aquele handle.
+1. Preflight fixa os bytes e as dependências autorizadas antes de executar o frontend.
+2. O checker oficial Bend 2.0.39 verifica a fonte.
+3. O Safe oficial traduz as declarações; o BendTT original verifica esse payload.
+4. O compilador oficial emite o C do mesmo Book, sem reler fontes da submissão.
 
-Os hashes de fonte, contrato, frontend, backend e kernels estão nos locks. A configuração pública faz parte da identidade; o estado publicado não entra no diretório de compilação.
+As fontes e o kernel são conferidos contra `toolchain.lock.json`. Os módulos TypeScript oficiais são carregados com remoção de sintaxe TypeScript pelo Node, sem patch semântico. O JayDB não modifica conversão, templates, quantidades, regras lógicas, combustível ou runtime do Bend.
 
-## Templates e evidências
+Não existem layouts Safe alternativos, fechamento próprio de instâncias, `source_links` gerados, avaliadores estruturais ou tentativas por um segundo caminho após rejeição. Uma forma não representada pelo Safe oficial não é uma prova de falsidade; o banco não altera o tradutor para admiti-la.
 
-O resolvedor de instâncias mantém as especializações físicas realmente consumidas pelo compilador. Cada `source_link` compara a árvore física com a elaboração independente de sua origem; não substitui um corpo existente para fazê-lo passar. Instâncias da Base recebem a mesma exigência.
+Os bindings da aplicação continuam exigindo a configuração, o código, o contexto e os argumentos reais. O estado publicado não é copiado para o diretório de compilação.
 
-Há dois layouts Safe compartilhando essas verificações: o físico e a extensão estrutural de tipos dependentes. A escolha é determinada pelos tipos antes do verdict. Uma rejeição do kernel nunca provoca tentativa de aceite por outra rota.
+## Fronteira do núcleo
 
-A extensão usa o corpo lógico paramétrico e relações compostas dos tipos e corpos checados. Funções têm um avaliador vivo; seus índices são apagados. Igualdades mantêm a evidência exata por J, sem funext, irrelevância de provas ou axioma novo. A execução fechada constrói suas relações; não recebe uma hipótese externa de correção do helper.
+`admitKernel` admite os wrappers confiáveis do JayDB. Somente suas declarações foreign registradas recebem a permissão de integração; o cliente não recebe essa capacidade. A inicialização exige uma prova de validade do seed para a configuração real. O host compila o C oficial sem reescrevê-lo e executa cada chamada num processo auxiliar, conservando a publicação no host.
 
-Uma dependência apenas computacional não exige duplicar a representação de uma função. A análise conserva as dependências das famílias de tipos e dos valores usados em igualdades. O corpo bruto e seu vínculo de origem continuam obrigatórios; schemas simbólicos conservam as equações completas.
+Use os comandos do README raiz. Não há instalação de verificador derivado, addon de stack, orçamento físico ou prazo por requisição. Limitações próprias das ferramentas oficiais permanecem inalteradas. O gate não declara preservação semântica geral nem `Contrato` do executável completo.
 
-Além da checagem dos alvos no frontend, o kernel verifica o corpo fornecido contra o alvo físico do certificado e da terminação, com as referências reais de configuração, programa, contexto, argumentos e código. A inicialização recebe a mesma checagem para configuração e seed. Esses corpos são conferidos como termos vivos, sem extrair provas de campos apagados.
-
-O fingerprint interno existe apenas para detectar o ponto fixo do fechamento. Não há selagem de protótipos JavaScript, getters, descritores ou suporte a um embedding que adultere estruturas internas.
-
-O mesmo compositor abre os padrões e transporta seus endpoints por J. Para provas sobre famílias independentes, incluindo coleções com tipos e quantidades fixados, conserva a árvore completa de matches antes do transporte, que só fecha na folha. Os resultados recursivos usados ali são fornecidos por chamadas reais no subcampo menor, preservando as evidências dos parâmetros anteriores. Relações de Data podem ser reutilizadas; campos que contêm funções continuam lineares. As relações de entrada são construídas dos campos reais da coleção, sem hipótese externa. Argumentos de igualdade preservam a prova fornecida e derivam sua coerência por J; não são trocados por reflexividade. Aplicações de lambdas usam a substituição comum do tradutor. Domínios que dependem de um parâmetro já desestruturado mantêm o fechamento imediato; nenhum verdict provoca troca de rota.
-
-## Fronteira IO do núcleo
-
-`admitKernel` admite os wrappers confiáveis de inicialização, leitura, autenticação e execução. As assinaturas foreign de `native/effects.bend` e os IDs de efeito precisam corresponder aos bindings do kernel; o cliente não recebe essa permissão. A inicialização exige a prova de validade do seed real, para a configuração real.
-
-## Instalação e limites
-
-Use os comandos do README raiz. O frontend é derivado offline das fontes oficiais fixadas; o serviço não compila um novo verificador a partir da submissão. O launcher usa stack Linux expansível e o addon Node autenticado. Não possui parâmetros de memória ou de deadline por requisição.
-
-`verification.initialFuel` e `initialModelFuel` são controles de desenvolvimento do verificador. A exaustão aumenta o combustível sem teto; não se transforma em recusa matemática. Não há orçamento físico obrigatório.
-
-A tradução estrutural ainda não cobre todos os tipos originais: grupos gerados mutuamente recursivos, reflexão opaca, famílias recursivas que mudam seus parâmetros, quantidades simbólicas e certas renderizações podem falhar tecnicamente. O gate não declara preservação semântica geral nem `Contrato` do executável.
+O launcher usa a opção pública `node --stack_size=65536` para o Safe oficial. O perfil exige o limite hard de stack do Linux ilimitado e eleva o limite soft a ilimitado antes de executar o Node. É uma configuração de execução do auxiliar; os fontes Bend e V8 não são alterados.

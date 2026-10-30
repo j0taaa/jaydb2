@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import platform
@@ -16,7 +17,8 @@ import urllib.request
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "2.0.39"
+LOCK = json.loads((ROOT / "tools/admission/toolchain.lock.json").read_text())
+VERSION = LOCK["version"]
 ARCHIVES = {
     ("Linux", "x86_64"): (
         "linux-x64", "6cf462fd8f70b094a4950ebb709a9c4ffd8f1d1189d9cedf1fd63cd5d041c7ab"
@@ -36,10 +38,20 @@ ARCHIVES = {
 def environment() -> dict[str, str]:
     env = os.environ.copy()
     env["BEND_NO_TELEMETRY"] = "1"
+    kernel = ROOT / ".tools" / ("bendtt-" + LOCK["kernelSha256"])
+    if kernel.is_file():
+        if hashlib.sha256(kernel.read_bytes()).hexdigest() != LOCK["kernelSha256"]:
+            raise RuntimeError("BendTT oficial local foi modificado")
+        env["BENDTT"] = str(kernel)
+    else:
+        env.pop("BENDTT", None)
     return env
 
 
 def verify_version(executable: Path) -> Path:
+    if (platform.system(), platform.machine()) == ("Linux", "x86_64"):
+        if hashlib.sha256(executable.read_bytes()).hexdigest() != LOCK["officialBinarySha256"]:
+            raise RuntimeError("O executavel nao corresponde ao Bend oficial fixado")
     version = subprocess.run(
         [str(executable), "version"], env=environment(), capture_output=True,
         text=True, check=True, timeout=15,

@@ -1,5 +1,6 @@
 .tools/
 build/
+/target/
 __pycache__/
 *.pyc
 *.pyo
@@ -10,8 +11,6 @@ node_modules/
 *.so
 *.a
 *.node
-/tools/admission/installed/
-/tools/verifier/installed/
 *.log
 *.jsonl
 /core

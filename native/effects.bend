@@ -1,15 +1,11 @@
 import Base
 
 # Trusted kernel interface only. Applications do not import this file.
-# The backend implements these constructors, ignoring foreign request snippets.
+# Implemented by the accompanying application C effects through the official API.
 def read() -> IO(List<&2, U32>):
   import "./effects.c"
 
 def write(bytes: List<&2, U32>) -> IO(Unit):
-  import "./effects.c"
-
-# Logical protocol stage; no clock or physical resource budget is attached.
-def enter(etapa: U32) -> IO(Unit):
   import "./effects.c"
 
 type Iteracao<-A: Type> is Type:

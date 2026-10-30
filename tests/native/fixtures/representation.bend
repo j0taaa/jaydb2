@@ -1,8 +1,8 @@
 import Base
 import ../../../native/effects.bend as Native
 
-# Exercise runtime Nat limbs and a captured function, Array constructors, and
-# F32/string bytes in one Book; general contract laws live in the proof gate.
+# Exercise official native values and report its actual Nat/Array limits.
+# General contract laws live in the proof gate.
 def apply(f: Nat -> Nat, value: Nat) -> Nat:
   f(value)
 
@@ -47,6 +47,10 @@ def represent(xs: List<&2, U32>) -> List<&2, U32>:
   match xs:
     case Con{0, Con{value, rest}}:
       ascii(Nat.show(apply(Nat.add(Nat.add(Nat.pow(2n, 129n), 1n)), U32.to_nat(value))))
+    case Con{3, Con{value, rest}}:
+      ascii(Nat.show(apply(Nat.add(Nat.add(Nat.pow(2n, 20n), 1n)), U32.to_nat(value))))
+    case Con{4, rest}:
+      [depth(Array.new(U32, 8n, 7))]
     case Con{1, rest}:
       [depth(tower(32n))]
     case Con{2, rest}:

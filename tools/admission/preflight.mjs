@@ -132,7 +132,7 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
           || records.get(kernel.module)?.role !== 'kernel' || kernel.module === entry
           || !Array.isArray(kernel.primitives) || !kernel.primitives.length
           || new Set(kernel.primitives).size !== kernel.primitives.length
-          || kernel.primitives.some(k => !['read', 'write', 'loop', 'enter'].includes(k))
+          || kernel.primitives.some(k => !['read', 'write', 'loop'].includes(k))
           || (kernel.primitives.includes('loop') && (typeof kernel.loopStep !== 'string' || !kernel.loopStep.length))
           || (!kernel.primitives.includes('loop') && kernel.loopStep !== undefined)
           || !kernel.foreign || Object.keys(kernel.foreign).some(k => !['path', 'sha256'].includes(k))
@@ -144,7 +144,7 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
     } else if ([...records.values()].some(r => r.role === 'kernel')) {
       fail('KERNEL_ABI', 'Role kernel exige contrato ABI explícito');
     }
-    if (kernelOnly && !kernelPlan) fail('KERNEL_ABI', 'Kernel exige fronteira ABI explícita');
+    if (kernelOnly && purpose !== 'initialize' && !kernelPlan) fail('KERNEL_ABI', 'Pré-processamento exige fronteira ABI explícita');
     // All listed files are checked, including unused helpers. No unlisted file
     // is read because an import happens to mention it.
     for (const rec of records.values()) {
@@ -155,6 +155,9 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
         if (Object.hasOwn(rec.aliases, imp.alias)) fail('IMPORT', `Alias repetido: ${rec.path}: ${imp.alias}`);
         const to = path.posix.normalize(path.posix.join(path.posix.dirname(rec.path), imp.specifier));
         if (!records.has(to)) fail('DEPENDENCY', `Dependência não admitida: ${rec.path} -> ${imp.specifier}`);
+        if (rec.role === 'client' && records.get(to).role === 'host' && records.get(to).exports.size === 0) {
+          fail('HOST_CAPTURE', `Módulo privado do host não é uma dependência cliente: ${rec.path} -> ${to}`);
+        }
         rec.aliases[imp.alias] = records.get(to).ns;
         rec.edges.push(to);
       }

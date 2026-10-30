@@ -14,12 +14,11 @@ function input(t, text) {
   return file;
 }
 
-// Increasing development fuel must preserve both acceptance and refusal.
-test('fuel retries preserve the real kernel verdict', t => {
+// The unmodified official kernel must preserve acceptance and refusal.
+test('official kernel accepts a proof and rejects a false one', t => {
   for (const [term, accepted] of [['ok', true], ['wrong', false]]) {
-    const result = checkKernelFile(input(t, `unit : <ok> = .${term}\n`), info, { initialFuel: '1' });
+    const result = checkKernelFile(input(t, `unit : <ok> = .${term}\n`), info);
     assert.equal(result.why === null, accepted);
-    assert.ok(BigInt(result.attempts) > 1n);
     if (!accepted) assert.match(result.why, /a label of <ok>/);
   }
 });
@@ -35,9 +34,8 @@ test('erased fields cannot export a live witness', t => {
 // Missing translation support must not be mislabeled as a false certificate.
 test('unsupported representation is infrastructure', () => {
   const unsupported = {
-    admission_safe_emit() { return { oos: ['unsupported typed representation'], schemas: [], instances: [] }; },
-    SafeResourceExhausted: class extends Error {}, SafeDeadlineExceeded: class extends Error {},
+    safe_emit(_book, file) { fs.writeFileSync(file, ''); return ['unsupported typed representation']; },
   };
   assert.throws(() => checkBook(unsupported, {}, info),
-    error => error instanceof VerifierInfrastructure && /representation unsupported/.test(error.message));
+    error => error instanceof VerifierInfrastructure && /representation out of scope/.test(error.message));
 });

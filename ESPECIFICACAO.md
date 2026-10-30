@@ -25,7 +25,7 @@ O controle de leitura abrange a informação inspecionada pelo programa, mesmo q
 
 O núcleo não define donos de registros, hierarquia de papéis, campos privados, proibição de autopromoção, conservação de saldos, relações entre tabelas, criptografia da aplicação ou autorização baseada obrigatoriamente no estado anterior. Tudo isso pode ser expresso nas leis do administrador. Ler e alterar são permissões independentes.
 
-A primeira versão atende uma requisição por vez, em um processo local, por entrada e saída padrão, usando Bend nativo em CPU. Mantém um banco em RAM. Esquema e leis ficam fixos durante a instância; dados e usuários podem mudar. Encerrar a instância perde seus dados em memória.
+A primeira versão atende uma requisição por vez, em um processo local, por entrada e saída padrão, usando Bend nativo em CPU em um processo auxiliar novo por chamada. O host mantém o estado publicado em RAM; o filho recebe uma proposta privada e não publica diretamente. Esquema e leis ficam fixos durante a instância; dados e usuários podem mudar. Encerrar a instância perde seus dados em memória.
 
 Ficam fora desta versão: persistência, rede, distribuição, paralelismo garantido, alteração dinâmica do esquema, migrações, índices configuráveis, histórico, auditoria, sessões, recuperação de senha, programas previamente instalados, cache obrigatório, repetição automática e deduplicação de requisições. O banco não gera nem corrige provas.
 
