@@ -117,9 +117,7 @@ def percorrer_invalido(bs):
 
 def invalido_nao_aceita(-A: Type, +bs: List<&2, U32>, -s: String, aceito: Aceita(bs, T.TextoInvalido{}, s)) -> A:
   L.ex_falso(A, F.nenhum_nao_algum(String, s,
-    Equal.trans(Maybe<&2, String>, None{}, T.finalizar_texto(T.percorrer_texto(bs, T.TextoInvalido{})), Some{s},
-      Equal.cong(T.Texto, Maybe<&2, String>, t => T.finalizar_texto(t), T.TextoInvalido{}, T.percorrer_texto(bs, T.TextoInvalido{}),
-        Equal.sym(T.Texto, T.percorrer_texto(bs, T.TextoInvalido{}), T.TextoInvalido{}, percorrer_invalido(bs))), aceito)))
+    (%percorrer_invalido(bs) : {T.finalizar_texto(_) == Some{s} : Maybe<&2, String>} aceito)))
 
 law fim_inverte:
   for +p: Prefixo

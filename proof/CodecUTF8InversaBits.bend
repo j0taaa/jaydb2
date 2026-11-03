@@ -152,14 +152,8 @@ law blocos_limite_hi:
   {Cmp.is_le(Word.cmp(n, hi, limhi)) == True{} : Bool}
 def blocos_limite_hi(k, n, lo, hi, limlo, limhi, cabe):
   prioridade_le_implica_hi(Word.cmp(n, hi, limhi), Word.cmp(k, lo, limlo),
-    Equal.trans(Bool,
-      Cmp.is_le(O.prioridade(Word.cmp(n, hi, limhi), Word.cmp(k, lo, limlo))),
-      Cmp.is_le(Word.cmp(Nat.add(k, n), W.juntar(k, n, lo, hi), W.juntar(k, n, limlo, limhi))), True{},
-      Equal.cong(Cmp, Bool, c => Cmp.is_le(c),
-        O.prioridade(Word.cmp(n, hi, limhi), Word.cmp(k, lo, limlo)),
-        Word.cmp(Nat.add(k, n), W.juntar(k, n, lo, hi), W.juntar(k, n, limlo, limhi)),
-        Equal.sym(Cmp, Word.cmp(Nat.add(k, n), W.juntar(k, n, lo, hi), W.juntar(k, n, limlo, limhi)),
-          O.prioridade(Word.cmp(n, hi, limhi), Word.cmp(k, lo, limlo)), X.comparar_blocos(k, n, lo, limlo, hi, limhi))), cabe))
+    (%X.comparar_blocos(k, n, lo, limlo, hi, limhi) :
+      {Cmp.is_le(_) == True{} : Bool} cabe))
 
 law lt_falso_e_ge:
   for c: Cmp
@@ -196,11 +190,7 @@ law prefixo2_le_223:
   for +lo: Word(5n)
   {U32.is_le(prefixo2(lo), 223) == True{} : Bool}
 def prefixo2_le_223(lo):
-  Equal.trans(Bool, U32.is_le(prefixo2(lo), 223), Cmp.is_le(Word.cmp(5n, lo, W.ajustar(5n, 32n, X.bits(31)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_le(c),
-    U32.cmp(prefixo2(lo), 223), Word.cmp(5n, lo, W.ajustar(5n, 32n, X.bits(31))),
-    X.comparar_blocos(5n, 27n, lo, W.ajustar(5n, 32n, X.bits(31)),
-      W.ajustar(27n, 32n, X.bits(6)), W.ajustar(27n, 32n, X.bits(6)))), palavra_menor_igual_uns(5n, lo))
+  blocos_limite_superior(5n, 27n, lo, W.ajustar(27n, 32n, X.bits(6)), W.ajustar(27n, 32n, X.bits(6)))
 
 law prefixo2_subtrair:
   for +lo: Word(5n)
@@ -241,21 +231,13 @@ law prefixo3_ge_224:
   for +lo: Word(4n)
   {U32.is_ge(prefixo3(lo), 224) == True{} : Bool}
 def prefixo3_ge_224(lo):
-  Equal.trans(Bool, U32.is_ge(prefixo3(lo), 224), Cmp.is_ge(Word.cmp(4n, lo, W.ajustar(4n, 32n, X.bits(0)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_ge(c),
-    U32.cmp(prefixo3(lo), 224), Word.cmp(4n, lo, W.ajustar(4n, 32n, X.bits(0))),
-    X.comparar_blocos(4n, 28n, lo, W.ajustar(4n, 32n, X.bits(0)),
-      W.ajustar(28n, 32n, X.bits(14)), W.ajustar(28n, 32n, X.bits(14)))), palavra_maior_igual_zero(4n, lo))
+  blocos_limite_inferior(4n, 28n, lo, W.ajustar(28n, 32n, X.bits(14)), W.ajustar(28n, 32n, X.bits(14)))
 
 law prefixo3_le_239:
   for +lo: Word(4n)
   {U32.is_le(prefixo3(lo), 239) == True{} : Bool}
 def prefixo3_le_239(lo):
-  Equal.trans(Bool, U32.is_le(prefixo3(lo), 239), Cmp.is_le(Word.cmp(4n, lo, W.ajustar(4n, 32n, X.bits(15)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_le(c),
-    U32.cmp(prefixo3(lo), 239), Word.cmp(4n, lo, W.ajustar(4n, 32n, X.bits(15))),
-    X.comparar_blocos(4n, 28n, lo, W.ajustar(4n, 32n, X.bits(15)),
-      W.ajustar(28n, 32n, X.bits(14)), W.ajustar(28n, 32n, X.bits(14)))), palavra_menor_igual_uns(4n, lo))
+  blocos_limite_superior(4n, 28n, lo, W.ajustar(28n, 32n, X.bits(14)), W.ajustar(28n, 32n, X.bits(14)))
 
 law prefixo3_subtrair:
   for +lo: Word(4n)
@@ -314,11 +296,7 @@ law prefixo4_ge_240:
   for +lo: Word(3n)
   {U32.is_ge(prefixo4(lo), 240) == True{} : Bool}
 def prefixo4_ge_240(lo):
-  Equal.trans(Bool, U32.is_ge(prefixo4(lo), 240), Cmp.is_ge(Word.cmp(3n, lo, W.ajustar(3n, 32n, X.bits(0)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_ge(c),
-    U32.cmp(prefixo4(lo), 240), Word.cmp(3n, lo, W.ajustar(3n, 32n, X.bits(0))),
-    X.comparar_blocos(3n, 29n, lo, W.ajustar(3n, 32n, X.bits(0)),
-      W.ajustar(29n, 32n, X.bits(30)), W.ajustar(29n, 32n, X.bits(30)))), palavra_maior_igual_zero(3n, lo))
+  blocos_limite_inferior(3n, 29n, lo, W.ajustar(29n, 32n, X.bits(30)), W.ajustar(29n, 32n, X.bits(30)))
 
 law prefixo4_le_244:
   for +lo: Word(3n)
@@ -341,21 +319,13 @@ law continuacao_ge_128:
   for +lo: Word(6n)
   {U32.is_ge(X.continuacao(lo), 128) == True{} : Bool}
 def continuacao_ge_128(lo):
-  Equal.trans(Bool, U32.is_ge(X.continuacao(lo), 128), Cmp.is_ge(Word.cmp(6n, lo, W.ajustar(6n, 32n, X.bits(0)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_ge(c),
-    U32.cmp(X.continuacao(lo), 128), Word.cmp(6n, lo, W.ajustar(6n, 32n, X.bits(0))),
-    X.comparar_blocos(6n, 26n, lo, W.ajustar(6n, 32n, X.bits(0)),
-      W.ajustar(26n, 32n, X.bits(2)), W.ajustar(26n, 32n, X.bits(2)))), palavra_maior_igual_zero(6n, lo))
+  blocos_limite_inferior(6n, 26n, lo, W.ajustar(26n, 32n, X.bits(2)), W.ajustar(26n, 32n, X.bits(2)))
 
 law continuacao_le_191:
   for +lo: Word(6n)
   {U32.is_le(X.continuacao(lo), 191) == True{} : Bool}
 def continuacao_le_191(lo):
-  Equal.trans(Bool, U32.is_le(X.continuacao(lo), 191), Cmp.is_le(Word.cmp(6n, lo, W.ajustar(6n, 32n, X.bits(63)))), True{},
-    Equal.cong(Cmp, Bool, c => Cmp.is_le(c),
-    U32.cmp(X.continuacao(lo), 191), Word.cmp(6n, lo, W.ajustar(6n, 32n, X.bits(63))),
-    X.comparar_blocos(6n, 26n, lo, W.ajustar(6n, 32n, X.bits(63)),
-      W.ajustar(26n, 32n, X.bits(2)), W.ajustar(26n, 32n, X.bits(2)))), palavra_menor_igual_uns(6n, lo))
+  blocos_limite_superior(6n, 26n, lo, W.ajustar(26n, 32n, X.bits(2)), W.ajustar(26n, 32n, X.bits(2)))
 
 law escalar2_minimo:
   for +hi: Word(5n)
