@@ -39,36 +39,40 @@ type Quadro is Data:
   Inspecao{descricao: String}
   Efeito{descricao: String}
 
-def rel_fato(-c: S.Configuracao, -p: S.Programa, q: Quadro, -f: I.Fato) -> Type:
+# Fato canonico do quadro, com os indices publicos da configuracao e programa.
+def fato_do_quadro(c: S.Configuracao, p: S.Programa, q: Quadro) -> I.Fato:
   match q:
-    case Configurada{}: {f == I.ConfiguracaoEmUso{c} : I.Fato}
-    case InicialAceita{}: {f == I.ProvaInicialAceita{} : I.Fato}
-    case Iniciada{s}: {f == I.InstanciaIniciou{s} : I.Fato}
-    case InicialRecusada{s}: {f == I.InicializacaoRecusada{s} : I.Fato}
-    case Codificada{v, bs}: {f == I.Codificou{v, bs} : I.Fato}
-    case Decodificada{bs, v}: {f == I.Decodificou{bs, v} : I.Fato}
-    case Guardada{s, bs, abstr}: {f == I.Guardou{s, bs, abstr} : I.Fato}
-    case Conferida{pos, n}: {f == I.ConferiuComprimento{pos, n} : I.Fato}
-    case Construida{pos, n}: {f == I.AlocouCampo{pos, n} : I.Fato}
-    case Lida{antes, n, declarado}: {f == I.LeuCorpo{antes, n, declarado} : I.Fato}
-    case Recebida{r}: {f == I.RecebeuRequisicao{r} : I.Fato}
-    case Autenticada{r, ctx}: {f == I.Autenticou{r, ctx} : I.Fato}
-    case Aceita{r, ctx}: {f == I.CertificadoAceito{r, ctx, p} : I.Fato}
-    case Rejeitada{r, ctx}: {f == I.CertificadoRejeitado{r, ctx} : I.Fato}
-    case Comecada{r, ctx}: {f == I.ProgramaComecou{r, ctx, p} : I.Fato}
-    case Avaliada{r, ctx, percurso}: {f == I.Avaliou{r, ctx, p, percurso} : I.Fato}
-    case Operada{e, s, o, r}: {f == I.Operou{e, s, o, r} : I.Fato}
-    case Preparada{r, bs}: {f == I.Preparou{r, bs} : I.Fato}
-    case Publicada{s}: {f == I.Publicou{s} : I.Fato}
-    case Visivel{s}: {f == I.EstadoVisivel{s} : I.Fato}
-    case Falhou{etapa, id, fatal}: {f == I.FalhouAmbiente{etapa, id, fatal} : I.Fato}
-    case Concluida{r, s, fecha}: {f == I.Concluiu{r, s, fecha} : I.Fato}
-    case Entregue{bs}: {f == I.EntregouTudo{bs} : I.Fato}
-    case Interrompida{bs}: {f == I.EntregaInterrompida{bs} : I.Fato}
-    case Fechada{}: {f == I.EncerrouCanal{} : I.Fato}
-    case Seguinte{antes, apos}: {f == I.ProximaChamada{antes, apos} : I.Fato}
-    case Inspecao{descricao}: {f == I.InspecaoNaoModelada{descricao} : I.Fato}
-    case Efeito{descricao}: {f == I.EfeitoNaoModelado{descricao} : I.Fato}
+    case Configurada{}: I.ConfiguracaoEmUso{c}
+    case InicialAceita{}: I.ProvaInicialAceita{}
+    case Iniciada{s}: I.InstanciaIniciou{s}
+    case InicialRecusada{s}: I.InicializacaoRecusada{s}
+    case Codificada{v, bs}: I.Codificou{v, bs}
+    case Decodificada{bs, v}: I.Decodificou{bs, v}
+    case Guardada{s, bs, abstr}: I.Guardou{s, bs, abstr}
+    case Conferida{pos, n}: I.ConferiuComprimento{pos, n}
+    case Construida{pos, n}: I.AlocouCampo{pos, n}
+    case Lida{antes, n, declarado}: I.LeuCorpo{antes, n, declarado}
+    case Recebida{r}: I.RecebeuRequisicao{r}
+    case Autenticada{r, ctx}: I.Autenticou{r, ctx}
+    case Aceita{r, ctx}: I.CertificadoAceito{r, ctx, p}
+    case Rejeitada{r, ctx}: I.CertificadoRejeitado{r, ctx}
+    case Comecada{r, ctx}: I.ProgramaComecou{r, ctx, p}
+    case Avaliada{r, ctx, percurso}: I.Avaliou{r, ctx, p, percurso}
+    case Operada{e, s, o, r}: I.Operou{e, s, o, r}
+    case Preparada{r, bs}: I.Preparou{r, bs}
+    case Publicada{s}: I.Publicou{s}
+    case Visivel{s}: I.EstadoVisivel{s}
+    case Falhou{etapa, id, fatal}: I.FalhouAmbiente{etapa, id, fatal}
+    case Concluida{r, s, fecha}: I.Concluiu{r, s, fecha}
+    case Entregue{bs}: I.EntregouTudo{bs}
+    case Interrompida{bs}: I.EntregaInterrompida{bs}
+    case Fechada{}: I.EncerrouCanal{}
+    case Seguinte{antes, apos}: I.ProximaChamada{antes, apos}
+    case Inspecao{descricao}: I.InspecaoNaoModelada{descricao}
+    case Efeito{descricao}: I.EfeitoNaoModelado{descricao}
+
+def rel_fato(-c: S.Configuracao, -p: S.Programa, q: Quadro, -f: I.Fato) -> Type:
+  {f == fato_do_quadro(c, p, q) : I.Fato}
 
 def consultar(xs: List<&2, Quadro>, n: Nat) -> Maybe<&2, Quadro>:
   match xs n:
@@ -272,63 +276,8 @@ def publicar_muda_so_o_estado_seguinte(xs, s, w, t):
 def rel_fato_unico(-c: S.Configuracao, -p: S.Programa, q: Quadro,
   -f: I.Fato, -g: I.Fato, hf: rel_fato(c, p, q, f), hg: rel_fato(c, p, q, g)) ->
   {f == g : I.Fato}:
-  match q:
-    case Configurada{}:
-      Equal.trans(I.Fato, f, I.ConfiguracaoEmUso{c}, g, hf, Equal.sym(I.Fato, g, I.ConfiguracaoEmUso{c}, hg))
-    case InicialAceita{}:
-      Equal.trans(I.Fato, f, I.ProvaInicialAceita{}, g, hf, Equal.sym(I.Fato, g, I.ProvaInicialAceita{}, hg))
-    case Iniciada{s}:
-      Equal.trans(I.Fato, f, I.InstanciaIniciou{s}, g, hf, Equal.sym(I.Fato, g, I.InstanciaIniciou{s}, hg))
-    case InicialRecusada{s}:
-      Equal.trans(I.Fato, f, I.InicializacaoRecusada{s}, g, hf, Equal.sym(I.Fato, g, I.InicializacaoRecusada{s}, hg))
-    case Codificada{v, bs}:
-      Equal.trans(I.Fato, f, I.Codificou{v, bs}, g, hf, Equal.sym(I.Fato, g, I.Codificou{v, bs}, hg))
-    case Decodificada{bs, v}:
-      Equal.trans(I.Fato, f, I.Decodificou{bs, v}, g, hf, Equal.sym(I.Fato, g, I.Decodificou{bs, v}, hg))
-    case Guardada{s, bs, abstr}:
-      Equal.trans(I.Fato, f, I.Guardou{s, bs, abstr}, g, hf, Equal.sym(I.Fato, g, I.Guardou{s, bs, abstr}, hg))
-    case Conferida{pos, n}:
-      Equal.trans(I.Fato, f, I.ConferiuComprimento{pos, n}, g, hf, Equal.sym(I.Fato, g, I.ConferiuComprimento{pos, n}, hg))
-    case Construida{pos, n}:
-      Equal.trans(I.Fato, f, I.AlocouCampo{pos, n}, g, hf, Equal.sym(I.Fato, g, I.AlocouCampo{pos, n}, hg))
-    case Lida{antes, n, declarado}:
-      Equal.trans(I.Fato, f, I.LeuCorpo{antes, n, declarado}, g, hf, Equal.sym(I.Fato, g, I.LeuCorpo{antes, n, declarado}, hg))
-    case Recebida{r}:
-      Equal.trans(I.Fato, f, I.RecebeuRequisicao{r}, g, hf, Equal.sym(I.Fato, g, I.RecebeuRequisicao{r}, hg))
-    case Autenticada{r, ctx}:
-      Equal.trans(I.Fato, f, I.Autenticou{r, ctx}, g, hf, Equal.sym(I.Fato, g, I.Autenticou{r, ctx}, hg))
-    case Aceita{r, ctx}:
-      Equal.trans(I.Fato, f, I.CertificadoAceito{r, ctx, p}, g, hf, Equal.sym(I.Fato, g, I.CertificadoAceito{r, ctx, p}, hg))
-    case Rejeitada{r, ctx}:
-      Equal.trans(I.Fato, f, I.CertificadoRejeitado{r, ctx}, g, hf, Equal.sym(I.Fato, g, I.CertificadoRejeitado{r, ctx}, hg))
-    case Comecada{r, ctx}:
-      Equal.trans(I.Fato, f, I.ProgramaComecou{r, ctx, p}, g, hf, Equal.sym(I.Fato, g, I.ProgramaComecou{r, ctx, p}, hg))
-    case Avaliada{r, ctx, percurso}:
-      Equal.trans(I.Fato, f, I.Avaliou{r, ctx, p, percurso}, g, hf, Equal.sym(I.Fato, g, I.Avaliou{r, ctx, p, percurso}, hg))
-    case Operada{e, s, o, r}:
-      Equal.trans(I.Fato, f, I.Operou{e, s, o, r}, g, hf, Equal.sym(I.Fato, g, I.Operou{e, s, o, r}, hg))
-    case Preparada{r, bs}:
-      Equal.trans(I.Fato, f, I.Preparou{r, bs}, g, hf, Equal.sym(I.Fato, g, I.Preparou{r, bs}, hg))
-    case Publicada{s}:
-      Equal.trans(I.Fato, f, I.Publicou{s}, g, hf, Equal.sym(I.Fato, g, I.Publicou{s}, hg))
-    case Visivel{s}:
-      Equal.trans(I.Fato, f, I.EstadoVisivel{s}, g, hf, Equal.sym(I.Fato, g, I.EstadoVisivel{s}, hg))
-    case Falhou{etapa, id, fatal}:
-      Equal.trans(I.Fato, f, I.FalhouAmbiente{etapa, id, fatal}, g, hf, Equal.sym(I.Fato, g, I.FalhouAmbiente{etapa, id, fatal}, hg))
-    case Concluida{r, s, fecha}:
-      Equal.trans(I.Fato, f, I.Concluiu{r, s, fecha}, g, hf, Equal.sym(I.Fato, g, I.Concluiu{r, s, fecha}, hg))
-    case Entregue{bs}:
-      Equal.trans(I.Fato, f, I.EntregouTudo{bs}, g, hf, Equal.sym(I.Fato, g, I.EntregouTudo{bs}, hg))
-    case Interrompida{bs}:
-      Equal.trans(I.Fato, f, I.EntregaInterrompida{bs}, g, hf, Equal.sym(I.Fato, g, I.EntregaInterrompida{bs}, hg))
-    case Fechada{}:
-      Equal.trans(I.Fato, f, I.EncerrouCanal{}, g, hf, Equal.sym(I.Fato, g, I.EncerrouCanal{}, hg))
-    case Seguinte{antes, apos}:
-      Equal.trans(I.Fato, f, I.ProximaChamada{antes, apos}, g, hf, Equal.sym(I.Fato, g, I.ProximaChamada{antes, apos}, hg))
-    case Inspecao{descricao}:
-      Equal.trans(I.Fato, f, I.InspecaoNaoModelada{descricao}, g, hf, Equal.sym(I.Fato, g, I.InspecaoNaoModelada{descricao}, hg))
-    case Efeito{descricao}:
-      Equal.trans(I.Fato, f, I.EfeitoNaoModelado{descricao}, g, hf, Equal.sym(I.Fato, g, I.EfeitoNaoModelado{descricao}, hg))
+  Equal.trans(I.Fato, f, fato_do_quadro(c, p, q), g, hf,
+    Equal.sym(I.Fato, g, fato_do_quadro(c, p, q), hg))
 
 def selecionado_unico(-c: S.Configuracao, -p: S.Programa, q: Maybe<&2, Quadro>,
   -f: I.Fato, -g: I.Fato, hf: selecionado(c, p, q, f), hg: selecionado(c, p, q, g)) ->
@@ -383,65 +332,43 @@ def quadro_do_fato(f: I.Fato) -> Quadro:
     case I.InspecaoNaoModelada{descricao}: Inspecao{descricao}
     case I.EfeitoNaoModelado{descricao}: Efeito{descricao}
 
+# A projecao esquece os indices e recupera exatamente o quadro original.
+def fato_reconstroi_quadro(-c: S.Configuracao, -p: S.Programa, q: Quadro) ->
+  {quadro_do_fato(fato_do_quadro(c, p, q)) == q : Quadro}:
+  match q:
+    case Configurada{}: {==}
+    case InicialAceita{}: {==}
+    case Iniciada{s}: {==}
+    case InicialRecusada{s}: {==}
+    case Codificada{v, bs}: {==}
+    case Decodificada{bs, v}: {==}
+    case Guardada{s, bs, abstr}: {==}
+    case Conferida{pos, n}: {==}
+    case Construida{pos, n}: {==}
+    case Lida{antes, n, declarado}: {==}
+    case Recebida{r}: {==}
+    case Autenticada{r, ctx}: {==}
+    case Aceita{r, ctx}: {==}
+    case Rejeitada{r, ctx}: {==}
+    case Comecada{r, ctx}: {==}
+    case Avaliada{r, ctx, percurso}: {==}
+    case Operada{e, s, o, r}: {==}
+    case Preparada{r, bs}: {==}
+    case Publicada{s}: {==}
+    case Visivel{s}: {==}
+    case Falhou{etapa, id, fatal}: {==}
+    case Concluida{r, s, fecha}: {==}
+    case Entregue{bs}: {==}
+    case Interrompida{bs}: {==}
+    case Fechada{}: {==}
+    case Seguinte{antes, apos}: {==}
+    case Inspecao{descricao}: {==}
+    case Efeito{descricao}: {==}
+
 def relacao_quadro(-c: S.Configuracao, -p: S.Programa, q: Quadro,
   -f: I.Fato, hf: rel_fato(c, p, q, f)) -> {quadro_do_fato(f) == q : Quadro}:
-  match q:
-    case Configurada{}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.ConfiguracaoEmUso{c}, hf)
-    case InicialAceita{}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.ProvaInicialAceita{}, hf)
-    case Iniciada{s}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.InstanciaIniciou{s}, hf)
-    case InicialRecusada{s}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.InicializacaoRecusada{s}, hf)
-    case Codificada{v, bs}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Codificou{v, bs}, hf)
-    case Decodificada{bs, v}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Decodificou{bs, v}, hf)
-    case Guardada{s, bs, abstr}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Guardou{s, bs, abstr}, hf)
-    case Conferida{pos, n}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.ConferiuComprimento{pos, n}, hf)
-    case Construida{pos, n}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.AlocouCampo{pos, n}, hf)
-    case Lida{antes, n, declarado}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.LeuCorpo{antes, n, declarado}, hf)
-    case Recebida{r}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.RecebeuRequisicao{r}, hf)
-    case Autenticada{r, ctx}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Autenticou{r, ctx}, hf)
-    case Aceita{r, ctx}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.CertificadoAceito{r, ctx, p}, hf)
-    case Rejeitada{r, ctx}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.CertificadoRejeitado{r, ctx}, hf)
-    case Comecada{r, ctx}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.ProgramaComecou{r, ctx, p}, hf)
-    case Avaliada{r, ctx, percurso}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Avaliou{r, ctx, p, percurso}, hf)
-    case Operada{e, s, o, r}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Operou{e, s, o, r}, hf)
-    case Preparada{r, bs}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Preparou{r, bs}, hf)
-    case Publicada{s}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Publicou{s}, hf)
-    case Visivel{s}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.EstadoVisivel{s}, hf)
-    case Falhou{etapa, id, fatal}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.FalhouAmbiente{etapa, id, fatal}, hf)
-    case Concluida{r, s, fecha}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.Concluiu{r, s, fecha}, hf)
-    case Entregue{bs}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.EntregouTudo{bs}, hf)
-    case Interrompida{bs}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.EntregaInterrompida{bs}, hf)
-    case Fechada{}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.EncerrouCanal{}, hf)
-    case Seguinte{antes, apos}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.ProximaChamada{antes, apos}, hf)
-    case Inspecao{descricao}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.InspecaoNaoModelada{descricao}, hf)
-    case Efeito{descricao}:
-      Equal.cong(I.Fato, Quadro, quadro_do_fato, f, I.EfeitoNaoModelado{descricao}, hf)
+  %Equal.sym(I.Fato, f, fato_do_quadro(c, p, q), hf) : {quadro_do_fato(_) == q : Quadro}
+  fato_reconstroi_quadro(c, p, q)
 
 def selecionado_quadro(-c: S.Configuracao, -p: S.Programa, q: Maybe<&2, Quadro>,
   -f: I.Fato, hf: selecionado(c, p, q, f)) -> {q == Some{quadro_do_fato(f)} : Maybe<&2, Quadro>}:
@@ -521,35 +448,7 @@ def igualdade_reabrivel(-A: Type, -x: A, -y: A, igual: {x == y : A}) ->
 
 def duplicar_rel_fato(-c: S.Configuracao, -p: S.Programa, q: Quadro, -f: I.Fato,
   fato: rel_fato(c, p, q, f)) -> L.E<rel_fato(c, p, q, f), rel_fato(c, p, q, f)>:
-  match q:
-    case Configurada{}: igualdade_reabrivel(I.Fato, f, I.ConfiguracaoEmUso{c}, fato)
-    case InicialAceita{}: igualdade_reabrivel(I.Fato, f, I.ProvaInicialAceita{}, fato)
-    case Iniciada{s}: igualdade_reabrivel(I.Fato, f, I.InstanciaIniciou{s}, fato)
-    case InicialRecusada{s}: igualdade_reabrivel(I.Fato, f, I.InicializacaoRecusada{s}, fato)
-    case Codificada{v, bs}: igualdade_reabrivel(I.Fato, f, I.Codificou{v, bs}, fato)
-    case Decodificada{bs, v}: igualdade_reabrivel(I.Fato, f, I.Decodificou{bs, v}, fato)
-    case Guardada{s, bs, abstr}: igualdade_reabrivel(I.Fato, f, I.Guardou{s, bs, abstr}, fato)
-    case Conferida{pos, n}: igualdade_reabrivel(I.Fato, f, I.ConferiuComprimento{pos, n}, fato)
-    case Construida{pos, n}: igualdade_reabrivel(I.Fato, f, I.AlocouCampo{pos, n}, fato)
-    case Lida{antes, n, declarado}: igualdade_reabrivel(I.Fato, f, I.LeuCorpo{antes, n, declarado}, fato)
-    case Recebida{r}: igualdade_reabrivel(I.Fato, f, I.RecebeuRequisicao{r}, fato)
-    case Autenticada{r, ctx}: igualdade_reabrivel(I.Fato, f, I.Autenticou{r, ctx}, fato)
-    case Aceita{r, ctx}: igualdade_reabrivel(I.Fato, f, I.CertificadoAceito{r, ctx, p}, fato)
-    case Rejeitada{r, ctx}: igualdade_reabrivel(I.Fato, f, I.CertificadoRejeitado{r, ctx}, fato)
-    case Comecada{r, ctx}: igualdade_reabrivel(I.Fato, f, I.ProgramaComecou{r, ctx, p}, fato)
-    case Avaliada{r, ctx, percurso}: igualdade_reabrivel(I.Fato, f, I.Avaliou{r, ctx, p, percurso}, fato)
-    case Operada{e, s, o, r}: igualdade_reabrivel(I.Fato, f, I.Operou{e, s, o, r}, fato)
-    case Preparada{r, bs}: igualdade_reabrivel(I.Fato, f, I.Preparou{r, bs}, fato)
-    case Publicada{s}: igualdade_reabrivel(I.Fato, f, I.Publicou{s}, fato)
-    case Visivel{s}: igualdade_reabrivel(I.Fato, f, I.EstadoVisivel{s}, fato)
-    case Falhou{etapa, id, fatal}: igualdade_reabrivel(I.Fato, f, I.FalhouAmbiente{etapa, id, fatal}, fato)
-    case Concluida{r, s, fecha}: igualdade_reabrivel(I.Fato, f, I.Concluiu{r, s, fecha}, fato)
-    case Entregue{bs}: igualdade_reabrivel(I.Fato, f, I.EntregouTudo{bs}, fato)
-    case Interrompida{bs}: igualdade_reabrivel(I.Fato, f, I.EntregaInterrompida{bs}, fato)
-    case Fechada{}: igualdade_reabrivel(I.Fato, f, I.EncerrouCanal{}, fato)
-    case Seguinte{antes, apos}: igualdade_reabrivel(I.Fato, f, I.ProximaChamada{antes, apos}, fato)
-    case Inspecao{descricao}: igualdade_reabrivel(I.Fato, f, I.InspecaoNaoModelada{descricao}, fato)
-    case Efeito{descricao}: igualdade_reabrivel(I.Fato, f, I.EfeitoNaoModelado{descricao}, fato)
+  igualdade_reabrivel(I.Fato, f, fato_do_quadro(c, p, q), fato)
 
 def duplicar_selecionado(-c: S.Configuracao, -p: S.Programa, q: Maybe<&2, Quadro>, -f: I.Fato,
   fato: selecionado(c, p, q, f)) -> L.E<selecionado(c, p, q, f), selecionado(c, p, q, f)>:

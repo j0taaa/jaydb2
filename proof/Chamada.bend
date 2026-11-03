@@ -147,12 +147,7 @@ def preparacao_configurada_fiel(+e: D.Esquema, -leis: S.Leis, +lim: S.Limites, +
   %Equal.sym(S.Resposta, R.finalizar(proposta, S.Configuracao{e, leis, lim, amb}, w), r, igual) :
     Q.Fiel(w, ts, _, preparada)
   Q.preparar_bytes_fiel(P.enquadrar(S.resposta_valor(r)), w, ts, r, preparada, {==},
-    Equal.trans(Maybe<&2, N.Preparada>, N.preparar_resposta(r, w, ts),
-      N.preparar(N.Parada{w, ts, proposta}, S.Configuracao{e, leis, lim, amb}), Some{preparada},
-      Equal.sym(Maybe<&2, N.Preparada>,
-        N.preparar(N.Parada{w, ts, proposta}, S.Configuracao{e, leis, lim, amb}), N.preparar_resposta(r, w, ts),
-        Equal.cong(S.Resposta, Maybe<&2, N.Preparada>, resposta => N.preparar_resposta(resposta, w, ts),
-          R.finalizar(proposta, S.Configuracao{e, leis, lim, amb}, w), r, igual)), obtida))
+    (%igual : {N.preparar_resposta(_, w, ts) == Some{preparada} : Maybe<&2, N.Preparada>} obtida))
 
 def ConclusaoIntegral(-c: S.Configuracao, -s: D.Estado, -w: D.Estado,
   -ts: List<&2, S.Evento>, -proposta: S.Resposta) -> Type:

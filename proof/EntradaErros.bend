@@ -63,11 +63,8 @@ law mensagem_bytes_entrada:
   for recusado: {C.decodificar(bytes, limite) == C.Entrada{} : C.Resultado}
   {A.ler_mensagem(Some{limite}, bytes, estado) == A.ErroMensagem{S.Entrada{}} : A.PreAutenticacao}
 def mensagem_bytes_entrada(bytes, corpo, limite, estado, medido, cabe, recusado):
-  Equal.trans(A.PreAutenticacao, A.ler_mensagem(Some{limite}, bytes, estado),
-    A.mensagem(C.decodificar(bytes, limite), estado), A.ErroMensagem{S.Entrada{}},
-    Medida.corpo_admitido_preserva_resultado_do_codec(bytes, corpo, limite, estado, medido, cabe),
-    Equal.cong(C.Resultado, A.PreAutenticacao, r => A.mensagem(r, estado),
-      C.decodificar(bytes, limite), C.Entrada{}, recusado))
+  %recusado : {A.ler_mensagem(Some{limite}, bytes, estado) == A.mensagem(_, estado) : A.PreAutenticacao}
+  Medida.corpo_admitido_preserva_resultado_do_codec(bytes, corpo, limite, estado, medido, cabe)
 
 law mensagem_bytes_limite_interno_admitido:
   for +bytes: List<&2, U32>
@@ -90,14 +87,9 @@ law mensagem_bytes_sem_envelope:
   for ausente: {Q.extrair(valor) == None{} : Maybe<&2, P.Requisicao>}
   {A.ler_mensagem(Some{limite}, bytes, estado) == A.ErroMensagem{S.Entrada{}} : A.PreAutenticacao}
 def mensagem_bytes_sem_envelope(bytes, limite, valor, estado, lido, ausente):
-  Equal.trans(A.PreAutenticacao, A.ler_mensagem(Some{limite}, bytes, estado),
-    A.mensagem(C.decodificar(bytes, limite), estado), A.ErroMensagem{S.Entrada{}},
-    Medida.decodificacao_aceita_preserva_mensagem(bytes, limite, estado, valor, lido),
-    Equal.trans(A.PreAutenticacao, A.mensagem(C.decodificar(bytes, limite), estado),
-      A.mensagem(C.Decodificado{valor}, estado), A.ErroMensagem{S.Entrada{}},
-      Equal.cong(C.Resultado, A.PreAutenticacao, r => A.mensagem(r, estado),
-        C.decodificar(bytes, limite), C.Decodificado{valor}, lido),
-      mensagem_sem_envelope_e_entrada(valor, estado, ausente)))
+  %ausente : {A.ler_mensagem(Some{limite}, bytes, estado) == A.envelope(_, estado) : A.PreAutenticacao}
+  %lido : {A.ler_mensagem(Some{limite}, bytes, estado) == A.mensagem(_, estado) : A.PreAutenticacao}
+  Medida.decodificacao_aceita_preserva_mensagem(bytes, limite, estado, valor, lido)
 
 law estado_entrada_e_erro_transporte:
   for -esquema: D.Esquema
@@ -237,14 +229,10 @@ law decodificar_estado_separado:
     A.estado_decodificado(C.decodificar(estado, teto), esquema, corpo,
       B.nat64(R.limite_mensagem(limites))) : A.PreAutenticacao}
 def decodificar_estado_separado(bytes, esquema, limites, estado, corpo, teto, separado, medido):
-  Equal.trans(A.PreAutenticacao, A.decodificar(bytes, esquema, limites),
-    A.partes(Some{T.Partes{estado, corpo}}, esquema, limites),
-    A.estado_decodificado(C.decodificar(estado, teto), esquema, corpo, B.nat64(R.limite_mensagem(limites))),
-    Equal.cong(Maybe<&2, T.Partes>, A.PreAutenticacao, p => A.partes(p, esquema, limites),
-      T.separar(bytes), Some{T.Partes{estado, corpo}}, separado),
-    Equal.cong(Maybe<&2, B.Numero64>, A.PreAutenticacao,
-      n => A.ler_estado(n, esquema, estado, corpo, B.nat64(R.limite_mensagem(limites))),
-      B.nat64(R.limite_estado(limites)), Some{teto}, medido))
+  %medido : {A.decodificar(bytes, esquema, limites) ==
+    A.ler_estado(_, esquema, estado, corpo, B.nat64(R.limite_mensagem(limites))) : A.PreAutenticacao}
+  %separado : {A.decodificar(bytes, esquema, limites) == A.partes(_, esquema, limites) : A.PreAutenticacao}
+  {==}
 
 law decodificar_estado_lido:
   for +bytes: List<&2, U32>
@@ -263,20 +251,20 @@ law decodificar_estado_lido:
     A.ler_mensagem(B.nat64(R.limite_mensagem(limites)), corpo, s) : A.PreAutenticacao}
 def decodificar_estado_lido(bytes, esquema, limites, estado, corpo, teto, valor, s,
   separado, medido, lido, extraido):
-  Equal.trans(A.PreAutenticacao, A.decodificar(bytes, esquema, limites),
-    A.estado_decodificado(C.decodificar(estado, teto), esquema, corpo, B.nat64(R.limite_mensagem(limites))),
-    A.ler_mensagem(B.nat64(R.limite_mensagem(limites)), corpo, s),
-    decodificar_estado_separado(bytes, esquema, limites, estado, corpo, teto, separado, medido),
-    Equal.trans(A.PreAutenticacao,
-      A.estado_decodificado(C.decodificar(estado, teto), esquema, corpo, B.nat64(R.limite_mensagem(limites))),
-      A.estado_decodificado(C.Decodificado{valor}, esquema, corpo, B.nat64(R.limite_mensagem(limites))),
-      A.ler_mensagem(B.nat64(R.limite_mensagem(limites)), corpo, s),
-      Equal.cong(C.Resultado, A.PreAutenticacao,
-        r => A.estado_decodificado(r, esquema, corpo, B.nat64(R.limite_mensagem(limites))),
-        C.decodificar(estado, teto), C.Decodificado{valor}, lido),
-      Equal.cong(Maybe<&2, D.Estado>, A.PreAutenticacao,
-        e => A.estado_lido(e, corpo, B.nat64(R.limite_mensagem(limites))),
-        E.decodificar(valor, esquema), Some{s}, extraido)))
+  %extraido : {A.decodificar(bytes, esquema, limites) ==
+    A.estado_lido(_, corpo, B.nat64(R.limite_mensagem(limites))) : A.PreAutenticacao}
+  %lido : {A.decodificar(bytes, esquema, limites) ==
+    A.estado_decodificado(_, esquema, corpo, B.nat64(R.limite_mensagem(limites))) : A.PreAutenticacao}
+  decodificar_estado_separado(bytes, esquema, limites, estado, corpo, teto, separado, medido)
+
+# A analise autentica exatamente o resultado da decodificacao.
+# Reune as duas igualdades sem repetir o transporte em cada caso de erro.
+def com_autenticacao(+pre: A.PreAutenticacao, +resultado: A.PreAutenticacao,
+  +igual: {pre == resultado : A.PreAutenticacao}) ->
+  L.E<{pre == resultado : A.PreAutenticacao},
+    {A.autenticar_pre(pre) == A.autenticar_pre(resultado) : A.Analise}>:
+  L.Ambos{igual, Equal.cong(A.PreAutenticacao, A.Analise, A.autenticar_pre,
+    pre, resultado, igual)}
 
 # Cada lei de pipeline fornece as duas saidas exatas: decodificar e analisar.
 law pipeline_transporte_invalido:
@@ -289,8 +277,7 @@ law pipeline_transporte_invalido:
 def pipeline_transporte_invalido(bytes, esquema, limites, separado):
   +pre = Equal.cong(Maybe<&2, T.Partes>, A.PreAutenticacao,
     p => A.partes(p, esquema, limites), T.separar(bytes), None{}, separado)
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 law pipeline_limite_estado_nao_representavel:
   for +bytes: List<&2, U32>
@@ -301,8 +288,7 @@ law pipeline_limite_estado_nao_representavel:
     {A.analisar(bytes, esquema, limites) == A.TransporteInvalido{} : A.Analise}>
 def pipeline_limite_estado_nao_representavel(bytes, esquema, limites, ausente):
   +pre = partes_sem_limite_estado(T.separar(bytes), esquema, limites, ausente)
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 law pipeline_limite_mensagem_nao_representavel:
   for +bytes: List<&2, U32>
@@ -313,8 +299,7 @@ law pipeline_limite_mensagem_nao_representavel:
     {A.analisar(bytes, esquema, limites) == A.TransporteInvalido{} : A.Analise}>
 def pipeline_limite_mensagem_nao_representavel(bytes, esquema, limites, ausente):
   +pre = partes_sem_limite_mensagem(T.separar(bytes), esquema, limites, ausente)
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 law pipeline_estado_entrada:
   for +bytes: List<&2, U32>
@@ -336,8 +321,7 @@ def pipeline_estado_entrada(bytes, esquema, limites, estado, corpo, teto, separa
     Equal.cong(C.Resultado, A.PreAutenticacao,
       r => A.estado_decodificado(r, esquema, corpo, B.nat64(R.limite_mensagem(limites))),
       C.decodificar(estado, teto), C.Entrada{}, recusado))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 law pipeline_estado_limite:
   for +bytes: List<&2, U32>
@@ -359,8 +343,7 @@ def pipeline_estado_limite(bytes, esquema, limites, estado, corpo, teto, separad
     Equal.cong(C.Resultado, A.PreAutenticacao,
       r => A.estado_decodificado(r, esquema, corpo, B.nat64(R.limite_mensagem(limites))),
       C.decodificar(estado, teto), C.Limite{}, recusado))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 law pipeline_estado_nao_extraido:
   for +bytes: List<&2, U32>
@@ -390,8 +373,7 @@ def pipeline_estado_nao_extraido(bytes, esquema, limites, estado, corpo, teto, v
         r => A.estado_decodificado(r, esquema, corpo, B.nat64(R.limite_mensagem(limites))),
         C.decodificar(estado, teto), C.Decodificado{valor}, lido),
       estado_valor_invalido_e_erro_transporte(valor, esquema, corpo, B.nat64(R.limite_mensagem(limites)), invalido)))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroTransporte{}, pre)
 
 # Fatoracao ate o corpo, incluindo os dois limites nat64 originais.
 law decodificar_mensagem_separada:
@@ -412,12 +394,9 @@ law decodificar_mensagem_separada:
   {A.decodificar(bytes, esquema, limites) == A.ler_mensagem(Some{teto_msg}, corpo, s) : A.PreAutenticacao}
 def decodificar_mensagem_separada(bytes, esquema, limites, estado, corpo, teto_estado,
   teto_msg, valor_estado, s, separado, medido_estado, medido_msg, lido, extraido):
-  Equal.trans(A.PreAutenticacao, A.decodificar(bytes, esquema, limites),
-    A.ler_mensagem(B.nat64(R.limite_mensagem(limites)), corpo, s), A.ler_mensagem(Some{teto_msg}, corpo, s),
-    decodificar_estado_lido(bytes, esquema, limites, estado, corpo, teto_estado, valor_estado, s,
-      separado, medido_estado, lido, extraido),
-    Equal.cong(Maybe<&2, B.Numero64>, A.PreAutenticacao,
-      n => A.ler_mensagem(n, corpo, s), B.nat64(R.limite_mensagem(limites)), Some{teto_msg}, medido_msg))
+  %medido_msg : {A.decodificar(bytes, esquema, limites) == A.ler_mensagem(_, corpo, s) : A.PreAutenticacao}
+  decodificar_estado_lido(bytes, esquema, limites, estado, corpo, teto_estado, valor_estado, s,
+    separado, medido_estado, lido, extraido)
 
 law pipeline_mensagem_entrada:
   for +bytes: List<&2, U32>
@@ -448,8 +427,7 @@ def pipeline_mensagem_entrada(bytes, esquema, limites, estado, corpo, teto_estad
     decodificar_mensagem_separada(bytes, esquema, limites, estado, corpo, teto_estado,
       teto_msg, valor_estado, s, separado, medido_estado, medido_msg, lido, extraido),
     mensagem_bytes_entrada(corpo, quantidade, teto_msg, s, medido_corpo, cabe, recusado))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)
 
 law pipeline_mensagem_limite_interno_admitido:
   for +bytes: List<&2, U32>
@@ -480,8 +458,7 @@ def pipeline_mensagem_limite_interno_admitido(bytes, esquema, limites, estado, c
     decodificar_mensagem_separada(bytes, esquema, limites, estado, corpo, teto_estado,
       teto_msg, valor_estado, s, separado, medido_estado, medido_msg, lido, extraido),
     mensagem_bytes_limite_interno_admitido(corpo, quantidade, teto_msg, s, medido_corpo, cabe, recusado))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)
 
 # O excesso e da quantidade real recebida, independentemente do codec.
 law pipeline_mensagem_corpo_acima_do_teto:
@@ -512,8 +489,7 @@ def pipeline_mensagem_corpo_acima_do_teto(bytes, esquema, limites, estado, corpo
     decodificar_mensagem_separada(bytes, esquema, limites, estado, corpo, teto_estado,
       teto_msg, valor_estado, s, separado, medido_estado, medido_msg, lido, extraido),
     Medida.corpo_real_acima_do_teto_produz_limite(corpo, quantidade, teto_msg, s, medido_corpo, acima))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Limite{}}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Limite{}}, pre)
 
 law pipeline_envelope_invalido:
   for +bytes: List<&2, U32>
@@ -543,5 +519,4 @@ def pipeline_envelope_invalido(bytes, esquema, limites, estado, corpo, teto_esta
     decodificar_mensagem_separada(bytes, esquema, limites, estado, corpo, teto_estado,
       teto_msg, valor_estado, s, separado, medido_estado, medido_msg, lido_estado, extraido),
     mensagem_bytes_sem_envelope(corpo, teto_msg, valor_msg, s, lido_msg, ausente))
-  L.Ambos{pre, Equal.cong(A.PreAutenticacao, A.Analise, p => A.autenticar_pre(p),
-    A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)}
+  com_autenticacao(A.decodificar(bytes, esquema, limites), A.ErroMensagem{S.Entrada{}}, pre)
