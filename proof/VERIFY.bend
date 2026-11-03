@@ -30,3 +30,4 @@ import ./Configuration.bend as Configuration
 import ./AllocationLengths.bend as AllocationLengths
 import ./ErrorLimitFixed.bend as ErrorLimitFixed
 import ./ErrorsFixed.bend as ErrorsFixed
+import ./PreparedPrograms.bend as PreparedPrograms
