@@ -1,4 +1,4 @@
-.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration
+.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration demo
 
 all: build
 
@@ -25,3 +25,6 @@ test-native:
 
 test-integration:
 	python3 -B -m unittest tests.service.test_end_to_end -v
+
+demo: build
+	bash examples/acessos/demo.sh

@@ -120,7 +120,12 @@ def main():
     p.add_argument('--argumentos', default='null', help='Valor JSON, sem números fracionários')
     a = p.parse_args()
     if a.decode:
-        print(json.dumps(unframe(sys.stdin.buffer.read()), ensure_ascii=False))
+        # A server session may return several frames before EOF.
+        while header := sys.stdin.buffer.read(8):
+            if len(header) != 8:
+                raise ValueError('Cabeçalho de resposta truncado')
+            body = sys.stdin.buffer.read(int.from_bytes(header, 'big'))
+            print(json.dumps(unframe(header + body), ensure_ascii=False), flush=True)
     else:
         if a.codigo is None or a.prova is None or a.credencial is None:
             p.error('--codigo, --prova e --credencial exigidos')

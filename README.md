@@ -12,13 +12,17 @@ Perfil de execução: Linux x86_64, Node 24 e Clang 19. O controlador é um bin�
 
 O processo auxiliar Node usa `--stack_size=65536` e stack soft ilimitada. O launcher exige que o limite hard de stack do Linux já seja ilimitado; não altera os fontes do Node ou do Bend.
 
+Siga o [guia de instalação e primeira sessão](INSTALL.md). Ele instala as
+ferramentas localmente e usa o BendTT sem patches distribuído com a versão
+experimental. Depois da instalação:
+
 ```sh
-python3 tools/bootstrap.py --source /caminho/bend-2.0.39 --kernel /caminho/bendtt
-python3 tools/bend.py version
-make build
-./jaydb2 --configuration examples/sem-observacoes/Configuration.bend \
-  --seed examples/sem-observacoes/Seed.bend
+make demo
 ```
+
+O comando executa a [aplicação de troca de credenciais](examples/acessos/README.md)
+no servidor real e mostra cinco respostas JSON, incluindo publicação,
+autenticação e rollback de uma recusa. O estado existe somente nessa sessão.
 
 A distribuição usada é **Bend 2.0.39 oficial**. Os cinco fontes oficiais e os binários estão identificados em `tools/admission/toolchain.lock.json`. No perfil Linux x86_64, o executável Bend tem SHA-256 `2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd`; o BendTT original tem SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`.
 
@@ -33,7 +37,7 @@ python3 tools/client.py --codigo examples/sem-observacoes/Client.bend \
   --prova examples/sem-observacoes/ClientProof.bend --credencial demo
 ```
 
-O comando escreve uma mensagem canônica enquadrada. `python3 tools/client.py --decode` lê uma resposta e imprime JSON. Configuração e dependências são públicas e imutáveis; seed e estado corrente permanecem privados.
+O comando escreve uma mensagem canônica enquadrada. `python3 tools/client.py --decode` lê uma sequência de respostas e imprime uma linha JSON por resposta. Configuração e dependências são públicas e imutáveis; seed e estado corrente permanecem privados.
 
 ## Verificação
 
