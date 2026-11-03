@@ -70,11 +70,7 @@ def neutras_concatenadas(+xs: List<&2, Q.Quadro>, -ys: List<&2, Q.Quadro>, a: Ne
 
 def consulta_prefixo(+xs: List<&2, Q.Quadro>, -ys: List<&2, Q.Quadro>, +t: Nat, -q: Q.Quadro,
   presente: {Q.consultar(xs, t) == Some{q} : Maybe<&2, Q.Quadro>}) -> {Q.consultar(Q.concatenar(xs, ys), t) == Some{q} : Maybe<&2, Q.Quadro>}:
-  F.com_par({Q.consultar(Q.concatenar(xs, ys), t) == Some{q} : Maybe<&2, Q.Quadro>},
-    {Q.consultar(xs, t) == Some{q} : Maybe<&2, Q.Quadro>}, {Q.consultar(xs, t) == Some{q} : Maybe<&2, Q.Quadro>},
-    Q.igualdade_reabrivel(Maybe<&2, Q.Quadro>, Q.consultar(xs, t), Some{q}, presente), uma => duas =>
-      Equal.trans(Maybe<&2, Q.Quadro>, Q.consultar(Q.concatenar(xs, ys), t), Q.consultar(xs, t), Some{q},
-        Q.consultar_dentro_prefixo(xs, ys, t, Q.posicao_presente_dentro(xs, t, q, uma)), duas))
+  Q.consulta_prefixo(xs, ys, t, q, presente)
 
 def antes_prefixo(+xs: List<&2, Q.Quadro>, -ys: List<&2, Q.Quadro>, -t: Nat, -q: Q.Quadro, antes: Antes(xs, t, q)) -> Antes(Q.concatenar(xs, ys), t, q):
   match antes:

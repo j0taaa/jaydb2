@@ -26,18 +26,31 @@ law comparacao_bit_sucessor:
     Cmp.is_lt(Word.cmp.fin(b, True{}, c)) : Bool}
 def comparacao_bit_sucessor(b, c):
   match b c:
-    case False{} LT{}:
+    case _ LT{}:
+      {==}
+    case _ GT{}:
       {==}
     case False{} EQ{}:
       {==}
-    case False{} GT{}:
-      {==}
-    case True{} LT{}:
-      {==}
     case True{} EQ{}:
       {==}
-    case True{} GT{}:
-      {==}
+
+# Comparar um bit com os extremos nao altera estes predicados da cauda.
+def comparacao_ate_um(b: Bool, c: Cmp) ->
+  {Cmp.is_le(Word.cmp.fin(b, True{}, c)) == Cmp.is_le(c) : Bool}:
+  match b c:
+    case _ LT{}: {==}
+    case _ GT{}: {==}
+    case False{} EQ{}: {==}
+    case True{} EQ{}: {==}
+
+def comparacao_apos_zero(b: Bool, c: Cmp) ->
+  {Cmp.is_lt(Word.cmp.fin(b, False{}, c)) == Cmp.is_lt(c) : Bool}:
+  match b c:
+    case _ LT{}: {==}
+    case _ GT{}: {==}
+    case False{} EQ{}: {==}
+    case True{} EQ{}: {==}
 
 law comparacao_bit_transporte:
   for b: Bool
@@ -49,45 +62,17 @@ law comparacao_bit_transporte:
 def comparacao_bit_transporte(b, c, d, e):
   match b:
     case False{}:
-      match c d:
-        case LT{} LT{}:
-          {==}
-        case LT{} EQ{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(False{}, True{}, LT{})) == Cmp.is_lt(Word.cmp.fin(False{}, False{}, EQ{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case LT{} GT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(False{}, True{}, LT{})) == Cmp.is_lt(Word.cmp.fin(False{}, False{}, GT{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case EQ{} LT{}:
-          {==}
-        case EQ{} EQ{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(False{}, True{}, EQ{})) == Cmp.is_lt(Word.cmp.fin(False{}, False{}, EQ{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case EQ{} GT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(False{}, True{}, EQ{})) == Cmp.is_lt(Word.cmp.fin(False{}, False{}, GT{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case GT{} LT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(False{}, True{}, GT{})) == Cmp.is_lt(Word.cmp.fin(False{}, False{}, LT{})) : Bool}, e)
-        case GT{} EQ{}:
-          {==}
-        case GT{} GT{}:
-          {==}
+      %Equal.sym(Bool, Cmp.is_le(Word.cmp.fin(False{}, True{}, c)), Cmp.is_le(c),
+        comparacao_ate_um(False{}, c)) : {_ == Cmp.is_lt(Word.cmp.fin(False{}, False{}, d)) : Bool}
+      %Equal.sym(Bool, Cmp.is_lt(Word.cmp.fin(False{}, False{}, d)), Cmp.is_lt(d),
+        comparacao_apos_zero(False{}, d)) : {Cmp.is_le(c) == _ : Bool}
+      e
     case True{}:
-      match c d:
-        case LT{} LT{}:
-          {==}
-        case LT{} EQ{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(True{}, True{}, LT{})) == Cmp.is_lt(Word.cmp.fin(True{}, False{}, EQ{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case LT{} GT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(True{}, True{}, LT{})) == Cmp.is_lt(Word.cmp.fin(True{}, False{}, GT{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case EQ{} LT{}:
-          {==}
-        case EQ{} EQ{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(True{}, True{}, EQ{})) == Cmp.is_lt(Word.cmp.fin(True{}, False{}, EQ{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case EQ{} GT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(True{}, True{}, EQ{})) == Cmp.is_lt(Word.cmp.fin(True{}, False{}, GT{})) : Bool}, Equal.sym(Bool, True{}, False{}, e))
-        case GT{} LT{}:
-          F.absurdo_booleano({Cmp.is_le(Word.cmp.fin(True{}, True{}, GT{})) == Cmp.is_lt(Word.cmp.fin(True{}, False{}, LT{})) : Bool}, e)
-        case GT{} EQ{}:
-          {==}
-        case GT{} GT{}:
-          {==}
+      %Equal.sym(Bool, Cmp.is_le(Word.cmp.fin(True{}, True{}, c)), Cmp.is_le(c),
+        comparacao_ate_um(True{}, c)) : {_ == Cmp.is_lt(Word.cmp.fin(True{}, False{}, d)) : Bool}
+      %Equal.sym(Bool, Cmp.is_lt(Word.cmp.fin(True{}, False{}, d)), Cmp.is_lt(d),
+        comparacao_apos_zero(True{}, d)) : {Cmp.is_le(c) == _ : Bool}
+      e
 
 law word_limite_sucessor:
   for +n: Nat

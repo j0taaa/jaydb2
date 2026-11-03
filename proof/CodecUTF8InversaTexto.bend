@@ -314,6 +314,14 @@ def continuacao_normal_inverte(p, lo, tail, acc, s, pendente, ih):
           aceito => conferido_inverte(U32.is_ge(X.escalar4(hi, b0, b1, lo), 65536) && B.codigo_valido(X.escalar4(hi, b0, b1, lo)), X.escalar4(hi, b0, b1, lo), [I.prefixo4(hi), X.continuacao(b0), X.continuacao(b1), X.continuacao(lo)], tail, acc, s, ih,
             e => K.forma4_recodifica(hi, b0, b1, lo, F.e_booleano_esquerda(U32.is_ge(X.escalar4(hi, b0, b1, lo), 65536), B.codigo_valido(X.escalar4(hi, b0, b1, lo)), e)), aceito)
 
+# A recusa do byte de continuacao independe do contador e do payload.
+def continuacao_rejeitada(+n: Nat, +cp: U32, +minimo: U32, +b: U32,
+  e: {U32.is_ge(b, 128) && U32.is_le(b, 191) == False{} : Bool}) ->
+  {C.continuar_utf8(U32.is_ge(b, 128) && U32.is_le(b, 191), n, cp, minimo, b) == C.UTFInvalido{} : C.Escalar}:
+  %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
+    {C.continuar_utf8(_, n, cp, minimo, b) == C.UTFInvalido{} : C.Escalar}
+  {==}
+
 law passo_pendente_rejeitado:
   for +p: Prefixo
   for +b: U32
@@ -325,29 +333,17 @@ def passo_pendente_rejeitado(p, b, pendente, e):
     case Livre{}:
       L.ex_falso({C.passo_utf8(C.Inicio{}, b) == C.UTFInvalido{} : C.Escalar}, pendente)
     case Dois{hi}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 0n, inicio2(hi), 128, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(0n, inicio2(hi), 128, b, e)
     case Tres1{hi}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 1n, inicio3(hi), 2048, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(1n, inicio3(hi), 2048, b, e)
     case Tres2{hi, b0}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 0n, E.acumular(inicio3(hi), b0), 2048, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(0n, E.acumular(inicio3(hi), b0), 2048, b, e)
     case Quatro1{hi}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 2n, inicio4(hi), 65536, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(2n, inicio4(hi), 65536, b, e)
     case Quatro2{hi, b0}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 1n, E.acumular(inicio4(hi), b0), 65536, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(1n, E.acumular(inicio4(hi), b0), 65536, b, e)
     case Quatro3{hi, b0, b1}:
-      %Equal.sym(Bool, U32.is_ge(b, 128) && U32.is_le(b, 191), False{}, e) :
-        {C.continuar_utf8(_, 0n, E.acumular(E.acumular(inicio4(hi), b0), b1), 65536, b) == C.UTFInvalido{} : C.Escalar}
-      {==}
+      continuacao_rejeitada(0n, E.acumular(E.acumular(inicio4(hi), b0), b1), 65536, b, e)
 
 law passo_pendente_casos:
   for ok: Bool

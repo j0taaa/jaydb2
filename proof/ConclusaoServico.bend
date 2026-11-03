@@ -112,7 +112,7 @@ def final_no_prefixo(+antes: List<&2, Q.Quadro>, +depois: List<&2, Q.Quadro>,
         Chamada.duplicar_igualdade(Maybe<&2, Q.Quadro>, Q.consultar(antes, i), Some{Q.Avaliada{r, ctx, S.Final{w, ts, proposta}}}, consulta),
         limite => fato => (i, L.Ambos{
           menor_que_soma_por_direita(i, Q.tamanho(antes), fim, Q.posicao_presente_dentro(antes, i, Q.Avaliada{r, ctx, S.Final{w, ts, proposta}}, limite)),
-          Lei5.consulta_do_subtraco(Nil{}, antes, depois, i, Q.Avaliada{r, ctx, S.Final{w, ts, proposta}}, fato)}))
+          Q.consulta_prefixo(antes, depois, i, Q.Avaliada{r, ctx, S.Final{w, ts, proposta}}, fato)}))
 
 def resposta_final_com_avaliacao(~fonte: Fonte.Fonte, -a: I.Ambiente, -k: String, -x: I.Cenario,
   +antes: List<&2, Q.Quadro>, +depois: List<&2, Q.Quadro>, +fim: Nat, +req: P.Requisicao,
@@ -218,14 +218,8 @@ def entrega_completa_localizada(+antes: List<&2, Q.Quadro>, +s: D.Estado, +r: S.
   Fases.marca_unica_entre_partes_ausentes(Fases.Completa{}, antes_da_entrega(antes, s, r, bs, fecho), H.depois_entrega(fecho, s, proxima), Q.Entregue{bs}, t, q,
     antes_da_entrega_sem_marca(Fases.Completa{}, antes, s, r, bs, fecho, sem, {==}, {==}, {==}),
     Fases.depois_entrega_sem_macros(Fases.Completa{}, fecho, s, proxima), alvo,
-    Equal.trans(Maybe<&2, Q.Quadro>,
-      Q.consultar(Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Completa{proxima})), t),
-      Q.consultar(Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Completa{proxima})), t), Some{q},
-      Equal.cong(List<&2, Q.Quadro>, Maybe<&2, Q.Quadro>, xs => Q.consultar(xs, t),
-        Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Completa{proxima})),
-        Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Completa{proxima})),
-        Equal.sym(List<&2, Q.Quadro>, Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Completa{proxima})),
-          Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Completa{proxima})), separar_entrega(antes, s, r, bs, fecho, H.Completa{proxima}))), consulta))
+    (%separar_entrega(antes, s, r, bs, fecho, H.Completa{proxima}) :
+      {Q.consultar(_, t) == Some{q} : Maybe<&2, Q.Quadro>} consulta))
 
 def bytes_entregues(q: Q.Quadro) -> Maybe<&2, List<&2, U32>>:
   match q:
@@ -544,14 +538,8 @@ def entrega_parcial_localizada(+antes: List<&2, Q.Quadro>, +s: D.Estado, +r: S.R
   L.E<{t == Q.tamanho(antes_da_entrega(antes, s, r, bs, fecho)) : Nat}, {q == Q.Interrompida{prefixo} : Q.Quadro}>:
   Fases.marca_unica_entre_partes_ausentes(Fases.Interrompida{}, antes_da_entrega(antes, s, r, bs, fecho), [Q.Fechada{}], Q.Interrompida{prefixo}, t, q,
     antes_da_entrega_sem_marca(Fases.Interrompida{}, antes, s, r, bs, fecho, sem, {==}, {==}, {==}), {==}, alvo,
-    Equal.trans(Maybe<&2, Q.Quadro>,
-      Q.consultar(Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Quebrada{prefixo})), t),
-      Q.consultar(Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Quebrada{prefixo})), t), Some{q},
-      Equal.cong(List<&2, Q.Quadro>, Maybe<&2, Q.Quadro>, xs => Q.consultar(xs, t),
-        Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Quebrada{prefixo})),
-        Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Quebrada{prefixo})),
-        Equal.sym(List<&2, Q.Quadro>, Q.concatenar(antes, H.render_conclusao(N.Conclusao{s, r, bs}, fecho, H.Quebrada{prefixo})),
-          Q.concatenar(antes_da_entrega(antes, s, r, bs, fecho), H.render_entrega(s, bs, fecho, H.Quebrada{prefixo})), separar_entrega(antes, s, r, bs, fecho, H.Quebrada{prefixo}))), consulta))
+    (%separar_entrega(antes, s, r, bs, fecho, H.Quebrada{prefixo}) :
+      {Q.consultar(_, t) == Some{q} : Maybe<&2, Q.Quadro>} consulta))
 
 def prefixo_interrompido(q: Q.Quadro) -> Maybe<&2, List<&2, U32>>:
   match q:

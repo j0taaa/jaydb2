@@ -148,6 +148,23 @@ def consultar_dentro_prefixo(xs, ys, n, dentro):
     case Con{h, t} 0n: {==}
     case Con{h, t} 1n+k: consultar_dentro_prefixo(t, ys, k, dentro)
 
+# Uma consulta presente continua igual ao acrescentar quadros ao fim.
+# A inducao evita calcular um limite e duplicar a igualdade da consulta.
+law consulta_prefixo:
+  for +xs: List<&2, Quadro>
+  for -ys: List<&2, Quadro>
+  for +t: Nat
+  for -q: Quadro
+  for presente: {consultar(xs, t) == Some{q} : Maybe<&2, Quadro>}
+  {consultar(concatenar(xs, ys), t) == Some{q} : Maybe<&2, Quadro>}
+def consulta_prefixo(xs, ys, t, q, presente):
+  match xs t:
+    case Nil{} _:
+      L.ex_falso({consultar(concatenar(Nil{}, ys), t) == Some{q} : Maybe<&2, Quadro>},
+        F.nenhum_nao_algum(Quadro, q, presente))
+    case Con{h, cauda} 0n: presente
+    case Con{h, cauda} 1n+n: consulta_prefixo(cauda, ys, n, q, presente)
+
 law posicao_presente_dentro:
   for xs: List<&2, Quadro>
   for n: Nat
