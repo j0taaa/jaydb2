@@ -95,7 +95,9 @@ immutable original source bytes, universal proof bytes, and hashes of the
 prepared files and frozen public/runtime environment. The directory retains
 the exact dependencies, manifests, bindings, emitted C and native artifact.
 All sealed existing files must remain regular and byte-identical on reuse;
-missing/changed artifacts refuse execution. Original administrator/client
+missing/changed artifacts return a technical `failure` before execution. An
+artifact integrity failure does not establish that the original certificate
+is mathematically invalid. Original administrator/client
 input paths may change after freezing without affecting the instance.
 
 For raw execute request `r` and registration `p`, the resolved logical request
@@ -104,7 +106,11 @@ credential:r.credential, arguments:r.arguments}`. **The handle is never the
 executed source identity.** The worker receives a private packet consisting of
 current state bytes plus the decoded ordinary raw handle request (the control
 prefix is removed). Its existing `Input.analyze` authenticates that credential
-again, obtains context from this same state, and passes the actual arguments
+again and obtains context from this same state. The checked
+`Prepared.resolve_analysis` then replaces only code/proof with the exact frozen
+`Bindings.code()` and `Bindings.proof_source()` literals. It preserves the
+state, credential, context and arguments, and leaves rejections unchanged.
+The entry passes those actual arguments
 to `E.start(Client.program(), ctx, arguments, state)`. Its compiled
 `Client.program` is the original admitted AST. The code/proof fields of that
 raw handle request select no Bend function and supply no runtime capability.
@@ -133,17 +139,21 @@ preparation: handle executions still work without attempting Node, while an
 ordinary submission reaches that disabled gate and fails. Admission tests
 also exercise exact universal targets/source linkage and transitive captures.
 
-The universal entry's resolver integration hook is in `stage.mjs`: wrap
-`Input.analyze(...)` before `launch` with the parent-owned `Prepared` analysis
-resolver using `Bindings.code()` and `Bindings.proof_source()`. This branch
-provides both exact literals but currently runs the raw authenticated handle
-envelope as described above; integration of the parent's checked resolver and
-its proofs is a follow-up, not claimed complete here.
+`src/Prepared.bend` is used by the universal entry, while ordinary submissions
+keep their original entry. `proof/PreparedPrograms.bend`, included in the
+general aggregate, proves source/proof resolution, preserved current
+authentication/state/context/arguments, specialization of the universal
+certificate, and faithful preparation/valid publication using the actual Core
+functions. Its premises include the current state and actual execution result;
+they do not assume final-state validity or publication permission.
 
 The old protocol aggregate does not automatically prove this extension: tag 7
-was previously malformed, control receipts are outside `S.Status`, and logical
-handle resolution needs its own adapter. General handle-resolution and
-certificate-specialization proofs belong to the extended integration contract.
+was previously malformed and control receipts are outside `S.Status`. The
+normalization/specialization adapter covers the logical transaction; physical
+prefix dispatch, registry identity/lifecycle and receipt delivery remain
+explicit host integration contracts. In particular, the ordinary
+`Interface.RequestReceived` equation must not be applied directly to a raw
+handle body as if it contained the source text.
 The Rust/Node/C bridge and compiler semantic preservation remain an explicit
 trusted boundary supported by review/tests, not a mechanized proof of the
 complete executable. Official fragment/translation and physical failure

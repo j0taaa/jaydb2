@@ -208,10 +208,12 @@ function stage(environment, directory, purpose, metadata) {
         '@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)') +
         '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
     }
-    // Resolver integration hook: the universal entry can resolve Input.Analysis
-    // using Bindings.code()/proof_source() before launch. The ordinary entry
-    // above stays unchanged. See PREPARED_PROGRAMS.md for the current boundary.
-    main = EXECUTE;
+    main = purpose === 'prepare'
+      ? EXECUTE.replace('import ./Input.bend as Input',
+          'import ./Input.bend as Input\nimport ./Prepared.bend as Prepared')
+        .replace('launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))',
+          'launch(Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source()))')
+      : EXECUTE;
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = purpose === 'execute' || purpose === 'prepare';
   available.set('Main.bend', Buffer.from(main));

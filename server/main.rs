@@ -420,7 +420,10 @@ impl PreparedProgram {
                     format!("{:x}", Sha256::digest(fs::read(entry.path())?)),
                 ));
             } else {
-                return Err(Error::new("SOURCE_BINDING", "nonregular prepared artifact"));
+                return Err(Error::new(
+                    "PREPARED_INTEGRITY",
+                    "nonregular prepared artifact",
+                ));
             }
         }
         Ok(files)
@@ -433,7 +436,7 @@ impl PreparedProgram {
                 || format!("{:x}", Sha256::digest(fs::read(path)?)) != *expected
             {
                 return Err(Error::new(
-                    "SOURCE_BINDING",
+                    "PREPARED_INTEGRITY",
                     "sealed prepared artifact changed",
                 ));
             }

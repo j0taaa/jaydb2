@@ -1,3 +1,25 @@
+# Prepared programs and optional Bend helpers — unreleased
+
+Programs with universally quantified certificates can be prepared once and
+executed through instance-local handles with current authentication, arguments
+and published state. Reuse runs ordinary official native workers without
+reentering Node, either checker, or the C compiler. Concrete per-call
+submissions remain available. The optional control envelope, metadata receipts
+and explicit integration scope are described in
+[PREPARED_PROGRAMS.md](tools/service/PREPARED_PROGRAMS.md).
+
+The checked worker uses `src/Prepared.bend` to resolve the original source/proof
+identity. Its specialization/publication lemmas are in the general proof
+aggregate. Host registry integrity failures are technical failures, not
+mathematical certificate rejection. The original toolchain is unchanged.
+
+The optional [Bend library](library/README.md) provides selected-field reads,
+record lookup, filtering/projection and sequential row writes through the
+existing operations. It adds no policy, evaluator or storage kind. `make verify`
+includes its official proof aggregate; `make test-library` exercises its real
+task flow. General Action bind is omitted because the official termination
+checker rejects that recursion; the supported row helper descends structurally.
+
 # English-language migration — unreleased
 
 Current `main` uses English-only documentation, CLI options, protocol names,

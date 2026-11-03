@@ -29,7 +29,12 @@ The first version serves one request at a time in a local process over standard 
 
 Outside this version: persistence, networking, distribution, guaranteed parallelism, dynamic schema changes, migrations, configurable indexes, history, auditing, sessions, password recovery, preinstalled programs, mandatory caching, automatic retries, and request deduplication. The database does not generate or repair proofs.
 
-Every application interaction uses code and a proof. There are no separate public query, insertion, or registration commands. The internal data operations below only define what that code may do.
+Every transaction uses code and a proof, either supplied in the request or
+resolved from an instance-local prepared registration. Preparation is optional
+metadata management, not a preinstalled transaction catalog or a user/data
+registration operation. There are no separate public query or insertion
+commands. The internal data operations below only define what submitted code
+may do.
 
 # Common definitions
 
@@ -254,13 +259,44 @@ EOF between messages or operator-requested shutdown ends service between calls. 
 
 ## Minimal canonical encoding
 
-Each message starts with its byte length as an unsigned 64-bit integer in most-significant-byte-first order, followed by one value. There are no extra bytes within the message.
+Each ordinary message starts with its byte length as an unsigned 64-bit integer in most-significant-byte-first order, followed by one value. There are no extra bytes within the ordinary message. The optional prepared-program envelope described below reserves a prefix outside the Value tags.
 
 Each value starts with a one-byte tag: `0` for absence, `1` for false, `2` for true, `3` for integer, `4` for text, `5` for list, and `6` for record. Other tags are invalid. Integers use eight bytes of two's complement in the same byte order. Text uses a 64-bit length followed by valid UTF-8. Lists use a 64-bit count followed by values. Records use a 64-bit count followed by name–value pairs; names are valid field texts, unique and in lexicographic ASCII order. Lengths and counts are checked before allocation or excess reading. An external header above the message ceiling produces `limit`. Within an admitted body, impossible internal lengths, truncation, and malformed data produce `input`. A proposal whose state or response exceeds its ceiling produces `limit` without truncation.
 
 A request is a record with exactly `arguments`, `code`, `credential`, and `proof` in that canonical order. The last three are texts; `arguments` is any admitted value. Responses use `status` and `value`. Source and proof are preserved exactly; their interpretation belongs to the fixed Bend environment.
 
 State size is measured using record `{tables, users}`. `tables` is a list of records `{name, rows}` in ASCII name order. `rows` contains complete records in UTF-8 primary-key order. `users` is a list of records `{credential, id, kind}` in UTF-8 `id` order. Message, state, and response sizes count canonical-value bytes, excluding the external eight-byte framing. This order neither dictates in-memory layout nor reorders program-produced lists.
+
+## Optional prepared programs
+
+An instance may register arbitrary admitted source and a certificate universally
+quantified over contexts and arguments. The registration freezes the original
+program, proof, configuration and dependency closure and owns an ordinary
+official native executable. A handle is an instance-local reference to that
+registration, not a source string or an authenticated identity. Ordinary
+concrete certificates remain supported without registration.
+
+The outer message length and limit cover the complete actual body, including
+the `0x07` prefix and operation byte. Prepare and invalidate are authenticated
+metadata controls; their size-bounded `prepared` and `invalidated` receipts do
+not execute a transaction or replace the published state/response pair. These
+receipts are separate from the eight transaction statuses. Lifecycle and exact
+wire details are specified in [PREPARED_PROGRAMS.md](tools/service/PREPARED_PROGRAMS.md).
+
+A prepared execution authenticates against the current published state. The
+worker's checked resolver preserves that state, context, credential and actual
+arguments while substituting the registration's exact original source/proof
+identity. The universal certificate specializes to that resolved logical call.
+All program observations, administrator laws, private execution, size checks
+and atomic publication continue to apply. No checker or compiler is needed on
+reuse. An unavailable or altered registration produces a technical/control
+failure before execution; it does not establish that a valid proof is false.
+
+The canonical Request in the pure transaction model denotes this resolved
+logical call. Its ordinary byte-origin theorem is not a theorem equating a raw
+handle envelope with source bytes. The extension adds checked normalization
+and specialization proofs; physical prefix dispatch, registry integrity and
+control receipts belong to the explicit Rust/Node integration boundary.
 
 # Implementation obligation
 

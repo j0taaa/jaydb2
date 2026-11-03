@@ -83,6 +83,8 @@ class PreparedTests(unittest.TestCase):
             # fail before running a prepared action or publishing anything.
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
+            self.assertIn('Prepared.resolve_analysis(', (prepared/'Main.bend').read_text())
+            self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             for source in prepared.rglob('*.bend'):
                 self.assertNotIn('alice-token', source.read_text())
                 self.assertNotIn('bob-token', source.read_text())
@@ -93,7 +95,8 @@ class PreparedTests(unittest.TestCase):
                 try:
                     artifact.write_bytes(original+b'\nchanged')
                     self.assertEqual(server.prepared(1, handle, 'alice-final', 'tampered'),
-                        {'status': 'certificate', 'value': None}, server.diagnostics())
+                        {'status': 'failure', 'value': None}, server.diagnostics())
+                    self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
                 finally:
                     artifact.write_bytes(original)
             self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),

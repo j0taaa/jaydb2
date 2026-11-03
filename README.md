@@ -82,6 +82,11 @@ Use `--prepare`, `--handle`, or `--invalidate` with the Python client. Concrete
 per-call proofs keep their existing route. Control receipts and handle
 resolution extend the ordinary protocol and have a separate integration scope.
 
+The optional [Bend query library](library/README.md) composes selected-field
+reads, filtering/projection and sequential row writes over existing operations.
+It adds no database primitive or policy and is not required by client programs.
+Run `make test-library` for its real task application flow.
+
 Current `main` uses English-only public names: request fields are
 `arguments`, `code`, `credential`, and `proof`; responses use `status` and
 `value`; logical limits are `message`, `state`, and `response`; user records
@@ -98,7 +103,7 @@ make verify
 make test
 ```
 
-`make verify` checks the general aggregates in both official modes and six
+`make verify` checks the general and optional-library aggregates in both official modes and six
 causal mutations. `make test` covers boundaries those proofs do not check:
 same-Book admission/emission, execution, publication/rollback, and framing.
 Logs, compiled C, and snapshots are not versioned as parallel suites.

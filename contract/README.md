@@ -164,7 +164,21 @@ make verify
 
 The first command checks this contract in both official modes. The second checks the general aggregates and six causal mutations. Runners do not create a term of `Contract(a,k)` for the complete executable. Development timeouts are not database budgets. Earlier reports and implementations remain in Git history; translated historical copies are in `history/contract-v1/`, while the original Portuguese files remain in Git history.
 
-## 8. Language sources
+## 8. Optional prepared-program interface
+
+The implementation also supports authenticated preparation/invalidation controls
+and prepared execution. The [extension specification](../tools/service/PREPARED_PROGRAMS.md)
+distinguishes their physical envelope and metadata receipts from ordinary
+transactions. Prepared calls retain the original program/proof identity and
+specialize a universally checked certificate to current context and arguments.
+
+The existing transaction types and eight-law composition are unchanged.
+[PreparedPrograms.bend](../proof/PreparedPrograms.bend) proves the checked worker
+normalization and specialization/publication bridge. Physical handle lookup,
+framing and control lifecycle remain explicit integration contracts; the old
+ordinary Request encoding equation is not asserted for a raw handle envelope.
+
+## 9. Language sources
 
 JayDB definitions were written from scratch. Syntax and tool usage were checked against official Bend sources:
 

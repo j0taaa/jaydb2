@@ -82,3 +82,21 @@ integration contracts, the kernel and protocol satisfy the eight laws**.
 Hashes identify sources and tests support the operational bridge; neither
 alone proves those contracts. A mechanized proof of the Rust/Node/C bridge
 remains outside this result.
+
+## Prepared-program adapter
+
+`PreparedPrograms.bend` checks the universal-certificate specialization and
+uses the actual `src/Prepared.bend` resolver invoked by prepared workers. It
+proves preservation of current authentication, state, context and arguments,
+and derives faithful preparation/valid publication through `Call` and `Core`.
+The proof supplies neither final validity nor permission to publish as a premise.
+
+The ordinary eight-law composition above is unchanged. Prepared control frames
+and metadata receipts are an explicit interface extension, not ordinary
+`Semantics.Response` events. For prepared transactions the pure model consumes
+the resolved logical request. `Interface.RequestReceived`'s ordinary encoding
+equation does not hold for the raw handle body. Binding that body and its full
+physical size to the stored original source/proof, as well as registration,
+invalidation and receipt delivery, remains a host refinement contract supported
+by focused real tests. The normalization proof does not claim to mechanize the
+whole Rust registry or extend the old raw-protocol theorem silently.
