@@ -105,6 +105,15 @@ def frame(value):
     return len(body).to_bytes(8, 'big') + body
 
 
+def prepared_frame(operation, code, credential, arguments=None, proof=''):
+    """Prepare source (0), execute a handle (1), or invalidate a handle (2)."""
+    if type(operation) is not int or operation not in (0, 1, 2):
+        raise ValueError('Invalid prepared operation')
+    body = bytes((7, operation)) + encode({'arguments': arguments, 'code': code,
+                                         'credential': credential, 'proof': proof})
+    return len(body).to_bytes(8, 'big') + body
+
+
 def unframe(data):
     if len(data) < 8 or int.from_bytes(data[:8], 'big') != len(data) - 8:
         raise ValueError('Invalid framing')
@@ -118,6 +127,10 @@ def main():
     p.add_argument('--proof', type=Path)
     p.add_argument('--credential')
     p.add_argument('--arguments', default='null', help='JSON value, without fractional numbers')
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--prepare', action='store_true', help='Prepare source with a universal certificate')
+    mode.add_argument('--handle', help='Execute an instance-local prepared handle')
+    mode.add_argument('--invalidate', help='Invalidate an instance-local prepared handle')
     a = p.parse_args()
     if a.decode:
         # A server session may return several frames before EOF.
@@ -127,13 +140,22 @@ def main():
             body = sys.stdin.buffer.read(int.from_bytes(header, 'big'))
             print(json.dumps(unframe(header + body), ensure_ascii=False), flush=True)
     else:
+        if a.handle is not None or a.invalidate is not None:
+            if a.credential is None or a.code is not None or a.proof is not None:
+                p.error('Handle operations require --credential and take no --code/--proof')
+            sys.stdout.buffer.write(prepared_frame(1 if a.handle is not None else 2,
+                a.handle if a.handle is not None else a.invalidate, a.credential, json.loads(a.arguments)))
+            return
         if a.code is None or a.proof is None or a.credential is None:
             p.error('--code, --proof and --credential are required')
         # read_bytes preserves CRLF and every original Unicode scalar.
         value = {'arguments': json.loads(a.arguments),
             'code': a.code.read_bytes().decode('utf-8'), 'credential': a.credential,
             'proof': a.proof.read_bytes().decode('utf-8')}
-        sys.stdout.buffer.write(frame(value))
+        if a.prepare:
+            sys.stdout.buffer.write(prepared_frame(0, value['code'], a.credential, value['arguments'], value['proof']))
+        else:
+            sys.stdout.buffer.write(frame(value))
 
 
 if __name__ == '__main__':

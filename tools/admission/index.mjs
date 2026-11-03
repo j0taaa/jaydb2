@@ -55,6 +55,13 @@ function assertBindings(B, book, plan, mustBeOpen) {
     [bind + ':certificate']: app(canonical.contractPrefix + 'Requirements:Certifies', inst + ':config', bind + ':code', client + ':program', inst + ':context', inst + ':arguments'),
     [bind + ':terminates']: app(canonical.contractPrefix + 'Interface:ProgramTerminates', inst + ':config', client + ':program'),
   };
+  if (plan.certificateMode === 'universal') {
+    const apply = (k, ...xs) => xs.reduce((f, x) => B.App(f, x), B.Ref(k));
+    expected[bind + ':certificate'] = B.All(B.Lone(), 'ctx', 0, B.Ref(canonical.contractPrefix + 'Data:Context'), ctx =>
+      B.All(B.Lone(), 'args', 1, B.Ref(canonical.contractPrefix + 'Data:Value'), args =>
+        apply(canonical.contractPrefix + 'Requirements:Certifies', B.Ref(inst + ':config'), B.Ref(bind + ':code'),
+          B.Ref(client + ':program'), ctx, args)));
+  }
   for (const [k, T] of Object.entries(expected)) {
     const t = book.tlds[k];
     if (!t || t.$ !== 'Def' || !t.l || !sameTerm(B, t.T, T) || (mustBeOpen && t.v !== null)) {
@@ -66,6 +73,14 @@ function assertBindings(B, book, plan, mustBeOpen) {
   if (code?.$ !== 'Def' || code.n !== 0 || !sameTerm(B, code.T, B.Ref('String'))
       || v?.$ !== 'Lit' || v.k !== 'String' || v.v !== plan.records.get(canonical.client).text) {
     reject('SOURCE_BINDING', `${bind}.code must be the exact source literal for ${canonical.client}`);
+  }
+  if (plan.certificateMode === 'universal') {
+    const proof = book.tlds[bind + ':proof_source'];
+    const value = proof?.v && B.term_lower(proof.v);
+    const proofFile = plan.openTargets[bind + ':certificate'];
+    if (proof?.$ !== 'Def' || proof.n !== 0 || !sameTerm(B, proof.T, B.Ref('String'))
+        || value?.$ !== 'Lit' || value.k !== 'String' || value.v !== plan.records.get(proofFile).text)
+      reject('SOURCE_BINDING', `${bind}.proof_source must be the exact universal proof source literal`);
   }
   return expected;
 }
@@ -187,6 +202,9 @@ function audit(B, state) {
   for (const [k, rec] of fillers) if (rec.role === 'client') roots.add(k);
   const closure = new Set(roots);
   for (const k of closure) {
+    const inst = state.plan.records.get(state.plan.canonicalRefs.instance)?.ns;
+    if (state.plan.certificateMode === 'universal' && [inst + ':context', inst + ':arguments'].includes(origin(k)))
+      reject('HOST_CAPTURE', `Reusable client reaches a concrete preparation value: ${k}`);
     const rec = owners.get(origin(k));
     if (rec?.role === 'kernel') reject('KERNEL_CAPTURE', `Client reaches kernel: ${k}`);
     if (rec?.role === 'host' && !rec.exports.has(origin(k)) && !fillers.has(origin(k))) {
@@ -269,7 +287,7 @@ async function admit(options, kernelOnly) {
       loopStep: plan.kernel.loopStep,
       contract: plan.kernel.primitives.includes('loop') ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
     const report = Object.freeze({ version: tc.info.version, primary: true, bendtt: true,
-      purpose: plan.purpose, canonicalRefs: plan.canonicalRefs, kernel,
+      purpose: plan.purpose, certificateMode: plan.certificateMode, canonicalRefs: plan.canonicalRefs, kernel,
       initialization: plan.purpose === 'initialize' ? Object.freeze({ ...plan.initialization }) : null,
       toolchainSha256: sha256(JSON.stringify([tc.info.version, tc.info.files, tc.info.kernelSha256])),
       verifier: Object.freeze({ ...tc.info.verifier, inputSha256: state.verifier.inputSha256 }),

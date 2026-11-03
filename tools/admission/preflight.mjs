@@ -52,7 +52,7 @@ function snapshot(root, relative, expected, foreign = false) {
     const bytes = fs.readFileSync(fd);
     const digest = sha256(bytes);
     if (digest !== expected) fail('HASH', `Source differs from the host hash: ${relative}`);
-    const text = new TextDecoder('utf-8', { fatal: true, ignoreGOOD: true }).decode(bytes);
+    const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
     return { text, sha256: digest, bytes: bytes.length };
   } finally {
     fs.closeSync(fd);
@@ -60,8 +60,10 @@ function snapshot(root, relative, expected, foreign = false) {
 }
 
 /** A manifest is a HOST capability, never an object received from the client. */
-export function preflight({ submissionDir, entry, dependencies, openTargets, canonicalRefs = {}, kernel, purpose, initialization }, kernelOnly = false) {
+export function preflight({ submissionDir, entry, dependencies, openTargets, canonicalRefs = {}, kernel, purpose, initialization, certificateMode = 'concrete' }, kernelOnly = false) {
   try {
+    if (!['concrete', 'universal'].includes(certificateMode) || (kernelOnly && certificateMode !== 'concrete'))
+      fail('MANIFEST', 'Invalid certificate mode');
     const root = fs.realpathSync(submissionDir);
     if (!Array.isArray(dependencies) || !dependencies.length) fail('MANIFEST', 'An explicit dependency set is required');
     if (typeof entry !== 'string' || !modulePath.test(entry) || entry.includes('/')) fail('MANIFEST', 'Entry must be a root-level module');
@@ -176,7 +178,7 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
     visit(entry);
     for (const file of records.keys()) visit(file);
     return { root, records, ordered, entry, canonicalRefs: Object.freeze(canonical), kernel: kernelPlan,
-      kernelOnly, purpose: kernelOnly ? purpose : 'submission', initialization, openTargets: { ...openTargets } };
+      kernelOnly, purpose: kernelOnly ? purpose : 'submission', certificateMode, initialization, openTargets: { ...openTargets } };
   } catch (cause) {
     if (cause instanceof AdmissionError) throw cause;
     throw new AdmissionError('SOURCE_IO', 'preflight', `Failed to obtain host sources: ${cause.message}`, { cause });

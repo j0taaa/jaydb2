@@ -1,6 +1,7 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs::{self, DirBuilder};
 use std::io::{self, Read, Write};
@@ -27,6 +28,9 @@ impl Error {
     }
 
     fn response(&self) -> Vec<u8> {
+        if self.code == "CONTROL_LIMIT" {
+            return error_frame("limit");
+        }
         let refused = [
             "IMPORT",
             "IMPORT_CYCLE",
@@ -315,6 +319,10 @@ fn split(data: &[u8]) -> Result<(&[u8], &[u8])> {
 }
 
 fn error_frame(status: &str) -> Vec<u8> {
+    response_frame(status, None)
+}
+
+fn response_frame(status: &str, value: Option<&str>) -> Vec<u8> {
     fn string(output: &mut Vec<u8>, value: &str) {
         output.push(4);
         output.extend_from_slice(&(value.len() as u64).to_be_bytes());
@@ -325,7 +333,10 @@ fn error_frame(status: &str) -> Vec<u8> {
     string(&mut body, "status");
     string(&mut body, status);
     string(&mut body, "value");
-    body.push(0);
+    match value {
+        Some(value) => string(&mut body, value),
+        None => body.push(0),
+    }
     packet(&body, &[])
 }
 
@@ -384,6 +395,51 @@ struct Database {
     published: Published,
     inspector: Option<UnixStream>,
     inspection_sequence: u64,
+    prepared: HashMap<String, PreparedProgram>,
+}
+
+struct PreparedProgram {
+    directory: Temporary,
+    program: Program,
+    original_code: Vec<u8>,
+    universal_proof: Vec<u8>,
+    // Host-owned snapshots; checking these bytes does not invoke admission.
+    sealed: Vec<(PathBuf, String)>,
+}
+
+impl PreparedProgram {
+    fn seal(directory: &Path) -> Result<Vec<(PathBuf, String)>> {
+        let mut files = Vec::new();
+        for entry in fs::read_dir(directory)? {
+            let entry = entry?;
+            if entry.file_type()?.is_dir() {
+                files.extend(Self::seal(&entry.path())?);
+            } else if entry.file_type()?.is_file() {
+                files.push((
+                    entry.path(),
+                    format!("{:x}", Sha256::digest(fs::read(entry.path())?)),
+                ));
+            } else {
+                return Err(Error::new("SOURCE_BINDING", "nonregular prepared artifact"));
+            }
+        }
+        Ok(files)
+    }
+
+    fn validate(&self) -> Result<()> {
+        for (path, expected) in &self.sealed {
+            let metadata = fs::symlink_metadata(path)?;
+            if !metadata.file_type().is_file()
+                || format!("{:x}", Sha256::digest(fs::read(path)?)) != *expected
+            {
+                return Err(Error::new(
+                    "SOURCE_BINDING",
+                    "sealed prepared artifact changed",
+                ));
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Database {
@@ -446,6 +502,7 @@ impl Database {
             },
             inspector,
             inspection_sequence: 0,
+            prepared: HashMap::new(),
         };
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -510,6 +567,16 @@ impl Database {
     }
 
     fn propose(&mut self, body: &[u8]) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+        // 7 is outside the canonical Value tags (0..6). The extension contains
+        // one opcode and an otherwise ordinary, officially decoded request.
+        let (operation, body) = if body.first() == Some(&7) {
+            match body.get(1) {
+                Some(op @ 0..=2) => (Some(*op), &body[2..]),
+                _ => return Ok((error_frame("input"), None)),
+            }
+        } else {
+            (None, body)
+        };
         let input = packet(&self.published.state, body);
         let decoded = self.preprocess(&self.decode, &input)?;
         if decoded[0] == 0 {
@@ -522,6 +589,39 @@ impl Database {
         let (code, rest) = split(&authenticated[1..])?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
+        if matches!(operation, Some(1 | 2)) {
+            if !proof.is_empty() {
+                return Ok((error_frame("input"), None));
+            }
+            let handle =
+                std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
+            if operation == Some(2) {
+                if !self.prepared.contains_key(handle) {
+                    return Err(Error::new("HANDLE", "unknown or invalidated handle"));
+                }
+                let response = self.control_response("invalidated", None)?;
+                let mut prepared = self.prepared.remove(handle).expect("serial handle lookup");
+                prepared.directory.remove()?;
+                return Ok(response);
+            }
+            let prepared = self
+                .prepared
+                .get(handle)
+                .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
+            prepared.validate()?;
+            if self.inspector.is_some() {
+                self.inspect(serde_json::json!({
+                    "event": "prepared-resolved", "handle": handle,
+                    "original_code": String::from_utf8_lossy(&prepared.original_code),
+                    "universal_proof": String::from_utf8_lossy(&prepared.universal_proof)
+                }));
+            }
+            let prepared = &self.prepared[handle];
+            // Only the native executable runs here. Its ordinary Input.analyze
+            // authenticates the received credential again on this same state;
+            // E.start receives that context and the actual decoded arguments.
+            return checked_proposal(&prepared.program.run(&input)?, &self.limits);
+        }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
                 "event": "authenticated",
@@ -545,7 +645,11 @@ impl Database {
         let report = json_helper(
             &self.stage,
             &[
-                "execute".into(),
+                if operation == Some(0) {
+                    "prepare".into()
+                } else {
+                    "execute".into()
+                },
                 self.directory.path.clone().into_os_string(),
                 request.path.clone().into_os_string(),
                 metadata.into_os_string(),
@@ -560,10 +664,56 @@ impl Database {
             ));
         }
         let program = Program::load(text(&report, "program")?.into())?;
+        if operation == Some(0) {
+            if text(&report, "certificateMode")? != "universal" {
+                return Err(Error::new(
+                    "TARGET",
+                    "preparation requires a universal certificate",
+                ));
+            }
+            let handle = loop {
+                let mut random = [0u8; 32];
+                fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
+                let candidate: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
+                if !self.prepared.contains_key(&candidate) {
+                    break candidate;
+                }
+            };
+            let response = self.control_response("prepared", Some(&handle))?;
+            let mut sealed = PreparedProgram::seal(&request.path)?;
+            sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
+            sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
+            self.prepared.insert(
+                handle,
+                PreparedProgram {
+                    directory: request,
+                    program,
+                    original_code: code.to_vec(),
+                    universal_proof: proof.to_vec(),
+                    sealed,
+                },
+            );
+            return Ok(response);
+        }
         let output = program.run(&input)?;
         let proposal = checked_proposal(&output, &self.limits)?;
         request.remove()?;
         Ok(proposal)
+    }
+
+    fn control_response(
+        &self,
+        status: &str,
+        value: Option<&str>,
+    ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+        let response = response_frame(status, value);
+        if (response.len() - 8) as u64 > self.limits.response {
+            return Err(Error::new(
+                "CONTROL_LIMIT",
+                "prepared response exceeds logical limit",
+            ));
+        }
+        Ok((response, None))
     }
 
     fn serve(&mut self) -> Result<()> {
