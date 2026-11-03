@@ -13,20 +13,20 @@ const sourceCleanup = new FinalizationRegistry(removeForeignSnapshot);
 const reject = (code, message) => { throw new AdmissionError(code, 'policy', message); };
 
 function walk(term, visit) {
-  const todo = [term], seen = new Set();
-  while (todo.length) {
-    const t = todo.pop();
+  const all = [term], seen = new Set();
+  while (all.length) {
+    const t = all.pop();
     if (!t || typeof t !== 'object' || seen.has(t)) continue;
     seen.add(t);
     visit(t);
-    for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') todo.push(v);
+    for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') all.push(v);
   }
 }
 
 function references(term) {
   const refs = new Set();
   walk(term, t => {
-    if (t.$ === 'Hol') reject('META', `Metavariável: ${t.k}`);
+    if (t.$ === 'Hol') reject('META', `Metavariable: ${t.k}`);
     // Match tags and literals matter too; merely scanning Ref misses them.
     if (['Ref', 'ADT', 'Ctr', 'Mat', 'Lit', 'PCtr'].includes(t.$)) refs.add(t.k);
   });
@@ -52,20 +52,20 @@ function assertBindings(B, book, plan, mustBeOpen) {
   const inst = plan.records.get(canonical.instance).ns;
   const client = plan.records.get(canonical.client).ns;
   const expected = {
-    [bind + ':certificado']: app(canonical.contractPrefix + 'Requisitos:Certifica', inst + ':config', bind + ':codigo', client + ':programa', inst + ':contexto', inst + ':argumentos'),
-    [bind + ':termina']: app(canonical.contractPrefix + 'Interface:ProgramaTermina', inst + ':config', client + ':programa'),
+    [bind + ':certificate']: app(canonical.contractPrefix + 'Requirements:Certifies', inst + ':config', bind + ':code', client + ':program', inst + ':context', inst + ':arguments'),
+    [bind + ':terminates']: app(canonical.contractPrefix + 'Interface:ProgramTerminates', inst + ':config', client + ':program'),
   };
   for (const [k, T] of Object.entries(expected)) {
     const t = book.tlds[k];
     if (!t || t.$ !== 'Def' || !t.l || !sameTerm(B, t.T, T) || (mustBeOpen && t.v !== null)) {
-      reject('TARGET', `Alvo do host incorreto: ${k}`);
+      reject('TARGET', `Incorrect host target: ${k}`);
     }
   }
-  const code = book.tlds[bind + ':codigo'];
+  const code = book.tlds[bind + ':code'];
   const v = code?.v && B.term_lower(code.v);
   if (code?.$ !== 'Def' || code.n !== 0 || !sameTerm(B, code.T, B.Ref('String'))
       || v?.$ !== 'Lit' || v.k !== 'String' || v.v !== plan.records.get(canonical.client).text) {
-    reject('SOURCE_BINDING', `${bind}.codigo deve ser o literal exato da fonte ${canonical.client}`);
+    reject('SOURCE_BINDING', `${bind}.code must be the exact source literal for ${canonical.client}`);
   }
   return expected;
 }
@@ -73,14 +73,14 @@ function assertBindings(B, book, plan, mustBeOpen) {
 function assertInitialization(B, book, plan) {
   if (plan.purpose !== 'initialize') return {};
   const { configuration, state, proof } = plan.initialization;
-  const T = B.App(B.App(B.Ref(plan.canonicalRefs.contractPrefix + 'Requisitos:Valido'), B.Ref(configuration)), B.Ref(state));
+  const T = B.App(B.App(B.Ref(plan.canonicalRefs.contractPrefix + 'Requirements:Valid'), B.Ref(configuration)), B.Ref(state));
   const p = book.tlds[proof];
   if (p?.$ !== 'Def' || !p.l || p.v === null || !sameTerm(B, p.T, T)) {
-    reject('INITIALIZATION', `Prova exigida: ${proof} : Requisitos.Valido(${configuration}(), ${state}())`);
+    reject('INITIALIZATION', `Required proof: ${proof} : Requirements.Valid(${configuration}(), ${state}())`);
   }
   for (const k of [configuration, state]) {
     const t = book.tlds[k];
-    if (t?.$ !== 'Def' || t.n !== 0 || t.v === null || t.i !== undefined || t.u) reject('INITIALIZATION', `Valor inicial não é uma definição pura fechada: ${k}`);
+    if (t?.$ !== 'Def' || t.n !== 0 || t.v === null || t.i !== undefined || t.u) reject('INITIALIZATION', `Initial value is not a closed pure definition: ${k}`);
   }
   return { [proof]: T };
 }
@@ -99,7 +99,7 @@ function parseSnapshots(B, plan, base) {
     for (const [k, t] of Object.entries(book.tlds)) {
       const old = before.get(k);
       if (!old) {
-        if (!k.startsWith(rec.ns ? rec.ns + ':' : '') || baseNames.has(k)) reject('SHADOW', `Declaração em módulo alheio: ${k}`);
+        if (!k.startsWith(rec.ns ? rec.ns + ':' : '') || baseNames.has(k)) reject('SHADOW', `Declaration in another module: ${k}`);
         owners.set(k, rec);
         continue;
       }
@@ -107,21 +107,21 @@ function parseSnapshots(B, plan, base) {
       if (!changed.size) continue;
       if (plan.openTargets[k] !== rec.path || fillers.has(k) || old.$ !== 'Def' || old.v !== null
           || [...changed].some(f => !['n', 'v', 'u', 'i'].includes(f))) {
-        reject('REDEFINITION', `Preenchimento não autorizado: ${rec.path} -> ${k}`);
+        reject('REDEFINITION', `Unauthorized target implementation: ${rec.path} -> ${k}`);
       }
       fillers.set(k, rec);
     }
     for (const [k, c] of Object.entries(book.ctrs)) {
       if (beforeCtors.has(k)) {
-        if (beforeCtors.get(k) !== c) reject('REDEFINITION', `Construtor redefinido: ${k}`);
+        if (beforeCtors.get(k) !== c) reject('REDEFINITION', `Constructor redefined: ${k}`);
       } else {
-        if (baseCtors.has(k) || (rec.ns && !k.startsWith(rec.ns + ':'))) reject('SHADOW', `Construtor em módulo alheio: ${k}`);
+        if (baseCtors.has(k) || (rec.ns && !k.startsWith(rec.ns + ':'))) reject('SHADOW', `Constructor in another module: ${k}`);
         owners.set(k, rec);
       }
     }
     if (!plan.kernelOnly && rec.path === plan.canonicalRefs.bindings) assertBindings(B, book, plan, true);
   }
-  for (const k of Object.keys(plan.openTargets)) if (!fillers.has(k)) reject('OPEN_LAW', `Alvo não preenchido: ${k}`);
+  for (const k of Object.keys(plan.openTargets)) if (!fillers.has(k)) reject('OPEN_LAW', `Unimplemented target: ${k}`);
   if (!plan.kernelOnly) assertBindings(B, book, plan, false);
   assertInitialization(B, book, plan);
   return { book, baseNames, baseCtors, owners, fillers, plan, primitives: new Set() };
@@ -129,7 +129,7 @@ function parseSnapshots(B, plan, base) {
 
 function audit(B, state) {
   const { book, baseNames, owners, fillers } = state;
-  if (book.hols !== 0) reject('META', 'Derivação contém metas');
+  if (book.hols !== 0) reject('META', 'Derivation contains metavariables');
   const graph = new Map(), baseForbidden = new Set(['IO', 'IO.OP', 'File', 'Socket', 'Listener', 'Window', 'Audio', 'Chan']);
   // Instantiation is done by the official checker. Its generated names inherit
   // the template's origin, never the privileges of their textual name.
@@ -143,12 +143,12 @@ function audit(B, state) {
   };
   for (const [k, t] of Object.entries(book.tlds)) {
     const original = origin(k), isBase = baseNames.has(original);
-    if (t.b === true && !isBase && !state.primitives.has(k)) reject('KERNEL_ABI', `Definição fora da fronteira marcada como Base: ${k}`);
+    if (t.b === true && !isBase && !state.primitives.has(k)) reject('KERNEL_ABI', `Definition outside the boundary is marked as Base: ${k}`);
     if (t.u || t.i !== undefined) {
-      if (!isBase && (t.u || !state.primitives.has(k))) reject(t.u ? 'UNSAFE' : 'FOREIGN', `Definição impura: ${k}`);
+      if (!isBase && (t.u || !state.primitives.has(k))) reject(t.u ? 'UNSAFE' : 'FOREIGN', `Impure definition: ${k}`);
       baseForbidden.add(k);
     }
-    if (t.$ === 'Def' && t.v === null && !isBase && !state.primitives.has(k)) reject('OPEN_LAW', `Axioma ou lei aberta: ${k}`);
+    if (t.$ === 'Def' && t.v === null && !isBase && !state.primitives.has(k)) reject('OPEN_LAW', `Axiom or open law: ${k}`);
     const refs = new Set();
     for (const term of terms(B, t)) for (const r of references(term)) refs.add(r);
     // ~ binders are scoped constants in Def.e, not global capabilities. Their
@@ -177,8 +177,8 @@ function audit(B, state) {
     const rec = owners.get(origin(k));
     const trustedIO = state.plan.kernel && (rec?.role === 'kernel' || rec?.path === state.plan.entry);
     for (const r of refs) {
-      if (baseForbidden.has(r) && !(trustedIO && (kernelIO.has(r) || state.primitives.has(r)))) reject('IO', `Capacidade externa: ${k} -> ${r}`);
-      if (owners.get(origin(r))?.role === 'kernel' && !trustedIO) reject('KERNEL_CAPTURE', `Módulo puro alcança kernel: ${k} -> ${r}`);
+      if (baseForbidden.has(r) && !(trustedIO && (kernelIO.has(r) || state.primitives.has(r)))) reject('IO', `External capability: ${k} -> ${r}`);
+      if (owners.get(origin(r))?.role === 'kernel' && !trustedIO) reject('KERNEL_CAPTURE', `Pure module reaches kernel: ${k} -> ${r}`);
     }
   }
   // Audit the entire client closure, including types, erased terms, constructors,
@@ -188,11 +188,11 @@ function audit(B, state) {
   const closure = new Set(roots);
   for (const k of closure) {
     const rec = owners.get(origin(k));
-    if (rec?.role === 'kernel') reject('KERNEL_CAPTURE', `Cliente alcança kernel: ${k}`);
+    if (rec?.role === 'kernel') reject('KERNEL_CAPTURE', `Client reaches kernel: ${k}`);
     if (rec?.role === 'host' && !rec.exports.has(origin(k)) && !fillers.has(origin(k))) {
-      reject('HOST_CAPTURE', `Cliente alcança símbolo privado do host: ${k}`);
+      reject('HOST_CAPTURE', `Client reaches private host symbol: ${k}`);
     }
-    if (baseForbidden.has(k)) reject('IO', `Capacidade externa: ${k}`);
+    if (baseForbidden.has(k)) reject('IO', `External capability: ${k}`);
     for (const r of graph.get(k) ?? []) closure.add(r);
   }
   return closure;
@@ -217,7 +217,7 @@ async function admit(options, kernelOnly) {
   try {
     try {
       const base = fs.readFileSync(B.BASE_BEND);
-      if (sha256(base) !== tc.info.files['bend2/base.bend']) throw new Error('Base mudou durante bootstrap');
+      if (sha256(base) !== tc.info.files['bend2/base.bend']) throw new Error('Base changed during bootstrap');
       state = parseSnapshots(B, plan, base.toString('utf8'));
       foreignSnapshot = prepareKernel(B, state);
       validateKernelEntry(B, state);
@@ -286,7 +286,7 @@ async function admit(options, kernelOnly) {
 function diagnostic(B, cause) {
   if (cause?.$ === 'Err') {
     try { return B.err_show(cause); }
-    catch { return 'O checker recusou a derivação; a expansão do diagnóstico excedeu os recursos do frontend.'; }
+    catch { return 'The checker rejected the derivation; diagnostic expansion exceeded frontend resources.'; }
   }
   return cause?.stack ?? cause?.message ?? String(cause);
 }
@@ -294,7 +294,7 @@ function diagnostic(B, cause) {
 /** Emits from the very same checked object; never reloads request files. */
 function checkedState(admitted) {
   const state = admittedBooks.get(admitted);
-  if (!state) throw new AdmissionError('BOOK_CHANGED', 'compile', 'Handle de admissão inválido');
+  if (!state) throw new AdmissionError('BOOK_CHANGED', 'compile', 'Invalid admission handle');
   return state;
 }
 
@@ -324,9 +324,9 @@ export function configurationLimits(admitted) {
       value = reduced;
     }
   };
-  const limits = B.term_wnf(book, B.App(B.Ref('Semantica:limites'), B.Ref('Configuration:config')));
-  if (limits.$ !== 'Ctr' || limits.k !== 'Semantica:Limites' || limits.x.length !== 3) throw new Error('Invalid configuration limits');
-  return Object.freeze(Object.fromEntries(['mensagem', 'estado', 'resposta'].map((name, i) => [name, String(nat(limits.x[i]))])));
+  const limits = B.term_wnf(book, B.App(B.Ref('Semantics:limits'), B.Ref('Configuration:config')));
+  if (limits.$ !== 'Ctr' || limits.k !== 'Semantics:Limits' || limits.x.length !== 3) throw new Error('Invalid configuration limits');
+  return Object.freeze(Object.fromEntries(['message', 'state', 'response'].map((name, i) => [name, String(nat(limits.x[i]))])));
 }
 
 export function emitC(admitted) {

@@ -47,9 +47,9 @@ impl Error {
             "KERNEL_CAPTURE",
         ];
         error_frame(if refused.contains(&self.code.as_str()) {
-            "certificado"
+            "certificate"
         } else {
-            "falha"
+            "failure"
         })
     }
 }
@@ -118,7 +118,7 @@ fn capture(command: &mut Command, input: &[u8]) -> Result<Output> {
     let mut stdin = child.stdin.take().expect("piped child stdin");
     let mut stdout = child.stdout.take().expect("piped child stdout");
     let mut stderr = child.stderr.take().expect("piped child stderr");
-    // Drain stdout/stderr while sending input, so binary pipes cannot deadlock
+    // Drain stdout/stderr while sending input, only binary pipes cannot deadlock
     // when a worker rejects input before reading its complete body.
     std::thread::scope(|scope| {
         let writer = scope.spawn(move || stdin.write_all(input));
@@ -233,9 +233,9 @@ impl Limits {
                 })
         };
         Ok(Self {
-            message: number("mensagem")?,
-            state: number("estado")?,
-            response: number("resposta")?,
+            message: number("message")?,
+            state: number("state")?,
+            response: number("response")?,
         })
     }
 }
@@ -324,7 +324,7 @@ fn error_frame(status: &str) -> Vec<u8> {
     body.extend_from_slice(&2u64.to_be_bytes());
     string(&mut body, "status");
     string(&mut body, status);
-    string(&mut body, "valor");
+    string(&mut body, "value");
     body.push(0);
     packet(&body, &[])
 }
@@ -464,8 +464,8 @@ impl Database {
             database.inspect(serde_json::json!({
                 "event": "initialized", "environment": environment, "sources": sources,
                 "seed": inspection_seed,
-                "limits": {"mensagem": database.limits.message,
-                    "estado": database.limits.state, "resposta": database.limits.response}
+                "limits": {"message": database.limits.message,
+                    "state": database.limits.state, "response": database.limits.response}
             }));
         }
         Ok(database)
@@ -589,9 +589,9 @@ fn serve_stream(
             return Ok(());
         }
         let terminal = if quantity != 8 {
-            Some("entrada")
+            Some("input")
         } else if u64::from_be_bytes(header) > limit {
-            Some("limite")
+            Some("limit")
         } else {
             None
         };
@@ -604,7 +604,7 @@ fn serve_stream(
             .map_err(|_| Error::new("HOST_TRANSPORT", "message length is not representable"))?;
         let mut body = vec![0; size];
         if read_up_to(input, &mut body)? != size {
-            output.write_all(&error_frame("entrada"))?;
+            output.write_all(&error_frame("input"))?;
             output.flush()?;
             return Ok(());
         }
@@ -720,24 +720,24 @@ mod tests {
     #[test]
     fn fixed_errors_match_the_proved_canonical_frames() {
         assert_eq!(
-            error_frame("entrada"),
+            error_frame("input"),
             hex(
-                "0000000000000037060000000000000002040000000000000006737461747573040000000000000007656e747261646104000000000000000576616c6f7200"
+                "0000000000000035060000000000000002040000000000000006737461747573040000000000000005696e70757404000000000000000576616c756500"
             )
         );
         assert_eq!(
-            error_frame("falha"),
+            error_frame("failure"),
             hex(
-                "000000000000003506000000000000000204000000000000000673746174757304000000000000000566616c686104000000000000000576616c6f7200"
+                "00000000000000370600000000000000020400000000000000067374617475730400000000000000076661696c75726504000000000000000576616c756500"
             )
         );
         assert_eq!(
             Error::new("PRIMARY_CHECK", "proof rejected").response(),
-            error_frame("certificado")
+            error_frame("certificate")
         );
         assert_eq!(
             Error::new("NATIVE", "child exited").response(),
-            error_frame("falha")
+            error_frame("failure")
         );
         assert!(split(&[0; 7]).is_err());
         assert!(split(&8u64.to_be_bytes()).is_err());
@@ -750,18 +750,18 @@ mod tests {
         let incoming = packet(b"bad", &packet(b"next", &[]));
         serve_stream(&mut Cursor::new(incoming), &mut response, 4, |body| {
             seen.push(body.to_vec());
-            error_frame(if body == b"bad" { "entrada" } else { "recusa" })
+            error_frame(if body == b"bad" { "input" } else { "refusal" })
         })
         .unwrap();
         assert_eq!(seen, [b"bad".to_vec(), b"next".to_vec()]);
         assert_eq!(
             response,
-            [error_frame("entrada"), error_frame("recusa")].concat()
+            [error_frame("input"), error_frame("refusal")].concat()
         );
         for (incoming, status) in [
-            (vec![0; 7], "entrada"),
-            (5u64.to_be_bytes().to_vec(), "limite"),
-            (packet(b"four", &[])[..9].to_vec(), "entrada"),
+            (vec![0; 7], "input"),
+            (5u64.to_be_bytes().to_vec(), "limit"),
+            (packet(b"four", &[])[..9].to_vec(), "input"),
         ] {
             let mut response = Vec::new();
             serve_stream(&mut Cursor::new(incoming), &mut response, 4, |_| {
@@ -777,46 +777,46 @@ mod tests {
         let limits = Limits {
             message: 100,
             state: 3,
-            response: error_frame("sucesso").len() as u64 - 8,
+            response: error_frame("success").len() as u64 - 8,
         };
         let mut published = Published {
             state: b"old".to_vec(),
             response: Vec::new(),
         };
-        let success = [vec![1], packet(b"new", &error_frame("sucesso"))].concat();
+        let success = [vec![1], packet(b"new", &error_frame("success"))].concat();
         assert_eq!(
             published.finish(checked_proposal(&success, &limits)),
-            error_frame("sucesso")
+            error_frame("success")
         );
-        let refusal = [vec![0], error_frame("recusa")].concat();
+        let refusal = [vec![0], error_frame("refusal")].concat();
         assert_eq!(
             published.finish(checked_proposal(&refusal, &limits)),
-            error_frame("recusa")
+            error_frame("refusal")
         );
         for invalid in [
             vec![],
             vec![2],
             vec![1, 0],
-            [vec![0], error_frame("certificado")].concat(),
-            [vec![1], packet(b"long", &error_frame("sucesso"))].concat(),
-            [vec![1], packet(b"new", &error_frame("certificado"))].concat(),
+            [vec![0], error_frame("certificate")].concat(),
+            [vec![1], packet(b"long", &error_frame("success"))].concat(),
+            [vec![1], packet(b"new", &error_frame("certificate"))].concat(),
             [vec![1], packet(b"new", b"unframed")].concat(),
             [
                 vec![1],
-                packet(b"new", &[error_frame("sucesso"), vec![0]].concat()),
+                packet(b"new", &[error_frame("success"), vec![0]].concat()),
             ]
             .concat(),
         ] {
             assert_eq!(
                 published.finish(checked_proposal(&invalid, &limits)),
-                error_frame("falha")
+                error_frame("failure")
             );
             assert_eq!(published.state, b"new");
-            assert_eq!(published.response, error_frame("sucesso"));
+            assert_eq!(published.response, error_frame("success"));
         }
         assert_eq!(
             published.finish(Err(Error::new("PRIMARY_CHECK", "rejected"))),
-            error_frame("certificado")
+            error_frame("certificate")
         );
         assert_eq!(published.state, b"new");
     }
@@ -840,11 +840,11 @@ mod tests {
             &mut Cursor::new(packet(b"call", &[])),
             &mut BrokenOutput,
             4,
-            |_| published.finish(Ok((error_frame("sucesso"), Some(b"new".to_vec())))),
+            |_| published.finish(Ok((error_frame("success"), Some(b"new".to_vec())))),
         );
         assert!(result.is_err());
         assert_eq!(published.state, b"new");
-        assert_eq!(published.response, error_frame("sucesso"));
+        assert_eq!(published.response, error_frame("success"));
     }
 
     #[test]

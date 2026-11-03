@@ -40,8 +40,8 @@ class Server:
         return bytes(result)
 
     def call(self, code, proof, credential, arguments=None):
-        self.process.stdin.write(frame({'codigo': code, 'prova': proof,
-                                        'credencial': credential, 'argumentos': arguments}))
+        self.process.stdin.write(frame({'code': code, 'proof': proof,
+                                        'credential': credential, 'arguments': arguments}))
         self.process.stdin.flush()
         header = self.read(8)
         return unframe(header + self.read(int.from_bytes(header, 'big')))
@@ -75,41 +75,41 @@ class EndToEndTests(unittest.TestCase):
     def test_transaction_rollback_publication_and_authenticated_identity(self):
         # A final duplicate rolls back; exchanging credentials publishes once
         # and changes authentication, while each call keeps its initial actor.
-        folder = ROOT/'examples/troca-credenciais'
+        folder = ROOT/'examples/credential-exchange'
         temporary = tempfile.TemporaryDirectory(prefix='jaydb-import-test-')
         self.addCleanup(temporary.cleanup)
         instance = Path(temporary.name)
         # This library has no other import path. Staging must collect TAB just
-        # as preflight does, so the actual checker/compiler can resolve it.
+        # as preflight does, only the actual checker/compiler can resolve it.
         (instance/'Sizes.bend').write_text('import Base\ndef message() -> Nat:\n  32768n\n')
         configuration = (folder/'Configuration.bend').read_text()
-        self.assertEqual(configuration.count('S.Limites{32768n, 65536n, 32768n}'), 1)
+        self.assertEqual(configuration.count('S.Limits{32768n, 65536n, 32768n}'), 1)
         (instance/'Configuration.bend').write_text('import\t./Sizes.bend\tas\tSizes\n' +
-            configuration.replace('S.Limites{32768n, 65536n, 32768n}',
-                                  'S.Limites{Sizes.message(), 65536n, 32768n}'))
+            configuration.replace('S.Limits{32768n, 65536n, 32768n}',
+                                  'S.Limits{Sizes.message(), 65536n, 32768n}'))
         (instance/'Seed.bend').write_bytes((folder/'Seed.bend').read_bytes())
         server = self.server(instance)
         code = (folder/'Client.bend').read_text()
         proof = (folder/'ClientProof.bend').read_text()
         self.assertEqual(server.call(code, proof, 'alice-token', ['same', 'same']),
-                         {'status': 'dados', 'valor': None}, server.diagnostics())
+                         {'status': 'data', 'value': None}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'alice-token'),
-                         {'status': 'sucesso', 'valor': 'bob-token'}, server.diagnostics())
-        self.assertEqual(server.call((folder/'Quem.bend').read_text(),
-                                    (folder/'QuemProof.bend').read_text(), 'alice-token'),
-                         {'status': 'sucesso', 'valor': 'bob'}, server.diagnostics())
+                         {'status': 'success', 'value': 'bob-token'}, server.diagnostics())
+        self.assertEqual(server.call((folder/'Who.bend').read_text(),
+                                    (folder/'WhoProof.bend').read_text(), 'alice-token'),
+                         {'status': 'success', 'value': 'bob'}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'invalid-token'),
-                         {'status': 'autenticacao', 'valor': None}, server.diagnostics())
+                         {'status': 'authentication', 'value': None}, server.diagnostics())
         server.finish()
 
     def test_initialization_rejects_another_environment_identity(self):
         with tempfile.TemporaryDirectory(prefix='jaydb-identity-test-') as temporary:
             folder = Path(temporary)
-            original = ROOT/'examples/credenciais'
+            original = ROOT/'examples/credentials'
             (folder/'Seed.bend').write_bytes((original/'Seed.bend').read_bytes())
             source = (original/'Configuration.bend').read_text()
-            self.assertEqual(source.count('E.identidade()'), 1)
-            (folder/'Configuration.bend').write_text(source.replace('E.identidade()', '"other-environment"'))
+            self.assertEqual(source.count('E.identity()'), 1)
+            (folder/'Configuration.bend').write_text(source.replace('E.identity()', '"other-environment"'))
             result = subprocess.run([str(ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend'),
                                      '--seed', str(folder/'Seed.bend')], input=b'', capture_output=True,
                                     cwd=ROOT, timeout=180)
@@ -120,23 +120,23 @@ class EndToEndTests(unittest.TestCase):
     def test_access_laws_cover_refusal_and_failed_child(self):
         # Real, nontrivial administrator law: every read/write addresses only
         # the authenticated user's credential. Even a later refusal must obey.
-        folder = ROOT/'examples/acessos'
+        folder = ROOT/'examples/access'
         code, proof = ((folder/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
         server = self.server(folder)
         self.assertEqual(server.call(code, proof, 'alice-token', 'alice-new'),
-                         {'status': 'sucesso', 'valor': 'alice-new'}, server.diagnostics())
+                         {'status': 'success', 'value': 'alice-new'}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'alice-token'),
-                         {'status': 'autenticacao', 'valor': None}, server.diagnostics())
+                         {'status': 'authentication', 'value': None}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'alice-new'),
-                         {'status': 'recusa', 'valor': 'cancelado'}, server.diagnostics())
+                         {'status': 'refusal', 'value': 'cancelled'}, server.diagnostics())
 
-        read = 'D.LerCelula{D.Usuarios{}, id, "credencial"}'
-        write = 'D.DefinirColuna{D.Usuarios{}, id, "credencial",'
+        read = 'D.ReadCell{D.Users{}, id, "credential"}'
+        write = 'D.DefineColumn{D.Users{}, id, "credential",'
         self.assertEqual(code.count(read), 1)
         self.assertEqual(code.count(write), 1)
-        forbidden_read = code.replace(read, 'D.LerCelula{D.Usuarios{}, "bob", "credencial"}')
-        forbidden_write = code.replace(write, 'D.DefinirColuna{D.Usuarios{}, "bob", "credencial",')
-        forged_actor = code.replace('argumentos(id, args)', 'argumentos("bob", args)')
+        forbidden_read = code.replace(read, 'D.ReadCell{D.Users{}, "bob", "credential"}')
+        forbidden_write = code.replace(write, 'D.DefineColumn{D.Users{}, "bob", "credential",')
+        forged_actor = code.replace('arguments(id, args)', 'arguments("bob", args)')
         self.assertNotEqual(forged_actor, code)
         for name, changed, arguments in [('read', forbidden_read, 'blocked'),
                                         ('write', forbidden_write, 'blocked'),
@@ -144,7 +144,7 @@ class EndToEndTests(unittest.TestCase):
                                         ('forged-actor', forged_actor, 'blocked')]:
             with self.subTest(case=name):
                 self.assertEqual(server.call(changed, proof, 'alice-new', arguments),
-                                 {'status': 'certificado', 'valor': None}, server.diagnostics())
+                                 {'status': 'certificate', 'value': None}, server.diagnostics())
         # No incomplete proof or missing dependency accounts for those refusals.
         self.assertIn('PRIMARY_CHECK', server.diagnostics())
         self.assertNotIn('Metavari', server.diagnostics())
@@ -152,24 +152,24 @@ class EndToEndTests(unittest.TestCase):
         # The supplied proof is insensitive to the terminal value. The official
         # checker accepts this code, but the actual native child cannot represent
         # the consumed Nat product 2^48. No fake process or injected result.
-        terminal = 'S.Terminar{valor}'
+        terminal = 'S.Finish{value}'
         self.assertEqual(code.count(terminal), 1)
         failing = code.replace(terminal,
-            'S.Terminar{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}')
+            'S.Finish{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}')
         before = len(server.diagnostics())
         self.assertEqual(server.call(failing, proof, 'alice-new', 'never-published'),
-                         {'status': 'falha', 'valor': None}, server.diagnostics())
+                         {'status': 'failure', 'value': None}, server.diagnostics())
         failure = server.diagnostics()[before:]
         self.assertIn('NATIVE', failure)
         self.assertIn('a Nat past the largest immediate', failure)
         # Both legitimate refusal and child failure left the old credential
         # published; a separate actor still updates only its own record.
         self.assertEqual(server.call(code, proof, 'alice-new', 'alice-new'),
-                         {'status': 'sucesso', 'valor': 'alice-new'}, server.diagnostics())
+                         {'status': 'success', 'value': 'alice-new'}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'bob-token', 'bob-new'),
-                         {'status': 'sucesso', 'valor': 'bob-new'}, server.diagnostics())
+                         {'status': 'success', 'value': 'bob-new'}, server.diagnostics())
         self.assertEqual(server.call(code, proof, 'alice-new', 'alice-new'),
-                         {'status': 'sucesso', 'valor': 'alice-new'}, server.diagnostics())
+                         {'status': 'success', 'value': 'alice-new'}, server.diagnostics())
         server.finish()
 
 

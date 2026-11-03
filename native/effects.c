@@ -63,13 +63,13 @@ static Term jaydb_loop_run(Env e, Term* fields, IoWork* work) {
     e.mem[at + 1] = state;
     Term result = corpus_eval(e.mem, term_tsk(FID(Clo~apply), at));
     u32 cid = (u32)term_aux(result), n = cid_arity(cid);
-    if (cid == CID(Inconsistente) || n != 1 || term_tag(result) != TAG_CTR)
+    if (cid == CID(Inconsistent) || n != 1 || term_tag(result) != TAG_CTR)
       err_fail("JayDB iteration result is invalid");
     Term value;
     spare_free(e, cls_fit(1), ctr_take(e, result, 1, &value));
-    if (cid == CID(Continuar) || cid == CID(Preparar)) {
+    if (cid == CID(Continue) || cid == CID(Prepare)) {
       state = value;
-    } else if (cid == CID(Encerrar)) {
+    } else if (cid == CID(FinishOutput)) {
       return jaydb_output(e, value);
     } else {
       err_fail("JayDB iteration constructor is invalid");

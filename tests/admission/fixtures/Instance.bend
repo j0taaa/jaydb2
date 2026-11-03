@@ -1,22 +1,22 @@
 import Base
-import ./Dados.bend as D
-import ./Semantica.bend as S
+import ./Data.bend as D
+import ./Semantics.bend as S
 
-def NaoObserva(h: S.Situacao) -> Type:
+def NotObserves(h: S.Situation) -> Type:
   match h:
-    case S.Estavel{s}:
+    case S.Stable{s}:
       Unit
-    case S.Executando{s, c, p, a, w, ts}:
-      {ts == Nil{} : List<&2, S.Evento>}
-    case S.Encerrada{s, c, p, a, w, ts, r}:
-      {ts == Nil{} : List<&2, S.Evento>}
+    case S.Executing{s, c, p, a, w, ts}:
+      {ts == Nil{} : List<&2, S.OperationEvent>}
+    case S.Closed{s, c, p, a, w, ts, r}:
+      {ts == Nil{} : List<&2, S.OperationEvent>}
 
-def config() -> S.Configuracao:
-  S.Configuracao{D.Esquema{Nil{}}, S.MaisUmaLei{NaoObserva, S.NenhumaLei{}},
-    S.Limites{256n, 256n, 256n}, "Bend-2.0.39-CPU"}
+def config() -> S.Configuration:
+  S.Configuration{D.Schema{Nil{}}, S.MoreOneLaw{NotObserves, S.NoneLaw{}},
+    S.Limits{256n, 256n, 256n}, "Bend-2.0.39-CPU"}
 
-def contexto() -> D.Contexto:
-  D.Contexto{"alice", "usuario"}
+def context() -> D.Context:
+  D.Context{"alice", "user"}
 
-def argumentos() -> D.Valor:
+def arguments() -> D.Value:
   D.VInt{0, 42}

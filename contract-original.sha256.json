@@ -1,0 +1,20 @@
+{
+  "contract/Bytes.bend": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
+  "contract/Data.bend": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
+  "contract/DataExamples.bend": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
+  "contract/Interface.bend": "774a8aa461501d3615db8e7a791a6780b1a82ffc819bd1f4c90c5972840247b7",
+  "contract/LAWS.bend": "c108a902375db52844e101818a9da3e2630666fa3226020db30a077635d96d53",
+  "contract/LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
+  "contract/Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+  "contract/Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+  "contract/Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
+  "contract/ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+  "contract/README.md": "aa37b66a88bcf603e0dcf6105b0a5c970705ae3fa8ae2062163a61b84fc2a740",
+  "contract/Requirements.bend": "6d88e6f61020438361d8af3127be2ebaf81bb576ae02c0102d62a8547094ed8b",
+  "contract/Resources.bend": "20a1820ac0915c8187882d76defe62e9cee6c81955531cca284899dc75172b86",
+  "contract/SPECIFICATION.original.md": "f458c35a06b39fa3f506a28bd5471962951c6a1ae9a00f658da6cf63e73ae033",
+  "contract/Semantics.bend": "0fa3fcf50d278101d0b50d829ccd4452a9b0a3eb5be766c040474e51588b07cf",
+  "contract/VERIFICATION.json": "18060c2fde0e77856492da14d5429012a262511ee90d459442ace1fca63fae20",
+  "contract/VERIFY.bend": "3dea436a8a72b4863253ba966419433bf28846305f340c0f5216d371a1be9993",
+  "contract/verify.py": "654c94d84b8f1bbfbb3fba8976cc0589fc3b33b9b6b253c92e229f551886f0d4"
+}

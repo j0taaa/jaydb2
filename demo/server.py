@@ -26,11 +26,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools.client import decode, frame, unframe
 
-EXAMPLE = ROOT / 'examples/acessos'
+EXAMPLE = ROOT / 'examples/access'
 CODE = (EXAMPLE / 'Client.bend').read_text()
 PROOF = (EXAMPLE / 'ClientProof.bend').read_text()
-FORBIDDEN = CODE.replace('D.LerCelula{D.Usuarios{}, id, "credencial"}',
-                         'D.LerCelula{D.Usuarios{}, "bob", "credencial"}')
+FORBIDDEN = CODE.replace('D.ReadCell{D.Users{}, id, "credential"}',
+                         'D.ReadCell{D.Users{}, "bob", "credential"}')
 COOKIE = 'jaydb2_demo'
 TTL = 30 * 60
 MAX_SESSIONS = 8
@@ -40,17 +40,17 @@ COMPILERS = threading.BoundedSemaphore(2)
 
 def schema_from_sources(sources):
     """Display declarations from this fixed example, never infer state."""
-    data = sources.get('Dados.bend', '')
-    declaration = re.search(r'def esquema_usuarios\(\).*?\n  (EsquemaTabela[^\n]+)', data)
+    data = sources.get('Data.bend', '')
+    declaration = re.search(r'def schema_users\(\).*?\n  (SchemaTable[^\n]+)', data)
     if not declaration:
-        return {'error': 'Schema declaration unavailable; inspect Dados.bend.'}
+        return {'error': 'Schema declaration unavailable; inspect Data.bend.'}
     text = declaration[1]
-    table = re.search(r'EsquemaTabela\{"([^"]+)", "([^"]+)"', text)
+    table = re.search(r'SchemaTable\{"([^"]+)", "([^"]+)"', text)
     columns = [{'name': name, 'type': kind, 'optional': optional == 'True'}
-               for name, kind, optional in re.findall(r'Coluna\{"([^"]+)", (\w+)\{\}, (True|False)\{\}\}', text)]
-    return {'source': 'Dados.esquema_usuarios / Configuration.esquema',
-            'usuarios': {'name': table[1], 'primary_key': table[2], 'columns': columns},
-            'application_declaration': sources.get('Configuration.bend', '').split('def esquema()', 1)[-1].split('\ndef ', 1)[0].strip(),
+               for name, kind, optional in re.findall(r'Column\{"([^"]+)", (\w+)\{\}, (True|False)\{\}\}', text)]
+    return {'source': 'Data.schema_users / Configuration.schema',
+            'users': {'name': table[1], 'primary_key': table[2], 'columns': columns},
+            'application_declaration': sources.get('Configuration.bend', '').split('def schema()', 1)[-1].split('\ndef ', 1)[0].strip(),
             'users_declaration': text}
 
 
@@ -175,7 +175,7 @@ class Session:
     def _call(self, code, proof, credential, arguments):
         if self.failed or self.process.poll() is not None:
             raise Unavailable('Database unavailable. Reset the instance to reload the seed.')
-        request = {'codigo': code, 'prova': proof, 'credencial': credential, 'argumentos': arguments}
+        request = {'code': code, 'proof': proof, 'credential': credential, 'arguments': arguments}
         encoded = frame(request)
         if len(encoded) - 8 > 32768:
             raise ValueError('Canonical request exceeds the 32,768-byte message limit.')
@@ -190,7 +190,7 @@ class Session:
                 raise Unavailable('Invalid database response frame.')
             response_bytes = header + self._read(size, deadline)
             response = unframe(response_bytes)
-            if not isinstance(response, dict) or set(response) != {'status', 'valor'}:
+            if not isinstance(response, dict) or set(response) != {'status', 'value'}:
                 raise Unavailable('Invalid database response.')
             with self.view:
                 self.view.wait_for(lambda: self.native_sequence >= self.call_sequence or self.inspection_error,
@@ -205,7 +205,7 @@ class Session:
     def ready(self):
         with self.lock, COMPILERS:
             response, _, _, _ = self._call(CODE, PROOF, '', None)
-            if response != {'status': 'autenticacao', 'valor': None} or self.state is None:
+            if response != {'status': 'authentication', 'value': None} or self.state is None:
                 self.close()
                 raise Unavailable('Database initialization or inspector probe failed.')
 

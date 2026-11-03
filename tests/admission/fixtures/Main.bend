@@ -2,15 +2,15 @@ import Base
 import ./ClientProof.bend as Proof
 import ./Client.bend as Client
 import ./Instance.bend as I
-import ./Dados.bend as D
-import ./Semantica.bend as S
+import ./Data.bend as D
+import ./Semantics.bend as S
 
-def resultado(a: S.Acao) -> D.Valor:
+def result(a: S.Action) -> D.Value:
   match a:
-    case S.Recusar{v}:
+    case S.Refuse{v}:
       v
     case _:
-      D.VAusente{}
+      D.VAbsent{}
 
-def main() -> D.Valor:
-  resultado(S.iniciar(Client.programa(), I.contexto(), I.argumentos()))
+def main() -> D.Value:
+  result(S.start(Client.program(), I.context(), I.arguments()))

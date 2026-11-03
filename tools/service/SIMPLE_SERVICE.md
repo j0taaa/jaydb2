@@ -1,85 +1,82 @@
-# Serviço com três limites lógicos
+# Service with three logical limits
 
-Configuração e dependências do administrador são públicas. O arquivo escolhido
-como seed é privado e só participa da inicialização; a configuração pública não
-pode importá-lo, inclusive por outro nome ou caminho para o mesmo arquivo.
+Administrator configuration and dependencies are public. The chosen seed file
+is private and participates only in initialization; public configuration may
+not import it, including through another name or path to the same file.
 
-A entrada ativa é `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs`.
-O host é Rust, a admissão e a compilação são coordenadas por Node, e cada
-programa compilado usa o runtime oficial do Bend. Python não participa da
-execução do serviço.
-A configuração contém somente `mensagem`, `estado` e `resposta`, medidos em
-bytes canônicos. Igualdade com o teto é permitida. Não há orçamento físico,
-observador ou prazo de execução.
+The active entry is `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs`.
+The host is Rust, admission and compilation are coordinated by Node, and each
+compiled program uses the official Bend runtime. Python is not part of service
+execution. Configuration contains only `message`, `state`, and `response`,
+measured in canonical bytes. Equality with a ceiling is allowed. There is no
+physical budget, observer, or execution deadline.
 
-## Caminho da chamada
+## Call path
 
-1. O host lê o enquadramento e verifica o tamanho da mensagem.
-2. Programas Bend oficiais decodificam e autenticam pelo estado publicado.
-3. A admissão verifica fonte, dependências e prova com as ferramentas oficiais,
-   contra a configuração, contexto e argumentos reais.
-4. O mesmo Book checado é compilado pelo compilador oficial. O estágio só chama
-   Clang sobre o C literal e registra hashes do C e executável.
-5. O programa roda em um processo auxiliar nativo novo, em CPU e com GPU desativada.
-   A proposta é privada. O Codec continua sendo o programa Bend compilado.
-6. O host recebe toda a saída, recolhe o processo, valida estado/resposta e remove
-   o diretório temporário antes de aceitar a proposta para publicação.
-7. O sucesso substitui o par `Published { state, response }` do host serial.
-   Uma recusa ou falha anterior conserva a publicação anterior.
-8. A entrega vem depois. Uma falha de entrega conserva o par publicado e encerra
-   o canal, sem repetição automática nem deduplicação.
+1. The host reads framing and checks message size.
+2. Official Bend programs decode and authenticate against published state.
+3. Admission checks source, dependencies, and proof with official tools against
+   the actual configuration, context, and arguments.
+4. The same checked Book is compiled by the official compiler. The stage only
+   invokes Clang on literal C and records C and executable hashes.
+5. The program runs in a fresh native child process on CPU with GPU disabled.
+   Its proposal is private. The Codec remains the compiled Bend program.
+6. The host receives all output, reaps the process, validates state/response,
+   and removes the temporary directory before accepting publication.
+7. Success replaces the serial host's `Published { state, response }` pair.
+   A refusal or earlier failure preserves the previous publication.
+8. Delivery follows. A delivery failure preserves the published pair and closes
+   the channel without automatic retry or deduplication.
 
-Os diretórios de compilação recebem código, prova e dados públicos da admissão,
-sem o estado privado. O seed participa apenas da inicialização e é removido
-antes do atendimento. O estado de cada chamada atravessa pipes em RAM, nunca
-um arquivo temporário de entrada.
+Compilation directories receive code, proofs, and public admission data, never
+private state. The seed participates only in initialization and is removed
+before serving. Per-call state crosses pipes in RAM, never a temporary input
+file.
 
-## Ownership e falhas
+## Ownership and failures
 
-O host Rust possui cada processo e seus pipes. Threads locais alimentam a
-entrada e drenam stdout e stderr simultaneamente, evitando bloqueio entre
-pipes. O host espera o término do filho e a leitura integral antes de aceitar
-a proposta.
+The Rust host owns each process and its pipes. Local threads feed input and
+drain stdout/stderr concurrently to avoid pipe deadlocks. The host waits for
+child exit and complete reading before accepting a proposal.
 
-Não há DSO, lease, `dlclose`, registries ou runtime substituto. O encerramento
-do filho libera seus recursos. Uma falha do filho devolve `falha` sem publicar,
-e o host pode atender a próxima chamada. Falha de ownership incerto encerra o
-uso da instância, sem repetir uma operação possivelmente consumida.
+There is no DSO, lease, `dlclose`, registry, or replacement runtime. Child exit
+releases its resources. A child failure returns `failure` without publishing, and
+the host can serve the next call. Uncertain ownership ends use of the instance
+without repeating a potentially consumed operation.
 
-O perfil é uma CLI Linux serial com ferramentas e host confiáveis. Não promete
-recuperar falhas fatais ou morte do banco. Perder
-o host pode perder os dados em RAM sem resposta.
+The profile is a serial Linux CLI with trusted tools and host. It does not
+promise recovery from fatal failure or database death. Losing the host can
+lose its RAM data without a response.
 
-O helper Node usa apenas uma opção pública de tamanho de stack, sem addon ou
-mudança no Bend. O estágio usa Clang 19 com `--no-default-config`; o programa nativo recebe as
-opções oficiais `--threads 1 --gpu off`. A instalação dessas ferramentas faz
-parte do ambiente confiável.
+The Node helper uses only a public stack-size option, without an addon or Bend
+change. The stage uses Clang 19 with `--no-default-config`; native programs
+receive the official `--threads 1 --gpu off` options. Installation of these
+tools is part of the trusted environment.
 
-## Verificação
+## Verification
 
-As provas Bend cobrem a máquina pura, os certificados e suas consequências
-para autenticação, operações, observações e preparação/publicação no modelo.
-As leis do administrador continuam obrigatórias para todos os prefixos,
-inclusive antes de uma recusa ou falha.
+Bend proofs cover the pure machine, certificates, and their consequences for
+authentication, operations, observations, and preparation/publication in the
+model. Administrator laws remain mandatory at every prefix, including before
+a refusal or failure.
 
-A base confiável da execução inclui as ferramentas oficiais fixadas, Node,
-Clang, o sistema operacional e o código de integração do JayDB: o controlador
-Rust, a preparação/admissão em Node e `native/effects.c`. Esse código liga
-fontes verificadas, argumentos, pipes e publicação concreta; seus corpos não
-são formalmente verificados pelos checkers Bend. Isso não permite dispensar
-uma prova do cliente nem trocar as leis por testes do resultado final.
+The execution's trusted base includes pinned official tools, Node, Clang, the
+operating system, and JayDB integration code: the Rust controller, Node
+preparation/admission, and `native/effects.c`. This code connects checked
+sources, arguments, pipes, and concrete publication; its bodies are not
+formally checked by Bend's checkers. This does not permit dispensing with a
+client proof or replacing laws with final-result tests.
 
-Os testes Rust cobrem publicação, rollback e enquadramento. `make test-native`
-compila C oficial e exercita efeitos, representação e os limites reais da
-toolchain. `make test-integration` admite, compila e executa transações Bend reais.
-Hashes e testes identificam artefatos e sustentam os casos executados; não
-substituem a demonstração das oito leis para o executável completo.
+Rust tests cover publication, rollback, and framing. `make test-native`
+compiles official C and exercises effects, representation, and actual
+toolchain limits. `make test-integration` admits, compiles, and executes real
+Bend transactions. Hashes and tests identify artifacts and support the cases
+executed; they do not replace a proof of the complete executable's eight laws.
 
-`make build`, `make verify-contract`, `make verify` e `make test` são etapas
-separadas: compilar ou passar os testes não implica ter executado os dois
-checkers sobre os agregados de provas. A entrada
-`proof/ContratoServico.bend`, incluída em `make verify`, compõe exatamente
-`Contrato(a,k)` para o núcleo e protocolo serial sob os contratos explícitos
-das ferramentas e da integração. O [mapa das leis](../../proof/CONTRATO_SERVICO.md)
-delimita as premissas; a ligação dos blocos Rust/Node/C permanece confiada e
-sustentada por revisão/testes, sem prova mecanizada desses componentes.
+`make build`, `make verify-contract`, `make verify`, and `make test` are separate
+steps: building or passing tests does not imply that both checkers ran on the
+proof aggregates. `proof/ContractService.bend`, included by `make verify`,
+composes exactly `Contract(a,k)` for the kernel and serial protocol under the
+explicit tool and integration contracts. The [law map](../../proof/SERVICE_CONTRACT.md)
+identifies assumptions; the Rust/Node/C bridge remains trusted and supported
+by review/tests rather than a mechanized proof of those components.

@@ -1,67 +1,67 @@
-# Execução nativa oficial
+# Official native execution
 
-A admissão entrega o mesmo Book checado ao `compile_book` oficial do Bend 2.
-O C emitido é compilado literalmente por `tools/service/stage.mjs`, com
-Clang 19. Não há reescrita do C, substituição de runtime, representação própria
-de Nat/Array, ABI de DSO ou verificador derivado.
+Admission passes the same checked Book to official Bend 2 `compile_book`.
+The emitted C is compiled literally by `tools/service/stage.mjs` with Clang 19.
+There is no C rewriting, replacement runtime, custom Nat/Array representation,
+DSO ABI, or derived verifier.
 
-Cada chamada executa esse programa em um processo auxiliar novo, com as opções
-oficiais `+RTS --threads 1 --gpu off -RTS`. O estado publicado pertence ao host.
-Entrada e saída trafegam por pipes; o estado não é gravado no diretório de
-compilação. O processo termina e seus recursos são liberados pelo sistema
-antes de o host aceitar uma proposta para publicação.
+Each call runs that program in a new child process with the official options
+`+RTS --threads 1 --gpu off -RTS`. Published state belongs to the host.
+Input and output travel through pipes; state is not written to the compilation
+directory. The process exits and the operating system releases its resources
+before the host accepts a proposal for publication.
 
-## Efeitos da aplicação
+## Application effects
 
-`effects.bend` declara os únicos efeitos confiáveis do kernel. `effects.c`
-implementa-os pelo mecanismo foreign documentado do Bend (`io_eff`):
+`effects.bend` declares the kernel's only trusted effects. `effects.c`
+implements them through Bend's documented foreign mechanism (`io_eff`):
 
-- `read` recebe os bytes até EOF e constrói a lista com `io_list` oficial.
-- `write` usa `io_cbuf` e `io_out` oficiais, sem conversão UTF-8 dos octetos.
-- `loop` aplica um passo fechado à célula linear do estado até o encerramento.
+- `read` receives bytes until EOF and builds the list with official `io_list`.
+- `write` uses official `io_cbuf` and `io_out`, without UTF-8 conversion of bytes.
+- `loop` applies a closed step to the linear state cell until completion.
 
-O wrapper Bend carrega essa célula como função `Unit -> EstadoExecucao`. Isso
-usa o BOX oficial para funções e transfere a captura uma vez; não reconstrói o
-layout interno do estado nem altera o compilador para forçar uma representação.
-A função do passo é fechada e fixada pelo host. Código cliente não recebe esses
-efeitos nem a célula de estado.
+The Bend wrapper carries that cell as a `Unit -> StateExecution` function.
+This uses the official function BOX and transfers the capture once; it neither
+reconstructs the state's internal layout nor changes the compiler to force a
+representation. The step function is closed and fixed by the host. Client
+code receives neither these effects nor the state cell.
 
-## Identidade e falhas
+## Identity and failures
 
-O manifesto registra SHA-256 do C literal, executável e Clang, mais os argumentos
-reais do compilador. O host Rust confere o executável antes de cada chamada.
-Uma falha do filho conserva o estado publicado. O host só
-publica após receber e validar a saída integral e recolher o processo.
+The manifest records SHA-256 of literal C, the executable, and Clang, together
+with the actual compiler arguments. The Rust host checks the executable before
+every call. A child failure preserves published state. The host publishes only
+after receiving and validating complete output and reaping the process.
 
-Os tamanhos de estado e resposta são conferidos sobre a proposta completa;
-não são quotas de RAM. Não há timeout do programa ou observador de recursos.
-Uma falha fatal do processo do banco ainda pode perder a instância em RAM.
+State and response sizes are checked on the complete proposal; they are not
+RAM quotas. There is no program timeout or resource observer. A fatal failure
+of the database process can still lose the RAM instance.
 
-## Inspeção administrativa opcional
+## Optional administrator inspection
 
-`--inspect-socket ADMIN_SOCKET` habilita uma saída administrativa de diagnóstico
-por Unix socket, separada do protocolo de clientes. O host envia metadados JSON
-e os bytes canônicos do estado publicado, ambos com cabeçalho de tamanho de
-8 bytes. A inicialização inclui os fontes públicos congelados, seed e limites;
-chamadas autenticadas incluem contexto e bindings reais; o encerramento da
-chamada inclui o estado publicado e eventual diagnóstico. O descritor não é
-herdado pelos workers. Falhas do observador desabilitam essa saída, sem alterar
-a resposta ou publicação da chamada.
+`--inspect-socket ADMIN_SOCKET` enables a diagnostic administrator output over
+a Unix socket, separate from the client protocol. The host sends JSON metadata
+and canonical published-state bytes, each with an 8-byte length header.
+Initialization includes frozen public sources, the seed, and limits;
+authenticated calls include the actual context and bindings; call completion
+includes published state and any diagnostic. Workers do not inherit the
+descriptor. Observer failures disable this output without changing the call's
+response or publication.
 
-A [demonstração web](../demo/README.md) usa essa capacidade para mostrar o banco
-ao administrador. Ela expõe dados que a interface comum mantém privados e está
-fora do escopo das provas do contrato de serviço. Não modifica permissões dos
-programas clientes. O modo normal da CLI não habilita a inspeção.
+The [web demonstration](../demo/README.md) uses this capability to show the
+database to its administrator. It exposes data kept private by the ordinary
+interface and is outside the service-contract proofs' scope. It does not
+change client-program permissions. Normal CLI mode does not enable inspection.
 
-## Limites oficiais observados
+## Observed official limitations
 
-A toolchain oficial possui limitações que o JayDB não contorna. Em particular,
-o caminho nativo imediato de Bend 2.0.39 recusa o cálculo observado de `Nat`
-maior que `2^48-1`, e o caminho nativo de `Array`
-exige a representação de árvore balanceada. Os antigos casos de Nat de 129 bits
-e Array desequilibrado agora são controles explícitos de falha da toolchain,
-não funcionalidades declaradas como suportadas. F32, funções capturadas dentro
-do domínio suportado, octetos e iteração são exercitados com C oficial real.
+The official toolchain has limitations JayDB does not work around. In
+particular, Bend 2.0.39's immediate native path rejects the observed `Nat`
+calculation above `2^48-1`, and the native `Array` path requires the balanced
+tree representation. Former 129-bit Nat and unbalanced Array cases are now
+explicit toolchain-failure controls, not declared supported features. F32,
+captured functions within the supported domain, bytes, and iteration are
+exercised with actual official C.
 
-Essas verificações não demonstram a correspondência geral do compilador nem o
-`Contrato` completo do executável. O JayDB não modifica Bend para alegá-los.
+These checks do not establish general compiler correspondence or the complete
+executable's `Contract`. JayDB does not modify Bend to claim either result.

@@ -1,127 +1,127 @@
-# Testes de aplicacao dos teoremas gerais; os 222 casos antigos continuam
-# sendo regressao separada, sem serem confundidos com estes quantificadores.
+# General theorem application tests; the 222 old cases remain
+# a separate regression, not to be confused with these quantifiers.
 import Base
-import ./CodecCompletude.bend as Completude
-import ./CodecLei2.bend as RelacaoOriginal
+import ./CodecCompleteness.bend as Completeness
+import ./CodecLaw2.bend as RelationOriginal
 import ../../proof/Codec.bend as G
-import ../../proof/CodecVerificar.bend as Todos
-import ../../proof/CodecTextos.bend as Textos
-import ../../proof/CodecTextoAceito.bend as TextoAceito
+import ../../proof/CodecVerify.bend as All
+import ../../proof/CodecTexts.bend as Texts
+import ../../proof/CodecTextAccepted.bend as TextAccepted
 import ../../proof/CodecUnicode.bend as U
-import ../../proof/CodecEstruturas.bend as E
-import ../../proof/CodecCanonico.bend as K
-import ../../proof/CodecPercurso.bend as R
-import ../../proof/CodecInteiros.bend as J
-import ../../contrato/Bytes.bend as B
-import ../../contrato/Dados.bend as D
-import ../../contrato/Protocolo.bend as P
-import ../../contrato/Logica.bend as L
+import ../../proof/CodecStructures.bend as E
+import ../../proof/CodecCanonical.bend as K
+import ../../proof/CodecTrace.bend as R
+import ../../proof/CodecIntegers.bend as J
+import ../../contract/Bytes.bend as B
+import ../../contract/Data.bend as D
+import ../../contract/Protocol.bend as P
+import ../../contract/Logic.bend as L
 import ../../src/Codec.bend as C
 
-# Aplica a prova a entradas inteiramente arbitrarias, sem testemunha de
-# canonicidade, validade, profundidade, quantidade ou tamanho declarados.
-law qualquer_aceitacao_tem_garantias_gerais:
+# Applies the proof to completely arbitrary inputs, without a supplied
+# canonicity, validity, depth, quantity or size witness.
+law any_acceptance_has_guarantees_general:
   for +bs: List<&2, U32>
-  for +teto: B.Numero64
-  for -v: D.Valor
-  for aceito: {C.decodificar(bs, teto) == C.Decodificado{v} : C.Resultado}
-  G.AceitacaoComprovada<bs, teto, v>
-def qualquer_aceitacao_tem_garantias_gerais(bs, teto, v, aceito):
-  G.aceitacao_garante_validade_limite_e_consumo_integral(bs, teto, v, aceito)
+  for +ceiling: B.Number64
+  for -v: D.Value
+  for accepted: {C.decode(bs, ceiling) == C.Decoded{v} : C.Outcome}
+  G.AcceptanceProven<bs, ceiling, v>
+def any_acceptance_has_guarantees_general(bs, ceiling, v, accepted):
+  G.acceptance_guarantees_validity_limit_and_consumption_integral(bs, ceiling, v, accepted)
 
-law unicode_de_qualquer_transicao_e_valido:
+law unicode_of_any_transition_and_valid:
   for +u: C.Unicode
   for +b: U32
-  U.EscalarValido(C.passo_utf8(u, b))
-def unicode_de_qualquer_transicao_e_valido(u, b):
-  U.passo_utf8_so_emite_escalares_validos(u, b)
+  U.ScalarValid(C.step_utf8(u, b))
+def unicode_of_any_transition_and_valid(u, b):
+  U.step_utf8_only_emits_scalars_all_valid(u, b)
 
-law listas_de_largura_e_profundidade_arbitrarias:
-  for +xs: List<&2, D.Valor>
-  for validos: E.ValoresValidos(xs)
-  {P.codificar(C.montar_lista(xs, D.VListaVazia{})) ==
-    P.finalizar(K.lista_bytes(Nat.add(K.contar_valores(xs), 0n), P.concatenar_opcional(K.conteudo_valores(xs), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
-def listas_de_largura_e_profundidade_arbitrarias(xs, validos):
-  K.lista_montada_tem_codificacao_exata(xs, validos)
+law lists_of_width_and_depth_arbitrary:
+  for +xs: List<&2, D.Value>
+  for all_valid: E.ValuesValid(xs)
+  {P.encode(C.assemble_list(xs, D.VListEmpty{})) ==
+    P.finalize(K.list_bytes(Nat.add(K.count_values(xs), 0n), P.concatenate_optional(K.content_values(xs), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
+def lists_of_width_and_depth_arbitrary(xs, all_valid):
+  K.list_assembled_has_encoding_exact(xs, all_valid)
 
-law registros_de_largura_e_profundidade_arbitrarias:
-  for +xs: List<&2, D.Campo>
-  for validos: E.CamposInvertidos(xs)
-  {P.codificar(C.montar_registro(xs, D.VRegistroVazio{})) ==
-    P.finalizar(K.registro_bytes(Nat.add(K.contar_campos(xs), 0n), P.concatenar_opcional(K.conteudo_campos(xs), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
-def registros_de_largura_e_profundidade_arbitrarias(xs, validos):
-  K.registro_montado_tem_codificacao_exata(xs, validos)
+law records_of_width_and_depth_arbitrary:
+  for +xs: List<&2, D.Field>
+  for all_valid: E.FieldsInverted(xs)
+  {P.encode(C.assemble_record(xs, D.VRecordEmpty{})) ==
+    P.finalize(K.record_bytes(Nat.add(K.count_fields(xs), 0n), P.concatenate_optional(K.content_fields(xs), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
+def records_of_width_and_depth_arbitrary(xs, all_valid):
+  K.record_assembled_has_encoding_exact(xs, all_valid)
 
-law consumir_nao_ignora_o_primeiro_octeto_extra:
+law consume_negative_ignores_o_first_octet_extra:
   for b: U32
   for xs: List<&2, U32>
-  for +corpo: B.Numero64
-  for +teto: B.Numero64
-  for v: D.Valor
-  {C.percorrer(Con{b, xs}, corpo, teto, C.Pronto{v}) == C.Entrada{} : C.Resultado}
-def consumir_nao_ignora_o_primeiro_octeto_extra(b, xs, corpo, teto, v):
-  R.pronto_recusa_qualquer_octeto_extra(b, xs, corpo, teto, v)
+  for +body: B.Number64
+  for +ceiling: B.Number64
+  for v: D.Value
+  {C.traverse(Con{b, xs}, body, ceiling, C.DecodedReady{v}) == C.Input{} : C.Outcome}
+def consume_negative_ignores_o_first_octet_extra(b, xs, body, ceiling, v):
+  R.ready_refusal_any_octet_extra(b, xs, body, ceiling, v)
 
-# Instancias nao vazias exercitam a composicao dos invariantes.
-def valores() -> List<&2, D.Valor>:
-  [D.VTexto{"é𝄞"}, D.VLista{D.VInt{4294967295, 4294967295}, D.VListaVazia{}}]
+# Nonempty instances exercise invariant composition.
+def values() -> List<&2, D.Value>:
+  [D.VText{"é𝄞"}, D.VList{D.VInt{4294967295, 4294967295}, D.VListEmpty{}}]
 
-def valores_validos() -> E.ValoresValidos(valores()):
-  L.Ambos{{==}, L.Ambos{{==}, Unit{}}}
+def values_all_valid() -> E.ValuesValid(values()):
+  L.Both{{==}, L.Both{{==}, Unit{}}}
 
-law lista_composta_nao_perde_unicode_nem_bits:
-  {P.codificar(C.montar_lista(valores(), D.VListaVazia{})) ==
-    P.finalizar(K.lista_bytes(Nat.add(K.contar_valores(valores()), 0n), P.concatenar_opcional(K.conteudo_valores(valores()), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
-def lista_composta_nao_perde_unicode_nem_bits():
-  K.lista_montada_tem_codificacao_exata(valores(), valores_validos())
+law list_composed_negative_loses_unicode_neither_bits:
+  {P.encode(C.assemble_list(values(), D.VListEmpty{})) ==
+    P.finalize(K.list_bytes(Nat.add(K.count_values(values()), 0n), P.concatenate_optional(K.content_values(values()), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
+def list_composed_negative_loses_unicode_neither_bits():
+  K.list_assembled_has_encoding_exact(values(), values_all_valid())
 
-def campos() -> List<&2, D.Campo>:
-  [D.Campo{"z", D.VTexto{"𝄞"}}, D.Campo{"a", D.VLista{D.VAusente{}, D.VListaVazia{}}}]
+def fields() -> List<&2, D.Field>:
+  [D.Field{"z", D.VText{"𝄞"}}, D.Field{"a", D.VList{D.VAbsent{}, D.VListEmpty{}}}]
 
-def campos_validos() -> E.CamposInvertidos(campos()):
-  L.Ambos{{==}, L.Ambos{{==}, L.Ambos{{==}, L.Ambos{{==}, L.Ambos{{==}, Unit{}}}}}}
+def fields_all_valid() -> E.FieldsInverted(fields()):
+  L.Both{{==}, L.Both{{==}, L.Both{{==}, L.Both{{==}, L.Both{{==}, Unit{}}}}}}
 
-law registro_composto_tem_ordem_canonica:
-  {P.codificar(C.montar_registro(campos(), D.VRegistroVazio{})) ==
-    P.finalizar(K.registro_bytes(Nat.add(K.contar_campos(campos()), 0n), P.concatenar_opcional(K.conteudo_campos(campos()), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
-def registro_composto_tem_ordem_canonica():
-  K.registro_montado_tem_codificacao_exata(campos(), campos_validos())
+law record_composed_has_order_canonical:
+  {P.encode(C.assemble_record(fields(), D.VRecordEmpty{})) ==
+    P.finalize(K.record_bytes(Nat.add(K.count_fields(fields()), 0n), P.concatenate_optional(K.content_fields(fields()), Some{Nil{}}))) : Maybe<&2, List<&2, U32>>}
+def record_composed_has_order_canonical():
+  K.record_assembled_has_encoding_exact(fields(), fields_all_valid())
 
-law qualquer_cauda_aceita_com_tag_inteiro_e_canonica:
+law any_tail_accepts_combined_tag_integer_and_canonical:
   for +bs: List<&2, U32>
-  for +teto: B.Numero64
-  for -v: D.Valor
-  for +aceito: {C.decodificar(Con{3, bs}, teto) == C.Decodificado{v} : C.Resultado}
-  P.Codificacao(v, Con{3, bs})
-def qualquer_cauda_aceita_com_tag_inteiro_e_canonica(bs, teto, v, aceito):
-  J.toda_aceitacao_iniciada_por_tag_inteiro_e_canonica(bs, teto, v, aceito)
+  for +ceiling: B.Number64
+  for -v: D.Value
+  for +accepted: {C.decode(Con{3, bs}, ceiling) == C.Decoded{v} : C.Outcome}
+  P.Encoding(v, Con{3, bs})
+def any_tail_accepts_combined_tag_integer_and_canonical(bs, ceiling, v, accepted):
+  J.all_acceptance_started_by_tag_integer_and_canonical(bs, ceiling, v, accepted)
 
-law qualquer_inteiro_canonico_dentro_do_limite_e_aceito:
-  for +alto: U32
-  for +baixo: U32
-  for +teto: B.Numero64
-  for cabe: {C.menor_igual64(B.Numero64{0, 9}, teto) == True{} : Bool}
-  {C.decodificar(Con{3, B.be64(alto, baixo)}, teto) == C.Decodificado{D.VInt{alto, baixo}} : C.Resultado}
-def qualquer_inteiro_canonico_dentro_do_limite_e_aceito(alto, baixo, teto, cabe):
-  J.todo_inteiro_canonico_dentro_do_limite_e_aceito(alto, baixo, teto, cabe)
+law any_integer_canonical_inside_of_limit_and_accepted:
+  for +high: U32
+  for +low: U32
+  for +ceiling: B.Number64
+  for fits: {C.less_equal64(B.Number64{0, 9}, ceiling) == True{} : Bool}
+  {C.decode(Con{3, B.be64(high, low)}, ceiling) == C.Decoded{D.VInt{high, low}} : C.Outcome}
+def any_integer_canonical_inside_of_limit_and_accepted(high, low, ceiling, fits):
+  J.all_integer_canonical_inside_of_limit_and_accepted(high, low, ceiling, fits)
 
-law qualquer_cauda_aceita_com_tag_texto_e_canonica:
+law any_tail_accepts_combined_tag_text_and_canonical:
   for +bs: List<&2, U32>
-  for +teto: B.Numero64
-  for -v: D.Valor
-  for +aceito: {C.decodificar(Con{4, bs}, teto) == C.Decodificado{v} : C.Resultado}
-  P.Codificacao(v, Con{4, bs})
-def qualquer_cauda_aceita_com_tag_texto_e_canonica(bs, teto, v, aceito):
-  TextoAceito.toda_aceitacao_iniciada_por_tag_texto_e_canonica(bs, teto, v, aceito)
+  for +ceiling: B.Number64
+  for -v: D.Value
+  for +accepted: {C.decode(Con{4, bs}, ceiling) == C.Decoded{v} : C.Outcome}
+  P.Encoding(v, Con{4, bs})
+def any_tail_accepts_combined_tag_text_and_canonical(bs, ceiling, v, accepted):
+  TextAccepted.all_acceptance_started_by_tag_text_and_canonical(bs, ceiling, v, accepted)
 
-law qualquer_texto_canonico_dentro_do_limite_e_aceito:
+law any_text_canonical_inside_of_limit_and_accepted:
   for +s: String
   for +bs: List<&2, U32>
-  for +corpo: B.Numero64
-  for +teto: B.Numero64
-  for +codificado: {P.codificar(D.VTexto{s}) == Some{bs} : Maybe<&2, List<&2, U32>>}
-  for medido: {B.nat64(B.comprimento(bs)) == Some{corpo} : Maybe<&2, B.Numero64>}
-  for cabe: {C.menor_igual64(corpo, teto) == True{} : Bool}
-  {C.decodificar(bs, teto) == C.Decodificado{D.VTexto{s}} : C.Resultado}
-def qualquer_texto_canonico_dentro_do_limite_e_aceito(s, bs, corpo, teto, codificado, medido, cabe):
-  Textos.toda_codificacao_textual_dentro_do_limite_e_aceita(s, bs, corpo, teto, codificado, medido, cabe)
+  for +body: B.Number64
+  for +ceiling: B.Number64
+  for +encoded: {P.encode(D.VText{s}) == Some{bs} : Maybe<&2, List<&2, U32>>}
+  for measured: {B.nat64(B.length(bs)) == Some{body} : Maybe<&2, B.Number64>}
+  for fits: {C.less_equal64(body, ceiling) == True{} : Bool}
+  {C.decode(bs, ceiling) == C.Decoded{D.VText{s}} : C.Outcome}
+def any_text_canonical_inside_of_limit_and_accepted(s, bs, body, ceiling, encoded, measured, fits):
+  Texts.all_encoding_textual_inside_of_limit_and_accepts(s, bs, body, ceiling, encoded, measured, fits)

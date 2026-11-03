@@ -21,7 +21,7 @@ def encode(value):
             result.append(2 if v else 1)
         elif type(v) is int:
             if not -(2**63) <= v < 2**63:
-                raise ValueError('Inteiro fora de int64')
+                raise ValueError('Integer outside int64')
             result.append(3)
             result.extend(v.to_bytes(8, 'big', signed=True))
         elif type(v) is str:
@@ -35,13 +35,13 @@ def encode(value):
             pending.extend(reversed(v))
         elif type(v) is dict:
             if any(type(k) is not str or not NAME.fullmatch(k) for k in v):
-                raise ValueError('Nome de campo inválido')
+                raise ValueError('Invalid field name')
             result.append(6)
             result.extend(len(v).to_bytes(8, 'big'))
             for k in reversed(sorted(v)):
                 pending.extend([v[k], k])
         else:
-            raise ValueError('Tipo não representável no protocolo JayDB')
+            raise ValueError('Type not representable in the JayDB protocol')
     return bytes(result)
 
 
@@ -54,7 +54,7 @@ def decode(data):
     def take(n):
         nonlocal position
         if n > len(data) - position:
-            raise ValueError('Valor truncado')
+            raise ValueError('Truncated value')
         b = data[position:position+n]
         position += n
         return b
@@ -77,7 +77,7 @@ def decode(data):
                 continue
             value = [] if tag == 5 else {}
         else:
-            raise ValueError('Tag inválida')
+            raise ValueError('Invalid tag')
         target.append(value)
         while stack:
             tag, n, fields, parent = stack[-1]
@@ -88,7 +88,7 @@ def decode(data):
                 names = fields[::2]
                 if (any(type(k) is not str or not NAME.fullmatch(k) for k in names)
                     or any(a >= b for a, b in zip(names, names[1:]))):
-                    raise ValueError('Registro não canônico')
+                    raise ValueError('Noncanonical record')
                 value = dict(zip(names, fields[1::2], strict=True))
             else:
                 value = fields
@@ -96,7 +96,7 @@ def decode(data):
             target.append(value)
         if not stack:
             if position != len(data):
-                raise ValueError('Bytes depois do valor')
+                raise ValueError('Bytes after the value')
             return root[0]
 
 
@@ -107,32 +107,32 @@ def frame(value):
 
 def unframe(data):
     if len(data) < 8 or int.from_bytes(data[:8], 'big') != len(data) - 8:
-        raise ValueError('Enquadramento inválido')
+        raise ValueError('Invalid framing')
     return decode(data[8:])
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--decode', action='store_true')
-    p.add_argument('--codigo', type=Path)
-    p.add_argument('--prova', type=Path)
-    p.add_argument('--credencial')
-    p.add_argument('--argumentos', default='null', help='Valor JSON, sem números fracionários')
+    p.add_argument('--code', type=Path)
+    p.add_argument('--proof', type=Path)
+    p.add_argument('--credential')
+    p.add_argument('--arguments', default='null', help='JSON value, without fractional numbers')
     a = p.parse_args()
     if a.decode:
         # A server session may return several frames before EOF.
         while header := sys.stdin.buffer.read(8):
             if len(header) != 8:
-                raise ValueError('Cabeçalho de resposta truncado')
+                raise ValueError('Truncated response header')
             body = sys.stdin.buffer.read(int.from_bytes(header, 'big'))
             print(json.dumps(unframe(header + body), ensure_ascii=False), flush=True)
     else:
-        if a.codigo is None or a.prova is None or a.credencial is None:
-            p.error('--codigo, --prova e --credencial exigidos')
+        if a.code is None or a.proof is None or a.credential is None:
+            p.error('--code, --proof and --credential are required')
         # read_bytes preserves CRLF and every original Unicode scalar.
-        value = {'argumentos': json.loads(a.argumentos),
-            'codigo': a.codigo.read_bytes().decode('utf-8'), 'credencial': a.credencial,
-            'prova': a.prova.read_bytes().decode('utf-8')}
+        value = {'arguments': json.loads(a.arguments),
+            'code': a.code.read_bytes().decode('utf-8'), 'credential': a.credential,
+            'proof': a.proof.read_bytes().decode('utf-8')}
         sys.stdout.buffer.write(frame(value))
 
 

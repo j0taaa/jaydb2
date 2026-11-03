@@ -9,7 +9,7 @@ verify-contract:
 	python3 -B tools/check.py
 
 verify:
-	python3 -B tools/check.py VERIFICAR.bend tests/proof/VERIFICAR.bend
+	python3 -B tools/check.py VERIFY.bend tests/proof/VERIFY.bend
 	python3 -B tests/proof/test_proofs.py
 
 test: test-admission test-native test-host test-integration
@@ -27,7 +27,7 @@ test-integration:
 	python3 -B -m unittest tests.service.test_end_to_end -v
 
 demo: build
-	bash examples/acessos/demo.sh
+	bash examples/access/demo.sh
 
 demo-web: build
 	python3 -B demo/server.py

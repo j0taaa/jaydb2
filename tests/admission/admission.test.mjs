@@ -11,7 +11,7 @@ const rejected = (manifest, codes) => assert.rejects(admitSubmission(manifest), 
 // A changed behavior cannot reuse a certificate for the previous program.
 test('wrong supplied proof is rejected by the primary checker', async t => {
   const f = fixture(t);
-  f.write('Client.bend', f.read('Client.bend').replace('contar([1, 2, 3], 0)', 'contar([1, 2, 4], 0)'));
+  f.write('Client.bend', f.read('Client.bend').replace('count([1, 2, 3], 0)', 'count([1, 2, 4], 0)'));
   f.bindCode();
   await rejected(f.manifest(), ['PRIMARY_CHECK']);
 });
@@ -22,7 +22,7 @@ test('unused IO, foreign code, unsafe definitions and holes are rejected', async
     ['def hidden() -> IO(Unit):\n  IO.exit(91)\n', 'IO'],
     ['def hidden() -> IO(Unit):\n  import "./external.c"\n', 'FOREIGN'],
     ['@unsafe\ndef hidden(n: Nat) -> Nat:\n  hidden(n)\n', 'UNSAFE'],
-    ['def hidden() -> Unit:\n  ?todo\n', 'META'],
+    ['def hidden() -> Unit:\n  ?all\n', 'META'],
     ['law invented:\n  Empty\n', 'OPEN_LAW'],
   ]) {
     const f = fixture(t);
@@ -39,10 +39,10 @@ test('source, target and proof-authority substitutions are rejected', async t =>
   await rejected(source.manifest(), ['SOURCE_BINDING']);
   const target = fixture(t);
   target.write('Bindings.bend', target.read('Bindings.bend').replace(
-    'R.Certifica(I.config(), codigo(), Client.programa(), I.contexto(), I.argumentos())', 'Unit'));
+    'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())', 'Unit'));
   await rejected(target.manifest(), ['TARGET']);
   const authority = fixture(t), manifest = authority.manifest();
-  manifest.openTargets['Bindings:certificado'] = 'Client.bend';
+  manifest.openTargets['Bindings:certificate'] = 'Client.bend';
   await rejected(manifest, ['REDEFINITION']);
 });
 

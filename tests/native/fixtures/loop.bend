@@ -4,20 +4,20 @@ import ../../../native/effects.bend as Native
 type TestState is Type:
   TestState{left: List<&2, U32>, rest: List<&2, U32>}
 
-def advance(state: TestState) -> Native.Iteracao<(Unit -> TestState)>:
+def advance(state: TestState) -> Native.Iteration<(Unit -> TestState)>:
   match state:
     case TestState{left, Nil{}}:
-      Native.Encerrar{left}
+      Native.FinishOutput{left}
     case TestState{left, Con{h, t}}:
       match h:
         case 0:
-          Native.Preparar{u => TestState{left, t}}
+          Native.Prepare{u => TestState{left, t}}
         case 255:
-          Native.Inconsistente{}
+          Native.Inconsistent{}
         case _:
-          Native.Continuar{u => TestState{Con{h, left}, t}}
+          Native.Continue{u => TestState{Con{h, left}, t}}
 
-def step(box: Unit -> TestState) -> Native.Iteracao<(Unit -> TestState)>:
+def step(box: Unit -> TestState) -> Native.Iteration<(Unit -> TestState)>:
   advance(box(Unit{}))
 
 def main() -> IO(Unit):

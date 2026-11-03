@@ -1,55 +1,89 @@
 # JayDB2
 
-Implementação experimental de um banco em RAM que executa programas Bend acompanhados de provas contra as leis do administrador. Autentica a chamada pelo estado publicado, trabalha em uma proposta privada e publica estado e resposta completos numa única troca de referência. Atendimento serial por stdin/stdout, com código emitido pelo compilador oficial.
+An experimental RAM database that executes Bend programs accompanied by proofs
+against administrator laws. It authenticates each call against published
+state, works on a private proposal, and publishes complete state and response
+with a single reference replacement. Requests are served serially over
+stdin/stdout, with code emitted by the official compiler.
 
-Cada chamada executa num processo nativo auxiliar. O host conserva o estado publicado e só aceita o resultado completo do auxiliar antes de publicar a proposta. O C emitido pelo compilador oficial não é reescrito para criar um runtime próprio.
+Each call runs in a native child process. The host retains published state and
+accepts only the helper's complete result before publishing a proposal. C
+emitted by the official compiler is not rewritten to create a custom runtime.
 
-O contrato tem **três limites de tamanho canônico: mensagem, estado e resposta**. Não há orçamento físico próprio, observador de memória ou prazo por etapa. Uma falha fatal pode encerrar a instância e perder seus dados em RAM.
+The contract has **three canonical size limits: message, state, and response**.
+There is no custom physical budget, memory observer, or per-stage deadline.
+A fatal failure can terminate the instance and lose its RAM data.
 
-## Instalação
+## Installation
 
-Perfil de execução: Linux x86_64, Node 24 e Clang 19. O controlador é um binário Rust; Python é usado somente em ferramentas de desenvolvimento e testes.
+Execution profile: Linux x86_64, Node 24, and Clang 19. The controller is a Rust
+binary; Python is used only for development tools, tests, and example clients.
 
-O processo auxiliar Node usa `--stack_size=65536` e stack soft ilimitada. O launcher exige que o limite hard de stack do Linux já seja ilimitado; não altera os fontes do Node ou do Bend.
+The Node helper uses `--stack_size=65536` and an unlimited soft stack limit.
+The launcher requires an already unlimited Linux hard stack limit; it does not
+change Node or Bend sources.
 
-Siga o [guia de instalação e primeira sessão](INSTALL.md). Ele instala as
-ferramentas localmente e usa o BendTT sem patches distribuído com a versão
-experimental. Depois da instalação:
+Follow the [installation and first-session guide](INSTALL.md). It installs
+tools locally and uses the unpatched BendTT distributed with the experimental
+release. After installation:
 
 ```sh
 make demo
 ```
 
-O comando executa a [aplicação de troca de credenciais](examples/acessos/README.md)
-no servidor real e mostra cinco respostas JSON, incluindo publicação,
-autenticação e rollback de uma recusa. O estado existe somente nessa sessão.
+This runs the [credential-change application](examples/access/README.md) on the
+real server and shows five JSON responses, including publication,
+authentication, and refusal rollback. State exists only for that session.
 
-Para experimentar o mesmo banco real pelo navegador, execute `make demo-web`
-e abra **http://localhost:8094**. A [demonstração web](demo/README.md) encaminha
-as operações para uma instância real do JayDB2 por sessão, com autenticação,
-admissão de provas Bend, publicação e rollback. O estado continua em RAM;
-atualizar a página conserva a instância, reiniciá-la recarrega o seed.
-O workbench permite editar código e prova, examinar esquema/leis/fontes e
-acompanhar o estado publicado em tempo real por uma inspeção administrativa
-opcional, fora da interface e das provas do contrato de serviço dos clientes.
-A versão hospedada está em **https://jaydb2-demo.jaypussy.site**.
+To try the same real database in a browser, run `make demo-web` and open
+**http://localhost:8094**. The [web demonstration](demo/README.md) forwards
+operations to a real JayDB2 instance per session, with authentication, Bend
+proof admission, publication, and rollback. State stays in RAM; refreshing
+retains the instance, and restarting reloads the seed. The workbench lets you
+edit code and proofs, inspect schema/laws/sources, and watch published state
+live through optional administrator inspection outside the ordinary client
+interface and service-contract proofs. The hosted version is available at
+**https://jaydb2-demo.jaypussy.site**.
 
-A distribuição usada é **Bend 2.0.39 oficial**. Os cinco fontes oficiais e os binários estão identificados em `tools/admission/toolchain.lock.json`. No perfil Linux x86_64, o executável Bend tem SHA-256 `2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd`; o BendTT original tem SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`.
+The distribution is **official Bend 2.0.39**. The five official sources and
+binaries are identified in `tools/admission/toolchain.lock.json`. On Linux
+x86_64 the Bend executable has SHA-256
+`2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd`;
+the original BendTT has SHA-256
+`e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`.
 
-Não há frontend, tradutor, compilador ou kernel BendTT modificado pelo JayDB. O carregamento dos módulos TypeScript oficiais apenas remove a sintaxe TypeScript pelo transformador do Node. Não há build de verificador derivado, addon V8 ou cache de fontes adaptadas para instalar. As capacidades e limitações das ferramentas oficiais são mantidas.
+JayDB has no modified frontend, translator, compiler, or BendTT kernel.
+Official TypeScript modules are loaded only by stripping TypeScript syntax
+with Node. Installation does not build a derived verifier, V8 addon, or adapted
+source cache. Official-tool capabilities and limitations remain unchanged.
 
-`server/main.rs` mantém o estado publicado em RAM e atende os frames em série. O helper Node congela o ambiente público, verifica e compila os workers; o seed aparece somente na compilação da inicialização. Cada worker recebe bytes por pipe e termina antes de uma proposta completa substituir o estado publicado. A execução do servidor não carrega Python.
+`server/main.rs` retains published state in RAM and serves frames serially.
+The Node helper freezes the public environment and verifies and compiles
+workers; the seed appears only in initialization compilation. Each worker
+receives bytes through pipes and exits before a complete proposal replaces
+published state. Server execution does not load Python.
 
-## Cliente
+## Client
 
 ```sh
-python3 tools/client.py --codigo examples/sem-observacoes/Client.bend \
-  --prova examples/sem-observacoes/ClientProof.bend --credencial demo
+python3 tools/client.py --code examples/no-observations/Client.bend \
+  --proof examples/no-observations/ClientProof.bend --credential demo
 ```
 
-O comando escreve uma mensagem canônica enquadrada. `python3 tools/client.py --decode` lê uma sequência de respostas e imprime uma linha JSON por resposta. Configuração e dependências são públicas e imutáveis; seed e estado corrente permanecem privados.
+This writes a framed canonical message. `python3 tools/client.py --decode`
+reads a sequence of responses and prints one JSON line per response.
+Configuration and dependencies are public and immutable; seed and current
+state remain private.
 
-## Verificação
+Current `main` uses English-only public names: request fields are
+`arguments`, `code`, `credential`, and `proof`; responses use `status` and
+`value`; logical limits are `message`, `state`, and `response`; user records
+use `credential`, `id`, and `kind`. CLI options, Bend symbols, and module paths
+are also English. Clients and application sources using the former names must
+migrate; there are no legacy aliases. The binary tag and framing format is
+unchanged, but renamed record fields and status values are an API break.
+
+## Verification
 
 ```sh
 make verify-contract
@@ -57,8 +91,23 @@ make verify
 make test
 ```
 
-`make verify` verifica os agregados gerais nos dois modos oficiais e seis mutações causais. `make test` cobre as fronteiras que essas provas não verificam: admissão/emissão do mesmo Book, execução, publicação/rollback e enquadramento. Logs, C compilado e snapshots não são versionados como suítes paralelas. Resultados históricos obtidos com os adaptadores retirados não atestam o caminho oficial atual.
+`make verify` checks the general aggregates in both official modes and six
+causal mutations. `make test` covers boundaries those proofs do not check:
+same-Book admission/emission, execution, publication/rollback, and framing.
+Logs, compiled C, and snapshots are not versioned as parallel suites.
+Historical results obtained with removed adapters do not attest the current
+official path.
 
-As [provas gerais](proof/README.md) incluem a equivalência canônica do Codec. A [admissão](tools/admission/README.md) usa o frontend, Safe e BendTT oficiais, sem reescrever provas para ampliar o fragmento aceito. A composição `ContratoServico.contrato_do_servico` reúne as oito leis para o núcleo e o protocolo serial, sob os [contratos explícitos de ferramentas e integração](proof/CONTRATO_SERVICO.md). A ligação com Rust/Node/C é sustentada por revisão e testes; não há prova mecanizada desses componentes nem do compilador.
+The [general proofs](proof/README.md) include canonical Codec equivalence.
+[Admission](tools/admission/README.md) uses official frontend, Safe, and BendTT
+without rewriting proofs to widen the accepted fragment.
+`ContractService.contract_of_service` composes the eight laws for the kernel
+and serial protocol under the [explicit tool and integration contracts](proof/SERVICE_CONTRACT.md).
+The Rust/Node/C bridge is supported by review and tests; those components and
+the compiler have no mechanized proof here.
 
-A [especificação](ESPECIFICACAO.md), o [contrato Bend](contrato/README.md), o [serviço](tools/service/SIMPLE_SERVICE.md) e o [runtime](native/SIMPLE_RUNTIME.md) descrevem o projeto. Os 18 originais permanecem em `history/contrato-v1/`; implementações e capturas retiradas da árvore corrente podem ser consultadas no histórico Git.
+The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),
+[service](tools/service/SIMPLE_SERVICE.md), and
+[runtime](native/SIMPLE_RUNTIME.md) describe the project. English translations
+of the 18 historical contract files are in `history/contract-v1/`; original
+Portuguese versions and removed implementations/captures remain in Git history.

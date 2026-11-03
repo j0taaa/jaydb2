@@ -74,9 +74,9 @@ function table(rows, collection) {
       const td = document.createElement('td');
       const value = row[column];
       td.textContent = typeof value === 'string' ? value : JSON.stringify(value) ?? '—';
-      const before = previousState?.usuarios?.find((previous) => previous.id === row.id);
-      if (collection === 'usuarios' && before && JSON.stringify(before[column]) !== JSON.stringify(value)) td.className = 'changed';
-      if (collection === 'usuarios' && column === 'credencial') {
+      const before = previousState?.users?.find((previous) => previous.id === row.id);
+      if (collection === 'users' && before && JSON.stringify(before[column]) !== JSON.stringify(value)) td.className = 'changed';
+      if (collection === 'users' && column === 'credential') {
         const use = document.createElement('button');
         use.textContent = 'Use';
         use.title = `Use ${row.id}’s current credential`;
@@ -103,7 +103,7 @@ function renderData(force = false) {
   $('#state-json').textContent = inspection.state_json;
   if (!force && renderedStateHash === inspection.sha256) return;
   const state = inspection.state;
-  const collections = [{name: 'usuarios', rows: state.usuarios}, ...(state.tabelas || []).map((item) => ({name: item.nome, rows: item.linhas}))];
+  const collections = [{name: 'users', rows: state.users}, ...(state.tables || []).map((item) => ({name: item.name, rows: item.rows}))];
   const current = $('#collection').value;
   $('#collection').replaceChildren();
   for (const item of collections) $('#collection').add(new Option(item.name, item.name));
@@ -125,8 +125,8 @@ function resultContent() {
   switch (resultTab) {
     case 'diagnostics': return {text: item.diagnostic ? `${item.diagnostic.code}\n\n${item.diagnostic.message}` : 'No error diagnostic returned.', filename: 'diagnostics.txt'};
     case 'request': return {text: item.request_json, filename: 'request.json'};
-    case 'code': return {text: item.request.codigo, filename: 'Client.bend'};
-    case 'proof': return {text: item.request.prova, filename: 'ClientProof.bend'};
+    case 'code': return {text: item.request.code, filename: 'Client.bend'};
+    case 'proof': return {text: item.request.proof, filename: 'ClientProof.bend'};
     case 'bindings': return {text: item.generated_sources?.['Bindings.bend'] || 'No bindings generated: authentication did not reach admission.', filename: 'Bindings.bend'};
     case 'context': return {text: item.generated_sources?.['Instance.bend'] || 'No context generated: authentication did not reach admission.', filename: 'Instance.bend'};
     case 'before': return {text: item.state_before_json, filename: 'state-before.json'};
@@ -174,7 +174,7 @@ function renderHistory() {
       detail.textContent = `${(item.duration_ms / 1000).toFixed(2)} s · ${item.request_bytes.toLocaleString()} B`;
       content.append(detail);
       const status = document.createElement('span');
-      status.className = `history-status ${item.response.status === 'sucesso' ? '' : item.response.status === 'recusa' ? 'refused' : 'rejected'}`;
+      status.className = `history-status ${item.response.status === 'success' ? '' : item.response.status === 'refusal' ? 'refused' : 'rejected'}`;
       status.textContent = item.response.status;
       row.append(number, content, status);
       row.addEventListener('click', () => {
@@ -238,9 +238,9 @@ function sourceFiles() {
 
 function renderSources() {
   const schema = sources.schema;
-  $('#schema-key').textContent = schema.usuarios?.primary_key || 'See source';
+  $('#schema-key').textContent = schema.users?.primary_key || 'See source';
   $('#schema-columns').replaceChildren();
-  for (const column of schema.usuarios?.columns || []) {
+  for (const column of schema.users?.columns || []) {
     const row = document.createElement('tr');
     for (const value of [column.name, column.type, column.optional ? 'yes' : 'no']) {
       const cell = document.createElement('td');
@@ -249,8 +249,8 @@ function renderSources() {
     }
     $('#schema-columns').append(row);
   }
-  $('#application-schema').textContent = definition('Configuration.bend', 'esquema');
-  $('#schema-source').textContent = definition('Dados.bend', 'esquema_usuarios');
+  $('#application-schema').textContent = definition('Configuration.bend', 'schema');
+  $('#schema-source').textContent = definition('Data.bend', 'schema_users');
   $('#limits').replaceChildren();
   for (const [name, value] of Object.entries(sources.limits || {})) {
     const pair = document.createElement('div');
@@ -262,11 +262,11 @@ function renderSources() {
     $('#limits').append(pair);
   }
   $('#law-source').textContent = sources.configuration;
-  $('#structural-source').textContent = definition('Dados.bend', 'estrutura');
-  $('#credential-law-source').textContent = definition('Dados.bend', 'credenciais_validas');
-  $('#valid-source').textContent = definition('Requisitos.bend', 'Valido');
-  $('#certificate-source').textContent = definition('Requisitos.bend', 'Certifica');
-  $('#termination-source').textContent = definition('Interface.bend', 'ProgramaTermina');
+  $('#structural-source').textContent = definition('Data.bend', 'structure');
+  $('#credential-law-source').textContent = definition('Data.bend', 'credentials_valid_cases');
+  $('#valid-source').textContent = definition('Requirements.bend', 'Valid');
+  $('#certificate-source').textContent = definition('Requirements.bend', 'Certifies');
+  $('#termination-source').textContent = definition('Interface.bend', 'ProgramTerminates');
   $('#source-file').replaceChildren();
   for (const name of Object.keys(sourceFiles()).sort()) $('#source-file').add(new Option(name, name));
   $('#source-file').value = 'Configuration.bend';
@@ -297,8 +297,8 @@ async function connect() {
     sources = await api('/api/sources');
     renderSources();
     loadPreset();
-    const alice = session.inspection.state.usuarios.find((row) => row.id === 'alice');
-    if (alice) $('#credential').value = alice.credencial;
+    const alice = session.inspection.state.users.find((row) => row.id === 'alice');
+    if (alice) $('#credential').value = alice.credential;
     subscribe();
   } catch (failure) {
     error(failure.message);
@@ -326,9 +326,9 @@ $('#request-form').addEventListener('submit', async (event) => {
     renderResult();
     const before = JSON.parse(item.state_before_json);
     const after = JSON.parse(item.state_after_json);
-    const actor = before.usuarios.find((row) => row.credencial === draft.credential);
-    const current = after.usuarios.find((row) => row.id === actor?.id);
-    if (current && $('#credential').value === draft.credential) $('#credential').value = current.credencial;
+    const actor = before.users.find((row) => row.credential === draft.credential);
+    const current = after.users.find((row) => row.id === actor?.id);
+    if (current && $('#credential').value === draft.credential) $('#credential').value = current.credential;
   } catch (failure) {
     error(`${failure.message} No automatic retry.`);
     try {updateSession(await api('/api/session'));} catch {$('#connection').textContent = 'Disconnected';}

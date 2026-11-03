@@ -1,419 +1,419 @@
 import Base
-import ../contrato/Bytes.bend as B
-import ../contrato/Dados.bend as D
+import ../contract/Bytes.bend as B
+import ../contract/Data.bend as D
 
-# API publica: decodificar(bytes, B.Numero64{alto, baixo}) -> Resultado.
-# bytes e o CORPO completo (sem os oito bytes externos de enquadramento).
-# O limite publico conta bytes do corpo, inclusive tags e comprimentos.
-# Decodificado contem exatamente D.Valor; Entrada recusa sintaxe, Unicode,
-# nomes, truncamento e bytes extras; Limite indica corpo ou tamanho minimo
-# declarado acima do limite/u64. Igualdade com o limite e permitida.
-# A recepcao e o enquadramento ficam no chamador; nao ha orcamento fisico.
-# Nenhum contador do cliente vira Nat, alocacao ou combustivel. A maquina
-# avanca uma vez por octeto; emitir desempilha estruturalmente. Portanto nao
-# existe teto adicional de profundidade, quantidade ou tamanho textual.
-type Resultado is Data:
-  Decodificado{valor: D.Valor}
-  Entrada{}
-  Limite{}
+# Public API: decode(bytes, B.Number64{high, low}) -> Outcome.
+# bytes is the complete BODY (without the eight outer framing bytes).
+# The public limit counts body bytes, including tags and lengths.
+# Decoded contains exactly D.Value; Input rejects syntax, Unicode,
+# names, truncation and extra bytes; Limit means body or declared minimum
+# exceeds the limit/u64. Equality with the limit is allowed.
+# Reception and framing belong to the caller; there is no physical budget.
+# No client counter becomes Nat, an allocation or fuel. The machine
+# advances once per byte; emit pops structurally. Therefore there is
+# no additional ceiling on depth, quantity or text size.
+type Outcome is Data:
+  Decoded{value: D.Value}
+  Input{}
+  Limit{}
 
-def zero64(+n: B.Numero64) -> Bool:
-  B.Numero64{a, b} = n
+def zero64(+n: B.Number64) -> Bool:
+  B.Number64{a, b} = n
   U32.is_eq(a, 0) && U32.is_eq(b, 0)
 
-def um64(n: B.Numero64) -> Bool:
-  B.Numero64{a, b} = n
+def one64(n: B.Number64) -> Bool:
+  B.Number64{a, b} = n
   U32.is_eq(a, 0) && U32.is_eq(b, 1)
 
-def menor_igual64(a: B.Numero64, b: B.Numero64) -> Bool:
-  B.Numero64{+ah, al} = a
-  B.Numero64{+bh, bl} = b
+def less_equal64(a: B.Number64, b: B.Number64) -> Bool:
+  B.Number64{+ah, al} = a
+  B.Number64{+bh, bl} = b
   U32.is_lt(ah, bh) || (U32.is_eq(ah, bh) && U32.is_le(al, bl))
 
-def diminuir64_casos(baixo_zero: Bool, alto_zero: Bool, a: U32, b: U32) -> B.Numero64:
-  match baixo_zero alto_zero:
+def decrease64_cases(low_zero: Bool, high_zero: Bool, a: U32, b: U32) -> B.Number64:
+  match low_zero high_zero:
     case False{} _:
-      B.Numero64{a, (b - 1 : U32)}
+      B.Number64{a, (b - 1 : U32)}
     case True{} False{}:
-      B.Numero64{(a - 1 : U32), 4294967295}
+      B.Number64{(a - 1 : U32), 4294967295}
     case True{} True{}:
-      B.Numero64{0, 0}
+      B.Number64{0, 0}
 
-# Total em zero; as transicoes so decrementam contadores positivos.
-def diminuir64(n: B.Numero64) -> B.Numero64:
-  B.Numero64{+a, +b} = n
-  diminuir64_casos(U32.is_eq(b, 0), U32.is_eq(a, 0), a, b)
+# Total at zero; transitions decrement only positive counters.
+def decrease64(n: B.Number64) -> B.Number64:
+  B.Number64{+a, +b} = n
+  decrease64_cases(U32.is_eq(b, 0), U32.is_eq(a, 0), a, b)
 
-def soma64_fim(overflow: Bool, alto: U32, baixo: U32) -> Maybe<&2, B.Numero64>:
+def sum64_end(overflow: Bool, high: U32, low: U32) -> Maybe<&2, B.Number64>:
   match overflow:
     case True{}:
       None{}
     case False{}:
-      Some{B.Numero64{alto, baixo}}
+      Some{B.Number64{high, low}}
 
-def soma64_transporte(carry: Bool, +alto: U32, baixo: U32, overflow: Bool) -> Maybe<&2, B.Numero64>:
+def sum64_transport(carry: Bool, +high: U32, low: U32, overflow: Bool) -> Maybe<&2, B.Number64>:
   match carry:
     case False{}:
-      soma64_fim(overflow, alto, baixo)
+      sum64_end(overflow, high, low)
     case True{}:
-      soma64_fim(overflow || U32.is_eq(alto, 4294967295), (alto + 1 : U32), baixo)
+      sum64_end(overflow || U32.is_eq(high, 4294967295), (high + 1 : U32), low)
 
-def somar64(a: B.Numero64, b: B.Numero64) -> Maybe<&2, B.Numero64>:
-  B.Numero64{+ah, +al} = a
-  B.Numero64{bh, bl} = b
-  +baixo = (al + bl : U32)
-  +alto = (ah + bh : U32)
-  soma64_transporte(U32.is_lt(baixo, al), alto, baixo, U32.is_lt(alto, ah))
+def sum64(a: B.Number64, b: B.Number64) -> Maybe<&2, B.Number64>:
+  B.Number64{+ah, +al} = a
+  B.Number64{bh, bl} = b
+  +low = (al + bl : U32)
+  +high = (ah + bh : U32)
+  sum64_transport(U32.is_lt(low, al), high, low, U32.is_lt(high, ah))
 
-def somar_opcionais(a: Maybe<&2, B.Numero64>, b: Maybe<&2, B.Numero64>) -> Maybe<&2, B.Numero64>:
+def sum_optional(a: Maybe<&2, B.Number64>, b: Maybe<&2, B.Number64>) -> Maybe<&2, B.Number64>:
   match a b:
     case Some{x} Some{y}:
-      somar64(x, y)
+      sum64(x, y)
     case _ _:
       None{}
 
-def multiplicar_pequeno(n: Nat, +x: B.Numero64) -> Maybe<&2, B.Numero64>:
+def multiply_small(n: Nat, +x: B.Number64) -> Maybe<&2, B.Number64>:
   match n:
     case 0n:
-      Some{B.Numero64{0, 0}}
+      Some{B.Number64{0, 0}}
     case 1n:
       Some{x}
     case 1n+p:
-      somar_opcionais(Some{x}, multiplicar_pequeno(p, x))
+      sum_optional(Some{x}, multiply_small(p, x))
 
-def somar_pendencia_casos(vazia: Bool, n: B.Numero64, fator: Nat, resto: Maybe<&2, B.Numero64>) -> Maybe<&2, B.Numero64>:
-  match vazia:
+def sum_pending_cases(empty: Bool, n: B.Number64, factor: Nat, rest: Maybe<&2, B.Number64>) -> Maybe<&2, B.Number64>:
+  match empty:
     case True{}:
-      resto
+      rest
     case False{}:
-      somar_opcionais(multiplicar_pequeno(fator, n), resto)
+      sum_optional(multiply_small(factor, n), rest)
 
-# Nao multiplica nem soma o contador vazio dos ancestrais ja no ultimo filho.
-def somar_pendencia(+n: B.Numero64, fator: Nat, resto: Maybe<&2, B.Numero64>) -> Maybe<&2, B.Numero64>:
-  somar_pendencia_casos(zero64(n), n, fator, resto)
+# Does not multiply/add empty ancestor counters already at the last child.
+def sum_pending(+n: B.Number64, factor: Nat, rest: Maybe<&2, B.Number64>) -> Maybe<&2, B.Number64>:
+  sum_pending_cases(zero64(n), n, factor, rest)
 
-type Pilha is Data:
-  Raiz{}
-  Lista{ultimo: Bool, restantes: B.Numero64, invertidos: List<&2, D.Valor>, pai: Pilha}
-  Nome{ultimo: Bool, restantes: B.Numero64, anterior: String, invertidos: List<&2, D.Campo>, pai: Pilha}
-  Campo{ultimo: Bool, restantes: B.Numero64, nome: String, invertidos: List<&2, D.Campo>, pai: Pilha}
+type Stack is Data:
+  Root{}
+  ListFrame{last: Bool, remaining: B.Number64, inverted: List<&2, D.Value>, parent: Stack}
+  Name{last: Bool, remaining: B.Number64, previous: String, inverted: List<&2, D.Field>, parent: Stack}
+  Field{last: Bool, remaining: B.Number64, name: String, inverted: List<&2, D.Field>, parent: Stack}
 
-type Finalidade is Data:
-  Inteiro{}
-  Texto{}
-  NomeTexto{}
-  ContaLista{}
-  ContaRegistro{}
+type Purpose is Data:
+  Integer{}
+  TextValue{}
+  NameText{}
+  CountsList{}
+  CountsRecord{}
 
 type Unicode is Data:
-  Inicio{}
-  Continua{faltam: Nat, codigo: U32, minimo: U32}
+  Start{}
+  Continue{missing: Nat, code: U32, minimum: U32}
 
-type Escalar is Data:
-  Caractere{codigo: U32}
-  Parcial{estado: Unicode}
-  UTFInvalido{}
+type Scalar is Data:
+  Character{code: U32}
+  Partial{state: Unicode}
+  UTFInvalid{}
 
-type Maquina is Data:
-  Tag{pilha: Pilha}
-  TagNome{pilha: Pilha}
-  Palavra{finalidade: Finalidade, faltam: Nat, alto: U32, baixo: U32, pilha: Pilha}
-  Conteudo{nome: Bool, ultimo: Bool, restantes: B.Numero64, unicode: Unicode, invertido: String, pilha: Pilha}
-  Pronto{valor: D.Valor}
-  Invalido{}
-  Acima{}
+type Machine is Data:
+  Tag{stack: Stack}
+  TagName{stack: Stack}
+  WordInput{purpose: Purpose, missing: Nat, high: U32, low: U32, stack: Stack}
+  Content{name: Bool, last: Bool, remaining: B.Number64, unicode: Unicode, inverted: String, stack: Stack}
+  DecodedReady{value: D.Value}
+  Invalid{}
+  Above{}
 
-def montar_lista(xs: List<&2, D.Valor>, acc: D.Valor) -> D.Valor:
+def assemble_list(xs: List<&2, D.Value>, acc: D.Value) -> D.Value:
   match xs:
     case Nil{}:
       acc
     case Con{h, t}:
-      montar_lista(t, D.VLista{h, acc})
+      assemble_list(t, D.VList{h, acc})
 
-def montar_registro(xs: List<&2, D.Campo>, acc: D.Valor) -> D.Valor:
+def assemble_record(xs: List<&2, D.Field>, acc: D.Value) -> D.Value:
   match xs:
     case Nil{}:
       acc
-    case Con{D.Campo{n, v}, t}:
-      montar_registro(t, D.VRegistro{n, v, acc})
+    case Con{D.Field{n, v}, t}:
+      assemble_record(t, D.VRecord{n, v, acc})
 
-# O ultimo filho pode completar qualquer numero de ancestrais sem ler bytes.
-# A recursao desce somente pelo campo pai da pilha original.
-def emitir(pilha: Pilha, valor: D.Valor) -> Maquina:
-  match pilha:
-    case Raiz{}:
-      Pronto{valor}
-    case Lista{True{}, q, xs, pai}:
-      emitir(pai, montar_lista(Con{valor, xs}, D.VListaVazia{}))
-    case Lista{False{}, +q, xs, pai}:
-      Tag{Lista{um64(q), diminuir64(q), Con{valor, xs}, pai}}
-    case Campo{True{}, q, n, xs, pai}:
-      emitir(pai, montar_registro(Con{D.Campo{n, valor}, xs}, D.VRegistroVazio{}))
-    case Campo{False{}, +q, +n, xs, pai}:
-      TagNome{Nome{um64(q), diminuir64(q), n, Con{D.Campo{n, valor}, xs}, pai}}
-    case Nome{u, q, n, xs, pai}:
-      Invalido{}
+# The last child may complete any number of ancestors without reading bytes.
+# Recursion descends only through the original stack's parent field.
+def emit(stack: Stack, value: D.Value) -> Machine:
+  match stack:
+    case Root{}:
+      DecodedReady{value}
+    case ListFrame{True{}, q, xs, parent}:
+      emit(parent, assemble_list(Con{value, xs}, D.VListEmpty{}))
+    case ListFrame{False{}, +q, xs, parent}:
+      Tag{ListFrame{one64(q), decrease64(q), Con{value, xs}, parent}}
+    case Field{True{}, q, n, xs, parent}:
+      emit(parent, assemble_record(Con{D.Field{n, value}, xs}, D.VRecordEmpty{}))
+    case Field{False{}, +q, +n, xs, parent}:
+      TagName{Name{one64(q), decrease64(q), n, Con{D.Field{n, value}, xs}, parent}}
+    case Name{u, q, n, xs, parent}:
+      Invalid{}
 
-# Minimo dos irmaos ainda pendentes; o valor atual ja comecou e nao entra.
-# Um par de registro exige no minimo 4/u64/um ASCII/tag: onze octetos.
-# Durante o nome do par atual ainda falta pelo menos um octeto de valor.
-def minimo_pilha(pilha: Pilha) -> Maybe<&2, B.Numero64>:
-  match pilha:
-    case Raiz{}:
-      Some{B.Numero64{0, 0}}
-    case Lista{u, q, xs, pai}:
-      somar_pendencia(q, 1n, minimo_pilha(pai))
-    case Nome{u, q, n, xs, pai}:
-      somar_opcionais(Some{B.Numero64{0, 1}}, somar_pendencia(q, 11n, minimo_pilha(pai)))
-    case Campo{u, q, n, xs, pai}:
-      somar_pendencia(q, 11n, minimo_pilha(pai))
+# Minimum of pending siblings; the current value has started and is excluded.
+# A record pair needs at least 4/u64/one ASCII/tag: eleven bytes.
+# During the current pair name, at least one value byte remains.
+def minimum_stack(stack: Stack) -> Maybe<&2, B.Number64>:
+  match stack:
+    case Root{}:
+      Some{B.Number64{0, 0}}
+    case ListFrame{u, q, xs, parent}:
+      sum_pending(q, 1n, minimum_stack(parent))
+    case Name{u, q, n, xs, parent}:
+      sum_optional(Some{B.Number64{0, 1}}, sum_pending(q, 11n, minimum_stack(parent)))
+    case Field{u, q, n, xs, parent}:
+      sum_pending(q, 11n, minimum_stack(parent))
 
-type Conferencia is Data:
-  Cabe{}
-  Curto{}
-  Grande{}
+type Check is Data:
+  Fits{}
+  Short{}
+  Large{}
 
-def conferir_casos(cabe_limite: Bool, cabe_corpo: Bool) -> Conferencia:
-  match cabe_limite cabe_corpo:
+def check_cases(fits_limit: Bool, fits_body: Bool) -> Check:
+  match fits_limit fits_body:
     case False{} _:
-      Grande{}
+      Large{}
     case True{} False{}:
-      Curto{}
+      Short{}
     case True{} True{}:
-      Cabe{}
+      Fits{}
 
-def conferir(minimo: Maybe<&2, B.Numero64>, corpo: B.Numero64, teto: B.Numero64) -> Conferencia:
-  match minimo:
+def check(minimum: Maybe<&2, B.Number64>, body: B.Number64, ceiling: B.Number64) -> Check:
+  match minimum:
     case None{}:
-      Grande{}
+      Large{}
     case Some{+n}:
-      conferir_casos(menor_igual64(n, teto), menor_igual64(n, corpo))
+      check_cases(less_equal64(n, ceiling), less_equal64(n, body))
 
-def minimo_campo(f: Finalidade, n: B.Numero64) -> Maybe<&2, B.Numero64>:
+def minimum_field(f: Purpose, n: B.Number64) -> Maybe<&2, B.Number64>:
   match f:
-    case ContaRegistro{}:
-      multiplicar_pequeno(11n, n)
+    case CountsRecord{}:
+      multiply_small(11n, n)
     case _:
       Some{n}
 
-def abrir_nome(cabe: Bool, +n: B.Numero64, pilha: Pilha) -> Maquina:
-  match cabe:
+def open_name(fits: Bool, +n: B.Number64, stack: Stack) -> Machine:
+  match fits:
     case False{}:
-      Invalido{}
+      Invalid{}
     case True{}:
-      Conteudo{True{}, um64(n), diminuir64(n), Inicio{}, "", pilha}
+      Content{True{}, one64(n), decrease64(n), Start{}, "", stack}
 
-def abrir_variavel(vazio: Bool, f: Finalidade, +n: B.Numero64, pilha: Pilha) -> Maquina:
-  match vazio f:
-    case True{} Texto{}:
-      emitir(pilha, D.VTexto{""})
-    case True{} ContaLista{}:
-      emitir(pilha, D.VListaVazia{})
-    case True{} ContaRegistro{}:
-      emitir(pilha, D.VRegistroVazio{})
-    case False{} Texto{}:
-      Conteudo{False{}, um64(n), diminuir64(n), Inicio{}, "", pilha}
-    case False{} NomeTexto{}:
-      abrir_nome(menor_igual64(n, B.Numero64{0, 64}), n, pilha)
-    case False{} ContaLista{}:
-      Tag{Lista{um64(n), diminuir64(n), Nil{}, pilha}}
-    case False{} ContaRegistro{}:
-      TagNome{Nome{um64(n), diminuir64(n), "", Nil{}, pilha}}
+def open_variable(empty: Bool, f: Purpose, +n: B.Number64, stack: Stack) -> Machine:
+  match empty f:
+    case True{} TextValue{}:
+      emit(stack, D.VText{""})
+    case True{} CountsList{}:
+      emit(stack, D.VListEmpty{})
+    case True{} CountsRecord{}:
+      emit(stack, D.VRecordEmpty{})
+    case False{} TextValue{}:
+      Content{False{}, one64(n), decrease64(n), Start{}, "", stack}
+    case False{} NameText{}:
+      open_name(less_equal64(n, B.Number64{0, 64}), n, stack)
+    case False{} CountsList{}:
+      Tag{ListFrame{one64(n), decrease64(n), Nil{}, stack}}
+    case False{} CountsRecord{}:
+      TagName{Name{one64(n), decrease64(n), "", Nil{}, stack}}
     case _ _:
-      Invalido{}
+      Invalid{}
 
-def abrir_conferido(c: Conferencia, f: Finalidade, +n: B.Numero64, pilha: Pilha) -> Maquina:
+def open_checked(c: Check, f: Purpose, +n: B.Number64, stack: Stack) -> Machine:
   match c:
-    case Grande{}:
-      Acima{}
-    case Curto{}:
-      Invalido{}
-    case Cabe{}:
-      abrir_variavel(zero64(n), f, n, pilha)
+    case Large{}:
+      Above{}
+    case Short{}:
+      Invalid{}
+    case Fits{}:
+      open_variable(zero64(n), f, n, stack)
 
-def concluir_palavra(f: Finalidade, +alto: U32, +baixo: U32, +pilha: Pilha, corpo: B.Numero64, teto: B.Numero64) -> Maquina:
+def conclude_word(f: Purpose, +high: U32, +low: U32, +stack: Stack, body: B.Number64, ceiling: B.Number64) -> Machine:
   match f:
-    case Inteiro{}:
-      emitir(pilha, D.VInt{alto, baixo})
-    case +outra:
-      +n = {B.Numero64{alto, baixo} : B.Numero64}
-      abrir_conferido(conferir(somar_opcionais(minimo_campo(outra, n), minimo_pilha(pilha)), corpo, teto), outra, n, pilha)
+    case Integer{}:
+      emit(stack, D.VInt{high, low})
+    case +other:
+      +n = {B.Number64{high, low} : B.Number64}
+      open_checked(check(sum_optional(minimum_field(other, n), minimum_stack(stack)), body, ceiling), other, n, stack)
 
-def ler_palavra(faltam: Nat, f: Finalidade, alto: U32, +baixo: U32, b: U32, pilha: Pilha, corpo: B.Numero64, teto: B.Numero64) -> Maquina:
-  match faltam:
+def read_word(missing: Nat, f: Purpose, high: U32, +low: U32, b: U32, stack: Stack, body: B.Number64, ceiling: B.Number64) -> Machine:
+  match missing:
     case 0n:
-      concluir_palavra(f, (alto * 256 + U32.shrn(baixo, 24n) : U32), (baixo * 256 + b : U32), pilha, corpo, teto)
+      conclude_word(f, (high * 256 + U32.shrn(low, 24n) : U32), (low * 256 + b : U32), stack, body, ceiling)
     case 1n+p:
-      Palavra{f, p, (alto * 256 + U32.shrn(baixo, 24n) : U32), (baixo * 256 + b : U32), pilha}
+      WordInput{f, p, (high * 256 + U32.shrn(low, 24n) : U32), (low * 256 + b : U32), stack}
 
-def iniciar_utf8(ascii: Bool, dois: Bool, tres: Bool, quatro: Bool, b: U32) -> Escalar:
-  match ascii dois tres quatro:
+def start_utf8(ascii: Bool, two: Bool, three: Bool, four: Bool, b: U32) -> Scalar:
+  match ascii two three four:
     case True{} _ _ _:
-      Caractere{b}
+      Character{b}
     case False{} True{} _ _:
-      Parcial{Continua{1n, (b - 192 : U32), 128}}
+      Partial{Continue{1n, (b - 192 : U32), 128}}
     case False{} False{} True{} _:
-      Parcial{Continua{2n, (b - 224 : U32), 2048}}
+      Partial{Continue{2n, (b - 224 : U32), 2048}}
     case False{} False{} False{} True{}:
-      Parcial{Continua{3n, (b - 240 : U32), 65536}}
+      Partial{Continue{3n, (b - 240 : U32), 65536}}
     case _ _ _ _:
-      UTFInvalido{}
+      UTFInvalid{}
 
-def escalar_conferido(valido: Bool, cp: U32) -> Escalar:
-  match valido:
+def scalar_checked(valid: Bool, cp: U32) -> Scalar:
+  match valid:
     case False{}:
-      UTFInvalido{}
+      UTFInvalid{}
     case True{}:
-      Caractere{cp}
+      Character{cp}
 
-def completar_utf8(faltam: Nat, +cp: U32, minimo: U32) -> Escalar:
-  match faltam:
+def complete_utf8(missing: Nat, +cp: U32, minimum: U32) -> Scalar:
+  match missing:
     case 0n:
-      escalar_conferido(U32.is_ge(cp, minimo) && B.codigo_valido(cp), cp)
+      scalar_checked(U32.is_ge(cp, minimum) && B.code_valid(cp), cp)
     case 1n+p:
-      Parcial{Continua{1n+p, cp, minimo}}
+      Partial{Continue{1n+p, cp, minimum}}
 
-def continuar_utf8(valido: Bool, faltam: Nat, cp: U32, minimo: U32, b: U32) -> Escalar:
-  match valido:
+def resume_utf8(valid: Bool, missing: Nat, cp: U32, minimum: U32, b: U32) -> Scalar:
+  match valid:
     case False{}:
-      UTFInvalido{}
+      UTFInvalid{}
     case True{}:
-      completar_utf8(faltam, (cp * 64 + b - 128 : U32), minimo)
+      complete_utf8(missing, (cp * 64 + b - 128 : U32), minimum)
 
-def passo_utf8(u: Unicode, +b: U32) -> Escalar:
+def step_utf8(u: Unicode, +b: U32) -> Scalar:
   match u:
-    case Inicio{}:
-      iniciar_utf8(U32.is_lt(b, 128), U32.is_ge(b, 194) && U32.is_le(b, 223), U32.is_ge(b, 224) && U32.is_le(b, 239), U32.is_ge(b, 240) && U32.is_le(b, 244), b)
-    case Continua{1n+p, cp, minimo}:
-      continuar_utf8(U32.is_ge(b, 128) && U32.is_le(b, 191), p, cp, minimo, b)
-    case Continua{0n, cp, minimo}:
-      UTFInvalido{}
+    case Start{}:
+      start_utf8(U32.is_lt(b, 128), U32.is_ge(b, 194) && U32.is_le(b, 223), U32.is_ge(b, 224) && U32.is_le(b, 239), U32.is_ge(b, 240) && U32.is_le(b, 244), b)
+    case Continue{1n+p, cp, minimum}:
+      resume_utf8(U32.is_ge(b, 128) && U32.is_le(b, 191), p, cp, minimum, b)
+    case Continue{0n, cp, minimum}:
+      UTFInvalid{}
 
-def nome_conferido(valido: Bool, u: Bool, q: B.Numero64, nome: String, xs: List<&2, D.Campo>, pai: Pilha) -> Maquina:
-  match valido:
+def name_checked(valid: Bool, u: Bool, q: B.Number64, name: String, xs: List<&2, D.Field>, parent: Stack) -> Machine:
+  match valid:
     case False{}:
-      Invalido{}
+      Invalid{}
     case True{}:
-      Tag{Campo{u, q, nome, xs, pai}}
+      Tag{Field{u, q, name, xs, parent}}
 
-def emitir_nome(pilha: Pilha, +nome: String) -> Maquina:
-  match pilha:
-    case Nome{u, q, anterior, xs, pai}:
-      nome_conferido(D.nome_valido(nome) && String.is_lt(anterior, nome), u, q, nome, xs, pai)
+def emit_name(stack: Stack, +name: String) -> Machine:
+  match stack:
+    case Name{u, q, previous, xs, parent}:
+      name_checked(D.name_valid(name) && String.is_lt(previous, name), u, q, name, xs, parent)
     case _:
-      Invalido{}
+      Invalid{}
 
-def emitir_texto(nome: Bool, texto: String, pilha: Pilha) -> Maquina:
-  match nome:
+def emit_text(name: Bool, text: String, stack: Stack) -> Machine:
+  match name:
     case False{}:
-      emitir(pilha, D.VTexto{texto})
+      emit(stack, D.VText{text})
     case True{}:
-      emitir_nome(pilha, texto)
+      emit_name(stack, text)
 
-def guardar_caractere(ultimo: Bool, nome: Bool, +q: B.Numero64, texto: String, pilha: Pilha) -> Maquina:
-  match ultimo:
+def store_character(last: Bool, name: Bool, +q: B.Number64, text: String, stack: Stack) -> Machine:
+  match last:
     case True{}:
-      emitir_texto(nome, String.reverse(texto), pilha)
+      emit_text(name, String.reverse(text), stack)
     case False{}:
-      Conteudo{nome, um64(q), diminuir64(q), Inicio{}, texto, pilha}
+      Content{name, one64(q), decrease64(q), Start{}, text, stack}
 
-def guardar_parcial(ultimo: Bool, nome: Bool, +q: B.Numero64, u: Unicode, texto: String, pilha: Pilha) -> Maquina:
-  match ultimo:
+def store_partial(last: Bool, name: Bool, +q: B.Number64, u: Unicode, text: String, stack: Stack) -> Machine:
+  match last:
     case True{}:
-      Invalido{}
+      Invalid{}
     case False{}:
-      Conteudo{nome, um64(q), diminuir64(q), u, texto, pilha}
+      Content{name, one64(q), decrease64(q), u, text, stack}
 
-def guardar_escalar(e: Escalar, ultimo: Bool, nome: Bool, q: B.Numero64, texto: String, pilha: Pilha) -> Maquina:
+def store_scalar(e: Scalar, last: Bool, name: Bool, q: B.Number64, text: String, stack: Stack) -> Machine:
   match e:
-    case UTFInvalido{}:
-      Invalido{}
-    case Caractere{cp}:
-      guardar_caractere(ultimo, nome, q, SCon{Chr{cp}, texto}, pilha)
-    case Parcial{u}:
-      guardar_parcial(ultimo, nome, q, u, texto, pilha)
+    case UTFInvalid{}:
+      Invalid{}
+    case Character{cp}:
+      store_character(last, name, q, SCon{Chr{cp}, text}, stack)
+    case Partial{u}:
+      store_partial(last, name, q, u, text, stack)
 
-def ler_tag(tag: Nat, pilha: Pilha) -> Maquina:
+def read_tag(tag: Nat, stack: Stack) -> Machine:
   match tag:
     case 0n:
-      emitir(pilha, D.VAusente{})
+      emit(stack, D.VAbsent{})
     case 1n:
-      emitir(pilha, D.VBool{False{}})
+      emit(stack, D.VBool{False{}})
     case 2n:
-      emitir(pilha, D.VBool{True{}})
+      emit(stack, D.VBool{True{}})
     case 3n:
-      Palavra{Inteiro{}, 7n, 0, 0, pilha}
+      WordInput{Integer{}, 7n, 0, 0, stack}
     case 4n:
-      Palavra{Texto{}, 7n, 0, 0, pilha}
+      WordInput{TextValue{}, 7n, 0, 0, stack}
     case 5n:
-      Palavra{ContaLista{}, 7n, 0, 0, pilha}
+      WordInput{CountsList{}, 7n, 0, 0, stack}
     case 6n:
-      Palavra{ContaRegistro{}, 7n, 0, 0, pilha}
+      WordInput{CountsRecord{}, 7n, 0, 0, stack}
     case _:
-      Invalido{}
+      Invalid{}
 
-def ler_tag_nome(correto: Bool, pilha: Pilha) -> Maquina:
-  match correto:
+def read_tag_name(correct: Bool, stack: Stack) -> Machine:
+  match correct:
     case False{}:
-      Invalido{}
+      Invalid{}
     case True{}:
-      Palavra{NomeTexto{}, 7n, 0, 0, pilha}
+      WordInput{NameText{}, 7n, 0, 0, stack}
 
-def passo(m: Maquina, b: U32, corpo: B.Numero64, teto: B.Numero64) -> Maquina:
+def step(m: Machine, b: U32, body: B.Number64, ceiling: B.Number64) -> Machine:
   match m:
-    case Tag{pilha}:
-      ler_tag(U32.to_nat(b), pilha)
-    case TagNome{pilha}:
-      ler_tag_nome(U32.is_eq(b, 4), pilha)
-    case Palavra{f, n, alto, baixo, pilha}:
-      ler_palavra(n, f, alto, baixo, b, pilha, corpo, teto)
-    case Conteudo{nome, ultimo, q, u, texto, pilha}:
-      guardar_escalar(passo_utf8(u, b), ultimo, nome, q, texto, pilha)
-    case Pronto{v}:
-      Invalido{}
-    case Invalido{}:
-      Invalido{}
-    case Acima{}:
-      Acima{}
+    case Tag{stack}:
+      read_tag(U32.to_nat(b), stack)
+    case TagName{stack}:
+      read_tag_name(U32.is_eq(b, 4), stack)
+    case WordInput{f, n, high, low, stack}:
+      read_word(n, f, high, low, b, stack, body, ceiling)
+    case Content{name, last, q, u, text, stack}:
+      store_scalar(step_utf8(u, b), last, name, q, text, stack)
+    case DecodedReady{v}:
+      Invalid{}
+    case Invalid{}:
+      Invalid{}
+    case Above{}:
+      Above{}
 
-def finalizar(m: Maquina) -> Resultado:
+def finalize(m: Machine) -> Outcome:
   match m:
-    case Pronto{v}:
-      Decodificado{v}
-    case Acima{}:
-      Limite{}
+    case DecodedReady{v}:
+      Decoded{v}
+    case Above{}:
+      Limit{}
     case _:
-      Entrada{}
+      Input{}
 
-def percorrer(bs: List<&2, U32>, +corpo: B.Numero64, +teto: B.Numero64, m: Maquina) -> Resultado:
+def traverse(bs: List<&2, U32>, +body: B.Number64, +ceiling: B.Number64, m: Machine) -> Outcome:
   match bs:
     case Nil{}:
-      finalizar(m)
+      finalize(m)
     case Con{h, t}:
-      +resto = diminuir64(corpo)
-      +livre = diminuir64(teto)
-      percorrer(t, resto, livre, passo(m, h, resto, livre))
+      +rest = decrease64(body)
+      +free = decrease64(ceiling)
+      traverse(t, rest, free, step(m, h, rest, free))
 
-def decodificar_octetos(validos: Bool, bs: List<&2, U32>, corpo: B.Numero64, teto: B.Numero64) -> Resultado:
-  match validos:
+def decode_octets(all_valid: Bool, bs: List<&2, U32>, body: B.Number64, ceiling: B.Number64) -> Outcome:
+  match all_valid:
     case False{}:
-      Entrada{}
+      Input{}
     case True{}:
-      percorrer(bs, corpo, teto, Tag{Raiz{}})
+      traverse(bs, body, ceiling, Tag{Root{}})
 
-def decodificar_tamanho(cabe: Bool, +bs: List<&2, U32>, corpo: B.Numero64, teto: B.Numero64) -> Resultado:
-  match cabe:
+def decode_size(fits: Bool, +bs: List<&2, U32>, body: B.Number64, ceiling: B.Number64) -> Outcome:
+  match fits:
     case False{}:
-      Limite{}
+      Limit{}
     case True{}:
-      decodificar_octetos(B.octetos_validos(bs), bs, corpo, teto)
+      decode_octets(B.octets_all_valid(bs), bs, body, ceiling)
 
-def decodificar_medida(n: Maybe<&2, B.Numero64>, bs: List<&2, U32>, +teto: B.Numero64) -> Resultado:
+def decode_measure(n: Maybe<&2, B.Number64>, bs: List<&2, U32>, +ceiling: B.Number64) -> Outcome:
   match n:
     case None{}:
-      Limite{}
-    case Some{+corpo}:
-      decodificar_tamanho(menor_igual64(corpo, teto), bs, corpo, teto)
+      Limit{}
+    case Some{+body}:
+      decode_size(less_equal64(body, ceiling), bs, body, ceiling)
 
-def decodificar(+bytes: List<&2, U32>, limite: B.Numero64) -> Resultado:
-  decodificar_medida(B.nat64(B.comprimento(bytes)), bytes, limite)
+def decode(+bytes: List<&2, U32>, limit: B.Number64) -> Outcome:
+  decode_measure(B.nat64(B.length(bytes)), bytes, limit)

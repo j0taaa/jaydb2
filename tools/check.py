@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Confere o histórico original, o contrato ativo e os dois checkers Bend."""
+"""Check the historical snapshot, active contract and both Bend checkers."""
 from __future__ import annotations
 
 import argparse
@@ -13,33 +13,33 @@ from bend import ROOT, environment, executable
 
 
 def check_originals() -> None:
-    manifest = json.loads((ROOT / "contrato-original.sha256.json").read_text())
+    manifest = json.loads((ROOT / "contract-original.sha256.json").read_text())
     for relative, expected in manifest.items():
-        path = ROOT / "history" / "contrato-v1" / relative
+        path = ROOT / "history" / "contract-v1" / relative
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise RuntimeError(f"Histórico do contrato original alterado: {relative}")
+            raise RuntimeError(f"Historical contract snapshot changed: {relative}")
 
 
 def check_active() -> None:
-    manifest = json.loads((ROOT / "contrato.sha256.json").read_text())
+    manifest = json.loads((ROOT / "contract.sha256.json").read_text())
     for relative, expected in manifest.items():
         path = ROOT / relative
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise RuntimeError(f"Contrato ativo diverge do manifesto: {relative}")
+            raise RuntimeError(f"Active contract differs from its manifest: {relative}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timeout", type=int, default=600,
-                        help="Segundos por checker para verificacao de desenvolvimento")
+                        help="Seconds per checker for development verification")
     parser.add_argument("files", type=Path, nargs="*")
     args = parser.parse_args()
     if args.timeout <= 0:
-        parser.error("--timeout deve ser positivo")
+        parser.error("--timeout must be positive")
     check_originals()
     check_active()
     compiler = executable()
-    files = args.files or [ROOT / "contrato" / "VERIFICAR.bend"]
+    files = args.files or [ROOT / "contract" / "VERIFY.bend"]
     for file in files:
         path = file.resolve()
         for option in ("--check-only", "--verdict"):

@@ -1,8 +1,12 @@
-# Contrato original
+# Historical contract
 
-[contrato-v1/contrato](contrato-v1/contrato/) conserva literalmente os 18 arquivos
-originais. `tools/check.py` confere seus hashes pelo manifesto
-[`contrato-original.sha256.json`](../contrato-original.sha256.json).
+[contract-v1/contract](contract-v1/contract/) contains English translations of
+the 18 original contract files. The repository-wide English migration changed
+names and language in these historical copies; they are not byte-identical to
+the original Portuguese files. The byte-identical original versions remain in Git at commit
+`f65f1279913b446bfa37ce1fab3a90a1f7682241`, before the English migration.
+`tools/check.py` checks the translated archive against
+[`contract-original.sha256.json`](../contract-original.sha256.json).
 
-O [contrato ativo](../contrato/) tem seu próprio manifesto. Os protótipos,
-relatórios e snapshots retirados da árvore corrente permanecem no histórico Git.
+The [active contract](../contract/) has its own manifest. Removed prototypes,
+reports, and snapshots remain available in Git history.

@@ -20,7 +20,7 @@ LOCK = json.loads((ROOT / 'tools/admission/toolchain.lock.json').read_text())
 def check_sources(directory):
     for name, expected in LOCK['files'].items():
         if hashlib.sha256((directory / name).read_bytes()).hexdigest() != expected:
-            raise RuntimeError('Fonte da toolchain diverge: ' + name)
+            raise RuntimeError('Toolchain source differs: ' + name)
 
 
 def install(source=None, kernel=None):
@@ -40,7 +40,7 @@ def install(source=None, kernel=None):
                 with urllib.request.urlopen(LOCK['sourceUrl'], timeout=30) as incoming, archive.open('wb') as outgoing:
                     shutil.copyfileobj(incoming, outgoing)
                 if hashlib.sha256(archive.read_bytes()).hexdigest() != LOCK['archiveSha256']:
-                    raise RuntimeError('Arquivo oficial de fontes diverge do hash fixado')
+                    raise RuntimeError('Official source archive differs from its pinned hash')
                 with tarfile.open(archive) as tar:
                     tar.extractall(stage / 'unpacked', filter='data')
                 source = stage / 'unpacked' / ('bend-' + LOCK['version'])
@@ -56,10 +56,10 @@ def install(source=None, kernel=None):
     kernel_target = local / ('bendtt-' + LOCK['kernelSha256'])
     if not kernel_target.exists():
         if kernel is None:
-            raise RuntimeError('Informe --kernel com o BendTT Linux fixado, já compilado. Nenhum kernel substituto será aceito.')
+            raise RuntimeError('Supply --kernel with the pinned, already-built Linux BendTT. No substitute kernel is accepted.')
         data = kernel.read_bytes()
         if hashlib.sha256(data).hexdigest() != LOCK['kernelSha256']:
-            raise RuntimeError('BendTT diverge do artefato fixado')
+            raise RuntimeError('BendTT differs from the pinned artifact')
         with tempfile.NamedTemporaryFile(dir=local, delete=False, prefix='kernel-') as f:
             temporary = Path(f.name)
             f.write(data)
@@ -69,7 +69,7 @@ def install(source=None, kernel=None):
         finally:
             temporary.unlink(missing_ok=True)
     if hashlib.sha256(kernel_target.read_bytes()).hexdigest() != LOCK['kernelSha256']:
-        raise RuntimeError('BendTT local foi modificado')
+        raise RuntimeError('Local BendTT was modified')
     return target, kernel_target
 
 

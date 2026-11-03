@@ -1,6 +1,6 @@
-# Admissão
+# Admission
 
-O gate recebe o programa e seu certificado para uma configuração, identidade e argumentos fixados pelo host. Dependências registradas, bytes de fonte e alvos do certificado precisam coincidir exatamente. Metas, leis abertas, unsafe e efeitos externos do cliente são recusados, inclusive em definições sem uso.
+The gate receives a program and its certificate for the configuration, identity, and arguments fixed by the host. Registered dependencies, source bytes, and certificate targets must match exactly. Metas, open laws, unsafe code, and client external effects are rejected, including in unused definitions.
 
 ```js
 import { admitSubmission, emitC } from './index.mjs';
@@ -8,25 +8,25 @@ const admitted = await admitSubmission(hostManifest);
 const c = emitC(admitted);
 ```
 
-O handle público expõe `sources` e `report`. O Book checado fica privado e é o mesmo objeto entregue ao compilador oficial. Não há API para alterar declarações após a checagem. `configurationLimits(admitted)` lê os três tamanhos lógicos para o serviço.
+The public handle exposes `sources` and `report`. The checked Book stays private and is the same object passed to the official compiler. There is no API for changing declarations after checking. `configurationLimits(admitted)` reads the three logical sizes for the service.
 
-## Ferramentas oficiais
+## Official tools
 
-1. Preflight fixa os bytes e as dependências autorizadas antes de executar o frontend.
-2. O checker oficial Bend 2.0.39 verifica a fonte.
-3. O Safe oficial traduz as declarações; o BendTT original verifica esse payload.
-4. O compilador oficial emite o C do mesmo Book, sem reler fontes da submissão.
+1. Preflight fixes source bytes and authorized dependencies before running the frontend.
+2. The official Bend 2.0.39 checker checks the source.
+3. Official Safe translates the declarations; original BendTT checks that payload.
+4. The official compiler emits C from the same Book without rereading submission sources.
 
-As fontes e o kernel são conferidos contra `toolchain.lock.json`. Os módulos TypeScript oficiais são carregados com remoção de sintaxe TypeScript pelo Node, sem patch semântico. O JayDB não modifica conversão, templates, quantidades, regras lógicas, combustível ou runtime do Bend.
+Sources and the kernel are checked against `toolchain.lock.json`. Official TypeScript modules are loaded by stripping TypeScript syntax with Node, without a semantic patch. JayDB does not change Bend conversion, templates, quantities, logical rules, fuel, or runtime.
 
-Não existem layouts Safe alternativos, fechamento próprio de instâncias, `source_links` gerados, avaliadores estruturais ou tentativas por um segundo caminho após rejeição. Uma forma não representada pelo Safe oficial não é uma prova de falsidade; o banco não altera o tradutor para admiti-la.
+There are no alternative Safe layouts, custom instance closure, generated `source_links`, structural evaluators, or attempts through a second path after rejection. A form not represented by official Safe is not a proof of falsity; the database does not change the translator to admit it.
 
-Os bindings da aplicação continuam exigindo a configuração, o código, o contexto e os argumentos reais. O estado publicado não é copiado para o diretório de compilação.
+Application bindings still require the actual configuration, code, context, and arguments. Published state is not copied into the compilation directory.
 
-## Fronteira do núcleo
+## Kernel boundary
 
-`admitKernel` admite os wrappers confiáveis do JayDB. Somente suas declarações foreign registradas recebem a permissão de integração; o cliente não recebe essa capacidade. A inicialização exige uma prova de validade do seed para a configuração real. O host compila o C oficial sem reescrevê-lo e executa cada chamada num processo auxiliar, conservando a publicação no host.
+`admitKernel` admits trusted JayDB wrappers. Only their registered foreign declarations receive integration permission; clients do not receive that capability. Initialization requires a seed-validity proof for the actual configuration. The host compiles official C without rewriting it and runs each call in a child process, retaining publication in the host.
 
-Use os comandos do README raiz. Não há instalação de verificador derivado, addon de stack, orçamento físico ou prazo por requisição. Limitações próprias das ferramentas oficiais permanecem inalteradas. O gate não declara preservação semântica geral nem `Contrato` do executável completo.
+Use the commands in the root README. There is no derived verifier installation, stack addon, physical budget, or per-request deadline. The official tools' own limitations remain unchanged. The gate does not claim general semantic preservation or the complete executable's `Contract`.
 
-O launcher usa a opção pública `node --stack_size=65536` para o Safe oficial. O perfil exige o limite hard de stack do Linux ilimitado e eleva o limite soft a ilimitado antes de executar o Node. É uma configuração de execução do auxiliar; os fontes Bend e V8 não são alterados.
+The launcher uses the public `node --stack_size=65536` option for official Safe. The profile requires an unlimited Linux hard stack limit and raises the soft limit to unlimited before executing Node. This is a helper execution setting; Bend and V8 sources are unchanged.

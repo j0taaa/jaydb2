@@ -17,14 +17,14 @@ const fail = (code, message) => { throw Object.assign(new Error(message), { code
 
 const COMMON = `import Base
 import ./Native.bend as Native
-import ./Dados.bend as D
-import ./Semantica.bend as S
+import ./Data.bend as D
+import ./Semantics.bend as S
 import ./Configuration.bend as C
 `;
-const INITIALIZE = COMMON + `import ./Protocolo.bend as P
-import ./Requisitos.bend as R
+const INITIALIZE = COMMON + `import ./Protocol.bend as P
+import ./Requirements.bend as R
 import ./Seed.bend as Seed
-import ./Configuracao.bend as CheckedConfiguration
+import ./ConfigurationCheck.bend as CheckedConfiguration
 import ./Environment.bend as Environment
 
 def result(bytes: Maybe<&2, List<&2, U32>>) -> List<&2, U32>:
@@ -39,54 +39,54 @@ def initial(ok: Bool) -> List<&2, U32>:
     case False{}:
       [2]
     case True{}:
-      result(P.codificar(D.estado_valor(Seed.estado())))
+      result(P.encode(D.state_value(Seed.state())))
 
 def main() -> IO(Unit):
-  Native.write(initial(CheckedConfiguration.valida(C.config(), Environment.identidade())))
+  Native.write(initial(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
 `;
-const PREPROCESS = COMMON + `import ./Entrada.bend as E
-import ./Mensagens.bend as M
+const PREPROCESS = COMMON + `import ./Input.bend as E
+import ./Messages.bend as M
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    Native.write(M.FUNCTION(E.PARSER(bytes, S.esquema(C.config()), S.limites(C.config()))))
+    Native.write(M.FUNCTION(E.PARSER(bytes, S.schema(C.config()), S.limits(C.config()))))
 `;
-const EXECUTE = COMMON + `import ./Protocolo.bend as P
-import ./Entrada.bend as Input
-import ./Execucao.bend as E
+const EXECUTE = COMMON + `import ./Protocol.bend as P
+import ./Input.bend as Input
+import ./Execution.bend as E
 import ./Client.bend as Client
 import ./ClientProof.bend as ClientProof
 import ./Bindings.bend as Bindings
 
 # The function capture owns the provisional state and moves once to the step.
-def converter(i: E.Iteracao) -> Native.Iteracao<(Unit -> E.EstadoExecucao)>:
+def convert(i: E.Iteration) -> Native.Iteration<(Unit -> E.StateExecution)>:
   match i:
-    case E.Continuar{s}:
-      Native.Continuar{u => s}
-    case E.Preparar{s}:
-      Native.Preparar{u => s}
-    case E.Encerrar{bs}:
-      Native.Encerrar{bs}
-    case E.Inconsistente{}:
-      Native.Inconsistente{}
+    case E.Continue{s}:
+      Native.Continue{u => s}
+    case E.Prepare{s}:
+      Native.Prepare{u => s}
+    case E.FinishOutput{bs}:
+      Native.FinishOutput{bs}
+    case E.Inconsistent{}:
+      Native.Inconsistent{}
 
-def step(estado: Unit -> E.EstadoExecucao) -> Native.Iteracao<(Unit -> E.EstadoExecucao)>:
-  converter(E.avancar(estado(Unit{}), C.config()))
+def step(state: Unit -> E.StateExecution) -> Native.Iteration<(Unit -> E.StateExecution)>:
+  convert(E.advance(state(Unit{}), C.config()))
 
-def launch(input: Input.Analise) -> IO(Unit):
+def launch(input: Input.Analysis) -> IO(Unit):
   match input:
-    case Input.Recebida{s, r, ctx}:
+    case Input.Received{s, r, ctx}:
       match r:
-        case P.Requisicao{credencial, codigo, argumentos, prova}:
-          Native.loop((Unit -> E.EstadoExecucao), step, u => E.iniciar(Client.programa(), ctx, argumentos, s))
+        case P.Request{credential, code, arguments, proof}:
+          Native.loop((Unit -> E.StateExecution), step, u => E.start(Client.program(), ctx, arguments, s))
     case _:
       Native.write([2])
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    launch(Input.analisar(bytes, S.esquema(C.config()), S.limites(C.config())))
+    launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))
 `;
 
 function imports(data) {
@@ -94,7 +94,7 @@ function imports(data) {
   for (const { specifier } of header(utf8(data), 'staging').imports) {
     if (specifier === 'Base') continue;
     if (!/^(?:\.\/)?(?:[A-Za-z_][\w-]*\/)*[A-Za-z_][\w-]*\.bend$/.test(specifier))
-      fail('DEPENDENCY', 'O ambiente deve usar imports locais dentro de seu diretório');
+      fail('DEPENDENCY', 'The environment must use local imports within its directory');
     result.push(specifier.replace(/^\.\//, ''));
   }
   return result;
@@ -124,15 +124,15 @@ function loadAdministrator(configuration, seed, sources) {
     const result = new Map(), pending = [[entry, name]];
     while (pending.length) {
       const [input, target] = pending.pop(), file = fs.realpathSync(input), relative = path.relative(root, file);
-      if (!initializing && file === privateSeed) fail('DEPENDENCY', 'A configuração pública não pode importar o seed privado');
+      if (!initializing && file === privateSeed) fail('DEPENDENCY', 'Public configuration cannot import the private seed');
       if (relative === '..' || relative.startsWith('../') || path.isAbsolute(relative))
-        fail('DEPENDENCY', 'Dependência fora do diretório da configuração');
+        fail('DEPENDENCY', 'Dependency outside the configuration directory');
       const data = read(file);
       if (result.has(target)) {
-        if (!result.get(target).equals(data)) fail('DEPENDENCY', 'Colisão entre dependências do administrador');
+        if (!result.get(target).equals(data)) fail('DEPENDENCY', 'Administrator dependency collision');
         continue;
       }
-      if (reserved.has(target) && target !== 'Seed.bend') fail('DEPENDENCY', 'Administrador substituiu módulo reservado: ' + target);
+      if (reserved.has(target) && target !== 'Seed.bend') fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
       result.set(target, data);
       const children = [];
       for (const imp of imports(data)) {
@@ -150,11 +150,11 @@ function loadAdministrator(configuration, seed, sources) {
 
 function freeze(workdir, configuration, seed) {
   const sources = new Map();
-  for (const folder of ['contrato', 'src']) for (const name of fs.readdirSync(path.join(ROOT, folder)).sort()) {
+  for (const folder of ['contract', 'src']) for (const name of fs.readdirSync(path.join(ROOT, folder)).sort()) {
     if (!name.endsWith('.bend')) continue;
-    if (sources.has(name)) fail('DEPENDENCY', 'Colisão entre módulo próprio e contrato');
+    if (sources.has(name)) fail('DEPENDENCY', 'Application/contract module collision');
     const bytes = read(path.join(ROOT, folder, name));
-    sources.set(name, folder === 'src' ? Buffer.from(utf8(bytes).replaceAll('../contrato/', './')) : bytes);
+    sources.set(name, folder === 'src' ? Buffer.from(utf8(bytes).replaceAll('../contract/', './')) : bytes);
   }
   sources.set('Native.bend', read(path.join(ROOT, 'native/effects.bend')));
   const seedSources = loadAdministrator(configuration, seed, sources), tooling = new Map();
@@ -170,7 +170,7 @@ function freeze(workdir, configuration, seed) {
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
   identityEntries.push(...[...tooling].map(([name, data]) => [name, digest(data)]).sort(), ['server/controller', digest(controller)]);
   const identity = digest(JSON.stringify(identityEntries));
-  sources.set('Environment.bend', Buffer.from('import Base\ndef identidade() -> String:\n  ' + JSON.stringify(identity) + '\n'));
+  sources.set('Environment.bend', Buffer.from('import Base\ndef identity() -> String:\n  ' + JSON.stringify(identity) + '\n'));
   for (const [name, data] of sources) write(path.join(workdir, 'public', name), data);
   for (const [name, data] of tooling) write(path.join(workdir, 'runtime', name), data);
   const publicFiles = [...sources].map(([name, data]) => ({ name, sha256: digest(data) }));
@@ -182,7 +182,7 @@ function reopen(workdir) {
   const environment = JSON.parse(utf8(read(path.join(workdir, 'environment.json')))), sources = new Map();
   for (const record of environment.publicFiles) {
     const bytes = read(path.join(workdir, 'public', record.name));
-    if (digest(bytes) !== record.sha256) fail('SOURCE_IO', 'O ambiente público congelado mudou');
+    if (digest(bytes) !== record.sha256) fail('SOURCE_IO', 'The frozen public environment changed');
     sources.set(record.name, bytes);
   }
   return { sources, seedSources: new Map(), foreign: read(path.join(workdir, 'runtime/native/effects.c')) };
@@ -194,27 +194,27 @@ function stage(environment, directory, purpose, metadata) {
   let main;
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
   else if (purpose === 'decode' || purpose === 'authenticate') main = PREPROCESS
-    .replace('FUNCTION', purpose === 'decode' ? 'enquadramento' : 'autenticacao')
-    .replace('PARSER', purpose === 'decode' ? 'decodificar' : 'analisar');
+    .replace('FUNCTION', purpose === 'decode' ? 'framing' : 'authentication')
+    .replace('PARSER', purpose === 'decode' ? 'decode' : 'analyze');
   else if (purpose === 'execute') {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
     main = EXECUTE;
-  } else fail('DEPENDENCY', 'Finalidade inválida');
+  } else fail('DEPENDENCY', 'Invalid purpose');
   available.set('Main.bend', Buffer.from(main));
   const entries = purpose === 'execute' ? ['Main.bend', 'Interface.bend'] : ['Main.bend'];
-  const selected = sourceClosure(available, entries, 'Dependência não admitida: ');
+  const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
   const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [] };
   for (const [name, original] of selected) {
-    const data = name === 'Native.bend' && purpose !== 'execute' ? original.subarray(0, original.indexOf('\ntype Iteracao')) : original;
+    const data = name === 'Native.bend' && purpose !== 'execute' ? original.subarray(0, original.indexOf('\ntype Iteration')) : original;
     write(path.join(directory, name), data);
     let role = 'library', exports = [];
     if (name === 'Native.bend') role = 'kernel';
     else if (['Client.bend', 'ClientProof.bend'].includes(name)) role = 'client';
     else if (['Main.bend', 'Seed.bend'].includes(name) || environment.seedSources.has(name)) role = 'host';
     else if (['Environment.bend', 'Instance.bend', 'Bindings.bend'].includes(name)) {
-      role = 'host'; exports = { 'Environment.bend': ['Environment:identidade'],
-        'Instance.bend': ['Instance:config', 'Instance:contexto', 'Instance:argumentos'],
-        'Bindings.bend': ['Bindings:codigo', 'Bindings:certificado', 'Bindings:termina'] }[name];
+      role = 'host'; exports = { 'Environment.bend': ['Environment:identity'],
+        'Instance.bend': ['Instance:config', 'Instance:context', 'Instance:arguments'],
+        'Bindings.bend': ['Bindings:code', 'Bindings:certificate', 'Bindings:terminates'] }[name];
     } else if (name === 'Configuration.bend' && purpose === 'initialize') role = 'host';
     manifest.dependencies.push({ path: name, role, sha256: digest(data), ...(role === 'host' ? { exports } : {}) });
   }
@@ -225,17 +225,17 @@ function stage(environment, directory, purpose, metadata) {
     foreign: { path: 'effects.c', sha256: digest(foreign) } };
   if (purpose === 'execute') {
     manifest.kernel.loopStep = 'step';
-    manifest.openTargets = { 'Bindings:certificado': 'ClientProof.bend', 'Bindings:termina': 'ClientProof.bend' };
+    manifest.openTargets = { 'Bindings:certificate': 'ClientProof.bend', 'Bindings:terminates': 'ClientProof.bend' };
   } else manifest.purpose = purpose === 'initialize' ? 'initialize' : 'preprocess';
-  if (purpose === 'initialize') manifest.initialization = { configuration: 'Configuration:config', state: 'Seed:estado', proof: 'Seed:inicial_valido' };
+  if (purpose === 'initialize') manifest.initialization = { configuration: 'Configuration:config', state: 'Seed:state', proof: 'Seed:initial_valid' };
   json(path.join(directory, 'manifest.json'), manifest);
   if (purpose === 'initialize' || purpose === 'execute') {
     const check = purpose === 'initialize'
-      ? 'import Base\nimport ./Configuration.bend as C\nimport ./Seed.bend as Seed\nimport ./Requisitos.bend as R\n'
+      ? 'import Base\nimport ./Configuration.bend as C\nimport ./Seed.bend as Seed\nimport ./Requirements.bend as R\n'
       : 'import Base\nimport ./Bindings.bend as Bindings\nimport ./ClientProof.bend as ClientProof\nimport ./Interface.bend as I\n';
     write(path.join(directory, 'Check.bend'), check);
-    const names = sourceClosure(available, imports(Buffer.from(check)), 'Dependência pura não admitida: ', false);
-    if (names.has('Native.bend')) fail('KERNEL_CAPTURE', 'O conjunto puro alcança Native');
+    const names = sourceClosure(available, imports(Buffer.from(check)), 'Unadmitted pure dependency: ', false);
+    if (names.has('Native.bend')) fail('KERNEL_CAPTURE', 'The pure module set reaches Native');
     const pure = { submissionDir: manifest.submissionDir, entry: 'Check.bend', dependencies: [
       ...manifest.dependencies.filter(d => names.has(d.path)),
       { path: 'Check.bend', role: 'host', exports: [], sha256: digest(check) }],
@@ -262,13 +262,13 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
     throw e;
   }
   const report = JSON.parse(utf8(read(source + '.json'))), original = read(source);
-  if (digest(original) !== report.cSha256) fail('SOURCE_IO', 'O C difere do Book verificado');
+  if (digest(original) !== report.cSha256) fail('SOURCE_IO', 'C differs from the checked Book');
   const limits = report.limits;
-  if (Object.keys(limits).sort().join(',') !== 'estado,mensagem,resposta' || Object.values(limits).some(x => !/^(0|[1-9][0-9]*)$/.test(x))) fail('CONFIGURATION', 'Esperados três limites lógicos naturais');
+  if (Object.keys(limits).sort().join(',') !== 'message,response,state' || Object.values(limits).some(x => !/^(0|[1-9][0-9]*)$/.test(x))) fail('CONFIGURATION', 'Expected three natural logical limits');
   const executable = path.join(directory, report.cSha256 + '.program'), clang = '/usr/bin/clang-19';
   const flags = ['-std=gnu11', '-O2', '-w', '--no-default-config', source, '-o', executable, '-lm', '-pthread'];
   command(clang, flags);
-  if (!read(source).equals(original)) fail('SOURCE_IO', 'O C verificado mudou durante compilação');
+  if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
   json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags });
   return { program: executable, limits };
 }
@@ -279,7 +279,7 @@ export function initialize(workdir, configuration, seed, sourceDir, kernelPath) 
   let limits;
   for (const purpose of ['initialize', 'decode', 'authenticate']) {
     const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
-    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'A configuração mudou durante inicialização');
+    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during initialization');
     limits = built.limits; programs[purpose] = built.program;
   }
   return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };

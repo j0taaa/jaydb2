@@ -10,7 +10,7 @@
 </head>
 <body>
   <header class="toolbar">
-    <h1>JayDB<span>2</span></h1><span class="divider"></span><span>acessos</span>
+    <h1>JayDB<span>2</span></h1><span class="divider"></span><span>access</span>
     <span id="connection" class="connection">Starting database…</span>
     <span id="process" class="mono"></span>
     <button id="reset" disabled>Reset instance</button>
@@ -25,27 +25,27 @@
         <button data-view="sources" aria-pressed="false">Sources</button>
       </nav>
       <div id="view-data" class="db-view">
-        <div class="subtoolbar"><label for="collection">Collection</label><select id="collection"><option>usuarios</option></select><span id="row-count" class="muted"></span><button id="toggle-json" class="push-right">JSON</button></div>
+        <div class="subtoolbar"><label for="collection">Collection</label><select id="collection"><option>users</option></select><span id="row-count" class="muted"></span><button id="toggle-json" class="push-right">JSON</button></div>
         <div id="data-table" class="table-scroll"><p class="placeholder">Waiting for published state…</p></div>
         <pre id="state-json" hidden></pre>
         <div class="state-footer"><span id="state-size">— bytes</span><span id="snapshot-sequence">Snapshot —</span><span id="state-time">—</span></div>
         <section class="definition hash-details"><h3>State SHA-256</h3><code id="state-hash">—</code></section>
       </div>
       <div id="view-schema" class="db-view padded" hidden>
-        <div class="subheading"><h3>usuarios</h3><span class="muted">Built-in · primary key: <code id="schema-key">—</code></span></div>
+        <div class="subheading"><h3>users</h3><span class="muted">Built-in · primary key: <code id="schema-key">—</code></span></div>
         <div class="table-scroll"><table><thead><tr><th>Column</th><th>Type</th><th>Optional</th></tr></thead><tbody id="schema-columns"></tbody></table></div>
         <h3>Application schema</h3><pre id="application-schema"></pre>
-        <section class="definition"><h3>Schema declaration · Dados.esquema_usuarios</h3><pre id="schema-source"></pre></section>
+        <section class="definition"><h3>Schema declaration · Data.schema_users</h3><pre id="schema-source"></pre></section>
         <h3>Canonical byte limits</h3><dl id="limits"></dl>
       </div>
       <div id="view-laws" class="db-view padded" hidden>
-        <div class="law-summary"><code>Configuration.Acessos</code><span>Read/write only the authenticated user’s <code>credencial</code>. All other operations forbidden.</span></div>
+        <div class="law-summary"><code>Configuration.Accesses</code><span>Read/write only the authenticated user’s <code>credential</code>. All other operations forbidden.</span></div>
         <pre id="law-source"></pre>
-        <section class="definition"><h3>Structural validity · Dados.estrutura</h3><pre id="structural-source"></pre></section>
-        <section class="definition"><h3>Credential constraints · Dados.credenciais_validas</h3><pre id="credential-law-source"></pre></section>
-        <section class="definition"><h3>State validity · Requisitos.Valido</h3><pre id="valid-source"></pre></section>
-        <section class="definition"><h3>Client certificate · Requisitos.Certifica</h3><pre id="certificate-source"></pre></section>
-        <section class="definition"><h3>Termination · Interface.ProgramaTermina</h3><pre id="termination-source"></pre></section>
+        <section class="definition"><h3>Structural validity · Data.structure</h3><pre id="structural-source"></pre></section>
+        <section class="definition"><h3>Credential constraints · Data.credentials_valid_cases</h3><pre id="credential-law-source"></pre></section>
+        <section class="definition"><h3>State validity · Requirements.Valid</h3><pre id="valid-source"></pre></section>
+        <section class="definition"><h3>Client certificate · Requirements.Certifies</h3><pre id="certificate-source"></pre></section>
+        <section class="definition"><h3>Termination · Interface.ProgramTerminates</h3><pre id="termination-source"></pre></section>
       </div>
       <div id="view-sources" class="db-view padded" hidden>
         <div class="subtoolbar"><label for="source-file">File</label><select id="source-file"></select><button id="download-source">Download</button></div>

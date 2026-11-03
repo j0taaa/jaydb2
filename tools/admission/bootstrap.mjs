@@ -34,7 +34,7 @@ export async function loadToolchain(options = {}) {
     info.sourceDir = fs.realpathSync(info.sourceDir);
     info.kernelPath = fs.realpathSync(info.kernelPath);
     for (const [file, expected] of Object.entries(info.files)) {
-      if (sha256(fs.readFileSync(path.join(info.sourceDir, file))) !== expected) throw new Error(`hash divergente: ${file}`);
+      if (sha256(fs.readFileSync(path.join(info.sourceDir, file))) !== expected) throw new Error(`hash mismatch: ${file}`);
     }
     info.verifier = validateVerifier({ kernelPath: info.kernelPath });
     const urls = new Map(['bend.ts', 'safe.ts', 'comp.ts'].map(file =>
@@ -42,7 +42,7 @@ export async function loadToolchain(options = {}) {
     const hook = registerHooks({ load(url, context, nextLoad) {
       if (!urls.has(url)) return nextLoad(url, context);
       const bytes = fs.readFileSync(fileURLToPath(url));
-      if (sha256(bytes) !== urls.get(url)) throw new Error(`hash divergente durante import: ${url}`);
+      if (sha256(bytes) !== urls.get(url)) throw new Error(`hash mismatch during import: ${url}`);
       // Transform mode supports safe.ts's TypeScript parameter property.
       // No source replacement, instrumentation or compiler adaptation occurs.
       return { format: 'module', source: stripTypeScriptTypes(bytes.toString('utf8'), { mode: 'transform' }), shortCircuit: true };
@@ -54,6 +54,6 @@ export async function loadToolchain(options = {}) {
       return { B, S, C, info };
     } finally { hook.deregister(); }
   } catch (cause) {
-    throw new AdmissionError('TOOLCHAIN', 'bootstrap', `Toolchain oficial indisponível: ${cause.message}`, { cause });
+    throw new AdmissionError('TOOLCHAIN', 'bootstrap', `Official toolchain unavailable: ${cause.message}`, { cause });
   }
 }

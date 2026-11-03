@@ -23,7 +23,7 @@ function runC(root, source, name) {
 // The official translator and kernel check the same private Book emitted to C.
 test('official tools preserve checked source and emitted behavior', async t => {
   const f = fixture(t), { info } = await loadToolchain();
-  f.write('Client.bend', f.read('Client.bend') + '\n# exact source: IO @unsafe ?todo\n');
+  f.write('Client.bend', f.read('Client.bend') + '\n# exact source: IO @unsafe ?all\n');
   f.bindCode();
   const exactSource = f.read('Client.bend'), spawn = child.spawnSync, payloads = [];
   child.spawnSync = function (bin, args, options) {
@@ -50,13 +50,13 @@ test('official tools preserve checked source and emitted behavior', async t => {
   f.write('Client.bend', 'changed after admission');
   const c = emitC(admitted);
   assert.equal(emitC(admitted), c);
-  assert.equal(runC(f.root, c, 'checked'), 'Dados.VInt{0, 6}');
+  assert.equal(runC(f.root, c, 'checked'), 'Data.VInt{0, 6}');
 });
 
 // Historical R4 came from the removed interning adapter. The official
 // frontend already handles this nested specialization and C must return 1.
 test('official nested template preserves the checked result in C', async t => {
-  const f = fixture(t), prefix = f.read('Main.bend').split('def resultado')[0];
+  const f = fixture(t), prefix = f.read('Main.bend').split('def result')[0];
   f.write('Main.bend', prefix + 'def intern(~p: Nat) -> Nat:\n  p\ndef main() -> Nat:\n  intern(intern(1n))\n');
   assert.equal(runC(f.root, emitC(await admitSubmission(f.manifest())), 'nested'), '1n');
 });

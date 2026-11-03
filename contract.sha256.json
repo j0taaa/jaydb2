@@ -1,0 +1,16 @@
+{
+  "contract/Bytes.bend": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
+  "contract/Data.bend": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
+  "contract/DataExamples.bend": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
+  "contract/Interface.bend": "020d3b3370d9f25f23ed20b9c9a5466d8b469ecbe3d9016f69e3f9da6bbb3d63",
+  "contract/LAWS.bend": "2abb8e969e6c4324032370b4ce8f6f71211da84f114f305e8ca2fec47d7b28be",
+  "contract/LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
+  "contract/Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+  "contract/Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+  "contract/Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
+  "contract/ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+  "contract/Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
+  "contract/Resources.bend": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
+  "contract/Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
+  "contract/VERIFY.bend": "3dea436a8a72b4863253ba966419433bf28846305f340c0f5216d371a1be9993"
+}

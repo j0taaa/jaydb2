@@ -8,11 +8,11 @@ def read() -> IO(List<&2, U32>):
 def write(bytes: List<&2, U32>) -> IO(Unit):
   import "./effects.c"
 
-type Iteracao<-A: Type> is Type:
-  Continuar{estado: A}
-  Preparar{estado: A}
-  Encerrar{bytes: List<&2, U32>}
-  Inconsistente{}
+type Iteration<-A: Type> is Type:
+  Continue{state: A}
+  Prepare{state: A}
+  FinishOutput{bytes: List<&2, U32>}
+  Inconsistent{}
 
-def loop(-A: Type, step: A -> Iteracao<A>, initial: A) -> IO(Unit):
+def loop(-A: Type, step: A -> Iteration<A>, initial: A) -> IO(Unit):
   import "./effects.c"

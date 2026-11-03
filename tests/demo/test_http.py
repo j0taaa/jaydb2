@@ -42,62 +42,62 @@ class DemoHTTPTests(unittest.TestCase):
         pid = initial['database_pid']
         self.assertTrue(initial['alive'])
         self.assertEqual(initial['receipts'], [])
-        self.assertEqual(initial['inspection']['state'], {'tabelas': [], 'usuarios': [
-            {'credencial': 'alice-token', 'id': 'alice', 'tipo': 'usuario'},
-            {'credencial': 'bob-token', 'id': 'bob', 'tipo': 'usuario'}]})
+        self.assertEqual(initial['inspection']['state'], {'tables': [], 'users': [
+            {'credential': 'alice-token', 'id': 'alice', 'kind': 'user'},
+            {'credential': 'bob-token', 'id': 'bob', 'kind': 'user'}]})
         self.assertIsNone(initial['inspection']['error'])
         sources = self.call(browser, '/api/sources')
-        self.assertEqual(sources['schema']['usuarios']['primary_key'], 'id')
-        self.assertEqual([column['name'] for column in sources['schema']['usuarios']['columns']],
-                         ['credencial', 'id', 'tipo'])
-        self.assertIn('Permitidos', sources['configuration'])
-        self.assertIn('Requisitos.bend', sources['files'])
+        self.assertEqual(sources['schema']['users']['primary_key'], 'id')
+        self.assertEqual([column['name'] for column in sources['schema']['users']['columns']],
+                         ['credential', 'id', 'kind'])
+        self.assertIn('AllAllowed', sources['configuration'])
+        self.assertIn('Requirements.bend', sources['files'])
         self.assertEqual(sources['environment']['identity'], initial['environment_identity'])
 
         # Unicode crosses JSON, the canonical wire codec, and native Bend.
-        changed = self.execute(browser, 'rotate', 'alice-token', 'alice-nová-🔑')
-        self.assertEqual(changed['response'], {'status': 'sucesso', 'valor': 'alice-nová-🔑'})
+        changed = self.execute(browser, 'rotate', 'alice-token', 'alice-new-é-🔑')
+        self.assertEqual(changed['response'], {'status': 'success', 'value': 'alice-new-é-🔑'})
         self.assertEqual(changed['database_pid'], pid)
         self.assertGreater(changed['request_bytes'], 8)
         self.assertGreater(changed['response_bytes'], 8)
         self.assertGreater(changed['duration_ms'], 0)
-        self.assertEqual(changed['request']['codigo'], CODE)
-        self.assertEqual(changed['request']['prova'], PROOF)
-        self.assertEqual(json.loads(changed['state_before_json'])['usuarios'][0]['credencial'], 'alice-token')
-        self.assertEqual(json.loads(changed['state_after_json'])['usuarios'][0]['credencial'], 'alice-nová-🔑')
+        self.assertEqual(changed['request']['code'], CODE)
+        self.assertEqual(changed['request']['proof'], PROOF)
+        self.assertEqual(json.loads(changed['state_before_json'])['users'][0]['credential'], 'alice-token')
+        self.assertEqual(json.loads(changed['state_after_json'])['users'][0]['credential'], 'alice-new-é-🔑')
         self.assertEqual(self.execute(browser, 'verify', 'alice-token')['response'],
-                         {'status': 'autenticacao', 'valor': None})
+                         {'status': 'authentication', 'value': None})
 
-        rolled_back = self.execute(browser, 'rollback', 'alice-nová-🔑')
+        rolled_back = self.execute(browser, 'rollback', 'alice-new-é-🔑')
         self.assertEqual(rolled_back['response'],
-                         {'status': 'recusa', 'valor': 'cancelado'})
+                         {'status': 'refusal', 'value': 'cancelled'})
         self.assertEqual(rolled_back['state_before_json'], rolled_back['state_after_json'])
-        self.assertEqual(self.execute(browser, 'verify', 'descartado')['response'],
-                         {'status': 'autenticacao', 'valor': None})
-        self.assertEqual(self.execute(browser, 'verify', 'alice-nová-🔑')['response'],
-                         {'status': 'sucesso', 'valor': 'alice-nová-🔑'})
-        rejected = self.execute(browser, 'forbidden', 'alice-nová-🔑')
+        self.assertEqual(self.execute(browser, 'verify', 'discarded')['response'],
+                         {'status': 'authentication', 'value': None})
+        self.assertEqual(self.execute(browser, 'verify', 'alice-new-é-🔑')['response'],
+                         {'status': 'success', 'value': 'alice-new-é-🔑'})
+        rejected = self.execute(browser, 'forbidden', 'alice-new-é-🔑')
         self.assertEqual(rejected['response'],
-                         {'status': 'certificado', 'valor': None})
+                         {'status': 'certificate', 'value': None})
         self.assertIsNotNone(rejected['diagnostic'])
         self.assertEqual(rejected['state_before_json'], rejected['state_after_json'])
-        self.assertEqual(self.execute(browser, 'verify', 'alice-nová-🔑')['response'],
-                         {'status': 'sucesso', 'valor': 'alice-nová-🔑'})
+        self.assertEqual(self.execute(browser, 'verify', 'alice-new-é-🔑')['response'],
+                         {'status': 'success', 'value': 'alice-new-é-🔑'})
 
         # The database also owns uniqueness, not a JavaScript or HTTP check.
-        self.assertEqual(self.execute(browser, 'rotate', 'alice-nová-🔑', 'bob-token')['response'],
-                         {'status': 'dados', 'valor': None})
+        self.assertEqual(self.execute(browser, 'rotate', 'alice-new-é-🔑', 'bob-token')['response'],
+                         {'status': 'data', 'value': None})
         self.assertEqual(self.execute(browser, 'verify', 'bob-token')['response'],
-                         {'status': 'sucesso', 'valor': 'bob-token'})
-        self.assertEqual(self.execute(browser, 'verify', 'alice-nová-🔑')['response'],
-                         {'status': 'sucesso', 'valor': 'alice-nová-🔑'})
+                         {'status': 'success', 'value': 'bob-token'})
+        self.assertEqual(self.execute(browser, 'verify', 'alice-new-é-🔑')['response'],
+                         {'status': 'success', 'value': 'alice-new-é-🔑'})
 
         # Concurrent HTTP requests share one serial pipe without mixing frames.
         with ThreadPoolExecutor(max_workers=2) as pool:
             responses = list(pool.map(lambda value: self.execute(browser, 'rotate', 'bob-token', value),
                                       ['bob-one', 'bob-two']))
         self.assertEqual(sorted(result['response']['status'] for result in responses),
-                         ['autenticacao', 'sucesso'])
+                         ['authentication', 'success'])
         state = self.call(browser, '/api/session')
         self.assertEqual(state['database_pid'], pid)
         self.assertEqual(len(state['receipts']), 12)
@@ -107,7 +107,7 @@ class DemoHTTPTests(unittest.TestCase):
         fresh = self.call(other, '/api/session', {})
         self.assertNotEqual(fresh['database_pid'], pid)
         self.assertEqual(self.execute(other, 'verify', 'alice-token')['response'],
-                         {'status': 'sucesso', 'valor': 'alice-token'})
+                         {'status': 'success', 'value': 'alice-token'})
         self.call(other, '/api/reset', {})
 
         self.call(browser, '/api/reset', {})
@@ -115,14 +115,14 @@ class DemoHTTPTests(unittest.TestCase):
         restarted = self.call(browser, '/api/session', {})
         self.assertNotEqual(restarted['database_pid'], pid)
         self.assertEqual(self.execute(browser, 'verify', 'alice-token')['response'],
-                         {'status': 'sucesso', 'valor': 'alice-token'})
+                         {'status': 'success', 'value': 'alice-token'})
         self.call(browser, '/api/reset', {})
 
     def test_custom_program_proof_and_live_published_state(self):
         browser = self.browser()
         self.call(browser, '/api/session', {})
         try:
-            code = CODE.replace('S.Terminar{valor}', 'S.Terminar{D.VTexto{"custom-proof-ok"}}')
+            code = CODE.replace('S.Finish{value}', 'S.Finish{D.VText{"custom-proof-ok"}}')
             proof = PROOF + '\n# Custom proof submitted verbatim through HTTP.\n'
             body = {'action': 'custom', 'credential': 'alice-token', 'code': code,
                     'proof': proof, 'arguments_json': '"alice-custom"'}
@@ -138,7 +138,7 @@ class DemoHTTPTests(unittest.TestCase):
                             return json.loads(line[6:])
 
                 initial = event()
-                self.assertEqual(initial['inspection']['state']['usuarios'][0]['credencial'], 'alice-token')
+                self.assertEqual(initial['inspection']['state']['users'][0]['credential'], 'alice-token')
                 with ThreadPoolExecutor(max_workers=1) as pool:
                     pending = pool.submit(self.call, browser, '/api/execute', body)
                     while True:
@@ -152,18 +152,18 @@ class DemoHTTPTests(unittest.TestCase):
                     result = pending.result(timeout=180)
                     while True:
                         published = event()
-                        if published['inspection']['state']['usuarios'][0]['credencial'] == 'alice-custom':
+                        if published['inspection']['state']['users'][0]['credential'] == 'alice-custom':
                             break
-                self.assertEqual(result['response'], {'status': 'sucesso', 'valor': 'custom-proof-ok'})
-                self.assertEqual(result['request']['codigo'], code)
-                self.assertEqual(result['request']['prova'], proof)
-                self.assertIn('def contexto()', result['generated_sources']['Instance.bend'])
-                self.assertIn('def codigo()', result['generated_sources']['Bindings.bend'])
+                self.assertEqual(result['response'], {'status': 'success', 'value': 'custom-proof-ok'})
+                self.assertEqual(result['request']['code'], code)
+                self.assertEqual(result['request']['proof'], proof)
+                self.assertIn('def context()', result['generated_sources']['Instance.bend'])
+                self.assertIn('def code()', result['generated_sources']['Bindings.bend'])
                 self.assertEqual(result['state_sha256'], published['inspection']['sha256'])
 
             rejected = self.call(browser, '/api/execute', {**body, 'credential': 'alice-custom',
                 'proof': proof + '\nthis is not a Bend definition\n'})
-            self.assertEqual(rejected['response']['status'], 'certificado')
+            self.assertEqual(rejected['response']['status'], 'certificate')
             self.assertTrue(rejected['diagnostic']['message'])
             self.assertEqual(rejected['state_before_json'], rejected['state_after_json'])
             with self.assertRaises(HTTPError) as raised:
@@ -172,7 +172,7 @@ class DemoHTTPTests(unittest.TestCase):
             raised.exception.close()
             state = self.call(browser, '/api/session')
             self.assertTrue(state['alive'])
-            self.assertEqual(state['inspection']['state']['usuarios'][0]['credencial'], 'alice-custom')
+            self.assertEqual(state['inspection']['state']['users'][0]['credential'], 'alice-custom')
             self.assertEqual(state['receipts'][-1]['sequence'], 2)
         finally:
             self.call(browser, '/api/reset', {})
@@ -195,7 +195,7 @@ class DemoHTTPTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 403)
         raised.exception.close()
         with self.assertRaises(HTTPError) as raised:
-            browser.open(self.base + '/../../examples/acessos/Seed.bend')
+            browser.open(self.base + '/../../examples/access/Seed.bend')
         self.assertEqual(raised.exception.code, 404)
         raised.exception.close()
         with browser.open(self.base + '/') as response:

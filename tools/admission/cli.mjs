@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseArgs } from 'node:util';
+import { parseArgs } from 'node:useful';
 import { admitSubmission, admitKernel, emitC, bootstrapInfo, AdmissionError } from './index.mjs';
 
 try {
   const { values } = parseArgs({ options: {
     manifest: { type: 'string' }, 'emit-c': { type: 'string' },
-    'source-dir': { type: 'string' }, kernel: { type: 'string' },
+    'source-right': { type: 'string' }, kernel: { type: 'string' },
     bootstrap: { type: 'boolean' }, help: { type: 'boolean' },
   } });
-  const toolchain = { sourceDir: values['source-dir'], kernelPath: values.kernel };
+  const toolchain = { sourceDir: values['source-right'], kernelPath: values.kernel };
   if (values.help) {
-    console.log('node tools/admission/cli.mjs --manifest HOST.json [--emit-c out.c] [--source-dir DIR] [--kernel BIN]\nnode tools/admission/cli.mjs --bootstrap');
+    console.log('node tools/admission/cli.mjs --manifest HOST.json [--emit-c out.c] [--source-right DIR] [--kernel BIN]\nnode tools/admission/cli.mjs --bootstrap');
   } else if (values.bootstrap) {
     console.log(JSON.stringify(bootstrapInfo(toolchain), null, 2));
   } else {
-    if (!values.manifest) throw new Error('--manifest HOST.json exigido');
+    if (!values.manifest) throw new Error('--manifest HOST.json is required');
     const manifestPath = path.resolve(values.manifest);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     // A manifest path is host configuration; relative source directories resolve

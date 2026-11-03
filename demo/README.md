@@ -2,7 +2,7 @@
 
 **https://jaydb2-demo.jaypussy.site**
 
-A compact administrator workbench for the real `examples/acessos` database.
+A compact administrator workbench for the real `examples/access` database.
 The adapter runs the Rust executable and official Bend verification/compiler
 pipeline. All custom programs and proofs use the existing canonical request
 protocol and admission checks.
@@ -22,7 +22,7 @@ dependency. For another port: `python3 -B demo/server.py --port 9000`.
 
 - **Data:** all published rows, table/JSON views, state hash, byte size, and
   observation time. “Use” fills the selected row's current credential.
-- **Schema:** built-in `usuarios` columns, key, application schema declaration,
+- **Schema:** built-in `users` columns, key, application schema declaration,
   and actual configured canonical byte limits.
 - **Laws:** full configuration plus structural validity, credential constraints,
   certificate requirements, and termination definitions.
@@ -45,7 +45,7 @@ to custom code, proof, arguments, and credential together.
 The examples are Change credential, Verify credential (an idempotent
 write/read using the same client), Write then refuse, and Forbidden read.
 Changing the program can require changing its proof. Rejected proofs produce
-`certificado` with the real admission diagnostic and leave state unchanged.
+`certificate` with the real admission diagnostic and leave state unchanged.
 
 ## Live administrator inspection
 

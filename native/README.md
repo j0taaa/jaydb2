@@ -1,4 +1,4 @@
-# Runtime nativo
+# Native runtime
 
-A interface ativa e sua implementação estão descritas em
+The active interface and its implementation are documented in
 [SIMPLE_RUNTIME.md](SIMPLE_RUNTIME.md).
