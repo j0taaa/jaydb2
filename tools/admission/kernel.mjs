@@ -71,22 +71,22 @@ export function prepareKernel(B, state) {
 export function auditLoopCalls(B, state) {
   if (!state.plan.kernel) return;
   const loop = state.plan.kernel.ns + ':loop', step = state.plan.kernel.loopStep;
-  function visit(t, owner) {
+  function visit(t) {
     if (!t || typeof t !== 'object') return;
     if (t.$ === 'App') {
       let head = t, args = [];
       while (head.$ === 'App') { args.unshift(head.x); head = head.f; }
       if (head.$ === 'Ref' && head.k === loop) {
         if (args.length !== 3 || args[1].$ !== 'Ref' || args[1].k !== step) fail(`loop exige o passo fechado fixado pelo host: ${step}`);
-        for (const a of args) visit(a, owner);
+        for (const a of args) visit(a);
         return;
       }
     }
     if (t.$ === 'Ref' && t.k === loop) fail('loop não pode ser usado como alias ou valor de primeira classe');
-    for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') visit(v, owner);
+    for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') visit(v);
   }
   for (const [k, t] of Object.entries(state.book.tlds)) {
-    if (!state.baseNames.has(k) && t.$ === 'Def' && t.v) visit(B.term_lower(t.v), k);
+    if (!state.baseNames.has(k) && t.$ === 'Def' && t.v) visit(B.term_lower(t.v));
   }
 }
 

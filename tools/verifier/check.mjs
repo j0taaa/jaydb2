@@ -9,13 +9,13 @@ const pin = JSON.parse(fs.readFileSync(new URL('../admission/toolchain.lock.json
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export class VerifierInfrastructure extends Error {}
 
-export function verifierInfo(_sourceDir, options = {}) {
+export function verifierInfo(options = {}) {
   return { kernelPath: path.resolve(options.kernelPath ?? process.env.JAYDB_BENDTT ?? fileURLToPath(new URL(`../../.tools/bendtt-${pin.kernelSha256}`, import.meta.url))),
     kernelSha256: pin.kernelSha256 };
 }
 
-export function validateVerifier(sourceDir, options = {}) {
-  const info = verifierInfo(sourceDir, options);
+export function validateVerifier(options = {}) {
+  const info = verifierInfo(options);
   if (sha256(fs.readFileSync(info.kernelPath)) !== info.kernelSha256) throw new Error('Official BendTT binary hash mismatch');
   fs.accessSync(info.kernelPath, fs.constants.X_OK);
   return Object.freeze(info);

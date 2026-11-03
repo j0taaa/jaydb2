@@ -36,7 +36,7 @@ export async function loadToolchain(options = {}) {
     for (const [file, expected] of Object.entries(info.files)) {
       if (sha256(fs.readFileSync(path.join(info.sourceDir, file))) !== expected) throw new Error(`hash divergente: ${file}`);
     }
-    info.verifier = validateVerifier(info.sourceDir, { kernelPath: info.kernelPath });
+    info.verifier = validateVerifier({ kernelPath: info.kernelPath });
     const urls = new Map(['bend.ts', 'safe.ts', 'comp.ts'].map(file =>
       [pathToFileURL(path.join(info.sourceDir, 'bend2', file)).href, info.files['bend2/' + file]]));
     const hook = registerHooks({ load(url, context, nextLoad) {

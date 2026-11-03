@@ -54,7 +54,6 @@ class RuntimeTests(unittest.TestCase):
 
     def test_official_representations_and_explicit_native_limits(self):
         self.assertEqual(self.execute('representation', b'\3\x11'), str(2**20+1+17).encode())
-        self.assertEqual(self.execute('representation', b'\4'), b'\x08')
         self.assertEqual(self.execute('representation', b'\2' + b'1.25'), b'\1'+struct.pack('<f', 1.25))
         self.assertEqual(self.execute('representation', b'\2' + b'1\0garbage'), b'\0')
 

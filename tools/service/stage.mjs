@@ -255,7 +255,10 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
     ...(['initialize', 'execute'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : [])]); }
   catch (e) {
     const errorPath = source + '.error.json';
-    if (fs.existsSync(errorPath)) throw Object.assign(new Error(JSON.parse(utf8(read(errorPath))).message), JSON.parse(utf8(read(errorPath))));
+    if (fs.existsSync(errorPath)) {
+      const detail = JSON.parse(utf8(read(errorPath)));
+      throw Object.assign(new Error(detail.message), detail);
+    }
     throw e;
   }
   const report = JSON.parse(utf8(read(source + '.json'))), original = read(source);
