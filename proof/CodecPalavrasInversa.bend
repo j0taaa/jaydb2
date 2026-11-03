@@ -23,6 +23,28 @@ def octeto_valido_reconstituido(x, valido):
       Equal.cong(Word(32n), U32, z => U32{z}, w,
         W.juntar(8n, 24n, W.ajustar(8n, 32n, w), Word.zero(24n)), W.limite_bits_baixos(8n, 24n, w, valido))
 
+def representar_octetos(bs: List<&2, U32>) -> List<&2, U32>:
+  match bs:
+    case Nil{}:
+      Nil{}
+    case Con{b, t}:
+      Con{E.octeto(byte_word(b)), representar_octetos(t)}
+
+law octetos_validos_representacao:
+  for +bs: List<&2, U32>
+  for +validos: {B.octetos_validos(bs) == True{} : Bool}
+  {bs == representar_octetos(bs) : List<&2, U32>}
+def octetos_validos_representacao(bs, validos):
+  match bs:
+    case Nil{}:
+      {==}
+    case Con{+b, +t}:
+      Equal.trans(List<&2, U32>, Con{b, t}, Con{E.octeto(byte_word(b)), t}, Con{E.octeto(byte_word(b)), representar_octetos(t)},
+        Equal.cong(U32, List<&2, U32>, x => Con{x, t}, b, E.octeto(byte_word(b)),
+          octeto_valido_reconstituido(b, F.e_booleano_esquerda(U32.is_le(b, 255), B.octetos_validos(t), validos))),
+        Equal.cong(List<&2, U32>, List<&2, U32>, xs => Con{E.octeto(byte_word(b)), xs}, t, representar_octetos(t),
+          octetos_validos_representacao(t, F.e_booleano_direita(U32.is_le(b, 255), B.octetos_validos(t), validos))))
+
 law recodificar_blocos:
   for +a: Word(8n)
   for +b: Word(8n)
@@ -90,22 +112,12 @@ law be64_recodifica_oito_octetos_validos:
   for +validos: {B.octetos_validos([a, b, c, d, e, f, g, h]) == True{} : Bool}
   {B.be64(montar(a, b, c, d), montar(e, f, g, h)) == [a, b, c, d, e, f, g, h] : List<&2, U32>}
 def be64_recodifica_oito_octetos_validos(a, b, c, d, e, f, g, h, validos):
-  va = F.e_booleano_esquerda(U32.is_le(a, 255), B.octetos_validos([b, c, d, e, f, g, h]), validos)
-  +t1 = F.e_booleano_direita(U32.is_le(a, 255), B.octetos_validos([b, c, d, e, f, g, h]), validos)
-  vb = F.e_booleano_esquerda(U32.is_le(b, 255), B.octetos_validos([c, d, e, f, g, h]), t1)
-  +t2 = F.e_booleano_direita(U32.is_le(b, 255), B.octetos_validos([c, d, e, f, g, h]), t1)
-  vc = F.e_booleano_esquerda(U32.is_le(c, 255), B.octetos_validos([d, e, f, g, h]), t2)
-  +t3 = F.e_booleano_direita(U32.is_le(c, 255), B.octetos_validos([d, e, f, g, h]), t2)
-  vd = F.e_booleano_esquerda(U32.is_le(d, 255), B.octetos_validos([e, f, g, h]), t3)
-  +t4 = F.e_booleano_direita(U32.is_le(d, 255), B.octetos_validos([e, f, g, h]), t3)
-  ve = F.e_booleano_esquerda(U32.is_le(e, 255), B.octetos_validos([f, g, h]), t4)
-  +t5 = F.e_booleano_direita(U32.is_le(e, 255), B.octetos_validos([f, g, h]), t4)
-  vf = F.e_booleano_esquerda(U32.is_le(f, 255), B.octetos_validos([g, h]), t5)
-  +t6 = F.e_booleano_direita(U32.is_le(f, 255), B.octetos_validos([g, h]), t5)
-  vg = F.e_booleano_esquerda(U32.is_le(g, 255), B.octetos_validos([h]), t6)
-  +t7 = F.e_booleano_direita(U32.is_le(g, 255), B.octetos_validos([h]), t6)
-  vh = F.e_booleano_esquerda(U32.is_le(h, 255), B.octetos_validos([]), t7)
-  recodificar_octetos_separados(a, b, c, d, e, f, g, h, va, vb, vc, vd, ve, vf, vg, vh)
+  Equal.trans(List<&2, U32>,
+    B.be64(montar(a, b, c, d), montar(e, f, g, h)),
+    representar_octetos([a, b, c, d, e, f, g, h]), [a, b, c, d, e, f, g, h],
+    recodificar_blocos(byte_word(a), byte_word(b), byte_word(c), byte_word(d), byte_word(e), byte_word(f), byte_word(g), byte_word(h)),
+    Equal.sym(List<&2, U32>, [a, b, c, d, e, f, g, h], representar_octetos([a, b, c, d, e, f, g, h]),
+      octetos_validos_representacao([a, b, c, d, e, f, g, h], validos)))
 
 # Aritmetica IDENTICA a src/Codec.ler_palavra, antes de concluir a finalidade.
 def acumular_octeto(n: B.Numero64, b: U32) -> B.Numero64:
@@ -205,28 +217,6 @@ def acumular_oito_blocos(a, b, c, d, e, f, g, h):
     acumular_blocos(Word.zero(8n), a, b, c, d, e, f, g, h)) :
     {acumular([], _) == B.Numero64{E.quatro(a, b, c, d), E.quatro(e, f, g, h)} : B.Numero64}
   {==}
-
-def representar_octetos(bs: List<&2, U32>) -> List<&2, U32>:
-  match bs:
-    case Nil{}:
-      Nil{}
-    case Con{b, t}:
-      Con{E.octeto(byte_word(b)), representar_octetos(t)}
-
-law octetos_validos_representacao:
-  for +bs: List<&2, U32>
-  for +validos: {B.octetos_validos(bs) == True{} : Bool}
-  {bs == representar_octetos(bs) : List<&2, U32>}
-def octetos_validos_representacao(bs, validos):
-  match bs:
-    case Nil{}:
-      {==}
-    case Con{+b, +t}:
-      Equal.trans(List<&2, U32>, Con{b, t}, Con{E.octeto(byte_word(b)), t}, Con{E.octeto(byte_word(b)), representar_octetos(t)},
-        Equal.cong(U32, List<&2, U32>, x => Con{x, t}, b, E.octeto(byte_word(b)),
-          octeto_valido_reconstituido(b, F.e_booleano_esquerda(U32.is_le(b, 255), B.octetos_validos(t), validos))),
-        Equal.cong(List<&2, U32>, List<&2, U32>, xs => Con{E.octeto(byte_word(b)), xs}, t, representar_octetos(t),
-          octetos_validos_representacao(t, F.e_booleano_direita(U32.is_le(b, 255), B.octetos_validos(t), validos))))
 
 law acumular_oito_octetos_validos:
   for +a: U32

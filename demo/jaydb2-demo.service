@@ -1,0 +1,17 @@
+[Unit]
+Description=Live JayDB2 database demo
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/jaydb2
+ExecStart=/usr/bin/python3 -B %h/projects/jaydb2/demo/server.py --port 8094
+Environment=BEND_NO_TELEMETRY=1
+LimitSTACK=infinity
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target

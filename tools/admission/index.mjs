@@ -34,8 +34,11 @@ function references(term) {
 }
 
 function terms(B, t) {
-  return [B.term_lower(t.T), ...(t.$ === 'ADT' ? t.c.map(c => B.term_lower(c.T))
-    : [...(t.v ? [B.term_lower(t.v)] : []), ...(t.e ? [t.e] : [])])];
+  const result = [B.term_lower(t.T)];
+  if (t.$ === 'ADT') return result.concat(t.c.map(c => B.term_lower(c.T)));
+  if (t.v) result.push(B.term_lower(t.v));
+  if (t.e) result.push(t.e);
+  return result;
 }
 
 function sameTerm(B, a, b) {
@@ -230,11 +233,11 @@ async function admit(options, kernelOnly) {
     try {
       B.book_valid(state.book);
     } catch (cause) {
-    if (cause instanceof RangeError) {
-      const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
-      throw new AdmissionError('FRONTEND_INFRASTRUCTURE', 'primary',
-        `Frontend stack/resource failure after ${last ?? '(none)'}: ${diagnostic(B, cause)}`, { cause });
-    }
+      if (cause instanceof RangeError) {
+        const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
+        throw new AdmissionError('FRONTEND_INFRASTRUCTURE', 'primary',
+          `Frontend stack/resource failure after ${last ?? '(none)'}: ${diagnostic(B, cause)}`, { cause });
+      }
       throw new AdmissionError('PRIMARY_CHECK', 'primary', diagnostic(B, cause), { cause });
     }
     // book_valid checked every primitive's signature too. Only these exact ABI

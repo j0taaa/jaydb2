@@ -336,26 +336,26 @@ def interna_nao_macro(-tipo: Tipo, q: Q.Quadro, h: {M.interna(q) == True{} : Boo
     case Q.Conferida{pos, n}: {==}
     case Q.Construida{pos, n}: {==}
     case Q.Lida{a, n, d}: {==}
-    case Q.Configurada{}: F.absurdo_booleano({desse_tipo(tipo, Q.Configurada{}) == False{} : Bool}, h)
+    case Q.Configurada{}: {==}
     case Q.InicialAceita{}: F.absurdo_booleano({desse_tipo(tipo, Q.InicialAceita{}) == False{} : Bool}, h)
     case Q.Iniciada{s}: F.absurdo_booleano({desse_tipo(tipo, Q.Iniciada{s}) == False{} : Bool}, h)
     case Q.InicialRecusada{s}: F.absurdo_booleano({desse_tipo(tipo, Q.InicialRecusada{s}) == False{} : Bool}, h)
-    case Q.Recebida{r}: F.absurdo_booleano({desse_tipo(tipo, Q.Recebida{r}) == False{} : Bool}, h)
-    case Q.Autenticada{r, ctx}: F.absurdo_booleano({desse_tipo(tipo, Q.Autenticada{r, ctx}) == False{} : Bool}, h)
-    case Q.Aceita{r, ctx}: F.absurdo_booleano({desse_tipo(tipo, Q.Aceita{r, ctx}) == False{} : Bool}, h)
-    case Q.Rejeitada{r, ctx}: F.absurdo_booleano({desse_tipo(tipo, Q.Rejeitada{r, ctx}) == False{} : Bool}, h)
-    case Q.Comecada{r, ctx}: F.absurdo_booleano({desse_tipo(tipo, Q.Comecada{r, ctx}) == False{} : Bool}, h)
-    case Q.Avaliada{r, ctx, p}: F.absurdo_booleano({desse_tipo(tipo, Q.Avaliada{r, ctx, p}) == False{} : Bool}, h)
-    case Q.Operada{e, s, o, r}: F.absurdo_booleano({desse_tipo(tipo, Q.Operada{e, s, o, r}) == False{} : Bool}, h)
-    case Q.Preparada{r, bs}: F.absurdo_booleano({desse_tipo(tipo, Q.Preparada{r, bs}) == False{} : Bool}, h)
+    case Q.Recebida{r}: {==}
+    case Q.Autenticada{r, ctx}: {==}
+    case Q.Aceita{r, ctx}: {==}
+    case Q.Rejeitada{r, ctx}: {==}
+    case Q.Comecada{r, ctx}: {==}
+    case Q.Avaliada{r, ctx, p}: {==}
+    case Q.Operada{e, s, o, r}: {==}
+    case Q.Preparada{r, bs}: {==}
     case Q.Publicada{s}: F.absurdo_booleano({desse_tipo(tipo, Q.Publicada{s}) == False{} : Bool}, h)
-    case Q.Visivel{s}: F.absurdo_booleano({desse_tipo(tipo, Q.Visivel{s}) == False{} : Bool}, h)
-    case Q.Falhou{etapa, id, fatal}: F.absurdo_booleano({desse_tipo(tipo, Q.Falhou{etapa, id, fatal}) == False{} : Bool}, h)
+    case Q.Visivel{s}: {==}
+    case Q.Falhou{etapa, id, fatal}: {==}
     case Q.Concluida{r, s, f}: F.absurdo_booleano({desse_tipo(tipo, Q.Concluida{r, s, f}) == False{} : Bool}, h)
     case Q.Entregue{bs}: F.absurdo_booleano({desse_tipo(tipo, Q.Entregue{bs}) == False{} : Bool}, h)
     case Q.Interrompida{bs}: F.absurdo_booleano({desse_tipo(tipo, Q.Interrompida{bs}) == False{} : Bool}, h)
-    case Q.Fechada{}: F.absurdo_booleano({desse_tipo(tipo, Q.Fechada{}) == False{} : Bool}, h)
-    case Q.Seguinte{a, b}: F.absurdo_booleano({desse_tipo(tipo, Q.Seguinte{a, b}) == False{} : Bool}, h)
+    case Q.Fechada{}: {==}
+    case Q.Seguinte{a, b}: {==}
     case Q.Inspecao{d}: F.absurdo_booleano({desse_tipo(tipo, Q.Inspecao{d}) == False{} : Bool}, h)
     case Q.Efeito{d}: F.absurdo_booleano({desse_tipo(tipo, Q.Efeito{d}) == False{} : Bool}, h)
 

@@ -25,29 +25,17 @@ law inverter_fin:
   {inverter_cmp(Word.cmp.fin(a, b, c)) == Word.cmp.fin(b, a, inverter_cmp(c)) : Cmp}
 def inverter_fin(a, b, c):
   match a b c:
-    case False{} False{} LT{}:
+    case _ _ LT{}:
+      {==}
+    case _ _ GT{}:
       {==}
     case False{} False{} EQ{}:
       {==}
-    case False{} False{} GT{}:
-      {==}
-    case False{} True{} LT{}:
-      {==}
     case False{} True{} EQ{}:
-      {==}
-    case False{} True{} GT{}:
-      {==}
-    case True{} False{} LT{}:
       {==}
     case True{} False{} EQ{}:
       {==}
-    case True{} False{} GT{}:
-      {==}
-    case True{} True{} LT{}:
-      {==}
     case True{} True{} EQ{}:
-      {==}
-    case True{} True{} GT{}:
       {==}
 
 law comparar_palavras_invertidas:

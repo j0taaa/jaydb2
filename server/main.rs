@@ -5,6 +5,7 @@ use std::ffi::OsString;
 use std::fs::{self, DirBuilder};
 use std::io::{self, Read, Write};
 use std::os::unix::fs::DirBuilderExt;
+use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -354,25 +355,22 @@ fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<V
     let (state, response) = match output.first() {
         Some(1) => {
             let (state, response) = split(&output[1..])?;
-            (Some(state.to_vec()), response.to_vec())
+            (Some(state), response)
         }
-        Some(0) => (None, output[1..].to_vec()),
+        Some(0) => (None, &output[1..]),
         _ => return Err(Error::new("HOST_TRANSPORT", "invalid publication marker")),
     };
-    if state
-        .as_ref()
-        .is_some_and(|state| state.len() as u64 > limits.state)
-    {
+    if state.is_some_and(|state| state.len() as u64 > limits.state) {
         return Err(Error::new(
             "HOST_TRANSPORT",
             "proposed state exceeds logical limit",
         ));
     }
-    let (response_body, trailing) = split(&response)?;
+    let (response_body, trailing) = split(response)?;
     if !trailing.is_empty() || response_body.len() as u64 > limits.response {
         return Err(Error::new("HOST_TRANSPORT", "invalid proposed response"));
     }
-    Ok((response, state))
+    Ok((response.to_vec(), state.map(|state| state.to_vec())))
 }
 
 struct Database {
@@ -384,10 +382,22 @@ struct Database {
     authenticate: Program,
     limits: Limits,
     published: Published,
+    inspector: Option<UnixStream>,
+    inspection_sequence: u64,
 }
 
 impl Database {
     fn initialize(options: Options) -> Result<Self> {
+        // Explicit administrator-only output, separate from the client protocol.
+        // UnixStream descriptors are close-on-exec: workers cannot capture it.
+        let inspector = options
+            .inspect_socket
+            .as_ref()
+            .map(UnixStream::connect)
+            .transpose()?;
+        if let Some(stream) = &inspector {
+            stream.set_write_timeout(Some(std::time::Duration::from_secs(2)))?;
+        }
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb2")?;
         let report = json_helper(
             &options.root.join("tools/service/stage.mjs"),
@@ -414,8 +424,15 @@ impl Database {
                 "invalid configuration or initial state",
             ));
         }
+        let inspection_seed = if inspector.is_some() {
+            Some(fs::read_to_string(
+                directory.path.join("initialize/Seed.bend"),
+            )?)
+        } else {
+            None
+        };
         fs::remove_dir_all(directory.path.join("initialize"))?;
-        Ok(Self {
+        let mut database = Self {
             directory,
             stage: text(&report, "stagePath")?.into(),
             source: options.source,
@@ -427,12 +444,61 @@ impl Database {
                 state: output[1..].to_vec(),
                 response: Vec::new(),
             },
-        })
+            inspector,
+            inspection_sequence: 0,
+        };
+        if database.inspector.is_some() {
+            let environment: Value = serde_json::from_slice(&fs::read(
+                database.directory.path.join("environment.json"),
+            )?)?;
+            let mut sources = serde_json::Map::new();
+            for entry in fs::read_dir(database.directory.path.join("public"))? {
+                let entry = entry?;
+                if entry.file_type()?.is_file() {
+                    sources.insert(
+                        entry.file_name().to_string_lossy().into_owned(),
+                        Value::String(fs::read_to_string(entry.path())?),
+                    );
+                }
+            }
+            database.inspect(serde_json::json!({
+                "event": "initialized", "environment": environment, "sources": sources,
+                "seed": inspection_seed,
+                "limits": {"mensagem": database.limits.message,
+                    "estado": database.limits.state, "resposta": database.limits.response}
+            }));
+        }
+        Ok(database)
+    }
+
+    fn inspect(&mut self, mut metadata: Value) {
+        if let Some(stream) = &mut self.inspector {
+            metadata["sequence"] = self.inspection_sequence.into();
+            // Preserve the exact canonical state bytes already owned by the
+            // host; the inspector does not compute or publish another state.
+            let result = (|| -> io::Result<()> {
+                let encoded = serde_json::to_vec(&metadata)?;
+                stream.write_all(&packet(&encoded, &[]))?;
+                stream.write_all(&packet(&self.published.state, &[]))?;
+                stream.flush()
+            })();
+            if let Err(error) = result {
+                eprintln!("jaydb2: INSPECTOR: {error}");
+                self.inspector = None;
+            }
+        }
     }
 
     fn request(&mut self, body: &[u8]) -> Vec<u8> {
         let proposal = self.propose(body);
-        self.published.finish(proposal)
+        let diagnostic = proposal
+            .as_ref()
+            .err()
+            .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
+        let response = self.published.finish(proposal);
+        self.inspection_sequence += 1;
+        self.inspect(serde_json::json!({"event": "completed", "diagnostic": diagnostic}));
+        response
     }
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
@@ -443,7 +509,7 @@ impl Database {
         Ok(output)
     }
 
-    fn propose(&self, body: &[u8]) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    fn propose(&mut self, body: &[u8]) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
         let input = packet(&self.published.state, body);
         let decoded = self.preprocess(&self.decode, &input)?;
         if decoded[0] == 0 {
@@ -456,6 +522,15 @@ impl Database {
         let (code, rest) = split(&authenticated[1..])?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
+        if self.inspector.is_some() {
+            self.inspect(serde_json::json!({
+                "event": "authenticated",
+                "generated_sources": {
+                    "Instance.bend": String::from_utf8_lossy(instance),
+                    "Bindings.bend": String::from_utf8_lossy(bindings)
+                }
+            }));
+        }
         let mut request = Temporary::new(&self.directory.path, "request")?;
         let metadata = request.path.join("metadata");
         fs::create_dir(&metadata)?;
@@ -557,6 +632,7 @@ struct Options {
     seed: PathBuf,
     source: PathBuf,
     kernel: PathBuf,
+    inspect_socket: Option<PathBuf>,
 }
 
 impl Options {
@@ -566,13 +642,14 @@ impl Options {
             serde_json::from_str(include_str!("../tools/admission/toolchain.lock.json"))?;
         let mut configuration = None;
         let mut seed = None;
+        let mut inspect_socket = None;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = std::env::args_os().skip(1);
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE --seed FILE [--bend-source DIR] [--bendtt FILE]"
+                    "Usage: jaydb2 --configuration FILE --seed FILE [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]"
                 );
                 return Ok(None);
             }
@@ -584,6 +661,7 @@ impl Options {
                 Some("--seed") => seed = Some(PathBuf::from(value)),
                 Some("--bend-source") => source = PathBuf::from(value),
                 Some("--bendtt") => kernel = PathBuf::from(value),
+                Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 _ => {
                     return Err(Error::new(
                         "ARGUMENT",
@@ -603,6 +681,7 @@ impl Options {
             )?,
             source: fs::canonicalize(source)?,
             kernel: fs::canonicalize(kernel)?,
+            inspect_socket,
         }))
     }
 }
@@ -698,7 +777,7 @@ mod tests {
         let limits = Limits {
             message: 100,
             state: 3,
-            response: 100,
+            response: error_frame("sucesso").len() as u64 - 8,
         };
         let mut published = Published {
             state: b"old".to_vec(),
@@ -718,7 +797,9 @@ mod tests {
             vec![],
             vec![2],
             vec![1, 0],
+            [vec![0], error_frame("certificado")].concat(),
             [vec![1], packet(b"long", &error_frame("sucesso"))].concat(),
+            [vec![1], packet(b"new", &error_frame("certificado"))].concat(),
             [vec![1], packet(b"new", b"unframed")].concat(),
             [
                 vec![1],

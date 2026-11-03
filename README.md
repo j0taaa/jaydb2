@@ -24,6 +24,16 @@ O comando executa a [aplicação de troca de credenciais](examples/acessos/READM
 no servidor real e mostra cinco respostas JSON, incluindo publicação,
 autenticação e rollback de uma recusa. O estado existe somente nessa sessão.
 
+Para experimentar o mesmo banco real pelo navegador, execute `make demo-web`
+e abra **http://localhost:8094**. A [demonstração web](demo/README.md) encaminha
+as operações para uma instância real do JayDB2 por sessão, com autenticação,
+admissão de provas Bend, publicação e rollback. O estado continua em RAM;
+atualizar a página conserva a instância, reiniciá-la recarrega o seed.
+O workbench permite editar código e prova, examinar esquema/leis/fontes e
+acompanhar o estado publicado em tempo real por uma inspeção administrativa
+opcional, fora da interface e das provas do contrato de serviço dos clientes.
+A versão hospedada está em **https://jaydb2-demo.jaypussy.site**.
+
 A distribuição usada é **Bend 2.0.39 oficial**. Os cinco fontes oficiais e os binários estão identificados em `tools/admission/toolchain.lock.json`. No perfil Linux x86_64, o executável Bend tem SHA-256 `2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd`; o BendTT original tem SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`.
 
 Não há frontend, tradutor, compilador ou kernel BendTT modificado pelo JayDB. O carregamento dos módulos TypeScript oficiais apenas remove a sintaxe TypeScript pelo transformador do Node. Não há build de verificador derivado, addon V8 ou cache de fontes adaptadas para instalar. As capacidades e limitações das ferramentas oficiais são mantidas.

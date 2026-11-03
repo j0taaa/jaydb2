@@ -1,4 +1,4 @@
-.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration demo
+.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration demo demo-web test-demo-web
 
 all: build
 
@@ -28,3 +28,9 @@ test-integration:
 
 demo: build
 	bash examples/acessos/demo.sh
+
+demo-web: build
+	python3 -B demo/server.py
+
+test-demo-web: build
+	python3 -B -m unittest discover -s tests/demo -v

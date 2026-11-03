@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { registerHooks, stripTypeScriptTypes } from 'node:module';
-import { validateVerifier } from '../verifier/check.mjs';
+import { validateVerifier, verifierInfo } from '../verifier/check.mjs';
 
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export const toolchainLock = Object.freeze(JSON.parse(fs.readFileSync(new URL('./toolchain.lock.json', import.meta.url), 'utf8')));
@@ -18,12 +18,12 @@ export class AdmissionError extends Error {
 }
 
 export function bootstrapInfo(options = {}) {
-  const kernelPath = path.resolve(options.kernelPath ?? process.env.JAYDB_BENDTT ?? fileURLToPath(new URL(`../../.tools/bendtt-${toolchainLock.kernelSha256}`, import.meta.url)));
+  const verifier = verifierInfo(options);
   return {
     ...toolchainLock,
     sourceDir: path.resolve(options.sourceDir ?? process.env.JAYDB_BEND_SOURCE ?? fileURLToPath(new URL(`../../.tools/bend-source-${toolchainLock.version}`, import.meta.url))),
-    kernelPath,
-    verifier: { kernelPath, kernelSha256: toolchainLock.kernelSha256 },
+    kernelPath: verifier.kernelPath,
+    verifier,
   };
 }
 

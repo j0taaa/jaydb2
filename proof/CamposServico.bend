@@ -77,9 +77,8 @@ def CamposSeguros(-qs: List<&2, Q.Quadro>) -> Type:
 def campo_na_esquerda(+xs: List<&2, Q.Quadro>, -ys: List<&2, Q.Quadro>, -t: Nat,
   -p: Nat, -n: Nat, antes: AntesDoCampo(xs, t, p, n)) -> AntesDoCampo(Q.concatenar(xs, ys), t, p, n):
   match antes:
-    case (+b, L.Ambos{ordem, +consulta}):
-      (b, L.Ambos{ordem, Equal.trans(Maybe<&2, Q.Quadro>, Q.consultar(Q.concatenar(xs, ys), b), Q.consultar(xs, b), Some{Q.Conferida{p, n}},
-        Q.consultar_dentro_prefixo(xs, ys, b, Q.posicao_presente_dentro(xs, b, Q.Conferida{p, n}, consulta)), consulta)})
+    case (+b, L.Ambos{ordem, consulta}):
+      (b, L.Ambos{ordem, Q.consulta_prefixo(xs, ys, b, Q.Conferida{p, n}, consulta)})
 
 def campo_na_direita(+xs: List<&2, Q.Quadro>, -ys: List<&2, Q.Quadro>, -t: Nat,
   -p: Nat, -n: Nat, antes: AntesDoCampo(ys, t, p, n)) ->

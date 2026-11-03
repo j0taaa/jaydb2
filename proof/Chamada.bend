@@ -33,21 +33,10 @@ def limite_representado(l: S.Limites, h: {R.limites_validos(l) == True{} : Bool}
   O.NumeroRepresentado<B.nat64(R.limite_resposta(l))>:
   match l:
     case S.Limites{+msg, +est, +resp}:
-      +a = R.cabe_erro(resp, S.Entrada{})
-      +b = R.cabe_erro(resp, S.Autenticacao{})
-      +c = R.cabe_erro(resp, S.Certificado{})
-      +d = R.cabe_erro(resp, S.Dados{})
-      +e = R.cabe_erro(resp, S.Limite{})
-      +f = R.cabe_erro(resp, S.Falha{})
-      +prefixo = Q.prefixo_limites(msg, est, resp)
-      +h5 = F.e_booleano_esquerda(prefixo && a && b && c && d && e, f, h)
-      +h4 = F.e_booleano_esquerda(prefixo && a && b && c && d, e, h5)
-      +h3 = F.e_booleano_esquerda(prefixo && a && b && c, d, h4)
-      +h2 = F.e_booleano_esquerda(prefixo && a && b, c, h3)
-      +h1 = F.e_booleano_esquerda(prefixo && a, b, h2)
       representado(resp, F.e_booleano_direita(
         P.representavel_resultado(B.comprimento64(msg)) && P.representavel_resultado(B.comprimento64(est)),
-        P.representavel_resultado(B.comprimento64(resp)), F.e_booleano_esquerda(prefixo, a, h1)))
+        P.representavel_resultado(B.comprimento64(resp)),
+        Q.prefixo_limites_validos(S.Limites{msg, est, resp}, h)))
 
 def enquadrar_medido(+v: D.Valor, +bs: List<&2, U32>,
   codificado: {P.codificar(v) == Some{bs} : Maybe<&2, List<&2, U32>>},
@@ -158,12 +147,7 @@ def preparacao_configurada_fiel(+e: D.Esquema, -leis: S.Leis, +lim: S.Limites, +
   %Equal.sym(S.Resposta, R.finalizar(proposta, S.Configuracao{e, leis, lim, amb}, w), r, igual) :
     Q.Fiel(w, ts, _, preparada)
   Q.preparar_bytes_fiel(P.enquadrar(S.resposta_valor(r)), w, ts, r, preparada, {==},
-    Equal.trans(Maybe<&2, N.Preparada>, N.preparar_resposta(r, w, ts),
-      N.preparar(N.Parada{w, ts, proposta}, S.Configuracao{e, leis, lim, amb}), Some{preparada},
-      Equal.sym(Maybe<&2, N.Preparada>,
-        N.preparar(N.Parada{w, ts, proposta}, S.Configuracao{e, leis, lim, amb}), N.preparar_resposta(r, w, ts),
-        Equal.cong(S.Resposta, Maybe<&2, N.Preparada>, resposta => N.preparar_resposta(resposta, w, ts),
-          R.finalizar(proposta, S.Configuracao{e, leis, lim, amb}, w), r, igual)), obtida))
+    (%igual : {N.preparar_resposta(_, w, ts) == Some{preparada} : Maybe<&2, N.Preparada>} obtida))
 
 def ConclusaoIntegral(-c: S.Configuracao, -s: D.Estado, -w: D.Estado,
   -ts: List<&2, S.Evento>, -proposta: S.Resposta) -> Type:

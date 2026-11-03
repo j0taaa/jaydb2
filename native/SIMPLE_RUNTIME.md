@@ -37,6 +37,22 @@ Os tamanhos de estado e resposta são conferidos sobre a proposta completa;
 não são quotas de RAM. Não há timeout do programa ou observador de recursos.
 Uma falha fatal do processo do banco ainda pode perder a instância em RAM.
 
+## Inspeção administrativa opcional
+
+`--inspect-socket ADMIN_SOCKET` habilita uma saída administrativa de diagnóstico
+por Unix socket, separada do protocolo de clientes. O host envia metadados JSON
+e os bytes canônicos do estado publicado, ambos com cabeçalho de tamanho de
+8 bytes. A inicialização inclui os fontes públicos congelados, seed e limites;
+chamadas autenticadas incluem contexto e bindings reais; o encerramento da
+chamada inclui o estado publicado e eventual diagnóstico. O descritor não é
+herdado pelos workers. Falhas do observador desabilitam essa saída, sem alterar
+a resposta ou publicação da chamada.
+
+A [demonstração web](../demo/README.md) usa essa capacidade para mostrar o banco
+ao administrador. Ela expõe dados que a interface comum mantém privados e está
+fora do escopo das provas do contrato de serviço. Não modifica permissões dos
+programas clientes. O modo normal da CLI não habilita a inspeção.
+
 ## Limites oficiais observados
 
 A toolchain oficial possui limitações que o JayDB não contorna. Em particular,
