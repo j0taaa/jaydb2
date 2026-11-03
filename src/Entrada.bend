@@ -46,12 +46,10 @@ def envelope(requisicao: Maybe<&2, P.Requisicao>, estado: D.Estado) -> PreAutent
 
 def mensagem(resultado: C.Resultado, estado: D.Estado) -> PreAutenticacao:
   match resultado:
-    case C.Entrada{}:
-      ErroMensagem{S.Entrada{}}
-    case C.Limite{}:
-      ErroMensagem{S.Entrada{}}
     case C.Decodificado{v}:
       envelope(Q.extrair(v), estado)
+    case _:
+      ErroMensagem{S.Entrada{}}
 
 # S.Limite depende da quantidade REAL recebida, nunca de um comprimento
 # interno declarado pelo cliente. Apos esta conferencia, Limite do codec
