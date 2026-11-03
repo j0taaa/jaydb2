@@ -28,6 +28,26 @@ def prefixo_limites(+msg: Nat, +est: Nat, resp: Nat) -> Bool:
     P.representavel_resultado(B.comprimento64(est)) &&
     P.representavel_resultado(B.comprimento64(resp))
 
+# Os tres tetos representaveis sao o prefixo comum de limites_validos.
+# Retira somente as seis condicoes adicionais dos erros fixos.
+def prefixo_limites_validos(l: S.Limites, h: {R.limites_validos(l) == True{} : Bool}) ->
+  {prefixo_limites(R.limite_mensagem(l), R.limite_estado(l), R.limite_resposta(l)) == True{} : Bool}:
+  match l:
+    case S.Limites{+msg, +est, +resp}:
+      +a = R.cabe_erro(resp, S.Entrada{})
+      +b = R.cabe_erro(resp, S.Autenticacao{})
+      +c = R.cabe_erro(resp, S.Certificado{})
+      +d = R.cabe_erro(resp, S.Dados{})
+      +e = R.cabe_erro(resp, S.Limite{})
+      +f = R.cabe_erro(resp, S.Falha{})
+      +prefixo = prefixo_limites(msg, est, resp)
+      h5 = F.e_booleano_esquerda(prefixo && a && b && c && d && e, f, h)
+      h4 = F.e_booleano_esquerda(prefixo && a && b && c && d, e, h5)
+      h3 = F.e_booleano_esquerda(prefixo && a && b && c, d, h4)
+      h2 = F.e_booleano_esquerda(prefixo && a && b, c, h3)
+      h1 = F.e_booleano_esquerda(prefixo && a, b, h2)
+      F.e_booleano_esquerda(prefixo, a, h1)
+
 def Seis(-a: Bool, -b: Bool, -c: Bool, -d: Bool, -e: Bool, -f: Bool) -> Type:
   L.E<{a == True{} : Bool}, L.E<{b == True{} : Bool}, L.E<{c == True{} : Bool},
     L.E<{d == True{} : Bool}, L.E<{e == True{} : Bool}, {f == True{} : Bool}>>>>>
@@ -116,40 +136,16 @@ def erros_cabem_selecionados(s: S.Status, -l: S.Limites,
     R.cabe_erro(R.limite_resposta(l), S.Limite{}),
     R.cabe_erro(R.limite_resposta(l), S.Falha{})), erro: Erro(s)) ->
   {R.cabe_erro(R.limite_resposta(l), s) == True{} : Bool}:
-  match s:
-    case S.Entrada{}:
-      selecionar_erro(S.Entrada{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Autenticacao{}:
-      selecionar_erro(S.Autenticacao{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Certificado{}:
-      selecionar_erro(S.Certificado{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Dados{}:
-      selecionar_erro(S.Dados{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Limite{}:
-      selecionar_erro(S.Limite{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Falha{}:
-      selecionar_erro(S.Falha{},
-        R.cabe_erro(R.limite_resposta(l), S.Entrada{}), R.cabe_erro(R.limite_resposta(l), S.Autenticacao{}),
-        R.cabe_erro(R.limite_resposta(l), S.Certificado{}), R.cabe_erro(R.limite_resposta(l), S.Dados{}),
-        R.cabe_erro(R.limite_resposta(l), S.Limite{}), R.cabe_erro(R.limite_resposta(l), S.Falha{}), h, erro)
-    case S.Sucesso{}:
+  match s h:
+    case S.Entrada{} L.Ambos{entrada, resto}: entrada
+    case S.Autenticacao{} L.Ambos{entrada, L.Ambos{autenticacao, resto}}: autenticacao
+    case S.Certificado{} L.Ambos{entrada, L.Ambos{autenticacao, L.Ambos{certificado, resto}}}: certificado
+    case S.Dados{} L.Ambos{entrada, L.Ambos{autenticacao, L.Ambos{certificado, L.Ambos{dados, resto}}}}: dados
+    case S.Limite{} L.Ambos{entrada, L.Ambos{autenticacao, L.Ambos{certificado, L.Ambos{dados, L.Ambos{limite, falha}}}}}: limite
+    case S.Falha{} L.Ambos{entrada, L.Ambos{autenticacao, L.Ambos{certificado, L.Ambos{dados, L.Ambos{limite, falha}}}}}: falha
+    case S.Sucesso{} _:
       match erro:
-    case S.Recusa{}:
+    case S.Recusa{} _:
       match erro:
 
 law erros_fixos_cabem:

@@ -498,11 +498,7 @@ def prolongar_existencia(+qs: List<&2, Q.Quadro>, +sufixo: List<&2, Q.Quadro>, +
   existe: ExisteQuadro(qs, q)) -> ExisteQuadro(Q.concatenar(qs, sufixo), q):
   match existe:
     case (+t, consulta):
-      F.com_par(ExisteQuadro(Q.concatenar(qs, sufixo), q),
-        {Q.consultar(qs, t) == Some{q} : Maybe<&2, Q.Quadro>}, {Q.consultar(qs, t) == Some{q} : Maybe<&2, Q.Quadro>},
-        Chamada.duplicar_igualdade(Maybe<&2, Q.Quadro>, Q.consultar(qs, t), Some{q}, consulta), c1 => c2 =>
-          (t, Equal.trans(Maybe<&2, Q.Quadro>, Q.consultar(Q.concatenar(qs, sufixo), t), Q.consultar(qs, t), Some{q},
-            Q.consultar_dentro_prefixo(qs, sufixo, t, Q.posicao_presente_dentro(qs, t, q, c1)), c2)))
+      (t, Q.consulta_prefixo(qs, sufixo, t, q, consulta))
 
 def marcos_da_execucao(+m: H.Micro, +s: D.Estado, +r: P.Requisicao, +ctx: D.Contexto,
   +xs: List<&2, Q.QuadroExec>, +p: N.Preparada, +proxima: Bool) ->

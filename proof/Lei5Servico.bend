@@ -105,18 +105,11 @@ law consulta_do_subtraco:
   for presente: {Q.consultar(corpo, t) == Some{q} : Maybe<&2, Q.Quadro>}
   {Q.consultar(subtraco(antes, corpo, depois), Nat.add(Q.tamanho(antes), t)) == Some{q} : Maybe<&2, Q.Quadro>}
 def consulta_do_subtraco(antes, corpo, depois, t, q, presente):
-  F.com_par(
-    {Q.consultar(subtraco(antes, corpo, depois), Nat.add(Q.tamanho(antes), t)) == Some{q} : Maybe<&2, Q.Quadro>},
-    {Q.consultar(corpo, t) == Some{q} : Maybe<&2, Q.Quadro>},
-    {Q.consultar(corpo, t) == Some{q} : Maybe<&2, Q.Quadro>},
-    Chamada.duplicar_igualdade(Maybe<&2, Q.Quadro>, Q.consultar(corpo, t), Some{q}, presente),
-    limite => fato => Equal.trans(Maybe<&2, Q.Quadro>,
-      Q.consultar(subtraco(antes, corpo, depois), Nat.add(Q.tamanho(antes), t)),
-      Q.consultar(Q.concatenar(corpo, depois), t), Some{q},
-      Q.consultar_apos_prefixo(antes, Q.concatenar(corpo, depois), t),
-      Equal.trans(Maybe<&2, Q.Quadro>, Q.consultar(Q.concatenar(corpo, depois), t),
-        Q.consultar(corpo, t), Some{q},
-        Q.consultar_dentro_prefixo(corpo, depois, t, Q.posicao_presente_dentro(corpo, t, q, limite)), fato)))
+  Equal.trans(Maybe<&2, Q.Quadro>,
+    Q.consultar(subtraco(antes, corpo, depois), Nat.add(Q.tamanho(antes), t)),
+    Q.consultar(Q.concatenar(corpo, depois), t), Some{q},
+    Q.consultar_apos_prefixo(antes, Q.concatenar(corpo, depois), t),
+    Q.consulta_prefixo(corpo, depois, t, q, presente))
 
 law consulta_expandida_no_subtraco:
   for +antes: List<&2, Q.Quadro>

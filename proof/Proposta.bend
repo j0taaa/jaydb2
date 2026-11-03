@@ -18,24 +18,12 @@ def estado_representado(l: S.Limites, h: {R.limites_validos(l) == True{} : Bool}
   O.NumeroRepresentado<B.nat64(R.limite_estado(l))>:
   match l:
     case S.Limites{+msg, +est, +resp}:
-      +a = R.cabe_erro(resp, S.Entrada{})
-      +b = R.cabe_erro(resp, S.Autenticacao{})
-      +c = R.cabe_erro(resp, S.Certificado{})
-      +d = R.cabe_erro(resp, S.Dados{})
-      +e = R.cabe_erro(resp, S.Limite{})
-      +f = R.cabe_erro(resp, S.Falha{})
-      +prefixo = Q.prefixo_limites(msg, est, resp)
-      h5 = F.e_booleano_esquerda(prefixo && a && b && c && d && e, f, h)
-      h4 = F.e_booleano_esquerda(prefixo && a && b && c && d, e, h5)
-      h3 = F.e_booleano_esquerda(prefixo && a && b && c, d, h4)
-      h2 = F.e_booleano_esquerda(prefixo && a && b, c, h3)
-      h1 = F.e_booleano_esquerda(prefixo && a, b, h2)
       C.representado(est, F.e_booleano_direita(P.representavel_resultado(B.comprimento64(msg)),
         P.representavel_resultado(B.comprimento64(est)),
         F.e_booleano_esquerda(
           P.representavel_resultado(B.comprimento64(msg)) && P.representavel_resultado(B.comprimento64(est)),
           P.representavel_resultado(B.comprimento64(resp)),
-          F.e_booleano_esquerda(prefixo, a, h1))))
+          Q.prefixo_limites_validos(S.Limites{msg, est, resp}, h))))
 
 def juntar_medido(+bs: List<&2, U32>, +resp: List<&2, U32>,
   medida: O.NumeroRepresentado<B.nat64(B.comprimento(bs))>) ->

@@ -99,6 +99,16 @@ def anexar_fim(n, b, c, w):
     case True{}:
       {==}
 
+# Um passo da inducao: anexar o bit calculado preserva o resultado exato.
+def anexar_resultado_exato(+n: Nat, +b: Bool, +m: Maybe<&2, Word(n)>,
+  +c: Bool, +w: Word(n), exato: {m == fim(n, c, w) : Maybe<&2, Word(n)>}) ->
+  {anexar(n, b, m) == fim(1n+n, c, WCon{b, w}) : Maybe<&2, Word(1n+n)>}:
+  Equal.trans(Maybe<&2, Word(1n+n)>,
+    anexar(n, b, m), anexar(n, b, fim(n, c, w)), fim(1n+n, c, WCon{b, w}),
+    Equal.cong(Maybe<&2, Word(n)>, Maybe<&2, Word(1n+n)>, m => anexar(n, b, m),
+      m, fim(n, c, w), exato),
+    anexar_fim(n, b, c, w))
+
 law soma_exata:
   for +n: Nat
   for +a: Word(n)
@@ -112,70 +122,29 @@ def soma_exata(n, a, b, c):
     case 1n+p:
       match a b c:
         case WCon{False{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, False{}, soma(p, at, bt, False{})),
-            anexar(p, False{}, fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}))),
-            fim(1n+p, carry(p, at, bt, False{}), WCon{False{}, Word.adc(p, at, bt, False{}, False{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, False{}, m),
-              soma(p, at, bt, False{}), fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})), soma_exata(p, at, bt, False{})),
-            anexar_fim(p, False{}, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})))
+          anexar_resultado_exato(p, False{}, soma(p, at, bt, False{}),
+            carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}), soma_exata(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, True{}, soma(p, at, bt, False{})),
-            anexar(p, True{}, fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}))),
-            fim(1n+p, carry(p, at, bt, False{}), WCon{True{}, Word.adc(p, at, bt, False{}, False{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, True{}, m),
-              soma(p, at, bt, False{}), fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})), soma_exata(p, at, bt, False{})),
-            anexar_fim(p, True{}, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})))
+          anexar_resultado_exato(p, True{}, soma(p, at, bt, False{}),
+            carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}), soma_exata(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, True{}, soma(p, at, bt, False{})),
-            anexar(p, True{}, fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}))),
-            fim(1n+p, carry(p, at, bt, False{}), WCon{True{}, Word.adc(p, at, bt, False{}, False{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, True{}, m),
-              soma(p, at, bt, False{}), fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})), soma_exata(p, at, bt, False{})),
-            anexar_fim(p, True{}, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})))
+          anexar_resultado_exato(p, True{}, soma(p, at, bt, False{}),
+            carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}), soma_exata(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, False{}, soma(p, at, bt, True{})),
-            anexar(p, False{}, fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}))),
-            fim(1n+p, carry(p, at, bt, True{}), WCon{False{}, Word.adc(p, at, bt, False{}, True{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, False{}, m),
-              soma(p, at, bt, True{}), fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})), soma_exata(p, at, bt, True{})),
-            anexar_fim(p, False{}, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})))
+          anexar_resultado_exato(p, False{}, soma(p, at, bt, True{}),
+            carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}), soma_exata(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, True{}, soma(p, at, bt, False{})),
-            anexar(p, True{}, fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}))),
-            fim(1n+p, carry(p, at, bt, False{}), WCon{True{}, Word.adc(p, at, bt, False{}, False{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, True{}, m),
-              soma(p, at, bt, False{}), fim(p, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})), soma_exata(p, at, bt, False{})),
-            anexar_fim(p, True{}, carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{})))
+          anexar_resultado_exato(p, True{}, soma(p, at, bt, False{}),
+            carry(p, at, bt, False{}), Word.adc(p, at, bt, False{}, False{}), soma_exata(p, at, bt, False{}))
         case WCon{True{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, False{}, soma(p, at, bt, True{})),
-            anexar(p, False{}, fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}))),
-            fim(1n+p, carry(p, at, bt, True{}), WCon{False{}, Word.adc(p, at, bt, False{}, True{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, False{}, m),
-              soma(p, at, bt, True{}), fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})), soma_exata(p, at, bt, True{})),
-            anexar_fim(p, False{}, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})))
+          anexar_resultado_exato(p, False{}, soma(p, at, bt, True{}),
+            carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}), soma_exata(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, False{}, soma(p, at, bt, True{})),
-            anexar(p, False{}, fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}))),
-            fim(1n+p, carry(p, at, bt, True{}), WCon{False{}, Word.adc(p, at, bt, False{}, True{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, False{}, m),
-              soma(p, at, bt, True{}), fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})), soma_exata(p, at, bt, True{})),
-            anexar_fim(p, False{}, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})))
+          anexar_resultado_exato(p, False{}, soma(p, at, bt, True{}),
+            carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}), soma_exata(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+p)>,
-            anexar(p, True{}, soma(p, at, bt, True{})),
-            anexar(p, True{}, fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}))),
-            fim(1n+p, carry(p, at, bt, True{}), WCon{True{}, Word.adc(p, at, bt, False{}, True{})}),
-            Equal.cong(Maybe<&2, Word(p)>, Maybe<&2, Word(1n+p)>, m => anexar(p, True{}, m),
-              soma(p, at, bt, True{}), fim(p, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})), soma_exata(p, at, bt, True{})),
-            anexar_fim(p, True{}, carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{})))
-
+          anexar_resultado_exato(p, True{}, soma(p, at, bt, True{}),
+            carry(p, at, bt, True{}), Word.adc(p, at, bt, False{}, True{}), soma_exata(p, at, bt, True{}))
 
 law incrementar_anexar_zero:
   for +n: Nat
@@ -447,6 +416,15 @@ def teste_bit(a, b, c, t):
     case True{} True{} True{} GT{}:
       {==}
 
+# A tabela de um bit transporta a comparacao da cauda para a palavra inteira.
+def transportar_teste_bit(+a: Bool, +b: Bool, +c: Bool, +t: Cmp, +r: Bool,
+  cauda: {r == teste(bit_carry(a, b, c), t) : Bool}) ->
+  {r == teste(c, Word.cmp.fin(bit_soma(a, b, c), a, t)) : Bool}:
+  Equal.trans(Bool, r, teste(bit_carry(a, b, c), t),
+    teste(c, Word.cmp.fin(bit_soma(a, b, c), a, t)), cauda,
+    Equal.sym(Bool, teste(c, Word.cmp.fin(bit_soma(a, b, c), a, t)),
+      teste(bit_carry(a, b, c), t), teste_bit(a, b, c, t)))
+
 law carry_equivale_comparacao:
   for +n: Nat
   for +a: Word(n)
@@ -464,77 +442,37 @@ def carry_equivale_comparacao(n, a, b, c):
     case 1n+p:
       match a b c:
         case WCon{False{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Bool, carry(p, at, bt, False{}),
-            teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-            teste(False{}, Word.cmp.fin(False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-            carry_equivale_comparacao(p, at, bt, False{}),
-            Equal.sym(Bool,
-              teste(False{}, Word.cmp.fin(False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-              teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-              teste_bit(False{}, False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))))
+          transportar_teste_bit(False{}, False{}, False{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at),
+            carry(p, at, bt, False{}), carry_equivale_comparacao(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Bool, carry(p, at, bt, False{}),
-            teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-            teste(True{}, Word.cmp.fin(True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-            carry_equivale_comparacao(p, at, bt, False{}),
-            Equal.sym(Bool,
-              teste(True{}, Word.cmp.fin(True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-              teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-              teste_bit(False{}, False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))))
+          transportar_teste_bit(False{}, False{}, True{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at),
+            carry(p, at, bt, False{}), carry_equivale_comparacao(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Bool, carry(p, at, bt, False{}),
-            teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-            teste(False{}, Word.cmp.fin(True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-            carry_equivale_comparacao(p, at, bt, False{}),
-            Equal.sym(Bool,
-              teste(False{}, Word.cmp.fin(True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-              teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-              teste_bit(False{}, True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))))
+          transportar_teste_bit(False{}, True{}, False{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at),
+            carry(p, at, bt, False{}), carry_equivale_comparacao(p, at, bt, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Bool, carry(p, at, bt, True{}),
-            teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-            teste(True{}, Word.cmp.fin(False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-            carry_equivale_comparacao(p, at, bt, True{}),
-            Equal.sym(Bool,
-              teste(True{}, Word.cmp.fin(False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-              teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-              teste_bit(False{}, True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))))
+          transportar_teste_bit(False{}, True{}, True{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at),
+            carry(p, at, bt, True{}), carry_equivale_comparacao(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Bool, carry(p, at, bt, False{}),
-            teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-            teste(False{}, Word.cmp.fin(True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-            carry_equivale_comparacao(p, at, bt, False{}),
-            Equal.sym(Bool,
-              teste(False{}, Word.cmp.fin(True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))),
-              teste(False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at)),
-              teste_bit(True{}, False{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at))))
+          transportar_teste_bit(True{}, False{}, False{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, False{}), at),
+            carry(p, at, bt, False{}), carry_equivale_comparacao(p, at, bt, False{}))
         case WCon{True{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Bool, carry(p, at, bt, True{}),
-            teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-            teste(True{}, Word.cmp.fin(False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-            carry_equivale_comparacao(p, at, bt, True{}),
-            Equal.sym(Bool,
-              teste(True{}, Word.cmp.fin(False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-              teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-              teste_bit(True{}, False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))))
+          transportar_teste_bit(True{}, False{}, True{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at),
+            carry(p, at, bt, True{}), carry_equivale_comparacao(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Bool, carry(p, at, bt, True{}),
-            teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-            teste(False{}, Word.cmp.fin(False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-            carry_equivale_comparacao(p, at, bt, True{}),
-            Equal.sym(Bool,
-              teste(False{}, Word.cmp.fin(False{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-              teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-              teste_bit(True{}, True{}, False{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))))
+          transportar_teste_bit(True{}, True{}, False{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at),
+            carry(p, at, bt, True{}), carry_equivale_comparacao(p, at, bt, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Bool, carry(p, at, bt, True{}),
-            teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-            teste(True{}, Word.cmp.fin(True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-            carry_equivale_comparacao(p, at, bt, True{}),
-            Equal.sym(Bool,
-              teste(True{}, Word.cmp.fin(True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))),
-              teste(True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at)),
-              teste_bit(True{}, True{}, True{}, Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at))))
+          transportar_teste_bit(True{}, True{}, True{},
+            Word.cmp(p, Word.adc(p, at, bt, False{}, True{}), at),
+            carry(p, at, bt, True{}), carry_equivale_comparacao(p, at, bt, True{}))
 
 def juntar_opcional(+k: Nat, -n: Nat, lo: Word(k), m: Maybe<&2, Word(n)>) -> Maybe<&2, Word(Nat.add(k, n))>:
   match m:
@@ -569,6 +507,18 @@ def anexar_juntar(k, n, b, lo, m):
     case Some{hi}:
       {==}
 
+# O mesmo passo de anexacao para a decomposicao em blocos baixo e alto.
+def anexar_resultado_blocos(+k: Nat, +n: Nat, +b: Bool,
+  +m: Maybe<&2, Word(Nat.add(k, n))>, +lo: Word(k), +hi: Maybe<&2, Word(n)>,
+  blocos: {m == juntar_opcional(k, n, lo, hi) : Maybe<&2, Word(Nat.add(k, n))>}) ->
+  {anexar(Nat.add(k, n), b, m) == juntar_opcional(1n+k, n, WCon{b, lo}, hi) : Maybe<&2, Word(1n+Nat.add(k, n))>}:
+  Equal.trans(Maybe<&2, Word(1n+Nat.add(k, n))>,
+    anexar(Nat.add(k, n), b, m), anexar(Nat.add(k, n), b, juntar_opcional(k, n, lo, hi)),
+    juntar_opcional(1n+k, n, WCon{b, lo}, hi),
+    Equal.cong(Maybe<&2, Word(Nat.add(k, n))>, Maybe<&2, Word(1n+Nat.add(k, n))>,
+      m => anexar(Nat.add(k, n), b, m), m, juntar_opcional(k, n, lo, hi), blocos),
+    anexar_juntar(k, n, b, lo, hi))
+
 law soma_blocos:
   for +k: Nat
   for +n: Nat
@@ -587,85 +537,45 @@ def soma_blocos(k, n, al, bl, ah, bh, c):
     case 1n+p:
       match al bl c:
         case WCon{False{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), False{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{})),
-            anexar(Nat.add(p, n), False{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})))),
-            juntar_opcional(1n+p, n, WCon{False{}, Word.adc(p, at, bt, False{}, False{})}, soma(n, ah, bh, carry(p, at, bt, False{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), False{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))),
-              soma_blocos(p, n, at, bt, ah, bh, False{})),
-            anexar_juntar(p, n, False{}, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))))
+          anexar_resultado_blocos(p, n, False{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
+            Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})),
+            soma_blocos(p, n, at, bt, ah, bh, False{}))
         case WCon{False{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), True{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{})),
-            anexar(Nat.add(p, n), True{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})))),
-            juntar_opcional(1n+p, n, WCon{True{}, Word.adc(p, at, bt, False{}, False{})}, soma(n, ah, bh, carry(p, at, bt, False{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), True{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))),
-              soma_blocos(p, n, at, bt, ah, bh, False{})),
-            anexar_juntar(p, n, True{}, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))))
+          anexar_resultado_blocos(p, n, True{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
+            Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})),
+            soma_blocos(p, n, at, bt, ah, bh, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), True{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{})),
-            anexar(Nat.add(p, n), True{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})))),
-            juntar_opcional(1n+p, n, WCon{True{}, Word.adc(p, at, bt, False{}, False{})}, soma(n, ah, bh, carry(p, at, bt, False{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), True{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))),
-              soma_blocos(p, n, at, bt, ah, bh, False{})),
-            anexar_juntar(p, n, True{}, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))))
+          anexar_resultado_blocos(p, n, True{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
+            Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})),
+            soma_blocos(p, n, at, bt, ah, bh, False{}))
         case WCon{False{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), False{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{})),
-            anexar(Nat.add(p, n), False{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})))),
-            juntar_opcional(1n+p, n, WCon{False{}, Word.adc(p, at, bt, False{}, True{})}, soma(n, ah, bh, carry(p, at, bt, True{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), False{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))),
-              soma_blocos(p, n, at, bt, ah, bh, True{})),
-            anexar_juntar(p, n, False{}, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))))
+          anexar_resultado_blocos(p, n, False{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
+            Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})),
+            soma_blocos(p, n, at, bt, ah, bh, True{}))
         case WCon{True{}, +at} WCon{False{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), True{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{})),
-            anexar(Nat.add(p, n), True{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})))),
-            juntar_opcional(1n+p, n, WCon{True{}, Word.adc(p, at, bt, False{}, False{})}, soma(n, ah, bh, carry(p, at, bt, False{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), True{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))),
-              soma_blocos(p, n, at, bt, ah, bh, False{})),
-            anexar_juntar(p, n, True{}, Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{}))))
+          anexar_resultado_blocos(p, n, True{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), False{}),
+            Word.adc(p, at, bt, False{}, False{}), soma(n, ah, bh, carry(p, at, bt, False{})),
+            soma_blocos(p, n, at, bt, ah, bh, False{}))
         case WCon{True{}, +at} WCon{False{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), False{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{})),
-            anexar(Nat.add(p, n), False{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})))),
-            juntar_opcional(1n+p, n, WCon{False{}, Word.adc(p, at, bt, False{}, True{})}, soma(n, ah, bh, carry(p, at, bt, True{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), False{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))),
-              soma_blocos(p, n, at, bt, ah, bh, True{})),
-            anexar_juntar(p, n, False{}, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))))
+          anexar_resultado_blocos(p, n, False{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
+            Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})),
+            soma_blocos(p, n, at, bt, ah, bh, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} False{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), False{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{})),
-            anexar(Nat.add(p, n), False{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})))),
-            juntar_opcional(1n+p, n, WCon{False{}, Word.adc(p, at, bt, False{}, True{})}, soma(n, ah, bh, carry(p, at, bt, True{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), False{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))),
-              soma_blocos(p, n, at, bt, ah, bh, True{})),
-            anexar_juntar(p, n, False{}, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))))
+          anexar_resultado_blocos(p, n, False{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
+            Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})),
+            soma_blocos(p, n, at, bt, ah, bh, True{}))
         case WCon{True{}, +at} WCon{True{}, +bt} True{}:
-          Equal.trans(Maybe<&2, Word(1n+Nat.add(p, n))>,
-            anexar(Nat.add(p, n), True{}, soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{})),
-            anexar(Nat.add(p, n), True{}, juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})))),
-            juntar_opcional(1n+p, n, WCon{True{}, Word.adc(p, at, bt, False{}, True{})}, soma(n, ah, bh, carry(p, at, bt, True{}))),
-            Equal.cong(Maybe<&2, Word(Nat.add(p, n))>, Maybe<&2, Word(1n+Nat.add(p, n))>, m => anexar(Nat.add(p, n), True{}, m),
-              soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
-              juntar_opcional(p, n, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))),
-              soma_blocos(p, n, at, bt, ah, bh, True{})),
-            anexar_juntar(p, n, True{}, Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{}))))
+          anexar_resultado_blocos(p, n, True{},
+            soma(Nat.add(p, n), W.juntar(p, n, at, ah), W.juntar(p, n, bt, bh), True{}),
+            Word.adc(p, at, bt, False{}, True{}), soma(n, ah, bh, carry(p, at, bt, True{})),
+            soma_blocos(p, n, at, bt, ah, bh, True{}))
 
 law soma_zero_direita:
   for +n: Nat

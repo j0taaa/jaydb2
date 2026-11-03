@@ -354,25 +354,22 @@ fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<V
     let (state, response) = match output.first() {
         Some(1) => {
             let (state, response) = split(&output[1..])?;
-            (Some(state.to_vec()), response.to_vec())
+            (Some(state), response)
         }
-        Some(0) => (None, output[1..].to_vec()),
+        Some(0) => (None, &output[1..]),
         _ => return Err(Error::new("HOST_TRANSPORT", "invalid publication marker")),
     };
-    if state
-        .as_ref()
-        .is_some_and(|state| state.len() as u64 > limits.state)
-    {
+    if state.is_some_and(|state| state.len() as u64 > limits.state) {
         return Err(Error::new(
             "HOST_TRANSPORT",
             "proposed state exceeds logical limit",
         ));
     }
-    let (response_body, trailing) = split(&response)?;
+    let (response_body, trailing) = split(response)?;
     if !trailing.is_empty() || response_body.len() as u64 > limits.response {
         return Err(Error::new("HOST_TRANSPORT", "invalid proposed response"));
     }
-    Ok((response, state))
+    Ok((response.to_vec(), state.map(|state| state.to_vec())))
 }
 
 struct Database {
@@ -698,7 +695,7 @@ mod tests {
         let limits = Limits {
             message: 100,
             state: 3,
-            response: 100,
+            response: error_frame("sucesso").len() as u64 - 8,
         };
         let mut published = Published {
             state: b"old".to_vec(),
@@ -718,7 +715,9 @@ mod tests {
             vec![],
             vec![2],
             vec![1, 0],
+            [vec![0], error_frame("certificado")].concat(),
             [vec![1], packet(b"long", &error_frame("sucesso"))].concat(),
+            [vec![1], packet(b"new", &error_frame("certificado"))].concat(),
             [vec![1], packet(b"new", b"unframed")].concat(),
             [
                 vec![1],

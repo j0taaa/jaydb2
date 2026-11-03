@@ -5,11 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { sha256 as digest } from '../admission/bootstrap.mjs';
 import { header } from '../admission/preflight.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const utf8 = bytes => new TextDecoder('utf-8', { fatal: true }).decode(bytes);
 const read = name => fs.readFileSync(name);
 const write = (name, bytes) => { fs.mkdirSync(path.dirname(name), { recursive: true, mode: 0o700 }); fs.writeFileSync(name, bytes, { flag: 'wx', mode: 0o600 }); };
@@ -101,6 +100,21 @@ function imports(data) {
   return result;
 }
 
+// Both the executable and its pure check use the same staged import graph.
+function sourceClosure(available, entries, missing, reverseImports = true) {
+  const selected = new Map(), pending = [...entries];
+  while (pending.length) {
+    const name = pending.pop();
+    if (selected.has(name)) continue;
+    if (!available.has(name)) fail('DEPENDENCY', missing + name);
+    const data = available.get(name);
+    selected.set(name, data);
+    const children = imports(data).map(imp => path.posix.normalize(path.posix.join(path.posix.dirname(name), imp)));
+    pending.push(...(reverseImports ? children.reverse() : children));
+  }
+  return selected;
+}
+
 function loadAdministrator(configuration, seed, sources) {
   const root = path.dirname(fs.realpathSync(configuration));
   const privateSeed = fs.realpathSync(seed);
@@ -187,15 +201,8 @@ function stage(environment, directory, purpose, metadata) {
     main = EXECUTE;
   } else fail('DEPENDENCY', 'Finalidade inválida');
   available.set('Main.bend', Buffer.from(main));
-  const selected = new Map(), pending = ['Main.bend'];
-  if (purpose === 'execute') pending.push('Interface.bend');
-  while (pending.length) {
-    const name = pending.pop();
-    if (selected.has(name)) continue;
-    if (!available.has(name)) fail('DEPENDENCY', 'Dependência não admitida: ' + name);
-    const data = available.get(name); selected.set(name, data);
-    pending.push(...imports(data).map(imp => path.posix.normalize(path.posix.join(path.posix.dirname(name), imp))).reverse());
-  }
+  const entries = purpose === 'execute' ? ['Main.bend', 'Interface.bend'] : ['Main.bend'];
+  const selected = sourceClosure(available, entries, 'Dependência não admitida: ');
   const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [] };
   for (const [name, original] of selected) {
     const data = name === 'Native.bend' && purpose !== 'execute' ? original.subarray(0, original.indexOf('\ntype Iteracao')) : original;
@@ -227,14 +234,7 @@ function stage(environment, directory, purpose, metadata) {
       ? 'import Base\nimport ./Configuration.bend as C\nimport ./Seed.bend as Seed\nimport ./Requisitos.bend as R\n'
       : 'import Base\nimport ./Bindings.bend as Bindings\nimport ./ClientProof.bend as ClientProof\nimport ./Interface.bend as I\n';
     write(path.join(directory, 'Check.bend'), check);
-    const names = new Set(), pending = imports(Buffer.from(check));
-    while (pending.length) {
-      const name = pending.pop();
-      if (names.has(name)) continue;
-      if (!available.has(name)) fail('DEPENDENCY', 'Dependência pura não admitida: ' + name);
-      names.add(name);
-      pending.push(...imports(available.get(name)).map(imp => path.posix.normalize(path.posix.join(path.posix.dirname(name), imp))));
-    }
+    const names = sourceClosure(available, imports(Buffer.from(check)), 'Dependência pura não admitida: ', false);
     if (names.has('Native.bend')) fail('KERNEL_CAPTURE', 'O conjunto puro alcança Native');
     const pure = { submissionDir: manifest.submissionDir, entry: 'Check.bend', dependencies: [
       ...manifest.dependencies.filter(d => names.has(d.path)),
