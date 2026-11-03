@@ -52,7 +52,7 @@ function snapshot(root, relative, expected, foreign = false) {
     const bytes = fs.readFileSync(fd);
     const digest = sha256(bytes);
     if (digest !== expected) fail('HASH', `Source differs from the host hash: ${relative}`);
-    const text = new TextDecoder('utf-8', { fatal: true, ignoreGOOD: true }).decode(bytes);
+    const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
     return { text, sha256: digest, bytes: bytes.length };
   } finally {
     fs.closeSync(fd);

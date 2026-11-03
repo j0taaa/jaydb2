@@ -86,6 +86,9 @@ test('kernel infrastructure failure cannot admit a submission', async t => {
 // A public report/source record cannot forge the private checked-Book handle.
 test('preflight preserves bytes and emission requires an authentic handle', t => {
   const f = fixture(t);
+  const source = '\uFEFF' + f.read('Client.bend');
+  f.write('Client.bend', source);
+  f.bindCode();
   assert.equal(preflight(f.manifest()).records.get('Client.bend').text, f.read('Client.bend'));
   assert.throws(() => emitC({ sources: [], report: { primary: true, bendtt: true } }),
     error => error.code === 'BOOK_CHANGED');
