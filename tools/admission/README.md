@@ -23,6 +23,13 @@ There are no alternative Safe layouts, custom instance closure, generated `sourc
 
 Application bindings still require the actual configuration, code, context, and arguments. Published state is not copied into the compilation directory.
 
+The optional host manifest mode `certificateMode: 'universal'` requires an
+exact certificate quantified over `ctx` and `args`, and rejects all transitive
+client captures of concrete `Instance.context`/`Instance.arguments`. This is
+used by [prepared programs](../service/PREPARED_PROGRAMS.md); the default
+`concrete` mode retains per-call certificates. Both modes use the same official
+checkers, source binding, purity policy and checked-Book compilation.
+
 ## Kernel boundary
 
 `admitKernel` admits trusted JayDB wrappers. Only their registered foreign declarations receive integration permission; clients do not receive that capability. Initialization requires a seed-validity proof for the actual configuration. The host compiles official C without rewriting it and runs each call in a child process, retaining publication in the host.

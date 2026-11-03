@@ -71,6 +71,42 @@ test('private host capture is rejected', async t => {
   await rejected(f.manifest(), ['HOST_CAPTURE']);
 });
 
+test('universal targets reject concrete substitution and transitive captured values', async t => {
+  const prepare = () => {
+    const f = fixture(t);
+    f.write('Bindings.bend', f.read('Bindings.bend').replace(
+      'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())',
+      '@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)'));
+    f.write('ClientProof.bend', f.read('ClientProof.bend').replace(
+      'def B.certificate(s, valid, identity, n):', 'def B.certificate(ctx, args, s, valid, identity, n):'));
+    f.write('Bindings.bend', f.read('Bindings.bend') + '\ndef proof_source() -> String:\n  ' +
+      JSON.stringify(f.read('ClientProof.bend')) + '\n');
+    return f;
+  };
+  const concrete = fixture(t);
+  await rejected({ ...concrete.manifest(), certificateMode: 'universal' }, ['TARGET']);
+  const f = prepare();
+  const admitted = await admitSubmission({ ...f.manifest(), certificateMode: 'universal' });
+  assert.equal(admitted.report.certificateMode, 'universal');
+  const source = prepare();
+  source.write('Client.bend', source.read('Client.bend') + '\n# new source\n');
+  await rejected({ ...source.manifest(), certificateMode: 'universal' }, ['SOURCE_BINDING']);
+  const proofSource = prepare();
+  proofSource.write('ClientProof.bend', proofSource.read('ClientProof.bend') + '\n# different proof bytes\n');
+  await rejected({ ...proofSource.manifest(), certificateMode: 'universal' }, ['SOURCE_BINDING']);
+  for (const captured of ['context', 'arguments']) {
+    const g = prepare();
+    // A library alias and a generic helper cannot launder a concrete host
+    // value. Audit runs both before and after official checked specializations.
+    g.write('Capture.bend', `import Base\nimport ./Instance.bend as Alias\nimport ./Data.bend as D\n` +
+      `def capture(~A: Type, x: A) -> D.${captured === 'context' ? 'Context' : 'Value'}:\n  Alias.${captured}()\n`, 'library');
+    g.write('Client.bend', 'import ./Capture.bend as Indirect\n' + g.read('Client.bend') +
+      `\ndef hidden() -> D.${captured === 'context' ? 'Context' : 'Value'}:\n  Indirect.capture(Unit, Unit{})\n`);
+    g.bindCode();
+    await rejected({ ...g.manifest(), certificateMode: 'universal' }, ['HOST_CAPTURE']);
+  }
+});
+
 // A kernel execution failure is a technical failure, never a mathematical verdict.
 test('kernel infrastructure failure cannot admit a submission', async t => {
   const f = fixture(t), spawn = child.spawnSync;

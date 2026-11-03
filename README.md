@@ -75,6 +75,13 @@ reads a sequence of responses and prints one JSON line per response.
 Configuration and dependencies are public and immutable; seed and current
 state remain private.
 
+The optional [prepared-program protocol](tools/service/PREPARED_PROGRAMS.md)
+admits a universally certified program once and returns an instance-local
+handle for repeated native execution with fresh authentication and arguments.
+Use `--prepare`, `--handle`, or `--invalidate` with the Python client. Concrete
+per-call proofs keep their existing route. Control receipts and handle
+resolution extend the ordinary protocol and have a separate integration scope.
+
 Current `main` uses English-only public names: request fields are
 `arguments`, `code`, `credential`, and `proof`; responses use `status` and
 `value`; logical limits are `message`, `state`, and `response`; user records

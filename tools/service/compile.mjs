@@ -10,6 +10,7 @@ try {
   const toolchain = { sourceDir, kernelPath };
   if (pureManifestFile) {
     const pure = JSON.parse(fs.readFileSync(pureManifestFile, 'utf8'));
+    if (pure.certificateMode !== manifest.certificateMode) throw new Error('Pure and executable certificate modes differ');
     const fullHashes = new Map(manifest.dependencies.map(d => [d.path, d.sha256]));
     for (const dependency of pure.dependencies) if (dependency.path !== pure.entry && fullHashes.get(dependency.path) !== dependency.sha256)
       throw new Error('Pure and executable sources differ');

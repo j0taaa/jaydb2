@@ -8,20 +8,20 @@ import tempfile
 import time
 import unittest
 
-from tools.client import frame, unframe
+from tools.client import frame, prepared_frame, unframe
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 class Server:
     """Development harness only; the production server is the Rust executable."""
-    def __init__(self, folder):
+    def __init__(self, folder, env=None):
         self.errors = tempfile.TemporaryFile()
         self.process = subprocess.Popen([
             str(ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend'),
             '--seed', str(folder/'Seed.bend')], cwd=ROOT,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors,
-            start_new_session=True)
+            start_new_session=True, env=env)
 
     def diagnostics(self):
         return os.pread(self.errors.fileno(), os.fstat(self.errors.fileno()).st_size, 0).decode('utf-8', 'replace')
@@ -40,8 +40,14 @@ class Server:
         return bytes(result)
 
     def call(self, code, proof, credential, arguments=None):
-        self.process.stdin.write(frame({'code': code, 'proof': proof,
-                                        'credential': credential, 'arguments': arguments}))
+        return self.exchange(frame({'code': code, 'proof': proof,
+                                    'credential': credential, 'arguments': arguments}))
+
+    def prepared(self, operation, code, credential, arguments=None, proof=''):
+        return self.exchange(prepared_frame(operation, code, credential, arguments, proof))
+
+    def exchange(self, message):
+        self.process.stdin.write(message)
         self.process.stdin.flush()
         header = self.read(8)
         return unframe(header + self.read(int.from_bytes(header, 'big')))

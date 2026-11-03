@@ -13,6 +13,11 @@ physical budget, observer, or execution deadline.
 
 ## Call path
 
+The optional [prepared-program extension](PREPARED_PROGRAMS.md) checks a
+universal certificate and compiles once, then reuses an instance-local native
+worker with current authentication, state, and arguments. Its controls and
+receipts have a separate protocol boundary from the ordinary path below.
+
 1. The host reads framing and checks message size.
 2. Official Bend programs decode and authenticate against published state.
 3. Admission checks source, dependencies, and proof with official tools against
@@ -39,7 +44,7 @@ The Rust host owns each process and its pipes. Local threads feed input and
 drain stdout/stderr concurrently to avoid pipe deadlocks. The host waits for
 child exit and complete reading before accepting a proposal.
 
-There is no DSO, lease, `dlclose`, registry, or replacement runtime. Child exit
+There is no DSO, lease, `dlclose`, or replacement runtime. Child exit
 releases its resources. A child failure returns `failure` without publishing, and
 the host can serve the next call. Uncertain ownership ends use of the instance
 without repeating a potentially consumed operation.
