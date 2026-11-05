@@ -3,6 +3,12 @@ import Base
 import ../../native/effects.bend as N
 import ../../library/Value.bend as V
 import ../../library/Int64.bend as I
+import ../../contract/Data.bend as D
+import ../../library/Key.bend as K
+import ../../library/Sequence.bend as Q
+import ../../library/Aggregate.bend as G
+import ../../library/Summary.bend as H
+import ../../library/Relation.bend as J
 
 def bytes(x: U32) -> List<&2, U32>:
   +x = x
@@ -30,13 +36,49 @@ def division(x: Maybe<&2, I.Division>) -> List<&2, U32>:
 def word(a: U32, b: U32, c: U32, d: U32) -> U32:
   U32.add(U32.add(a, U32.mul(b, 256)), U32.add(U32.mul(c, 65536), U32.mul(d, 16777216)))
 
-def operation(op: U32, a: V.Int64, b: V.Int64) -> List<&2, U32>:
+def less(a: D.Value, b: D.Value) -> Bool:
+  match a b:
+    case D.VInt{h,l} D.VInt{i,j}: I.lt(V.Int64{h,l}, V.Int64{i,j})
+    case _ _: False{}
+
+def key(v: D.Value) -> String:
+  match v:
+    case D.VInt{h,l}: K.encode([U32.show(h), U32.show(l)])
+    case _: ""
+
+def sorted_output(xs: List<&2, D.Value>) -> List<&2, U32>:
+  match xs:
+    case Nil{}: Nil{}
+    case Con{D.VInt{h,l}, rest}: append(output(V.Int64{h,l}), sorted_output(rest))
+    case _: [255]
+
+def stats(result: Maybe<&2, H.Stats>) -> List<&2, U32>:
+  match result:
+    case None{}: [0]
+    case Some{H.Stats{n,s}}: Con{1, append(output(n), output(s))}
+
+def count_values(xs: List<&2, D.Value>) -> U32:
+  match xs:
+    case Nil{}: 0
+    case Con{x,rest}: U32.inc(count_values(rest))
+
+def count_groups(xs: List<&2, Q.Group>) -> U32:
+  match xs:
+    case Nil{}: 0
+    case Con{x,rest}: U32.inc(count_groups(rest))
+
+def operation(op: U32, +a: V.Int64, +b: V.Int64) -> List<&2, U32>:
   match op:
     case 0: maybe(I.add(a, b))
     case 1: maybe(I.sub(a, b))
     case 2: maybe(I.mul(a, b))
     case 3: division(I.divmod(a, b))
     case 4: [Bool.to_u32(I.lt(a, b))]
+    case 5: Con{1, sorted_output(Q.sort(~less, [V.int_value(a), V.int_value(b)]))}
+    case 6: maybe(G.average([a,b]))
+    case 7: stats(H.compute([a,b]))
+    case 8: [count_values(J.inner(~key, ~key, [V.int_value(a)], [V.int_value(a), V.int_value(b)]))]
+    case 9: [count_groups(Q.group(~key, [V.int_value(a), V.int_value(b), V.int_value(a)]))]
     case _: [255]
 
 def run(xs: List<&2, U32>) -> List<&2, U32>:

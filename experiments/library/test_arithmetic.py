@@ -31,9 +31,29 @@ def main():
     pairs += [(rng.randrange(MIN, MAX + 1), rng.randrange(MIN, MAX + 1)) for _ in range(100)]
     pairs += [(rng.randrange(MIN, MAX + 1), rng.randrange(-3, 4)) for _ in range(100)]
     incoming, expected = bytearray(), bytearray()
-    for op in range(5):
+    for op in range(10):
         for a, b in pairs:
             incoming += bytes([op]) + struct.pack('<qq', a, b)
+            if op == 5:
+                expected += b'\1' + struct.pack('<qq', min(a, b), max(a, b))
+                continue
+            if op == 6:
+                total = a + b
+                if MIN <= total <= MAX:
+                    expected += b'\1' + struct.pack('<q', (abs(total) // 2) * (-1 if total < 0 else 1))
+                else:
+                    expected += b'\0'
+                continue
+            if op == 7:
+                total = a + b
+                expected += b'\1' + struct.pack('<qq', 2, total) if MIN <= total <= MAX else b'\0'
+                continue
+            if op == 8:
+                expected += bytes([2 if a == b else 1])
+                continue
+            if op == 9:
+                expected += bytes([1 if a == b else 2])
+                continue
             if op == 4:
                 expected += bytes([a < b])
                 continue
@@ -49,7 +69,7 @@ def main():
     actual = subprocess.run([str(binary), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
                             input=incoming, capture_output=True, check=True, timeout=120).stdout
     assert actual == expected, (len(actual), len(expected), next((i for i, p in enumerate(zip(actual, expected)) if p[0] != p[1]), None))
-    print(f'PASS: {len(pairs) * 5} native dynamic signed64 add/sub/mul/divmod/order cases; official C unchanged.')
+    print(f'PASS: {len(pairs) * 5} native dynamic signed64 add/sub/mul/divmod/order cases and {len(pairs) * 5} sort/average/summary/join/group cases; official C unchanged.')
 
 
 if __name__ == '__main__':
