@@ -51,6 +51,7 @@ pub trait SerialService {
     fn publish(&mut self, completion: Self::Completion) -> crate::Result<Vec<u8>>;
 }
 
+#[cfg(test)]
 pub fn coordinate(
     queue: &FrameQueue,
     output: &mut impl io::Write,
@@ -200,6 +201,20 @@ impl FrameQueue {
             }
             state = self.shared.changed.wait(state).unwrap();
         }
+    }
+
+    /// Select only an already-enqueued qualifying head. Never skip a barrier,
+    /// consume a terminal event, or wait for a batch to fill.
+    pub fn select_if(&self, eligible: impl FnOnce(&[u8]) -> bool) -> Option<Vec<u8>> {
+        let mut state = self.shared.state.lock().unwrap();
+        if !state.frames.front().is_some_and(|body| eligible(body)) {
+            return None;
+        }
+        let body = state.frames.pop_front().expect("checked head");
+        state.items -= 1;
+        state.bytes -= body.len();
+        self.shared.changed.notify_all();
+        Some(body)
     }
 
     /// Cancel blocked reads/capacity waits and join the sole owned reader.

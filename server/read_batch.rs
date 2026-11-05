@@ -197,3 +197,50 @@ mod execution_tests {
         assert_eq!(active.load(Ordering::SeqCst), 0);
     }
 }
+
+pub(super) trait Service: super::SerialService {
+    fn max_readers(&self) -> usize;
+    fn is_read(&self, body: &[u8]) -> bool;
+    fn reads(
+        &mut self,
+        bodies: Vec<Vec<u8>>,
+        output: &mut impl std::io::Write,
+    ) -> super::Result<()>;
+}
+
+pub(super) fn coordinate(
+    queue: &super::FrameQueue,
+    output: &mut impl std::io::Write,
+    service: &mut impl Service,
+) -> super::Result<()> {
+    use super::scheduling::{FrameEvent, InputEnd};
+    loop {
+        let response = match queue.select() {
+            FrameEvent::Request(body) => {
+                if service.max_readers() > 1 && service.is_read(&body) {
+                    let mut batch = vec![body];
+                    while batch.len() < service.max_readers() {
+                        match queue.select_if(|next| service.is_read(next)) {
+                            Some(next) => batch.push(next),
+                            None => break,
+                        }
+                    }
+                    service.reads(batch, output)?;
+                    continue;
+                }
+                let completed = service.execute(&body);
+                drop(body);
+                service.publish(completed)?
+            }
+            FrameEvent::End(InputEnd::Eof) => return Ok(()),
+            FrameEvent::End(InputEnd::Failed(error)) => return Err(error.into()),
+            FrameEvent::End(InputEnd::Framing(status)) => {
+                output.write_all(&super::error_frame(status))?;
+                output.flush()?;
+                return Ok(());
+            }
+        };
+        output.write_all(&response)?;
+        output.flush()?;
+    }
+}

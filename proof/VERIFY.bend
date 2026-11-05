@@ -32,3 +32,5 @@ import ./ErrorLimitFixed.bend as ErrorLimitFixed
 import ./ErrorsFixed.bend as ErrorsFixed
 import ./PreparedPrograms.bend as PreparedPrograms
 import ./Preprocessing.bend as Preprocessing
+
+import ./ReadBatches.bend as ReadBatches

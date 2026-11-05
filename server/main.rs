@@ -1,7 +1,9 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
 mod read_batch;
 mod scheduling;
-use scheduling::{FrameInput, FrameQueue, PollInput, QueueBounds, SerialService};
+#[cfg(test)]
+use scheduling::FrameInput;
+use scheduling::{FrameQueue, PollInput, QueueBounds, SerialService};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -403,6 +405,7 @@ struct Database {
     inspection_sequence: u64,
     prepared: HashMap<String, PreparedProgram>,
     threads: usize,
+    read_workers: usize,
 }
 
 struct PreparedProgram {
@@ -513,6 +516,7 @@ impl Database {
             inspection_sequence: 0,
             prepared: HashMap::new(),
             threads: options.threads,
+            read_workers: options.read_workers,
         };
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -538,22 +542,13 @@ impl Database {
         Ok(database)
     }
 
-    fn inspect(&mut self, mut metadata: Value) {
-        if let Some(stream) = &mut self.inspector {
-            metadata["sequence"] = self.inspection_sequence.into();
-            // Preserve the exact canonical state bytes already owned by the
-            // host; the inspector does not compute or publish another state.
-            let result = (|| -> io::Result<()> {
-                let encoded = serde_json::to_vec(&metadata)?;
-                stream.write_all(&packet(&encoded, &[]))?;
-                stream.write_all(&packet(&self.published.state, &[]))?;
-                stream.flush()
-            })();
-            if let Err(error) = result {
-                eprintln!("jaydb2: INSPECTOR: {error}");
-                self.inspector = None;
-            }
-        }
+    fn inspect(&mut self, metadata: Value) {
+        inspect_snapshot(
+            &mut self.inspector,
+            self.inspection_sequence,
+            &self.published.state,
+            metadata,
+        );
     }
 
     fn publish_completed(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Vec<u8> {
@@ -746,12 +741,39 @@ impl Database {
     }
 
     fn serve(&mut self) -> Result<()> {
-        serve_serial(
+        let mut queue = FrameQueue::start(
             PollInput(io::stdin()),
-            &mut io::stdout().lock(),
             self.limits.message,
-            self,
-        )
+            QueueBounds::for_message_limit(self.limits.message)?,
+        )?;
+        let result = read_batch::coordinate(&queue, &mut io::stdout().lock(), self);
+        let cleanup = queue.close();
+        result?;
+        cleanup?;
+        Ok(())
+    }
+}
+
+fn inspect_snapshot(
+    inspector: &mut Option<UnixStream>,
+    sequence: u64,
+    state: &[u8],
+    mut metadata: Value,
+) {
+    if let Some(stream) = inspector {
+        metadata["sequence"] = sequence.into();
+        // Preserve the exact canonical state bytes already owned by the
+        // host; the inspector does not compute or publish another state.
+        let result = (|| -> io::Result<()> {
+            let encoded = serde_json::to_vec(&metadata)?;
+            stream.write_all(&packet(&encoded, &[]))?;
+            stream.write_all(&packet(state, &[]))?;
+            stream.flush()
+        })();
+        if let Err(error) = result {
+            eprintln!("jaydb2: INSPECTOR: {error}");
+            *inspector = None;
+        }
     }
 }
 
@@ -769,6 +791,104 @@ impl SerialService for Database {
     }
 }
 
+// All borrows are immutable during a batch; registry mutation is exclusive.
+fn read_proposal(
+    authenticate: &Program,
+    prepared: &HashMap<String, PreparedProgram>,
+    limits: &Limits,
+    state: &[u8],
+    body: &[u8],
+    threads: usize,
+) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    let handle = read_batch::candidate(body)
+        .ok_or_else(|| Error::new("READ_DISPATCH", "invalid read selection"))?;
+    let input = packet(state, &body[2..]);
+    let authenticated = authenticate.run(&input, threads)?;
+    match authenticated.first() {
+        Some(0) => return Ok((authenticated[1..].to_vec(), None)),
+        Some(1) => {}
+        _ => return Err(Error::new("HOST_TRANSPORT", "invalid preprocessing result")),
+    }
+    let (code, rest) = split(&authenticated[1..])?;
+    let (proof, _) = split(rest)?;
+    if !proof.is_empty() {
+        return Ok((error_frame("input"), None));
+    }
+    if code != handle.as_bytes() {
+        return Err(Error::new("READ_DISPATCH", "handle selection mismatch"));
+    }
+    let program = prepared
+        .get(handle)
+        .filter(|p| p.read_only)
+        .ok_or_else(|| Error::new("READ_DISPATCH", "uncertified read selection"))?;
+    program.validate()?;
+    let (response, proposed) = checked_proposal(&program.program.run(&input, threads)?, limits)?;
+    if proposed.as_ref().is_some_and(|next| next != state) {
+        return Err(Error::new("READ_STATE", "certified read changed state"));
+    }
+    Ok((response, proposed))
+}
+
+impl read_batch::Service for Database {
+    fn max_readers(&self) -> usize {
+        self.read_workers
+    }
+    fn is_read(&self, body: &[u8]) -> bool {
+        read_batch::candidate(body)
+            .and_then(|handle| self.prepared.get(handle))
+            .is_some_and(|p| p.read_only)
+    }
+    fn reads(&mut self, bodies: Vec<Vec<u8>>, output: &mut impl Write) -> Result<()> {
+        let state = &self.published.state;
+        let last_response = &mut self.published.response;
+        let registry = &self.prepared;
+        let auth = &self.authenticate;
+        let limits = &self.limits;
+        let inspector = &mut self.inspector;
+        let sequence = &mut self.inspection_sequence;
+        // --threads is the total native CPU-worker budget, split across the
+        // fixed maximum batch size. Every call still starts fresh processes.
+        let threads = self.threads / self.read_workers;
+        read_batch::execute(
+            bodies,
+            |body| {
+                let result = read_proposal(auth, registry, limits, state, &body, threads);
+                // No returned state is retained while earlier reads await delivery.
+                result.map(|(response, next)| (response, next.is_some()))
+            },
+            |result| {
+                let diagnostic = result
+                    .as_ref()
+                    .err()
+                    .map(|e| serde_json::json!({"code":e.code,"message":e.message}));
+                let response = match result {
+                    Ok((response, publish)) => {
+                        if publish {
+                            *last_response = response.clone();
+                        }
+                        response
+                    }
+                    Err(error) => {
+                        eprintln!("jaydb2: {}: {}", error.code, error.message);
+                        error.response()
+                    }
+                };
+                *sequence += 1;
+                inspect_snapshot(
+                    inspector,
+                    *sequence,
+                    state,
+                    serde_json::json!({"event":"completed", "read_batch":true, "diagnostic":diagnostic}),
+                );
+                output.write_all(&response)?;
+                output.flush()?;
+                Ok(())
+            },
+        )
+    }
+}
+
+#[cfg(test)]
 fn serve_serial(
     input: impl FrameInput,
     output: &mut impl Write,
@@ -792,6 +912,7 @@ struct Options {
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
     threads: usize,
+    read_workers: usize,
 }
 
 // The pinned official Bend runtime supports up to 128 CPU workers.
@@ -826,13 +947,14 @@ impl Options {
         let mut seed = None;
         let mut inspect_socket = None;
         let mut threads = default_threads();
+        let mut read_workers = 1;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE --seed FILE [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]\n\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)"
+                    "Usage: jaydb2 --configuration FILE --seed FILE [--threads N] [--read-workers N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]\n\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1)"
                 );
                 return Ok(None);
             }
@@ -846,6 +968,15 @@ impl Options {
                 Some("--bendtt") => kernel = PathBuf::from(value),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 Some("--threads") => threads = parse_threads(&value)?,
+                Some("--read-workers") => {
+                    read_workers = parse_threads(&value)?;
+                    if read_workers > 16 {
+                        return Err(Error::new(
+                            "ARGUMENT",
+                            "--read-workers must be from 1 to 16",
+                        ));
+                    }
+                }
                 _ => {
                     return Err(Error::new(
                         "ARGUMENT",
@@ -853,6 +984,12 @@ impl Options {
                     ));
                 }
             }
+        }
+        if read_workers > threads {
+            return Err(Error::new(
+                "ARGUMENT",
+                "--read-workers cannot exceed --threads",
+            ));
         }
         Ok(Some(Self {
             root,
@@ -867,6 +1004,7 @@ impl Options {
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
             threads,
+            read_workers,
         }))
     }
 }
