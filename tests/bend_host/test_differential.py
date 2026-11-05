@@ -7,6 +7,17 @@ from tests.service.test_end_to_end import ROOT, Server
 from tests.service.test_prepared import universal_access_proof
 
 class DifferentialTests(unittest.TestCase):
+    def test_host_owned_runtime_options_ignore_environment(self):
+        folder=ROOT/'examples/access'
+        with patch.dict(os.environ, {'JAYDB2_TEST_HOST':str(ROOT/'jaydb2')}):
+            host=Server(folder,threads=1,env=dict(os.environ,BENDRTS='--gpu-build'))
+        self.addCleanup(host.close)
+        self.assertEqual(host.call((folder/'Client.bend').read_text(),
+                                  (folder/'ClientProof.bend').read_text(),
+                                  'alice-token','alice-new'),
+                         {'status':'success','value':'alice-new'},host.diagnostics())
+        host.finish()
+
     def test_ordinary_prepared_fresh_auth_and_invalidation(self):
         folder=ROOT/'examples/access'
         code=(folder/'Client.bend').read_text()

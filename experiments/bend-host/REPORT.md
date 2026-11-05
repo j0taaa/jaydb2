@@ -240,3 +240,27 @@ not claimed on the Bend route until their accepted contracts are ported and
 validated. In particular this route currently reads one frame at a time, has
 no durable commit, and intentionally does not accept flags for those unported
 extensions. No advanced-library dependency is needed.
+
+## Independent audit repair
+
+A post-completion audit reproduced an inherited-runtime-policy bug: launching
+the service with `BENDRTS=--gpu-build` returned exit code zero with no protocol
+output, because the official native controller honored that early-exit option.
+Explicit `--gpu off` does not neutralize the independent build flag. The
+launcher now clears `BENDRTS` for the controller, and the OS adapter clears it
+for every native worker. No official compiler/runtime or Bend controller
+source was changed.
+
+Verification after the repair:
+
+- `node --test tests/bend_host/adapter.test.mjs
+  tests/bend_host/controller.test.mjs tests/bend_host/options.test.mjs`: **8/8
+  passed**, including a new worker-environment regression.
+- Locked `python3 -B -m unittest
+  tests.bend_host.test_differential.DifferentialTests.test_host_owned_runtime_options_ignore_environment -v`:
+  **passed**, 12.179 seconds, through the actual native controller and real
+  admitted credential update with inherited `BENDRTS=--gpu-build`.
+
+The prior Bend proof targets and native controller artifact are unchanged;
+this repair changes the launcher/OS boundary and its tests. The frozen
+environment consequently includes the updated adapter source bytes.

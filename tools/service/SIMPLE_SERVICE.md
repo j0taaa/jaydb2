@@ -87,6 +87,8 @@ The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
 receive the official `--threads N --gpu off` options. CPU workers default to
 the host's available parallelism, capped at 128 (one if detection fails).
+The launcher and native worker adapter clear inherited `BENDRTS`; service
+options determine runtime behavior, including the controller's CPU-only mode.
 The host's `--threads N` option accepts 1–128 and applies to all native stages,
 including prepared execution. Requests and state publication remain serial.
 Installation of these tools is part of the trusted environment.

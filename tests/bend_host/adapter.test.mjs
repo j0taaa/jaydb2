@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {capture,packet,split,seal,validateSeal,validateProgram,limitsBytes} from '../../host/os.mjs';
+import {Adapter,capture,packet,split,seal,validateSeal,validateProgram,limitsBytes} from '../../host/os.mjs';
+import {sha256} from '../../tools/admission/bootstrap.mjs';
 const local=path.resolve('target/bend-host/tests');fs.mkdirSync(local,{recursive:true});
 test('binary capture drains input/stdout/stderr and waits for reaping',async()=> {
   const input=Buffer.from(Array.from({length:262144},(_,i)=>i%256));
@@ -18,6 +19,21 @@ test('all octets and u64 limit boundaries remain exact',()=> {
   const limits=limitsBytes({limits:{message:'18446744073709551615',state:'0',response:'4294967296'}});
   assert.equal(limits.readBigUInt64BE(),0xffffffffffffffffn);assert.equal(limits.readBigUInt64BE(16),0x100000000n);
   assert.throws(()=>limitsBytes({limits:{message:'18446744073709551616',state:0,response:0}}));
+});
+test('native worker runtime options belong to the host',async()=> {
+  const dir=fs.mkdtempSync(path.join(local,'rts-')),file=path.join(dir,'worker');
+  const previous=process.env.BENDRTS;
+  try {
+    fs.writeFileSync(file,'#!/bin/sh\nprintf "%s" "$BENDRTS"\n',{mode:0o700});
+    const adapter=new Adapter({threads:1});
+    adapter.resources.set('worker',{program:{path:file,hash:sha256(fs.readFileSync(file))}});
+    process.env.BENDRTS='--gpu-build --help';
+    assert.deepEqual(await adapter.run(Buffer.from('worker'),Buffer.alloc(0)),Buffer.alloc(0));
+  } finally {
+    if(previous===undefined)delete process.env.BENDRTS;
+    else process.env.BENDRTS=previous;
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
 });
 test('sealed artifacts reject substitution and symlinks',()=> {
   const dir=fs.mkdtempSync(path.join(local,'seal-')),file=path.join(dir,'file');

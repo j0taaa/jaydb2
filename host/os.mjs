@@ -119,7 +119,8 @@ export class Adapter {
   resource(id) { const r=this.resources.get(id.toString('utf8')); if(!r) fail('HOST_RESOURCE','unknown OS resource'); return r; }
   async run(id,input) {
     const p=this.resource(id).program; validateProgram(p);
-    const r=await capture(p.path,['+RTS','--threads',String(this.options.threads),'--gpu','off','-RTS'],input,this.children);
+    const r=await capture(p.path,['+RTS','--threads',String(this.options.threads),'--gpu','off','-RTS'],input,this.children,
+      {BENDRTS:''});
     if(r.code!==0) fail('NATIVE',`worker ${r.signal??r.code}: ${r.stderr.toString('utf8')}`);
     return r.stdout;
   }

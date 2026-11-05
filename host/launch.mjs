@@ -28,7 +28,10 @@ async function main() {
   const o=options(process.argv.slice(2));if(!o)return;
   const binary=path.join(root,'target/bend-host/controller'), manifest=JSON.parse(fs.readFileSync(binary+'.json'));
   if(sha256(fs.readFileSync(binary))!==manifest.executableSha256) throw Error('controller hash mismatch; run make build-bend-host');
-  const child=spawn(binary,['+RTS','--threads','1','--gpu','off','-RTS'],{stdio:['pipe','pipe','inherit']});
+  // The service owns runtime policy; inherited RTS flags can request an
+  // early --gpu-build/--help exit even when explicit CPU options are present.
+  const child=spawn(binary,['+RTS','--threads','1','--gpu','off','-RTS'],{
+    env:{...process.env,BENDRTS:''},stdio:['pipe','pipe','inherit']});
   const adapter=new Adapter(o,child.pid);let ended=false;
   const exit=new Promise(resolve=>child.once('close',(code,signal)=>{ended=true;resolve(code??1);}));
   child.on('error',e=>{console.error(e.message);});child.stdin.on('error',()=>{});
