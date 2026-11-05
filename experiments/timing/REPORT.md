@@ -96,14 +96,15 @@ composition or power-loss behavior is claimed.
 
 ## Validation
 
-Completed before the consolidated final run:
+Completed checks (all passed unless the corrected test oracle is noted):
 
 - `cargo test --locked`: 31 combined host/clock/scheduling/storage/model tests
   passed on the final integrated source, including the full-u64 state-limit
   boundary and controlled-clock use of the actual durable-ready callback.
 - `cargo clippy --locked --all-targets -- -D warnings`: passed. Two timing
   nested-if findings were corrected before this pass.
-- `make build`: passed under the shared lock on the initial feature revision.
+- `make build`: passed under the shared lock on initial and final integrated
+  production source `03c6b8129215647ab758c52d057e4fe1af1ea3b0`.
 - `python3 -B tools/check.py src/Messages.bend`: both official checkers passed
   both new identity/instance binding laws.
 - `python3 -B -m unittest tests.service.test_timing -v`: all four initial
@@ -119,17 +120,54 @@ to be rollback-safe; the accepted storage adapter conservatively marks every
 error from the replace primitive uncertain, including that hook. Production code
 was preserved. The test now separately covers after-file-sync known rollback,
 before-replace fatal/old image, after-replace fatal/new image and after-publication
-fatal/new image. Exactly one corrected fault-only recheck is pending.
+fatal/new image. The corrected fault-only recheck passed all four subcases in
+51.062s (`.build/timing/fault-recheck.log`). It ran the test now committed at
+`dbe5e15f8f268fafdd74abfe7422c0a20dac93a4` against the feature-built binary
+from frozen production source `03c6b8129215647ab758c52d057e4fe1af1ea3b0`.
+No production code changed to accommodate the corrected oracle.
 
 All focused native runs use `flock /tmp/jaydb2-experiments-heavy.lock`, with
 `TMPDIR="$PWD/.build/timing/tmp"`; the fault binary is local at
 `.build/timing/fault/release/jaydb2` with `storage-fault-injection` enabled.
 All obsolete broad/redundant jobs were canceled while their lock processes had
 no child; no running test was interrupted. Completed evidence is preserved.
-Broad official/default/prepared/native-differential/scheduling regressions are
-deferred until the coordinator releases them after first untested feature gates.
-The planned broad suite contains no admission mocks, so the conditional accepted
-SIGKILL mock realpath test-only repair is not needed here.
+
+The focused commands inside that lock were:
+
+```
+make build
+cargo test --locked
+cargo clippy --locked --all-targets -- -D warnings
+python3 -B -m unittest tests.service.test_timing.TimingTests.test_completion_charge_tracks_actor_across_credential_exchange tests.service.test_timing.TimingTests.test_durable_publication_and_quota_reset_after_same_binary_reopen -v
+cargo build --locked --release --features storage-fault-injection --target-dir .build/timing/fault
+JAYDB_PERSISTENCE_BINARY="$PWD/.build/timing/fault/release/jaydb2" python3 -B -m unittest tests.service.test_timing_persistence -v
+```
+
+The final narrow gate passed on the same frozen production source, with tests
+and docs from `dbe5e15f8f268fafdd74abfe7422c0a20dac93a4`
+(`.build/timing/final-binding-default.log`):
+
+```
+make verify-contract
+python3 -B tools/check.py src/Messages.bend proof/Preprocessing.bend proof/Persistence.bend
+python3 -B -m unittest tests.service.test_preprocessing tests.service.test_prepared.PreparedTests.test_reuse_current_identity_state_and_sealed_native_without_admission -v
+```
+
+Both official checkers accepted the canonical contract, actual principal/source
+binding laws, exact preprocessing equivalence including the new principal prefix,
+and the recovery-preservation proof. Both native/default tests passed in 49.394s:
+exact principal/code/proof fields (including Unicode and empty IDs), generated
+current-context binding, all argument forms, malformed/limit/transport/auth error
+precedence, current-state ordinary execution, and default prepared reuse/fresh
+identity/sealed-integrity/worker isolation behavior.
+
+`cargo fmt --all -- --check` and `git diff --check` also passed. No additional
+production changes followed these checks; the final commit records this report.
+The full `make verify`, `make test`, all ordinary/scheduling CLI suites,
+library/demo checks and benchmarks were not rerun on the final branch; broader
+baselines remain coordinator validation as requested. No admission mock suite
+was run, so its conditional accepted SIGKILL realpath harness fix was not needed
+or cherry-picked. There are no pending/running timing check jobs.
 
 Meaningful coverage includes exact/Unicode/empty authenticated IDs; exact source,
 proof, argument and current-context binding; malformed-input/auth precedence;
