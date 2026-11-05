@@ -39,7 +39,8 @@ def proof_check(directory):
     (directory / 'ClientProof.bend').write_text(proof)
     (directory / 'Check.bend').write_text('import ./ClientProof.bend as ClientProof\nimport ./Seed.bend as Seed\n')
     subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(directory / 'Check.bend'),
-        str(ROOT / 'experiments/idempotency/VERIFY.bend')], check=True)
+        str(ROOT / 'experiments/idempotency/VERIFY.bend')], check=True,
+        env={**os.environ, 'TMPDIR': str(directory.parent.resolve())})
     prepare(directory)  # Actual integration uses the complete original proof.
 
 
@@ -79,7 +80,7 @@ def main():
     args = parser.parse_args()
     build = ROOT / 'applications/vouchers/.build'
     build.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='check-', dir=build) as tmp, tempfile.TemporaryFile() as errors:
+    with tempfile.TemporaryDirectory(prefix='check-', dir=build) as tmp, tempfile.TemporaryFile(dir=build) as errors:
         directory = Path(tmp)
         prepare(directory)
         proof_check(directory)
