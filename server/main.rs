@@ -792,7 +792,7 @@ impl Database {
         if (response.len() - 8) as u64 > self.limits.response {
             return Err(Error::new(
                 "CONTROL_LIMIT",
-                "prepared response exceeds logical limit",
+                "control response exceeds logical limit",
             ));
         }
         Ok((response, None))

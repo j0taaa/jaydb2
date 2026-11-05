@@ -8,8 +8,8 @@ The active entry is `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs
 The host is Rust, admission and compilation are coordinated by Node, and each
 compiled program uses the official Bend runtime. Python is not part of service
 execution. Configuration contains only `message`, `state`, and `response`,
-measured in canonical bytes. Equality with a ceiling is allowed. There is no
-physical budget, observer, or execution deadline.
+measured in canonical bytes. Equality with a ceiling is allowed. Default service has no
+physical budget, timing observer, or execution deadline.
 
 The optional [service timing/quota extension](SERVICE_TIMING.md) adds administrator
 NDJSON elapsed timings and soft per-authenticated-user fixed-period accounting.

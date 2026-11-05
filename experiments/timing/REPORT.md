@@ -44,7 +44,9 @@ The Rust/Node/native byte bridge, host hook order, monotonic OS clock and quota
 arithmetic remain trusted integration contracts tested below. No final validity
 assumption, certificate bypass, or canonical contract modification was added.
 
-Validation so far: `cargo test --locked` passed all 15 unit tests. These include
+Validation so far: `cargo test --locked` passed all 25 unit tests after accepted
+serial scheduling integration. `cargo clippy --locked --all-targets -- -D warnings`
+passes (two new nested-if findings were corrected). These include
 controlled-clock selection/auth/completion boundaries, exact exhaustion,
 completion-period crossing, fresh identity/credential exchanges, authenticated
 rejection charging, concurrent already-running tokens/unbounded overshoot,
@@ -52,12 +54,19 @@ restart reset, timing-only pass-through, private identity byte transport, CLI
 validation, NDJSON escaping and log IO errors. Existing framing/publication/
 delivery/worker tests also passed.
 
-The locked official proof and real-service timing run is in progress. Final
-commands/results will be recorded after prerequisite integration. New integration
-tests exercise actual source/proof binding, state/credential changes, current
-identity quotas, authenticated certificate failure charging, denied handle
-invalidation, restart reset, timing-only ordinary responses, stderr/file logs,
-and terminal framing exclusion. No CPU/performance benchmark has been run.
+`make build` passed under the heavy lock. `python3 -B tools/check.py
+src/Messages.bend` passed both official checkers, including both new binding laws.
+`python3 -B -m unittest tests.service.test_timing -v` passed all four tests in
+55.776s on the initial feature binary. These exercise actual source/proof binding,
+state/credential changes, current identity quotas, authenticated certificate and
+runtime failure charging, denied handle invalidation, restart reset, timing-only
+ordinary responses, stderr/file logs, and terminal framing exclusion.
+
+The response-bound correction and subsequent serial queue integration require
+the queued rebuild/pipelined native rerun. Full official/default/prepared/native
+differential regressions are also queued. Final commands/results will be recorded
+when those finish and the final persistence prerequisite is integrated.
+No CPU/performance benchmark has been run.
 
 Costs/limitations: two constant-time clock samples for timing-only service;
 quota adds one authentication clock sample and per-period user-map
