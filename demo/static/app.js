@@ -37,14 +37,16 @@ function download(name, text) {
 
 function controls() {
   const running = busy || session?.running;
+  const starting = busy && !session?.alive;
   $('#run').disabled = running || !session?.alive;
   $('#run').classList.toggle('working', Boolean(running));
   $('#run').textContent = running ? 'Running…' : 'Run transaction ↵';
   $('#reset').disabled = Boolean(running);
+  $('#retry-connection').hidden = Boolean(busy || session?.database_pid || session?.alive);
   $('#request-note').textContent = running ? 'Waiting for JayDB2.' : 'Program and proof go to JayDB2 admission.';
-  $('#database-status').textContent = session?.alive ? (session.running ? 'Executing request' : 'Ready') : 'Unavailable';
-  $('#connection').textContent = session?.alive ? (session.running ? 'Running' : 'Connected') : 'Offline';
-  $('#connection').className = `connection ${session?.alive ? 'online' : 'offline'}`;
+  $('#database-status').textContent = starting ? 'Starting database…' : session?.alive ? (session.running ? 'Executing request' : 'Ready') : 'Unavailable';
+  $('#connection').textContent = starting ? 'Starting database…' : session?.alive ? (session.running ? 'Running' : 'Connected') : 'Offline';
+  $('#connection').className = `connection ${starting ? '' : session?.alive ? 'online' : 'offline'}`;
   $('#process').textContent = session?.database_pid ? `PID ${session.database_pid}` : '';
 }
 
@@ -290,10 +292,12 @@ function loadPreset() {
 
 async function connect() {
   busy = true;
+  $('#error').hidden = true;
   controls();
   $('#connection').textContent = 'Starting database…';
   try {
     updateSession(await api('/api/session', {}));
+    if (!session.alive) throw new Error('This database process has stopped. Reset the instance to start a fresh database.');
     sources = await api('/api/sources');
     renderSources();
     loadPreset();
@@ -385,6 +389,7 @@ document.addEventListener('keydown', (event) => {
   }
 });
 $('#reset').addEventListener('click', () => $('#reset-dialog').showModal());
+$('#retry-connection').addEventListener('click', connect);
 $('#cancel-reset').addEventListener('click', () => $('#reset-dialog').close());
 $('#confirm-reset').addEventListener('click', async () => {
   $('#reset-dialog').close();

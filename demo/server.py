@@ -168,6 +168,13 @@ class Session:
                 raise Unavailable('Incomplete response or timeout. Outcome unknown; no automatic retry.')
             chunk = os.read(self.process.stdout.fileno(), size - len(result))
             if not chunk:
+                if self.state is None:
+                    # Initialization failures have no transaction outcome to
+                    # preserve. Report the actual host/compiler error so a
+                    # missing configuration or stale deployment is actionable.
+                    self.error_thread.join(timeout=1)
+                    diagnostic = '\n'.join(self.errors)[-6000:]
+                    raise Unavailable('Database startup failed: ' + (diagnostic or 'process ended before initialization completed.'))
                 raise Unavailable('Database process ended. Reset the instance to reload the seed.')
             result.extend(chunk)
         return bytes(result)
@@ -289,6 +296,12 @@ class Session:
                         pass
                     self.process.wait()
             self.process.stdout.close()
+            try:
+                # A failed startup may never connect to the inspector. Wake
+                # the reader's accept() before joining its thread.
+                self.listener.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
             self.listener.close()
             if self.inspection:
                 try:

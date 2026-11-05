@@ -6,7 +6,13 @@ There is no C rewriting, replacement runtime, custom Nat/Array representation,
 DSO ABI, or derived verifier.
 
 Each call runs that program in a new child process with the official options
-`+RTS --threads 1 --gpu off -RTS`. Published state belongs to the host.
+`+RTS --threads N --gpu off -RTS`. The host selects its available CPU parallelism
+by default, capped at 128 workers, and falls back to one worker if detection
+fails. The host's `--threads N` option accepts 1–128 to override that selection.
+The selection applies to initialization, decoding, authentication, ordinary
+execution, and prepared-program execution. Independent Bend computations can
+run in parallel; the host serves requests and publishes state serially.
+Published state belongs to the host.
 Input and output travel through pipes; state is not written to the compilation
 directory. The process exits and the operating system releases its resources
 before the host accepts a proposal for publication.

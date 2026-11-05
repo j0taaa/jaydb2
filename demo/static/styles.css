@@ -134,6 +134,9 @@ label {
 .toolbar #reset {
   font-size:10px;
 }
+.toolbar #retry-connection {
+  font-size:10px;
+}
 .panel {
   border:1px solid var(--border);
   border-radius:5px;
@@ -665,6 +668,12 @@ dialog p {
   }
 }
 @media(max-width:600px) {
+  .toolbar:has(#retry-connection:not([hidden])) {
+    height:auto;
+    min-height:50px;
+    flex-wrap:wrap;
+    padding:10px 13px;
+  }
   .toolbar {
     gap:9px;
     height:50px;

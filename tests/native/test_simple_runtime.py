@@ -1,6 +1,7 @@
 """Compile unmodified official C; exercise the application effects/process bridge."""
 from __future__ import annotations
 from pathlib import Path
+import os
 import resource
 import struct
 import subprocess
@@ -12,6 +13,8 @@ BEND = ROOT/'.tools/bend-source-2.0.39/bend2'
 
 
 class RuntimeTests(unittest.TestCase):
+    threads = 1
+
     @classmethod
     def setUpClass(cls):
         soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
@@ -45,7 +48,7 @@ class RuntimeTests(unittest.TestCase):
         return output
 
     def execute(self, name, incoming):
-        return subprocess.run([str(self.compile(name)), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+        return subprocess.run([str(self.compile(name)), '+RTS', '--threads', str(self.threads), '--gpu', 'off', '-RTS'],
             input=incoming, capture_output=True, timeout=30, check=True).stdout
 
     def test_binary_effects_and_fresh_processes(self):
@@ -69,6 +72,20 @@ class RuntimeTests(unittest.TestCase):
 
     def test_native_loop_prepare_and_continue(self):
         self.assertEqual(self.execute('loop', b'\1\0\2'), b'\2\1')
+
+    def test_parallel_reduction_matches_independent_reference(self):
+        def leaf(value):
+            for _ in range(64):
+                value = ((value ^ (value >> 16)) * 1664525 + 1013904223) & 0xffffffff
+            return value
+
+        depth = 14
+        expected = sum(leaf(seed) for seed in range(1 << depth)) & 0xffffffff
+        self.assertEqual(self.execute('parallel', bytes([depth])), expected.to_bytes(4, 'little'))
+
+
+class ParallelRuntimeTests(RuntimeTests):
+    threads = min(128, len(os.sched_getaffinity(0)))
 
 
 if __name__ == '__main__':

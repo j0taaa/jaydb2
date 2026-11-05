@@ -2,7 +2,7 @@
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs::{self, DirBuilder};
 use std::io::{self, Read, Write};
 use std::os::unix::fs::DirBuilderExt;
@@ -277,10 +277,13 @@ impl Program {
         Ok(())
     }
 
-    fn run(&self, input: &[u8]) -> Result<Vec<u8>> {
+    fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
         self.validate()?;
         let output = capture(
-            Command::new(&self.path).args(["+RTS", "--threads", "1", "--gpu", "off", "-RTS"]),
+            Command::new(&self.path)
+                .args(["+RTS", "--threads"])
+                .arg(threads.to_string())
+                .args(["--gpu", "off", "-RTS"]),
             input,
         )?;
         if !output.status.success() {
@@ -396,6 +399,7 @@ struct Database {
     inspector: Option<UnixStream>,
     inspection_sequence: u64,
     prepared: HashMap<String, PreparedProgram>,
+    threads: usize,
 }
 
 struct PreparedProgram {
@@ -476,7 +480,7 @@ impl Database {
         let initial = Program::load(text(programs, "initialize")?.into())?;
         let decode = Program::load(text(programs, "decode")?.into())?;
         let authenticate = Program::load(text(programs, "authenticate")?.into())?;
-        let output = initial.run(&[])?;
+        let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1) || output.len() as u64 - 1 > limits.state {
             return Err(Error::new(
                 "CONFIGURATION",
@@ -506,6 +510,7 @@ impl Database {
             inspector,
             inspection_sequence: 0,
             prepared: HashMap::new(),
+            threads: options.threads,
         };
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -562,7 +567,7 @@ impl Database {
     }
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
-        let output = program.run(input)?;
+        let output = program.run(input, self.threads)?;
         if !matches!(output.first(), Some(0 | 1)) {
             return Err(Error::new("HOST_TRANSPORT", "invalid preprocessing result"));
         }
@@ -623,7 +628,7 @@ impl Database {
             // Only the native executable runs here. Its ordinary Input.analyze
             // authenticates the received credential again on this same state;
             // E.start receives that context and the actual decoded arguments.
-            return checked_proposal(&prepared.program.run(&input)?, &self.limits);
+            return checked_proposal(&prepared.program.run(&input, self.threads)?, &self.limits);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -698,7 +703,7 @@ impl Database {
             );
             return Ok(response);
         }
-        let output = program.run(&input)?;
+        let output = program.run(&input, self.threads)?;
         let proposal = checked_proposal(&output, &self.limits)?;
         request.remove()?;
         Ok(proposal)
@@ -786,23 +791,48 @@ struct Options {
     source: PathBuf,
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
+    threads: usize,
+}
+
+// The pinned official Bend runtime supports up to 128 CPU workers.
+const MAX_THREADS: usize = 128;
+
+fn default_threads() -> usize {
+    std::thread::available_parallelism()
+        .map(|count| count.get())
+        .unwrap_or(1)
+        .min(MAX_THREADS)
+}
+
+fn parse_threads(value: &OsStr) -> Result<usize> {
+    value
+        .to_str()
+        .filter(|text| !text.is_empty() && text.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|text| text.parse::<usize>().ok())
+        .filter(|count| (1..=MAX_THREADS).contains(count))
+        .ok_or_else(|| Error::new("ARGUMENT", "--threads must be an integer from 1 to 128"))
 }
 
 impl Options {
     fn read() -> Result<Option<Self>> {
+        Self::read_from(std::env::args_os().skip(1))
+    }
+
+    fn read_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Option<Self>> {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let lock: Value =
             serde_json::from_str(include_str!("../tools/admission/toolchain.lock.json"))?;
         let mut configuration = None;
         let mut seed = None;
         let mut inspect_socket = None;
+        let mut threads = default_threads();
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
-        let mut arguments = std::env::args_os().skip(1);
+        let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE --seed FILE [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]"
+                    "Usage: jaydb2 --configuration FILE --seed FILE [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]\n\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)"
                 );
                 return Ok(None);
             }
@@ -815,6 +845,7 @@ impl Options {
                 Some("--bend-source") => source = PathBuf::from(value),
                 Some("--bendtt") => kernel = PathBuf::from(value),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
+                Some("--threads") => threads = parse_threads(&value)?,
                 _ => {
                     return Err(Error::new(
                         "ARGUMENT",
@@ -835,6 +866,7 @@ impl Options {
             source: fs::canonicalize(source)?,
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
+            threads,
         }))
     }
 }
@@ -859,6 +891,71 @@ fn main() {
 mod tests {
     use super::*;
     use std::io::Cursor;
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn thread_options_select_available_cpus_and_allow_explicit_limits() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let mut arguments = vec![
+            "--configuration".into(),
+            root.join("examples/access/Configuration.bend")
+                .into_os_string(),
+            "--seed".into(),
+            root.join("examples/access/Seed.bend").into_os_string(),
+        ];
+        let automatic = Options::read_from(arguments.clone())
+            .unwrap()
+            .unwrap()
+            .threads;
+        assert!((1..=MAX_THREADS).contains(&automatic));
+        assert_eq!(automatic, default_threads());
+        for count in [1, 8, 128] {
+            arguments.extend(["--threads".into(), count.to_string().into()]);
+            assert_eq!(
+                Options::read_from(arguments.clone())
+                    .unwrap()
+                    .unwrap()
+                    .threads,
+                count
+            );
+        }
+        for value in [
+            "",
+            "0",
+            "129",
+            "-1",
+            "+2",
+            "1.5",
+            " 2",
+            "many",
+            "18446744073709551616",
+        ] {
+            let error = Options::read_from(["--threads".into(), value.into()])
+                .err()
+                .unwrap();
+            assert_eq!(error.code, "ARGUMENT");
+            assert!(error.message.contains("--threads"));
+        }
+        assert!(Options::read_from(["--threads".into()]).is_err());
+    }
+
+    #[test]
+    fn native_launch_forwards_selected_cpu_workers_with_gpu_disabled() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-threads-test").unwrap();
+        let path = directory.path.join("worker");
+        fs::write(&path, "#!/bin/sh\nprintf '%s\\n' \"$@\"\n").unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        let program = Program {
+            sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
+            path,
+        };
+        for count in [1, 8, 128] {
+            assert_eq!(
+                program.run(&[], count).unwrap(),
+                format!("+RTS\n--threads\n{count}\n--gpu\noff\n-RTS\n").as_bytes()
+            );
+        }
+    }
 
     fn hex(value: &str) -> Vec<u8> {
         value

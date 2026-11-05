@@ -58,6 +58,10 @@ with Node. Installation does not build a derived verifier, V8 addon, or adapted
 source cache. Official-tool capabilities and limitations remain unchanged.
 
 `server/main.rs` retains published state in RAM and serves frames serially.
+Native Bend computation uses the CPU parallelism available to the host by
+default, capped at the official runtime's 128 workers. Use `--threads N` to
+choose 1–128 workers per native program, or `--threads 1` for single-threaded
+computation. Independent work must be expressed in the Bend program to benefit.
 The Node helper freezes the public environment and verifies and compiles
 workers; the seed appears only in initialization compilation. Each worker
 receives bytes through pipes and exits before a complete proposal replaces

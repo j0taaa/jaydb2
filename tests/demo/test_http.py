@@ -2,8 +2,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from http.cookiejar import CookieJar
 import json
+import os
+from pathlib import Path
+import signal
+import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import build_opener, HTTPCookieProcessor, Request
 
@@ -35,6 +40,53 @@ class DemoHTTPTests(unittest.TestCase):
 
     def execute(self, browser, action, credential, value=None):
         return self.call(browser, '/api/execute', {'action': action, 'credential': credential, 'value': value})
+
+    def test_reset_recovers_a_stopped_database_and_can_repeat(self):
+        browser = self.browser()
+        initial = self.call(browser, '/api/session', {})
+        first_pid = initial['database_pid']
+        try:
+            os.kill(first_pid, signal.SIGKILL)
+            # Wait for the actual owned child, not a timer or a simulated flag.
+            with self.server.sessions_lock:
+                instance = next(session for session in self.server.sessions.values()
+                                if session.process.pid == first_pid)
+            instance.process.wait(timeout=10)
+            self.assertFalse(self.call(browser, '/api/session')['alive'])
+            previous_pid = first_pid
+            for _ in range(2):
+                self.call(browser, '/api/reset', {})
+                restarted = self.call(browser, '/api/session', {})
+                self.assertTrue(restarted['alive'])
+                self.assertIsNone(restarted['inspection']['error'])
+                self.assertNotEqual(restarted['database_pid'], previous_pid)
+                self.assertEqual(restarted['inspection']['state']['users'][0]['credential'], 'alice-token')
+                self.assertEqual(self.execute(browser, 'verify', 'alice-token')['response'],
+                                 {'status': 'success', 'value': 'alice-token'})
+                previous_pid = restarted['database_pid']
+        finally:
+            self.call(browser, '/api/reset', {})
+
+    def test_startup_failure_reports_diagnostic_and_recovers(self):
+        browser = self.browser()
+        # Real CLI failure: use a nonexistent configuration, as happens with
+        # a stale example path after a deployment. No process is mocked.
+        with tempfile.TemporaryDirectory() as folder, patch('demo.server.EXAMPLE', Path(folder)):
+            for _ in range(2):
+                with self.assertRaises(HTTPError) as raised:
+                    self.call(browser, '/api/session', {})
+                self.assertEqual(raised.exception.code, 503)
+                body = json.load(raised.exception)
+                raised.exception.close()
+                self.assertIn('Database startup failed:', body['error'])
+                self.assertIn('No such file', body['error'])
+                self.assertEqual(len(self.server.sessions), 0)
+        try:
+            recovered = self.call(browser, '/api/session', {})
+            self.assertTrue(recovered['alive'])
+            self.assertIsNone(recovered['inspection']['error'])
+        finally:
+            self.call(browser, '/api/reset', {})
 
     def test_real_database_publication_rollback_proof_and_session_isolation(self):
         browser = self.browser()

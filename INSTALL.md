@@ -89,6 +89,12 @@ and refuse afterward.
 Each `make demo` starts from the seed. Exiting loses the RAM instance. This
 example neither writes a database to disk nor starts a network listener.
 
+Native programs use the host's available CPU parallelism by default (at most
+128 workers), while requests are processed serially. Pass `--threads N` to
+`./jaydb2` to select 1–128 workers. `--threads 1` selects single-threaded
+execution and can reduce overhead for small sequential programs or when
+running many instances. GPU execution is disabled.
+
 For your own application, supply configuration and a seed with a validity
 proof, then send programs/proofs through the same stdin/stdout protocol.
 [demo.sh](examples/access/demo.sh) shows the complete connection;
