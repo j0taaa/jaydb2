@@ -31,3 +31,4 @@ import ./AllocationLengths.bend as AllocationLengths
 import ./ErrorLimitFixed.bend as ErrorLimitFixed
 import ./ErrorsFixed.bend as ErrorsFixed
 import ./PreparedPrograms.bend as PreparedPrograms
+import ./Preprocessing.bend as Preprocessing
