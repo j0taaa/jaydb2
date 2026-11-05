@@ -30,7 +30,7 @@ test-native:
 	python3 -B tests/native/test_simple_runtime.py
 
 test-integration:
-	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency -v
+	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency tests.service.test_timing tests.service.test_timing_concurrency -v
 
 test-library: build
 	mkdir -p build/library/tmp
@@ -63,3 +63,15 @@ test-idempotency-recovery:
 	cargo build --locked --release --features storage-fault-injection --target-dir .build/idempotency/fault
 	mkdir -p .build/idempotency/tmp
 	TMPDIR="$(CURDIR)/.build/idempotency/tmp" JAYDB_IDEMPOTENCY_BINARY="$(CURDIR)/.build/idempotency/fault/release/jaydb2" python3 -B -m unittest tests.service.test_receipt_recovery -v
+
+# Existing aggregate reaches Preprocessing, Persistence, ReadBatches and the
+# extended optional library. Receipts add their independent functional root.
+# Caller holds /tmp/jaydb2-experiments-heavy.lock; no nested lock is acquired.
+.PHONY: verify-integration test-feature-integration
+verify-integration: verify-contract verify
+	python3 -B tools/check.py experiments/idempotency/VERIFY.bend
+
+test-feature-integration: build
+	python3 -B applications/indexed/run_check.py
+	python3 -B experiments/integration/check_features.py
+	python3 -B applications/vouchers/check.py --restart

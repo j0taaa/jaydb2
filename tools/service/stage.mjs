@@ -59,6 +59,8 @@ def result(ok: Bool) -> List<&2, U32>:
 def main() -> IO(Unit):
   Native.write(result(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
 `;
+// Messages.authentication private success: 1 || frame(exact Context.id UTF-8)
+// || frame(code) || frame(proof) || frame(instance) || links remainder.
 const PREPROCESS = COMMON + `import ./Input.bend as E
 import ./Messages.bend as M
 
@@ -177,7 +179,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/capture.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'server/capture.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.

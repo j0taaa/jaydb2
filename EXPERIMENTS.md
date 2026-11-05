@@ -1,5 +1,20 @@
 # JayDB2 experiment agreement
 
+## Integration scope amendment
+
+The user subsequently authorized `experiment-integration`, combining the
+accepted baseline, preprocessing, persistence, library, scheduling, simple
+timing, certified CPU read batching and idempotency work. GPU and the Bend host
+replacement remain separate. Quota enforcement is omitted. `Index.scan_equal`
+remains an explicit ordinary full scan; an accelerated nonunique representation
+is deferred. No backwards compatibility or migrations are required for unused
+development databases. Read batching remains serial by default and is evaluated
+at a fixed total CPU budget. The coordinator may use subagents for integration,
+commit and publish this branch, and must leave `main` unchanged.
+
+The original agreement below records the individual experiment scope. Current
+integration behavior and evidence are in `experiments/integration/`.
+
 These experiments are authorized for implementation in separate T3 Code
 threads, branches and worktrees. Keep the implementations small and useful.
 The coordinator owns cross-experiment integration and final acceptance.

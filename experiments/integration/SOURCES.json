@@ -1,0 +1,21 @@
+{
+  "anchor": "5925c57febd978d44fa24000233647a59e7898a6",
+  "sources": {
+    "baseline": "0f538e88ca40b41bd87fda73c9fc89d8ba730557",
+    "preprocessing": "e1858e0b6900ea5badcd3e30b5bf596b14d8205f",
+    "library": "dd0fc1e16160807bacf1caa7e32ffcfc6d53e322",
+    "persistence": "e083ff648b5ba91858b9c7c74b42800803ed196f",
+    "scheduling": "45edcd8f93bdf2b37e0a0ef2d2e7f8e20ec52493",
+    "timing": "e79a11ad1383e3653211d2e0d699e56ad08ffb24",
+    "concurrency": "a8dca7247a9aee082238559efaea83af288b8d34",
+    "idempotency": "83da48d28cb8798d4eb39e2335973969026c91be"
+  },
+  "excluded": [
+    "GPU backend",
+    "Bend host replacement",
+    "quota enforcement",
+    "accelerated nonunique index layout"
+  ],
+  "defaultReadWorkers": 1,
+  "mainMergeAuthorized": false
+}

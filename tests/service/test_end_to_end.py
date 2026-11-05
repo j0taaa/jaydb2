@@ -22,10 +22,10 @@ class Server:
             str(binary or ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend')]
         if seed:
             command.extend(['--seed', str(folder/'Seed.bend')])
-        command.extend(arguments)
+        command.extend([*arguments, *options])
         if threads is not None:
             command.extend(['--threads', str(threads)])
-        self.process = subprocess.Popen([*command_prefix, *command, *options], cwd=ROOT,
+        self.process = subprocess.Popen([*command_prefix, *command], cwd=ROOT,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors,
             start_new_session=True, env=env)
 

@@ -3,8 +3,14 @@
 An experimental RAM database that executes Bend programs accompanied by proofs
 against administrator laws. It authenticates each call against published
 state, works on a private proposal, and publishes complete state and response
-with a single reference replacement. Requests are served serially over
-stdin/stdout, with code emitted by the official compiler.
+with a single reference replacement. Requests use FIFO stdin/stdout delivery,
+with code emitted by the official compiler. Execution is serial by default;
+separately certified prepared reads may run in bounded concurrent batches.
+
+This is the [curated integration experiment](experiments/integration/README.md).
+It excludes GPU execution, the Bend host replacement and quota enforcement.
+Individual experiment reports retain their historical validation scope; the
+integration report records checks of the combined revision.
 
 Each call runs in a native child process. The host retains published state and
 accepts only the helper's complete result before publishing a proposal. C
@@ -12,7 +18,8 @@ emitted by the official compiler is not rewritten to create a custom runtime.
 
 The contract has **three canonical size limits: message, state, and response**.
 There is no total-process memory budget, memory observer, or per-stage deadline.
-A fatal failure can terminate the instance and lose its RAM data.
+A fatal failure can terminate the instance. Without optional persistence, its
+RAM data is then lost.
 
 ## Installation
 
@@ -57,19 +64,24 @@ Official TypeScript modules are loaded only by stripping TypeScript syntax
 with Node. Installation does not build a derived verifier, V8 addon, or adapted
 source cache. Official-tool capabilities and limitations remain unchanged.
 
-`server/main.rs` retains published state in RAM and executes frames serially.
+`server/main.rs` retains published state in RAM and coordinates FIFO execution.
 One reader queues at most eight frames/reservations and at most
 `max(min(message limit, isize::MAX), 1 MiB)` body bytes, then applies pipe backpressure. One
 coordinator owns execution, handles, publication and FIFO response delivery;
-it owns at most one additional active request and one ready response. EOF and
+With the default serial setting it owns at most one additional active request
+and one ready response; certified batching retains at most `read-workers` active
+requests and results. EOF and
 terminal framing errors follow all earlier complete requests. An output
 failure stops dispatch and joins the reader even if stdin remains open.
 See the [scheduling report](experiments/scheduling/REPORT.md) for retained-work
 accounting, lifecycle boundaries and the host refinement proof scope.
 Native Bend computation uses the CPU parallelism available to the host by
 default, capped at the official runtime's 128 workers. Use `--threads N` to
-choose 1–128 workers per native program, or `--threads 1` for single-threaded
-computation. Independent work must be expressed in the Bend program to benefit.
+choose a total native CPU-worker budget of 1–128. Exclusive requests use the
+whole budget; concurrent certified reads each use
+`floor(threads / read-workers)` workers. `--threads 1` selects single-threaded
+computation. Independent work must be expressed in the Bend program to benefit
+within one request.
 The Node helper freezes the public environment and verifies and compiles
 workers; the seed appears only in initialization compilation. Each worker
 receives bytes through pipes and exits before a complete proposal replaces
@@ -147,3 +159,13 @@ Portuguese versions and removed implementations/captures remain in Git history.
 Optional [certified prepared read batches](tools/service/READ_BATCHES.md) use
 `--threads 4 --read-workers 2`. Only separately checked whole-program reads may
 overlap; writes and prepared control operations remain FIFO barriers.
+
+Optional [administrator timing](tools/service/SERVICE_TIMING.md) uses
+`--timing-log FILE` (or `-` for stderr). It measures elapsed service time through
+cleanup and publication, excluding queue waiting and response delivery. The
+client response format is unchanged. There is no quota enforcement in this
+integration branch.
+
+The optional [receipt helpers and laws](applications/vouchers/README.md) keep
+idempotency in ordinary tables. They require explicit application certificates
+and do not add host retries or receipt privileges.

@@ -111,3 +111,28 @@ physical size to the stored original source/proof, as well as registration,
 invalidation and receipt delivery, remains a host refinement contract supported
 by focused real tests. The normalization proof does not claim to mechanize the
 whole Rust registry or extend the old raw-protocol theorem silently.
+
+## Optional administrator service timing
+
+[`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in
+elapsed-service observer. It adds no quota policy, status, admission restriction
+or application-state field. The ordinary serial eight-law composition above is
+unchanged. The read-batch refinement retains its separately stated scope.
+
+`Messages.principal_is_authenticated_id` and
+`Messages.authentication_binds_principal_and_instance` connect the explicit
+private principal prefix and certificate instance to the actual same
+`Input.Analysis.Received` context. Both exclusive and concurrent-read consumers
+use that format; identity is never parsed from generated source. These are
+checked definitions of the native metadata emitter, not proofs of Rust timing,
+the OS clock, log delivery or thread scheduling.
+
+Exclusive timing completes at `publish_with_ready`, after durable and RAM
+publication and before final inspection or delivery. Fatal returns before that
+hook record the elapsed attempt once without acknowledging rollback. Read
+workers stamp completion after validation, native execution, cleanup, proposal
+checking and discarded duplicate state, before FIFO emission. Their independent
+administrator writes also run for completed workers drained after a delivery
+failure. The log mutex serializes record bytes; time waiting for it is excluded.
+Controlled-clock and real-worker tests support these host contracts. Timing
+supplies neither permission for an operation nor permission to publish a state.

@@ -7,6 +7,7 @@ mod scheduling;
 use scheduling::FrameInput;
 use scheduling::{FrameQueue, PollInput, QueueBounds, SerialService};
 mod storage;
+mod timing;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -17,7 +18,9 @@ use std::os::unix::fs::DirBuilderExt;
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use timing::{Attempt, Timing};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -389,6 +392,7 @@ struct Database {
     prepared: HashMap<String, PreparedProgram>,
     threads: usize,
     read_workers: usize,
+    timing: Option<Arc<Timing>>,
     storage: Option<storage::Storage>,
     environment: String,
 }
@@ -462,6 +466,11 @@ impl Database {
         if let Some(stream) = &inspector {
             stream.set_write_timeout(Some(std::time::Duration::from_secs(2)))?;
         }
+        let timing = options
+            .timing_log
+            .as_ref()
+            .map(|path| Timing::open(path).map(Arc::new))
+            .transpose()?;
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb2")?;
         let mut arguments = vec![
             if recovering {
@@ -542,6 +551,7 @@ impl Database {
             prepared: HashMap::new(),
             threads: options.threads,
             read_workers: options.read_workers,
+            timing,
             storage,
             environment,
         };
@@ -629,7 +639,11 @@ impl Database {
         Ok(output)
     }
 
-    fn propose(&mut self, body: &[u8]) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    fn propose(
+        &mut self,
+        body: &[u8],
+        attempt: &mut Option<Attempt>,
+    ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
         // 7 is outside the canonical Value tags (0..6). The extension contains
         // one opcode and an otherwise ordinary, officially decoded request.
         let (operation, body) = if body.first() == Some(&7) {
@@ -648,7 +662,13 @@ impl Database {
         if authenticated[0] == 0 {
             return Ok((authenticated[1..].to_vec(), None));
         }
-        let (code, rest) = split(&authenticated[1..])?;
+        let (principal, metadata) = split(&authenticated[1..])?;
+        let principal = std::str::from_utf8(principal)
+            .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
+        if let Some(attempt) = attempt {
+            attempt.authenticated(principal);
+        }
+        let (code, rest) = split(metadata)?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
         if matches!(operation, Some(1 | 2)) {
@@ -831,17 +851,40 @@ fn inspect_snapshot(
     }
 }
 
+struct ServiceCompletion {
+    proposal: Result<(Vec<u8>, Option<Vec<u8>>)>,
+    attempt: Option<Attempt>,
+}
+
 impl SerialService for Database {
-    type Completion = Result<(Vec<u8>, Option<Vec<u8>>)>;
+    type Completion = ServiceCompletion;
 
     fn execute(&mut self, body: &[u8]) -> Self::Completion {
-        // Fresh authentication, admission, execution and helper cleanup all
-        // happen here against the coordinator's current published snapshot.
-        self.propose(body)
+        let mut attempt = self.timing.as_ref().map(|timing| timing.selected(false));
+        let proposal = self.propose(body, &mut attempt);
+        ServiceCompletion { proposal, attempt }
     }
 
     fn publish(&mut self, completion: Self::Completion) -> Result<Vec<u8>> {
-        self.publish(completion)
+        let ServiceCompletion {
+            proposal,
+            mut attempt,
+        } = completion;
+        if self.timing.is_none() {
+            return self.publish(proposal);
+        }
+        let timing = self.timing.clone();
+        let response = self.publish_with_ready(proposal, || {
+            if let (Some(timing), Some(attempt)) = (&timing, attempt.take()) {
+                timing.completed(attempt);
+            }
+        });
+        // Fatal uncertainty can return before result-ready. Record the finished
+        // service once, without implying acknowledgment or rollback.
+        if let (Some(timing), Some(attempt)) = (&timing, attempt) {
+            timing.completed(attempt);
+        }
+        response
     }
 }
 
@@ -853,6 +896,7 @@ fn read_proposal(
     state: &[u8],
     body: &[u8],
     threads: usize,
+    attempt: &mut Option<Attempt>,
 ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
     let handle = read_batch::candidate(body)
         .ok_or_else(|| Error::new("READ_DISPATCH", "invalid read selection"))?;
@@ -863,7 +907,13 @@ fn read_proposal(
         Some(1) => {}
         _ => return Err(Error::new("HOST_TRANSPORT", "invalid preprocessing result")),
     }
-    let (code, rest) = split(&authenticated[1..])?;
+    let (principal, metadata) = split(&authenticated[1..])?;
+    let principal = std::str::from_utf8(principal)
+        .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
+    if let Some(attempt) = attempt {
+        attempt.authenticated(principal);
+    }
+    let (code, rest) = split(metadata)?;
     let (proof, _) = split(rest)?;
     if !proof.is_empty() {
         return Ok((error_frame("input"), None));
@@ -899,12 +949,25 @@ impl read_batch::Service for Database {
         // --threads is the total native CPU-worker budget, split across the
         // fixed maximum batch size. Every call still starts fresh processes.
         let threads = self.threads / self.read_workers;
+        let timing = self.timing.as_ref();
+        let jobs = bodies
+            .into_iter()
+            .map(|body| {
+                let attempt = timing.map(|timing| timing.selected(true));
+                (body, attempt)
+            })
+            .collect();
         read_batch::execute(
-            bodies,
-            |body| {
-                let result = read_proposal(auth, registry, limits, state, &body, threads);
-                // No returned state is retained while earlier reads await delivery.
-                result.map(|(response, next)| (response, next.is_some()))
+            jobs,
+            |(body, mut attempt)| {
+                let result =
+                    read_proposal(auth, registry, limits, state, &body, threads, &mut attempt);
+                // Drop the returned duplicate state before the completion stamp.
+                let result = result.map(|(response, next)| (response, next.is_some()));
+                if let (Some(timing), Some(attempt)) = (timing, attempt) {
+                    timing.completed(attempt);
+                }
+                result
             },
             |result| {
                 let diagnostic = result
@@ -952,6 +1015,7 @@ struct Options {
     inspect_socket: Option<PathBuf>,
     threads: usize,
     read_workers: usize,
+    timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
 }
 
@@ -988,6 +1052,7 @@ impl Options {
         let mut inspect_socket = None;
         let mut threads = default_threads();
         let mut read_workers = 1;
+        let mut timing_log = None;
         let mut storage = None;
         let mut storage_mode = None;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
@@ -996,7 +1061,7 @@ impl Options {
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--read-workers N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1)"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--read-workers N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Total native CPU-worker budget, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1)"
                 );
                 return Ok(None);
             }
@@ -1009,6 +1074,7 @@ impl Options {
                 Some("--bend-source") => source = PathBuf::from(value),
                 Some("--bendtt") => kernel = PathBuf::from(value),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
+                Some("--timing-log") => timing_log = Some(PathBuf::from(value)),
                 Some("--threads") => threads = parse_threads(&value)?,
                 Some("--read-workers") => {
                     read_workers = parse_threads(&value)?;
@@ -1081,6 +1147,7 @@ impl Options {
             inspect_socket,
             threads,
             read_workers,
+            timing_log,
             storage,
         }))
     }
@@ -1474,6 +1541,7 @@ mod tests {
             prepared: HashMap::new(),
             threads: 1,
             read_workers: 1,
+            timing: None,
             storage: Some(storage),
             environment,
         };
