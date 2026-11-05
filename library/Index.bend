@@ -30,12 +30,27 @@ def claim(c: D.Collection, parts: List<&2, String>, target: String, done: Bool -
 def lookup(c: D.Collection, parts: List<&2, String>, done: Q.Selection -> S.Action) -> S.Action:
   Q.select(c, K.encode(parts), ["target"], done)
 
-def selected(+value: String, done: Maybe<&2, D.Value> -> S.Action, result: Q.Selection) -> S.Action:
+# Pure classification lets applications compose total continuation proofs
+# without treating a successful runtime observation as the only possible one.
+type Projection is Data:
+  Target{target:String,value:String}
+  Missing{}
+  Invalid{}
+
+def projection(result:Q.Selection) -> Projection:
   match result:
-    case Q.Selected{D.VRecord{"target", D.VText{target}, D.VRecord{"value", D.VText{v}, D.VRecordEmpty{}}}}:
-      done(Bool.pick(Maybe<&2, D.Value>, String.eq(value, v), Some{D.VText{target}}, None{}))
-    case Q.MissingRow{}: done(None{})
-    case _: S.Refuse{D.VText{"invalid index entry"}}
+    case Q.Selected{D.VRecord{"target",D.VText{target},D.VRecord{"value",D.VText{v},D.VRecordEmpty{}}}}: Target{target,v}
+    case Q.MissingRow{}: Missing{}
+    case _: Invalid{}
+
+def projected(+value:String,done:Maybe<&2,D.Value> -> S.Action,p:Projection) -> S.Action:
+  match p:
+    case Target{target,v}: done(Bool.pick(Maybe<&2,D.Value>,String.eq(value,v),Some{D.VText{target}},None{}))
+    case Missing{}: done(None{})
+    case Invalid{}: S.Refuse{D.VText{"invalid index entry"}}
+
+def selected(value:String,done:Maybe<&2,D.Value> -> S.Action,result:Q.Selection) -> S.Action:
+  projected(value,done,projection(result))
 
 type Scan is Data:
   Scan{collection: D.Collection, value: String}
