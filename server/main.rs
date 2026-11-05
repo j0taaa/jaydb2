@@ -1008,7 +1008,6 @@ fn main() {
 mod tests {
     use super::*;
     use std::io::Cursor;
-    use std::os::unix::fs::PermissionsExt;
 
     #[test]
     fn thread_options_select_available_cpus_and_allow_explicit_limits() {
@@ -1058,10 +1057,8 @@ mod tests {
 
     #[test]
     fn native_launch_forwards_selected_cpu_workers_with_gpu_disabled() {
-        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-threads-test").unwrap();
-        let path = directory.path.join("worker");
-        fs::write(&path, "#!/bin/sh\nprintf '%s\\n' \"$@\"\n").unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/service/runtime_policy_worker.sh");
         let program = Program {
             sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
             path,
@@ -1069,7 +1066,7 @@ mod tests {
         for count in [1, 8, 128] {
             assert_eq!(
                 program.run(&[], count).unwrap(),
-                format!("+RTS\n--threads\n{count}\n--gpu\noff\n-RTS\n").as_bytes()
+                format!("\n+RTS\n--threads\n{count}\n--gpu\noff\n-RTS\n").as_bytes()
             );
         }
     }
@@ -1096,15 +1093,16 @@ mod tests {
             );
             return;
         }
-        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-rts-test").unwrap();
-        let path = directory.path.join("worker");
-        fs::write(&path, "#!/bin/sh\nprintf '%s' \"$BENDRTS\"\n").unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/service/runtime_policy_worker.sh");
         let program = Program {
             sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
             path,
         };
-        assert!(program.run(&[], 1).unwrap().is_empty());
+        assert_eq!(
+            program.run(&[], 1).unwrap(),
+            b"\n+RTS\n--threads\n1\n--gpu\noff\n-RTS\n"
+        );
     }
 
     fn hex(value: &str) -> Vec<u8> {
