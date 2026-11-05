@@ -22,8 +22,12 @@ def prepare(directory):
         shutil.copyfile(ROOT / 'applications/tasks' / f'{name}.bend', directory / f'{name}.bend')
     for name in ('Orders', 'Foundations'):
         (directory / f'{name}.bend').write_text((ROOT / 'proof' / f'{name}.bend').read_text().replace('../contract/', './'))
-    for name in ('Receipts', 'ReceiptLaws'):
-        (directory / f'{name}.bend').write_text((ROOT / 'library' / f'{name}.bend').read_text().replace('../contract/', './'))
+    # The shared ownership proof now uses the ordinary library's Safe template.
+    # Copy its exact transitive helper dependencies along with receipt helpers.
+    for name in ('Receipts', 'ReceiptLaws', 'Laws', 'Query', 'Action'):
+        source = (ROOT / 'library' / f'{name}.bend').read_text()
+        (directory / f'{name}.bend').write_text(
+            source.replace('../contract/', './').replace('../src/', './'))
 
 
 def proof_check(directory):
