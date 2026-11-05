@@ -37,3 +37,16 @@ No contract, primitive, compiler, stored scalar domain, canonical limit or
 permission grant is changed. Helpers construct ordinary Actions; applications
 must prove their own installed laws at every prefix and success publication.
 No assumptions or automatic certificates are generated. Performance unmeasured.
+
+## Second checkpoint
+
+All ordinary modules now exist as working implementations. Primary-only checks
+pass Foundation, Modules, Behavior and a local generated restricted-user proof
+root. `Int64.add_success_under_no_overflow`/`add_rejects_overflow` and corresponding
+subtraction equations are nonvacuous two-sided contracts. `signed_success` and
+`signed_rejected` cover magnitude conversion, with `mul_success` conditional on
+the actual unsigned calculation and its range predicate. These are word-level
+API guarantees, not a full signed mathematical arithmetic development.
+
+The task proof now directly instantiates `Laws.reads` and `Laws.write_rows` with
+`Policy.Allowed`. Further actual checks remain pending the shared heavy lock.

@@ -14,22 +14,24 @@ import ./Bindings.bend as B
 import ./Query.bend as Q
 import ./Action.bend as A
 import ./Task.bend as Task
+import ./Mutation.bend as M
+import ./Laws.bend as G
 
 def read_depth(xs: List<&2, String>, n: Nat) -> Nat:
-  match xs:
-    case Nil{}: n
-    case Con{x, rest}: Succ{read_depth(rest, n)}
+  G.depth(xs, n)
 
-# Actual ReadCell permission is proved per field, not assumed for a transaction.
-def reads_safe(xs: List<&2, String>, +n: Nat, +id: String, +kind: String, +key: String,
+def read_permissions(xs: List<&2, String>, +id: String, +kind: String, +key: String) ->
+  G.ReadPermissions(~P.Allowed, D.Context{id, kind}, D.Application{id}, key, xs):
+  match xs:
+    case Nil{}: Unit{}
+    case Con{name, rest}: L.Both{{==}, read_permissions(rest, id, kind, key)}
+
+# Instantiate the library template with ACTUAL administrator permissions.
+def reads_safe(+xs: List<&2, String>, +n: Nat, +id: String, +kind: String, +key: String,
   -done: Q.Selection -> S.Action, h: @result: Q.Selection -> H.Safe(n, D.Context{id, kind}, done(result))) ->
   H.Safe(read_depth(xs, n), D.Context{id, kind}, Q.read_fields(D.Application{id}, key, xs, done)):
-  match xs:
-    case Nil{}: h(Q.Selected{D.VRecordEmpty{}})
-    case Con{+name, +rest}:
-      L.Both{{==}, +r => reads_safe(rest, n, id, kind, key,
-        result => done(Q.combine(name, r, result)),
-        result => h(Q.combine(name, r, result)))}
+  G.reads(~P.Allowed, xs, n, D.Context{id, kind}, D.Application{id}, key, done,
+    read_permissions(xs, id, kind, key), h)
 
 def projection_safe(+n: Nat, +ctx: D.Context, -done: Maybe<&2, D.Value> -> S.Action,
   h: @item: Maybe<&2, D.Value> -> H.Safe(Succ{n}, ctx, done(item)), p: Client.Projection) ->
@@ -58,6 +60,30 @@ def saved_safe(n: Nat, ctx: D.Context, cancel: Bool, key: String) ->
     case False{}: Unit{}
     case True{}: Unit{}
 
+def inserted_safe(+id: String, +kind: String, +key: String, r: S.Return) ->
+  H.Safe(4n, D.Context{id, kind}, M.inserted(D.Application{id}, D.Row{key, Task.fields(id, key, "Once", False{})}, b => S.Finish{D.VBool{b}}, r)):
+  match r:
+    case S.Datum{D.Existence{False{}}}:
+      L.Both{P.Both{{==}, {==}}, r => written_safe(2n, D.Context{id, kind}, S.Finish{D.VBool{True{}}}, Unit{}, r)}
+    case S.Datum{D.Existence{True{}}}: Unit{}
+    case S.Datum{D.RowAbsent{}}: Unit{}
+    case S.Datum{D.Cell{v}}: Unit{}
+    case S.Datum{D.Count{n}}: Unit{}
+    case S.Datum{D.Keys{xs}}: Unit{}
+    case S.UnitValue{}: Unit{}
+
+def replace_choice_safe(b: Bool, +id: String, +kind: String, +key: String) ->
+  H.Safe(4n, D.Context{id, kind}, M.replace_choice(b, D.Application{id}, key, Task.fields(id, key, "Replaced", True{}), b => S.Finish{D.VBool{b}})):
+  match b:
+    case False{}: Unit{}
+    case True{}: L.Both{P.Both{{==}, {==}}, r => written_safe(2n, D.Context{id, kind}, S.Finish{D.VBool{True{}}}, Unit{}, r)}
+
+def replace_safe(+id: String, +kind: String, +key: String, r: S.Return) ->
+  H.Safe(4n, D.Context{id, kind}, M.replace_received(~Client.is_open, D.Application{id}, D.Row{key, Task.fields(id, key, "Replaced", True{})}, b => S.Finish{D.VBool{b}}, r)):
+  match r:
+    case S.Datum{obs}: replace_choice_safe(Client.is_open(obs), id, kind, key)
+    case S.UnitValue{}: Unit{}
+
 def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.command(D.context_id(ctx), p)):
   match ctx p:
     case D.Context{+id, +kind} Client.Open{a, b}:
@@ -65,11 +91,16 @@ def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.co
         Q.filter_map(~String, ~Client.visit, id, [b], tail => S.Finish{Q.include(item, tail)}),
         item => visit_safe(0n, id, kind, b,
           tail => S.Finish{Q.include(item, Q.include(tail, D.VListEmpty{}))}, tail => Unit{}))
-    case D.Context{+id, +kind} Client.Pair{+a, b, +cancel}:
-      L.Both{P.Both{{==}, {==}}, r => written_safe(3n, D.Context{id, kind},
-        A.define_rows(D.Application{id}, [D.Row{b, Task.fields(id, b, "Second", True{})}], Task.saved(cancel, a)),
-        L.Both{P.Both{{==}, {==}}, r => written_safe(2n, D.Context{id, kind},
-          Task.saved(cancel, a), saved_safe(2n, D.Context{id, kind}, cancel, a), r)}, r)}
+    case D.Context{+id, +kind} Client.Pair{+a, +b, +cancel}:
+      G.write_rows(~P.Allowed, [D.Row{a, Task.fields(id, a, "First", False{})},
+        D.Row{b, Task.fields(id, b, "Second", True{})}], 2n, D.Context{id, kind}, D.Application{id}, Task.saved(cancel, a),
+        L.Both{P.Both{{==}, {==}}, L.Both{P.Both{{==}, {==}}, Unit{}}}, saved_safe(2n, D.Context{id, kind}, cancel, a))
+    case D.Context{+id, +kind} Client.Insert{+key}: L.Both{{==}, r => inserted_safe(id, kind, key, r)}
+    case D.Context{+id, +kind} Client.Replace{+key}: L.Both{{==}, r => replace_safe(id, kind, key, r)}
+    case D.Context{+id, +kind} Client.Drop{a, b}:
+      L.Both{{==}, r => written_safe(3n, D.Context{id, kind},
+        M.remove_rows(D.Application{id}, [b], S.Finish{D.VAbsent{}}),
+        L.Both{{==}, r => written_safe(2n, D.Context{id, kind}, S.Finish{D.VAbsent{}}, Unit{}, r)}, r)}
     case D.Context{id, kind} Client.Invalid{}: Unit{}
 
 def program_safe(+ctx: D.Context, args: D.Value) -> H.Safe(5n, ctx, S.start(Client.program(), ctx, args)):

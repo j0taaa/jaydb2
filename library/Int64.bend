@@ -34,13 +34,17 @@ def checked(overflow: Bool, result: V.Int64) -> Maybe<&2, V.Int64>:
     case True{}: None{}
     case False{}: Some{result}
 
+def add_overflow(+a: V.Int64, +b: V.Int64) -> Bool:
+  Bool.not(Bool.xor(negative(a), negative(b))) && Bool.xor(negative(a), negative(wrapping_add(a, b)))
+
+def sub_overflow(+a: V.Int64, +b: V.Int64) -> Bool:
+  Bool.xor(negative(a), negative(b)) && Bool.xor(negative(a), negative(wrapping_sub(a, b)))
+
 def add(+a: V.Int64, +b: V.Int64) -> Maybe<&2, V.Int64>:
-  +r = wrapping_add(a, b)
-  checked(Bool.not(Bool.xor(negative(a), negative(b))) && Bool.xor(negative(a), negative(r)), r)
+  checked(add_overflow(a, b), wrapping_add(a, b))
 
 def sub(+a: V.Int64, +b: V.Int64) -> Maybe<&2, V.Int64>:
-  +r = wrapping_sub(a, b)
-  checked(Bool.xor(negative(a), negative(b)) && Bool.xor(negative(a), negative(r)), r)
+  checked(sub_overflow(a, b), wrapping_sub(a, b))
 
 def increment(x: V.Int64) -> Maybe<&2, V.Int64>:
   add(x, V.Int64{0, 1})
@@ -97,10 +101,14 @@ def odd(x: V.Int64) -> Bool:
 def magnitude(+x: V.Int64) -> V.Int64:
   Bool.pick(V.Int64, negative(x), wrapping_sub(V.Int64{0, 0}, x), x)
 
-def signed(neg: Bool, +x: V.Int64) -> Maybe<&2, V.Int64>:
-  match neg:
-    case False{}: checked(negative(x), x)
-    case True{}: checked(unsigned_lt(V.Int64{2147483648, 0}, x), wrapping_sub(V.Int64{0, 0}, x))
+def signed_word(neg: Bool, +x: V.Int64) -> V.Int64:
+  Bool.pick(V.Int64, neg, wrapping_sub(V.Int64{0, 0}, x), x)
+
+def out_of_range(neg: Bool, +x: V.Int64) -> Bool:
+  Bool.pick(Bool, neg, unsigned_lt(V.Int64{2147483648, 0}, x), negative(x))
+
+def signed(+neg: Bool, +x: V.Int64) -> Maybe<&2, V.Int64>:
+  checked(out_of_range(neg, x), signed_word(neg, x))
 
 def continue_unsigned(overflow: Bool, next: Unit -> Maybe<&2, V.Int64>) -> Maybe<&2, V.Int64>:
   match overflow:
@@ -160,3 +168,88 @@ def divide_nonzero(is_zero: Bool, +a: V.Int64, +b: V.Int64) -> Maybe<&2, Divisio
 # and INT64_MIN/-1, so quotient/remainder always fit stored signed64.
 def divmod(+a: V.Int64, +b: V.Int64) -> Maybe<&2, Division>:
   divide_nonzero(zero(b), a, b)
+
+# These two-sided equations include a success obligation. In particular an
+# always-None implementation CANNOT satisfy success_under_no_overflow.
+law checked_success:
+  for +overflow: Bool
+  for +value: V.Int64
+  for h: {overflow == False{} : Bool}
+  {checked(overflow, value) == Some{value} : Maybe<&2, V.Int64>}
+def checked_success(overflow, value, h):
+  %Equal.sym(Bool, overflow, False{}, h) : {checked(_, value) == Some{value} : Maybe<&2, V.Int64>}
+  {==}
+
+law checked_rejected:
+  for +overflow: Bool
+  for +value: V.Int64
+  for h: {overflow == True{} : Bool}
+  {checked(overflow, value) == None{} : Maybe<&2, V.Int64>}
+def checked_rejected(overflow, value, h):
+  %Equal.sym(Bool, overflow, True{}, h) : {checked(_, value) == None{} : Maybe<&2, V.Int64>}
+  {==}
+
+law add_success_under_no_overflow:
+  for +a: V.Int64
+  for +b: V.Int64
+  for h: {add_overflow(a, b) == False{} : Bool}
+  {add(a, b) == Some{wrapping_add(a, b)} : Maybe<&2, V.Int64>}
+def add_success_under_no_overflow(a, b, h):
+  checked_success(add_overflow(a, b), wrapping_add(a, b), h)
+
+law add_rejects_overflow:
+  for +a: V.Int64
+  for +b: V.Int64
+  for h: {add_overflow(a, b) == True{} : Bool}
+  {add(a, b) == None{} : Maybe<&2, V.Int64>}
+def add_rejects_overflow(a, b, h):
+  checked_rejected(add_overflow(a, b), wrapping_add(a, b), h)
+
+law sub_success_under_no_overflow:
+  for +a: V.Int64
+  for +b: V.Int64
+  for h: {sub_overflow(a, b) == False{} : Bool}
+  {sub(a, b) == Some{wrapping_sub(a, b)} : Maybe<&2, V.Int64>}
+def sub_success_under_no_overflow(a, b, h):
+  checked_success(sub_overflow(a, b), wrapping_sub(a, b), h)
+
+law sub_rejects_overflow:
+  for +a: V.Int64
+  for +b: V.Int64
+  for h: {sub_overflow(a, b) == True{} : Bool}
+  {sub(a, b) == None{} : Maybe<&2, V.Int64>}
+def sub_rejects_overflow(a, b, h):
+  checked_rejected(sub_overflow(a, b), wrapping_sub(a, b), h)
+
+law signed_success:
+  for +neg: Bool
+  for +x: V.Int64
+  for h: {out_of_range(neg, x) == False{} : Bool}
+  {signed(neg, x) == Some{signed_word(neg, x)} : Maybe<&2, V.Int64>}
+def signed_success(neg, x, h):
+  checked_success(out_of_range(neg, x), signed_word(neg, x), h)
+
+law signed_rejected:
+  for +neg: Bool
+  for +x: V.Int64
+  for h: {out_of_range(neg, x) == True{} : Bool}
+  {signed(neg, x) == None{} : Maybe<&2, V.Int64>}
+def signed_rejected(neg, x, h):
+  checked_rejected(out_of_range(neg, x), signed_word(neg, x), h)
+
+law mul_success:
+  for +a: V.Int64
+  for +b: V.Int64
+  for +m: V.Int64
+  for calculation: {multiply_step(64n, magnitude(a), magnitude(b), V.Int64{0, 0}) == Some{m} : Maybe<&2, V.Int64>}
+  for range: {out_of_range(Bool.xor(negative(a), negative(b)), m) == False{} : Bool}
+  {mul(a, b) == Some{signed_word(Bool.xor(negative(a), negative(b)), m)} : Maybe<&2, V.Int64>}
+def mul_success(a, b, m, calculation, range):
+  %Equal.sym(Maybe<&2, V.Int64>, multiply_step(64n, magnitude(a), magnitude(b), V.Int64{0, 0}), Some{m}, calculation) :
+    {sign_result(Bool.xor(negative(a), negative(b)), _) == Some{signed_word(Bool.xor(negative(a), negative(b)), m)} : Maybe<&2, V.Int64>}
+  signed_success(Bool.xor(negative(a), negative(b)), m, range)
+
+law division_by_zero:
+  for a: V.Int64
+  {divmod(a, V.Int64{0, 0}) == None{} : Maybe<&2, Division>}
+def division_by_zero(a): {==}

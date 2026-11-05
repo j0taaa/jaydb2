@@ -25,6 +25,9 @@ def prepare(directory, root=ROOT):
     for name in ('Orders', 'Foundations'):
         source = (root / 'proof' / f'{name}.bend').read_text()
         (directory / f'{name}.bend').write_text(source.replace('../contract/', './'))
+    for name in ('Laws', 'Query', 'Action'):
+        source = (root / 'library' / f'{name}.bend').read_text()
+        (directory / f'{name}.bend').write_text(source.replace('../contract/', './').replace('../src/', './'))
 
 
 class Database:

@@ -127,5 +127,6 @@ def injective(xs, ys, h):
           Equal.cong(String, Segment, split, encode(Con{s, rest}), encode(Con{t, tail}), h), segment_roundtrip(t, encode(tail))))
       head = Equal.cong(Segment, String, segment_part, Segment{s, encode(rest)}, Segment{t, encode(tail)}, pair)
       ends = Equal.cong(Segment, String, segment_rest, Segment{s, encode(rest)}, Segment{t, encode(tail)}, pair)
-      %head : {Con{_, rest} == Con{t, tail} : List<&2, String>}
-      Equal.cong(List<&2, String>, List<&2, String>, r => Con{t, r}, rest, tail, injective(rest, tail, ends))
+      Equal.trans(List<&2, String>, Con{s, rest}, Con{t, rest}, Con{t, tail},
+        Equal.cong(String, List<&2, String>, x => Con{x, rest}, s, t, head),
+        Equal.cong(List<&2, String>, List<&2, String>, r => Con{t, r}, rest, tail, injective(rest, tail, ends)))

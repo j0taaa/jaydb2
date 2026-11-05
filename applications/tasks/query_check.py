@@ -13,11 +13,11 @@ def prepare(directory, root):
     app.prepare(directory, root)
     # Explicit opt-in public dependency closure; the normal client is unchanged.
     (directory / 'Task.bend').write_text((app.APP / 'Client.bend').read_text())
-    for name in ('Action', 'Query'):
+    for name in ('Action', 'Query', 'Value', 'Int64', 'Mutation'):
         source = (app.ROOT / 'library' / f'{name}.bend').read_text()
         (directory / f'{name}.bend').write_text(source.replace('../contract/', './'))
     configuration = (directory / 'Configuration.bend').read_text()
-    configuration = 'import ./Query.bend as Query\nimport ./Action.bend as Action\nimport ./Task.bend as Task\n' + configuration
+    configuration = 'import ./Mutation.bend as Mutation\nimport ./Query.bend as Query\nimport ./Action.bend as Action\nimport ./Task.bend as Task\n' + configuration
     (directory / 'Configuration.bend').write_text(configuration)
     (directory / 'Client.bend').write_text((app.APP / 'QueryClient.bend').read_text())
     (directory / 'ClientProof.bend').write_text((app.APP / 'QueryClientProof.bend').read_text())
@@ -28,7 +28,7 @@ def main():
     parser.add_argument('--database-root', type=Path, default=app.ROOT)
     args = parser.parse_args()
     root = args.database_root.resolve()
-    with tempfile.TemporaryDirectory(prefix='jaydb-query-') as tmp, tempfile.TemporaryFile() as errors:
+    with tempfile.TemporaryDirectory(prefix='jaydb-query-', dir=app.ROOT / 'build' / 'library') as tmp, tempfile.TemporaryFile(dir=app.ROOT / 'build' / 'library') as errors:
         directory = Path(tmp)
         prepare(directory, root)
         try:
@@ -61,6 +61,15 @@ def main():
                     'Q.select(D.Application{"bob"}, key, ["completed", "title"], result => S.Refuse{D.VAbsent{}})')
                 call('alice-token', ['open', 't1', 't2'], {'status': 'certificate', 'value': None}, code=forbidden)
                 call('alice-token', ['open', 't1', 't2'], {'status': 'success', 'value': [{'title': 'First'}]})
+                call('alice-token', ['insert', 'once'], {'status': 'success', 'value': True})
+                call('alice-token', ['insert', 'once'], {'status': 'success', 'value': False})
+                call('bob-token', ['replace_open', 'once'], {'status': 'success', 'value': False})
+                call('alice-token', ['replace_open', 'once'], {'status': 'success', 'value': True})
+                call('alice-token', ['replace_open', 'once'], {'status': 'success', 'value': False})
+                assert ordinary.call('alice-token', ['view', 'once']) == {'status': 'success', 'value': {
+                    'completed': True, 'id': 'once', 'owner': 'alice', 'title': 'Replaced'}}
+                call('alice-token', ['drop', 'once', 'missing'], {'status': 'success', 'value': None})
+                assert ordinary.call('alice-token', ['view', 'once']) == {'status': 'success', 'value': None}
                 process.stdin.close()
                 process.stdout.close()
             assert process.returncode == 0, process.returncode
@@ -72,7 +81,7 @@ def main():
         diagnostics = errors.read()
         assert (diagnostics.count(b'PRIMARY_CHECK') == 1 and b'- expected :' in diagnostics
             and b'- observed :' in diagnostics and b'Location: visit_safe' in diagnostics), diagnostics.decode('utf-8', 'replace')
-    print('PASS: selected fields, filtering/projection, missing rows, ownership, pair writes, refusal rollback, prohibited-read proof rejection.')
+    print('PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.')
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import ../contract/Semantics.bend as S
 import ../contract/Logic.bend as L
 import ../src/Termination.bend as T
 import ./Query.bend as Q
+import ./Action.bend as A
 
 def Safe(~allow: D.Context -> D.Operation -> Data, d: Nat, +ctx: D.Context, a: S.Action) -> Type:
   match d:
@@ -53,3 +54,27 @@ def RowPermissions(~allow: D.Context -> D.Operation -> Data, +ctx: D.Context,
   match xs:
     case Nil{}: Unit
     case Con{D.Row{k, fs}, rest}: L.E<allow(ctx, D.DefineRow{c, k, fs}), RowPermissions(~allow, ctx, c, rest)>
+
+def row_depth(xs: List<&2, D.Row>, n: Nat) -> Nat:
+  match xs:
+    case Nil{}: n
+    case Con{x, rest}: Succ{row_depth(rest, n)}
+
+def written_rows(~allow: D.Context -> D.Operation -> Data, xs: List<&2, D.Row>, +n: Nat,
+  +ctx: D.Context, -a: S.Action, h: Safe(~allow, row_depth(xs, Succ{n}), ctx, a), r: S.Return) ->
+  Safe(~allow, row_depth(xs, Succ{n}), ctx, A.written(a, r)):
+  match xs r:
+    case Nil{} S.UnitValue{}: h
+    case Con{x, rest} S.UnitValue{}: h
+    case Nil{} S.Datum{o}: Unit{}
+    case Con{x, rest} S.Datum{o}: Unit{}
+
+def write_rows(~allow: D.Context -> D.Operation -> Data, xs: List<&2, D.Row>, +n: Nat,
+  +ctx: D.Context, +c: D.Collection, -done: S.Action,
+  permission: RowPermissions(~allow, ctx, c, xs), h: Safe(~allow, Succ{n}, ctx, done)) ->
+  Safe(~allow, row_depth(xs, Succ{n}), ctx, A.define_rows(c, xs, done)):
+  match xs permission:
+    case Nil{} Unit{}: h
+    case Con{D.Row{key, fs}, +rest} L.Both{p, tail}:
+      L.Both{p, r => written_rows(~allow, rest, n, ctx, A.define_rows(c, rest, done),
+        write_rows(~allow, rest, n, ctx, c, done, tail, h), r)}

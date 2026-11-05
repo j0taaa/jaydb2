@@ -5,6 +5,7 @@ import ../contract/Semantics.bend as S
 import ./Query.bend as Q
 import ./Action.bend as A
 import ./Proofs.bend as P
+import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:
   D.Schema{[D.SchemaTable{"tasks", "id", [
