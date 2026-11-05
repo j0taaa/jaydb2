@@ -132,10 +132,29 @@ def initial_valid():
 '''
 
 
+def fill_source():
+    return f'''import Base
+import ./Data.bend as D
+import ./Semantics.bend as S
+
+def key(args: D.Value) -> String:
+  match args:
+    case D.VText{{k}}: k
+    case _: "missing"
+
+def program() -> S.Program:
+  S.Program{{ctx => +args => S.Access{{
+    D.DefineRow{{D.Application{{"bench"}}, key(args), [
+      D.Field{{"id", D.VText{{key(args)}}}},
+      D.Field{{"pad", D.VText{{"{PAD}"}}}},
+      D.Field{{"value", D.VInt{{0, 0}}}}]}}, r => S.Finish{{D.VInt{{0, 0}}}}}}}}
+'''
+
+
 def proof_source(workload, universal):
     binders = 'ctx, args, ' if universal else ''
     ctx, args = ('ctx', 'args') if universal else ('I.context()', 'I.arguments()')
-    depths = {'read': 2, 'write': 2, 'batch': 9, 'compute': 1}
+    depths = {'read': 2, 'write': 2, 'batch': 9, 'compute': 1, 'fill': 2}
     depth = depths[workload]
     finite = 'Unit{}'
     helper = ''
@@ -252,7 +271,7 @@ def run_size(options, root, output, binary, env, client, records, rows):
     folder = output/f'rows-{rows}'
     folder.mkdir()
     shutil.copyfile(SUITE/'Configuration.bend', folder/'Configuration.bend')
-    (folder/'Seed.bend').write_text(seed_source(rows))
+    (folder/'Seed.bend').write_text(seed_source(8))
     model = seed_state(rows)
     values = model['tables'][0]['rows']
     state_bytes = client.encode(model)
@@ -264,6 +283,19 @@ def run_size(options, root, output, binary, env, client, records, rows):
         # authentication probe is the first response, without client admission.
         session.prepared(1, 'no-handle', credential='invalid', phase='setup', mode='startup',
                          workload='authentication_probe', expected={'status': 'authentication', 'value': None})
+        fill_handle = None
+        if rows > 8:
+            source = fill_source()
+            proof = proof_source('fill', True)
+            (folder/'fill.bend').write_text(source)
+            (folder/'fill.universal-proof.bend').write_text(proof)
+            fill_handle = session.prepared(0, source, proof=proof, phase='setup', mode='prepare', workload='fill')['value']
+            for i in range(8, rows):
+                session.prepared(1, fill_handle, f'k{i:04}', phase='setup', mode='prepared', workload='fill',
+                                 expected={'status': 'success', 'value': 0})
+            session.prepared(2, fill_handle, phase='setup', mode='invalidate', workload='fill',
+                             expected={'status': 'invalidated', 'value': None})
+            print(f'  populated {rows-8} rows through checked prepared writes', flush=True)
         sources, proofs, handles = {}, {}, {}
         for workload in WORKLOADS:
             sources[workload] = (SUITE/(workload.title()+'.bend')).read_text()
@@ -286,6 +318,9 @@ def run_size(options, root, output, binary, env, client, records, rows):
         def check_read(key, expected, phase='validation'):
             session.prepared(1, handles['read'], key, phase=phase, mode='prepared', workload='read',
                              expected={'status': 'success', 'value': expected})
+
+        for row in values:
+            check_read(row['id'], 0, 'setup')
 
         # Identical deterministic input order on every invocation; warmups
         # evolve the model too, and are retained but excluded from summaries.
@@ -340,7 +375,7 @@ def run_size(options, root, output, binary, env, client, records, rows):
         session.prepared(1, handles['read'], 'k0000', phase='validation', mode='prepared', workload='invalidated_handle',
                          expected={'status': 'failure', 'value': None})
         success = True
-        return {'rows': rows, 'initial_state_bytes': len(state_bytes), 'initial_state_sha256': sha(state_bytes),
+        return {'rows': rows, 'seed_rows': 8, 'population_prepared_writes': rows-8, 'initial_state_bytes': len(state_bytes), 'initial_state_sha256': sha(state_bytes),
                 'final_model_state_sha256': sha(client.encode(model)),
                 'seed_source_sha256': sha((folder/'Seed.bend').read_bytes()),
                 'validation': 'Every changed row independently read after each write/batch; invalid write rollback read back.'}
@@ -397,7 +432,7 @@ def metadata(root, options, output):
                          'native_worker_arguments': ['+RTS', '--threads', str(options.threads), '--gpu', 'off', '-RTS'],
                          'heavy_lock': '/tmp/jaydb2-experiments-heavy.lock',
                          'timing': 'perf_counter_ns, immediately before pipe write through complete response bytes; encode/decode/check excluded',
-                         'reset': 'fresh process and deterministic seed per row count; model follows every warmup and sample write',
+                         'reset': 'fresh process and 8-row checked seed; populate rows 8..N-1 with admitted prepared writes, read back all rows, then evolve model through every warmup/sample write',
                          'preparation_samples': 'repeated read preparation; other workload preparations are setup only',
                          'ordinary_samples': ['read', 'write'],
                          'environment': {k: os.environ[k] for k in ('CC', 'CFLAGS', 'RUSTFLAGS', 'JAYDB_BEND', 'BENDTT')

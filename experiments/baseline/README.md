@@ -31,7 +31,7 @@ chosen explicitly; it must match the binary freshly built from that root:
 Every run creates a new target-local `build/bench-UTC-pid/` directory; override
 with `--output build/NAME` (must be new and inside `--root`). It contains
 `result.json`, request journals and stderr per state size, deterministic seed
-and proof sources, a snapshot of the driver, and tracked Git patches. All
+and population/proof sources, a snapshot of the driver, and tracked Git patches. All
 subprocess temporary files are inside its `tmp/`; no shared mutable build,
 cache or state directory is used. A failed check makes the command nonzero and
 writes `status: failed`; never compare the partial timings as passing results.
@@ -44,7 +44,10 @@ Overrides: `--samples N` (at least 2), `--warmups N`, `--rows 8 64 256` (each
 8..256), `--threads N` (1..128), `--compute-iterations N`. Increasing samples
 adds costly ordinary admission/compilation; keep comparisons modest.
 
-Each state size starts a fresh process and deterministic seed. The first
+Each state size starts a fresh process with the checked eight-row seed. Larger
+states are populated with an admitted prepared `DefineRow` program, then every
+row is read back before timing. This avoids expanding a large seed proof past
+the pinned BendTT fuel limit and exercises real state growth. The first
 invalid-credential response records startup separately. The workloads are:
 
 - `read`: one cell in the **last** row, ordinary and prepared.
@@ -64,8 +67,8 @@ Prepared executions still run fresh native workers and normal authentication,
 artifact validation and publication. Ordinary read/write submissions send the
 full code and concrete proof every time. Batch/compute ordinary admission is
 not measured. Warmups mutate the same deterministic model as measured writes;
-all changed rows are read back. Missing rows, schema-invalid writes with
-rollback, invalid credentials, invalidation and zero computation are checked.
+all changed rows are read back. Missing rows, schema-invalid writes and
+eight-row batches with rollback, invalid credentials, invalidation and zero computation are checked.
 
 The dedicated schema explicitly installs **zero administrator laws** using the
 existing `Free.configuration`; every request still passes real admission,
