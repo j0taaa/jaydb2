@@ -21,7 +21,7 @@ test-host:
 test-persistence:
 	cargo build --locked --release --features storage-fault-injection --target-dir .build/persistence/fault
 	mkdir -p .build/persistence/tmp
-	TMPDIR="$(CURDIR)/.build/persistence/tmp" JAYDB_PERSISTENCE_BINARY="$(CURDIR)/.build/persistence/fault/release/jaydb2" python3 -B -m unittest tests.service.test_persistence -v
+	TMPDIR="$(CURDIR)/.build/persistence/tmp" JAYDB_PERSISTENCE_BINARY="$(CURDIR)/.build/persistence/fault/release/jaydb2" python3 -B -m unittest tests.service.test_persistence tests.service.test_timing_persistence -v
 
 test-admission:
 	node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs

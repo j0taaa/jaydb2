@@ -13,7 +13,7 @@ from tools.client import frame
 
 
 class TimingTests(unittest.TestCase):
-    def server(self, folder, quota=False, stderr=False):
+    def server(self, folder, quota=False, stderr=False, storage=None):
         temp = tempfile.TemporaryDirectory(prefix='jaydb-timing-test-')
         self.addCleanup(temp.cleanup)
         log = Path(temp.name)/'timing.ndjson'
@@ -22,7 +22,10 @@ class TimingTests(unittest.TestCase):
             # First real checker/compiler attempt easily exceeds 1ms. Assert
             # the actual measured charge before depending on exhaustion.
             options += ['--quota-period-ms', '86400000', '--quota-budget-ms', '1']
-        server = Server(folder, options=options)
+        if storage:
+            path, mode = storage
+            options += ['--storage', str(path), '--storage-mode', mode]
+        server = Server(folder, options=options, seed=not storage or storage[1] != 'open')
         self.addCleanup(server.close)
         return server, log
 
@@ -118,6 +121,36 @@ class TimingTests(unittest.TestCase):
                          {'status': 'certificate', 'value': None})
         restarted.finish()
         self.assertEqual(self.receipts(new_log)[0]['outcome'], 'ordinary')
+
+    def test_durable_publication_and_quota_reset_after_same_binary_reopen(self):
+        from tests.service.test_persistence import state_bytes
+        folder = ROOT/'examples/access'
+        temporary = tempfile.TemporaryDirectory(prefix='jaydb-timing-durable-')
+        self.addCleanup(temporary.cleanup)
+        storage = Path(temporary.name)/'db'
+        server, log = self.server(folder, quota=True, storage=(storage, 'create'))
+        code, proof = ((folder/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
+        self.assertEqual(server.call(code, proof, 'alice-token', 'durable-new'),
+                         {'status': 'success', 'value': 'durable-new'}, server.diagnostics())
+        receipt = self.receipts(log)[0]
+        self.assertGreaterEqual(int(receipt['quota']['used_ns']), 1_000_000)
+        # The authoritative complete image already contains the new credential
+        # when this completion record and response become observable.
+        self.assertIn(b'durable-new', state_bytes(storage))
+        self.assertNotIn(b'alice-token', state_bytes(storage))
+        self.assertEqual(server.call(code, proof, 'durable-new'),
+                         {'status': 'quota', 'value': None})
+        server.finish()
+        reopened, reopened_log = self.server(folder, quota=True, storage=(storage, 'open'))
+        self.assertEqual(reopened.call(code, proof, 'durable-new'),
+                         {'status': 'refusal', 'value': 'cancelled'}, reopened.diagnostics())
+        self.assertEqual(reopened.call(code, proof, 'alice-token'),
+                         {'status': 'authentication', 'value': None})
+        reopened.finish()
+        record = self.receipts(reopened_log)[0]
+        self.assertEqual(record['principal'], 'alice')
+        self.assertEqual(record['quota']['used_ns'], record['elapsed_ns'])
+        self.assertEqual(record['outcome'], 'ordinary')
 
     def test_stderr_log_and_terminal_framing_are_outside_service(self):
         server, _ = self.server(ROOT/'examples/access', stderr=True)

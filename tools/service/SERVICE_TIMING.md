@@ -55,9 +55,15 @@ EOF and terminal framing events never call `execute`. The accepted serial
 scheduler flushes each response before selecting the next request.
 For later concurrency it may retain tokens for active requests; it must complete
 each token after cleanup/durability/publication and before delivery/order waits.
-For later persistence, uncertain commit must stop dispatch; it must never be
-converted into a quota denial or a claim of rollback. These integrations require
-the respective accepted host branches; no durability is supplied by this branch.
+An uncertain commit stops dispatch; it is never converted into a quota denial
+or a claim of rollback. The accepted scheduling and persistence prerequisites are integrated. Optional
+`--storage DIR --storage-mode create|open` performs the durable commit inside
+this same interval. At the actual `publish_with_ready` callback, the owned
+policy consumes the token immediately after durable and RAM publication.
+If an uncertain commit returns fatally before readiness, the remaining token
+is charged once at that fatal return; if the callback already ran it is never
+charged twice. Fatal attempts emit no response and dispatch stops. Logs may be
+written on this fatal return and carry no acknowledgment/rollback promise.
 
 ## Accounting and protocol extension
 

@@ -1494,12 +1494,32 @@ mod tests {
             storage: Some(storage),
             environment,
         };
+        struct Manual<'a>(&'a std::cell::Cell<u64>);
+        impl service_policy::Clock for Manual<'_> {
+            fn now(&self) -> std::time::Duration {
+                std::time::Duration::from_nanos(self.0.get())
+            }
+        }
+        let time = std::cell::Cell::new(100);
+        let mut policy = ServicePolicy::new(
+            Manual(&time),
+            Some(Quota {
+                period: std::time::Duration::from_nanos(1000),
+                budget: std::time::Duration::from_nanos(10),
+            }),
+        );
+        let mut attempt = policy.selected();
+        time.set(103);
+        assert!(policy.authenticated(&mut attempt, "alice"));
+        let mut receipt = Value::Null;
         let mut notified = false;
         let response = error_frame("success");
         assert_eq!(
             db.publish_with_ready(Ok((response.clone(), Some(b"new".to_vec()))), || {
                 notified = true;
                 assert_ne!(fs::read(path.join("snapshot")).unwrap(), previous);
+                time.set(115); // The actual durable operation is now complete.
+                receipt = policy.completed(attempt);
                 let mut byte = [0];
                 assert_eq!(
                     observer.read(&mut byte).unwrap_err().kind(),
@@ -1509,7 +1529,10 @@ mod tests {
             .unwrap(),
             response
         );
+        time.set(9999); // Final inspection and delivery cannot alter the charge.
         assert!(notified);
+        assert_eq!(receipt["elapsed_ns"], "15");
+        assert_eq!(receipt["quota"]["used_ns"], "15");
         assert_eq!(db.published.state, b"new");
         assert_eq!(
             db.storage
