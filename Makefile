@@ -75,3 +75,10 @@ test-feature-integration: build
 	python3 -B applications/indexed/run_check.py
 	python3 -B experiments/integration/check_features.py
 	python3 -B applications/vouchers/check.py --restart
+
+# One opt-in fault binary for the storage, timing and lost-reply receipt gates.
+# Caller holds the shared heavy lock. Use a short TMPDIR for Unix test sockets.
+.PHONY: test-recovery-integration
+test-recovery-integration:
+	cargo build --locked --release --features storage-fault-injection --target-dir .build/integration/fault
+	JAYDB_PERSISTENCE_BINARY="$(CURDIR)/.build/integration/fault/release/jaydb2" JAYDB_IDEMPOTENCY_BINARY="$(CURDIR)/.build/integration/fault/release/jaydb2" python3 -B -m unittest tests.service.test_persistence tests.service.test_timing_persistence tests.service.test_receipt_recovery -v
