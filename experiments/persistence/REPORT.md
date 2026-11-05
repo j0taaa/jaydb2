@@ -7,6 +7,9 @@ Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
 `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`, merged in `c681887`; the narrow
 overlap preserves seed-free recovery and omits the redundant decode worker.
 Storage interface milestone: `a95068f`. Initial integration: `46faca3`.
+Tested result-ready callback checkpoint: `83a9f37`. Logical-limit boundary
+repair: `6c6e494` (image-header overhead saturates instead of narrowing the
+u64 state-limit domain).
 
 The Rust controller now supports opt-in synchronous complete-image persistence.
 Working states remain private in RAM/native workers. Default operation remains
@@ -173,23 +176,63 @@ assertion that the old serial protocol theorem proves POSIX or hardware.
 All heavy commands use `flock /tmp/jaydb2-experiments-heavy.lock`; outputs,
 native artifacts and test state stay in this worktree. `.tools` is an ignored
 symlink to the immutable shared pinned official toolchain.
+The runs used official Bend 2.0.39 and its pinned primary checker/BendTT/runtime,
+Ubuntu Clang 19.1.1, and rustc 1.98.0. Persistence integration workers use one
+CPU thread; existing volatile integration tests retain their existing settings.
 
-Checks completed at the storage-boundary checkpoint:
+Completed checks, with tested revisions distinguished explicitly:
 
-* `TMPDIR="$PWD/.build/persistence/tmp" cargo test --locked`: **12 passed**,
-  including the actual result-ready/inspector boundary test.
+* `TMPDIR="$PWD/.build/persistence/tmp" cargo test --locked`: **13 passed**
+  after the limit repair, including the actual result-ready/inspector boundary
+  test and real create/reopen at the maximum u64 logical state limit.
 * `flock /tmp/jaydb2-experiments-heavy.lock make test-persistence`: **7 passed**
-  in 380.646 seconds. This run preceded the small result-ready callback addition;
-  the callback received its own host boundary test afterward.
+  in 380.646 seconds. This was the working tree based on `c681887` with the
+  storage-source environment binding and new test additions, before the
+  callback/native-failure-test additions committed in `83a9f37` and before
+  `6c6e494`. Its actual fault-controller SHA-256 was
+  `980dfe3990834cdc0d744987b31397009fbdd269b21fea47f1051aeb46613a06`.
+  It is not claimed as a full-suite run of either later revision. The callback
+  and limit repair received their own actual host boundary tests afterward.
 * `flock /tmp/jaydb2-experiments-heavy.lock python3 -B tools/check.py
   proof/Persistence.bend`: **both --check-only and --verdict passed**.
+  That proof and its Bend source dependencies are identical to the ones
+  committed in `83a9f37` and retained by `6c6e494`.
 * `cargo fmt --all -- --check`, `git diff --check`, Python syntax compilation
   and `node --check tools/service/stage.mjs`: passed.
 
-The final-source restart test (also adding real native-failure rollback to its
-coverage) and existing volatile-mode integration/proof regressions are running
-or queued under the shared lock. Their results will be recorded before final
-completion. The checkpoint does not claim those pending commands passed.
+* The broader command, under the shared lock, ran `make build`,
+  `python3 -B tools/check.py VERIFY.bend tests/proof/VERIFY.bend`, then
+  `TMPDIR="$PWD/.build/persistence/tmp" make test-integration`: **build passed,
+  both proof aggregates passed both official modes, all 6 integration tests
+  passed** in 154.895 seconds. This release executable included `83a9f37`'s
+  callback and preceded `6c6e494`'s storage-limit repair; its SHA-256 was
+  `2ff14f49b715c0eab70b9cc26565694958ce241cafd5ae976a63ee48cdb0d8c8`.
+  These are volatile-mode regression results, not a rerun of the persistence
+  fault suite on the limit repair. The new limit is checked by the 13-test
+  final-source host suite above.
+
+* **Final-source gate on `6c6e494`: passed.** Under the shared lock,
+  `cargo build --locked --release --features storage-fault-injection
+  --target-dir .build/persistence/fault` passed, then the command below passed
+  in 64.612 seconds with worktree-local TMPDIR. It includes the callback and
+  limit repair and adds an actual native worker failure after a private write,
+  asserting the authoritative image is unchanged. The rebuilt controller's
+  SHA-256 was
+  `d1ea30f203d518ca788ae681e13e29b9b70bc05b7dd62281fca9a636a7931d6e`.
+
+  ```sh
+  TMPDIR="$PWD/.build/persistence/tmp" \
+  JAYDB_PERSISTENCE_BINARY="$PWD/.build/persistence/fault/release/jaydb2" \
+  python3 -B -m unittest \
+    tests.service.test_persistence.PersistenceTests.test_acknowledged_restart_credentials_handles_and_seed_free_open -v
+  ```
+
+An extra redundant normal release rebuild was canceled while still waiting,
+at the coordinator's request to prioritize first feature gates; it is not
+reported as a successful check. No running test was interrupted. The final
+report-only commit changes no runtime/proof/test source from `6c6e494`.
+No performance run, full `make test` (including the unrelated admission mock),
+or hardware power-cut test is claimed.
 
 Coverage added:
 
