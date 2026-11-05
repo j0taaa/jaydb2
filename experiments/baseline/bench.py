@@ -361,7 +361,7 @@ def run_size(options, root, output, binary, env, client, records, rows):
         session.prepared(1, handles['write'], [f'k{rows-1:04}', 'wrong-type'], phase='validation',
                          mode='prepared', workload='invalid_write', expected={'status': 'data', 'value': None})
         check_read(f'k{rows-1:04}', values[-1]['value'])
-        session.prepared(1, handles['batch'], 'wrong-type', phase='validation', mode='prepared',
+        session.prepared(1, handles['batch'], [7, 'wrong-type'], phase='validation', mode='prepared',
                          workload='invalid_batch', expected={'status': 'data', 'value': None})
         for row in values[:8]:
             check_read(row['id'], row['value'])
