@@ -113,8 +113,6 @@ def main():
                     call(['issue', 'x'*64, 'boundary', False], value='v:'+'x'*64)
                     call(['issue', 'x'*65, 'too long', False], 'refusal', 'request ID too long')
                     call(['issue', 'r1', 'new lifetime', False], 'authentication', None, user='wrong')
-                    call(['issue', 'message-limit', 'z'*33000, False], 'limit')
-                    call(['inspect', 'message-limit'])
                     # Every body uses the positive certificate: actual source binding,
                     # ownership and frozen protocol must reject these variations.
                     bodies = [
@@ -165,11 +163,18 @@ def main():
                 storage = directory / 'storage'
                 with session(directory, errors, storage=storage, mode='create') as db:
                     check_call(db, ['issue', 'persist', 'durable', False], value='v:persist')
+                    # An oversized frame is terminal before selection/authentication.
+                    check_call(db, ['issue', 'message-limit', 'z'*33000, False], 'limit')
                 (directory / 'Seed.bend').unlink()  # Open must not reevaluate/reseed.
                 with session(directory, errors, storage=storage, mode='open') as db:
                     check_call(db, ['issue', 'persist', 'durable', False], value='v:persist')
                     check_call(db, ['issue', 'persist', 'changed', False], 'refusal', 'request conflict')
                     check_call(db, ['inspect', 'persist'], value='durable')
+                    check_call(db, ['inspect', 'message-limit'])
+                    check_call(db, ['issue', 'message-limit', 'small', False], value='v:message-limit')
+            elif not args.smoke:
+                with session(directory, errors) as db:
+                    check_call(db, ['issue', 'message-limit', 'z'*33000, False], 'limit')
             errors.seek(0)
             diagnostics = errors.read()
             assert diagnostics.count(b'PRIMARY_CHECK') == negatives, diagnostics.decode('utf-8', 'replace')
