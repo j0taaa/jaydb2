@@ -69,7 +69,7 @@ All heavy commands use `flock /tmp/jaydb2-experiments-heavy.lock`. Builds,
 logs and temporary service state are local to this worktree. `.tools` is an
 ignored symlink to the immutable shared official toolchain.
 
-Passed so far:
+Passed:
 
 * `cargo test --locked`: 7 host tests.
 * `cargo build --locked --release`, `cargo fmt --check`, `git diff --check`.
@@ -90,6 +90,36 @@ Passed so far:
   stale credentials, refusal, handle controls and full prefixed message limits.
 * `flock ... python3 -B tools/check.py proof/Preprocessing.bend`: both pinned
   official primary checker (`--check-only`) and BendTT (`--verdict`) passed.
+* `flock ... env TMPDIR="$PWD/build/preprocessing/tmp"
+  make verify-contract verify`: all contract/implementation/proof-test/library
+  aggregates passed both official checkers. All seven causal negative fixtures
+  failed as expected, including `PreprocessingAuthenticationFirst.bend`.
+* `flock ... env TMPDIR="$PWD/build/preprocessing/tmp" make test`: all 15
+  admission/verifier tests, 10 native runtime tests, 7 Rust host tests and 6
+  real service integration tests passed. The full integration suite took
+  151.589 s; this includes repeated admission/compilation, not a latency result.
+* `make build` (via `make test-demo-web`): release build passed.
+
+The first broader command was `flock ... env TMPDIR=... make verify-contract
+verify test test-demo-web`. It completed the above proof checks, then stopped
+with 14/15 admission tests passing: the existing kernel-crash injector compared
+an unresolved `.tools` path against the actual resolved executable and missed
+the subprocess when using the authorized `.tools` symlink. The test now uses
+`realpathSync` and explicitly asserts interception. Production admission and
+the pinned toolchain are unchanged. Checks resumed with `make test
+test-demo-web`, without repeating the expensive completed proof aggregates.
+That run completed `make test`, then the demo suite failed before database
+startup because the selected deeply nested local TMPDIR produced Unix socket
+paths over Linux's AF_UNIX path limit. A direct local bind/connect smoke check
+passed with `TMPDIR="$PWD/build"` (100-byte socket path). A demo-only rerun
+was queued, then cancelled while confirmed still waiting, at the user's explicit
+coordination request to prioritize the first Bend-host/concurrency/idempotency
+native gates. No running test was interrupted; no heavy job remains queued by
+this thread. After those first gates get a turn, the remaining broad regression
+command is `flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build"
+make test-demo-web`. All preprocessing feature checks and full `make test` are
+complete; the demo rerun is deferred, not claimed passed. No production code
+change is needed for its temporary-path failure.
 
 The new native differential test is included in `make test-integration`.
 Optional `JAYDB_PREPROCESS_TRACE` requires Linux `strace`; the test otherwise
