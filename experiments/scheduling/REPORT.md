@@ -108,8 +108,27 @@ successful transaction and a complete invalid request. Closed-output test
 keeps stdin open, observes exactly one admission despite queued successors,
 and verifies owned artifacts disappear.
 
-- Existing service regressions and contract/preprocessing proof validation are
-  queued under the same lock; their results will be recorded below.
+The additional batch below was canceled while still waiting for the lock,
+before it spawned a child or ran any check, following the coordinator's final
+instruction to keep focused gates frozen and avoid extra broad tests while
+priority first native gates are pending:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'export TMPDIR="$PWD/build/tmp"; make verify-contract && python3 -B tools/check.py proof/Preprocessing.bend && python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing -v' > build/scheduling-regression.log 2>&1
+```
+
+Those six older service tests, `make verify-contract`, direct preprocessing
+proof recheck, full `make test`/admission/native suites, and demo/library suites
+were not run on this branch. The accepted prerequisite's earlier official
+proof/native differential results belong to its own report, not to checks run
+here. The test-only shared-symlink admission interception fix `adad1b9` was
+not needed because no admission suite was run here.
+
+Frozen focused native gate source: `0aeaa45` (the build and all three tests
+above). Production code is unchanged since `23f7bcb`; later commits only record
+verification and clarify documentation. No later runtime or test changes
+invalidate the completed gate. `cargo fmt -- --check`, strict Clippy and
+`git diff --check` also passed during implementation.
 
 Temporary/build/log/state paths are under this worktree (`build/tmp`,
 `target`, `build/scheduling-*.log`); `.tools` is an ignored symlink to the
