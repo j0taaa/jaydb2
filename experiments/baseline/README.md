@@ -32,8 +32,9 @@ Every run creates a new target-local `build/bench-UTC-pid/` directory; override
 with `--output build/NAME` (must be new and inside `--root`). It contains
 `result.json`, request journals and stderr per state size, deterministic seed
 and population/proof sources, a snapshot of the driver, and tracked Git patches. All
-subprocess temporary files are inside its `tmp/`; no shared mutable build,
-cache or state directory is used. A failed check makes the command nonzero and
+subprocess temporary files are inside its `tmp/`; no shared mutable benchmark build,
+cache or state directory is used. Cargo uses its normal dependency registry
+as a build input. A failed check makes the command nonzero and
 writes `status: failed`; never compare the partial timings as passing results.
 
 The default has three measured samples after one warmup for each transaction,
@@ -138,3 +139,8 @@ with the current Rust toolchain/flags. If another legitimate build recipe
 produced different bytes, use the default driver build. Cargo's build cache,
 compiler and protected local inputs remain trusted; this is provenance for
 repeatable measurement, not a security attestation against a malicious host.
+
+Recorded checks, measured scope and limitations are in [REPORT.md](REPORT.md).
+Small passing machine-readable records and the interleaved chart are retained
+in [evidence/](evidence/); full per-request artifacts remain at the exact local
+paths recorded there.
