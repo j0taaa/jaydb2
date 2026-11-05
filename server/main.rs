@@ -412,6 +412,18 @@ fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<V
     Ok((response.to_vec(), state.map(|state| state.to_vec())))
 }
 
+fn checked_read_proposal(
+    output: &[u8],
+    limits: &Limits,
+    snapshot: &[u8],
+) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    let proposal = checked_proposal(output, limits)?;
+    if proposal.1.as_ref().is_some_and(|state| state != snapshot) {
+        return Err(Error::new("READ_STATE", "certified read changed state"));
+    }
+    Ok(proposal)
+}
+
 struct Database {
     directory: Temporary,
     stage: PathBuf,
@@ -718,17 +730,12 @@ impl Database {
             // Only the native executable runs here. Its ordinary Input.analyze
             // authenticates the received credential again on this same state;
             // E.start receives that context and the actual decoded arguments.
-            let proposal =
-                checked_proposal(&prepared.program.run(&input, self.threads)?, &self.limits)?;
-            if prepared.read_only
-                && proposal
-                    .1
-                    .as_ref()
-                    .is_some_and(|state| *state != self.published.state)
-            {
-                return Err(Error::new("READ_STATE", "certified read changed state"));
-            }
-            return Ok(proposal);
+            let output = prepared.program.run(&input, self.threads)?;
+            return if prepared.read_only {
+                checked_read_proposal(&output, &self.limits, &self.published.state)
+            } else {
+                checked_proposal(&output, &self.limits)
+            };
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -917,11 +924,7 @@ fn read_proposal(
         .filter(|p| p.read_only)
         .ok_or_else(|| Error::new("READ_DISPATCH", "uncertified read selection"))?;
     program.validate()?;
-    let (response, proposed) = checked_proposal(&program.program.run(&input, threads)?, limits)?;
-    if proposed.as_ref().is_some_and(|next| next != state) {
-        return Err(Error::new("READ_STATE", "certified read changed state"));
-    }
-    Ok((response, proposed))
+    checked_read_proposal(&program.program.run(&input, threads)?, limits, state)
 }
 
 impl read_batch::Service for Database {
@@ -1172,6 +1175,37 @@ mod tests {
         request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
     ) -> Result<()> {
         serve_serial(input, output, limit, &mut TestService(request))
+    }
+
+    #[test]
+    fn certified_success_rejects_changed_state_even_if_transport_is_valid() {
+        let limits = Limits {
+            message: 1000,
+            state: 1000,
+            response: 1000,
+        };
+        let response = error_frame("success");
+        let good = [vec![1], packet(b"pinned", &response)].concat();
+        assert!(
+            checked_read_proposal(&good, &limits, b"pinned")
+                .unwrap()
+                .1
+                .is_some()
+        );
+        let bad = [vec![1], packet(b"changed", &response)].concat();
+        assert_eq!(
+            checked_read_proposal(&bad, &limits, b"pinned")
+                .unwrap_err()
+                .code,
+            "READ_STATE"
+        );
+        let failure = [vec![0], error_frame("failure")].concat();
+        assert!(
+            checked_read_proposal(&failure, &limits, b"pinned")
+                .unwrap()
+                .1
+                .is_none()
+        );
     }
 
     #[test]
