@@ -1,18 +1,12 @@
-# Staged as Client.bend. Reads an actual row before returning a runtime-sized sum.
+# Staged as Client.bend. Reads a row before returning runtime arguments.
 import Base
 import ./Data.bend as D
 import ./Semantics.bend as S
 
-def sum(n: U32, acc: U32) -> U32:
-  if n == 0:
-    acc
-  else:
-    sum((n - 1 : U32), (acc + 1 : U32))
-
 def finish(args: D.Value, r: S.Return) -> S.Action:
   match args:
-    case D.VInt{hi, lo}: S.Finish{D.VInt{0, sum(lo, 0)}}
-    case D.VBool{b}: S.Finish{D.VText{String.from_nat(Nat.mul(16777216n, 16777216n))}}
+    case D.VInt{hi, lo}: S.Finish{D.VInt{hi, lo}}
+    case D.VBool{b}: S.Finish{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}
     case _:
       match r:
         case S.Datum{D.Cell{v}}: S.Finish{v}

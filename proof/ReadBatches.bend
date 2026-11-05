@@ -90,7 +90,7 @@ def read_operation_cannot_change(o, e, s, h):
   address_result(D.address_op_valid(o), e, s, o, h)
 
 def result_state(r: D.ResultOp, +n: Nat, +s: D.State, +e: D.Schema,
-  +o: D.Operation, k: S.Return -> S.Action, +ts: List<&2, S.OperationEvent>,
+  +o: D.Operation, -k: S.Return -> S.Action, +ts: List<&2, S.OperationEvent>,
   no_change: NoChange(r),
   rec: @v: S.Return -> @events: List<&2, S.OperationEvent> ->
     {S.state_execution_trace(T.observe(n, k(v), e, s, events)) == s : D.State}) ->
@@ -126,25 +126,61 @@ def prefix_preserves_state(n, a, e, s, ts, h):
         case S.Refuse{v}:
           %Equal.sym(S.Trace, S.resume_execution_trace(k, S.Stopped{s, S.Response{S.Refusal{}, v}}, e, ts), S.Final{s, ts, S.Response{S.Refusal{}, v}}, T.stopped(k, s, S.Response{S.Refusal{}, v}, e, ts)) : {S.state_execution_trace(_) == s : D.State}
           {==}
-        case S.Access{+o, +resume}:
+        case S.Access{+o, resume}:
           L.Both{op, next} = h
-          result_state(D.operate(e, s, o), k, s, e, o, resume, ts,
+          +remaining = k
+          result_state(D.operate(e, s, o), remaining, s, e, o, resume, ts,
             read_operation_cannot_change(o, e, s, op),
-            +r => events => prefix_preserves_state(k, resume(r), e, s, events, next(r)))
+            +r => events => prefix_preserves_state(remaining, resume(r), e, s, events, next(r)))
 
-def witnessed_state(+n: Nat, +p: S.Program, +e: D.Schema, +s: D.State,
+law finite_preserves_state:
+  for depth: Nat
+  for a: S.Action
+  for +n: Nat
+  for +e: D.Schema
+  for +s: D.State
+  for +ts: List<&2, S.OperationEvent>
+  for h: RO.Action(depth, a)
+  {S.state_execution_trace(T.observe(n, a, e, s, ts)) == s : D.State}
+def finite_preserves_state(depth, a, n, e, s, ts, h):
+  match depth:
+    case 0n: Empty.absurd({S.state_execution_trace(T.observe(n, a, e, s, ts)) == s : D.State}, h)
+    case 1n+d:
+      match a:
+        case S.Finish{v}:
+          match n:
+            case 0n: {==}
+            case 1n+k:
+              %Equal.sym(S.Trace, S.resume_execution_trace(k, S.Stopped{s, S.Response{S.Success{}, v}}, e, ts), S.Final{s, ts, S.Response{S.Success{}, v}}, T.stopped(k, s, S.Response{S.Success{}, v}, e, ts)) : {S.state_execution_trace(_) == s : D.State}
+              {==}
+        case S.Refuse{v}:
+          match n:
+            case 0n: {==}
+            case 1n+k:
+              %Equal.sym(S.Trace, S.resume_execution_trace(k, S.Stopped{s, S.Response{S.Refusal{}, v}}, e, ts), S.Final{s, ts, S.Response{S.Refusal{}, v}}, T.stopped(k, s, S.Response{S.Refusal{}, v}, e, ts)) : {S.state_execution_trace(_) == s : D.State}
+              {==}
+        case S.Access{+o, resume}:
+          match n:
+            case 0n: {==}
+            case 1n+k:
+              L.Both{op, next} = h
+              +remaining = k
+              result_state(D.operate(e, s, o), remaining, s, e, o, resume, ts,
+                read_operation_cannot_change(o, e, s, op),
+                +r => events => finite_preserves_state(d, resume(r), remaining, e, s, events, next(r)))
+
+def witnessed_state(+n: Nat, p: S.Program, +e: D.Schema, +s: D.State,
   +ctx: D.Context, +args: D.Value,
   witness: &depth: Nat -> RO.Action(depth, S.start(p, ctx, args))) ->
   {S.state_execution_trace(S.execute(n, p, e, s, ctx, args)) == s : D.State}:
   match witness:
     case (depth, evidence):
       %T.reference(n, S.start(p, ctx, args), e, s) : {S.state_execution_trace(_) == s : D.State}
-      prefix_preserves_state(n, S.start(p, ctx, args), e, s, Nil{},
-        finite_prefix(depth, S.start(p, ctx, args), evidence, n))
+      finite_preserves_state(depth, S.start(p, ctx, args), n, e, s, Nil{}, evidence)
 
 law program_preserves_every_prefix:
   for +n: Nat
-  for +p: S.Program
+  for p: S.Program
   for +e: D.Schema
   for +s: D.State
   for +ctx: D.Context
@@ -154,42 +190,62 @@ law program_preserves_every_prefix:
 def program_preserves_every_prefix(n, p, e, s, ctx, args, certificate):
   witnessed_state(n, p, e, s, ctx, args, certificate(ctx, args))
 
-type Call is Data:
-  Call{context: D.Context, arguments: D.Value, prefix: Nat}
+type Call is Type:
+  Call{program: S.Program, context: D.Context, arguments: D.Value, prefix: Nat}
 
-# A deterministic pure model of requests running on one pinned snapshot.
-# Prefixes include failures/filtered reads; physical worker completion order
-# is irrelevant. FIFO emission is represented by retaining call list order.
-def frozen(+p: S.Program, +e: D.Schema, +s: D.State, calls: List<&2, Call>) -> List<&2, S.Trace>:
+def Certificates(calls: List<Call>) -> Type:
+  match calls:
+    case Nil{}: Unit
+    case Con{Call{p, ctx, args, n}, rest}: L.E<RO.Program(p), Certificates(rest)>
+
+# Programs are linear values in the pure model, so a heterogeneous batch
+# retains one program per call. Evidence is required for every entry.
+def frozen(calls: List<Call>, +e: D.Schema, +s: D.State) -> List<&2, S.Trace>:
   match calls:
     case Nil{}: Nil{}
-    case Con{Call{ctx, args, n}, rest}:
-      S.execute(n, p, e, s, ctx, args) <> frozen(p, e, s, rest)
+    case Con{Call{p, ctx, args, n}, rest}:
+      S.execute(n, p, e, s, ctx, args) <> frozen(rest, e, s)
 
-def serial(+p: S.Program, +e: D.Schema, s: D.State, calls: List<&2, Call>) -> List<&2, S.Trace>:
+def serial(calls: List<Call>, +e: D.Schema, s: D.State) -> List<&2, S.Trace>:
   match calls:
     case Nil{}: Nil{}
-    case Con{Call{ctx, args, n}, rest}:
+    case Con{Call{p, ctx, args, n}, rest}:
       +trace = S.execute(n, p, e, s, ctx, args)
-      trace <> serial(p, e, S.state_execution_trace(trace), rest)
+      trace <> serial(rest, e, S.state_execution_trace(trace))
 
 law frozen_batch_refines_serial:
-  for +p: S.Program
   for +e: D.Schema
   for +s: D.State
-  for calls: List<&2, Call>
-  for +certificate: RO.Program(p)
-  {serial(p, e, s, calls) == frozen(p, e, s, calls) : List<&2, S.Trace>}
-def frozen_batch_refines_serial(p, e, s, calls, certificate):
+  for calls: List<Call>
+  for certificates: Certificates(calls)
+  {serial(calls, e, s) == frozen(calls, e, s) : List<&2, S.Trace>}
+def frozen_batch_refines_serial(e, s, calls, certificates):
   match calls:
     case Nil{}: {==}
-    case Con{Call{+ctx, +args, +n}, rest}:
+    case Con{Call{p, +ctx, +args, +n}, rest}:
+      L.Both{certificate, remaining} = certificates
       %Equal.sym(D.State, S.state_execution_trace(S.execute(n, p, e, s, ctx, args)), s,
         program_preserves_every_prefix(n, p, e, s, ctx, args, certificate)) :
-        {S.execute(n, p, e, s, ctx, args) <> serial(p, e, _, rest) ==
-          S.execute(n, p, e, s, ctx, args) <> frozen(p, e, s, rest) : List<&2, S.Trace>}
-      %Equal.sym(List<&2, S.Trace>, serial(p, e, s, rest), frozen(p, e, s, rest),
-        frozen_batch_refines_serial(p, e, s, rest, certificate)) :
+        {S.execute(n, p, e, s, ctx, args) <> serial(rest, e, _) ==
+          S.execute(n, p, e, s, ctx, args) <> frozen(rest, e, s) : List<&2, S.Trace>}
+      %Equal.sym(List<&2, S.Trace>, serial(rest, e, s), frozen(rest, e, s),
+        frozen_batch_refines_serial(e, s, rest, remaining)) :
         {S.execute(n, p, e, s, ctx, args) <> _ ==
-          S.execute(n, p, e, s, ctx, args) <> frozen(p, e, s, rest) : List<&2, S.Trace>}
+          S.execute(n, p, e, s, ctx, args) <> frozen(rest, e, s) : List<&2, S.Trace>}
       {==}
+
+law reads_preserve_fresh_authentication:
+  for +n: Nat
+  for p: S.Program
+  for +e: D.Schema
+  for +s: D.State
+  for +ctx: D.Context
+  for +args: D.Value
+  for credential: String
+  for certificate: RO.Program(p)
+  {D.authenticate(S.state_execution_trace(S.execute(n, p, e, s, ctx, args)), credential) ==
+    D.authenticate(s, credential) : Maybe<&2, D.Context>}
+def reads_preserve_fresh_authentication(n, p, e, s, ctx, args, credential, certificate):
+  Equal.cong(D.State, Maybe<&2, D.Context>, state => D.authenticate(state, credential),
+    S.state_execution_trace(S.execute(n, p, e, s, ctx, args)), s,
+    program_preserves_every_prefix(n, p, e, s, ctx, args, certificate))

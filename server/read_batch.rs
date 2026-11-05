@@ -111,11 +111,20 @@ pub(super) fn execute<T: Send, R: Send>(
 ) -> super::Result<()> {
     std::thread::scope(|scope| {
         let worker = &worker;
-        let handles: Vec<_> = jobs
-            .into_iter()
-            .map(|job| scope.spawn(move || worker(job)))
-            .collect();
+        let mut handles = Vec::new();
         let mut failure = None;
+        for job in jobs {
+            match std::thread::Builder::new()
+                .name("jaydb2-read".into())
+                .spawn_scoped(scope, move || worker(job))
+            {
+                Ok(handle) => handles.push(handle),
+                Err(error) => {
+                    failure = Some(error.into());
+                    break;
+                }
+            }
+        }
         for handle in handles {
             // Always explicitly join, including after failure, so a later panic
             // cannot mask the original channel error during implicit scope join.
@@ -242,5 +251,118 @@ pub(super) fn coordinate(
         };
         output.write_all(&response)?;
         output.flush()?;
+    }
+}
+
+#[cfg(test)]
+mod coordinator_tests {
+    use super::*;
+    use crate::scheduling::{FrameQueue, QueueBounds};
+    use crate::{Result, SerialService, packet};
+    use std::io::{self, Cursor, Write};
+
+    struct Model {
+        credential: u8,
+        registered: bool,
+        batches: Vec<Vec<Vec<u8>>>,
+        exclusive: Vec<Vec<u8>>,
+    }
+    impl Model {
+        fn new() -> Self {
+            Self {
+                credential: b'a',
+                registered: true,
+                batches: vec![],
+                exclusive: vec![],
+            }
+        }
+    }
+    impl SerialService for Model {
+        type Completion = Vec<u8>;
+        fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+            self.exclusive.push(body.to_vec());
+            body.to_vec()
+        }
+        fn publish(&mut self, body: Vec<u8>) -> Result<Vec<u8>> {
+            match body[0] {
+                b'w' => self.credential = body[1],
+                b'i' => self.registered = false,
+                _ => {}
+            }
+            Ok(vec![body[0]])
+        }
+    }
+    impl Service for Model {
+        fn max_readers(&self) -> usize {
+            2
+        }
+        fn is_read(&self, body: &[u8]) -> bool {
+            self.registered && body[0] == b'r'
+        }
+        fn reads(&mut self, bodies: Vec<Vec<u8>>, output: &mut impl Write) -> Result<()> {
+            self.batches.push(bodies.clone());
+            let snapshot = self.credential;
+            execute(
+                bodies,
+                |body| if body[1] == snapshot { snapshot } else { b'!' },
+                |response| {
+                    output.write_all(&[response])?;
+                    output.flush()?;
+                    Ok(())
+                },
+            )
+        }
+    }
+    fn queue(bodies: &[&[u8]]) -> FrameQueue {
+        let data = bodies.iter().flat_map(|body| packet(body, &[])).collect();
+        let queue = FrameQueue::start(
+            Cursor::new(data),
+            2,
+            QueueBounds {
+                items: 16,
+                bytes: 32,
+            },
+        )
+        .unwrap();
+        queue.wait_for_end();
+        queue
+    }
+    #[test]
+    fn fixed_head_batches_do_not_bypass_writes_and_reauthenticate_after_rotation_and_invalidation()
+    {
+        let queue = queue(&[b"ra", b"ra", b"wb", b"ra", b"rb", b"i", b"rb"]);
+        let mut model = Model::new();
+        let mut output = Vec::new();
+        coordinate(&queue, &mut output, &mut model).unwrap();
+        assert_eq!(output, b"aaw!bir");
+        assert_eq!(
+            model.batches,
+            [
+                vec![b"ra".to_vec(), b"ra".to_vec()],
+                vec![b"ra".to_vec(), b"rb".to_vec()]
+            ]
+        );
+        assert_eq!(
+            model.exclusive,
+            [b"wb".to_vec(), b"i".to_vec(), b"rb".to_vec()]
+        );
+    }
+    struct FailFlush;
+    impl Write for FailFlush {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::ErrorKind::BrokenPipe.into())
+        }
+    }
+    #[test]
+    fn failed_read_emission_never_starts_queued_exclusive_work() {
+        let queue = queue(&[b"ra", b"ra", b"wb", b"ra"]);
+        let mut model = Model::new();
+        assert!(coordinate(&queue, &mut FailFlush, &mut model).is_err());
+        assert_eq!(model.batches.len(), 1);
+        assert!(model.exclusive.is_empty());
+        assert_eq!(queue.select_if(|_| true).unwrap(), b"wb");
     }
 }

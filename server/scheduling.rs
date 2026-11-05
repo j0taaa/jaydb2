@@ -206,6 +206,23 @@ impl FrameQueue {
         }
     }
 
+    #[cfg(test)]
+    pub fn wait_for_end(&self) {
+        let (state, timeout) = self
+            .shared
+            .changed
+            .wait_timeout_while(
+                self.shared.state.lock().unwrap(),
+                std::time::Duration::from_secs(5),
+                |state| state.end.is_none(),
+            )
+            .unwrap();
+        assert!(
+            !timeout.timed_out() || state.end.is_some(),
+            "input completion timed out"
+        );
+    }
+
     /// Select only an already-enqueued qualifying head. Never skip a barrier,
     /// consume a terminal event, or wait for a batch to fill.
     pub fn select_if(&self, eligible: impl FnOnce(&[u8]) -> bool) -> Option<Vec<u8>> {

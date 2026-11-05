@@ -744,7 +744,7 @@ impl Database {
         let mut queue = FrameQueue::start(
             PollInput(io::stdin()),
             self.limits.message,
-            QueueBounds::for_message_limit(self.limits.message)?,
+            QueueBounds::for_message_limit(self.limits.message),
         )?;
         let result = read_batch::coordinate(&queue, &mut io::stdout().lock(), self);
         let cleanup = queue.close();

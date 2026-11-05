@@ -34,3 +34,18 @@ The host's successful-state equality check is defense in depth.
 Remaining implementation work: accepted FIFO scheduler integration, bounded
 parallel host execution and deterministic/native regressions. No performance
 claim or completion claim is made by this checkpoint.
+
+The implementation now integrates scheduler interface `d8ac16189df3869192581bffc5acad735226d512`
+and its accepted boundary fix `23f7bcb7e8b718288a7cad869215b8acee91b005`,
+including accepted preprocessing `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`.
+`--read-workers N` opts into up to 16 workers, cannot exceed `--threads`, and
+defaults to 1. `--threads` remains the exclusive native worker count; read
+batches split that budget as floor(threads/read-workers) per native program.
+Selection never waits to fill a batch and never refills an active batch. The
+framing queue remains bounded by 8 items and max(message-limit, 1MiB) retained
+body bytes (saturated at host representability). Active read bodies are bounded
+by N times the message limit. One published state is borrowed immutably across
+all reads. Active native inputs/outputs may each hold state/response copies;
+there are at most N of them. Ready results discard returned state and retain
+at most N response-limit-sized frames, plus the published last response.
+There are no persistent workers, retries, row locks, merges or historical states.
