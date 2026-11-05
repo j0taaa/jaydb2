@@ -1,0 +1,81 @@
+{
+  "revision": "425074e2ae51c8630901631b2dd5aa2703b23aa6",
+  "dirty": false,
+  "source_sha256": "c6f140ebec5573f1d8627a3d81d7c2076eed8ca73a380974823b1379ca11ae51",
+  "rounds_per_depth": 4096,
+  "cpu_workers": 8,
+  "gpu_mib": 512,
+  "gpu_worker_cap": 1,
+  "independent_oracle": {
+    "depth": 2,
+    "rounds": 8192,
+    "result": 1321445589
+  },
+  "reference_scope": "Small Python oracle; exact heavy checksum and complete native state compared with real unwrapped CPU",
+  "runs": [
+    {
+      "backend": "cpu",
+      "first_preparation_ms": 5733.903514,
+      "records": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "rounds_per_leaf": 8192,
+          "total_mixing_rounds": 32768,
+          "result": 1321445589,
+          "native_worker_ms": 2.432246,
+          "complete_request_ms": [
+            6.151487,
+            5.359821
+          ],
+          "median_complete_request_ms": 5.755654
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "rounds_per_leaf": 65536,
+          "total_mixing_rounds": 4294967296,
+          "result": 3867567763,
+          "native_worker_ms": 717.1073,
+          "complete_request_ms": [
+            715.181563,
+            715.065492
+          ],
+          "median_complete_request_ms": 715.1235274999999
+        }
+      ]
+    },
+    {
+      "backend": "cuda",
+      "first_preparation_ms": 6947.717337,
+      "records": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "rounds_per_leaf": 8192,
+          "total_mixing_rounds": 32768,
+          "result": 1321445589,
+          "native_worker_ms": 165.704082,
+          "complete_request_ms": [
+            173.896076,
+            175.994523
+          ],
+          "median_complete_request_ms": 174.94529949999998
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "rounds_per_leaf": 65536,
+          "total_mixing_rounds": 4294967296,
+          "result": 3867567763,
+          "native_worker_ms": 257.921357,
+          "complete_request_ms": [
+            215.54603,
+            215.86608
+          ],
+          "median_complete_request_ms": 215.706055
+        }
+      ]
+    }
+  ]
+}

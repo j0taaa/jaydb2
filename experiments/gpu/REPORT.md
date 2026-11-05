@@ -216,3 +216,26 @@ outer `flock`, as recorded in `build/gpu/gpu-fault-tests.log` and
 acquires the lock internally; do not wrap that target in another `flock`.
 The complete prepared-request benchmark passed and is preserved in the raw
 measurement file above; the focused heavier run is recorded separately.
+
+Focused heavy trial passed on clean revision
+`425074e2ae51c8630901631b2dd5aa2703b23aa6`; see
+[raw focused measurements](heavy-benchmark-results.json). The production code
+and driver were unwrapped. Both native proposals matched the exact expected
+state, and all complete requests returned the matching checksums. Small oracle
+result: 1,321,445,589. Heavy CPU/CUDA result: 3,867,567,763.
+
+| Same heavy fixture | CPU native worker, ms | CUDA native worker, ms | CPU complete request median (range), ms | CUDA complete request median (range), ms |
+| --- | ---: | ---: | ---: | ---: |
+| Small control, 32,768 total rounds | 2.432 | 165.704 | 5.756 (5.360–6.151) | 174.945 (173.896–175.995) |
+| Heavy, 4,294,967,296 total rounds | 717.107 | 257.921 | 715.124 (715.065–715.182) | 215.706 (215.546–215.866) |
+
+First preparation remains separate: CPU 5,733.904 ms, CUDA 6,947.717 ms.
+There are two complete-request samples per size and one separate native trial
+per size/backend. The GPU complete request grows by about 40.8 ms relative to
+its small control; the native worker observation grows by about 92.2 ms.
+This makes payload work material while retaining significant device/process
+startup cost. These differences include runtime variation and are not isolated
+kernel timings. The observed heavy complete-request ratio is about 3.32× in
+favor of CUDA, while the small control remains much faster on CPU. This is one
+focused trial set on this hardware, with no general break-even or throughput
+claim and no parameter sweep or billion-step Python oracle.
