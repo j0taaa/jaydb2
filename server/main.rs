@@ -1,4 +1,5 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
+mod read_batch;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -47,6 +48,7 @@ impl Error {
             "BENDTT_CHECK",
             "TARGET",
             "SOURCE_BINDING",
+            "READ_ONLY",
             "HOST_CAPTURE",
             "KERNEL_CAPTURE",
         ];
@@ -407,6 +409,7 @@ struct PreparedProgram {
     program: Program,
     original_code: Vec<u8>,
     universal_proof: Vec<u8>,
+    read_only: bool,
     // Host-owned snapshots; checking these bytes does not invoke admission.
     sealed: Vec<(PathBuf, String)>,
 }
@@ -579,7 +582,7 @@ impl Database {
         // one opcode and an otherwise ordinary, officially decoded request.
         let (operation, body) = if body.first() == Some(&7) {
             match body.get(1) {
-                Some(op @ 0..=2) => (Some(*op), &body[2..]),
+                Some(op @ 0..=3) => (Some(*op), &body[2..]),
                 _ => return Ok((error_frame("input"), None)),
             }
         } else {
@@ -628,7 +631,17 @@ impl Database {
             // Only the native executable runs here. Its ordinary Input.analyze
             // authenticates the received credential again on this same state;
             // E.start receives that context and the actual decoded arguments.
-            return checked_proposal(&prepared.program.run(&input, self.threads)?, &self.limits);
+            let proposal =
+                checked_proposal(&prepared.program.run(&input, self.threads)?, &self.limits)?;
+            if prepared.read_only
+                && proposal
+                    .1
+                    .as_ref()
+                    .is_some_and(|state| *state != self.published.state)
+            {
+                return Err(Error::new("READ_STATE", "certified read changed state"));
+            }
+            return Ok(proposal);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -653,8 +666,12 @@ impl Database {
         let report = json_helper(
             &self.stage,
             &[
-                if operation == Some(0) {
-                    "prepare".into()
+                if matches!(operation, Some(0 | 3)) {
+                    if operation == Some(3) {
+                        "prepare-read".into()
+                    } else {
+                        "prepare".into()
+                    }
                 } else {
                     "execute".into()
                 },
@@ -672,11 +689,17 @@ impl Database {
             ));
         }
         let program = Program::load(text(&report, "program")?.into())?;
-        if operation == Some(0) {
+        if matches!(operation, Some(0 | 3)) {
             if text(&report, "certificateMode")? != "universal" {
                 return Err(Error::new(
                     "TARGET",
                     "preparation requires a universal certificate",
+                ));
+            }
+            if report.get("readOnly").and_then(Value::as_bool) != Some(operation == Some(3)) {
+                return Err(Error::new(
+                    "TARGET",
+                    "preparation read-only admission mismatch",
                 ));
             }
             let handle = loop {
@@ -699,6 +722,7 @@ impl Database {
                     original_code: code.to_vec(),
                     universal_proof: proof.to_vec(),
                     sealed,
+                    read_only: report.get("readOnly").and_then(Value::as_bool) == Some(true),
                 },
             );
             return Ok(response);

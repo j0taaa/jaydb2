@@ -198,9 +198,9 @@ function stage(environment, directory, purpose, metadata) {
   else if (purpose === 'decode' || purpose === 'authenticate') main = PREPROCESS
     .replace('FUNCTION', purpose === 'decode' ? 'framing' : 'authentication')
     .replace('PARSER', purpose === 'decode' ? 'decode' : 'analyze');
-  else if (purpose === 'execute' || purpose === 'prepare') {
+  else if (['execute', 'prepare', 'prepare-read'].includes(purpose)) {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
-    if (purpose === 'prepare') {
+    if (['prepare', 'prepare-read'].includes(purpose)) {
       const concrete = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
       const links = utf8(available.get('Bindings.bend'));
       if (links.split(concrete).length !== 2) fail('TARGET', 'Expected the generated concrete certificate target');
@@ -208,14 +208,16 @@ function stage(environment, directory, purpose, metadata) {
         '@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)') +
         '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
     }
-    main = purpose === 'prepare'
+    if (purpose === 'prepare-read') available.set('Bindings.bend', Buffer.from('import ./ReadOnly.bend as ReadOnly\n' + utf8(available.get('Bindings.bend')) +
+      '\nlaw read_only:\n  ReadOnly.Program(Client.program())\n'));
+    main = ['prepare', 'prepare-read'].includes(purpose)
       ? EXECUTE.replace('import ./Input.bend as Input',
           'import ./Input.bend as Input\nimport ./Prepared.bend as Prepared')
         .replace('launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))',
           'launch(Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source()))')
       : EXECUTE;
   } else fail('DEPENDENCY', 'Invalid purpose');
-  const executing = purpose === 'execute' || purpose === 'prepare';
+  const executing = ['execute', 'prepare', 'prepare-read'].includes(purpose);
   available.set('Main.bend', Buffer.from(main));
   const entries = executing ? ['Main.bend', 'Interface.bend'] : ['Main.bend'];
   const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
@@ -231,7 +233,7 @@ function stage(environment, directory, purpose, metadata) {
       role = 'host'; exports = { 'Environment.bend': ['Environment:identity'],
         'Instance.bend': ['Instance:config', 'Instance:context', 'Instance:arguments'],
         'Bindings.bend': ['Bindings:code', 'Bindings:certificate', 'Bindings:terminates'] }[name];
-      if (name === 'Bindings.bend' && purpose === 'prepare') exports.push('Bindings:proof_source');
+      if (name === 'Bindings.bend' && ['prepare', 'prepare-read'].includes(purpose)) exports.push('Bindings:proof_source');
     } else if (name === 'Configuration.bend' && purpose === 'initialize') role = 'host';
     manifest.dependencies.push({ path: name, role, sha256: digest(data), ...(role === 'host' ? { exports } : {}) });
   }
@@ -241,9 +243,11 @@ function stage(environment, directory, purpose, metadata) {
   manifest.kernel = { module: 'Native.bend', primitives: executing ? ['read', 'write', 'loop'] : ['read', 'write'],
     foreign: { path: 'effects.c', sha256: digest(foreign) } };
   if (executing) {
-    manifest.certificateMode = purpose === 'prepare' ? 'universal' : 'concrete';
+    manifest.readOnly = purpose === 'prepare-read';
+    manifest.certificateMode = ['prepare', 'prepare-read'].includes(purpose) ? 'universal' : 'concrete';
     manifest.kernel.loopStep = 'step';
-    manifest.openTargets = { 'Bindings:certificate': 'ClientProof.bend', 'Bindings:terminates': 'ClientProof.bend' };
+    manifest.openTargets = { 'Bindings:certificate': 'ClientProof.bend', 'Bindings:terminates': 'ClientProof.bend',
+      ...(manifest.readOnly ? { 'Bindings:read_only': 'ClientProof.bend' } : {}) };
   } else manifest.purpose = purpose === 'initialize' ? 'initialize' : 'preprocess';
   if (purpose === 'initialize') manifest.initialization = { configuration: 'Configuration:config', state: 'Seed:state', proof: 'Seed:initial_valid' };
   json(path.join(directory, 'manifest.json'), manifest);
@@ -258,7 +262,7 @@ function stage(environment, directory, purpose, metadata) {
       ...manifest.dependencies.filter(d => names.has(d.path)),
       { path: 'Check.bend', role: 'host', exports: [], sha256: digest(check) }],
       ...(purpose === 'initialize' ? { purpose: 'initialize', initialization: manifest.initialization }
-        : { openTargets: manifest.openTargets, certificateMode: manifest.certificateMode }) };
+        : { openTargets: manifest.openTargets, certificateMode: manifest.certificateMode, readOnly: manifest.readOnly }) };
     json(path.join(directory, 'check-manifest.json'), pure);
   }
 }
@@ -271,7 +275,7 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   stage(environment, directory, purpose, metadata);
   const source = path.join(directory, 'checked.c');
   try { command(process.execPath, ['--stack_size=65536', path.join(runtimeRoot, 'tools/service/compile.mjs'), path.join(directory, 'manifest.json'), source, sourceDir, kernelPath,
-    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : [])]); }
+    ...(['initialize', 'execute', 'prepare', 'prepare-read'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : [])]); }
   catch (e) {
     const errorPath = source + '.error.json';
     if (fs.existsSync(errorPath)) {
@@ -289,7 +293,7 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   command(clang, flags);
   if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
   json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags });
-  return { program: executable, limits, certificateMode: report.admission.certificateMode };
+  return { program: executable, limits, certificateMode: report.admission.certificateMode, readOnly: report.admission.readOnly };
 }
 
 export function initialize(workdir, configuration, seed, sourceDir, kernelPath) {
@@ -312,7 +316,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const [operation, ...args] = process.argv.slice(2);
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
-    else if (['execute', 'prepare'].includes(operation) && args.length === 5) result = execute(...args, operation);
+    else if (['execute', 'prepare', 'prepare-read'].includes(operation) && args.length === 5) result = execute(...args, operation);
     else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {

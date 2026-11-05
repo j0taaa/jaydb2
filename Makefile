@@ -37,3 +37,7 @@ demo-web: build
 
 test-demo-web: build
 	python3 -B -m unittest discover -s tests/demo -v
+
+.PHONY: test-concurrency
+test-concurrency: build
+	python3 -B -m unittest tests.service.test_concurrency -v

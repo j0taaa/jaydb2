@@ -3,6 +3,7 @@ import path from 'node:path';
 import { AdmissionError, sha256 } from './bootstrap.mjs';
 
 const contract = JSON.parse(fs.readFileSync(new URL('./contract.lock.json', import.meta.url), 'utf8'));
+const readOnlyModules = JSON.parse(fs.readFileSync(new URL('./read-only.lock.json', import.meta.url), 'utf8'));
 const fail = (code, message) => { throw new AdmissionError(code, 'preflight', message); };
 const modulePath = /^(?:[A-Za-z_][\w-]*\/)*[A-Za-z_][\w-]*\.bend$/;
 
@@ -60,10 +61,12 @@ function snapshot(root, relative, expected, foreign = false) {
 }
 
 /** A manifest is a HOST capability, never an object received from the client. */
-export function preflight({ submissionDir, entry, dependencies, openTargets, canonicalRefs = {}, kernel, purpose, initialization, certificateMode = 'concrete' }, kernelOnly = false) {
+export function preflight({ submissionDir, entry, dependencies, openTargets, canonicalRefs = {}, kernel, purpose, initialization, certificateMode = 'concrete', readOnly = false }, kernelOnly = false) {
   try {
     if (!['concrete', 'universal'].includes(certificateMode) || (kernelOnly && certificateMode !== 'concrete'))
       fail('MANIFEST', 'Invalid certificate mode');
+    if (typeof readOnly !== 'boolean' || (readOnly && (kernelOnly || certificateMode !== 'universal')))
+      fail('MANIFEST', 'Read-only certification requires universal submission admission');
     const root = fs.realpathSync(submissionDir);
     if (!Array.isArray(dependencies) || !dependencies.length) fail('MANIFEST', 'An explicit dependency set is required');
     if (typeof entry !== 'string' || !modulePath.test(entry) || entry.includes('/')) fail('MANIFEST', 'Entry must be a root-level module');
@@ -104,8 +107,8 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
       fail('MANIFEST', 'Client module and host/kernel entry are required');
     }
     const bindingsNS = records.get(canonical.bindings)?.ns;
-    const targets = [bindingsNS + ':certificate', bindingsNS + ':terminates'];
-    if (!kernelOnly && (!openTargets || Object.keys(openTargets).length !== 2 || targets.some(k => records.get(openTargets[k])?.role !== 'client'))) {
+    const targets = [bindingsNS + ':certificate', bindingsNS + ':terminates', ...(readOnly ? [bindingsNS + ':read_only'] : [])];
+    if (!kernelOnly && (!openTargets || Object.keys(openTargets).length !== targets.length || targets.some(k => records.get(openTargets[k])?.role !== 'client'))) {
       fail('TARGET', 'Both targets must explicitly identify their implementing client modules');
     }
     if (kernelOnly) {
@@ -127,6 +130,14 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
           openTargets[initialization.proof] = initialization.proofFile;
         }
       } else if (initialization !== undefined) fail('INITIALIZATION', 'Initialization proof requires purpose initialize');
+    }
+    if (readOnly) {
+      for (const [file, hash] of Object.entries(readOnlyModules))
+        if (records.get(file)?.role !== 'library' || records.get(file)?.sha256 !== hash)
+          fail('READ_ONLY', 'Read-only predicate must be the pinned host module');
+      const target = records.get(canonical.bindings).ns + ':read_only';
+      if (openTargets[target] !== openTargets[records.get(canonical.bindings).ns + ':certificate'])
+        fail('TARGET', 'Read-only proof must come from the universal proof source');
     }
     let kernelPlan = null;
     if (kernel !== undefined) {
@@ -178,7 +189,7 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
     visit(entry);
     for (const file of records.keys()) visit(file);
     return { root, records, ordered, entry, canonicalRefs: Object.freeze(canonical), kernel: kernelPlan,
-      kernelOnly, purpose: kernelOnly ? purpose : 'submission', certificateMode, initialization, openTargets: { ...openTargets } };
+      kernelOnly, purpose: kernelOnly ? purpose : 'submission', certificateMode, readOnly, initialization, openTargets: { ...openTargets } };
   } catch (cause) {
     if (cause instanceof AdmissionError) throw cause;
     throw new AdmissionError('SOURCE_IO', 'preflight', `Failed to obtain host sources: ${cause.message}`, { cause });

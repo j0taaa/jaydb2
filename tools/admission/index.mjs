@@ -62,6 +62,7 @@ function assertBindings(B, book, plan, mustBeOpen) {
         apply(canonical.contractPrefix + 'Requirements:Certifies', B.Ref(inst + ':config'), B.Ref(bind + ':code'),
           B.Ref(client + ':program'), ctx, args)));
   }
+  if (plan.readOnly) expected[bind + ':read_only'] = app('ReadOnly:Program', client + ':program');
   for (const [k, T] of Object.entries(expected)) {
     const t = book.tlds[k];
     if (!t || t.$ !== 'Def' || !t.l || !sameTerm(B, t.T, T) || (mustBeOpen && t.v !== null)) {
@@ -287,7 +288,7 @@ async function admit(options, kernelOnly) {
       loopStep: plan.kernel.loopStep,
       contract: plan.kernel.primitives.includes('loop') ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
     const report = Object.freeze({ version: tc.info.version, primary: true, bendtt: true,
-      purpose: plan.purpose, certificateMode: plan.certificateMode, canonicalRefs: plan.canonicalRefs, kernel,
+      purpose: plan.purpose, certificateMode: plan.certificateMode, readOnly: plan.readOnly, canonicalRefs: plan.canonicalRefs, kernel,
       initialization: plan.purpose === 'initialize' ? Object.freeze({ ...plan.initialization }) : null,
       toolchainSha256: sha256(JSON.stringify([tc.info.version, tc.info.files, tc.info.kernelSha256])),
       verifier: Object.freeze({ ...tc.info.verifier, inputSha256: state.verifier.inputSha256 }),
