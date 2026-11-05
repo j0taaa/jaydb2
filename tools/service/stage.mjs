@@ -187,6 +187,7 @@ function freeze(workdir, configuration, seed) {
   const controller = read(process.env.JAYDB_CONTROLLER_PATH ?? `/proc/${process.ppid}/exe`);
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
   identityEntries.push(...[...tooling].map(([name, data]) => [name, digest(data)]).sort(), ['server/controller', digest(controller)]);
+  if (process.env.JAYDB_CONTROLLER_PATH) identityEntries.push(['server/adapter-node', digest(read(process.execPath))]);
   const identity = digest(JSON.stringify(identityEntries));
   sources.set('Environment.bend', Buffer.from('import Base\ndef identity() -> String:\n  ' + JSON.stringify(identity) + '\n'));
   for (const [name, data] of sources) write(path.join(workdir, 'public', name), data);

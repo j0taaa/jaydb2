@@ -35,7 +35,7 @@ code receives neither these effects nor the state cell.
 ## Identity and failures
 
 The manifest records SHA-256 of literal C, the executable, and Clang, together
-with the actual compiler arguments. The Rust host checks the executable before
+with the actual compiler arguments. The OS adapter checks the executable before
 every call. A child failure preserves published state. The host publishes only
 after receiving and validating complete output and reaping the process.
 

@@ -6,6 +6,7 @@ import ../contract/Bytes.bend as B
 import ../contract/Semantics.bend as S
 import ../src/Transport.bend as T
 import ../proof/Foundations.bend as F
+import ../proof/Orders.bend as O
 import ../contract/Logic.bend as L
 
 law rejected_preserves_state:
@@ -118,3 +119,41 @@ law ready_response_within_limit_and_without_trailing_bytes:
 def ready_response_within_limit_and_without_trailing_bytes(body,rest,response,state,limit,accepted):
   F.and_boolean_separate(P.equal(rest,Nil{}),P.fits(body,limit),
     ready_guard_was_true(P.equal(rest,Nil{}) && P.fits(body,limit),u => P.HostReady{response,state},accepted))
+
+# The registry uses this exact byte comparator, including non-UTF8 handles.
+
+law equal_bytes_reflexive:
+  for +bytes: P.Bytes
+  {P.equal(bytes,bytes) == True{} : Bool}
+def equal_bytes_reflexive(bytes):
+  match bytes:
+    case Nil{}:
+      {==}
+    case Con{+h,+t}:
+      F.and_boolean_intro(U32.is_eq(h,h),P.equal(t,t),
+        Equal.cong(Cmp,Bool,c => Cmp.is_eq(c),U32.cmp(h,h),EQ{},O.u32_refl(h)),equal_bytes_reflexive(t))
+
+law registered_head_resolves_exact_artifact_and_source_proof:
+  for +key: P.Bytes
+  for +artifact: P.Bytes
+  for +code: P.Bytes
+  for +proof: P.Bytes
+  for +rest: List<&2,C.Handle>
+  {C.lookup(key,Con{C.Handle{key,artifact,code,proof},rest}) ==
+    Some{C.Handle{key,artifact,code,proof}} : Maybe<&2,C.Handle>}
+def registered_head_resolves_exact_artifact_and_source_proof(key,artifact,code,proof,rest):
+  Equal.cong(Bool,Maybe<&2,C.Handle>,ok => P.choose(Maybe<&2,C.Handle>,ok,
+    u => Some{C.Handle{key,artifact,code,proof}},u => C.lookup(key,rest)),
+    P.equal(key,key),True{},equal_bytes_reflexive(key))
+
+law invalidation_removes_registered_head:
+  for +key: P.Bytes
+  for +artifact: P.Bytes
+  for +code: P.Bytes
+  for +proof: P.Bytes
+  for +rest: List<&2,C.Handle>
+  {C.remove(key,Con{C.Handle{key,artifact,code,proof},rest}) == rest : List<&2,C.Handle>}
+def invalidation_removes_registered_head(key,artifact,code,proof,rest):
+  Equal.cong(Bool,List<&2,C.Handle>,ok => P.choose(List<&2,C.Handle>,ok,
+    u => rest,u => Con{C.Handle{key,artifact,code,proof},C.remove(key,rest)}),
+    P.equal(key,key),True{},equal_bytes_reflexive(key))

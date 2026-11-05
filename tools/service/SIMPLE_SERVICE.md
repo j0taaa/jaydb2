@@ -4,8 +4,9 @@ Administrator configuration and dependencies are public. The chosen seed file
 is private and participates only in initialization; public configuration may
 not import it, including through another name or path to the same file.
 
-The active entry is `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs`.
-The host is Rust, admission and compilation are coordinated by Node, and each
+The active entry is `./jaydb2` → `host/Controller.bend`, using byte effects in
+`host/os.mjs` and existing `tools/service/stage.mjs`. The host decisions execute
+in Bend, admission and compilation are coordinated by Node, and each
 compiled program uses the official Bend runtime. Python is not part of service
 execution. Configuration contains only `message`, `state`, and `response`,
 measured in canonical bytes. Equality with a ceiling is allowed. There is no
@@ -44,9 +45,11 @@ file.
 
 ## Ownership and failures
 
-The Rust host owns each process and its pipes. Local threads feed input and
-drain stdout/stderr concurrently to avoid pipe deadlocks. The host waits for
-child exit and complete reading before accepting a proposal.
+The OS adapter owns each process and its pipes. It feeds binary input while
+draining stdout/stderr concurrently, and reports completion only after reaping
+and all pipe cleanup. Bend then chooses whether to validate and publish.
+The [Bend-host report](../../experiments/bend-host/REPORT.md) specifies the byte
+effect interface and the actual controller proof boundary.
 
 There is no DSO, lease, `dlclose`, or replacement runtime. Child exit
 releases its resources. A child failure returns `failure` without publishing, and
@@ -55,12 +58,13 @@ without repeating a potentially consumed operation.
 
 The profile is a serial Linux CLI with trusted tools and host. Its default
 volatile mode loses RAM data when the host dies. Optional complete-image
-persistence is enabled explicitly:
+persistence is available in the separately built Rust reference (not yet
+ported to the standalone Bend route):
 
 ```sh
-./jaydb2 --configuration examples/access/Configuration.bend \
+./jaydb2-rust-reference --configuration examples/access/Configuration.bend \
   --seed examples/access/Seed.bend --storage DATABASE --storage-mode create
-./jaydb2 --configuration examples/access/Configuration.bend \
+./jaydb2-rust-reference --configuration examples/access/Configuration.bend \
   --storage DATABASE --storage-mode open
 ```
 
@@ -95,22 +99,16 @@ model. Administrator laws remain mandatory at every prefix, including before
 a refusal or failure.
 
 The execution's trusted base includes pinned official tools, Node, Clang, the
-operating system, and JayDB integration code: the Rust controller, Node
-preparation/admission, and `native/effects.c`. This code connects checked
-sources, arguments, pipes, and concrete publication; its bodies are not
-formally checked by Bend's checkers. This does not permit dispensing with a
-client proof or replacing laws with final-result tests.
+operating system, the byte effect driver and adapters, and worker effects.
+`host/VERIFY.bend` checks actual Bend proposal guards and publication functions.
+It does not establish OS refinement or the entire new controller protocol.
+Administrator/client proofs remain mandatory; hashes are integrity checks.
 
-Rust tests cover publication, rollback, and framing. `make test-native`
-compiles official C and exercises effects, representation, and actual
-toolchain limits. `make test-integration` admits, compiles, and executes real
-Bend transactions. Hashes and tests identify artifacts and support the cases
-executed; they do not replace a proof of the complete executable's eight laws.
-
-`make build`, `make verify-contract`, `make verify`, and `make test` are separate
-steps: building or passing tests does not imply that both checkers ran on the
-proof aggregates. `proof/ContractService.bend`, included by `make verify`,
-composes exactly `Contract(a,k)` for the kernel and serial protocol under the
-explicit tool and integration contracts. The [law map](../../proof/SERVICE_CONTRACT.md)
-identifies assumptions; the Rust/Node/C bridge remains trusted and supported
-by review/tests rather than a mechanized proof of those components.
+`make test-host` executes the actual native controller against injected byte
+operations and checks OS adapter boundaries. `make test-native` compiles
+worker effects and exercises representations. `make test-integration` admits,
+compiles and executes real Bend transactions. The explicit Rust reference is
+used by `tests.bend_host.test_differential`; it is never invoked by production.
+See the [law map](../../proof/SERVICE_CONTRACT.md) and the Bend-host report for
+remaining integration assumptions. Building and testing do not imply the
+full proof aggregates ran in both checkers.

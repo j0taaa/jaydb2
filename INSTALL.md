@@ -4,8 +4,9 @@
 
 The current checkout uses the tool profile tested for experimental release
 0.1.0: Linux x86_64 (Ubuntu 24.04), Node 24.19, Clang 19, Rust/Cargo 1.98,
-and Python 3.12. The service is Rust + Node + Bend
-executables; Python is used for installation and the demonstration client.
+and Python 3.12. The service is Bend + Node + small C effects. Rust/Cargo
+builds the optional differential/reference controller; Python is used for
+installation and the demonstration client.
 
 Check the installed tools:
 

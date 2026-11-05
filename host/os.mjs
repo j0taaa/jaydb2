@@ -134,6 +134,10 @@ export class Adapter {
     return Buffer.concat(chunks,used);
   }
   async inspect(bytes) {
+    if(!this.inspector) {
+      if(bytes[0]===1) {++this.sequence;this.diagnostic=null;}
+      return Buffer.alloc(0);
+    }
     const event=bytes[0], [payload,state]=split(bytes.subarray(1));
     let metadata;
     if(event===0) {

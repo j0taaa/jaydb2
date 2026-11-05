@@ -81,7 +81,7 @@ class PreparedTests(unittest.TestCase):
 
             # Runtime, admitted source, and admitted dependency tampering all
             # fail before running a prepared action or publishing anything.
-            private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
+            private = next(server.temporary_root.glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
             self.assertIn('Prepared.resolve_analysis(', (prepared/'Main.bend').read_text())
@@ -175,7 +175,7 @@ class PreparedTests(unittest.TestCase):
             refused = small.prepared(0, code, 'alice-token', proof=proof)
             self.assertEqual(refused, {'status': 'limit', 'value': None}, small.diagnostics())
             self.assertLessEqual(len(encode(refused)), 64)
-            private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{small.process.pid}-*'))
+            private = next(small.temporary_root.glob(f'jaydb2-{small.process.pid}-*'))
             self.assertFalse(list(private.glob('request-*')), 'oversized receipt registered a worker')
             self.assertEqual(small.call(code, concrete, 'alice-token', 'x'),
                 {'status': 'success', 'value': 'x'}, small.diagnostics())

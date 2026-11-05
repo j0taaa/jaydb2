@@ -17,6 +17,10 @@ class Server:
     """Development harness for the actual controller, with a reference override."""
     def __init__(self, folder, env=None, command_prefix=(), threads=None,
                  binary=None, arguments=(), seed=True):
+        env = dict(os.environ if env is None else env)
+        env.setdefault('TMPDIR', str(ROOT/'target/test-tmp'))
+        self.temporary_root = Path(env['TMPDIR'])
+        self.temporary_root.mkdir(parents=True, exist_ok=True)
         self.errors = tempfile.TemporaryFile()
         command = [str(binary or os.environ.get('JAYDB2_TEST_HOST', ROOT/'jaydb2')),
                    '--configuration', str(folder/'Configuration.bend')]

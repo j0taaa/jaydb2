@@ -16,8 +16,9 @@ A fatal failure can terminate the instance and lose its RAM data.
 
 ## Installation
 
-Execution profile: Linux x86_64, Node 24, and Clang 19. The controller is a Rust
-binary; Python is used only for development tools, tests, and example clients.
+Execution profile: Linux x86_64, Node 24, and Clang 19. The controller is a Bend
+binary built by the official compiler, with a small byte/OS adapter in Node and C.
+Python is used only for development tools, tests, and example clients.
 
 The Node helper uses `--stack_size=65536` and an unlimited soft stack limit.
 The launcher requires an already unlimited Linux hard stack limit; it does not
@@ -57,7 +58,10 @@ Official TypeScript modules are loaded only by stripping TypeScript syntax
 with Node. Installation does not build a derived verifier, V8 addon, or adapted
 source cache. Official-tool capabilities and limitations remain unchanged.
 
-`server/main.rs` retains published state in RAM and serves frames serially.
+`host/Controller.bend` retains published state in RAM and serves frames serially.
+`host/Policy.bend` implements its framing/proposal/publication decisions.
+See the [Bend-host report](experiments/bend-host/REPORT.md) for the executed
+functions, byte effects, proof linkage, tests and trust assumptions.
 Native Bend computation uses the CPU parallelism available to the host by
 default, capped at the official runtime's 128 workers. Use `--threads N` to
 choose 1–128 workers per native program, or `--threads 1` for single-threaded
@@ -101,10 +105,13 @@ unchanged, but renamed record fields and status values are an API break.
 
 ## Verification
 
-Optional complete-image persistence uses `--storage DIRECTORY --storage-mode
+The separately accepted Rust reference supports optional complete-image
+persistence using `./jaydb2-rust-reference --storage DIRECTORY --storage-mode
 create|open`. Create also requires `--seed FILE` and a new directory; open
-requires the exact same controller/environment and reads no seed. The default
-remains volatile. See the [storage contract and examples](experiments/persistence/REPORT.md)
+requires the exact same controller/environment and reads no seed. The Bend
+replacement supports the volatile ordinary/prepared route plus accepted
+preprocessing; other host experiments require separate ports. See the
+[storage contract and examples](experiments/persistence/REPORT.md)
 for ownership, uncertain commit behavior and filesystem assumptions.
 
 ```sh
@@ -125,8 +132,9 @@ The [general proofs](proof/README.md) include canonical Codec equivalence.
 without rewriting proofs to widen the accepted fragment.
 `ContractService.contract_of_service` composes the eight laws for the kernel
 and serial protocol under the [explicit tool and integration contracts](proof/SERVICE_CONTRACT.md).
-The Rust/Node/C bridge is supported by review and tests; those components and
-the compiler have no mechanized proof here.
+The actual Bend host byte guards and publication functions have linked proofs
+in `host/VERIFY.bend`. The Node/C OS effects and compiler remain trusted; the
+full controller/OS protocol has no mechanized refinement proof here.
 
 The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),
 [service](tools/service/SIMPLE_SERVICE.md), and

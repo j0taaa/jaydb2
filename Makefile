@@ -1,4 +1,4 @@
-.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration test-library demo demo-web test-demo-web test-persistence
+.PHONY: all build verify-contract verify test test-host test-admission test-native test-integration test-library demo demo-web test-demo-web test-persistence build-bend-host build-rust-reference verify-bend-host
 
 all: build
 
@@ -14,7 +14,7 @@ verify-contract:
 	python3 -B tools/check.py
 
 verify:
-	python3 -B tools/check.py VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
+	python3 -B tools/check.py VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend host/VERIFY.bend
 	python3 -B tests/proof/test_proofs.py
 
 test: test-admission test-native test-host test-integration
