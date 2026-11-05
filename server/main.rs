@@ -1,4 +1,5 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
+mod storage;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
