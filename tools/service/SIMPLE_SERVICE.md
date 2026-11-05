@@ -122,3 +122,18 @@ composes exactly `Contract(a,k)` for the kernel and serial protocol under the
 explicit tool and integration contracts. The [law map](../../proof/SERVICE_CONTRACT.md)
 identifies assumptions; the Rust/Node/C bridge remains trusted and supported
 by review/tests rather than a mechanized proof of those components.
+
+## Rust helper pipe startup
+
+Rust helper capture uses fallible scoped pipe-thread creation. Its child guard
+lives inside the scope closure so every early return or Rust unwind kills and
+reaps the direct child BEFORE implicit joins of already-started pipe threads.
+This also releases a writer blocked on stdin and readers blocked on output.
+Normal successful captures still drain all binary bytes and wait for the child.
+
+A pipe-thread startup failure retains the existing fatal policy, now raised only
+after child cleanup and pipe joins. It cannot become a recoverable response or
+allow later queued requests to start. Tests inject errors and unwinding before
+each of the three pipe-thread creations and check actual child reaping. This
+is OS-boundary evidence, not a new mechanized proof or a hard deadline. On the
+Bend-host branch this describes the retained Rust reference only.
