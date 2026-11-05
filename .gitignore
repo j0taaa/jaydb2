@@ -20,3 +20,6 @@ node_modules/
 !.env.example
 *.pem
 *.key
+
+# Shared immutable toolchain may be a symlink.
+/.tools
