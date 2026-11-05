@@ -122,6 +122,32 @@ class TimingTests(unittest.TestCase):
         restarted.finish()
         self.assertEqual(self.receipts(new_log)[0]['outcome'], 'ordinary')
 
+    def test_quota_precedence_distinguishes_canonical_and_authenticated_field_errors(self):
+        folder = ROOT/'examples/access'
+        server, log = self.server(folder, quota=True)
+        code = (folder/'Client.bend').read_text()
+        self.assertEqual(server.call(code, '', 'alice-token'),
+                         {'status': 'certificate', 'value': None})
+        self.assertGreaterEqual(int(self.receipts(log)[0]['quota']['used_ns']), 1_000_000)
+        for opcode in (1, 2):
+            self.assertEqual(server.prepared(opcode, 'unknown', 'alice-token', proof='nonempty'),
+                             {'status': 'quota', 'value': None})
+        self.assertEqual(server.prepared(1, 'unknown', 'bad-token', proof='nonempty'),
+                         {'status': 'authentication', 'value': None})
+        self.assertEqual(server.exchange(frame(None)), {'status': 'input', 'value': None})
+        invalid_opcode = b'\x07\xff' + frame(None)[8:]
+        self.assertEqual(server.exchange(len(invalid_opcode).to_bytes(8, 'big') + invalid_opcode),
+                         {'status': 'input', 'value': None})
+        server.finish()
+        receipts = self.receipts(log)
+        self.assertEqual([r['principal'] for r in receipts], ['alice', 'alice', 'alice', None, None, None])
+        self.assertEqual([r['outcome'] for r in receipts], ['ordinary', 'quota', 'quota', 'ordinary', 'ordinary', 'ordinary'])
+        fresh, fresh_log = self.server(folder)
+        self.assertEqual(fresh.prepared(1, 'unknown', 'alice-token', proof='nonempty'),
+                         {'status': 'input', 'value': None})
+        fresh.finish()
+        self.assertEqual(self.receipts(fresh_log)[0]['principal'], 'alice')
+
     def test_durable_publication_and_quota_reset_after_same_binary_reopen(self):
         from tests.service.test_persistence import state_bytes
         folder = ROOT/'examples/access'

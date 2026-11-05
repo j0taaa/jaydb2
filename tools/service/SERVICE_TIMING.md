@@ -94,13 +94,18 @@ body is shorter than certificate/null (59 bytes), which a valid configuration
 must already accommodate. The ordinary state/message/response ceilings are
 unchanged.
 No program runs, handle changes, or state publication occurs on quota denial.
-Malformed input and authentication errors retain precedence; after fresh
-authentication, quota denial takes precedence over admission/handle errors.
+Canonical decoding errors, invalid extension opcodes and authentication
+errors retain precedence. After fresh authentication, quota denial takes
+precedence over admission, handle errors and prepared-control field validation
+(including a nonempty proof on execute/invalidate). Those later field errors
+return `input` when policy permits the attempt; they still have an authenticated
+principal.
 
 At completion, charge the *entire* measured interval once to the initially
 authenticated principal in the completion period. Include certificate/handle
 rejections, ordinary refusals, data/limit/runtime failures and quota denial
-itself. Failed authentication, malformed inputs and pre-authentication host
+itself, including authenticated prepared-control `input` errors. Failed
+authentication, canonical decoding/opcode errors and pre-authentication host
 failures have no principal and are not charged. A credential exchange charges
 its initial actor; the next selection authenticates again, so a reused
 credential can identify another user. IDs are exact strings, without case folding

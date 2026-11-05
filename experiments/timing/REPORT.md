@@ -196,3 +196,22 @@ cancellation, per-user scheduling fairness or concurrent host execution is added
 The hooks permit future certified read batches, but that composition is not
 implemented/proved on this branch. Durability inherits the accepted protected
 storage, flush, single-owner and frozen-environment assumptions.
+
+## Independent audit clarification
+
+The audit found that the documentation's unqualified "malformed input" wording
+was broader than the implemented policy. Canonical decoding/opcode errors occur
+before authentication, keep their precedence and are uncharged. A nonempty
+execute/invalidate proof is instead a prepared-field error checked after fresh
+authentication and quota policy; it returns `input` when permitted and `quota`
+when exhausted. These authenticated attempts are charged. This ordering meets
+the policy's rule to charge every authenticated completed attempt.
+
+`tools/service/SERVICE_TIMING.md` now states that distinction explicitly.
+No production source or accounting order changed. The new real-service
+`TimingTests.test_quota_precedence_distinguishes_canonical_and_authenticated_field_errors`
+passed under the shared lock in 11.193 seconds: it checks both prepared opcodes
+under exhausted quota, invalid authentication, canonical decoding and opcode
+errors, and the permitted nonempty-proof `input` outcome and logged principal.
+The first invocation had a missing worktree-local `TMPDIR` and failed before
+initialization; creating the local directory resolved that test setup error.
