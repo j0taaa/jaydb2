@@ -1,7 +1,9 @@
 # Scheduling experiment
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
-`9b751fab3c7c349ff473a2d11a7133573b6c4df2`). Queue-interface milestone: `d8ac16189df3869192581bffc5acad735226d512`.
+`9b751fab3c7c349ff473a2d11a7133573b6c4df2`).
+Queue-interface milestone: `d8ac16189df3869192581bffc5acad735226d512`.
+Canonical-limit review fix: `23f7bcb7e8b718288a7cad869215b8acee91b005`.
 Accepted preprocessing prerequisite: `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`,
 merged as `9e46f44`; it removes redundant decode compilation/execution while
 retaining fresh actual Input.analyze authentication.
@@ -37,7 +39,8 @@ Workers remain synchronous and freshly spawned, drained and reaped by capture.
 ## Retained work and limits
 
 Let M be the canonical message limit, R the response limit, and
-A = min(M, isize::MAX), B = max(A, 1 MiB). Queued plus reader-reserved bodies retain at most B bytes
+A = min(M, isize::MAX), B = max(A, 1 MiB). Queued plus reader-reserved
+bodies retain at most B bytes
 and 8 items (empty frames count); reserve before allocation and body reading.
 There is at most one 8-byte header and one fixed terminal slot. Selection
 releases capacity: one additional active body of at most A bytes is owned by
@@ -66,7 +69,8 @@ controlled execution/cleanup/delivery gates, ordered read-ahead terminal events,
 fatal publication, zero/partial writes and flush failures, and cancellation
 with input open at header/body/capacity waits. No-large-allocation regressions
 accept small/empty frames under a uint64-max canonical limit, and reject actual
-unallocatable declarations as ordered technical transport failures. Existing host tests exercise
+unallocatable declarations as ordered technical transport failures.
+Existing host tests exercise
 publication rollback and real shell-child pipe draining/reaping.
 
 No new mechanized queue theorem is claimed. Existing Bend serial laws and
