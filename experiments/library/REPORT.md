@@ -354,3 +354,47 @@ introduced. The certified example is intentionally limited to the stated two
 principals and one Boolean business row each; it does not generate invariant
 proofs automatically for arbitrary applications. Other prior scope/algorithmic
 cost limits remain unchanged.
+
+## Measured index decision and explicit scan API
+
+The follow-up benchmark at `29eea03f5b0f898bfcc3a990b9dbc864097c821f` checked
+8,562 actual prepared requests, including setup and validation. It used the
+unchanged CPU controller, real library helpers, fresh authentication, official
+admission and normal technical limits/checks. Both benchmark certificates and
+termination proofs passed both official checkers. See
+[index_benchmark/README.md](index_benchmark/README.md) for raw samples, exact
+provenance, limitations and reproduction commands.
+
+Unique helpers remain useful for repeated checks in a transaction. Current
+nonunique scans showed no reliable performance benefit in the tested workloads;
+faster nonunique indexing is deferred. `Index.lookup_many` has therefore been
+renamed to the explicit `Index.scan_equal` with no compatibility alias. This is
+a source/API spelling change, not an execution-algorithm change. The ordinary
+certified availability example and its adapted negatives use the new spelling.
+Earlier milestones above retain their historical function names and revisions.
+No old performance observation is claimed to have been rerun on the renamed API.
+
+Follow-up validation after the API rename passed:
+
+```sh
+JAYDB_INDEX_BENCH_OUTPUT="$PWD/build/library/index-benchmark-publish-smoke" \
+  experiments/library/index_benchmark/run.sh --smoke
+flock /tmp/jaydb2-experiments-heavy.lock bash -c '
+set -e
+python3 -B tools/check.py --timeout 120 library/VERIFY.bend
+python3 -B applications/indexed/run_check.py'
+```
+
+The published runner built the unchanged controller, checked both benchmark
+programs in both official modes, and passed 202 single-query/update plus 79
+batch setup/validation/smoke requests (281 total). This validates the runner and
+renamed helper, not new performance conclusions. The library aggregate and
+actual indexed application's certificate/termination/seed passed both checkers;
+adapted ordinary-permission controls passed and all six intended checker
+rejections remained at the specified obligations. The real restricted session
+passed updates, matching/nonmatching `scan_equal`, rebuilds, three host-level
+certificate denials and unchanged-state followups. Existing signed arithmetic
+and sorting implementations did not change and their native suites were not
+repeated. Evidence hashes, Python compilation, shell syntax, documentation
+links and staged whitespace checks passed. Runtime/staging logs remain under
+`build/library/` rather than being committed.

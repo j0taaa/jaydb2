@@ -127,9 +127,9 @@ def variant(kind):
         code=code.replace(old,new)
         proof=modified_set(proof,kind)
     elif kind=='forbidden':
-        old='X.lookup_many(D.Application{owner ++ "_index"}'
+        old='X.scan_equal(D.Application{owner ++ "_index"}'
         assert code.count(old)==1
-        code=code.replace(old,'X.lookup_many(D.Application{"bob_index"}')
+        code=code.replace(old,'X.scan_equal(D.Application{"bob_index"}')
     else:
         raise ValueError(kind)
     return code,proof

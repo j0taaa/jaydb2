@@ -131,7 +131,7 @@ state handle, trigger, grant, or assumed certificate is introduced.
 | `Aggregate` | Checked signed64 `sum`, `count`, integer `average` (toward zero), seeded `minimum`/`maximum`, empty-aware `min_value`/`max_value`. |
 | `Relation` | Nested-loop `inner` and `left_join` over obtained values; duplicate matches are retained, unmatched left rows use `VAbsent` as the right value. |
 | `Mutation` | `insert_if_absent`, predicate-based `replace_if`, `compare_exchange` of one cell followed by a complete row replacement, `remove_rows`, `columns`, checked `counter_add` and `next`. |
-| `Index` | Ordinary-table unique claims/lookups; nonunique and composite entries/lookups; explicit `maintain` and `rebuild`. |
+| `Index` | Ordinary-table unique claims/keyed lookups; derived entries and explicit full-table `scan_equal`; explicit `maintain` and `rebuild`. |
 | `Summary` | Checked count/total computation and explicit ordinary-table summary storage. |
 | `Laws` | Parameterized per-operation `Safe`, per-field `reads`, per-row `write_rows` and finite-depth proof composition; application permissions are mandatory inputs. |
 | `TableLaws` | Propositional exact-index and relation-reference templates, with explicit `OnStable` or `OnEveryPrefix` phase behavior. |
@@ -188,9 +188,10 @@ Each index table has required text columns `id`, `target`, `value`, keyed by
 `id`. Unique entries use `Key.encode(parts)` as their key. Nonunique entries use
 `Key.encode(parts ++ [target])`; the `value` cell retains `Key.encode(parts)`.
 Each indexed field combination has a fixed arity in the application's schema.
-`lookup` reads `target`. `lookup_many` enumerates ALL index keys and reads BOTH
+`lookup` reads `target`. `scan_equal` enumerates ALL index keys and reads BOTH
 `target` and `value` of EVERY entry, then filters by equality. This is a useful
-ordinary equality index representation, **not** an optimized ordered/range index.
+ordinary derived-table query. A faster nonunique lookup representation is deferred;
+this scan is retained for explicit consistency/materialized-view examples.
 Never grant index access if exposing its keys or filtered-out entries is forbidden.
 `maintain` removes caller-supplied old keys, defines new entries, then executes
 the supplied business action. `rebuild` enumerates all current keys, removes all,
@@ -302,7 +303,7 @@ The [indexed availability application](../applications/indexed/README.md) is an
 actual certified restricted-user business/index flow. Its administrator installs
 `TableLaws.OnStable(ExactIndex)` alongside an every-prefix working-layout/access
 law. `set` composes `Index.maintain` and the business write; `query` uses
-`Index.lookup_many` to map an availability tag to matching targets; `rebuild`
+`Index.scan_equal` to map an availability tag to matching targets; `rebuild`
 reads business data and calls `Index.rebuild`. Its ordinary universal certificate
 proves all transitions and the exact terminal projection through successful
 publication. The example has one Boolean availability row per principal and two
@@ -324,3 +325,23 @@ python3 -B applications/indexed/run_check.py
 ```
 
 The report records the exact frozen source hashes, completed commands and logs.
+
+## Index performance decision
+
+Keep `Index.claim` and `Index.lookup` as optional unique-key helpers. The measured
+benefit is workload-dependent: several uniqueness checks sharing a transaction
+can avoid repeated business-table scans, while one lookup need not offset the
+cost of carrying the extra index state. Maintaining an index also increases
+write work. No universal lookup-speed improvement is promised.
+
+The former `lookup_many` is now named `scan_equal`, without an old-name alias. It
+is explicitly a full scan for ordinary derived tables, not an accelerated
+nonunique lookup. The certified availability example retains this small utility
+to demonstrate permissions and exact projection maintenance. A keyed
+value-to-targets design is deferred; no new storage primitive or automatic
+maintenance is added.
+
+[Reproducible benchmark and measured evidence](../experiments/library/index_benchmark/README.md)
+cover complete prepared requests, hits/misses, maintained updates, narrow/wide
+rows, and batched unique checks. Historical measurements retain their original
+revision and API spelling; they are not relabelled as new-source measurements.

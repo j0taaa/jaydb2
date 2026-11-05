@@ -59,9 +59,10 @@ def visit(env: Scan, key: String, done: Maybe<&2, D.Value> -> S.Action) -> S.Act
   Scan{c, value} = env
   Q.select(c, key, ["target", "value"], selected(value, done))
 
-# Equality scan over an ordinary nonunique/composite index. All keys and both
-# cells of every entry are accessed, including entries filtered out.
-def lookup_many(+c: D.Collection, parts: List<&2, String>, done: D.Value -> S.Action) -> S.Action:
+# Full equality scan for ordinary derived tables; not a keyed multi-target lookup.
+# All keys and both cells of every entry are accessed, including filtered entries.
+# A faster nonunique index representation is deferred.
+def scan_equal(+c: D.Collection, parts: List<&2, String>, done: D.Value -> S.Action) -> S.Action:
   R.keys(c, keys => Q.filter_map(~Scan, ~visit, Scan{c, K.encode(parts)}, keys, done))
 
 # Explicit destructive rebuild in this SAME transaction; no auto triggers.

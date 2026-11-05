@@ -94,7 +94,7 @@ def unique_conflict(): {==}
 # Nonunique entries differ by target; equality scan returns both targets.
 def nonunique_read() -> S.Action:
   X.rebuild(D.Application{"index"}, [X.nonunique(["tag"], "a"), X.nonunique(["tag"], "b"), X.nonunique(["other"], "c")],
-    X.lookup_many(D.Application{"index"}, ["tag"], v => S.Finish{v}))
+    X.scan_equal(D.Application{"index"}, ["tag"], v => S.Finish{v}))
 
 law nonunique_rebuild_query:
   {final_value(S.observe(15n, nonunique_read(), schema(), state(V.Int64{0, 0}))) == D.VList{D.VText{"a"}, D.VList{D.VText{"b"}, D.VListEmpty{}}} : D.Value}

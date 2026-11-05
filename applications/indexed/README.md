@@ -11,7 +11,7 @@ Requests use the normal framed code/proof protocol and ordinary credentials:
 
 - `["set", true]` or `["set", false]`: `Index.maintain` removes the old index
   entry, writes its exact replacement, then writes the business availability.
-- `["query", true]` or `["query", false]`: `Index.lookup_many` enumerates index
+- `["query", true]` or `["query", false]`: `Index.scan_equal` enumerates index
   keys, reads every entry's target/value, and returns matching targets. The
   result is `["item"]` or `[]`; even nonmatching reads require permission.
 - `["rebuild"]`: reads the business availability, then uses `Index.rebuild` to

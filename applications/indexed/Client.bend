@@ -37,7 +37,7 @@ def command(+owner:String,p:Command) -> S.Action:
     case Set{+b}:
       X.maintain(D.Application{owner ++ "_index"},["item"],[M.entry(b)],
         A.define_rows(D.Application{owner},[M.business(b)],S.Finish{D.VBool{b}}))
-    case Query{b}: X.lookup_many(D.Application{owner ++ "_index"},[M.tag(b)],v => S.Finish{v})
+    case Query{b}: X.scan_equal(D.Application{owner ++ "_index"},[M.tag(b)],v => S.Finish{v})
     case Rebuild{}: S.Access{D.ReadCell{D.Application{owner},"item","available"},r => rebuild_known(owner,availability(r))}
     case Invalid{}: S.Refuse{D.VText{"invalid request"}}
 

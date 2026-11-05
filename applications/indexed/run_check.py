@@ -102,7 +102,7 @@ def session(variants):
         diagnostics=errors.read().decode('utf-8','replace')
         assert diagnostics.count('PRIMARY_CHECK')==3,diagnostics
         assert diagnostics.count('Location: set_alice')==2 and diagnostics.count('Location: query_alice')==1,diagnostics
-    print('PASS real indexed session: restricted Alice/Bob availability updates, X.lookup_many matching/nonmatching queries, X.maintain and X.rebuild, three intended certificate rejections, unchanged state after each denial, inherited BENDRTS neutralized.',flush=True)
+    print('PASS real indexed session: restricted Alice/Bob availability updates, X.scan_equal matching/nonmatching queries, X.maintain and X.rebuild, three intended certificate rejections, unchanged state after each denial, inherited BENDRTS neutralized.',flush=True)
 
 
 def main():

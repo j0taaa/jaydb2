@@ -1,0 +1,2050 @@
+{
+  "status": "passed",
+  "started_utc": "2026-11-05T13:40:41.812070+00:00",
+  "root": "/home/jota/.t3/worktrees/jaydb2/experiment-library",
+  "head": "29eea03f5b0f898bfcc3a990b9dbc864097c821f",
+  "binary_sha256": "e71949165b993ded2d3b93f2829133d1d222deb198026973841ec945b3593550",
+  "toolchain_lock": {
+    "version": "2.0.39",
+    "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+    "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+    "files": {
+      "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+      "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+      "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+      "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+      "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+    },
+    "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+    "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+  },
+  "hardware": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "settings": {
+    "samples": 9,
+    "warmups": 2,
+    "native_threads": 1,
+    "gpu": "off",
+    "BENDRTS": "",
+    "persistence": false,
+    "timing": "complete prepared request, preencoded frame write through complete response bytes; verification outside interval",
+    "ordering": "rotated and alternating variants every round",
+    "policy": "explicit zero-law benchmark config; normal structure/size validation and official proof/admission retained; index projection checked by external model, not a performance claim for arbitrary administrator laws"
+  },
+  "sources_sha256": {
+    "Orders.bend": "5d2e7ab618e0defc9f715e13bb9b206b95e46a6fbaf3c5b5e7dcf37df96b293a",
+    "Proofs.bend": "eb2d6f5335370cc1e7fe92b9640766c3cbd3f18fe3f854ebf19ea0be45d9779f",
+    "Check.bend": "b4dc81d8c5ddceb39b3e605dbb09788378fde10f34e843926cba6f40638a9baa",
+    "Bench.bend": "4d1552f29b676de8149622f94283ad26f04f0f574345e8491aed64c1b889fbce",
+    "Read.bend": "2574638cdd57bd444dc81df37d9dfe1726b1e01e45fb225946b19084ddde95f0",
+    "Summary.bend": "4c711c9db05f8b4ba7623d7f564bba3c1055263c027ddaae1c8ea73ba942cab3",
+    "Environment.bend": "e45521d0c36f32e946f266aed8fbe7321c0482bba24ba9c4aeb7454d04f9dacc",
+    "Aggregate.bend": "a0848a56b3f28f50b18881ae9447e6c1e51bfb8ed9d351786973e4f18ffffcdc",
+    "BenchProof.bend": "6bb36d29b43194acfac5b9c1a540dabe789307d7c685c46d9ba3ecc0b21af98b",
+    "LAWS.bend": "2abb8e969e6c4324032370b4ce8f6f71211da84f114f305e8ca2fec47d7b28be",
+    "Key.bend": "3fdb8127a5345a40ddb37d69aa695763939ef96f86ee33b54ba48adc21a46b6a",
+    "Free.bend": "e18bc0dbcbcbb0d573f5fb3a7f129e4d03574fdc239edc9933b8291475612b3e",
+    "Mutation.bend": "510ec9b7e2fef176170209e8949f9a6c6728694d39cda1248ced67bc543bbb1b",
+    "TableLaws.bend": "b7da82a954a5c189c78891816cfa31d2959a52c9aa3b88c1336c1a45ef858476",
+    "Int64.bend": "856782b312215c01378263970cb6c1c201da06f54034c854fb463b4cbea54665",
+    "Record.bend": "46a7b6162bae7eb7167618bc8a311349dd71af30fb19b263fd1a9eb9c944697a",
+    "ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+    "ClientProof.bend": "44de98d99eca965955ed452038285867d4b25efc3db43d7e9da9f82cce54a11b",
+    "Instance.bend": "390d55204bcac16af64187c0715f9c5cf041de5140d6ac0446472d25cf30136d",
+    "SortProof.bend": "c9cf43fa35fd883776dfd627b2cdf8f21aaf66e7d08d3b46b8ffae4e9c7fe131",
+    "Bytes.bend": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
+    "Sequence.bend": "0cccec2343b6d98c697bb8434ed5edc1ffe7ff5f967afd21b45ae135497d033f",
+    "Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
+    "Resources.bend": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
+    "Configuration.bend": "0f7a804b6983c5948b0b9f891874725a790e681ed83bd28421a4073a2cdfd426",
+    "Laws.bend": "2a66d90f488aac5c9cded08a50664ed7f1595264c3ceaa8f7ad90d05e1548f6d",
+    "Bindings.bend": "565915b3645edab85f01e4f1dcca1f55eec8a7836bebbd2c64d53d3d96c6b742",
+    "Index.bend": "43f1a6d43ad9a20f61ce50e827d9d487a68af99e03efd7a87fb1c9a963d026f1",
+    "Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+    "Action.bend": "d0d686a17044d24f26e487c2040ba039d9db50b1f1c0e37b9556ff32cb5a3e0a",
+    "Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
+    "Relation.bend": "7df83fcfee6a2b12e492cb301b6ce2069d46071dbae129718eb18d502268ded2",
+    "Termination.bend": "661d9dd1be506f3cf8d3bba1994b233938892651ed408de893f6cbe6c59ec6ab",
+    "LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
+    "DataExamples.bend": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
+    "Query.bend": "1f74fb9b41ac637736b939208fc1e97f9a77057e4ca7029090deff630c16c401",
+    "Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+    "Value.bend": "0b550ac8a31f117945bfeb59b343b51bd3bb9af9dfe544026e0329b84e34ce1b",
+    "Seed.bend": "563d5f34b164fcc2999bca9ff5d5a04bce95ca2ce8d264a745c44fee6b38d744",
+    "ValidationFinal.bend": "b4f1aac84fa639b1de1445f3284b1b70b842ea38b264b2344fb3adf56145a9c6",
+    "Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
+    "Data.bend": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
+    "ReadProgram.bend": "fcb7a580413fb052f0ec0879e7907d608a0fa46900b8e97d5fe2d49186530dcb",
+    "Interface.bend": "020d3b3370d9f25f23ed20b9c9a5466d8b469ecbe3d9016f69e3f9da6bbb3d63",
+    "Completion.bend": "5ba08cc6436e933aad832cf76d80fb82ba76191091375381214a056e283f740e",
+    "Client.bend": "c1f18cf474706789b1258fbfbcb73213a5b63912a29f5e5fc1d26ed2adf8d884",
+    "Foundations.bend": "bf66d578e9f3521ea626ee107e42370ba1be4c09898749964c4b2d0c3a46d1f9"
+  },
+  "measurements": [
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "unique-first",
+      "query": "e0000",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 29.795747,
+          "mad_ms": 3.611427,
+          "min_ms": 25.302048,
+          "max_ms": 46.367772,
+          "samples_ns": [
+            28528527,
+            29242174,
+            35730043,
+            29795747,
+            46367772,
+            28912310,
+            33407174,
+            44119208,
+            25302048
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 29.779966,
+          "mad_ms": 1.20902,
+          "min_ms": 27.648792,
+          "max_ms": 41.914182,
+          "samples_ns": [
+            27648792,
+            28570946,
+            39096847,
+            29708381,
+            30093944,
+            29396978,
+            29779966,
+            41914182,
+            36195036
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 32.644605,
+          "mad_ms": 2.72114,
+          "min_ms": 27.407698,
+          "max_ms": 45.26794,
+          "samples_ns": [
+            29923465,
+            27407698,
+            35161905,
+            40823570,
+            34736143,
+            32644605,
+            31934621,
+            28167929,
+            45267940
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "unique-middle",
+      "query": "e0004",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 31.497598,
+          "mad_ms": 3.543531,
+          "min_ms": 26.443781,
+          "max_ms": 53.49114,
+          "samples_ns": [
+            32829146,
+            31497598,
+            28354559,
+            36087946,
+            26917773,
+            26443781,
+            27954067,
+            33358017,
+            53491140
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 33.280723,
+          "mad_ms": 3.685222,
+          "min_ms": 25.687406,
+          "max_ms": 48.442605,
+          "samples_ns": [
+            36965945,
+            28619870,
+            25999709,
+            35318502,
+            48442605,
+            25687406,
+            36682679,
+            30288662,
+            33280723
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 28.409249,
+          "mad_ms": 1.207946,
+          "min_ms": 27.201303,
+          "max_ms": 51.638178,
+          "samples_ns": [
+            27643382,
+            30054150,
+            28336321,
+            28409249,
+            51638178,
+            27201303,
+            28036953,
+            31891653,
+            44922217
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "unique-last",
+      "query": "e0007",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 29.326733,
+          "mad_ms": 2.029564,
+          "min_ms": 27.297169,
+          "max_ms": 36.981504,
+          "samples_ns": [
+            27361728,
+            28621936,
+            35199794,
+            36981504,
+            33819979,
+            29326733,
+            27297169,
+            27903762,
+            32255108
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 29.265873,
+          "mad_ms": 2.488468,
+          "min_ms": 26.777405,
+          "max_ms": 42.706814,
+          "samples_ns": [
+            26777405,
+            27605001,
+            32434396,
+            32250221,
+            42706814,
+            29265873,
+            27749208,
+            32312563,
+            27593103
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 28.985225,
+          "mad_ms": 1.264297,
+          "min_ms": 27.032906,
+          "max_ms": 40.298254,
+          "samples_ns": [
+            27032906,
+            28378257,
+            39808682,
+            34432716,
+            40298254,
+            28293093,
+            27720928,
+            28985225,
+            30027541
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "unique-miss",
+      "query": "missing",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 32.320948,
+          "mad_ms": 3.676565,
+          "min_ms": 27.935295,
+          "max_ms": 38.914727,
+          "samples_ns": [
+            28315187,
+            29505588,
+            36799045,
+            38914727,
+            32320948,
+            28876111,
+            35997513,
+            27935295,
+            33759586
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 28.863588,
+          "mad_ms": 1.965781,
+          "min_ms": 26.539784,
+          "max_ms": 38.317175,
+          "samples_ns": [
+            26539784,
+            31994745,
+            38317175,
+            33678589,
+            27888696,
+            27243528,
+            29926146,
+            26897807,
+            28863588
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 32.24964,
+          "mad_ms": 4.98809,
+          "min_ms": 26.879595,
+          "max_ms": 52.774319,
+          "samples_ns": [
+            32249640,
+            41035837,
+            32855555,
+            42603877,
+            52774319,
+            28587931,
+            27261550,
+            26879595,
+            30033336
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "nonunique-match",
+      "query": "g00",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 31.504466,
+          "mad_ms": 3.66731,
+          "min_ms": 27.145939,
+          "max_ms": 41.902757,
+          "samples_ns": [
+            34127927,
+            41315618,
+            29064372,
+            35489059,
+            31504466,
+            27837156,
+            27145939,
+            28805619,
+            41902757
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 32.344231,
+          "mad_ms": 3.669765,
+          "min_ms": 26.495363,
+          "max_ms": 43.552292,
+          "samples_ns": [
+            36013996,
+            34344528,
+            32344231,
+            27142402,
+            39061472,
+            26495363,
+            43552292,
+            31517013,
+            28766296
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 31.568199,
+          "mad_ms": 2.317397,
+          "min_ms": 28.757797,
+          "max_ms": 41.908641,
+          "samples_ns": [
+            29250802,
+            31568199,
+            29390011,
+            32070842,
+            35434506,
+            28757797,
+            32066890,
+            41908641,
+            28851301
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "case": "nonunique-miss",
+      "query": "g99",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 35.503567,
+          "mad_ms": 6.529898,
+          "min_ms": 27.446551,
+          "max_ms": 45.676246,
+          "samples_ns": [
+            45354713,
+            28973669,
+            28876197,
+            27446551,
+            37213518,
+            33589319,
+            39921472,
+            35503567,
+            45676246
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 29.256952,
+          "mad_ms": 1.43309,
+          "min_ms": 27.483144,
+          "max_ms": 48.924816,
+          "samples_ns": [
+            29256952,
+            29153951,
+            29100690,
+            29367951,
+            27823862,
+            45337961,
+            34871883,
+            27483144,
+            48924816
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 32.816717,
+          "mad_ms": 3.290857,
+          "min_ms": 27.004246,
+          "max_ms": 37.274521,
+          "samples_ns": [
+            29675555,
+            36367813,
+            31066222,
+            27004246,
+            36107574,
+            37274521,
+            32957610,
+            27581969,
+            32816717
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "unique-first",
+      "query": "e0000",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 45.251607,
+          "mad_ms": 7.934398,
+          "min_ms": 35.329145,
+          "max_ms": 53.974087,
+          "samples_ns": [
+            53186005,
+            36561856,
+            35329145,
+            53974087,
+            36254975,
+            43702338,
+            45251607,
+            47687191,
+            46709872
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 36.782298,
+          "mad_ms": 3.673835,
+          "min_ms": 31.905261,
+          "max_ms": 44.254184,
+          "samples_ns": [
+            36241452,
+            35930671,
+            36782298,
+            34471025,
+            44254184,
+            40456133,
+            44026164,
+            42283896,
+            31905261
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 39.332484,
+          "mad_ms": 2.491506,
+          "min_ms": 36.840978,
+          "max_ms": 46.519551,
+          "samples_ns": [
+            43474951,
+            36840978,
+            38337787,
+            39332484,
+            46519551,
+            38410948,
+            38162067,
+            42938519,
+            41991681
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "unique-middle",
+      "query": "e0032",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 39.373342,
+          "mad_ms": 1.682738,
+          "min_ms": 36.877913,
+          "max_ms": 43.706143,
+          "samples_ns": [
+            39373342,
+            36877913,
+            37655856,
+            41056080,
+            38933752,
+            39523366,
+            38638027,
+            43706143,
+            41571849
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 36.074928,
+          "mad_ms": 1.330647,
+          "min_ms": 33.942544,
+          "max_ms": 49.724608,
+          "samples_ns": [
+            35534743,
+            47870072,
+            33942544,
+            37793679,
+            35400402,
+            49724608,
+            34744281,
+            36226517,
+            36074928
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 44.013725,
+          "mad_ms": 2.063437,
+          "min_ms": 36.361287,
+          "max_ms": 53.641139,
+          "samples_ns": [
+            53641139,
+            44521714,
+            43847005,
+            40591302,
+            37956759,
+            45108859,
+            36361287,
+            46077162,
+            44013725
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "unique-last",
+      "query": "e0063",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 41.699997,
+          "mad_ms": 3.639578,
+          "min_ms": 36.620492,
+          "max_ms": 52.679894,
+          "samples_ns": [
+            38604617,
+            52679894,
+            39061509,
+            46623532,
+            41699997,
+            44465853,
+            46793384,
+            38060419,
+            36620492
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 36.695925,
+          "mad_ms": 1.805659,
+          "min_ms": 34.890266,
+          "max_ms": 47.988415,
+          "samples_ns": [
+            38637984,
+            34890266,
+            47988415,
+            36544007,
+            43680958,
+            36695925,
+            35417602,
+            36609120,
+            39287457
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 39.518008,
+          "mad_ms": 0.811867,
+          "min_ms": 38.706141,
+          "max_ms": 47.898628,
+          "samples_ns": [
+            47898628,
+            39393600,
+            38706141,
+            42281198,
+            39518008,
+            41264815,
+            40494867,
+            39316812,
+            39461012
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "unique-miss",
+      "query": "missing",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 40.550223,
+          "mad_ms": 2.874149,
+          "min_ms": 37.285557,
+          "max_ms": 54.299644,
+          "samples_ns": [
+            38407018,
+            37848574,
+            37676074,
+            40550223,
+            51158456,
+            40874656,
+            48557131,
+            54299644,
+            37285557
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 40.193567,
+          "mad_ms": 2.495276,
+          "min_ms": 34.752102,
+          "max_ms": 44.594287,
+          "samples_ns": [
+            36300764,
+            40279820,
+            41027071,
+            35084983,
+            34752102,
+            40193567,
+            41290902,
+            37698291,
+            44594287
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 43.6741,
+          "mad_ms": 3.205528,
+          "min_ms": 37.817128,
+          "max_ms": 47.324297,
+          "samples_ns": [
+            37817128,
+            38252687,
+            40006298,
+            43674100,
+            44569581,
+            47324297,
+            46146787,
+            43460939,
+            46879628
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "nonunique-match",
+      "query": "g00",
+      "matches": 8,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 43.694657,
+          "mad_ms": 1.957986,
+          "min_ms": 38.175606,
+          "max_ms": 57.617772,
+          "samples_ns": [
+            57617772,
+            41736671,
+            42462786,
+            43819080,
+            43694657,
+            38175606,
+            42755172,
+            45735136,
+            49619476
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 37.839401,
+          "mad_ms": 2.314078,
+          "min_ms": 34.753581,
+          "max_ms": 44.628936,
+          "samples_ns": [
+            34753581,
+            37839401,
+            35525323,
+            35288512,
+            35890319,
+            41386487,
+            37881963,
+            39247904,
+            44628936
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 41.740501,
+          "mad_ms": 1.826519,
+          "min_ms": 37.945366,
+          "max_ms": 51.907182,
+          "samples_ns": [
+            39913982,
+            51907182,
+            42372601,
+            42285160,
+            41123647,
+            37945366,
+            41740501,
+            39779972,
+            48447407
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "case": "nonunique-miss",
+      "query": "g99",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 41.673397,
+          "mad_ms": 0.446111,
+          "min_ms": 40.86314,
+          "max_ms": 46.218866,
+          "samples_ns": [
+            40863140,
+            42069827,
+            46218866,
+            41673397,
+            41227286,
+            41556414,
+            41428459,
+            45540957,
+            44927650
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 35.408145,
+          "mad_ms": 1.364626,
+          "min_ms": 34.043519,
+          "max_ms": 44.727854,
+          "samples_ns": [
+            38156008,
+            39505648,
+            34043519,
+            35408145,
+            35160540,
+            35069934,
+            35167839,
+            44727854,
+            37992959
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 38.833885,
+          "mad_ms": 0.950166,
+          "min_ms": 37.758666,
+          "max_ms": 42.816732,
+          "samples_ns": [
+            40277162,
+            40452470,
+            42816732,
+            37883719,
+            38557055,
+            37758666,
+            38833885,
+            38614142,
+            38876787
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "unique-first",
+      "query": "e0000",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 72.457974,
+          "mad_ms": 0.535031,
+          "min_ms": 70.52144,
+          "max_ms": 87.943898,
+          "samples_ns": [
+            71922943,
+            72966720,
+            71323665,
+            87943898,
+            72533063,
+            72457974,
+            77006897,
+            72103623,
+            70521440
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 66.33561,
+          "mad_ms": 9.583902,
+          "min_ms": 55.146944,
+          "max_ms": 78.755558,
+          "samples_ns": [
+            66335610,
+            78755558,
+            67941358,
+            73431916,
+            56651725,
+            56276980,
+            66489470,
+            55146944,
+            56751708
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 72.741051,
+          "mad_ms": 3.154631,
+          "min_ms": 69.58642,
+          "max_ms": 82.410167,
+          "samples_ns": [
+            80513769,
+            77669920,
+            72105522,
+            69586420,
+            70014308,
+            72741051,
+            82410167,
+            71359935,
+            80308953
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "unique-middle",
+      "query": "e0128",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 74.894559,
+          "mad_ms": 1.813777,
+          "min_ms": 70.998642,
+          "max_ms": 81.872882,
+          "samples_ns": [
+            74894559,
+            74953199,
+            81872882,
+            73210850,
+            80810429,
+            72878067,
+            73080782,
+            70998642,
+            76003020
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 63.194053,
+          "mad_ms": 1.442909,
+          "min_ms": 61.751144,
+          "max_ms": 78.151366,
+          "samples_ns": [
+            69151494,
+            62394743,
+            78151366,
+            68278961,
+            63194053,
+            62519994,
+            61751144,
+            65546429,
+            62742223
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 80.485415,
+          "mad_ms": 2.528691,
+          "min_ms": 76.549165,
+          "max_ms": 92.659633,
+          "samples_ns": [
+            88308292,
+            80392431,
+            76549165,
+            80485415,
+            79753733,
+            81153775,
+            77956724,
+            92659633,
+            85209262
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "unique-last",
+      "query": "e0255",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 73.581011,
+          "mad_ms": 1.459304,
+          "min_ms": 69.977898,
+          "max_ms": 79.340141,
+          "samples_ns": [
+            73581011,
+            74956148,
+            76967130,
+            72036175,
+            69977898,
+            74077857,
+            79340141,
+            72121707,
+            73115960
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 69.203479,
+          "mad_ms": 0.742807,
+          "min_ms": 66.818204,
+          "max_ms": 78.869014,
+          "samples_ns": [
+            76332285,
+            69016683,
+            78869014,
+            69354229,
+            69203479,
+            69946286,
+            66818204,
+            68576392,
+            68301667
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 85.12245,
+          "mad_ms": 0.547407,
+          "min_ms": 82.467412,
+          "max_ms": 92.365471,
+          "samples_ns": [
+            92365471,
+            84318075,
+            85122450,
+            84947405,
+            87614150,
+            85250000,
+            85179124,
+            82467412,
+            84575043
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "unique-miss",
+      "query": "missing",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 77.287858,
+          "mad_ms": 5.400975,
+          "min_ms": 70.489343,
+          "max_ms": 90.559081,
+          "samples_ns": [
+            77687178,
+            72515329,
+            71520395,
+            71886883,
+            90559081,
+            77287858,
+            77404518,
+            89037908,
+            70489343
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 70.313781,
+          "mad_ms": 1.62728,
+          "min_ms": 67.362517,
+          "max_ms": 73.218853,
+          "samples_ns": [
+            67362517,
+            71007934,
+            69173983,
+            70313781,
+            73218853,
+            73127405,
+            72825727,
+            70306294,
+            68686501
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 86.438937,
+          "mad_ms": 2.267972,
+          "min_ms": 83.645291,
+          "max_ms": 118.639195,
+          "samples_ns": [
+            83645291,
+            91006981,
+            83890621,
+            84865481,
+            118639195,
+            86438937,
+            85378411,
+            87922988,
+            88706909
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "nonunique-match",
+      "query": "g00",
+      "matches": 32,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 115.077254,
+          "mad_ms": 3.992177,
+          "min_ms": 111.085077,
+          "max_ms": 129.926139,
+          "samples_ns": [
+            121215434,
+            126597310,
+            122835365,
+            114436936,
+            112343035,
+            113915103,
+            111085077,
+            115077254,
+            129926139
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 73.462089,
+          "mad_ms": 2.879261,
+          "min_ms": 67.426127,
+          "max_ms": 76.34135,
+          "samples_ns": [
+            69782582,
+            73499783,
+            74498146,
+            69215053,
+            68210063,
+            67426127,
+            73462089,
+            76341350,
+            74293310
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 86.875133,
+          "mad_ms": 1.594459,
+          "min_ms": 83.491044,
+          "max_ms": 89.842887,
+          "samples_ns": [
+            89273433,
+            89842887,
+            88735854,
+            86875133,
+            88062904,
+            83491044,
+            85280674,
+            86577644,
+            86008472
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "case": "nonunique-miss",
+      "query": "g99",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 116.05825,
+          "mad_ms": 2.29293,
+          "min_ms": 113.481362,
+          "max_ms": 123.209093,
+          "samples_ns": [
+            113828600,
+            123209093,
+            121467916,
+            113481362,
+            116058250,
+            115304136,
+            114426915,
+            118351180,
+            118583243
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 68.192465,
+          "mad_ms": 0.861123,
+          "min_ms": 66.708061,
+          "max_ms": 74.021239,
+          "samples_ns": [
+            68192465,
+            67207615,
+            66708061,
+            68944663,
+            74021239,
+            69053588,
+            68120196,
+            69228801,
+            67494563
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 86.628186,
+          "mad_ms": 1.992153,
+          "min_ms": 82.092541,
+          "max_ms": 94.752699,
+          "samples_ns": [
+            94752699,
+            87328706,
+            82859203,
+            83809423,
+            82092541,
+            87324967,
+            88620339,
+            86307720,
+            86628186
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "unique-first",
+      "query": "e0000",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 103.293828,
+          "mad_ms": 1.971767,
+          "min_ms": 100.780633,
+          "max_ms": 107.745005,
+          "samples_ns": [
+            107054443,
+            102258136,
+            102568474,
+            101322061,
+            105269952,
+            100780633,
+            104487689,
+            107745005,
+            103293828
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 98.101612,
+          "mad_ms": 0.842404,
+          "min_ms": 97.216584,
+          "max_ms": 102.554114,
+          "samples_ns": [
+            102554114,
+            100617031,
+            97216584,
+            97259208,
+            97438560,
+            97346173,
+            102259578,
+            98101612,
+            98582394
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 101.902593,
+          "mad_ms": 1.748477,
+          "min_ms": 99.240947,
+          "max_ms": 111.32278,
+          "samples_ns": [
+            101541432,
+            105548948,
+            103651070,
+            111322780,
+            101902593,
+            100607049,
+            104186640,
+            99240947,
+            101245063
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "unique-middle",
+      "query": "e0032",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 101.612147,
+          "mad_ms": 1.58909,
+          "min_ms": 99.410847,
+          "max_ms": 126.690865,
+          "samples_ns": [
+            101612147,
+            105102333,
+            99410847,
+            126690865,
+            106501363,
+            103089879,
+            101332526,
+            101161358,
+            100023057
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 99.892951,
+          "mad_ms": 2.360111,
+          "min_ms": 96.777771,
+          "max_ms": 110.669171,
+          "samples_ns": [
+            97532840,
+            101273391,
+            107108268,
+            98212019,
+            110669171,
+            96777771,
+            102553614,
+            98514342,
+            99892951
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 106.232674,
+          "mad_ms": 1.154861,
+          "min_ms": 100.872822,
+          "max_ms": 108.868429,
+          "samples_ns": [
+            105573203,
+            106624028,
+            102741174,
+            107387535,
+            106232674,
+            100872822,
+            106587543,
+            103970725,
+            108868429
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "unique-last",
+      "query": "e0063",
+      "matches": 1,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 102.82353,
+          "mad_ms": 3.110309,
+          "min_ms": 99.713221,
+          "max_ms": 108.622084,
+          "samples_ns": [
+            102823530,
+            99713221,
+            106816576,
+            106577021,
+            101055262,
+            108622084,
+            101215179,
+            101913457,
+            106696292
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 99.218154,
+          "mad_ms": 1.624662,
+          "min_ms": 96.555424,
+          "max_ms": 103.036818,
+          "samples_ns": [
+            97795111,
+            100842816,
+            99218154,
+            98871105,
+            98387289,
+            96555424,
+            100974447,
+            103036818,
+            101593499
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 105.123455,
+          "mad_ms": 2.672722,
+          "min_ms": 100.674146,
+          "max_ms": 111.203591,
+          "samples_ns": [
+            102360873,
+            107592139,
+            105586534,
+            105123455,
+            111203591,
+            101695702,
+            100674146,
+            107064463,
+            102450733
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "unique-miss",
+      "query": "missing",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 101.955583,
+          "mad_ms": 1.468372,
+          "min_ms": 100.487211,
+          "max_ms": 112.424632,
+          "samples_ns": [
+            104580299,
+            100487211,
+            112424632,
+            108367945,
+            101048831,
+            100757485,
+            101153320,
+            101955583,
+            109344526
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 100.129315,
+          "mad_ms": 1.676328,
+          "min_ms": 98.30101,
+          "max_ms": 104.146611,
+          "samples_ns": [
+            98301010,
+            101493158,
+            104146611,
+            98371176,
+            103840407,
+            98452987,
+            100129315,
+            100162552,
+            100011030
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 104.475471,
+          "mad_ms": 1.132103,
+          "min_ms": 100.91908,
+          "max_ms": 106.357981,
+          "samples_ns": [
+            104541109,
+            100919080,
+            104475471,
+            101509252,
+            106357981,
+            103052038,
+            105150722,
+            103827550,
+            105607574
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "nonunique-match",
+      "query": "g00",
+      "matches": 8,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 105.374633,
+          "mad_ms": 1.747926,
+          "min_ms": 102.257677,
+          "max_ms": 124.254645,
+          "samples_ns": [
+            107122559,
+            105825954,
+            105115313,
+            105374633,
+            103497083,
+            104949506,
+            124254645,
+            102257677,
+            107490750
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 99.678908,
+          "mad_ms": 2.278787,
+          "min_ms": 96.732491,
+          "max_ms": 106.48804,
+          "samples_ns": [
+            101957695,
+            101643635,
+            101166097,
+            98482333,
+            97302083,
+            96749624,
+            99678908,
+            96732491,
+            106488040
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 105.978821,
+          "mad_ms": 3.534425,
+          "min_ms": 101.113073,
+          "max_ms": 114.236695,
+          "samples_ns": [
+            106928077,
+            105185502,
+            101113073,
+            107426405,
+            105978821,
+            114236695,
+            102302367,
+            112315505,
+            102444396
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "case": "nonunique-miss",
+      "query": "g99",
+      "matches": 0,
+      "results": {
+        "indexed_lookup": {
+          "n": 9,
+          "median_ms": 104.996394,
+          "mad_ms": 1.69058,
+          "min_ms": 102.477228,
+          "max_ms": 108.544836,
+          "samples_ns": [
+            105393249,
+            107825124,
+            104996394,
+            104515917,
+            104487637,
+            103305814,
+            102477228,
+            107825728,
+            108544836
+          ]
+        },
+        "base_without_index": {
+          "n": 9,
+          "median_ms": 101.781509,
+          "mad_ms": 4.041133,
+          "min_ms": 96.727685,
+          "max_ms": 105.983393,
+          "samples_ns": [
+            98174268,
+            105822642,
+            101781509,
+            97440042,
+            98846797,
+            105858724,
+            96727685,
+            103782058,
+            105983393
+          ]
+        },
+        "base_with_index": {
+          "n": 9,
+          "median_ms": 103.054872,
+          "mad_ms": 0.917569,
+          "min_ms": 101.865442,
+          "max_ms": 111.820454,
+          "samples_ns": [
+            111820454,
+            108379857,
+            103261392,
+            104000929,
+            103054872,
+            103053486,
+            102137303,
+            101865442,
+            102460917
+          ]
+        }
+      }
+    }
+  ],
+  "writes": [
+    {
+      "tag": "rows-8-pad-128",
+      "rows": 8,
+      "padding_bytes": 128,
+      "results": {
+        "many": {
+          "n": 9,
+          "median_ms": 36.791983,
+          "mad_ms": 8.925884,
+          "min_ms": 26.828298,
+          "max_ms": 45.717867,
+          "samples_ns": [
+            39705123,
+            36791983,
+            45717867,
+            40288271,
+            39652527,
+            27746680,
+            27775288,
+            26828298,
+            27299372
+          ]
+        },
+        "none": {
+          "n": 9,
+          "median_ms": 36.81722,
+          "mad_ms": 6.052485,
+          "min_ms": 27.436481,
+          "max_ms": 48.753288,
+          "samples_ns": [
+            33424544,
+            36817220,
+            28292413,
+            42869705,
+            48753288,
+            37229040,
+            27669617,
+            27436481,
+            37211370
+          ]
+        },
+        "unique": {
+          "n": 9,
+          "median_ms": 28.138851,
+          "mad_ms": 1.11476,
+          "min_ms": 27.024091,
+          "max_ms": 46.076803,
+          "samples_ns": [
+            27401144,
+            27158632,
+            28138851,
+            46076803,
+            36995334,
+            29755337,
+            31510108,
+            27024091,
+            27254463
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "rows": 64,
+      "padding_bytes": 128,
+      "results": {
+        "many": {
+          "n": 9,
+          "median_ms": 38.606861,
+          "mad_ms": 0.719561,
+          "min_ms": 37.8873,
+          "max_ms": 61.305095,
+          "samples_ns": [
+            61305095,
+            39360695,
+            38410274,
+            50089304,
+            37887300,
+            38606861,
+            38316678,
+            38053256,
+            53030326
+          ]
+        },
+        "none": {
+          "n": 9,
+          "median_ms": 37.254841,
+          "mad_ms": 3.165829,
+          "min_ms": 34.089012,
+          "max_ms": 58.295446,
+          "samples_ns": [
+            35049398,
+            34340994,
+            34089012,
+            37254841,
+            42852158,
+            58295446,
+            35984290,
+            50023562,
+            42857597
+          ]
+        },
+        "unique": {
+          "n": 9,
+          "median_ms": 44.878461,
+          "mad_ms": 2.304536,
+          "min_ms": 41.194479,
+          "max_ms": 58.65635,
+          "samples_ns": [
+            44878461,
+            45024828,
+            43798792,
+            47614628,
+            45310122,
+            42573925,
+            58656350,
+            41194479,
+            42131150
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "rows": 256,
+      "padding_bytes": 128,
+      "results": {
+        "many": {
+          "n": 9,
+          "median_ms": 77.073082,
+          "mad_ms": 2.171484,
+          "min_ms": 72.160732,
+          "max_ms": 85.431393,
+          "samples_ns": [
+            78679681,
+            76906932,
+            73845839,
+            85431393,
+            72160732,
+            79244566,
+            77670991,
+            72945462,
+            77073082
+          ]
+        },
+        "none": {
+          "n": 9,
+          "median_ms": 58.090214,
+          "mad_ms": 0.758837,
+          "min_ms": 55.275513,
+          "max_ms": 66.079354,
+          "samples_ns": [
+            59325977,
+            58310332,
+            57331377,
+            57584085,
+            58090214,
+            66079354,
+            55275513,
+            62569289,
+            57389671
+          ]
+        },
+        "unique": {
+          "n": 9,
+          "median_ms": 72.498654,
+          "mad_ms": 1.930925,
+          "min_ms": 70.401471,
+          "max_ms": 77.492962,
+          "samples_ns": [
+            72498654,
+            70567729,
+            72931929,
+            70476440,
+            77013661,
+            77492962,
+            70401471,
+            72169930,
+            73076340
+          ]
+        }
+      }
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "results": {
+        "many": {
+          "n": 9,
+          "median_ms": 104.170127,
+          "mad_ms": 1.327068,
+          "min_ms": 100.837735,
+          "max_ms": 144.553387,
+          "samples_ns": [
+            109026594,
+            110061222,
+            104099876,
+            104106321,
+            144553387,
+            102922974,
+            105497195,
+            104170127,
+            100837735
+          ]
+        },
+        "none": {
+          "n": 9,
+          "median_ms": 103.008228,
+          "mad_ms": 2.071278,
+          "min_ms": 98.23929,
+          "max_ms": 110.023046,
+          "samples_ns": [
+            103560848,
+            103008228,
+            105311009,
+            100936950,
+            100223154,
+            102854582,
+            104952317,
+            110023046,
+            98239290
+          ]
+        },
+        "unique": {
+          "n": 9,
+          "median_ms": 107.813297,
+          "mad_ms": 3.739471,
+          "min_ms": 101.109696,
+          "max_ms": 132.058528,
+          "samples_ns": [
+            132058528,
+            107813297,
+            111552768,
+            108980427,
+            106891030,
+            101419407,
+            101109696,
+            103545225,
+            111466274
+          ]
+        }
+      }
+    }
+  ],
+  "states": [
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "none",
+      "rows": 8,
+      "padding_bytes": 128,
+      "canonical_bytes": 2240,
+      "model_sha256": "2a63d22b0465aa21e481830c7fe0641a198deb8f40b1c423469e168cc53c359e"
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "unique",
+      "rows": 8,
+      "padding_bytes": 128,
+      "canonical_bytes": 3096,
+      "model_sha256": "9490343fe1d090a9aae2714bf136d5cb4aa41f175d2587880cbf2b5f0e8d9e04"
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "many",
+      "rows": 8,
+      "padding_bytes": 128,
+      "canonical_bytes": 3128,
+      "model_sha256": "4fa604a4bcbdd869dd8ef5f14dc861466b19a8cceadf175fcc77a1af70d0034c"
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "none",
+      "rows": 64,
+      "padding_bytes": 128,
+      "canonical_bytes": 15512,
+      "model_sha256": "77b2a69d517474603d8d1acd89cc1ff13630d54441afb1da7ac4eceef44fe79e"
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "unique",
+      "rows": 64,
+      "padding_bytes": 128,
+      "canonical_bytes": 22360,
+      "model_sha256": "be453d5a77e0568190f9a83032c6136f1c9efe0216473f21fc10c783c1932d94"
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "many",
+      "rows": 64,
+      "padding_bytes": 128,
+      "canonical_bytes": 22616,
+      "model_sha256": "8f2c6c5255e36fc832bead3d0343b1c9a230554803cea0b5f6cb3dbf78304213"
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "none",
+      "rows": 256,
+      "padding_bytes": 128,
+      "canonical_bytes": 61016,
+      "model_sha256": "77de463b84084fd52e235b3fe62aa44163d58e8f1713a14ce50c8ec1b5988770"
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "unique",
+      "rows": 256,
+      "padding_bytes": 128,
+      "canonical_bytes": 88408,
+      "model_sha256": "d8ccc81da436fb431bb8d9b670ff46418865e71bb0f17a6a234230c3a50d8869"
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "many",
+      "rows": 256,
+      "padding_bytes": 128,
+      "canonical_bytes": 89432,
+      "model_sha256": "62cb2c666e681fa0a88f73bda96eda999f8412c77481a0542990990414401439"
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "none",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "canonical_bytes": 138392,
+      "model_sha256": "009f8e215f4c2bf04b821c2b350bb3a7665508e0c4603a3cf7226a3707c6ae45"
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "unique",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "canonical_bytes": 145240,
+      "model_sha256": "b6985c38ca313722d134613cd333d416612853bf495287e3859e14fba0f661be"
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "many",
+      "rows": 64,
+      "padding_bytes": 2048,
+      "canonical_bytes": 145496,
+      "model_sha256": "e1092d772e47b6f80e2f4d344d6d3441ebdc662567c04c1da35147884426fc0c"
+    }
+  ],
+  "preparation": [
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "none",
+      "elapsed_ns": 20958064771
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "unique",
+      "elapsed_ns": 18143987750
+    },
+    {
+      "tag": "rows-8-pad-128",
+      "kind": "many",
+      "elapsed_ns": 17966241835
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "none",
+      "elapsed_ns": 17200808038
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "unique",
+      "elapsed_ns": 18229571369
+    },
+    {
+      "tag": "rows-64-pad-128",
+      "kind": "many",
+      "elapsed_ns": 17390672340
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "none",
+      "elapsed_ns": 18648029078
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "unique",
+      "elapsed_ns": 18311317376
+    },
+    {
+      "tag": "rows-256-pad-128",
+      "kind": "many",
+      "elapsed_ns": 17167944163
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "none",
+      "elapsed_ns": 17495082384
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "unique",
+      "elapsed_ns": 17399767720
+    },
+    {
+      "tag": "rows-64-pad-2048",
+      "kind": "many",
+      "elapsed_ns": 17167452829
+    }
+  ],
+  "checked_requests": 7900,
+  "finished_utc": "2026-11-05T13:53:05.479454+00:00"
+}

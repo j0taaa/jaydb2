@@ -120,7 +120,7 @@ def lookup_return(+c:D.Collection,+value:String,r:S.Return,+e:D.Schema,+s:D.Stat
     case S.Datum{D.Count{n}}: finite(1n,S.Refuse{D.VText{"unexpected keys return"}},e,s,ts,Unit{})
     case S.UnitValue{}: finite(1n,S.Refuse{D.VText{"unexpected keys return"}},e,s,ts,Unit{})
 
-def lookup(+c:D.Collection,parts:List<&2,String>,+e:D.Schema,+s:D.State,+ts:List<&2,S.OperationEvent>) -> Complete(X.lookup_many(c,parts,v => S.Finish{v}),e,s,ts):
+def lookup(+c:D.Collection,parts:List<&2,String>,+e:D.Schema,+s:D.State,+ts:List<&2,S.OperationEvent>) -> Complete(X.scan_equal(c,parts,v => S.Finish{v}),e,s,ts):
   +value=K.encode(parts)
   access(D.EnumerateKeys{c},R.keys_return(keys => Q.filter_map(~X.Scan,~X.visit,X.Scan{c,value},keys,v => S.Finish{v})),e,s,ts,
     r => w => events => lookup_return(c,value,r,e,w,events))
