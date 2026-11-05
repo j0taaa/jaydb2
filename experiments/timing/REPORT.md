@@ -4,6 +4,10 @@ Base: `5925c57febd978d44fa24000233647a59e7898a6` (common anchor).
 Original reference: `9b751fab3c7c349ff473a2d11a7133573b6c4df2`.
 Accepted preprocessing prerequisite `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`
 was merged as `0596bdc` after standalone feature checkpoint `bf32900`.
+Accepted scheduling prerequisite `23f7bcb7e8b718288a7cad869215b8acee91b005`
+was merged as `9675a22`. `Database::execute` starts timing only on dispatched
+Request events, owns the token with the proposal in `ServiceCompletion`, and
+`publish_completed` consumes it after publication, before inspector/log/delivery.
 No sibling in-progress changes have been incorporated. Official pinned tools
 are the immutable `.tools` symlink to `/home/jota/projects/jaydb2/.tools`.
 
@@ -25,8 +29,9 @@ Rust service functionality with native Bend authentication metadata, not a stub.
   shorter than the fixed certificate/null error required by valid configuration.
 - Modular `selected`, `authenticated`, `completed` hooks and injected `Clock`.
   Completion currently follows cleanup/publication before inspection/delivery.
-  Future accepted scheduling/persistence adapters must retain that boundary and
-  place durable commit before completion; this branch supplies neither feature.
+  Accepted serial queue integration retains that boundary, with no timing on
+  terminal framing events. A future accepted persistence adapter must place
+  durable commit before completion; this branch currently supplies no durability.
 
 Contract changes: explicit principal bytes prefix private successful authentication
 metadata, administrator log observation, opt-in policy receipt/progress extension.
@@ -62,5 +67,5 @@ intermediate inspector output. Counter memory is per distinct completed principa
 within a period; rollover clears it. Log file growth is administrator-managed,
 write failures disable the observer without undoing service, and there is no log
 fsync guarantee. No counters survive restart. Requests that never complete are
-not charged; overshoot has no time bound. Scheduling and persistence integration
-await accepted prerequisite hashes; there is no claim of a composed host proof.
+not charged; overshoot has no time bound. Serial scheduling is integrated; persistence integration awaits its accepted
+prerequisite hash. There is no claim of a composed host proof.

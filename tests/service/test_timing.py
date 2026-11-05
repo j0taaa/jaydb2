@@ -60,14 +60,18 @@ class TimingTests(unittest.TestCase):
         server, log = self.server(folder, quota=True)
         code, proof = ((folder/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
         who, who_proof = ((folder/name).read_text() for name in ('Who.bend', 'WhoProof.bend'))
-        self.assertEqual(server.call(code, proof, 'alice-token'),
-                         {'status': 'success', 'value': 'bob-token'})
+        # Both frames arrive before the credential-changing request completes.
+        # Queued frames must authenticate at dispatch against the new snapshot.
+        incoming = frame({'code': code, 'proof': proof, 'credential': 'alice-token', 'arguments': None})
+        incoming += frame({'code': who, 'proof': who_proof, 'credential': 'alice-token', 'arguments': None})
+        server.process.stdin.write(incoming)
+        server.process.stdin.flush()
+        self.assertEqual(server.exchange(b''), {'status': 'success', 'value': 'bob-token'})
         first = self.receipts(log)[0]
         self.assertEqual(first['principal'], 'alice')
         self.assertGreaterEqual(int(first['quota']['used_ns']), 1_000_000)
         # Same credential now belongs to bob, who has an independent quota.
-        self.assertEqual(server.call(who, who_proof, 'alice-token'),
-                         {'status': 'success', 'value': 'bob'})
+        self.assertEqual(server.exchange(b''), {'status': 'success', 'value': 'bob'})
         # The other credential now identifies exhausted alice. Invalid source
         # must not reach admission; this is explicitly a host policy receipt.
         self.assertEqual(server.call('invalid source', '', 'bob-token'),

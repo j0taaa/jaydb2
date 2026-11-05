@@ -49,6 +49,10 @@ they produce their existing response with no timing record.
 
 `ServicePolicy::selected`, `authenticated`, `completed` are separate host hooks.
 The coordinator owns the clock, counters, and non-cloneable `Attempt` tokens.
+`Database::execute` is called only for a selected Request and carries its token
+in `ServiceCompletion`; `publish_completed` consumes it after publication.
+EOF and terminal framing events never call `execute`. The accepted serial
+scheduler flushes each response before selecting the next request.
 For later concurrency it may retain tokens for active requests; it must complete
 each token after cleanup/durability/publication and before delivery/order waits.
 For later persistence, uncertain commit must stop dispatch; it must never be

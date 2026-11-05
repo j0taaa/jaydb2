@@ -613,11 +613,11 @@ impl Database {
         if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt) {
             let mut receipt = policy.completed(attempt);
             receipt["sequence"] = self.inspection_sequence.into();
-            if let Some(log) = &mut self.timing_log {
-                if let Err(error) = log.write(&receipt) {
-                    eprintln!("jaydb2: TIMING_LOG: {error}");
-                    self.timing_log = None;
-                }
+            if let Some(log) = &mut self.timing_log
+                && let Err(error) = log.write(&receipt)
+            {
+                eprintln!("jaydb2: TIMING_LOG: {error}");
+                self.timing_log = None;
             }
         }
         self.inspect(serde_json::json!({"event": "completed", "diagnostic": diagnostic}));
@@ -660,13 +660,13 @@ impl Database {
         let (principal, metadata) = split(&authenticated[1..])?;
         let principal = std::str::from_utf8(principal)
             .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
-        if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt) {
-            if !policy.authenticated(attempt, principal) {
-                // Opt-in host receipt outside S.Status, still bounded by the
-                // response ceiling. It is shorter than the required fixed
-                // certificate error. No admission, registry mutation, or start.
-                return self.control_response("quota", None);
-            }
+        if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt)
+            && !policy.authenticated(attempt, principal)
+        {
+            // Opt-in host receipt outside S.Status, still bounded by the
+            // response ceiling. It is shorter than the required fixed
+            // certificate error. No admission, registry mutation, or start.
+            return self.control_response("quota", None);
         }
         let (code, rest) = split(metadata)?;
         let (proof, rest) = split(rest)?;
