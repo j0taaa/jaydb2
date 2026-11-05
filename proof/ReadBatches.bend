@@ -4,6 +4,7 @@ import Base
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
 import ../contract/Logic.bend as L
+import ../src/Core.bend as Core
 import ../src/ReadOnly.bend as RO
 import ../src/Termination.bend as T
 
@@ -248,4 +249,23 @@ law reads_preserve_fresh_authentication:
 def reads_preserve_fresh_authentication(n, p, e, s, ctx, args, credential, certificate):
   Equal.cong(D.State, Maybe<&2, D.Context>, state => D.authenticate(state, credential),
     S.state_execution_trace(S.execute(n, p, e, s, ctx, args)), s,
+    program_preserves_every_prefix(n, p, e, s, ctx, args, certificate))
+
+
+law incremental_read_preserves_state:
+  for ~p: S.Program
+  for +n: Nat
+  for +e: D.Schema
+  for +s: D.State
+  for +ctx: D.Context
+  for +args: D.Value
+  for certificate: RO.Program(p)
+  {S.state_execution_trace(Core.traverse(n, Core.start(p, ctx, args, s), e)) == s : D.State}
+def incremental_read_preserves_state(p, n, e, s, ctx, args, certificate):
+  Equal.trans(D.State,
+    S.state_execution_trace(Core.traverse(n, Core.start(p, ctx, args, s), e)),
+    S.state_execution_trace(S.execute(n, p, e, s, ctx, args)), s,
+    Equal.cong(S.Trace, D.State, S.state_execution_trace,
+      Core.traverse(n, Core.start(p, ctx, args, s), e), S.execute(n, p, e, s, ctx, args),
+      Core.fidelity_of_all_os_prefixes(n, p, ctx, args, e, s)),
     program_preserves_every_prefix(n, p, e, s, ctx, args, certificate))
