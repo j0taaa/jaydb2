@@ -37,7 +37,7 @@ fn skip(bytes: &mut &[u8]) -> Option<()> {
     while remaining != 0 {
         remaining -= 1;
         match take(bytes, 1)?[0] {
-            0 | 1 | 2 => {}
+            0..=2 => {}
             3 => {
                 take(bytes, 8)?;
             }
@@ -131,10 +131,10 @@ pub(super) fn execute<T: Send, R: Send>(
             let result = handle
                 .join()
                 .map_err(|_| super::Error::new("READ_WORKER", "read worker panicked"));
-            if failure.is_none() {
-                if let Err(error) = result.and_then(&mut emit) {
-                    failure = Some(error);
-                }
+            if failure.is_none()
+                && let Err(error) = result.and_then(&mut emit)
+            {
+                failure = Some(error);
             }
         }
         failure.map_or(Ok(()), Err)
@@ -242,7 +242,7 @@ pub(super) fn coordinate(
                 service.publish(completed)?
             }
             FrameEvent::End(InputEnd::Eof) => return Ok(()),
-            FrameEvent::End(InputEnd::Failed(error)) => return Err(error.into()),
+            FrameEvent::End(InputEnd::Failed(error)) => return Err(error),
             FrameEvent::End(InputEnd::Framing(status)) => {
                 output.write_all(&super::error_frame(status))?;
                 output.flush()?;

@@ -356,6 +356,24 @@ struct Published {
 }
 
 impl Published {
+    // A certified success publishes the same root and a new paired response.
+    // Only the root's disk replacement is redundant. Errors/control receipts
+    // keep the preceding successful pair, exactly like exclusive finish.
+    fn finish_read(last: &mut Vec<u8>, proposal: Result<(Vec<u8>, bool)>) -> Vec<u8> {
+        match proposal {
+            Ok((response, publish)) => {
+                if publish {
+                    *last = response.clone();
+                }
+                response
+            }
+            Err(error) => {
+                eprintln!("jaydb2: {}: {}", error.code, error.message);
+                error.response()
+            }
+        }
+    }
+
     fn finish(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Vec<u8> {
         match proposal {
             Ok((response, Some(state))) => {
@@ -938,18 +956,7 @@ impl read_batch::Service for Database {
                     .as_ref()
                     .err()
                     .map(|e| serde_json::json!({"code":e.code,"message":e.message}));
-                let response = match result {
-                    Ok((response, publish)) => {
-                        if publish {
-                            *last_response = response.clone();
-                        }
-                        response
-                    }
-                    Err(error) => {
-                        eprintln!("jaydb2: {}: {}", error.code, error.message);
-                        error.response()
-                    }
-                };
+                let response = Published::finish_read(last_response, result);
                 *sequence += 1;
                 inspect_snapshot(
                     inspector,
@@ -1148,13 +1155,13 @@ mod tests {
 
     struct TestService<F>(F);
 
-    impl<F: FnMut(&[u8]) -> Vec<u8>> SerialService for TestService<F> {
-        type Completion = Vec<u8>;
-        fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+    impl<F: FnMut(&[u8]) -> Result<Vec<u8>>> SerialService for TestService<F> {
+        type Completion = Result<Vec<u8>>;
+        fn execute(&mut self, body: &[u8]) -> Result<Vec<u8>> {
             (self.0)(body)
         }
-        fn publish(&mut self, response: Vec<u8>) -> Result<Vec<u8>> {
-            Ok(response)
+        fn publish(&mut self, response: Result<Vec<u8>>) -> Result<Vec<u8>> {
+            response
         }
     }
 
@@ -1162,9 +1169,34 @@ mod tests {
         input: impl FrameInput,
         output: &mut impl Write,
         limit: u64,
-        request: impl FnMut(&[u8]) -> Vec<u8>,
+        request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
     ) -> Result<()> {
         serve_serial(input, output, limit, &mut TestService(request))
+    }
+
+    #[test]
+    fn read_successes_publish_the_last_success_pair_and_errors_preserve_it() {
+        let mut published = Published {
+            state: b"pinned".to_vec(),
+            response: b"before".to_vec(),
+        };
+        assert_eq!(
+            Published::finish_read(&mut published.response, Ok((b"read-one".to_vec(), true))),
+            b"read-one"
+        );
+        assert_eq!(published.response, b"read-one");
+        Published::finish_read(
+            &mut published.response,
+            Err(Error::new("NATIVE", "injected")),
+        );
+        Published::finish_read(
+            &mut published.response,
+            Ok((error_frame("authentication"), false)),
+        );
+        assert_eq!(published.response, b"read-one");
+        Published::finish_read(&mut published.response, Ok((b"read-two".to_vec(), true)));
+        assert_eq!(published.response, b"read-two");
+        assert_eq!(published.state, b"pinned");
     }
 
     #[test]
@@ -1380,7 +1412,7 @@ mod tests {
         let incoming = [packet(b"commit", &[]), packet(b"later", &[])].concat();
         let mut output = Vec::new();
         let mut calls = 0;
-        let error = serve_stream(&mut Cursor::new(incoming), &mut output, 10, |body| {
+        let error = serve_stream(Cursor::new(incoming), &mut output, 10, |body| {
             calls += 1;
             assert_eq!(body, b"commit");
             Err(Error::new("STORAGE_UNCERTAIN", "directory sync failed"))
@@ -1424,6 +1456,7 @@ mod tests {
             inspection_sequence: 0,
             prepared: HashMap::new(),
             threads: 1,
+            read_workers: 1,
             storage: Some(storage),
             environment,
         };

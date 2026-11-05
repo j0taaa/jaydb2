@@ -69,7 +69,7 @@ class ReadBatchTests(unittest.TestCase):
             env = dict(os.environ, LD_PRELOAD=str(library), JAYDB_TEST_READ_GATE=str(gatepath),
                        JAYDB_TEST_READ_TARGETS=str(targets))
             server = Server(ROOT/'examples/credentials', env=env, threads=2,
-                            options=['--read-workers', '2'])
+                            options=['--read-workers', '2', '--storage', str(directory/'db'), '--storage-mode', 'create'])
             self.addCleanup(server.close)
             read = server.prepared(3, CODE, 'alice-token', proof=PROOF)
             self.assertEqual(read['status'], 'prepared', server.diagnostics())
@@ -151,6 +151,21 @@ class ReadBatchTests(unittest.TestCase):
             self.assertEqual(server.process.wait(timeout=30), 0, server.diagnostics())
             gate.settimeout(0.1)
             with self.assertRaises(socket.timeout): gate.accept()  # queued write never launched
+            reopened = Server(ROOT/'examples/credentials', env=env, threads=2, seed=False,
+                              options=['--read-workers', '2', '--storage', str(directory/'db'),
+                                       '--storage-mode', 'open'])
+            self.addCleanup(reopened.close)
+            # Reads do not rewrite the durable root; the last exclusive credential
+            # change survives, and the write behind failed delivery never ran.
+            self.assertEqual(reopened.prepared(1, read['value'], 'phase1'),
+                             {'status':'authentication', 'value':None})
+            self.assertEqual(reopened.prepared(1, read['value'], 'phase2'),
+                             {'status':'failure', 'value':None})  # handles are ephemeral
+            fresh = reopened.prepared(3, CODE, 'phase2', proof=PROOF)
+            self.assertEqual(fresh['status'], 'prepared', reopened.diagnostics())
+            self.assertEqual(reopened.prepared(1, fresh['value'], 'phase2'),
+                             {'status':'success', 'value':'phase2'}, reopened.diagnostics())
+            reopened.finish()
 
 
 if __name__ == '__main__':

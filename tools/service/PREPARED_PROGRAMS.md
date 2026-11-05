@@ -18,6 +18,7 @@ return `input`. Ordinary malformed records remain malformed.
 
 | Opcode | Meaning of `code` | `proof` | `arguments` | Result |
 | --- | --- | --- | --- | --- |
+| 3 prepare read | Original source | Universal proof plus whole-program read proof | Public value, ignored | `prepared`, value = handle |
 | 0 prepare | Original source | Universal proof source | Public value, ignored | `prepared`, value = handle |
 | 1 execute | Handle | Empty string | Actual call arguments | Ordinary transaction response |
 | 2 invalidate | Handle | Empty string | Public value, ignored | `invalidated`, value = null |
@@ -161,3 +162,6 @@ The Rust/Node/C bridge and compiler semantic preservation remain an explicit
 trusted boundary supported by review/tests, not a mechanized proof of the
 complete executable. Official fragment/translation and physical failure
 limitations remain. There is no new runtime, quota, deadline, or persistence.
+
+The optional [certified read-batch extension](READ_BATCHES.md) adds opcode 3;
+ordinary preparation and execution retain their original certificate requirements.

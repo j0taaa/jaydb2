@@ -141,3 +141,7 @@ The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),
 [runtime](native/SIMPLE_RUNTIME.md) describe the project. English translations
 of the 18 historical contract files are in `history/contract-v1/`; original
 Portuguese versions and removed implementations/captures remain in Git history.
+
+Optional [certified prepared read batches](tools/service/READ_BATCHES.md) use
+`--threads 4 --read-workers 2`. Only separately checked whole-program reads may
+overlap; writes and prepared control operations remain FIFO barriers.

@@ -15,14 +15,27 @@ def B.certificate(ctx, args, s, valid, identity, n):
     S.execute(n, Client.program(), C.schema(), s, ctx, args),
     C.schema(), C.limits(), S.environment(I.config()), s, ctx, B.code(), args)
 
+def returned_done(r: S.Return) -> RO.Action(1n, Client.returned(r)):
+  match r:
+    case S.UnitValue{}: Unit{}
+    case S.Datum{obs}:
+      match obs:
+        case D.Cell{v}: Unit{}
+        case D.RowAbsent{}: Unit{}
+        case D.Existence{b}: Unit{}
+        case D.Count{n}: Unit{}
+        case D.Keys{xs}: Unit{}
+
 def done(args: D.Value, r: S.Return) -> RO.Action(1n, Client.finish(args, r)):
   match args:
     case D.VInt{hi, lo}: Unit{}
     case D.VBool{b}: Unit{}
-    case _:
-      match r:
-        case S.Datum{D.Cell{v}}: Unit{}
-        case _: Unit{}
+    case D.VAbsent{}: returned_done(r)
+    case D.VText{x}: returned_done(r)
+    case D.VListEmpty{}: returned_done(r)
+    case D.VList{x, xs}: returned_done(r)
+    case D.VRecordEmpty{}: returned_done(r)
+    case D.VRecord{k, v, xs}: returned_done(r)
 
 def read_only(ctx: D.Context, args: D.Value) -> RO.Action(2n, S.start(Client.program(), ctx, args)):
   match ctx:
@@ -31,14 +44,27 @@ def read_only(ctx: D.Context, args: D.Value) -> RO.Action(2n, S.start(Client.pro
 def B.read_only(ctx, args):
   (2n, read_only(ctx, args))
 
+def returned_finite(r: S.Return) -> T.Finite(1n, Client.returned(r)):
+  match r:
+    case S.UnitValue{}: Unit{}
+    case S.Datum{obs}:
+      match obs:
+        case D.Cell{v}: Unit{}
+        case D.RowAbsent{}: Unit{}
+        case D.Existence{b}: Unit{}
+        case D.Count{n}: Unit{}
+        case D.Keys{xs}: Unit{}
+
 def finite(args: D.Value, r: S.Return) -> T.Finite(1n, Client.finish(args, r)):
   match args:
     case D.VInt{hi, lo}: Unit{}
     case D.VBool{b}: Unit{}
-    case _:
-      match r:
-        case S.Datum{D.Cell{v}}: Unit{}
-        case _: Unit{}
+    case D.VAbsent{}: returned_finite(r)
+    case D.VText{x}: returned_finite(r)
+    case D.VListEmpty{}: returned_finite(r)
+    case D.VList{x, xs}: returned_finite(r)
+    case D.VRecordEmpty{}: returned_finite(r)
+    case D.VRecord{k, v, xs}: returned_finite(r)
 
 def program_finite(ctx: D.Context, args: D.Value) -> T.Finite(2n, S.start(Client.program(), ctx, args)):
   match ctx:
