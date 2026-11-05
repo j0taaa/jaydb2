@@ -46,6 +46,19 @@ def initial(ok: Bool) -> List<&2, U32>:
 def main() -> IO(Unit):
   Native.write(initial(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
 `;
+// Recovery validates the frozen configuration but never evaluates a seed or
+// claims to execute arbitrary administrator invariant predicates at runtime.
+const RECOVER = COMMON + `import ./ConfigurationCheck.bend as CheckedConfiguration
+import ./Environment.bend as Environment
+
+def result(ok: Bool) -> List<&2, U32>:
+  match ok:
+    case True{}: [1]
+    case False{}: [2]
+
+def main() -> IO(Unit):
+  Native.write(result(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
+`;
 const PREPROCESS = COMMON + `import ./Input.bend as E
 import ./Messages.bend as M
 
@@ -119,7 +132,7 @@ function sourceClosure(available, entries, missing, reverseImports = true) {
 
 function loadAdministrator(configuration, seed, sources) {
   const root = path.dirname(fs.realpathSync(configuration));
-  const privateSeed = fs.realpathSync(seed);
+  const privateSeed = seed === null ? null : fs.realpathSync(seed);
   const reserved = new Set([...sources.keys(), 'Environment.bend', 'Seed.bend', 'Main.bend',
     'Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend', 'Check.bend']);
   const load = (entry, name, initializing = false) => {
@@ -147,7 +160,7 @@ function loadAdministrator(configuration, seed, sources) {
   };
   const publicSources = load(configuration, 'Configuration.bend');
   for (const [name, data] of publicSources) sources.set(name, data);
-  return load(seed, 'Seed.bend', true);
+  return seed === null ? new Map() : load(seed, 'Seed.bend', true);
 }
 
 function freeze(workdir, configuration, seed) {
@@ -164,7 +177,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.
@@ -195,6 +208,7 @@ function stage(environment, directory, purpose, metadata) {
   const available = new Map(environment.sources);
   let main;
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
+  else if (purpose === 'recover') main = RECOVER;
   else if (purpose === 'decode' || purpose === 'authenticate') main = PREPROCESS
     .replace('FUNCTION', purpose === 'decode' ? 'framing' : 'authentication')
     .replace('PARSER', purpose === 'decode' ? 'decode' : 'analyze');
@@ -307,6 +321,17 @@ export function initialize(workdir, configuration, seed, sourceDir, kernelPath) 
   }
   return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
 }
+export function recover(workdir, configuration, sourceDir, kernelPath) {
+  workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
+  const environment = freeze(workdir, configuration, null), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
+  let limits;
+  for (const purpose of ['recover', 'authenticate']) {
+    const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
+    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during recovery');
+    limits = built.limits; programs[purpose] = built.program;
+  }
+  return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
+}
 export function execute(workdir, directory, metadata, sourceDir, kernelPath, purpose = 'execute') {
   return compile(reopen(workdir), path.resolve(directory), purpose, sourceDir, kernelPath, metadata, path.join(workdir, 'runtime'));
 }
@@ -316,8 +341,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const [operation, ...args] = process.argv.slice(2);
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
+    else if (operation === 'recover' && args.length === 4) result = recover(...args);
     else if (['execute', 'prepare', 'prepare-read'].includes(operation) && args.length === 5) result = execute(...args, operation);
-    else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT');
+    else fail('USAGE', 'stage.mjs initialize|execute|prepare|prepare-read WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {
     process.stderr.write(JSON.stringify({ code: error.code ?? 'STAGING', message: error.message }) + '\n');
