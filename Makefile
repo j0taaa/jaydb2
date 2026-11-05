@@ -47,5 +47,4 @@ test-demo-web: build
 # Caller must hold /tmp/jaydb2-experiments-heavy.lock, as for other heavy tests.
 .PHONY: test-idempotency
 test-idempotency: build
-	python3 -B tools/check.py library/ReceiptLaws.bend library/Receipts.bend experiments/idempotency/VERIFY.bend
 	python3 -B applications/vouchers/check.py

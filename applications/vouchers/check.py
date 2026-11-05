@@ -38,13 +38,14 @@ def proof_check(directory):
     proof = proof.replace('import ./Instance.bend as I\n', '').replace('import ./Bindings.bend as B\n', '')
     (directory / 'ClientProof.bend').write_text(proof)
     (directory / 'Check.bend').write_text('import ./ClientProof.bend as ClientProof\nimport ./Seed.bend as Seed\n')
-    subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(directory / 'Check.bend')], check=True)
+    subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(directory / 'Check.bend'),
+        str(ROOT / 'experiments/idempotency/VERIFY.bend')], check=True)
     prepare(directory)  # Actual integration uses the complete original proof.
 
 
 @contextmanager
 def session(directory, errors, *, storage=None, mode=None):
-    command = [str(ROOT / 'jaydb2'), '--configuration', str(directory / 'Configuration.bend')]
+    command = [str(ROOT / 'jaydb2'), '--configuration', str(directory / 'Configuration.bend'), '--threads', '1']
     if mode != 'open':
         command += ['--seed', str(directory / 'Seed.bend')]
     if storage is not None:
@@ -105,6 +106,8 @@ def main():
                     call(['issue', 'x'*64, 'boundary', False], value='v:'+'x'*64)
                     call(['issue', 'x'*65, 'too long', False], 'refusal', 'request ID too long')
                     call(['issue', 'r1', 'new lifetime', False], 'authentication', None, user='wrong')
+                    call(['issue', 'message-limit', 'z'*33000, False], 'limit')
+                    call(['inspect', 'message-limit'])
                     # Every body uses the positive certificate: actual source binding,
                     # ownership and frozen protocol must reject these variations.
                     bodies = [

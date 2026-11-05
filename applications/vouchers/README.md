@@ -62,5 +62,11 @@ Other programs can be certified if they prove the same observable protocol;
 a bare final-state assertion cannot authorize early reads or incomplete writes.
 Retention is explicit and unbounded until retirement or the ordinary state size
 limit. There is no expiration clock, cleanup worker, retry loop, response cache,
-concurrent host protocol or guarantee after retirement. Restart protection needs
-the separately accepted persistence extension and protected authoritative state.
+concurrent host protocol or guarantee after retirement. Restart protection uses the accepted persistence extension and protected
+authoritative state. Run the real create/open receipt check with:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock python3 -B applications/vouchers/check.py --restart
+```
+
+Open uses the same frozen environment/controller and no seed.
