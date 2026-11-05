@@ -3,6 +3,7 @@ import contextlib
 import io
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -107,6 +108,25 @@ class BenchmarkTests(unittest.TestCase):
                  mock.patch.object(bench.subprocess, 'run'):
                 with self.assertRaisesRegex(RuntimeError, 'changed during controller build'):
                     bench.build_controller(root, root, env)
+
+    def test_session_controls_runtime_environment_without_mutating_caller(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            fake = folder/'worker'
+            fake.write_text(f'#!{sys.executable}\nimport os,sys\nsys.path.insert(0,{str(ROOT)!r})\n'
+                            'from tools.client import frame\nsys.stdin.buffer.read(1)\n'
+                            'sys.stdout.buffer.write(frame({"status":"success","value":os.environ.get("BENDRTS")}))\n')
+            fake.chmod(0o700)
+            env = dict(os.environ, BENDRTS='--gpu-build --help')
+            records = []
+            session = bench.Session(fake, folder, ROOT, env, 1, wire, records, 8)
+            try:
+                session.exchange(b'x', phase='sample', mode='ordinary', workload='read',
+                                 expected={'status': 'success', 'value': ''})
+                self.assertEqual(env['BENDRTS'], '--gpu-build --help')
+                self.assertTrue(records[0]['checked'])
+            finally:
+                session.close(True)
 
     def test_output_cannot_escape_target(self):
         with tempfile.TemporaryDirectory() as temp, self.assertRaises(ValueError):

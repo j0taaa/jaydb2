@@ -164,3 +164,18 @@ with the current build recipe; use the default build if another legitimate
 recipe produces different bytes. Cargo's cache, compiler and protected local
 inputs remain trusted. No benchmark result establishes formal correctness or
 hardware behavior beyond the stated checked observations.
+
+## Independent audit follow-up
+
+The reference production files still match the immutable anchor. The audit
+found that its inherited `BENDRTS` could independently request runtime early
+exit despite explicit CPU arguments. Feature branches now neutralize this in
+their hosts; this benchmark preserves the reference executable and instead
+sets `BENDRTS` to the empty string in every measured `Session`, including
+interleaved comparisons. New metadata records that controlled setting.
+The previous raw measurements are unchanged and are not relabeled as reruns.
+
+The eight lightweight runner tests pass, including a real subprocess/framed
+response regression that supplies hostile inherited runtime flags, checks
+the effective child environment and leaves the caller's environment unchanged.
+This is a runner-environment repair; no performance measurement was repeated.

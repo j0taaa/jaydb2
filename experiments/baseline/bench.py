@@ -205,6 +205,9 @@ class Session:
     def __init__(self, binary, folder, root, env, threads, client, records, rows):
         self.client, self.records, self.rows = client, records, rows
         self.errors = (folder/'server.log').open('wb')
+        # Keep the reference executable unchanged while fixing the measured
+        # runtime policy, even if the invoking shell exports early-exit flags.
+        env = dict(env, BENDRTS='')
         self.process = subprocess.Popen([str(binary), '--configuration', str(folder/'Configuration.bend'),
             '--seed', str(folder/'Seed.bend'), '--threads', str(threads)], cwd=root, env=env,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors, start_new_session=True)
@@ -430,6 +433,7 @@ def metadata(root, options, output):
                                           '-o', '<program>', '-lm', '-pthread'],
                          'stack_soft_limit': 'unlimited',
                          'native_worker_arguments': ['+RTS', '--threads', str(options.threads), '--gpu', 'off', '-RTS'],
+                         'native_runtime_environment': {'BENDRTS': ''},
                          'heavy_lock': '/tmp/jaydb2-experiments-heavy.lock',
                          'timing': 'perf_counter_ns, immediately before pipe write through complete response bytes; encode/decode/check excluded',
                          'reset': 'fresh process and 8-row checked seed; populate rows 8..N-1 with admitted prepared writes, read back all rows, then evolve model through every warmup/sample write',
