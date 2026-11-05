@@ -177,7 +177,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'server/capture.rs', 'server/read_batch.rs', 'server/scheduling.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.

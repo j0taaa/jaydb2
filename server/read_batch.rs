@@ -383,3 +383,79 @@ mod coordinator_tests {
         assert_eq!(queue.select_if(|_| true).unwrap(), b"wb");
     }
 }
+
+#[cfg(test)]
+mod pipe_failure_tests {
+    use super::*;
+    use crate::capture::{Pipe, inject_failure};
+    use crate::scheduling::{FrameQueue, QueueBounds};
+    use crate::{Result, SerialService, packet};
+    use std::io::{Cursor, Write};
+    use std::process::Command;
+
+    struct Failure {
+        point: Pipe,
+        exclusive_started: usize,
+    }
+    impl SerialService for Failure {
+        type Completion = Vec<u8>;
+        fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+            self.exclusive_started += 1;
+            body.to_vec()
+        }
+        fn publish(&mut self, response: Vec<u8>) -> Result<Vec<u8>> {
+            Ok(response)
+        }
+    }
+    impl Service for Failure {
+        fn max_readers(&self) -> usize {
+            2
+        }
+        fn is_read(&self, body: &[u8]) -> bool {
+            body == b"read"
+        }
+        fn reads(&mut self, bodies: Vec<Vec<u8>>, _: &mut impl Write) -> Result<()> {
+            execute(
+                bodies,
+                |_| inject_failure(Command::new("/bin/sleep").arg("30"), &[0; 8192], self.point),
+                |_| Ok(()),
+            )
+        }
+    }
+
+    #[test]
+    fn every_pipe_failure_stops_the_actual_coordinator_before_queued_exclusive_work() {
+        for point in [Pipe::Input, Pipe::Output, Pipe::Error] {
+            let bytes = [
+                packet(b"read", &[]),
+                packet(b"read", &[]),
+                packet(b"write", &[]),
+            ]
+            .concat();
+            let mut queue = FrameQueue::start(
+                Cursor::new(bytes),
+                5,
+                QueueBounds {
+                    items: 4,
+                    bytes: 16,
+                },
+            )
+            .unwrap();
+            queue.wait_for_end();
+            let mut service = Failure {
+                point,
+                exclusive_started: 0,
+            };
+            let mut output = Vec::new();
+            assert_eq!(
+                coordinate(&queue, &mut output, &mut service)
+                    .unwrap_err()
+                    .code,
+                "READ_WORKER"
+            );
+            assert_eq!(service.exclusive_started, 0);
+            assert!(output.is_empty());
+            queue.close().unwrap();
+        }
+    }
+}

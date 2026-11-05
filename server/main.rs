@@ -1,4 +1,6 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
+mod capture;
+use capture::capture;
 mod read_batch;
 mod scheduling;
 #[cfg(test)]
@@ -14,7 +16,7 @@ use std::io::{self, Read, Write};
 use std::os::unix::fs::DirBuilderExt;
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output, Stdio};
+use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 type Result<T> = std::result::Result<T, Error>;
@@ -117,58 +119,6 @@ impl Drop for Temporary {
             let _ = fs::remove_dir_all(&self.path);
         }
     }
-}
-
-fn capture(command: &mut Command, input: &[u8]) -> Result<Output> {
-    let mut child = command
-        .env("BEND_NO_TELEMETRY", "1")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let mut stdin = child.stdin.take().expect("piped child stdin");
-    let mut stdout = child.stdout.take().expect("piped child stdout");
-    let mut stderr = child.stderr.take().expect("piped child stderr");
-    // Drain stdout/stderr while sending input, only binary pipes cannot deadlock
-    // when a worker rejects input before reading its complete body.
-    std::thread::scope(|scope| {
-        let writer = scope.spawn(move || stdin.write_all(input));
-        let reader = scope.spawn(move || {
-            let mut bytes = Vec::new();
-            stdout.read_to_end(&mut bytes).map(|_| bytes)
-        });
-        let errors = scope.spawn(move || {
-            let mut bytes = Vec::new();
-            stderr.read_to_end(&mut bytes).map(|_| bytes)
-        });
-        let waited = child.wait();
-        if waited.is_err() {
-            let _ = child.kill();
-            if let Err(error) = child.wait() {
-                // An unreaped helper cannot become a normal request failure.
-                eprintln!("jaydb2: cannot reap helper: {error}");
-                std::process::abort();
-            }
-        }
-        let status = waited?;
-        let written = writer
-            .join()
-            .map_err(|_| Error::new("HOST_PIPE", "input writer failed"))?;
-        let stdout = reader
-            .join()
-            .map_err(|_| Error::new("HOST_PIPE", "output reader failed"))??;
-        let stderr = errors
-            .join()
-            .map_err(|_| Error::new("HOST_PIPE", "error reader failed"))??;
-        if status.success() {
-            written?;
-        }
-        Ok(Output {
-            status,
-            stdout,
-            stderr,
-        })
-    })
 }
 
 fn json_helper(script: &Path, arguments: &[OsString]) -> Result<Value> {

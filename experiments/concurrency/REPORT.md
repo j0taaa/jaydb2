@@ -212,3 +212,30 @@ and canonical request/state/response formats are unchanged; their previous
 proof results are retained without claiming another full aggregate rerun.
 The previous performance measurements, if any, remain measurements of their
 recorded revisions; no benchmark was repeated for this repair.
+
+## External-review follow-up: helper cleanup
+
+The inherited `Scope::spawn` setup path could unwind before `Child::wait` and
+join a pipe blocked on a still-running helper. `server/capture.rs` now owns the
+child inside the scoped closure, uses `Builder::spawn_scoped` for fallible pipe
+startup, and kills/reaps on early return or unwind before implicit pipe joins.
+The original fatal startup-failure policy is retained after cleanup; no new
+public receipt or retry is introduced. Staging freezes this module alongside
+the other controller sources. The shared module is byte-identical across the
+nine active Rust-host variants. Main and the baseline comparison host remain
+unchanged; no experiment branches were merged.
+
+All 37 Rust host/model tests, strict all-target Clippy, formatting and release
+build passed on this branch. New tests cover an injected startup error and an
+unwind at EACH pipe-thread start, blocked stdin/output, actual child reaping,
+and the fatal public capture path. The actual read coordinator additionally
+receives pipe-startup panics from overlapping workers and is checked to emit
+nothing and never start the queued exclusive request. Both real native
+concurrency tests passed (45.521 s), including overlap, FIFO/authentication,
+control operations, worker failure, failed delivery and persistent reopen.
+
+Timing remains separate: its successful private authentication message adds a
+principal before code/proof metadata. Every consumer must be changed together
+when integrating it. Worker completion timestamps, completion-order quota
+accounting and GPU exclusivity remain future integration requirements. No
+combined timing/concurrency/GPU gate or throughput improvement is claimed.
