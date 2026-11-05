@@ -32,8 +32,11 @@ constructs the operation/working-layout proofs and the terminal row equalities.
 `safe` proves every observed execution prefix, and `execution_trace` connects
 that proof to ordinary `Requirements.Certifies`, all installed laws, technical
 publication checks and stable-state validity. The other user's record/index
-remains unchanged. The proof is universal over every valid initial state,
-context, argument and observation depth, not a single seed execution.
+remains unchanged. The helper proof quantifies over every valid initial state,
+context, argument and observation depth, not a single seed execution. The
+ordinary `B.certificate` wrapper instantiates it with each request's actual
+context and arguments; this example does not register a prepared universal
+certificate.
 
 The example intentionally supports one Boolean availability row per user and two
 fixed principals. This is the representative certified projection application;

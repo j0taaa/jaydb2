@@ -272,8 +272,11 @@ Real application operations:
 - `["rebuild"]`: reads business availability, then calls ordinary `Index.rebuild`
   to enumerate, remove and reconstruct the index from that observed value.
 
-`ClientProof.B.certificate` is universal over every valid initial state, context,
-argument and observation depth. The certificate derives an initial canonical
+`ClientProof.certify` and its helpers quantify over every valid initial state,
+context, argument and observation depth. The ordinary `B.certificate` wrapper
+instantiates those helpers with the actual `Instance.context()` and
+`Instance.arguments()` for each request; its binding is concrete, rather than
+the prepared protocol's universal-certificate target. The proof derives an initial canonical
 witness from the installed Layout AND ExactIndex laws, proves each real
 transition, and proves exact row equality at completion. `Completion` and
 `B.terminates` handle arbitrary states (including invalid ones) and arbitrarily
