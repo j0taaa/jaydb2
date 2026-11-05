@@ -45,7 +45,7 @@ class GpuTests(unittest.TestCase):
         # Both paths compile the same literal C, and consume fresh runtime args.
         for gpu in [False, True]:
             with self.subTest(gpu=gpu):
-                server = self.server(gpu)
+                server = self.server(gpu, env=dict(os.environ, BENDRTS='--gpu-build'))
                 small = 's'
                 self.assertEqual(server.call(CODE, CONCRETE, 'alice-token', small),
                     {'status': 'success', 'value': oracle(len(small))}, server.diagnostics())
@@ -58,6 +58,8 @@ class GpuTests(unittest.TestCase):
                 credential = 'large-runtime!'
                 self.assertEqual(len(credential), 14)
                 self.assertEqual(server.prepared(1, handle, credential),
+                    {'status': 'refusal', 'value': 'cancelled'}, server.diagnostics())
+                self.assertEqual(server.call(CODE, CONCRETE, credential),
                     {'status': 'refusal', 'value': 'cancelled'}, server.diagnostics())
                 self.execute(server, handle, credential, 'x')
                 self.assertEqual(server.prepared(1, handle, credential, 'stale'),
@@ -87,6 +89,7 @@ class GpuTests(unittest.TestCase):
             manifest = json.loads(Path(str(native)+'.json').read_text())
             self.assertTrue(manifest['hasBangs'])
             self.assertEqual(manifest['gpuMiB'], 512)
+            self.assertEqual(manifest['backend'], 'cuda')
             # Preprocessors are unwrapped CPU executables and have no device bundle.
             self.assertFalse(list((private/'authenticate').glob('*.gpu')))
             trace.write_text('')
@@ -143,6 +146,10 @@ class GpuTests(unittest.TestCase):
         self.assertEqual(server.prepared(0, CODE, 'invalid', proof=PROOF),
             {'status': 'authentication', 'value': None})
         server.finish()
+        cpu = self.server(gpu=False, env=env)
+        handle = self.register(cpu)
+        self.execute(cpu, handle, 'alice-token', 'x')
+        cpu.finish()
 
 
 if __name__ == '__main__':

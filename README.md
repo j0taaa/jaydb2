@@ -62,6 +62,10 @@ Native Bend computation uses the CPU parallelism available to the host by
 default, capped at the official runtime's 128 workers. Use `--threads N` to
 choose 1–128 workers per native program, or `--threads 1` for single-threaded
 computation. Independent work must be expressed in the Bend program to benefit.
+GPU support is opt-in: `--gpu 512` requires CUDA for explicit `function!(...)`
+calls, with a 512 MiB corpus; the default is `--gpu off`. CPU preprocessing
+remains unchanged. See the [GPU experiment](experiments/gpu/REPORT.md) for
+requirements, sealed artifacts, failure behavior, examples and measurements.
 The Node helper freezes the public environment and verifies and compiles
 workers; the seed appears only in initialization compilation. Each worker
 receives bytes through pipes and exits before a complete proposal replaces

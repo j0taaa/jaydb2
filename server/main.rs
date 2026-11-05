@@ -259,6 +259,13 @@ impl Program {
                 "invalid official executable manifest",
             ));
         }
+        let expected_backend = if gpu_mib == 0 { "cpu" } else { "cuda" };
+        if text(&report, "backend")? != expected_backend {
+            return Err(Error::new(
+                "HOST_NATIVE",
+                "requested/compiled backend mismatch",
+            ));
+        }
         let gpu = if gpu_mib == 0 {
             if report.get("gpuSha256").is_some() {
                 return Err(Error::new("HOST_NATIVE", "unexpected GPU artifact"));
@@ -977,6 +984,13 @@ mod tests {
             .threads;
         assert!((1..=MAX_THREADS).contains(&automatic));
         assert_eq!(automatic, default_threads());
+        assert_eq!(
+            Options::read_from(arguments.clone())
+                .unwrap()
+                .unwrap()
+                .gpu_mib,
+            0
+        );
         for count in [1, 8, 128] {
             arguments.extend(["--threads".into(), count.to_string().into()]);
             assert_eq!(

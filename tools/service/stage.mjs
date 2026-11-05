@@ -304,8 +304,8 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
     gpuSha256 = digest(read(artifact));
   }
   if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
-  json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags,
-    ...(cuda ? { gpuSha256, gpuMiB, hasBangs: /#define BANGS [1-9]/.test(original.toString()) } : {}) });
+  json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags, backend: cuda ? 'cuda' : 'cpu',
+    ...(cuda ? { gpuSha256, gpuMiB, hasBangs: /^#define\s+BANGS\s+[1-9]/m.test(original.toString()) } : {}) });
   return { program: executable, limits, certificateMode: report.admission.certificateMode };
 }
 
