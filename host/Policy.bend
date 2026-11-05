@@ -104,22 +104,28 @@ def optional(-A: Data, -R: Type, +value: Maybe<&2,A>, yes: @+x: A -> R, no: Unit
       no(Unit{})
 def failure(+code: Bytes) -> Bytes:
   choose(Bytes,certificate_code(code),u => error(S.Certificate{}),u => error(S.Failure{}))
+# Common executed admission gate for proposed byte bounds.
+def guard(ok: Bool, next: Unit -> Proposal) -> Proposal:
+  match ok:
+    case True{}:
+      next(Unit{})
+    case False{}:
+      HostRejected{}
+
 def checked_response(+parts: Maybe<&2, T.Parts>, +response: Bytes,
   +state: Maybe<&2, Bytes>, +limit: B.Number64) -> Proposal:
   match parts:
     case None{}:
       HostRejected{}
     case Some{T.Parts{body, rest}}:
-      choose(Proposal,equal(rest, Nil{}) && fits(body, limit),
-        u => HostReady{response,state},u => HostRejected{})
+      guard(equal(rest, Nil{}) && fits(body, limit),u => HostReady{response,state})
 def check_state(+parts: Maybe<&2, T.Parts>, +limits: Limits) -> Proposal:
   match parts:
     case None{}:
       HostRejected{}
     case Some{T.Parts{+state, +response}}:
       Limits{m,s,r} = limits
-      choose(Proposal,fits(state,s),
-        u => checked_response(T.separate(response),response,Some{state},r),u => HostRejected{})
+      guard(fits(state,s),u => checked_response(T.separate(response),response,Some{state},r))
 def proposal(+output: Bytes, +limits: Limits) -> Proposal:
   match output:
     case Con{0, +response}:

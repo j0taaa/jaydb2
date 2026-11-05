@@ -504,7 +504,7 @@ def main():
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', default=8094, type=int)
     args = parser.parse_args()
-    if not (ROOT / 'target/release/jaydb2').is_file():
+    if not (ROOT / 'target/bend-host/controller').is_file():
         parser.error('Build the real database first: make build')
     with DemoServer((args.host, args.port)) as server:
         print(f'JayDB2 workbench: http://{args.host}:{server.server_port}', flush=True)

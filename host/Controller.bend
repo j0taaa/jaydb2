@@ -5,7 +5,7 @@ import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
 import ../src/Transport.bend as T
 import ./Policy.bend as P
-import ./Effects.bend as E
+import ./Tasks.bend as E
 
 type Handle is Data:
   Handle{key: P.Bytes, artifact: P.Bytes, code: P.Bytes, proof: P.Bytes}
@@ -62,15 +62,17 @@ def serve(+db: Database) -> State:
   ReadHeader{db}
 def initial_removed(+db: Database, +result: Reply) -> State:
   receive(result,unused => inspect(db,0,Nil{},done => serve(db)),code => HostExit{1})
+def invalid_initial() -> State:
+  call(12,P.packet(B.utf8("CONFIGURATION"),B.utf8("invalid configuration or initial state")),logged => HostExit{1})
 def initial_run(+result: Reply, +limits: P.Limits) -> State:
   match result:
     case Good{Con{1,+state}}:
       P.Limits{m,s,r} = limits
       P.choose(State,P.fits(state,s),
         u => call(7,B.utf8("initial"),removed => initial_removed(Database{limits,state,Nil{}},removed)),
-        u => HostExit{1})
+        u => invalid_initial())
     case _:
-      HostExit{1}
+      invalid_initial()
 def initialized_bytes(+bytes: P.Bytes) -> State:
   match bytes:
     case Con{a,Con{b,Con{c,Con{d,Con{e,Con{f,Con{g,Con{h,Con{i,Con{j,Con{k,Con{l,Con{m,Con{n,Con{o,Con{p,Con{q,Con{r,Con{s,Con{t,Con{u,Con{v,Con{w,Con{x,Nil{}}}}}}}}}}}}}}}}}}}}}}}}}:
@@ -96,7 +98,7 @@ def normal_error(+db: Database, status: S.Status) -> State:
 
 # 3 ordinary; 0 prepare; 1 prepared execution; 2 invalidate.
 def error(+db: Database, +code: P.Bytes) -> State:
-  complete(db,P.HostReady{P.failure(code),None{}})
+  call(12,P.packet(code,Nil{}),logged => complete(db,P.HostReady{P.failure(code),None{}}))
 def cleanup_error(+db: Database, +artifact: P.Bytes, +code: P.Bytes) -> State:
   call(7,artifact,result => receive(result,unused => error(db,code),cleanup_code => error(db,cleanup_code)))
 def execution_complete(+db: Database, +result: Reply) -> State:
@@ -177,28 +179,18 @@ def authenticated(+result: Reply, +db: Database, +op: U32, +body: P.Bytes) -> St
         u => error(db,B.utf8("HOST_TRANSPORT")))
     case _:
       error(db,B.utf8("HOST_TRANSPORT"))
-def decoded(+result: Reply, +db: Database, +op: U32, +body: P.Bytes) -> State:
-  match result:
-    case Bad{code}:
-      error(db,code)
-    case Good{Con{0,response}}:
-      complete(db,P.HostReady{response,None{}})
-    case Good{Con{1,unused}}:
-      Database{limits,state,handles} = db
-      call(5,P.packet(B.utf8("authenticate"),P.packet(state,body)),out => authenticated(out,db,op,body))
-    case _:
-      error(db,B.utf8("HOST_TRANSPORT"))
-def decode(+db: Database, +op: U32, +body: P.Bytes) -> State:
+# Accepted preprocessing equivalence: Input.analyze itself performs decode first.
+def authenticate_request(+db: Database, +op: U32, +body: P.Bytes) -> State:
   Database{limits,state,handles} = db
-  call(5,P.packet(B.utf8("decode"),P.packet(state,body)),out => decoded(out,db,op,body))
+  call(5,P.packet(B.utf8("authenticate"),P.packet(state,body)),out => authenticated(out,db,op,body))
 def extension(+db: Database, +body: P.Bytes) -> State:
   match body:
     case Con{7,Con{+op,rest}}:
-      P.choose(State,U32.is_le(op,2),u => decode(db,op,rest),u => normal_error(db,S.Input{}))
+      P.choose(State,U32.is_le(op,2),u => authenticate_request(db,op,rest),u => normal_error(db,S.Input{}))
     case Con{7,Nil{}}:
       normal_error(db,S.Input{})
     case _:
-      decode(db,3,body)
+      authenticate_request(db,3,body)
 def body_decision(+db: Database, +size: B.Number64, +body: P.Bytes) -> State:
   P.choose(State,P.equal(P.unwrap(B.length64(B.length(body))),P.size_bytes(size)),
     u => extension(db,body),u => terminal(S.Input{}))

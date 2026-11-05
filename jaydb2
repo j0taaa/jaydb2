@@ -2,4 +2,4 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ulimit -s unlimited
-exec "$root/target/release/jaydb2" "$@"
+exec node "$root/host/launch.mjs" "$@"

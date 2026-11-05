@@ -9,7 +9,7 @@ const out = path.join(root, 'target/bend-host');
 fs.mkdirSync(out, {recursive:true});
 const {B,C} = await loadToolchain();
 const book = B.book_nil();
-try { await B.book_load(book,path.join(root,'host/Main.bend'),'',new Map()); B.book_valid(book); }
+try { await B.book_load(book,path.resolve(root,process.argv.includes('--check') && process.argv[3] ? process.argv[3] : 'host/Main.bend'),'',new Map()); B.book_valid(book); }
 catch(e) { console.error(e?.$ === 'Err' ? B.err_show(e) : e); process.exit(1); }
 if(book.hols) throw Error('controller has holes');
 if(process.argv.includes('--check')) { console.log('Official primary controller check passed'); process.exit(0); }

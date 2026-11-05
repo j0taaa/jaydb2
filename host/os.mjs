@@ -14,6 +14,9 @@ export function split(b) {
   const n=Number(b.readBigUInt64BE()); return [b.subarray(8,8+n),b.subarray(8+n)];
 }
 export async function writeAll(stream, bytes) {
+  // Writable also emits an error after reporting it to the write callback.
+  // Keep that emission observed so the owner can stop dispatch and clean up.
+  if(stream.listenerCount('error')===0) stream.on('error',()=>{});
   await new Promise((resolve,reject)=>stream.write(bytes,error=>error?reject(error):resolve()));
 }
 export class Reader {
@@ -88,7 +91,7 @@ export const limitsBytes=report=> {
 export class Adapter {
   constructor(options,controller) { this.options=options; this.controller=controller; this.resources=new Map(); this.children=new Set(); this.sequence=0; this.next=0; }
   async helper(script,args) {
-    const result=await capture(process.execPath,['--stack_size=65536',script,...args],Buffer.alloc(0),this.children,
+    const result=await capture('node',['--stack_size=65536',script,...args],Buffer.alloc(0),this.children,
       {JAYDB_CONTROLLER_PATH:this.controller});
     if(result.code===0) return JSON.parse(result.stdout);
     for(const data of [result.stderr,result.stdout]) for(const line of data.toString('utf8').split('\n').reverse()) {
@@ -105,7 +108,7 @@ export class Adapter {
   }
   async initialize() {
     await this.connectInspector();
-    this.directory=fs.mkdtempSync(path.join(this.options.temp,'jaydb2-')); fs.chmodSync(this.directory,0o700);
+    this.directory=fs.mkdtempSync(path.join(this.options.temp,`jaydb2-${process.pid}-`)); fs.chmodSync(this.directory,0o700);
     const o=this.options, report=await this.helper(path.join(o.root,'tools/service/stage.mjs'),
       ['initialize',this.directory,o.configuration,o.seed,o.source,o.kernel]);
     this.stage=report.stagePath;
@@ -157,7 +160,7 @@ export class Adapter {
   async effect(command) {
     const op=command[0], b=command.subarray(1);
     switch(op) {
-      case 0: { const limits=await this.initialize(); this.initLimits=Object.fromEntries(['message','state','response'].map((k,i)=>[k,Number(limits.readBigUInt64BE(i*8))])); return limits; }
+      case 0: { const limits=await this.initialize(); this.initLimits=Object.fromEntries(['message','state','response'].map((k,i)=>[k,JSON.rawJSON(limits.readBigUInt64BE(i*8).toString())])); return limits; }
       case 1: return this.readInput(b);
       case 2: await writeAll(process.stdout,b); return Buffer.alloc(0);
       case 3: { const id='artifact-'+this.next++, directory=fs.mkdtempSync(path.join(this.directory,'request-'));
@@ -176,6 +179,9 @@ export class Adapter {
       case 8: return Buffer.from(randomBytes(32).toString('hex'));
       case 9: return this.inspect(b);
       case 11: validateSeal(this.resource(b).sealed);return Buffer.alloc(0);
+      case 12: { const [c,message]=split(b),code=c.toString('utf8');
+        if(this.diagnostic?.code!==code) {this.diagnostic={code,message:message.toString('utf8')||code};console.error(`jaydb2: ${code}: ${this.diagnostic.message}`);}
+        return Buffer.alloc(0); }
       default: fail('HOST_EFFECT','unknown OS operation');
     }
   }

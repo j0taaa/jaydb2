@@ -2,7 +2,12 @@
 
 all: build
 
-build:
+build: build-bend-host
+
+build-bend-host:
+	node --stack_size=65536 host/build.mjs
+
+build-rust-reference:
 	cargo build --locked --release
 
 verify-contract:
@@ -15,7 +20,10 @@ verify:
 test: test-admission test-native test-host test-integration
 
 test-host:
-	cargo test --locked
+	node --test --test-concurrency=1 tests/bend_host/*.test.mjs
+
+verify-bend-host:
+	python3 -B tools/check.py host/VERIFY.bend
 
 test-admission:
 	node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs

@@ -14,11 +14,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class Server:
-    """Development harness only; the production server is the Rust executable."""
+    """Development harness only; the production controller is official Bend."""
     def __init__(self, folder, env=None, command_prefix=(), threads=None):
         self.errors = tempfile.TemporaryFile()
         command = [
-            str(ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend'),
+            os.environ.get('JAYDB2_TEST_HOST', str(ROOT/'jaydb2')), '--configuration', str(folder/'Configuration.bend'),
             '--seed', str(folder/'Seed.bend')]
         if threads is not None:
             command.extend(['--threads', str(threads)])
@@ -119,7 +119,7 @@ class EndToEndTests(unittest.TestCase):
             source = (original/'Configuration.bend').read_text()
             self.assertEqual(source.count('E.identity()'), 1)
             (folder/'Configuration.bend').write_text(source.replace('E.identity()', '"other-environment"'))
-            result = subprocess.run([str(ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend'),
+            result = subprocess.run([os.environ.get('JAYDB2_TEST_HOST', str(ROOT/'jaydb2')), '--configuration', str(folder/'Configuration.bend'),
                                      '--seed', str(folder/'Seed.bend')], input=b'', capture_output=True,
                                     cwd=ROOT, timeout=180)
             self.assertNotEqual(result.returncode, 0)

@@ -33,6 +33,14 @@ async function main() {
   const exit=new Promise(resolve=>child.once('close',(code,signal)=>{ended=true;resolve(code??1);}));
   child.on('error',e=>{console.error(e.message);});child.stdin.on('error',()=>{});
   child.once('exit',()=>{for(const c of adapter.children)c.kill('SIGKILL');});
+  // A controller killed while an exact fd0 read is pending must not leave
+  // Node's blocking filesystem read keeping the adapter alive. Reap all owned
+  // helpers and remove resources first, then terminate even with idle stdin.
+  child.once('close',async code=>{
+    try {await adapter.close();}
+    catch(e) {console.error('jaydb2: CLEANUP: '+e.message);process.exit(1);}
+    process.exit(code??1);
+  });
   const stop=()=>child.kill('SIGTERM');process.once('SIGTERM',stop);process.once('SIGINT',stop);
   try {
     const reader=new Reader(child.stdout);
