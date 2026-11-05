@@ -16,6 +16,7 @@ import ./Action.bend as A
 import ./Task.bend as Task
 import ./Mutation.bend as M
 import ./Laws.bend as G
+import ./Value.bend as V
 
 def read_depth(xs: List<&2, String>, n: Nat) -> Nat:
   G.depth(xs, n)
@@ -84,6 +85,16 @@ def replace_safe(+id: String, +kind: String, +key: String, r: S.Return) ->
     case S.Datum{obs}: replace_choice_safe(Client.is_open(obs), id, kind, key)
     case S.UnitValue{}: Unit{}
 
+def cas_safe(+id: String, +kind: String, +key: String, expected: Bool, r: S.Return) ->
+  H.Safe(4n, D.Context{id, kind}, M.cas_received(D.Application{id}, D.Row{key, Task.fields(id, key, "Replaced", True{})}, D.VBool{expected}, b => S.Finish{D.VBool{b}}, r)):
+  match r:
+    case S.Datum{D.Cell{v}}: replace_choice_safe(V.equal(v, D.VBool{expected}), id, kind, key)
+    case S.Datum{D.RowAbsent{}}: Unit{}
+    case S.Datum{D.Existence{b}}: Unit{}
+    case S.Datum{D.Count{n}}: Unit{}
+    case S.Datum{D.Keys{xs}}: Unit{}
+    case S.UnitValue{}: Unit{}
+
 def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.command(D.context_id(ctx), p)):
   match ctx p:
     case D.Context{+id, +kind} Client.Open{a, b}:
@@ -97,6 +108,7 @@ def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.co
         L.Both{P.Both{{==}, {==}}, L.Both{P.Both{{==}, {==}}, Unit{}}}, saved_safe(2n, D.Context{id, kind}, cancel, a))
     case D.Context{+id, +kind} Client.Insert{+key}: L.Both{{==}, r => inserted_safe(id, kind, key, r)}
     case D.Context{+id, +kind} Client.Replace{+key}: L.Both{{==}, r => replace_safe(id, kind, key, r)}
+    case D.Context{+id, +kind} Client.Cas{+key, expected}: L.Both{{==}, r => cas_safe(id, kind, key, expected, r)}
     case D.Context{+id, +kind} Client.Drop{a, b}:
       L.Both{{==}, r => written_safe(3n, D.Context{id, kind},
         M.remove_rows(D.Application{id}, [b], S.Finish{D.VAbsent{}}),

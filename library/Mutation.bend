@@ -67,3 +67,18 @@ def counter_add(+c: D.Collection, +key: String, +column: String, delta: V.Int64,
 
 def next(c: D.Collection, key: String, column: String, done: V.Int64 -> S.Action) -> S.Action:
   counter_add(c, key, column, V.Int64{0, 1}, done)
+
+def cas_received(c: D.Collection, row: D.Row, expected: D.Value,
+  done: Bool -> S.Action, r: S.Return) -> S.Action:
+  D.Row{key, fs} = row
+  match r:
+    case S.Datum{D.Cell{value}}: replace_choice(V.equal(value, expected), c, key, fs, done)
+    case S.Datum{D.RowAbsent{}}: done(False{})
+    case _: S.Refuse{D.VText{"unexpected compare return"}}
+
+# Compare one actual cell, then replace the COMPLETE row if equal.
+# Serial transaction semantics, not an external hardware CAS primitive.
+def compare_exchange(+c: D.Collection, +row: D.Row, column: String,
+  expected: D.Value, done: Bool -> S.Action) -> S.Action:
+  D.Row{key, fs} = row
+  S.Access{D.ReadCell{c, key, column}, cas_received(c, row, expected, done)}

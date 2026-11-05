@@ -98,3 +98,33 @@ def nonunique_read() -> S.Action:
 law nonunique_rebuild_query:
   {final_value(S.observe(15n, nonunique_read(), schema(), state(V.Int64{0, 0}))) == D.VList{D.VText{"a"}, D.VList{D.VText{"b"}, D.VListEmpty{}}} : D.Value}
 def nonunique_rebuild_query(): {==}
+
+law cas_mismatch_read_only:
+  {S.observe(3n, M.compare_exchange(D.Application{"counter"}, counter(V.Int64{0, 9}), "n", D.VInt{0, 1}, b => S.Finish{D.VBool{b}}), schema(), state(V.Int64{0, 0})) == S.Final{state(V.Int64{0, 0}), [S.OperationEvent{D.ReadCell{D.Application{"counter"}, "seq", "n"}, S.Reading{D.Cell{D.VInt{0, 0}}}}], S.Response{S.Success{}, D.VBool{False{}}}} : S.Trace}
+def cas_mismatch_read_only(): {==}
+
+law cas_match_writes:
+  {S.observe(3n, M.compare_exchange(D.Application{"counter"}, counter(V.Int64{0, 9}), "n", D.VInt{0, 0}, b => S.Finish{D.VBool{b}}), schema(), state(V.Int64{0, 0})) == S.Final{state(V.Int64{0, 9}), [S.OperationEvent{D.ReadCell{D.Application{"counter"}, "seq", "n"}, S.Reading{D.Cell{D.VInt{0, 0}}}}, S.OperationEvent{D.DefineRow{D.Application{"counter"}, "seq", [D.Field{"id", D.VText{"seq"}}, D.Field{"n", D.VInt{0, 9}}]}, S.Write{}}], S.Response{S.Success{}, D.VBool{True{}}}} : S.Trace}
+def cas_match_writes(): {==}
+
+law empty_average:
+  {G.average(Nil{}) == None{} : Maybe<&2, V.Int64>}
+def empty_average(): {==}
+
+law min_signed_extremes:
+  {G.min_value([V.Int64{2147483647, 4294967295}, V.Int64{2147483648, 0}]) == Some{V.Int64{2147483648, 0}} : Maybe<&2, V.Int64>}
+def min_signed_extremes(): {==}
+
+def event_count(xs: List<&2, S.OperationEvent>) -> Nat:
+  match xs:
+    case Nil{}: 0n
+    case Con{x, rest}: Succ{event_count(rest)}
+
+def accesses(p: S.Trace) -> Nat:
+  match p:
+    case S.Final{s, events, response}: event_count(events)
+    case S.Prefix{s, events}: event_count(events)
+
+law index_filtered_reads_retained:
+  {accesses(S.observe(15n, nonunique_read(), schema(), state(V.Int64{0, 0}))) == 11n : Nat}
+def index_filtered_reads_retained(): {==}

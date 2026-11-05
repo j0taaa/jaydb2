@@ -12,6 +12,7 @@ type Command is Data:
   Pair{first: String, second: String, cancel: Bool}
   Insert{key: String}
   Replace{key: String}
+  Cas{key: String, expected: Bool}
   Drop{first: String, second: String}
   Invalid{}
 
@@ -24,6 +25,7 @@ def analyze(args: D.Value) -> Command:
     case D.VList{D.VText{"insert"}, D.VList{D.VText{key}, D.VListEmpty{}}}: Insert{key}
     case D.VList{D.VText{"replace_open"}, D.VList{D.VText{key}, D.VListEmpty{}}}: Replace{key}
     case D.VList{D.VText{"drop"}, D.VList{D.VText{a}, D.VList{D.VText{b}, D.VListEmpty{}}}}: Drop{a, b}
+    case D.VList{D.VText{"cas"}, D.VList{D.VText{key}, D.VList{D.VBool{expected}, D.VListEmpty{}}}}: Cas{key, expected}
     case _: Invalid{}
 
 type Projection is Data:
@@ -67,6 +69,7 @@ def command(+owner: String, p: Command) -> S.Action:
          D.Row{b, Task.fields(owner, b, "Second", True{})}], Task.saved(cancel, a))
     case Insert{+key}: M.insert_if_absent(D.Application{owner}, D.Row{key, Task.fields(owner, key, "Once", False{})}, b => S.Finish{D.VBool{b}})
     case Replace{+key}: M.replace_if(~is_open, D.Application{owner}, D.Row{key, Task.fields(owner, key, "Replaced", True{})}, "completed", b => S.Finish{D.VBool{b}})
+    case Cas{+key, expected}: M.compare_exchange(D.Application{owner}, D.Row{key, Task.fields(owner, key, "Replaced", True{})}, "completed", D.VBool{expected}, b => S.Finish{D.VBool{b}})
     case Drop{a, b}: M.remove_rows(D.Application{owner}, [a, b], S.Finish{D.VAbsent{}})
     case Invalid{}: S.Refuse{D.VText{"invalid query request"}}
 

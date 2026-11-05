@@ -42,3 +42,17 @@ def list(v: D.Value) -> Maybe<&2, List<&2, D.Value>>:
     case D.VListEmpty{}: Some{Nil{}}
     case D.VList{h, t}: list_cons(h, list(t))
     case _: None{}
+
+# Structural equality on obtained values (including records/lists). This
+# performs no read. Missing observation and present VAbsent remain distinct.
+def equal(a: D.Value, b: D.Value) -> Bool:
+  match a b:
+    case D.VAbsent{} D.VAbsent{}: True{}
+    case D.VBool{x} D.VBool{y}: Bool.not(Bool.xor(x, y))
+    case D.VInt{h, l} D.VInt{i, j}: U32.is_eq(h, i) && U32.is_eq(l, j)
+    case D.VText{x} D.VText{y}: String.eq(x, y)
+    case D.VListEmpty{} D.VListEmpty{}: True{}
+    case D.VList{x, xs} D.VList{y, ys}: equal(x, y) && equal(xs, ys)
+    case D.VRecordEmpty{} D.VRecordEmpty{}: True{}
+    case D.VRecord{n, x, xs} D.VRecord{m, y, ys}: String.eq(n, m) && equal(x, y) && equal(xs, ys)
+    case _ _: False{}

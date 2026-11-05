@@ -68,6 +68,13 @@ def main():
                 call('alice-token', ['replace_open', 'once'], {'status': 'success', 'value': False})
                 assert ordinary.call('alice-token', ['view', 'once']) == {'status': 'success', 'value': {
                     'completed': True, 'id': 'once', 'owner': 'alice', 'title': 'Replaced'}}
+                call('alice-token', ['cas', 'once', False], {'status': 'success', 'value': False})
+                target = 'M.compare_exchange(D.Application{owner}'
+                assert db.code.count(target) == 1
+                forbidden = db.code.replace(target, 'M.compare_exchange(D.Application{"bob"}')
+                call('alice-token', ['cas', 'once', False], {'status': 'certificate', 'value': None}, code=forbidden)
+                call('alice-token', ['cas', 'once', True], {'status': 'success', 'value': True})
+                call('alice-token', ['cas', 'missing', False], {'status': 'success', 'value': False})
                 call('alice-token', ['drop', 'once', 'missing'], {'status': 'success', 'value': None})
                 assert ordinary.call('alice-token', ['view', 'once']) == {'status': 'success', 'value': None}
                 process.stdin.close()
@@ -79,7 +86,7 @@ def main():
                 print(errors.read().decode('utf-8', 'replace'), file=sys.stderr)
         errors.seek(0)
         diagnostics = errors.read()
-        assert (diagnostics.count(b'PRIMARY_CHECK') == 1 and b'- expected :' in diagnostics
+        assert (diagnostics.count(b'PRIMARY_CHECK') == 2 and b'- expected :' in diagnostics
             and b'- observed :' in diagnostics and b'Location: visit_safe' in diagnostics), diagnostics.decode('utf-8', 'replace')
     print('PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.')
 
