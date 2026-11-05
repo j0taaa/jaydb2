@@ -4,7 +4,8 @@ Implementation and validation in progress; final evidence will replace this para
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
 `9b751fab3c7c349ff473a2d11a7133573b6c4df2`). Accepted preprocessing prerequisite
-`0f09c55dfff52fe10cd86b18a72a3241c5a92ad5` will be merged after the feature commit.
+`0f09c55dfff52fe10cd86b18a72a3241c5a92ad5` is merged; only initialize and
+authenticate are compiled at startup, with fresh `Input.analyze` in execution.
 
 `./jaydb2 --configuration examples/access/Configuration.bend --seed examples/access/Seed.bend --threads 8 --gpu 512`
 opts into the official CUDA backend for explicit `!` calls with a 512 MiB corpus.
