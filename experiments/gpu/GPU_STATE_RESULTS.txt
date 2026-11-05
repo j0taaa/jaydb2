@@ -1,0 +1,6 @@
+test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal (tests.service.test_gpu.GpuTests.test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 45.059s
+
+OK

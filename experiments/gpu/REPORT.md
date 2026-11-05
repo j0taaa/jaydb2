@@ -81,93 +81,6 @@ there is no new formal proof of the compiler, CUDA driver or hardware.
 The accepted preprocessing prerequisite additionally supplies
 `proof/Preprocessing.bend`; the native differential regression is rerun here.
 
-## Remaining limitations
-
-Linux/NVIDIA CUDA is the supported GPU integration. Metal, multi-GPU selection,
-CPU fallback on GPU failure, persistent workers and GPU query optimization are
-not implemented. The cap of one GPU execution is per server process; separate
-instances must be coordinated by their administrator. Read batching must keep
-GPU services exclusive. All execution requests remain serial in this branch.
-
-The 64–4096 MiB argument caps the requested official managed-memory corpus,
-not driver overhead or all device memory. Some accepted small sizes/workloads
-can still exhaust the runtime or physical device and return failure. Large
-computations can run arbitrarily long; there is no deadline or hard resource
-cancellation. The fixture intentionally leaves runtime input bounds to the
-caller and is a benchmark/example, not a resource-admission policy.
-
-Artifacts and generated code live in private instance directories. Hash checks
-assume protected host files/tools; they do not remove the OS file-use race
-against a hostile same-UID process, attest vendor libraries cryptographically,
-or prove the GPU obeys its execution contract. An architecture-incompatible
-artifact can cause the unmodified official runtime to attempt recompilation;
-the host rejects its result, even if the rebuild succeeds. Ordinary and
-prepared physical failures can terminate the worker without publication;
-a host crash still loses RAM state. No persistence or stronger serial theorem
-is claimed by this feature.
-
-## Performance evidence
-
-[Raw measurements](benchmark-results.json) were collected by `make benchmark-gpu`
-under the shared heavy lock on clean revision
-`1c9400ac2ccdd1209c27e4cb01329b60de5bbc6e`. The production code has no interposer;
-no launch-tracing/fault library or inspector was loaded during these timings.
-Both instances used eight CPU workers and the GPU instance used a 512 MiB
-corpus. Each sample times the complete prepared frame exchange, including
-fresh authentication, integrity hashes, child startup, execution, process exit,
-proposal validation, publication and response delivery/decoding. Oracle work
-is outside the timing. Three samples per size, successive runtime arguments,
-successful credential state evolution and exact checksum checks are required.
-
-| Runtime workload | CPU median (range), ms | CUDA median (range), ms |
-| --- | ---: | ---: |
-| Depth 2, 4 leaves × 64 rounds | 5.197 (5.185–5.998) | 175.659 (171.592–181.182) |
-| Depth 16, 65,536 leaves × 64 rounds | 5.755 (5.682–5.946) | 166.517 (158.150–169.409) |
-
-The first preparation is measured separately from handle execution: CPU
-5,570.246 ms, CUDA 6,922.759 ms. This includes proof admission and native
-compilation, plus CUDA prebuild where enabled; it is not a kernel-only compile
-time. Startup plus an invalid-credential synchronization request is also
-separate: CPU 5,706.573 ms, CUDA 5,472.017 ms. The small checksum is 689,817,445;
-the larger checksum is 3,127,646,773, both independently reproduced.
-
-CUDA is substantially slower for both tested sizes. Fresh process/device
-setup and full host request overhead dominate these workloads. There is no
-speedup claim, kernel-only timing, throughput claim or measured break-even
-point. Three samples on a desktop GPU are observations rather than a broad
-performance characterization. Larger workloads and other machines are
-unmeasured, and can run out of the configured corpus.
-
-## Focused heavier runtime-input workload
-
-`HeavyClient.bend` retains the same credential access pattern and certificate
-interface, but passes runtime `depth × 4096` rounds to each leaf of `tree!`.
-The selected depth-16 case has 65,536 leaves and 65,536 rounds per leaf:
-4,294,967,296 mixing rounds. The small control uses depth 2 and 8,192 rounds
-per leaf, checked with an independent iterative Python oracle. Heavy output
-and the complete canonical native state proposal are compared with real,
-unwrapped CPU execution; no billion-step Python oracle is required.
-
-`heavy_benchmark.py` separately records the first preparation (admission,
-native compilation and optional device prebuild), fresh native-worker total,
-and complete prepared frame exchanges. Native-worker timing includes that
-worker's input analysis, GPU initialization/load where enabled, computation,
-proposal encoding, binary pipes and process exit; it is not kernel-only time.
-Each native trial consumes the same known seed bytes and must propose exactly
-the expected full state, including Bob's untouched credential. Two complete
-requests per size also check exact checksums and current credential evolution.
-The heavier run is a focused pair of sizes, rather than a parameter sweep.
-
-Run the direct script with an outer lock (the `make benchmark-gpu` target for
-the earlier fixture already locks internally and must be invoked directly):
-
-```sh
-mkdir -p build/gpu/tmp
-flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build/gpu/tmp" \
-  PYTHONPATH=. python3 -B experiments/gpu/heavy_benchmark.py \
-  --output build/gpu/heavy-benchmark.json
-```
-
 ## Correctness and failure checks run
 
 All heavy commands below used `/tmp/jaydb2-experiments-heavy.lock`. Development
@@ -207,15 +120,91 @@ symlink to the shared immutable official installation.
   loader's canonical path. Commit `adad1b9` fixes only the test hook to use the
   actual canonical kernel and asserts that injection occurred. The broad rerun
   was safely canceled while still waiting, as requested by the coordinator to
-  prioritize first native feature gates. Final broad rerun evidence follows
-  when that validation turn is available.
+  prioritize first native feature gates. After explicit coordinator release,
+  the single final `make test` rerun passed: 15 admission/verifier tests,
+  10 native runtime tests, 9 Rust host tests and 6 real service integrations
+  (148.687 s for integration), including prepared reuse and the accepted
+  preprocessing native differential. [Actual final CPU output](CPU_TEST_RESULTS.txt)
+  is preserved. No further performance runs or broad jobs were added.
 
 The focused gate commands were direct Python `unittest` invocations with an
 outer `flock`, as recorded in `build/gpu/gpu-fault-tests.log` and
 `build/gpu/gpu-state-tests.log`. `make test-gpu` runs the full optional class and
 acquires the lock internally; do not wrap that target in another `flock`.
 The complete prepared-request benchmark passed and is preserved in the raw
-measurement file above; the focused heavier run is recorded separately.
+measurement files below; the focused heavier run is recorded separately.
+[Actual fault-gate output](GPU_FAULT_RESULTS.txt) and
+[actual unwrapped state-gate output](GPU_STATE_RESULTS.txt) are preserved.
+
+
+The [source and raw output SHA-256 manifest](EVIDENCE.sha256) preserves both
+measured fixtures, their proof and benchmark scripts, the exact raw JSON
+outputs, final test outputs, test sources and toolchain pins. Validate it from the repository root
+with `sha256sum -c experiments/gpu/EVIDENCE.sha256`. The native/device bundles
+are ephemeral instance artifacts: their hashes are checked by the host on each
+use; the trial source/output hashes are preserved in this report's artifacts.
+
+## Performance evidence
+
+[Raw measurements](benchmark-results.json) were collected by `make benchmark-gpu`
+under the shared heavy lock on clean revision
+`1c9400ac2ccdd1209c27e4cb01329b60de5bbc6e`. The production code has no interposer;
+no launch-tracing/fault library or inspector was loaded during these timings.
+Both instances used eight CPU workers and the GPU instance used a 512 MiB
+corpus. Each sample times the complete prepared frame exchange, including
+fresh authentication, integrity hashes, child startup, execution, process exit,
+proposal validation, publication and response delivery/decoding. Oracle work
+is outside the timing. Three samples per size, successive runtime arguments,
+successful credential state evolution and exact checksum checks are required.
+
+| Runtime workload | CPU median (range), ms | CUDA median (range), ms |
+| --- | ---: | ---: |
+| Depth 2, 4 leaves × 64 rounds | 5.197 (5.185–5.998) | 175.659 (171.592–181.182) |
+| Depth 16, 65,536 leaves × 64 rounds | 5.755 (5.682–5.946) | 166.517 (158.150–169.409) |
+
+The first preparation is measured separately from handle execution: CPU
+5,570.246 ms, CUDA 6,922.759 ms. This includes proof admission and native
+compilation, plus CUDA prebuild where enabled; it is not a kernel-only compile
+time. Startup plus an invalid-credential synchronization request is also
+separate: CPU 5,706.573 ms, CUDA 5,472.017 ms. The small checksum is 689,817,445;
+the larger checksum is 3,127,646,773, both independently reproduced.
+
+CUDA is substantially slower for both tested sizes. Fresh process/device
+setup and full host request overhead dominate these workloads. There is no
+speedup in these fixed-64-round cases. There is no kernel-only timing,
+throughput claim or measured general break-even point. Three samples on a desktop GPU are observations rather than a broad
+performance characterization. The focused heavier workload below extends this comparison. Other machines
+and a broader scaling study are unmeasured; workloads can exhaust the corpus.
+
+## Focused heavier runtime-input workload
+
+`HeavyClient.bend` retains the same credential access pattern and certificate
+interface, but passes runtime `depth × 4096` rounds to each leaf of `tree!`.
+The selected depth-16 case has 65,536 leaves and 65,536 rounds per leaf:
+4,294,967,296 mixing rounds. The small control uses depth 2 and 8,192 rounds
+per leaf, checked with an independent iterative Python oracle. Heavy output
+and the complete canonical native state proposal are compared with real,
+unwrapped CPU execution; no billion-step Python oracle is required.
+
+`heavy_benchmark.py` separately records the first preparation (admission,
+native compilation and optional device prebuild), fresh native-worker total,
+and complete prepared frame exchanges. Native-worker timing includes that
+worker's input analysis, GPU initialization/load where enabled, computation,
+proposal encoding, binary pipes and process exit; it is not kernel-only time.
+Each native trial consumes the same known seed bytes and must propose exactly
+the expected full state, including Bob's untouched credential. Two complete
+requests per size also check exact checksums and current credential evolution.
+The heavier run is a focused pair of sizes, rather than a parameter sweep.
+
+Run the direct script with an outer lock (the `make benchmark-gpu` target for
+the earlier fixture already locks internally and must be invoked directly):
+
+```sh
+mkdir -p build/gpu/tmp
+flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build/gpu/tmp" \
+  PYTHONPATH=. python3 -B experiments/gpu/heavy_benchmark.py \
+  --output build/gpu/heavy-benchmark.json
+```
 
 Focused heavy trial passed on clean revision
 `425074e2ae51c8630901631b2dd5aa2703b23aa6`; see
@@ -239,3 +228,30 @@ kernel timings. The observed heavy complete-request ratio is about 3.32× in
 favor of CUDA, while the small control remains much faster on CPU. This is one
 focused trial set on this hardware, with no general break-even or throughput
 claim and no parameter sweep or billion-step Python oracle.
+
+[Request timing chart](timings.html).
+
+## Remaining limitations
+
+Linux/NVIDIA CUDA is the supported GPU integration. Metal, multi-GPU selection,
+CPU fallback on GPU failure, persistent workers and GPU query optimization are
+not implemented. The cap of one GPU execution is per server process; separate
+instances must be coordinated by their administrator. Read batching must keep
+GPU services exclusive. All execution requests remain serial in this branch.
+
+The 64–4096 MiB argument caps the requested official managed-memory corpus,
+not driver overhead or all device memory. Some accepted small sizes/workloads
+can still exhaust the runtime or physical device and return failure. Large
+computations can run arbitrarily long; there is no deadline or hard resource
+cancellation. The fixture intentionally leaves runtime input bounds to the
+caller and is a benchmark/example, not a resource-admission policy.
+
+Artifacts and generated code live in private instance directories. Hash checks
+assume protected host files/tools; they do not remove the OS file-use race
+against a hostile same-UID process, attest vendor libraries cryptographically,
+or prove the GPU obeys its execution contract. An architecture-incompatible
+artifact can cause the unmodified official runtime to attempt recompilation;
+the host rejects its result, even if the rebuild succeeds. Ordinary and
+prepared physical failures can terminate the worker without publication;
+a host crash still loses RAM state. No persistence or stronger serial theorem
+is claimed by this feature.
