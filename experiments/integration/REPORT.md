@@ -213,3 +213,6 @@ limitations are in `evidence/source-identity.json` and `evidence/validation.json
 review found no remaining substantive implementation issue. Persistence and
 idempotency cost curves, larger-state/mixed-workload performance, GPU/Bend
 composition and any later main-merge decision remain outside this candidate.
+
+Raw `.txt` transcripts preserve tool output byte for byte, including diagnostic
+padding; their path-scoped Git whitespace attribute leaves source checks intact.
