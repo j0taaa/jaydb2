@@ -112,3 +112,12 @@ Location: bind
 
 `define_rows` instead recurses over a structural `List<Row>`, which the original
 checker accepts. No checker/compiler/runtime sources or fuel settings changed.
+
+## Optional receipt protocol
+
+`Receipts.bend` provides exact canonical-input/operation-bound ordinary-table
+lookup and small scalar writes. `ReceiptLaws.bend` provides prefix, completed
+success and stable provenance law templates. They add no kernel privilege or
+host retry machinery. See the [certified voucher flow](../applications/vouchers/README.md)
+and [experiment report](../experiments/idempotency/REPORT.md) for contracts,
+retirement semantics, proof scope and validation.
