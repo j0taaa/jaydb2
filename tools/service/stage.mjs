@@ -177,7 +177,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock', 'host/Main.bend', 'host/build.mjs', 'host/Controller.bend', 'host/Policy.bend',
+    'server/main.rs', 'server/capture.rs', 'server/storage.rs', 'Cargo.toml', 'Cargo.lock', 'host/Main.bend', 'host/build.mjs', 'host/Controller.bend', 'host/Policy.bend',
     'host/Effects.bend', 'host/Tasks.bend', 'host/effects.c', 'host/os.mjs', 'host/launch.mjs']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }

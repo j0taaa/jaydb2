@@ -140,10 +140,9 @@ impl Storage {
     pub fn recover(&self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
         // Bound allocation before reading untrusted/corrupt lengths. There is
         // exactly one candidate; a leftover temp image is never recovery input.
-        let maximum = limits
-            .state
-            .checked_add(OVERHEAD as u64)
-            .ok_or_else(|| storage_error("image size overflow"))?;
+        // The logical limit may be u64::MAX. Header overhead must not narrow
+        // that domain or make a small image impossible to reopen.
+        let maximum = limits.state.saturating_add(OVERHEAD as u64);
         let file = File::open(self.path.join(IMAGE)).map_err(storage_error)?;
         if file.metadata().map_err(storage_error)?.len() > maximum {
             return Err(storage_error("oversized authoritative snapshot"));
@@ -343,6 +342,19 @@ mod tests {
         drop(storage);
         assert!(Storage::begin(&path, Mode::Open).is_err());
         assert!(Storage::begin(&path, Mode::Create).is_err());
+    }
+
+    #[test]
+    fn largest_logical_limit_still_recovers_a_small_complete_image() {
+        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage-limit").unwrap();
+        let path = parent.path.join("db");
+        let mut limits = limits();
+        limits.state = u64::MAX;
+        let mut storage = Storage::begin(&path, Mode::Create).unwrap();
+        storage.persist(&environment(), &limits, b"small").unwrap();
+        drop(storage);
+        let storage = Storage::begin(&path, Mode::Open).unwrap();
+        assert_eq!(storage.recover(&environment(), &limits).unwrap(), b"small");
     }
 
     // A deliberately small power-loss model: file data is persistent after

@@ -295,3 +295,28 @@ proof results are retained without claiming another full aggregate rerun.
 The previous performance measurements, if any, remain measurements of their
 recorded revisions; no benchmark was repeated for this repair.
 The additional real host regression explicitly selects `jaydb2-rust-reference`; the separate Bend controller/Node repair and its actual service check are recorded above.
+
+## External-review follow-up: helper cleanup
+
+The inherited `Scope::spawn` setup path could unwind before `Child::wait` and
+join a pipe blocked on a still-running helper. `server/capture.rs` now owns the
+child inside the scoped closure, uses `Builder::spawn_scoped` for fallible pipe
+startup, and kills/reaps on early return or unwind before implicit pipe joins.
+The original fatal startup-failure policy is retained after cleanup; no new
+public receipt or retry is introduced. Staging freezes this module alongside
+the other controller sources. The shared module is byte-identical across the
+nine active Rust-host variants. Main and the baseline comparison host remain
+unchanged; no experiment branches were merged.
+
+All 17 Rust host/model tests, strict all-target Clippy, formatting and release
+build passed on this branch. New tests cover an injected startup error and an
+unwind at EACH pipe-thread start, blocked stdin/output, actual child reaping,
+and the fatal public capture path. Both real Bend/Rust differential cases passed (63.342 s). The
+Bend controller, its OS adapter and its deliberately standalone scope did not
+change. Its feature-parity port is deferred, not a prerequisite for retaining
+this experiment.
+
+The retained Rust storage reference also receives the exact narrow
+`6c6e494c081b3332d244900b14a6a9581249a4aa` repair via a source patch: saturating
+image-header overhead and the real max-u64/small-image reopen regression. Its
+17-test Rust gate includes that regression. This does not add Bend persistence.
