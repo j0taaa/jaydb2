@@ -70,3 +70,17 @@ flock /tmp/jaydb2-experiments-heavy.lock python3 -B applications/vouchers/check.
 ```
 
 Open uses the same frozen environment/controller and no seed.
+
+## Lost-response recovery check
+
+Run the focused durability test under the common heavy lock:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock make test-idempotency-recovery
+```
+
+It kills the opt-in fault-build service after the issue/receipt pair is durable
+but before a response, then performs a seed-free reopen, identical retry and
+conflicting reuse check. A native trace oracle on the recovered bytes verifies
+the receipt-hit path performs no business/receipt writes, with a fresh-state
+positive write control. Hooks are absent from normal builds.

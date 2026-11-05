@@ -196,3 +196,48 @@ and canonical request/state/response formats are unchanged; their previous
 proof results are retained without claiming another full aggregate rerun.
 The previous performance measurements, if any, remain measurements of their
 recorded revisions; no benchmark was repeated for this repair.
+
+## External-review follow-up: helper cleanup
+
+The inherited `Scope::spawn` setup path could unwind before `Child::wait` and
+join a pipe blocked on a still-running helper. `server/capture.rs` now owns the
+child inside the scoped closure, uses `Builder::spawn_scoped` for fallible pipe
+startup, and kills/reaps on early return or unwind before implicit pipe joins.
+The original fatal startup-failure policy is retained after cleanup; no new
+public receipt or retry is introduced. Staging freezes this module alongside
+the other controller sources. The shared module is byte-identical across the
+nine active Rust-host variants. Main and the baseline comparison host remain
+unchanged; no experiment branches were merged.
+
+All 17 Rust host/model tests, strict all-target Clippy, formatting and release
+build passed on this branch. New tests cover an injected startup error and an
+unwind at EACH pipe-thread start, blocked stdin/output, actual child reaping,
+and the fatal public capture path. A real ordinary/prepared/current-authentication runtime-policy
+regression also passed. No Bend source proof, compiler, checker or runtime
+implementation changed, so their earlier proof results remain scoped to their
+recorded revisions rather than being relabelled as rerun aggregate evidence.
+
+### Durable commit with no acknowledgement, then retry
+
+`make test-idempotency-recovery` builds an opt-in storage-fault executable and
+runs `tests/service/test_receipt_recovery.py`. The final gate passed (74.010 s):
+create unarmed, open with the existing after-directory-sync barrier, prepare
+the actual voucher program with its universal administrator certificate, send
+an issue and a queued second issue, then SIGKILL after durable replacement and
+BEFORE any acknowledgement. At the barrier no request workers remain. The
+caller receives zero response bytes. The authoritative image contains exactly
+the business/receipt pair for the first issue and nothing from the queued one.
+
+The test removes Seed, reopens with the SAME executable/environment, retries
+the same ID/input, gets the original result, checks conflicting reuse refuses,
+and verifies exact unchanged state. The normal direct fault-binary test setup
+uses the same unlimited OS stack as the launcher; no checker fuel changed.
+
+To distinguish a hit from rewriting the same deterministic row, a test-only
+native oracle runs the actual `Core.advance` interpreter and `Voucher.program`
+on those exact recovered private bytes. The fresh-state positive control
+performs one business and one receipt write; the recovered retry and conflict
+perform zero of each. This trace replay complements the live restart test; it
+is not a live trace emitted by the ordinary service. The literal official C
+is compiled unchanged. No production counter, schema extension, host receipt
+privilege or retry feature was added.
