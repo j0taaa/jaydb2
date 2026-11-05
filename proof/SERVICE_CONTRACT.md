@@ -100,3 +100,21 @@ physical size to the stored original source/proof, as well as registration,
 invalidation and receipt delivery, remains a host refinement contract supported
 by focused real tests. The normalization proof does not claim to mechanize the
 whole Rust registry or extend the old raw-protocol theorem silently.
+
+## Optional service timing and quota host adapter
+
+[`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in
+administrator timing observer, fresh-authentication quota gate and explicit
+`quota` control receipt. They are outside ordinary `Semantics.Response`.
+The ordinary serial eight-law composition above is unchanged; its program
+progress claim is not silently extended to requests that a quota policy denies.
+
+`Messages.principal_is_authenticated_id` and
+`Messages.authentication_binds_principal_and_instance` connect the explicit
+private principal prefix and certificate instance to the actual same
+`Input.Analysis.Received` context. These are checked definitions of the native
+metadata emitter, not a proof of the Rust accounting or OS clock. The private
+byte bridge, once-only host completion charging, quota decision before admission,
+and future scheduling/durable commit hook order remain explicit host contracts.
+Controlled-clock and real-worker tests support those contracts. Timing supplies
+neither permission for an operation nor permission to publish a state.

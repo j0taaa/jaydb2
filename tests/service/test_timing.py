@@ -95,6 +95,19 @@ class TimingTests(unittest.TestCase):
         self.assertGreaterEqual(int(receipt['quota']['used_ns']), 1_000_000)
         self.assertEqual(server.call(code, '', 'alice-token'),
                          {'status': 'quota', 'value': None})
+        # A genuinely checked program can fail inside the official runtime;
+        # that completed authenticated attempt is also charged exactly once.
+        proof = (folder/'ClientProof.bend').read_text()
+        failing = code.replace('S.Finish{value}',
+            'S.Finish{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}')
+        self.assertNotEqual(failing, code)
+        self.assertEqual(server.call(failing, proof, 'bob-token', 'not-published'),
+                         {'status': 'failure', 'value': None}, server.diagnostics())
+        failure = self.receipts(log)[2]
+        self.assertEqual(failure['principal'], 'bob')
+        self.assertEqual(failure['quota']['used_ns'], failure['elapsed_ns'])
+        self.assertEqual(server.call(code, proof, 'bob-token'),
+                         {'status': 'quota', 'value': None})
         server.finish()
         restarted, new_log = self.server(folder, quota=True)
         self.assertEqual(restarted.call(code, '', 'alice-token'),

@@ -74,6 +74,18 @@ class PreprocessingTests(unittest.TestCase):
                 fields.update(updates)
                 return encode(fields)
 
+            def auth_fields(result):
+                self.assertEqual(result[0], 1)
+                fields, rest = [], result[1:]
+                for _ in range(4):  # exact id, code, proof, instance
+                    self.assertGreaterEqual(len(rest), 8)
+                    size = int.from_bytes(rest[:8], 'big')
+                    self.assertLessEqual(size, len(rest)-8)
+                    fields.append(rest[8:8+size])
+                    rest = rest[8+size:]
+                fields.append(rest)  # Bindings.bend links remainder
+                return fields
+
             # Exact code/proof strings, actual contexts and all public values
             # flow unchanged into the admission metadata, not just a status.
             positive = []
@@ -82,8 +94,24 @@ class PreprocessingTests(unittest.TestCase):
                     with self.subTest(credential=credential, arguments=arguments):
                         result = compare(packet(state, request(credential=credential, arguments=arguments)))
                         self.assertEqual(result[0], 1)
+                        principal, code, proof, instance, links = auth_fields(result)
+                        self.assertEqual(principal, credential.removesuffix('-token').encode())
+                        self.assertEqual(code, 'source-λ\r\n'.encode())
+                        self.assertEqual(proof, 'proof-雪'.encode())
+                        self.assertIn(b'D.Context{"'+principal+b'","user"}', instance)
+                        self.assertIn(b'law certificate:', links)
                         positive.append(result)
             self.assertEqual(len(set(positive)), 6, 'context/argument metadata was reused')
+            # The principal is length-delimited UTF-8, even when its bytes
+            # resemble source syntax. Metadata still binds the actual context.
+            for identity in ('', 'λ雪\\"\n'):
+                special_state = encode({'tables': [], 'users': [
+                    {'credential': 'alice-token', 'id': identity, 'kind': 'user'}]})
+                principal, code, proof, instance, links = auth_fields(compare(packet(special_state, request())))
+                self.assertEqual(principal, identity.encode())
+                self.assertEqual(code, 'source-λ\r\n'.encode())
+                self.assertEqual(proof, 'proof-雪'.encode())
+                self.assertIn(b'def context()', instance)
             compare(packet(state, request(credential='invalid', code='bad', proof='bad')), 'authentication')
             malformed = [b'', b'\7', b'\0', request()+b'\0',
                 encode({'credential': 'invalid'}), request(credential=1),

@@ -75,8 +75,11 @@ Exhaustion returns the canonical *encoding* of this host control receipt:
 Like `prepared`/`invalidated`, this is explicitly outside `S.Status` and
 `S.Response`. It is enabled only by administrator quota policy, not a client
 credential/flag. It is never a canonical `limit`, `failure` or `certificate`
-response. Its fixed 53-byte body is host metadata outside the ordinary response
-size ceiling; the ordinary state/message/response ceilings are unchanged.
+response. Like prepared receipts, it goes through bounded control response
+preparation and obeys the canonical response-size ceiling. Its fixed 53-byte
+body is shorter than certificate/null (59 bytes), which a valid configuration
+must already accommodate. The ordinary state/message/response ceilings are
+unchanged.
 No program runs, handle changes, or state publication occurs on quota denial.
 Malformed input and authentication errors retain precedence; after fresh
 authentication, quota denial takes precedence over admission/handle errors.

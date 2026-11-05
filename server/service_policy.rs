@@ -189,6 +189,11 @@ mod tests {
         assert_eq!(receipt["quota"]["used_ns"], "1");
         let mut after = policy.selected();
         assert!(policy.authenticated(&mut after, "alice"));
+        clock.at(110);
+        policy.completed(after); // New period's 1 + 10 now exceeds budget.
+        clock.at(200); // A period reset must also happen at authentication.
+        let mut fresh_period = policy.selected();
+        assert!(policy.authenticated(&mut fresh_period, "alice"));
     }
 
     #[test]

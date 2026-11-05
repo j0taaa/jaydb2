@@ -663,9 +663,10 @@ impl Database {
             .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
         if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt) {
             if !policy.authenticated(attempt, principal) {
-                // Opt-in host policy receipt, outside S.Status and its response
-                // size limit. No admission, registry mutation, or program start.
-                return Ok((error_frame("quota"), None));
+                // Opt-in host receipt outside S.Status, still bounded by the
+                // response ceiling. It is shorter than the required fixed
+                // certificate error. No admission, registry mutation, or start.
+                return self.control_response("quota", None);
             }
         }
         let (code, rest) = split(metadata)?;
@@ -1102,6 +1103,8 @@ mod tests {
         assert_ne!(error_frame("quota"), error_frame("limit"));
         assert_ne!(error_frame("quota"), error_frame("failure"));
         assert_ne!(error_frame("quota"), error_frame("certificate"));
+        assert!(error_frame("quota").len() < error_frame("certificate").len());
+        assert_eq!(error_frame("quota").len() - 8, 53);
     }
 
     #[test]

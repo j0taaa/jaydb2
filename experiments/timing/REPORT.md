@@ -3,7 +3,7 @@
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (common anchor).
 Original reference: `9b751fab3c7c349ff473a2d11a7133573b6c4df2`.
 Accepted preprocessing prerequisite `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`
-is scheduled for integration after this standalone feature checkpoint.
+was merged as `0596bdc` after standalone feature checkpoint `bf32900`.
 No sibling in-progress changes have been incorporated. Official pinned tools
 are the immutable `.tools` symlink to `/home/jota/projects/jaydb2/.tools`.
 
@@ -20,7 +20,9 @@ Rust service functionality with native Bend authentication metadata, not a stub.
   authenticated failures/denials. Fixed half-open periods, process-reset counters,
   unbounded running-request time overshoot, no reservations or cancellation.
 - Exhaustion is explicitly `{status:"quota",value:null}` host control metadata,
-  outside `S.Status`/ordinary response size limits, never a technical failure.
+  outside `S.Status`, never a technical failure. It obeys the response-size
+  ceiling through common bounded control preparation; quota/null (53 bytes) is
+  shorter than the fixed certificate/null error required by valid configuration.
 - Modular `selected`, `authenticated`, `completed` hooks and injected `Clock`.
   Completion currently follows cleanup/publication before inspection/delivery.
   Future accepted scheduling/persistence adapters must retain that boundary and
@@ -53,7 +55,7 @@ invalidation, restart reset, timing-only ordinary responses, stderr/file logs,
 and terminal framing exclusion. No CPU/performance benchmark has been run.
 
 Costs/limitations: two constant-time clock samples for timing-only service;
-quota adds authentication/check/completion samples and per-period user-map
+quota adds one authentication clock sample and per-period user-map
 lookups. Log serialization/output is after the measured interval and can delay
 subsequent selections. Elapsed time includes worker/compiler waits and any
 intermediate inspector output. Counter memory is per distinct completed principal
