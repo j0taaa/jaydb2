@@ -1,9 +1,10 @@
 # Scheduling experiment
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
-`9b751fab3c7c349ff473a2d11a7133573b6c4df2`). No prerequisites in the initial
-queue-interface milestone. Accepted preprocessing prerequisite will be merged
-following this committed milestone.
+`9b751fab3c7c349ff473a2d11a7133573b6c4df2`). Queue-interface milestone: `d8ac16189df3869192581bffc5acad735226d512`.
+Accepted preprocessing prerequisite: `0f09c55dfff52fe10cd86b18a72a3241c5a92ad5`,
+merged as `9e46f44`; it removes redundant decode compilation/execution while
+retaining fresh actual Input.analyze authentication.
 
 ## Supported behavior and contracts
 
@@ -36,10 +37,10 @@ Workers remain synchronous and freshly spawned, drained and reaped by capture.
 ## Retained work and limits
 
 Let M be the canonical message limit, R the response limit, and
-B = max(M, 1 MiB). Queued plus reader-reserved bodies retain at most B bytes
+A = min(M, isize::MAX), B = max(A, 1 MiB). Queued plus reader-reserved bodies retain at most B bytes
 and 8 items (empty frames count); reserve before allocation and body reading.
 There is at most one 8-byte header and one fixed terminal slot. Selection
-releases capacity: one additional active body of at most M bytes is owned by
+releases capacity: one additional active body of at most A bytes is owned by
 the coordinator. There is at most one ready/emitting response, bounded by
 max(R + 8, largest fixed error frame); Published also retains its last success
 response and state as before. No multi-response backlog exists. Queue metadata,
@@ -48,18 +49,24 @@ prepared artifact registry and existing worker stdout/stderr captures are
 outside the framing-body bound. This is not a total-process RAM guarantee;
 worker intermediates and prepared registry were not globally bounded before
 and remain unchanged. Logical limits are never repurposed as a busy status.
-Message limits outside allocatable host address space now fail startup.
+All canonical uint64 message limits remain valid at startup. A declared body
+above the logical limit still produces limit; an actual unallocatable body
+within that limit terminates as HOST_TRANSPORT, ordered after complete frames,
+without a false canonical limit response. Allocation is attempted only for
+the actual frame via fallible reservation, never for the accounting ceiling.
 
 ## Verification and proof scope
 
-Initial milestone: `cargo test --locked` passed all 15 host tests;
+Current host validation: `cargo test --locked` passed all 17 host tests;
 `cargo clippy --locked --all-targets -- -D warnings` passed; `cargo fmt` applied.
 New deterministic tests cover body-byte and empty-frame item backpressure,
 exact boundaries, clean EOF, every partial-header length, partial bodies,
 oversize/u64-max declarations, interrupted/fragmented reads and read failure,
 controlled execution/cleanup/delivery gates, ordered read-ahead terminal events,
 fatal publication, zero/partial writes and flush failures, and cancellation
-with input open at header/body/capacity waits. Existing host tests exercise
+with input open at header/body/capacity waits. No-large-allocation regressions
+accept small/empty frames under a uint64-max canonical limit, and reject actual
+unallocatable declarations as ordered technical transport failures. Existing host tests exercise
 publication rollback and real shell-child pipe draining/reaping.
 
 No new mechanized queue theorem is claimed. Existing Bend serial laws and
