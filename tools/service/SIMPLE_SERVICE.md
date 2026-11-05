@@ -19,13 +19,17 @@ worker with current authentication, state, and arguments. Its controls and
 receipts have a separate protocol boundary from the ordinary path below.
 
 1. The host reads framing and checks message size.
-2. Official Bend programs decode and authenticate against published state.
+2. One official native Bend authenticator decodes and authenticates against
+   published state. `Input.analyze` preserves decode errors before checking
+   credentials, so no separate decode child or decoder compilation is needed.
 3. Admission checks source, dependencies, and proof with official tools against
    the actual configuration, context, and arguments.
 4. The same checked Book is compiled by the official compiler. The stage only
    invokes Clang on literal C and records C and executable hashes.
 5. The program runs in a fresh native child process on CPU with GPU disabled.
-   Its proposal is private. The Codec remains the compiled Bend program.
+   Its proposal is private. It still runs `Input.analyze` on the same actual
+   state/request packet, obtaining its current authenticated context and
+   arguments. The Codec remains the compiled Bend program.
 6. The host receives all output, reaps the process, validates state/response,
    and removes the temporary directory before accepting publication.
 7. Success replaces the serial host's `Published { state, response }` pair.
@@ -49,9 +53,31 @@ releases its resources. A child failure returns `failure` without publishing, an
 the host can serve the next call. Uncertain ownership ends use of the instance
 without repeating a potentially consumed operation.
 
-The profile is a serial Linux CLI with trusted tools and host. It does not
-promise recovery from fatal failure or database death. Losing the host can
-lose its RAM data without a response.
+The profile is a serial Linux CLI with trusted tools and host. Its default
+volatile mode loses RAM data when the host dies. Optional complete-image
+persistence is enabled explicitly:
+
+```sh
+./jaydb2 --configuration examples/access/Configuration.bend \
+  --seed examples/access/Seed.bend --storage DATABASE --storage-mode create
+./jaydb2 --configuration examples/access/Configuration.bend \
+  --storage DATABASE --storage-mode open
+```
+
+Create requires a new directory with an existing parent; open requires the
+authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
+Every successful state proposal writes and synchronizes a complete temporary
+image, atomically replaces the authoritative image, and synchronizes the
+directory before RAM publication and response delivery. Errors from replacement
+onward stop the instance with no response, since rollback may be false. Missing,
+corrupt or incompatible images stop startup; no seed or older image is used as
+fallback. Users and all tables survive; prepared handles do not.
+
+Recovery requires the exact same environment, including actual controller
+executable bytes. Protect the storage directory and preserve that executable
+and its sources/tooling. The [persistence report](../../experiments/persistence/REPORT.md)
+states the serialization/recovery proof, OS/filesystem assumptions, fault tests
+and limitations. Process death tests do not establish hardware power-loss safety.
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs

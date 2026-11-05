@@ -1,0 +1,270 @@
+"""Real same-executable restarts and deterministic process death / disk errors.
+
+Build the opt-in fault binary with `make test-persistence`. Hooks are absent
+from the normal binary. Run this heavy suite under the shared flock.
+"""
+import hashlib
+import os
+from pathlib import Path
+import shutil
+import signal
+import socket
+import subprocess
+import tempfile
+import unittest
+
+from tests.service.test_end_to_end import ROOT, Server
+from tests.service.test_prepared import universal_access_proof
+from tools.client import frame, unframe
+from applications.tasks.app import prepare
+
+BINARY = Path(os.environ.get('JAYDB_PERSISTENCE_BINARY',
+    ROOT/'.build/persistence/fault/release/jaydb2'))
+MAGIC = b'jaydb2-image-v1\n'
+OVERHEAD = len(MAGIC) + 64 + 32 + 32
+
+
+def state_bytes(path):
+    image = (path/'snapshot').read_bytes()
+    assert hashlib.sha256(image[:-32]).digest() == image[-32:]
+    assert image.startswith(MAGIC)
+    return image[OVERHEAD-32:-32]
+
+
+class PersistenceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            raise AssertionError('Run make test-persistence to build the real fault binary')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='jaydb-persistence-')
+        cls.root = Path(cls.temporary.name)
+        cls.folder = ROOT/'examples/access'
+        cls.code, cls.proof = ((cls.folder/name).read_text()
+                              for name in ('Client.bend', 'ClientProof.bend'))
+        cls.base = cls.root/'base'
+        server = Server(cls.folder, binary=BINARY, threads=1,
+                        arguments=['--storage', str(cls.base), '--storage-mode', 'create'])
+        try:
+            assert server.call(cls.code, cls.proof, 'invalid')['status'] == 'authentication', server.diagnostics()
+            server.finish()
+        finally:
+            server.close()
+        cls.initial = state_bytes(cls.base)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temporary.cleanup()
+
+    def setUp(self):
+        self.directory = Path(tempfile.mkdtemp(dir=self.root))
+        self.path = self.directory/'db'
+        shutil.copytree(self.base, self.path)
+
+    def server(self, mode='open', env=None, folder=None):
+        server = Server(folder or self.folder, binary=BINARY, threads=1, env=env,
+            arguments=['--storage', str(self.path), '--storage-mode', mode], seed=mode == 'create')
+        self.addCleanup(server.close)
+        return server
+
+    def call(self, server, credential='alice-token', arguments=None):
+        return server.call(self.code, self.proof, credential, arguments)
+
+    def run_cli(self, *args, binary=BINARY, folder=None):
+        return subprocess.run([str(binary), '--configuration', str((folder or self.folder)/'Configuration.bend'),
+            '--threads', '1', *map(str, args)], cwd=ROOT, input=b'', capture_output=True, timeout=180)
+
+    def open_failure(self):
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'open')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, b'')
+        return result
+
+    def test_acknowledged_restart_credentials_handles_and_seed_free_open(self):
+        server = self.server()
+        handle = server.prepared(0, self.code, 'alice-token', proof=universal_access_proof(self.proof))['value']
+        self.assertEqual(server.prepared(1, handle, 'alice-token', 'durable'),
+                         {'status': 'success', 'value': 'durable'}, server.diagnostics())
+        committed = (self.path/'snapshot').read_bytes()
+        # The real official worker writes privately, then fails consuming a
+        # Nat beyond its immediate representation. It must never enter storage.
+        failing = self.code.replace('S.Finish{value}',
+            'S.Finish{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}')
+        self.assertNotEqual(failing, self.code)
+        self.assertEqual(server.call(failing, self.proof, 'durable', 'never-published'),
+                         {'status': 'failure', 'value': None}, server.diagnostics())
+        self.assertEqual((self.path/'snapshot').read_bytes(), committed)
+        server.finish()
+        # Seed disappearance is immaterial: recover stages only configuration.
+        local = self.directory/'app'; local.mkdir()
+        shutil.copyfile(self.folder/'Configuration.bend', local/'Configuration.bend')
+        self.assertFalse((local/'Seed.bend').exists())
+        server = self.server(folder=local)
+        self.assertEqual(self.call(server), {'status': 'authentication', 'value': None})
+        self.assertEqual(self.call(server, 'durable'), {'status': 'refusal', 'value': 'cancelled'})
+        self.assertEqual(server.prepared(1, handle, 'durable', 'foreign'), {'status': 'failure', 'value': None})
+        self.assertEqual((self.path/'snapshot').read_bytes(), committed)
+        self.assertEqual(self.call(server, 'bob-token', 'bob-durable'), {'status': 'success', 'value': 'bob-durable'})
+        server.finish()
+        # Normal shutdown is unnecessary once the successful response arrived.
+        server = self.server()
+        self.assertEqual(self.call(server, 'durable', 'last-ack'), {'status': 'success', 'value': 'last-ack'})
+        os.kill(server.process.pid, signal.SIGKILL); server.process.wait(timeout=10)
+        server = self.server()
+        self.assertEqual(self.call(server, 'last-ack'), {'status': 'refusal', 'value': 'cancelled'})
+        self.assertEqual(self.call(server, 'bob-durable'), {'status': 'refusal', 'value': 'cancelled'})
+        server.finish()
+
+    def test_all_application_tables_and_users_survive(self):
+        app = self.directory/'app'; app.mkdir(); prepare(app)
+        self.path = self.directory/'tasks'
+        server = self.server(mode='create', folder=app)
+        code, proof = ((app/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
+        for owner in ['alice', 'bob']:
+            self.assertEqual(server.call(code, proof, owner+'-token', ['save', 'one', owner+' ü', False]),
+                             {'status': 'success', 'value': 'one'}, server.diagnostics())
+        exact = state_bytes(self.path)
+        self.assertEqual(server.call(code, proof, 'alice-token', ['cancel', 'two', 'rollback', True]),
+                         {'status': 'refusal', 'value': 'cancelled'})
+        self.assertEqual(state_bytes(self.path), exact)
+        server.finish()
+        (app/'Seed.bend').unlink()
+        server = self.server(folder=app)
+        # Check actual recovered RAM bytes via the administrator inspector is
+        # unnecessary here: current reads require both users and their tables.
+        for owner in ['alice', 'bob']:
+            self.assertEqual(server.call(code, proof, owner+'-token', ['view', 'one']),
+                {'status': 'success', 'value': {'completed': False, 'id': 'one', 'owner': owner, 'title': owner+' ü'}}, server.diagnostics())
+        self.assertEqual(state_bytes(self.path), exact)
+        server.finish()
+
+    def test_missing_corrupt_incompatible_and_no_fallback(self):
+        image = (self.path/'snapshot').read_bytes()
+        (self.path/'.snapshot.tmp').write_bytes(image)
+        (self.path/'snapshot.old').write_bytes(image)
+        (self.path/'snapshot').unlink()
+        self.assertIn(b'STORAGE', self.open_failure().stderr)
+        (self.path/'snapshot').write_bytes(image[:-1])
+        self.assertIn(b'STORAGE', self.open_failure().stderr)
+        corrupt = bytearray(image); corrupt[-40] ^= 1
+        (self.path/'snapshot').write_bytes(corrupt)
+        self.assertIn(b'checksum', self.open_failure().stderr)
+        # A checksum is not a configuration/version certificate.
+        incompatible = bytearray(image); incompatible[len(MAGIC)] ^= 1
+        incompatible[-32:] = hashlib.sha256(incompatible[:-32]).digest()
+        (self.path/'snapshot').write_bytes(incompatible)
+        self.assertIn(b'incompatible image environment', self.open_failure().stderr)
+        (self.path/'snapshot').write_bytes(image)
+        # Same source, different actual executable bytes must not reopen.
+        other = self.directory/'other-controller'
+        other.write_bytes(BINARY.read_bytes()+b'\x00'); other.chmod(0o700)
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'open', binary=other)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b'incompatible image environment', result.stderr)
+        changed = self.directory/'changed'; changed.mkdir()
+        (changed/'Configuration.bend').write_text((self.folder/'Configuration.bend').read_text()+'\n# changed binding\n')
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'open', folder=changed)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b'incompatible image environment', result.stderr)
+        self.assertEqual((self.path/'snapshot').read_bytes(), image)
+
+    def test_create_open_policy_and_real_owner_contention(self):
+        self.assertNotEqual(self.run_cli('--storage', self.path).returncode, 0)
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'open', '--seed', self.directory/'absent')
+        self.assertIn(b'--seed is forbidden', result.stderr)
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'create', '--seed', self.folder/'Seed.bend')
+        self.assertNotEqual(result.returncode, 0)
+        server = self.server()
+        self.assertEqual(self.call(server)['status'], 'refusal')
+        result = self.open_failure()
+        self.assertIn(b'lock', result.stderr.lower())
+        server.finish()
+        # An orphan temp never wins over an acknowledged authoritative image.
+        (self.path/'.snapshot.tmp').write_bytes(b'not an image')
+        server = self.server()
+        self.assertEqual(self.call(server)['status'], 'refusal')
+        server.finish()
+
+    def test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged(self):
+        server = self.server()
+        self.assertEqual(self.call(server)['status'], 'refusal')
+        (self.path/'.snapshot.tmp').mkdir()
+        self.assertEqual(self.call(server, arguments='not-committed'), {'status': 'failure', 'value': None})
+        self.assertEqual(state_bytes(self.path), self.initial)
+        self.assertEqual(self.call(server, 'not-committed')['status'], 'authentication')
+        (self.path/'.snapshot.tmp').rmdir()
+        self.assertEqual(self.call(server, arguments='retry-after-repair'), {'status': 'success', 'value': 'retry-after-repair'})
+        server.finish()
+
+    def run_boundary(self, point, kill, expected_new, uncertain):
+        path = self.directory/point
+        shutil.copytree(self.base, path); self.path = path
+        env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
+        listener = None
+        if kill:
+            socket_path = ROOT/'.build/persistence/barrier'
+            socket_path.unlink(missing_ok=True)
+            listener = socket.socket(socket.AF_UNIX); listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
+            env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
+        server = self.server(env=env)
+        request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments='new-token'))
+        # Queue another request. Fatal commits must never produce its response.
+        # Keep the queued frame below pipe capacity: the service may stop
+        # reading immediately after the first commit. It would authenticate and
+        # respond if dispatched, so zero output checks ordered termination.
+        later = frame(dict(code='', proof='', credential='not-a-user', arguments=None))
+        server.process.stdin.write(request+later); server.process.stdin.flush()
+        if kill:
+            try:
+                stream, _ = listener.accept()
+                with stream:
+                    self.assertEqual(stream.recv(128).decode(), point)
+                    # Ordinary request workers and staging directories are gone
+                    # before the storage protocol is entered.
+                    private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
+                    self.assertFalse(list(private.glob('request-*')))
+                    self.assertFalse(Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children').read_text().strip())
+                    os.kill(server.process.pid, signal.SIGKILL)
+                    server.process.wait(timeout=10)
+            finally:
+                listener.close(); socket_path.unlink(missing_ok=True)
+            self.assertEqual(server.process.stdout.read(), b'')
+        elif uncertain:
+            self.assertNotEqual(server.process.wait(timeout=180), 0, server.diagnostics())
+            self.assertEqual(server.process.stdout.read(), b'')
+            self.assertIn('STORAGE_UNCERTAIN', server.diagnostics())
+        else:
+            header = server.read(8)
+            self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'failure', 'value': None})
+            # Safe failure allows the next frame; RAM authentication stays old.
+            header = server.read(8)
+            self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'authentication', 'value': None})
+            self.assertEqual(self.call(server, 'new-token')['status'], 'authentication')
+            server.finish()
+        recovered = self.server()
+        credential = 'new-token' if expected_new else 'alice-token'
+        self.assertEqual(self.call(recovered, credential), {'status': 'refusal', 'value': 'cancelled'}, recovered.diagnostics())
+        self.assertEqual(self.call(recovered, 'bob-token'), {'status': 'refusal', 'value': 'cancelled'})
+        recovered.finish()
+        if not expected_new:
+            self.assertEqual(state_bytes(self.path), self.initial)
+
+    def test_process_death_at_meaningful_commit_boundaries(self):
+        # SIGKILL confirms process recovery, not power-loss safety. The unit
+        # fault model additionally admits old/new rename outcomes before fsync.
+        for point, new in [('after_file_sync', False), ('after_replace', True),
+                           ('after_directory_sync', True), ('after_publish', True)]:
+            with self.subTest(point=point):
+                self.run_boundary(point, kill=True, expected_new=new, uncertain=True)
+
+    def test_disk_errors_and_uncertain_failure_never_emit_false_rollback(self):
+        for point, new, uncertain in [('before_write', False, False),
+                                       ('after_file_sync', False, False),
+                                       ('before_replace', False, True),
+                                       ('after_replace', True, True),
+                                       ('after_directory_sync', True, True)]:
+            with self.subTest(point=point):
+                self.run_boundary(point, kill=False, expected_new=new, uncertain=uncertain)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
