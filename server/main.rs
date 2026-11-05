@@ -288,6 +288,8 @@ impl Program {
         self.validate()?;
         let output = capture(
             Command::new(&self.path)
+                // The host owns runtime policy, including early-exit flags.
+                .env("BENDRTS", "")
                 .args(["+RTS", "--threads"])
                 .arg(threads.to_string())
                 .args(["--gpu", "off", "-RTS"]),
@@ -1295,6 +1297,39 @@ mod tests {
                 format!("+RTS\n--threads\n{count}\n--gpu\noff\n-RTS\n").as_bytes()
             );
         }
+    }
+
+    #[test]
+    fn native_runtime_policy_is_not_inherited() {
+        const CHILD: &str = "JAYDB_TEST_RTS_POLICY_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "tests::native_runtime_policy_is_not_inherited",
+                    "--nocapture",
+                ])
+                .env(CHILD, "1")
+                .env("BENDRTS", "--gpu-build --help")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-rts-test").unwrap();
+        let path = directory.path.join("worker");
+        fs::write(&path, "#!/bin/sh\nprintf '%s' \"$BENDRTS\"\n").unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        let program = Program {
+            sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
+            path,
+        };
+        assert!(program.run(&[], 1).unwrap().is_empty());
     }
 
     fn hex(value: &str) -> Vec<u8> {
