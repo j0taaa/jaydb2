@@ -5,10 +5,13 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import socket
+import threading
 import tempfile
 import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
+from tools.client import unframe
 
 CODE = (ROOT/'experiments/gpu/Client.bend').read_text()
 PROOF = (ROOT/'experiments/gpu/ClientProof.bend').read_text()
@@ -25,10 +28,49 @@ def oracle(depth):
     return total
 
 
+class StateFeed:
+    """Read the existing administrator socket, with no worker instrumentation."""
+    def __init__(self, path):
+        self.listener = socket.socket(socket.AF_UNIX)
+        self.listener.bind(str(path))
+        self.listener.listen(1)
+        self.states, self.errors = [], []
+        self.thread = threading.Thread(target=self.read, daemon=True)
+        self.thread.start()
+
+    def read(self):
+        try:
+            with self.listener.accept()[0] as stream:
+                def exact(n):
+                    data = bytearray()
+                    while len(data) < n:
+                        part = stream.recv(n-len(data))
+                        if not part:
+                            if data: raise AssertionError('truncated inspector frame')
+                            return None
+                        data.extend(part)
+                    return bytes(data)
+                def frame():
+                    head = exact(8)
+                    return None if head is None else head+exact(int.from_bytes(head, 'big'))
+                while (metadata := frame()) is not None:
+                    state = frame()
+                    if state is None: raise AssertionError('inspector omitted state')
+                    self.states.append(unframe(state))
+        except Exception as error:
+            self.errors.append(str(error))
+
+    def finish(self):
+        self.thread.join(timeout=5)
+        self.listener.close()
+        if self.thread.is_alive() or self.errors:
+            raise AssertionError(f'inspector failure: {self.errors}')
+
+
 class GpuTests(unittest.TestCase):
-    def server(self, gpu=True, env=None):
+    def server(self, gpu=True, env=None, options=()):
         server = Server(ROOT/'examples/access', env=env,
-                        options=['--threads', '1', '--gpu', '512' if gpu else 'off'])
+                        options=['--threads', '1', '--gpu', '512' if gpu else 'off', *options])
         self.addCleanup(server.close)
         return server
 
@@ -43,9 +85,15 @@ class GpuTests(unittest.TestCase):
 
     def test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal(self):
         # Both paths compile the same literal C, and consume fresh runtime args.
+        snapshots = []
         for gpu in [False, True]:
             with self.subTest(gpu=gpu):
-                server = self.server(gpu, env=dict(os.environ, BENDRTS='--gpu-build'))
+                folder = tempfile.TemporaryDirectory(prefix='gpu-inspector-')
+                self.addCleanup(folder.cleanup)
+                path = Path(folder.name)/'admin.sock'
+                feed = StateFeed(path)
+                server = self.server(gpu, env=dict(os.environ, BENDRTS='--gpu-build'),
+                                     options=['--inspect-socket', str(path)])
                 small = 's'
                 self.assertEqual(server.call(CODE, CONCRETE, 'alice-token', small),
                     {'status': 'success', 'value': oracle(len(small))}, server.diagnostics())
@@ -71,6 +119,13 @@ class GpuTests(unittest.TestCase):
                 self.assertEqual(server.prepared(2, handle, 'x'), {'status': 'invalidated', 'value': None})
                 self.assertEqual(server.prepared(1, handle, 'x'), {'status': 'failure', 'value': None})
                 server.finish()
+                feed.finish()
+                snapshots.append(feed.states)
+        self.assertEqual(snapshots[0], snapshots[1], 'CPU and GPU publications differ')
+        self.assertGreater(len(snapshots[0]), 10)
+        self.assertEqual(snapshots[0][-1], {'tables': [], 'users': [
+            {'credential': 'x', 'id': 'alice', 'kind': 'user'},
+            {'credential': 'bob-token', 'id': 'bob', 'kind': 'user'}]})
 
     def test_bundle_integrity_real_launches_and_failure_rollback(self):
         with tempfile.TemporaryDirectory(prefix='gpu-faults-') as tmp:
