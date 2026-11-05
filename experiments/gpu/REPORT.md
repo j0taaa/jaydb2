@@ -1,6 +1,6 @@
 # Optional CUDA execution
 
-Implementation is complete; the validation and performance evidence below is being finalized.
+Optional GPU execution is implemented. This report records the supported integration and its validation evidence.
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
 `9b751fab3c7c349ff473a2d11a7133573b6c4df2`). Accepted preprocessing prerequisite
@@ -105,3 +105,35 @@ the host rejects its result, even if the rebuild succeeds. Ordinary and
 prepared physical failures can terminate the worker without publication;
 a host crash still loses RAM state. No persistence or stronger serial theorem
 is claimed by this feature.
+
+## Performance evidence
+
+[Raw measurements](benchmark-results.json) were collected by `make benchmark-gpu`
+under the shared heavy lock on clean revision
+`1c9400ac2ccdd1209c27e4cb01329b60de5bbc6e`. The production code has no interposer;
+no launch-tracing/fault library or inspector was loaded during these timings.
+Both instances used eight CPU workers and the GPU instance used a 512 MiB
+corpus. Each sample times the complete prepared frame exchange, including
+fresh authentication, integrity hashes, child startup, execution, process exit,
+proposal validation, publication and response delivery/decoding. Oracle work
+is outside the timing. Three samples per size, successive runtime arguments,
+successful credential state evolution and exact checksum checks are required.
+
+| Runtime workload | CPU median (range), ms | CUDA median (range), ms |
+| --- | ---: | ---: |
+| Depth 2, 4 leaves × 64 rounds | 5.197 (5.185–5.998) | 175.659 (171.592–181.182) |
+| Depth 16, 65,536 leaves × 64 rounds | 5.755 (5.682–5.946) | 166.517 (158.150–169.409) |
+
+The first preparation is measured separately from handle execution: CPU
+5,570.246 ms, CUDA 6,922.759 ms. This includes proof admission and native
+compilation, plus CUDA prebuild where enabled; it is not a kernel-only compile
+time. Startup plus an invalid-credential synchronization request is also
+separate: CPU 5,706.573 ms, CUDA 5,472.017 ms. The small checksum is 689,817,445;
+the larger checksum is 3,127,646,773, both independently reproduced.
+
+CUDA is substantially slower for both tested sizes. Fresh process/device
+setup and full host request overhead dominate these workloads. There is no
+speedup claim, kernel-only timing, throughput claim or measured break-even
+point. Three samples on a desktop GPU are observations rather than a broad
+performance characterization. Larger workloads and other machines are
+unmeasured, and can run out of the configured corpus.
