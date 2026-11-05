@@ -82,6 +82,7 @@ class PreparedTests(unittest.TestCase):
             # Runtime, admitted source, and admitted dependency tampering all
             # fail before running a prepared action or publishing anything.
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
+            self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
             self.assertIn('Prepared.resolve_analysis(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
@@ -113,6 +114,14 @@ class PreparedTests(unittest.TestCase):
             self.assertEqual(other.call(code, (example/'ClientProof.bend').read_text(), 'alice-token', 'other-new'),
                 {'status': 'success', 'value': 'other-new'}, other.diagnostics())
             self.assertEqual(server.prepared(2, handle, 'invalid'), {'status': 'authentication', 'value': None})
+            # Authentication wins over both unknown handles and bad proof
+            # fields, while malformed envelopes still win over authentication.
+            for operation in (0, 1, 2):
+                self.assertEqual(server.prepared(operation, 'absent', 'invalid', proof='bad proof'),
+                    {'status': 'authentication', 'value': None})
+                malformed = bytes((7, operation)) + encode({'credential': 'invalid'})
+                self.assertEqual(server.exchange(len(malformed).to_bytes(8, 'big')+malformed),
+                    {'status': 'input', 'value': None})
             self.assertEqual(server.prepared(1, handle, 'alice-final', proof='replacement'),
                 {'status': 'input', 'value': None})
             self.assertEqual(server.exchange((2).to_bytes(8, 'big')+bytes((7, 9))),

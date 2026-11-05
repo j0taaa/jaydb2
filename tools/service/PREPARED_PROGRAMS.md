@@ -121,7 +121,10 @@ No checker, BendTT, Node staging helper, or C compiler runs on prepared
 executions. The existing native authenticator still emits public metadata
 strings; handle calls discard these instead of writing/checking sources.
 Host integrity hashing still runs, and native
-decode/authentication/execution children run normally. The private worker
+authentication/execution children run normally. The authenticator itself
+decodes first; there is no separate decode child. Both children remain fresh
+processes, and the execution child retains its own current input analysis.
+The private worker
 proposal is accepted only after complete output, child exit, transport/size
 checks, and the ordinary atomic publication step. A later refusal or native
 failure preserves the previous published root. The admitted directory stays
