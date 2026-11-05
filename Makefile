@@ -37,3 +37,14 @@ demo-web: build
 
 test-demo-web: build
 	python3 -B -m unittest discover -s tests/demo -v
+
+# Opt-in: real NVIDIA hardware, CUDA headers/libraries and clang-19 required.
+# Keep these expensive checks serialized with the other experiment branches.
+.PHONY: test-gpu benchmark-gpu
+test-gpu:
+	mkdir -p build/gpu/tmp
+	flock /tmp/jaydb2-experiments-heavy.lock sh -c 'make build && TMPDIR="$(CURDIR)/build/gpu/tmp" python3 -B -m unittest tests.service.test_gpu -v'
+
+benchmark-gpu:
+	mkdir -p build/gpu/tmp
+	flock /tmp/jaydb2-experiments-heavy.lock sh -c 'make build && TMPDIR="$(CURDIR)/build/gpu/tmp" PYTHONPATH=. python3 -B experiments/gpu/benchmark.py --output build/gpu/benchmark.json'
