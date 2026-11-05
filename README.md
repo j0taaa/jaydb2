@@ -11,7 +11,7 @@ accepts only the helper's complete result before publishing a proposal. C
 emitted by the official compiler is not rewritten to create a custom runtime.
 
 The contract has **three canonical size limits: message, state, and response**.
-There is no custom physical budget, memory observer, or per-stage deadline.
+There is no total-process memory budget, memory observer, or per-stage deadline.
 A fatal failure can terminate the instance and lose its RAM data.
 
 ## Installation

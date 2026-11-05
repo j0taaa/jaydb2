@@ -9,7 +9,7 @@ The host is Rust, admission and compilation are coordinated by Node, and each
 compiled program uses the official Bend runtime. Python is not part of service
 execution. Configuration contains only `message`, `state`, and `response`,
 measured in canonical bytes. Equality with a ceiling is allowed. There is no
-physical budget, observer, or execution deadline.
+total-process memory budget, observer, or execution deadline.
 
 ## Call path
 

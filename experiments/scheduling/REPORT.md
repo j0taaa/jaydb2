@@ -11,10 +11,15 @@ retaining fresh actual Input.analyze authentication.
 ## Supported behavior and contracts
 
 The ordinary CLI, canonical frames, three logical limits and prepared controls
-are unchanged. `./jaydb2 --configuration examples/access/Configuration.bend
---seed examples/access/Seed.bend --threads 1` now reads ahead through one
-bounded framing thread. It owns no database, handles or output. One serial
-coordinator owns all database service, handle operations, publication and output.
+are unchanged. Example:
+
+```sh
+./jaydb2 --configuration examples/access/Configuration.bend \
+  --seed examples/access/Seed.bend --threads 1
+```
+
+The host now reads ahead through one bounded framing thread. The reader owns
+no database, handles or output. One serial coordinator owns all database service, handle operations, publication and output.
 It selects FIFO work, executes with fresh authentication against current state,
 obtains a complete proposal after helper cleanup, publishes, then writes and
 flushes one response before selecting again. No retries or busy outcome.
@@ -44,10 +49,13 @@ bodies retain at most B bytes
 and 8 items (empty frames count); reserve before allocation and body reading.
 There is at most one 8-byte header and one fixed terminal slot. Selection
 releases capacity: one additional active body of at most A bytes is owned by
-the coordinator. There is at most one ready/emitting response, bounded by
+the coordinator. Total retained framing bodies are at most B + A bytes and
+nine requests, plus the fixed terminal event. There is at most one
+ready/emitting response, bounded by
 max(R + 8, largest fixed error frame); Published also retains its last success
 response and state as before. No multi-response backlog exists. Queue metadata,
-allocator overhead, OS pipe buffers, current/proposed state, compilation files,
+allocator overhead, OS pipe buffers, active transport/metadata copies,
+current/proposed state, compilation files,
 prepared artifact registry and existing worker stdout/stderr captures are
 outside the framing-body bound. This is not a total-process RAM guarantee;
 worker intermediates and prepared registry were not globally bounded before
@@ -79,9 +87,36 @@ integration assumptions. The new framing-to-serial-service refinement is a
 host implementation contract supported by tests and review; the old theorem
 does not prove threaded Rust, descriptor cancellation, or this FIFO adapter.
 A complete formal model of host scheduling is outside this implementation.
+The accepted preprocessing prerequisite adds
+`proof/Preprocessing.bend::gate_preserves_exact_output` and
+`single_pass_preserves_exact_output`, establishing pure exact-byte equivalence
+of the removed decode gate with the actual authenticate-pre route; they do
+not prove this queue or OS/compiler behavior.
 
-Real CLI integration/regression results and accepted prerequisite validation
-will be recorded in the final report update. No performance claim yet; one
+Heavy-lock real checks completed:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'export TMPDIR="$PWD/build/tmp"; make build && python3 -B -m unittest tests.service.test_scheduling -v' > build/scheduling-integration.log 2>&1
+```
+
+Release build and all 3 real CLI tests passed (86.797 seconds for the tests).
+Covers pipelined ordinary transactions with changing credentials, malformed
+complete frames, fresh authentication, prepared registration/execution/
+invalidation, and EOF draining queued controls. Separate terminal cases put
+clean EOF, partial header, partial body or oversize declaration after a real
+successful transaction and a complete invalid request. Closed-output test
+keeps stdin open, observes exactly one admission despite queued successors,
+and verifies owned artifacts disappear.
+
+- Existing service regressions and contract/preprocessing proof validation are
+  queued under the same lock; their results will be recorded below.
+
+Temporary/build/log/state paths are under this worktree (`build/tmp`,
+`target`, `build/scheduling-*.log`); `.tools` is an ignored symlink to the
+immutable official toolchain. No pinned tool or runtime was modified.
+
+No throughput/latency benchmark was run. Integration-test duration includes
+initialization and real checking/compilation and is not a performance claim. One
 reader thread, mutex/condition-variable synchronization and poll/read syscalls
 are added. No parallel execution, fairness, quotas, timing or persistence is
 implemented by this branch. A blocked output or nonreturning worker still has
