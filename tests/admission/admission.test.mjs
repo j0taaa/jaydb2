@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import child from 'node:child_process';
+import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { admitSubmission, emitC, preflight, AdmissionError, bootstrapInfo } from '../../tools/admission/index.mjs';
 import { fixture } from './helpers.mjs';
@@ -110,12 +111,18 @@ test('universal targets reject concrete substitution and transitive captured val
 // A kernel execution failure is a technical failure, never a mathematical verdict.
 test('kernel infrastructure failure cannot admit a submission', async t => {
   const f = fixture(t), spawn = child.spawnSync;
+  // The official loader canonicalizes the allowed immutable .tools symlink.
+  const kernel = fs.realpathSync(bootstrapInfo().verifier.kernelPath);
+  let injected = 0;
   child.spawnSync = function (bin, args, options) {
-    if (bin === bootstrapInfo().verifier.kernelPath) return { status: null, signal: 'SIGKILL' };
+    if (bin === kernel) { injected++; return { status: null, signal: 'SIGKILL' }; }
     return spawn(bin, args, options);
   };
   syncBuiltinESMExports();
-  try { await rejected(f.manifest(), ['BENDTT_INFRASTRUCTURE']); }
+  try {
+    await rejected(f.manifest(), ['BENDTT_INFRASTRUCTURE']);
+    assert.ok(injected > 0, 'fault hook must intercept the actual official kernel');
+  }
   finally { child.spawnSync = spawn; syncBuiltinESMExports(); }
 });
 
