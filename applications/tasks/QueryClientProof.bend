@@ -17,6 +17,7 @@ import ./Task.bend as Task
 import ./Mutation.bend as M
 import ./Laws.bend as G
 import ./Value.bend as V
+import ./ReadProgram.bend as RP
 
 def read_depth(xs: List<&2, String>, n: Nat) -> Nat:
   G.depth(xs, n)
@@ -95,6 +96,13 @@ def cas_safe(+id: String, +kind: String, +key: String, expected: Bool, r: S.Retu
     case S.Datum{D.Keys{xs}}: Unit{}
     case S.UnitValue{}: Unit{}
 
+def selected_safe(n: Nat, ctx: D.Context, result: Q.Selection) -> H.Safe(Succ{n}, ctx, RP.selected(result)):
+  match result:
+    case Q.Selected{v}: Unit{}
+    case Q.MissingRow{}: Unit{}
+    case Q.InvalidFields{}: Unit{}
+    case Q.UnexpectedReturn{}: Unit{}
+
 def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.command(D.context_id(ctx), p)):
   match ctx p:
     case D.Context{+id, +kind} Client.Open{a, b}:
@@ -106,6 +114,9 @@ def command_safe(ctx: D.Context, p: Client.Command) -> H.Safe(5n, ctx, Client.co
       G.write_rows(~P.Allowed, [D.Row{a, Task.fields(id, a, "First", False{})},
         D.Row{b, Task.fields(id, b, "Second", True{})}], 2n, D.Context{id, kind}, D.Application{id}, Task.saved(cancel, a),
         L.Both{P.Both{{==}, {==}}, L.Both{P.Both{{==}, {==}}, Unit{}}}, saved_safe(2n, D.Context{id, kind}, cancel, a))
+    case D.Context{+id, +kind} Client.Inspect{key}:
+      reads_safe(["completed", "title"], 3n, id, kind, key, RP.selected,
+        result => selected_safe(2n, D.Context{id, kind}, result))
     case D.Context{+id, +kind} Client.Insert{+key}: L.Both{{==}, r => inserted_safe(id, kind, key, r)}
     case D.Context{+id, +kind} Client.Replace{+key}: L.Both{{==}, r => replace_safe(id, kind, key, r)}
     case D.Context{+id, +kind} Client.Cas{+key, expected}: L.Both{{==}, r => cas_safe(id, kind, key, expected, r)}

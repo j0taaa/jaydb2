@@ -13,11 +13,13 @@ def prepare(directory, root):
     app.prepare(directory, root)
     # Explicit opt-in public dependency closure; the normal client is unchanged.
     (directory / 'Task.bend').write_text((app.APP / 'Client.bend').read_text())
-    for name in ('Action', 'Query', 'Value', 'Int64', 'Mutation'):
+    for name in ('Action', 'Query', 'Value', 'Int64', 'Mutation', 'ReadProgram'):
         source = (app.ROOT / 'library' / f'{name}.bend').read_text()
-        (directory / f'{name}.bend').write_text(source.replace('../contract/', './'))
+        (directory / f'{name}.bend').write_text(source.replace('../contract/', './').replace('../src/', './'))
+    source = (app.ROOT / 'src' / 'ReadOnly.bend').read_text()
+    (directory / 'ReadOnly.bend').write_text(source.replace('../contract/', './'))
     configuration = (directory / 'Configuration.bend').read_text()
-    configuration = 'import ./Mutation.bend as Mutation\nimport ./Query.bend as Query\nimport ./Action.bend as Action\nimport ./Task.bend as Task\n' + configuration
+    configuration = 'import ./ReadProgram.bend as ReadProgram\nimport ./Mutation.bend as Mutation\nimport ./Query.bend as Query\nimport ./Action.bend as Action\nimport ./Task.bend as Task\n' + configuration
     (directory / 'Configuration.bend').write_text(configuration)
     (directory / 'Client.bend').write_text((app.APP / 'QueryClient.bend').read_text())
     (directory / 'ClientProof.bend').write_text((app.APP / 'QueryClientProof.bend').read_text())
@@ -46,6 +48,8 @@ def main():
                 assert ordinary.call('alice-token', ['view', 't2']) == {'status': 'success', 'value': {
                     'completed': True, 'id': 't2', 'owner': 'alice', 'title': 'Second'}}
                 call('alice-token', ['open', 't1', 't2'], {'status': 'success', 'value': [{'title': 'First'}]})
+                call('alice-token', ['inspect', 't1'], {'status': 'success', 'value': {'completed': False, 'title': 'First'}})
+                call('bob-token', ['inspect', 't1'], {'status': 'success', 'value': None})
                 call('alice-token', ['open', 't2', 'missing'], {'status': 'success', 'value': []})
                 call('bob-token', ['open', 't1', 't2'], {'status': 'success', 'value': []})
                 call('alice-token', ['pair', 't2', 't3', True], {'status': 'refusal', 'value': 'cancelled'})
@@ -61,6 +65,11 @@ def main():
                     'Q.select(D.Application{"bob"}, key, ["completed", "title"], result => S.Refuse{D.VAbsent{}})')
                 call('alice-token', ['open', 't1', 't2'], {'status': 'certificate', 'value': None}, code=forbidden)
                 call('alice-token', ['open', 't1', 't2'], {'status': 'success', 'value': [{'title': 'First'}]})
+                target = 'case Inspect{key}: RP.select(D.Application{owner}'
+                assert db.code.count(target) == 1
+                forbidden = db.code.replace(target, 'case Inspect{key}: RP.select(D.Application{"bob"}')
+                # Read-only construction supplies no permission to inspect Bob.
+                call('alice-token', ['inspect', 't1'], {'status': 'certificate', 'value': None}, code=forbidden)
                 call('alice-token', ['insert', 'once'], {'status': 'success', 'value': True})
                 call('alice-token', ['insert', 'once'], {'status': 'success', 'value': False})
                 call('bob-token', ['replace_open', 'once'], {'status': 'success', 'value': False})
@@ -86,7 +95,7 @@ def main():
                 print(errors.read().decode('utf-8', 'replace'), file=sys.stderr)
         errors.seek(0)
         diagnostics = errors.read()
-        assert (diagnostics.count(b'PRIMARY_CHECK') == 2 and b'- expected :' in diagnostics
+        assert (diagnostics.count(b'PRIMARY_CHECK') == 3 and b'- expected :' in diagnostics
             and b'- observed :' in diagnostics and b'Location: visit_safe' in diagnostics), diagnostics.decode('utf-8', 'replace')
     print('PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.')
 

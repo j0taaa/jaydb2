@@ -256,3 +256,27 @@ of signed multiplication/division or sorting under every possible comparator.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.
+
+### Read-only construction subset
+
+`ReadProgram.bend` targets the accepted `src/ReadOnly.bend` predicate without
+changing the normal protocol. `cell(collection,key,column)` and
+`select(collection,key,fields)` construct ordinary closed Actions; `program(fields)`
+builds a small program whose text argument is a row key in the authenticated
+context's named table. A selected record finishes; missing rows return VAbsent;
+invalid fields or unexpected returns refuse. `cell` also returns VAbsent on
+missing rows, so use the ordinary observation API if that distinction matters.
+
+`cell_readonly`, `select_readonly` and `program_readonly` prove the finite
+whole-continuation restriction, including every `Semantics.Return` variant.
+`fields_readonly` requires the same restriction on the entire supplied
+continuation. There is no recursive higher-order syntax to lower and no general
+bind. An unreachable continuation containing a write is rejected by the negative
+fixture `HiddenWrite.bend`. The ordinary administrator certificate is still
+mandatory: the real restricted task test rejects an attempted Bob-table read
+using this helper. Programs without this extra proof retain ordinary behavior;
+this branch does not implement or claim host batching or prepared opcode 3.
+
+The predicate file alone was imported from accepted concurrency commit
+`b6ef4a6681906859fdcdd4caf5b85b8fd318dcd8`; its SHA-256 is
+`e525c1eec917cca6e139f661c5aab9a9c64fd5375faea9fd980adb585632ed0a`.

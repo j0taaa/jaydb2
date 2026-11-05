@@ -10,6 +10,7 @@ import ../../library/Mutation.bend as M
 import ../../library/Read.bend as R
 import ../../library/Index.bend as X
 import ../../library/Summary.bend as H
+import ../../library/ReadProgram.bend as RP
 
 def less(a: D.Value, b: D.Value) -> Bool:
   match a b:
@@ -128,3 +129,11 @@ def accesses(p: S.Trace) -> Nat:
 law index_filtered_reads_retained:
   {accesses(S.observe(15n, nonunique_read(), schema(), state(V.Int64{0, 0}))) == 11n : Nat}
 def index_filtered_reads_retained(): {==}
+
+law readprogram_full_integer:
+  {S.observe(2n, RP.select(D.Application{"counter"}, "seq", ["n"]), schema(), state(V.Int64{2147483648, 0})) == S.Final{state(V.Int64{2147483648, 0}), [S.OperationEvent{D.ReadCell{D.Application{"counter"}, "seq", "n"}, S.Reading{D.Cell{D.VInt{2147483648, 0}}}}], S.Response{S.Success{}, D.VRecord{"n", D.VInt{2147483648, 0}, D.VRecordEmpty{}}}} : S.Trace}
+def readprogram_full_integer(): {==}
+
+law readprogram_invalid_fields_no_read:
+  {S.observe(1n, RP.select(D.Application{"counter"}, "seq", ["n", "n"]), schema(), state(V.Int64{0, 0})) == S.Final{state(V.Int64{0, 0}), Nil{}, S.Response{S.Refusal{}, D.VText{"invalid fields"}}} : S.Trace}
+def readprogram_invalid_fields_no_read(): {==}
