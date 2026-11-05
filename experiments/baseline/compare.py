@@ -45,18 +45,17 @@ def main():
                                     'peer_root': str((args.candidate_root if side == 'anchor' else args.anchor_root).resolve())}
             result['requests'] = []
             results.append(result)
-            binary = (root/executable).resolve()
-            result['controller_executable'] = str(binary)
-            result['controller_sha256'] = bench.sha(binary.read_bytes())
-            result['controller_build'] = 'existing executable; source-to-binary provenance supplied by caller'
             result['settings']['compute_iterations_base'] = None
             result['settings']['ordinary_samples'] = []
             result['settings']['preparation_samples'] = 'one untimed setup preparation'
             shutil.copytree(bench.SUITE, output/'suite', ignore=shutil.ignore_patterns('evidence', '__pycache__', 'REPORT.md'))
             (output/'target.patch').write_bytes(subprocess.check_output(['git', 'diff', 'HEAD', '--binary'], cwd=root))
             (output/'suite.patch').write_bytes(subprocess.check_output(['git', 'diff', 'HEAD', '--binary'], cwd=bench.SUITE))
-            env = dict(os.environ, TMPDIR=str(output/'tmp'), BEND_NO_TELEMETRY='1')
+            env = dict(os.environ, TMPDIR=str(output/'tmp'), BEND_NO_TELEMETRY='1',
+                       CARGO_TARGET_DIR=str(root/'build/benchmark-target'))
             Path(env['TMPDIR']).mkdir()
+            binary, build_record = bench.build_controller(root, output, env, executable)
+            result.update(build_record)
             shutil.copyfile(bench.SUITE/'Configuration.bend', output/'Configuration.bend')
             (output/'Seed.bend').write_text(bench.seed_source(8))
             proof = bench.proof_source('read', True)

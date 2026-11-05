@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -81,6 +82,31 @@ class BenchmarkTests(unittest.TestCase):
                 self.assertEqual(saved['actual']['value'], 999)
             finally:
                 session.close(False)
+
+    def test_chosen_executable_must_match_current_build_and_stable_sources(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            built = root/'target/release/jaydb2'
+            built.parent.mkdir(parents=True)
+            built.write_bytes(b'current-binary')
+            chosen = root/'chosen'
+            chosen.write_bytes(b'stale-binary')
+            env = {'CARGO_TARGET_DIR': str(root/'target')}
+            with mock.patch.object(bench, 'source_identity', return_value={'sha256': 'source'}), \
+                 mock.patch.object(bench, 'revision', return_value={'head': 'revision'}), \
+                 mock.patch.object(bench.subprocess, 'run'):
+                with self.assertRaisesRegex(RuntimeError, 'refusing stale/mixed executable'):
+                    bench.build_controller(root, root, env, chosen)
+                chosen.write_bytes(b'current-binary')
+                binary, record = bench.build_controller(root, root, env, chosen)
+                self.assertEqual(binary, chosen)
+                self.assertTrue(record['controller_build']['chosen_executable_verified_against_fresh_build'])
+                self.assertEqual(record['controller_sha256'], bench.sha(chosen.read_bytes()))
+            with mock.patch.object(bench, 'source_identity', side_effect=[{'sha256': 'old'}, {'sha256': 'new'}]), \
+                 mock.patch.object(bench, 'revision', return_value={'head': 'revision'}), \
+                 mock.patch.object(bench.subprocess, 'run'):
+                with self.assertRaisesRegex(RuntimeError, 'changed during controller build'):
+                    bench.build_controller(root, root, env)
 
     def test_output_cannot_escape_target(self):
         with tempfile.TemporaryDirectory() as temp, self.assertRaises(ValueError):

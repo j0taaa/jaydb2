@@ -21,7 +21,7 @@ To measure another existing worktree with the **same benchmark fixture**:
 
 The runner normally builds that checkout using `cargo build --locked --release`
 and a target-local `build/benchmark-target`. An existing executable can be
-chosen explicitly (its source provenance is the caller's responsibility):
+chosen explicitly; it must match the binary freshly built from that root:
 
 ```sh
 /path/to/experiment-baseline/experiments/baseline/run.sh \
@@ -112,12 +112,26 @@ For a small comparison after both chosen executables exist:
   --candidate-executable target/release/jaydb2
 ```
 
-This holds the same heavy lock, starts two independent eight-row instances,
+This holds the same heavy lock, verifies both chosen binaries against builds
+from their selected roots, starts two independent eight-row instances,
 prepares the same read once in each, then alternates AB/BA request order for
-two warmup rounds and seven measured rounds. It does not build or modify
-feature code. Results remain in each target's own
+two warmup rounds and seven measured rounds. It only builds the existing Rust controllers into local benchmark targets;
+it does not modify feature code or build another checkout. Results remain in each target's own
 `build/interleaved-UTC-{anchor,candidate}/result.json`. Setup is excluded;
 there is one global in-flight request and both instances remain alive during
 sampling. It measures tiny prepared latency only. Inspect each controller hash
 and revision and the retained samples before drawing any conclusion. This
 small comparison is sensitive to cache effects, system load and sample count.
+
+Executable provenance is checked even with `--executable`: a cached
+`cargo build --locked --release` runs in the selected root with the local
+benchmark target directory, and the chosen executable's SHA-256 must equal
+that fresh output. A mismatch refuses the run rather than using either binary
+silently. Results retain the build command, Git identity and hashes of all
+tracked/untracked nonignored checkout files outside `experiments/`; those
+inputs and Git status must stay stable during the build. The benchmark code
+has its own recorded identity. This requires reproducible release binaries
+with the current Rust toolchain/flags. If another legitimate build recipe
+produced different bytes, use the default driver build. Cargo's build cache,
+compiler and protected local inputs remain trusted; this is provenance for
+repeatable measurement, not a security attestation against a malicious host.

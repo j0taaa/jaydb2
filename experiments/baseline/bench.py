@@ -44,6 +44,42 @@ def revision(root):
             'tracked_patch_sha256': sha(patch)}
 
 
+def source_identity(root):
+    # Include tracked and untracked, nonignored checkout inputs. Benchmark
+    # sources/reports are recorded separately and do not build the controller.
+    names = subprocess.check_output(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=root)
+    files = {}
+    for name in sorted(set(os.fsdecode(n) for n in names.split(b'\0') if n)):
+        if not name.startswith('experiments/'):
+            path = root/name
+            files[name] = sha(path.read_bytes()) if path.is_file() else '<missing>'
+    return {'sha256': sha(json.dumps(files, sort_keys=True).encode()), 'files_sha256': files}
+
+
+def build_controller(root, output, env, chosen=None):
+    before = source_identity(root)
+    build_revision = revision(root)
+    started = time.perf_counter_ns()
+    with (output/'build.log').open('w') as log:
+        subprocess.run(['cargo', 'build', '--locked', '--release'], cwd=root, env=env,
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+    elapsed = time.perf_counter_ns() - started
+    after = source_identity(root)
+    if before != after or build_revision != revision(root):
+        raise RuntimeError('Checkout changed during controller build; rerun from stable sources')
+    built = Path(env['CARGO_TARGET_DIR'])/'release/jaydb2'
+    built_hash = sha(built.read_bytes())
+    binary = (root/chosen).resolve() if chosen else built
+    if sha(binary.read_bytes()) != built_hash:
+        raise RuntimeError(f'Chosen executable {binary} differs from a freshly built selected --root; refusing stale/mixed executable')
+    return binary, {'controller_executable': str(binary), 'controller_sha256': built_hash,
+                    'build_elapsed_ns': elapsed,
+                    'controller_build': {'command': ['cargo', 'build', '--locked', '--release'],
+                                         'cwd': str(root), 'target_dir': env['CARGO_TARGET_DIR'],
+                                         'revision': build_revision, 'source_identity': before,
+                                         'chosen_executable_verified_against_fresh_build': chosen is not None}}
+
+
 def summary(records):
     groups = defaultdict(list)
     for r in records:
@@ -372,7 +408,7 @@ def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=Path, default=SUITE.parents[1], help='Target checkout, also owns build/temp/output paths')
     p.add_argument('--output', type=Path, help='New directory inside target checkout (default build/bench-UTC-pid)')
-    p.add_argument('--executable', type=Path, help='Use an existing controller instead of building; relative to --root')
+    p.add_argument('--executable', type=Path, help='Verify an existing controller against a fresh selected-root build; relative to --root')
     p.add_argument('--smoke', action='store_true', help='Two samples, no warmup, 8/64 rows, 4096 compute iterations')
     p.add_argument('--samples', type=int)
     p.add_argument('--warmups', type=int)
@@ -412,20 +448,8 @@ def main(argv=None):
                    BEND_NO_TELEMETRY='1')
         Path(env['TMPDIR']).mkdir()
         resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.getrlimit(resource.RLIMIT_STACK)[1]))
-        if options.executable:
-            binary = (root/options.executable).resolve()
-            result['controller_build'] = 'existing executable; source-to-binary provenance supplied by caller'
-            result['build_elapsed_ns'] = None
-        else:
-            started = time.perf_counter_ns()
-            with (output/'build.log').open('w') as log:
-                subprocess.run(['cargo', 'build', '--locked', '--release'], cwd=root, env=env,
-                               stdout=log, stderr=subprocess.STDOUT, check=True)
-            result['build_elapsed_ns'] = time.perf_counter_ns() - started
-            binary = Path(env['CARGO_TARGET_DIR'])/'release/jaydb2'
-            result['controller_build'] = 'cargo build --locked --release in target checkout'
-        result['controller_executable'] = str(binary)
-        result['controller_sha256'] = sha(binary.read_bytes())
+        binary, build_record = build_controller(root, output, env, options.executable)
+        result.update(build_record)
         module = importlib.util.spec_from_file_location('benchmark_wire_client', root/'tools/client.py')
         client = importlib.util.module_from_spec(module)
         module.loader.exec_module(client)
