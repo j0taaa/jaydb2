@@ -11,6 +11,8 @@ function error(status) {
 }
 async function run(incoming,{auth=[],outputs=[],cleanupFailure=false,writeFailure=false,random=['keyA']}={}) {
   const child=spawn('target/bend-host/controller',['+RTS','--threads','1','--gpu','off','-RTS'],{stdio:['pipe','pipe','pipe']});
+  // CI guard for this synthetic effect harness, never a production deadline.
+  const deadline=setTimeout(()=>child.kill('SIGKILL'),10000);
   const done=once(child,'close');const reader=new Reader(child.stdout);let stderr='';child.stderr.on('data',b=>stderr+=b);
   const seen=[],responses=[],states=[],inputs=[];let offset=0,ai=0,oi=0,ri=0;
   try {
@@ -36,7 +38,7 @@ async function run(incoming,{auth=[],outputs=[],cleanupFailure=false,writeFailur
       await writeAll(child.stdin,packet(Buffer.concat([Buffer.from([good?1:0]),result])));
     }
     const [code]=await done;assert.equal(code,0,stderr);return {seen,responses,states,inputs};
-  } finally {child.kill('SIGKILL');child.stdin.destroy();}
+  } finally {clearTimeout(deadline);child.kill('SIGKILL');child.stdin.destroy();}
 }
 test('framing is byte exact, FIFO, terminal after earlier complete frame',async()=> {
   const r=await run(Buffer.concat([packet(buf('x')),Buffer.alloc(7)]));
