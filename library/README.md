@@ -127,6 +127,7 @@ state handle, trigger, grant, or assumed certificate is introduced.
 | `Int64` | Signed comparison, checked `add`, `sub`, `mul`, `divmod`, `increment`, `decrement`; explicit `wrapping_add`/`wrapping_sub` for bit arithmetic. |
 | `Read` | Typed CPS `keys`, `exists`, `count`, each performing exactly one ordinary operation; unexpected returns refuse. |
 | `Sequence` | Pure filtering, stable insertion sorting, grouping, offset/size pagination, length, conversion to a response `Value` list. |
+| `SortProof` | General content/occurrence preservation and independent all-pairs sortedness under explicit order proofs; discharged incomplete-before-complete task order. |
 | `Aggregate` | Checked signed64 `sum`, `count`, integer `average` (toward zero), seeded `minimum`/`maximum`, empty-aware `min_value`/`max_value`. |
 | `Relation` | Nested-loop `inner` and `left_join` over obtained values; duplicate matches are retained, unmatched left rows use `VAbsent` as the right value. |
 | `Mutation` | `insert_if_absent`, predicate-based `replace_if`, `compare_exchange` of one cell followed by a complete row replacement, `remove_rows`, `columns`, checked `counter_add` and `next`. |
@@ -248,11 +249,16 @@ the original certificates must be rejected. See the experiment report for the
 actual commands/results and remaining formal proof scope.
 
 General proofs include record/typed-integer roundtrips, key injectivity, two-sided
-checked add/sub overflow contracts, finite permission composition, sort length,
-and take/drop boundaries. Concrete functional proofs exercise sort/page/group,
-join multiplicity, aggregate signs/overflow, counter prefix/carry/overflow and
-index uniqueness/rebuild/query. They do not constitute a general algebraic proof
-of signed multiplication/division or sorting under every possible comparator.
+checked add/sub overflow contracts, finite permission composition, and take/drop
+boundaries. `SortProof.sort_content` preserves every predicate count and
+`sort_occurrences` preserves each supplied value's multiplicity for arbitrary
+lists/comparators. `Sorted` independently requires every earlier element to be
+no greater than every later one; `sort_sorted` proves it under explicit
+transitivity/totality obligations for the induced non-strict order.
+`completed_sorted` discharges those obligations for the useful task order.
+Concrete functional proofs also exercise grouping, joins, aggregate signs and
+overflow, counter prefixes and index maintenance. A full algebraic proof of
+signed multiplication/division is still outside the claimed scope.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.
@@ -280,3 +286,41 @@ this branch does not implement or claim host batching or prepared opcode 3.
 The predicate file alone was imported from accepted concurrency commit
 `b6ef4a6681906859fdcdd4caf5b85b8fd318dcd8`; its SHA-256 is
 `e525c1eec917cca6e139f661c5aab9a9c64fd5375faea9fd980adb585632ed0a`.
+
+
+### Audited sorting and certified index example
+
+The additional focused native fixture `experiments/library/CollectionRuntime.bend`
+accepts variable-length records with original identity payloads.
+`test_collections.py` compares actual output contents against independent Python
+references: stable sorting (numeric keys and completed-task keys), complete inner
+and left join pairs, and every group key/member in order. Cases include empty,
+singleton, reverse-sorted, mixed duplicates, forty equal keys, and random lengths
+through 80. It does not use lengths/cardinalities as the functional oracle.
+
+The [indexed availability application](../applications/indexed/README.md) is an
+actual certified restricted-user business/index flow. Its administrator installs
+`TableLaws.OnStable(ExactIndex)` alongside an every-prefix working-layout/access
+law. `set` composes `Index.maintain` and the business write; `query` uses
+`Index.lookup_many` to map an availability tag to matching targets; `rebuild`
+reads business data and calls `Index.rebuild`. Its ordinary universal certificate
+proves all transitions and the exact terminal projection through successful
+publication. The example has one Boolean availability row per principal and two
+fixed principals; arbitrary index-row lists are allowed only while executing.
+
+Negative controls adapt each implementation's operation/layout proofs. Omitted
+and forged maintenance independently pass ordinary permission proofs on all
+valid states and all prefixes, then fail their full certificates at terminal
+index-row equality. A forbidden index query fails at the first permission check.
+The real host rejects all three and subsequent correct queries verify unchanged
+state. No final-state runtime guard or assumed validity certificate is used.
+
+Focused commands (run under the shared experiment lock):
+
+```sh
+python3 -B tools/check.py library/SortProof.bend
+python3 -B experiments/library/test_collections.py
+python3 -B applications/indexed/run_check.py
+```
+
+The report records the exact frozen source hashes, completed commands and logs.

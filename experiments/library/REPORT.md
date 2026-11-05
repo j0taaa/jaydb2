@@ -6,8 +6,12 @@ Base: `5925c57febd978d44fa24000233647a59e7898a6`; original reference:
 `9b751fab3c7c349ff473a2d11a7133573b6c4df2`. Branch: `experiment-library`.
 Foundational checkpoint: `91f8a2dee8e23c14bcf44eb7a0303e2ce93752b8`; corrected/expanded checkpoint: `d8b019c14c5526bb4b23b2c14098e22ceb254252`;
 coordinator-accepted foundation gate: `d85618b4608077ce1677417d21bccd53a4105824` (both official checkers).
-The validated implementation checkpoint is
-`b19e265c547fab757df6d0a8200c6c8814e949ac`.
+The original validated implementation checkpoint was
+`b19e265c547fab757df6d0a8200c6c8814e949ac`. The audited repair implementation is
+`0cd40ddb1e76c40b9327a87cf7542414ba2d7d8a`; sorting/content repair checkpoint:
+`d1342e2a8b354ae5e75f4bd8447fbec91bc43701`. The parent independently inspected
+and accepted both targeted repairs (A2 sorting, A3 certified index flow).
+The final repair commit changes only this report and the library README.
 
 Only `src/ReadOnly.bend` was imported from accepted concurrency source commit
 `b6ef4a6681906859fdcdd4caf5b85b8fd318dcd8`, using `git restore --source=... --
@@ -32,6 +36,7 @@ state are local to this checkout under `build/library` (and ordinary `target`).
 | `Int64` | Exact signed comparison; checked add/sub/mul/divmod/increment/decrement; explicitly named wrapping add/sub. Division truncates toward zero; signed remainder follows dividend. |
 | `Read` / existing `Query` | Ordinary existence/count/key reads; canonical field selection, missing-versus-present-absent handling, projections and CPS finite traversal/filter-map. |
 | `Sequence` | Pure filtering, stable insertion sorting, grouping, offset/size pagination, length and response-list construction. |
+| `SortProof` | Arbitrary-predicate count and per-value multiplicity preservation; independent all-pairs sortedness under explicit order obligations; fully discharged task-order instance. |
 | `Aggregate` | Checked signed sum/count, seeded and empty-aware min/max, integer average. |
 | `Relation` | Pure nested-loop inner and left joins retaining duplicate matches; referential-law template in `TableLaws`. |
 | `Action` / `Mutation` | Ordered batch row writes, batch removals, column patches, insert-if-absent, predicate replacement, actual-cell compare-and-replace of a complete row, checked counters and incrementing sequences. |
@@ -103,8 +108,10 @@ conflict, nonunique rebuild/query, retention of filtered index reads, and exact
 full-width/invalid-field read-program behavior. Original library trace and
 rollback proofs remain in `library/VERIFY.bend`.
 
-`TableLaws` templates have no certificates. Applications must prove that their
-supplied index entries/summary inputs correspond to business data. `OnStable`
+`TableLaws` templates do not generate certificates. Applications must prove
+that their supplied index entries/summary inputs correspond to business data.
+The audited `applications/indexed` example now installs the actual ExactIndex/
+OnStable template and proves such an ordinary application certificate. `OnStable`
 explicitly permits intermediate inconsistency and requires it in Stable and
 successful Closed phases; use `OnEveryPrefix` if intermediate inconsistency is
 forbidden. All other installed laws continue to apply. The original contract's
@@ -113,12 +120,13 @@ publication remains a trusted integration boundary; these helpers add no host
 or filesystem effects.
 
 There is no claimed general signed mathematical correctness theorem for the
-multiplication/division algorithms, or general sortedness theorem for an
-arbitrary comparator. Concrete proofs and an independent dynamic native oracle
-provide additional functional evidence; they are not substituted for the
-permission/prefix proof.
+multiplication/division algorithms. Sorting now has general content preservation
+and an independent all-pairs sortedness theorem under explicit transitivity and
+totality proofs; the completed-task comparator has those obligations discharged.
+The stronger native content oracle supplements those proofs and does not replace
+permission/prefix reasoning.
 
-## Validation
+## Original milestone validation
 
 The following checks have completed:
 
@@ -134,7 +142,7 @@ The following checks have completed:
   rejects a write behind an unreachable UnitValue continuation after a read.
 - Python syntax checking and `git diff --check`: PASS.
 
-The final focused gate **PASSED (exit 0)** at implementation checkpoint
+The original focused gate **PASSED (exit 0)** at implementation checkpoint
 `b19e265c547fab757df6d0a8200c6c8814e949ac`, under the shared lock:
 
 ```sh
@@ -174,8 +182,8 @@ no extra broad or performance suite was run. `make test`, `make test-demo-web`
 and the separate full `make verify` target were not run in this branch; the
 focused target itself checks original and extended library proofs with both
 checkers. Active/historical contract manifests and pinned toolchain hashes are
-checked by `tools/check.py`. The final report commit changes documentation only
-relative to the validated implementation checkpoint.
+checked by `tools/check.py`. The original report commit `66bd2995648a38fc0c9cc9521090f90dc0ec29c6` changed
+documentation only relative to that original implementation checkpoint.
 
 ## Costs and limitations
 
@@ -201,3 +209,145 @@ later milestone. Full text, geospatial and a query optimizer are excluded.
 Idempotency/receipt logic belongs to its independent experiment and is not
 duplicated here. Host concurrency and prepared read-only routing are also
 outside this library branch; only their accepted predicate file is reused.
+
+
+## Independently audited repairs: A2 sorting and A3 certified index flow
+
+### Sorting contracts and content tests
+
+`library/SortProof.bend` adds the following checked general contracts without
+changing the sorting algorithm or defining sortedness in terms of its output:
+
+- `insert_content` / `sort_content`: arbitrary Boolean-predicate counts (with
+  a dynamic value environment) are preserved. No ordering assumption is needed.
+- `sort_occurrences`: for every supplied value and arbitrary input list, the
+  count using structural `Value.equal` is preserved, including all duplicates.
+- `After` / `Sorted`: an independent all-pairs ordering predicate. Every earlier
+  element is <= every later element under `Le(a,b) = not less(b,a)`.
+- `insert_sorted` / `sort_sorted`: prove that predicate for arbitrary lists when
+  the caller supplies explicit transitivity and totality proofs for `Le`.
+- `completed_trans` / `completed_total` / `completed_sorted`: fully discharge
+  those order obligations for incomplete-before-complete task values/records.
+
+`CollectionRuntime.bend` and `test_collections.py` add **250** dynamic native
+content cases over 50 input pairs, with lengths 0 through 80, empty/singleton,
+reverse order, mixed duplicates, and forty equal keys. Sorting compares every
+key/identity payload to stable Python sorting. Inner/left joins compare every
+actual left/right pair (including duplicate and unmatched matches). Grouping
+compares every group key and complete member identities/order. Counts alone are
+not the oracle. The literal official emitted C is hashed before and after
+compilation and remains unchanged.
+
+Actual locked checks: `tools/check.py --timeout 120 library/SortProof.bend`
+**PASS both official checkers** (`build/library/sort-check.log`); native
+`experiments/library/test_collections.py` **PASS 250 cases**
+(`build/library/repair-native.log`). These repaired sources are committed at
+`d1342e2a8b354ae5e75f4bd8447fbec91bc43701`.
+
+### Actual indexed business application
+
+`applications/indexed` implements a small per-user availability index, rather
+than leaving ExactIndex/OnStable as unused templates. It supports two fixed
+principals (Alice/Bob), each with one Boolean business row and a separate
+ordinary index table. `Model.project` maps the business row to
+`Index.entry(key, [ready-or-busy], key)`.
+
+The installed `Policy.Rule` requires business/user layout and per-access scope
+at **every prefix**. Layout deliberately permits arbitrary index-row lists while
+executing. Independently installed `Policy.IndexRule` uses the real
+`TableLaws.OnStable(ExactIndex)` predicate for BOTH users: exact projection in
+Stable and successful Closed phases, explicitly permitting transient missing/
+stale indexes. `CheckedActions.Safe` follows the **actual** `Data.operate` result;
+its terminal obligation is `Model.Indexes(working)`. `safe`, `execution_trace`
+and publication lemmas connect those concrete proofs to ordinary
+`Requirements.Certifies`, the original technical validators and stable validity.
+No source allowlist, runtime final-state guard, special authority, or assumed
+final-invariant certificate is introduced.
+
+Real application operations:
+
+- `["set", bool]`: `Index.maintain`, followed by the business write.
+- `["query", bool]`: genuine `Index.lookup_many` tag-to-matching-target query;
+  returns `["item"]` or `[]`, with every enumerated/filtered read authorized.
+- `["rebuild"]`: reads business availability, then calls ordinary `Index.rebuild`
+  to enumerate, remove and reconstruct the index from that observed value.
+
+`ClientProof.B.certificate` is universal over every valid initial state, context,
+argument and observation depth. The certificate derives an initial canonical
+witness from the installed Layout AND ExactIndex laws, proves each real
+transition, and proves exact row equality at completion. `Completion` and
+`B.terminates` handle arbitrary states (including invalid ones) and arbitrarily
+long finite key lists with an actual-return-dependent finite witness. They do
+not assume that enumeration returns the valid-state singleton or treat a host
+quota as a termination proof.
+
+The adapted negative controls in `negative_cases.py` are substantive:
+
+- **Omitted maintenance:** actual implementation writes only business data;
+  the proof prefix is adapted to that single write and its actual working
+  layout. `permitted_valid_state` and `permitted_all_prefixes` independently
+  prove ordinary permissions on ALL valid initial states and ALL observation
+  depths. Full certification fails at `set_alice`'s terminal exact index-row
+  equality (old indexed value versus the new projected value).
+- **Forged maintenance:** actual implementation writes a schema-valid index row
+  targeting `forged`; the operation/layout proof is adapted accordingly.
+  Its ordinary permissions and all-prefix theorem PASS independently; full
+  certification fails at the terminal exact row equality (`forged` vs `item`).
+- **Forbidden index read:** Alice's query uses Bob's index. Certification fails
+  at `query_alice`'s FIRST permission check, `False == True`, even if the query
+  would eventually filter the entry out.
+
+Each positive permission-only control and each intended full-certificate
+failure is checked in BOTH official modes. Generated roots and exact diagnostics
+are reproducible under `build/library/indexed-{omitted,forged,forbidden}*`;
+`indexed-*-check-only.log`, `indexed-*-verdict.log` and `indexed-host.log` retain
+intended failure locations. These are adapted proofs, not unrelated stale
+certificates. The real host rejects all three and subsequent successful queries
+verify neither principal's published state changed.
+
+### Accepted shared host prerequisite and final focused gate
+
+Cherry-picked the audited shared runtime-policy fix
+`b7e873cb8e3638de23313ff3655d0feedfa2e4e0` as
+`166880458b8c6028f280f3276e69184406e3049b`, plus test-only immutable-fixture followup
+`c39bebbd0a9b64380dd10cdeea9112b82b52d5fe` as
+`805940ee58691cfebda17cb5561b0171d13cadea`. The CPU native runner clears inherited
+`BENDRTS`, preserving the fixed host runtime policy. No GPU feature was merged.
+The indexed host session deliberately inherits `--gpu-build --help`, so actual
+successful business/index requests also exercise the repaired final-source host.
+
+The final focused gate **PASSED (exit 0)** at exact implementation source
+`0cd40ddb1e76c40b9327a87cf7542414ba2d7d8a`:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build/library/tmp" bash -c '
+set -e
+cargo test --locked
+cargo build --locked --release
+python3 -B tools/check.py --timeout 120 experiments/library/Behavior.bend
+python3 -B applications/indexed/run_check.py'
+```
+
+Actual evidence in `build/library/indexed-gate.log`:
+
+- Cargo **8/8 PASS**, including inherited runtime policy and fixed argv tests
+  with the accepted immutable fixture; release build **PASS**.
+- Changed Index behavior root **PASS both official checkers**.
+- Full actual indexed certificate, termination and seed root **PASS both modes**.
+- Omitted and forged ordinary permission/all-prefix roots **PASS both modes**.
+- All three full negative controls **correctly rejected in both modes** at
+  intended index-equality/first-permission targets.
+- Real restricted host session **PASS**: both principals' updates, matching and
+  nonmatching index queries, rebuilds, all three certificate denials and
+  unchanged-state followups under hostile inherited `BENDRTS`.
+
+The parent independently inspected the complete proofs, diagnostics and real
+session output and accepted both A2 and A3. No further code or heavy reruns were
+requested. Only README/REPORT documentation changes follow that validated source.
+Arithmetic, contracts and unrelated integration/performance suites were not
+repeated for this targeted repair. The original generic multiplication/division
+algebra limitation remains disclosed; no arithmetic bug or arithmetic change was
+introduced. The certified example is intentionally limited to the stated two
+principals and one Boolean business row each; it does not generate invariant
+proofs automatically for arbitrary applications. Other prior scope/algorithmic
+cost limits remain unchanged.
