@@ -264,3 +264,34 @@ Verification after the repair:
 The prior Bend proof targets and native controller artifact are unchanged;
 this repair changes the launcher/OS boundary and its tests. The frozen
 environment consequently includes the updated adapter source bytes.
+
+
+## Shared Rust reference follow-up
+
+The audit also found inherited `BENDRTS` could request independent early-exit
+options despite explicit CPU arguments. `Program.run` now clears it, matching
+the GPU branch's existing policy. The accepted shared source change is
+`b7e873cb8e3638de23313ff3655d0feedfa2e4e0`; test-only follow-up
+`c39bebbd0a9b64380dd10cdeea9112b82b52d5fe` uses one immutable executable
+launch fixture. This avoids a write/exec race seen as `ETXTBSY` in an earlier
+parallel test run, without production retries or global environment mutation.
+
+Post-repair evidence, using the common heavy lock:
+
+- All **13** Rust host/model tests pass with no ignored tests; strict
+  all-target Clippy and formatting checks pass. Evidence:
+  `build/audit/runtime-policy-fixture.log`.
+- A release rebuild and the real
+  `EndToEndTests.test_native_runtime_options_are_owned_by_host` pass
+  (**16.162 s**). It starts with inherited `--gpu-build --help`, performs
+  an admitted ordinary credential update, prepares a universal program and
+  executes it with current credentials.
+- Validated `server/main.rs` SHA-256:
+  `958535bc39bbc21f058c86f747348cf49233bbe83cddc1e979850087d7d76709`. Later report-only edits do not change that source.
+
+This is a process-runtime boundary repair. The Bend admission/proof functions
+and canonical request/state/response formats are unchanged; their previous
+proof results are retained without claiming another full aggregate rerun.
+The previous performance measurements, if any, remain measurements of their
+recorded revisions; no benchmark was repeated for this repair.
+The additional real host regression explicitly selects `jaydb2-rust-reference`; the separate Bend controller/Node repair and its actual service check are recorded above.
