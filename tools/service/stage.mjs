@@ -164,11 +164,14 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'Cargo.toml', 'Cargo.lock', 'host/Controller.bend', 'host/Policy.bend',
+    'host/Effects.bend', 'host/effects.c', 'host/os.mjs', 'host/launch.mjs']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.
-  const controller = read(`/proc/${process.ppid}/exe`);
+  // The byte adapter names the verified official Bend controller it launched.
+  // The legacy host keeps its original /proc binding for differential tests.
+  const controller = read(process.env.JAYDB_CONTROLLER_PATH ?? `/proc/${process.ppid}/exe`);
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
   identityEntries.push(...[...tooling].map(([name, data]) => [name, digest(data)]).sort(), ['server/controller', digest(controller)]);
   const identity = digest(JSON.stringify(identityEntries));
