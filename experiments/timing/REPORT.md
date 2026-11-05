@@ -10,7 +10,8 @@ Accepted prerequisites incorporated on this branch:
   `9675a22`; accepted real-CLI milestone
   `0aeaa4569dcf164844e72fc368f07eae9f022446`, merged as `93126e8`.
 - Persistence ready boundary `83a9f3703345c234fe3b14363e6e14e15cb88b80`,
-  merged as `5bb4f20`.
+  merged as `5bb4f20`; required full-uint64 state-limit correction
+  `6c6e494c081b3332d244900b14a6a9581249a4aa`, merged as `03c6b81`.
 
 No unaccepted sibling changes were incorporated. The pinned official tools are
 an immutable `.tools` symlink to `/home/jota/projects/jaydb2/.tools`. Build,
@@ -23,6 +24,7 @@ Actual implementation and complete CLI/accounting/contract examples are in
 [`SERVICE_TIMING.md`](../../tools/service/SERVICE_TIMING.md).
 
 ```
+mkdir -p build
 ./jaydb2 --configuration examples/access/Configuration.bend \
   --seed examples/access/Seed.bend --threads 1 --timing-log build/service.ndjson
 
@@ -96,8 +98,9 @@ composition or power-loss behavior is claimed.
 
 Completed before the consolidated final run:
 
-- `cargo test --locked`: 30 combined host/clock/scheduling/storage/model tests
-  passed, including controlled-clock use of the actual durable-ready callback.
+- `cargo test --locked`: 31 combined host/clock/scheduling/storage/model tests
+  passed on the final integrated source, including the full-u64 state-limit
+  boundary and controlled-clock use of the actual durable-ready callback.
 - `cargo clippy --locked --all-targets -- -D warnings`: passed. Two timing
   nested-if findings were corrected before this pass.
 - `make build`: passed under the shared lock on the initial feature revision.
@@ -107,15 +110,26 @@ Completed before the consolidated final run:
   real-worker tests passed in 55.776s before response-bound/queue/storage
   integration. Final coverage below supersedes that initial binary.
 
-The final consolidated run is queued under
-`flock /tmp/jaydb2-experiments-heavy.lock`, with
-`TMPDIR="$PWD/.build/timing/tmp"`. Obsolete queued runs were canceled before
-acquiring the lock; they ran no checks. Final results will replace this paragraph.
-The consolidated commands are build; host tests; strict clippy; formatting;
-`make verify-contract`; both-checker checks of `VERIFY.bend`,
-`proof/Preprocessing.bend`, `proof/Persistence.bend`; actual default, prepared,
-preprocessing differential, scheduling and timing service suites; then a separate
-local `storage-fault-injection` binary with timing/persistence fault tests.
+Final integrated focused evidence (`.build/timing/focused-checks.log`): release
+build, all 31 host/model tests, strict clippy, and both real queued-identity/quota
+and durable-reopen/reset timing cases passed (two native tests in 34.627s).
+Both actual fatal subcases after replacement and after RAM publication passed.
+The initial fault method failed only because its before-replace hook was expected
+to be rollback-safe; the accepted storage adapter conservatively marks every
+error from the replace primitive uncertain, including that hook. Production code
+was preserved. The test now separately covers after-file-sync known rollback,
+before-replace fatal/old image, after-replace fatal/new image and after-publication
+fatal/new image. Exactly one corrected fault-only recheck is pending.
+
+All focused native runs use `flock /tmp/jaydb2-experiments-heavy.lock`, with
+`TMPDIR="$PWD/.build/timing/tmp"`; the fault binary is local at
+`.build/timing/fault/release/jaydb2` with `storage-fault-injection` enabled.
+All obsolete broad/redundant jobs were canceled while their lock processes had
+no child; no running test was interrupted. Completed evidence is preserved.
+Broad official/default/prepared/native-differential/scheduling regressions are
+deferred until the coordinator releases them after first untested feature gates.
+The planned broad suite contains no admission mocks, so the conditional accepted
+SIGKILL mock realpath test-only repair is not needed here.
 
 Meaningful coverage includes exact/Unicode/empty authenticated IDs; exact source,
 proof, argument and current-context binding; malformed-input/auth precedence;

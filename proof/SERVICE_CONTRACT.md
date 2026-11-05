@@ -126,6 +126,9 @@ private principal prefix and certificate instance to the actual same
 `Input.Analysis.Received` context. These are checked definitions of the native
 metadata emitter, not a proof of the Rust accounting or OS clock. The private
 byte bridge, once-only host completion charging, quota decision before admission,
-and future scheduling/durable commit hook order remain explicit host contracts.
+and scheduling/durable commit hook order remain explicit host contracts.
+The integrated timer consumes its token at `publish_with_ready`, after durable
+and RAM publication and before final inspection, logs or client delivery; fatal
+uncertain returns propagate to the scheduler without response/later dispatch.
 Controlled-clock and real-worker tests support those contracts. Timing supplies
 neither permission for an operation nor permission to publish a state.

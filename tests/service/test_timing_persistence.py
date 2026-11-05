@@ -26,7 +26,7 @@ class TimingPersistenceTests(unittest.TestCase):
                 initial.finish()
             finally:
                 initial.close()
-            for point in ('before_replace', 'after_replace', 'after_publish'):
+            for point in ('after_file_sync', 'before_replace', 'after_replace', 'after_publish'):
                 with self.subTest(point=point):
                     storage, log = root/point, root/(point+'.ndjson')
                     shutil.copytree(base, storage)
@@ -40,7 +40,7 @@ class TimingPersistenceTests(unittest.TestCase):
                         later = frame(dict(code=code, proof=proof, credential='alice-token', arguments='must-not-run'))
                         server.process.stdin.write(first+later)
                         server.process.stdin.close()
-                        if point == 'before_replace':
+                        if point == 'after_file_sync':
                             header = server.read(8)
                             self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))),
                                              {'status': 'failure', 'value': None})
@@ -54,7 +54,7 @@ class TimingPersistenceTests(unittest.TestCase):
                         self.assertEqual(first['principal'], 'alice')
                         self.assertEqual(first['quota']['used_ns'], first['elapsed_ns'])
                         self.assertGreaterEqual(int(first['elapsed_ns']), 1_000_000)
-                        if point == 'before_replace':
+                        if point == 'after_file_sync':
                             self.assertEqual(result, 0, server.diagnostics())
                             self.assertEqual(len(records), 2)
                             self.assertEqual(records[1]['outcome'], 'quota')
@@ -65,6 +65,13 @@ class TimingPersistenceTests(unittest.TestCase):
                             self.assertIn('STORAGE_UNCERTAIN', server.diagnostics())
                             self.assertEqual(len(records), 1, 'fatal attempt double charged or queued request selected')
                             self.assertEqual(first['sequence'], 1)
-                            self.assertIn(b'new-token', state_bytes(storage))
+                            if point == 'before_replace':
+                                # Entering the replace primitive is conservatively
+                                # uncertain even if this test hook fires before
+                                # rename. No rollback acknowledgment is allowed.
+                                self.assertIn(b'alice-token', state_bytes(storage))
+                                self.assertNotIn(b'new-token', state_bytes(storage))
+                            else:
+                                self.assertIn(b'new-token', state_bytes(storage))
                     finally:
                         server.close()

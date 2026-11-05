@@ -5,6 +5,7 @@ limits, administrator laws, exact proof/source/argument binding, error precedenc
 and fresh worker isolation remain in place.
 
 ```
+mkdir -p build
 ./jaydb2 --configuration examples/access/Configuration.bend \
   --seed examples/access/Seed.bend --threads 1 --timing-log build/service.ndjson
 
@@ -15,8 +16,9 @@ and fresh worker isolation remain in place.
 
 `--timing-log FILE` appends administrator NDJSON. A new file is created with
 mode 0600; an existing file retains its permissions. `-` writes NDJSON to stderr,
-interspersed with ordinary diagnostics. The parent directory must exist. Log
-failure emits `TIMING_LOG` to stderr and disables logging without changing any
+interspersed with ordinary diagnostics. The parent directory must exist.
+Failure to open the requested log aborts startup. A later write failure emits
+`TIMING_LOG` to stderr and disables logging without changing any
 publication, response, or quota charge. Logging has no flush/durability promise.
 Client stdout contains only existing framed responses and opt-in control receipts.
 Treat the file as administrator data: it includes authenticated principal IDs.
@@ -56,7 +58,8 @@ scheduler flushes each response before selecting the next request.
 For later concurrency it may retain tokens for active requests; it must complete
 each token after cleanup/durability/publication and before delivery/order waits.
 An uncertain commit stops dispatch; it is never converted into a quota denial
-or a claim of rollback. The accepted scheduling and persistence prerequisites are integrated. Optional
+or a claim of rollback. The accepted scheduling and persistence prerequisites
+are integrated. Optional
 `--storage DIR --storage-mode create|open` performs the durable commit inside
 this same interval. At the actual `publish_with_ready` callback, the owned
 policy consumes the token immediately after durable and RAM publication.
@@ -102,7 +105,7 @@ failures have no principal and are not charged. A credential exchange charges
 its initial actor; the next selection authenticates again, so a reused
 credential can identify another user. IDs are exact strings, without case folding
 or delimiter keys. Deleting/recreating the same ID shares that period's bucket.
-Counters clear on period rollover and process restart, including future durable
+Counters clear on period rollover and process restart, including durable
 reopening; these quotas have no restart-survival or anti-restart guarantee.
 A request crossing a boundary charges its full duration to its completion period,
 even if denied against an earlier period. Earlier periods are not retained.
