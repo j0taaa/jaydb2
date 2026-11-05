@@ -30,6 +30,7 @@ test-library: build
 	mkdir -p build/library/tmp
 	python3 -B experiments/library/prepare_proofs.py
 	python3 -B tools/check.py experiments/library/VERIFY.bend build/library/application-proof/Check.bend
+	python3 -B experiments/library/test_negative.py
 	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
 	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B applications/tasks/query_check.py
 
