@@ -1,0 +1,1130 @@
+{
+  "anchor": "5925c57febd978d44fa24000233647a59e7898a6",
+  "build_elapsed_ns": 65385281,
+  "clang_sha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+  "controller_build": {
+    "chosen_executable_verified_against_fresh_build": false,
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release"
+    ],
+    "cwd": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline",
+    "revision": {
+      "branch": "experiment-baseline",
+      "head": "e472fd41b2f4da0cac6eb607a501726fbe90f885",
+      "status": "?? experiments/baseline/REPORT.md",
+      "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source_identity": {
+      "sha256": "3e8cf0774d96fadd478b619fa7cbb12d802104776ac936ecb78a6a39295c4041",
+      "source_file_count": 316
+    },
+    "target_dir": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline/build/benchmark-target"
+  },
+  "controller_executable": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline/build/benchmark-target/release/jaydb2",
+  "controller_sha256": "aee26070a00341f9e2edf68b598ac6ff1d8e693287e2b46331d51291d2aca816",
+  "evidence_retention": {
+    "full_result_path": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline/build/benchmark-smoke-populated/result.json",
+    "full_result_sha256": "898fe68028cdd092f87b04c36231d9c2d568703e8cb097f55a48cba11ef9f69d",
+    "other_checked_response_groups": [
+      {
+        "checked": true,
+        "count": 1,
+        "mode": "invalidate",
+        "phase": "setup",
+        "status": "invalidated",
+        "workload": "fill"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "invalidate",
+        "phase": "setup",
+        "status": "invalidated",
+        "workload": "read"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepare",
+        "phase": "setup",
+        "status": "prepared",
+        "workload": "batch"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepare",
+        "phase": "setup",
+        "status": "prepared",
+        "workload": "compute"
+      },
+      {
+        "checked": true,
+        "count": 1,
+        "mode": "prepare",
+        "phase": "setup",
+        "status": "prepared",
+        "workload": "fill"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepare",
+        "phase": "setup",
+        "status": "prepared",
+        "workload": "write"
+      },
+      {
+        "checked": true,
+        "count": 56,
+        "mode": "prepared",
+        "phase": "setup",
+        "status": "success",
+        "workload": "fill"
+      },
+      {
+        "checked": true,
+        "count": 72,
+        "mode": "prepared",
+        "phase": "setup",
+        "status": "success",
+        "workload": "read"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "startup",
+        "phase": "setup",
+        "status": "authentication",
+        "workload": "authentication_probe"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "invalidate",
+        "phase": "validation",
+        "status": "invalidated",
+        "workload": "batch"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "invalidate",
+        "phase": "validation",
+        "status": "invalidated",
+        "workload": "compute"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "invalidate",
+        "phase": "validation",
+        "status": "invalidated",
+        "workload": "read"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "invalidate",
+        "phase": "validation",
+        "status": "invalidated",
+        "workload": "write"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "authentication",
+        "workload": "authentication"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "data",
+        "workload": "invalid_batch"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "data",
+        "workload": "invalid_write"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "failure",
+        "workload": "invalidated_handle"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "refusal",
+        "workload": "missing_row"
+      },
+      {
+        "checked": true,
+        "count": 58,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "success",
+        "workload": "read"
+      },
+      {
+        "checked": true,
+        "count": 2,
+        "mode": "prepared",
+        "phase": "validation",
+        "status": "success",
+        "workload": "zero_compute"
+      }
+    ],
+    "retained_request_phases": [
+      "sample",
+      "warmup"
+    ],
+    "total_checked_responses": 246
+  },
+  "finished_utc": "2026-11-05T01:26:56.185930+00:00",
+  "hardware": {
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cpu_model": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "load_average_start": [
+      1.30224609375,
+      1.5732421875,
+      1.4794921875
+    ],
+    "logical_cpus": 16,
+    "machine": "x86_64",
+    "mem_total": "MemTotal:       16220004 kB",
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "original_reference": "9b751fab3c7c349ff473a2d11a7133573b6c4df2",
+  "output": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline/build/benchmark-smoke-populated",
+  "requests": [
+    {
+      "actual": {
+        "status": "prepared",
+        "value": "e72a52dd3c3a5c16d121ca654d618bfbdf27c05ed91a06f252880475c171fddb"
+      },
+      "arguments": null,
+      "checked": true,
+      "elapsed_ns": 3961334111,
+      "expected": {
+        "status": "prepared",
+        "value": "<64 hex characters>"
+      },
+      "mode": "prepare",
+      "phase": "sample",
+      "request_bytes": 1638,
+      "request_sha256": "5947c25200f31c8905f8d4e1beddf34eadd3d3d97058a5ca614bcba51069f9a6",
+      "response_bytes": 136,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "prepared",
+        "value": "dcd5b354a14de57ec32a6fc9e177df6a690c059af10a24088f0b3a68a3b72da2"
+      },
+      "arguments": null,
+      "checked": true,
+      "elapsed_ns": 3998939668,
+      "expected": {
+        "status": "prepared",
+        "value": "<64 hex characters>"
+      },
+      "mode": "prepare",
+      "phase": "sample",
+      "request_bytes": 1638,
+      "request_sha256": "5947c25200f31c8905f8d4e1beddf34eadd3d3d97058a5ca614bcba51069f9a6",
+      "response_bytes": 136,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 0
+      },
+      "arguments": "k0007",
+      "checked": true,
+      "elapsed_ns": 3884065335,
+      "expected": {
+        "status": "success",
+        "value": 0
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1672,
+      "request_sha256": "478aa682e107f6e9425c9ca63b7c2fdf5c01c1ddc6ae4aa59a7fb210f96faf0e",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 0
+      },
+      "arguments": "k0007",
+      "checked": true,
+      "elapsed_ns": 3906005663,
+      "expected": {
+        "status": "success",
+        "value": 0
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1672,
+      "request_sha256": "478aa682e107f6e9425c9ca63b7c2fdf5c01c1ddc6ae4aa59a7fb210f96faf0e",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1100
+      },
+      "arguments": [
+        "k0007",
+        1100
+      ],
+      "checked": true,
+      "elapsed_ns": 4119200190,
+      "expected": {
+        "status": "success",
+        "value": 1100
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1427,
+      "request_sha256": "cba6dd2821c35ad78f900b78fccf6fad88a8a30e872ebaa99e3197a31c8f038b",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": [
+        "k0007",
+        1101
+      ],
+      "checked": true,
+      "elapsed_ns": 4113163079,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1427,
+      "request_sha256": "b58d9c5347fc9c80111e4e71e58b85718b6f842ac58365289919a264f8cd7600",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": "k0007",
+      "checked": true,
+      "elapsed_ns": 6316978,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 203,
+      "request_sha256": "25104678c21ba92ab67fb5adf21e5cc0c16b10a52bd752e6828212d7a05a3385",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": "k0007",
+      "checked": true,
+      "elapsed_ns": 9754970,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 203,
+      "request_sha256": "25104678c21ba92ab67fb5adf21e5cc0c16b10a52bd752e6828212d7a05a3385",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11100
+      },
+      "arguments": [
+        "k0007",
+        11100
+      ],
+      "checked": true,
+      "elapsed_ns": 16947972,
+      "expected": {
+        "status": "success",
+        "value": 11100
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 221,
+      "request_sha256": "d743a04ca6b4ac7557f132066b1b26c78cae8ff227deee40033ea7a8bb63d5a2",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11101
+      },
+      "arguments": [
+        "k0007",
+        11101
+      ],
+      "checked": true,
+      "elapsed_ns": 23667077,
+      "expected": {
+        "status": "success",
+        "value": 11101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 221,
+      "request_sha256": "f4d3d061a5a3a29f0e0d344164fd1cc0f2147c5cd23da95626b4cab5a72b0742",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11200
+      },
+      "arguments": 11200,
+      "checked": true,
+      "elapsed_ns": 14583619,
+      "expected": {
+        "status": "success",
+        "value": 11200
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 198,
+      "request_sha256": "fb0513baf3dce565899783131c6b90898d6dfc4d38a47acb99f80b6a7bd763ce",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "batch"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11201
+      },
+      "arguments": 11201,
+      "checked": true,
+      "elapsed_ns": 8989296,
+      "expected": {
+        "status": "success",
+        "value": 11201
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 198,
+      "request_sha256": "b3915b9affcea094e72e1a293b0590395972f6bb94f7dc1e8241e5ba14133548",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "batch"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 4144200740
+      },
+      "arguments": [
+        4096,
+        11300
+      ],
+      "checked": true,
+      "elapsed_ns": 4709907,
+      "expected": {
+        "status": "success",
+        "value": 4144200740
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 216,
+      "request_sha256": "15552fe7a02aa90ca0b89a5934b97f2b3b76e0e3984e5bc938572a579130cc73",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "compute"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1694449472
+      },
+      "arguments": [
+        4097,
+        11301
+      ],
+      "checked": true,
+      "elapsed_ns": 4756879,
+      "expected": {
+        "status": "success",
+        "value": 1694449472
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 216,
+      "request_sha256": "df4a90ccdddbc15fe80f23fbe0e7436a4e820e5cb731770f6aa29ee914b215d8",
+      "response_bytes": 71,
+      "rows": 8,
+      "workload": "compute"
+    },
+    {
+      "actual": {
+        "status": "prepared",
+        "value": "22ab5b70d2227e296fc6213c349449e3f49cd6304c899548c496918fcd887ce2"
+      },
+      "arguments": null,
+      "checked": true,
+      "elapsed_ns": 4013643626,
+      "expected": {
+        "status": "prepared",
+        "value": "<64 hex characters>"
+      },
+      "mode": "prepare",
+      "phase": "sample",
+      "request_bytes": 1638,
+      "request_sha256": "5947c25200f31c8905f8d4e1beddf34eadd3d3d97058a5ca614bcba51069f9a6",
+      "response_bytes": 136,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "prepared",
+        "value": "6239c42c1a3a589476df94570df14f57b4ff6d891c57cfa43ef3a8f36fd88406"
+      },
+      "arguments": null,
+      "checked": true,
+      "elapsed_ns": 3979630812,
+      "expected": {
+        "status": "prepared",
+        "value": "<64 hex characters>"
+      },
+      "mode": "prepare",
+      "phase": "sample",
+      "request_bytes": 1638,
+      "request_sha256": "5947c25200f31c8905f8d4e1beddf34eadd3d3d97058a5ca614bcba51069f9a6",
+      "response_bytes": 136,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 0
+      },
+      "arguments": "k0063",
+      "checked": true,
+      "elapsed_ns": 3877645659,
+      "expected": {
+        "status": "success",
+        "value": 0
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1672,
+      "request_sha256": "b56623ef87346250d2de14f84f4270480af4dfd200ac4fe8ce162c087f0aab28",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 0
+      },
+      "arguments": "k0063",
+      "checked": true,
+      "elapsed_ns": 3875254730,
+      "expected": {
+        "status": "success",
+        "value": 0
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1672,
+      "request_sha256": "b56623ef87346250d2de14f84f4270480af4dfd200ac4fe8ce162c087f0aab28",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1100
+      },
+      "arguments": [
+        "k0063",
+        1100
+      ],
+      "checked": true,
+      "elapsed_ns": 4132816857,
+      "expected": {
+        "status": "success",
+        "value": 1100
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1427,
+      "request_sha256": "c75bd6d119de57b2d93f12ba43108ec6c267af248d726cccbadfd65f9a47795f",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": [
+        "k0063",
+        1101
+      ],
+      "checked": true,
+      "elapsed_ns": 4112962722,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "ordinary",
+      "phase": "sample",
+      "request_bytes": 1427,
+      "request_sha256": "9df5a1f2483dd4939d90c744b507047db48f039e813edce8fd4c5e8b0b55f19f",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": "k0063",
+      "checked": true,
+      "elapsed_ns": 15824449,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 203,
+      "request_sha256": "1badb284748d766fd38f5069f952ffa0052fec1c3df266e6fbda1ef4a5727f7f",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1101
+      },
+      "arguments": "k0063",
+      "checked": true,
+      "elapsed_ns": 19431283,
+      "expected": {
+        "status": "success",
+        "value": 1101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 203,
+      "request_sha256": "1badb284748d766fd38f5069f952ffa0052fec1c3df266e6fbda1ef4a5727f7f",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "read"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11100
+      },
+      "arguments": [
+        "k0063",
+        11100
+      ],
+      "checked": true,
+      "elapsed_ns": 20313837,
+      "expected": {
+        "status": "success",
+        "value": 11100
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 221,
+      "request_sha256": "50b4b2d5b35cc3493c1db506920c9668cdffe53f601a780db22924a5c67c8ae8",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11101
+      },
+      "arguments": [
+        "k0063",
+        11101
+      ],
+      "checked": true,
+      "elapsed_ns": 10296331,
+      "expected": {
+        "status": "success",
+        "value": 11101
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 221,
+      "request_sha256": "88df7d45e8de0bfa2f2bb5b51b57f70dfce0ed88bc94ecaeac9e2968d95dd6cb",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "write"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11200
+      },
+      "arguments": 11200,
+      "checked": true,
+      "elapsed_ns": 19533312,
+      "expected": {
+        "status": "success",
+        "value": 11200
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 198,
+      "request_sha256": "7ebd586e615be32ef50e905cc257a8647b246d2842a108220459bcf76cb6a08f",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "batch"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 11201
+      },
+      "arguments": 11201,
+      "checked": true,
+      "elapsed_ns": 10672610,
+      "expected": {
+        "status": "success",
+        "value": 11201
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 198,
+      "request_sha256": "02343b86e0f4b2ffb426672bbf78931e8005239180d70fa18b0bebdc053fbf69",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "batch"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 4144200740
+      },
+      "arguments": [
+        4096,
+        11300
+      ],
+      "checked": true,
+      "elapsed_ns": 10261802,
+      "expected": {
+        "status": "success",
+        "value": 4144200740
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 216,
+      "request_sha256": "1d3dd3a9e7b79102046f0fd49953cfddaa1df0d8d07a655d1bcc68ced5a080d1",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "compute"
+    },
+    {
+      "actual": {
+        "status": "success",
+        "value": 1694449472
+      },
+      "arguments": [
+        4097,
+        11301
+      ],
+      "checked": true,
+      "elapsed_ns": 10048941,
+      "expected": {
+        "status": "success",
+        "value": 1694449472
+      },
+      "mode": "prepared",
+      "phase": "sample",
+      "request_bytes": 216,
+      "request_sha256": "58ecc4d11ddca31685ae6da52c1049d673629eb4e48bff2ffd72a8fbf99cee86",
+      "response_bytes": 71,
+      "rows": 64,
+      "workload": "compute"
+    }
+  ],
+  "schema_version": 1,
+  "settings": {
+    "backend": "official-bend-c",
+    "compute_iterations_base": 4096,
+    "cpu_workers": 1,
+    "environment": {},
+    "gpu": "off",
+    "heavy_lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "limits": {
+      "message": 32768,
+      "response": 32768,
+      "state": 65536
+    },
+    "native_compiler": "/usr/bin/clang-19",
+    "native_flags": [
+      "-std=gnu11",
+      "-O2",
+      "-w",
+      "--no-default-config",
+      "<emitted C>",
+      "-o",
+      "<program>",
+      "-lm",
+      "-pthread"
+    ],
+    "native_worker_arguments": [
+      "+RTS",
+      "--threads",
+      "1",
+      "--gpu",
+      "off",
+      "-RTS"
+    ],
+    "ordinary_samples": [
+      "read",
+      "write"
+    ],
+    "padding_bytes_per_row": 128,
+    "preparation_samples": "repeated read preparation; other workload preparations are setup only",
+    "requests_in_flight": 1,
+    "reset": "fresh process and 8-row checked seed; populate rows 8..N-1 with admitted prepared writes, read back all rows, then evolve model through every warmup/sample write",
+    "rows": [
+      8,
+      64
+    ],
+    "samples": 2,
+    "stack_soft_limit": "unlimited",
+    "timing": "perf_counter_ns, immediately before pipe write through complete response bytes; encode/decode/check excluded",
+    "warmups": 0
+  },
+  "started_utc": "2026-11-05T01:25:10.441396+00:00",
+  "states": [
+    {
+      "final_model_state_sha256": "6480e3d166890ac66041acbe033210f2188190fb5c725aef8de4e23944098eb9",
+      "initial_state_bytes": 1865,
+      "initial_state_sha256": "10f8baef0a4603f451c508360540fa8c491bb30fe49c9bdc7d2d0e53aec5337a",
+      "population_prepared_writes": 0,
+      "rows": 8,
+      "seed_rows": 8,
+      "seed_source_sha256": "331481f55d8d993dbd23995ec7c5fb628075a1647adc2bbaae21886a063429a5",
+      "validation": "Every changed row independently read after each write/batch; invalid write rollback read back."
+    },
+    {
+      "final_model_state_sha256": "7fb47ec97dd05348a2116a2d4bbcb6990a39f2159c945b132957b84849f0f0b5",
+      "initial_state_bytes": 13401,
+      "initial_state_sha256": "3904c86ecf83de90d4887ecd95bad7fc653b3dd6aafa8eb9b00fe0893a4c4cb2",
+      "population_prepared_writes": 56,
+      "rows": 64,
+      "seed_rows": 8,
+      "seed_source_sha256": "331481f55d8d993dbd23995ec7c5fb628075a1647adc2bbaae21886a063429a5",
+      "validation": "Every changed row independently read after each write/batch; invalid write rollback read back."
+    }
+  ],
+  "status": "passed",
+  "suite_files_sha256": {
+    "Batch.bend": "17a90ff5e94ea79559ae88e3f584318f76f7ab8ffb34eb0ffb3d17071ec48426",
+    "Compute.bend": "d852f2479780b6b743cb56b3828e777c7ab0948dc2307c9062bd732e1d4ffc7e",
+    "Configuration.bend": "bb3766c0857f60cd9b5fe5d2d715e3d598564dae0ddd85343dd4364cb224180f",
+    "Read.bend": "f48edaab39e26048f47ee3ddf0c2f33454bd5ad557607781b2d8b311be5657f0",
+    "Write.bend": "7bbaec0bb044c574b6e7eef1e3011d67af09da52b728b13740109e5b3407dff1",
+    "bench.py": "305cdb08fe096826db32ada9fe1d0b52d8b63c0ecaefdc3a5ec0667ae8f4c4f8",
+    "compare.py": "6784da0a032fc3e1c7a005f91960c5e414e6dac009c48df5bbd8c3999a213c31",
+    "compare.sh": "0794edd8c539c1ef7f7c2f1d8f1012376e77ea0d93b133bc7f3c99782a60f406",
+    "run.sh": "9d3b6e6a420bce6b617d63d354a509258100c16b7f82c8e31bc8095163081e6b",
+    "test_bench.py": "db92e0d6029fa438588050cd90554868feeec64f351c8677eba3469b76ef3859"
+  },
+  "suite_revision": {
+    "branch": "experiment-baseline",
+    "head": "e472fd41b2f4da0cac6eb607a501726fbe90f885",
+    "status": "?? experiments/baseline/REPORT.md",
+    "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "suite_root": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline/experiments/baseline",
+  "summary": [
+    {
+      "coefficient_of_variation": 0.003983058617627526,
+      "max_ns": 3906005663,
+      "median_absolute_deviation_ns": 10970164.0,
+      "median_ns": 3895035499.0,
+      "min_ns": 3884065335,
+      "mode": "ordinary",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 15514154.710257081,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.0010370976079131279,
+      "max_ns": 4119200190,
+      "median_absolute_deviation_ns": 3018555.5,
+      "median_ns": 4116181634.5,
+      "min_ns": 4113163079,
+      "mode": "ordinary",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 4268882.126875899,
+      "workload": "write"
+    },
+    {
+      "coefficient_of_variation": 0.006680962264174216,
+      "max_ns": 3998939668,
+      "median_absolute_deviation_ns": 18802778.5,
+      "median_ns": 3980136889.5,
+      "min_ns": 3961334111,
+      "mode": "prepare",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 26591144.36499724,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.33562109136251245,
+      "max_ns": 14583619,
+      "median_absolute_deviation_ns": 2797161.5,
+      "median_ns": 11786457.5,
+      "min_ns": 8989296,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 3955783.72944787,
+      "workload": "batch"
+    },
+    {
+      "coefficient_of_variation": 0.007017000220749578,
+      "max_ns": 4756879,
+      "median_absolute_deviation_ns": 23486.0,
+      "median_ns": 4733393.0,
+      "min_ns": 4709907,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 33214.21972589451,
+      "workload": "compute"
+    },
+    {
+      "coefficient_of_variation": 0.302518083914296,
+      "max_ns": 9754970,
+      "median_absolute_deviation_ns": 1718996.0,
+      "median_ns": 8035974.0,
+      "min_ns": 6316978,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 2431027.456865101,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.23395883181155033,
+      "max_ns": 23667077,
+      "median_absolute_deviation_ns": 3359552.5,
+      "median_ns": 20307524.5,
+      "min_ns": 16947972,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 8,
+      "sample_stdev_ns": 4751124.709004438,
+      "workload": "write"
+    },
+    {
+      "coefficient_of_variation": 0.00043613151837583117,
+      "max_ns": 3877645659,
+      "median_absolute_deviation_ns": 1195464.5,
+      "median_ns": 3876450194.5,
+      "min_ns": 3875254730,
+      "mode": "ordinary",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 1690642.109235571,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.0034051343135213276,
+      "max_ns": 4132816857,
+      "median_absolute_deviation_ns": 9927067.5,
+      "median_ns": 4122889789.5,
+      "min_ns": 4112962722,
+      "mode": "ordinary",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 14038993.493093174,
+      "workload": "write"
+    },
+    {
+      "coefficient_of_variation": 0.0060177319353129765,
+      "max_ns": 4013643626,
+      "median_absolute_deviation_ns": 17006407.0,
+      "median_ns": 3996637219.0,
+      "min_ns": 3979630812,
+      "mode": "prepare",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 24050691.42663674,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.41484994037084544,
+      "max_ns": 19533312,
+      "median_absolute_deviation_ns": 4430351.0,
+      "median_ns": 15102961.0,
+      "min_ns": 10672610,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 6265462.470273204,
+      "workload": "batch"
+    },
+    {
+      "coefficient_of_variation": 0.014821265430826404,
+      "max_ns": 10261802,
+      "median_absolute_deviation_ns": 106430.5,
+      "median_ns": 10155371.5,
+      "min_ns": 10048941,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 150515.45655014968,
+      "workload": "compute"
+    },
+    {
+      "coefficient_of_variation": 0.14468097159430415,
+      "max_ns": 19431283,
+      "median_absolute_deviation_ns": 1803417.0,
+      "median_ns": 17627866.0,
+      "min_ns": 15824449,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 2550416.7800142,
+      "workload": "read"
+    },
+    {
+      "coefficient_of_variation": 0.46281656625843587,
+      "max_ns": 20313837,
+      "median_absolute_deviation_ns": 5008753.0,
+      "median_ns": 15305084.0,
+      "min_ns": 10296331,
+      "mode": "prepared",
+      "n": 2,
+      "rows": 64,
+      "sample_stdev_ns": 7083446.423176927,
+      "workload": "write"
+    }
+  ],
+  "target_revision": {
+    "branch": "experiment-baseline",
+    "head": "e472fd41b2f4da0cac6eb607a501726fbe90f885",
+    "status": "?? experiments/baseline/REPORT.md",
+    "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "target_root": "/home/jota/.t3/worktrees/jaydb2/experiment-baseline",
+  "toolchain_lock": {
+    "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+    "files": {
+      "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+      "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+      "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80",
+      "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+      "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0"
+    },
+    "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+    "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+    "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+    "version": "2.0.39"
+  },
+  "tools": {
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/lib/llvm-19/bin",
+    "node": "v24.19.0",
+    "python": "Python 3.12.3",
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)"
+  },
+  "verified_tool_sha256": {
+    "bend": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd",
+    "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+    "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+    "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80",
+    "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+    "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+    "bendtt": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18"
+  }
+}
