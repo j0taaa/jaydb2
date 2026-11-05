@@ -137,3 +137,33 @@ speedup claim, kernel-only timing, throughput claim or measured break-even
 point. Three samples on a desktop GPU are observations rather than a broad
 performance characterization. Larger workloads and other machines are
 unmeasured, and can run out of the configured corpus.
+
+## Focused heavier runtime-input workload
+
+`HeavyClient.bend` retains the same credential access pattern and certificate
+interface, but passes runtime `depth × 4096` rounds to each leaf of `tree!`.
+The selected depth-16 case has 65,536 leaves and 65,536 rounds per leaf:
+4,294,967,296 mixing rounds. The small control uses depth 2 and 8,192 rounds
+per leaf, checked with an independent iterative Python oracle. Heavy output
+and the complete canonical native state proposal are compared with real,
+unwrapped CPU execution; no billion-step Python oracle is required.
+
+`heavy_benchmark.py` separately records the first preparation (admission,
+native compilation and optional device prebuild), fresh native-worker total,
+and complete prepared frame exchanges. Native-worker timing includes that
+worker's input analysis, GPU initialization/load where enabled, computation,
+proposal encoding, binary pipes and process exit; it is not kernel-only time.
+Each native trial consumes the same known seed bytes and must propose exactly
+the expected full state, including Bob's untouched credential. Two complete
+requests per size also check exact checksums and current credential evolution.
+The heavier run is a focused pair of sizes, rather than a parameter sweep.
+
+Run the direct script with an outer lock (the `make benchmark-gpu` target for
+the earlier fixture already locks internally and must be invoked directly):
+
+```sh
+mkdir -p build/gpu/tmp
+flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build/gpu/tmp" \
+  PYTHONPATH=. python3 -B experiments/gpu/heavy_benchmark.py \
+  --output build/gpu/heavy-benchmark.json
+```
