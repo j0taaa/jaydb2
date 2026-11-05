@@ -2,11 +2,17 @@
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6`.
 Original reference: `9b751fab3c7c349ff473a2d11a7133573b6c4df2`.
-Accepted integration prerequisite (next): persistence/preprocessing checkpoint
-`83a9f3703345c234fe3b14363e6e14e15cb88b80`.
+Accepted integration prerequisites: persistence/preprocessing checkpoint
+`83a9f3703345c234fe3b14363e6e14e15cb88b80`, followed by its required
+u64-limit boundary fix `6c6e494c081b3332d244900b14a6a9581249a4aa`.
+Both exact commits are merged. No new library experiment prerequisite is used;
+only this branch's receipt modules and the anchor's task proof foundation are
+imported. The later accepted optional library foundation is not required.
 
-Implementation checkpoint; final verification and restart integration are still
-pending. This paragraph will be replaced with actual final results.
+Completed and validated. The complete focused gate ran at source head
+`65fe3511aa30ff9d221a8f5b102320e2a20e17b9`; the final report-only commit
+changes no tested implementation or harness source. All work remains local to
+`experiment-idempotency`; no push, deployment, PR or main merge was performed.
 
 ## Supported behavior
 
@@ -32,7 +38,6 @@ Examples and CLI: [application README](../../applications/vouchers/README.md).
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock make test-idempotency
-# After merging the accepted persistence prerequisite:
 flock /tmp/jaydb2-experiments-heavy.lock python3 -B applications/vouchers/check.py --restart
 ```
 
@@ -68,24 +73,80 @@ fresh authentication, publication, and persistence filesystem/flush assumptions
 remain those of the existing contracts and accepted persistence prerequisite.
 Storage hashes alone are neither authorization nor law-validity proofs.
 
-## Validation record (checkpoint)
+## Validation record
 
-- Local `cargo build --locked --release`: passed under the shared lock.
-- Bounded per-file official primary `--check-only`: new helper/law/model modules
-  and the staged full application/proof/seed package passed after fixes.
-- Python byte compilation and `git diff --check`: passed.
-- Full primary+BendTT and native sessions are queued; no completed full-check
-  claim is made at this checkpoint.
+The complete command passed (exit 0) at
+`65fe3511aa30ff9d221a8f5b102320e2a20e17b9`:
 
-Functional model targets in `experiments/idempotency/VERIFY.bend` cover exact
-hits, changed input, version conflict, unchanged hit state, actual second-write
-data error and rollback, and state/response-size rollback. The native harness
-adds distinct principals, current hit/miss permissions, cancellation after both
-writes, explicit retirement/reuse, Unicode/delimiter/empty/64/65-ID boundaries,
-forged/changed receipt bodies, foreign reads, permission bypass, principal
-deletion rejection, actual technical-size rollback and optional real restart.
-All temporary/build/storage paths are worktree-local. `.tools` points to the
-shared immutable pinned official distribution; no toolchain change is made.
+```sh
+mkdir -p applications/vouchers/.build/tmp
+TMPDIR="$PWD/applications/vouchers/.build/tmp" \
+  flock /tmp/jaydb2-experiments-heavy.lock bash -c \
+  'make build && python3 -B applications/vouchers/check.py --restart && cargo test --locked && python3 -B tools/check.py proof/Persistence.bend proof/Preprocessing.bend'
+```
+
+Actual results:
+
+- `make build` / `cargo build --locked --release`: passed using the pinned
+  official toolchain and the merged controller.
+- The native harness's flat development application/proof/seed package passed
+  official primary `--check-only` and BendTT `--verdict`. The generic universal
+  certificate proof is checked here; actual generated `Bindings.certificate`
+  and `Bindings.terminates` targets are checked by real request admission.
+- `experiments/idempotency/VERIFY.bend`: all eight functional model targets
+  passed both checkers. They cover exact hits, version conflict, exact-input
+  conflict (with its actual read event), unchanged hit state, real second-write
+  `Data.operate` failure and rollback, and state/response-limit rollback.
+- `applications/vouchers/check.py --restart`: **43 real framed request checks
+  passed**. Each positive admitted program uses official checking/compilation
+  and native execution. Covered separate principals using one ID; same-input
+  hits; changed text/cancellation conflicts; present permission on hits and
+  misses; refusal after both provisional writes; explicit paired retirement
+  and ID reuse; empty/delimiter IDs; Unicode/NUL inputs and normalization
+  differences; 64/65-scalar ID boundaries;
+  fresh authentication; actual state/response/message-limit behavior.
+- All five deliberate bad programs returned `certificate`: receipt-only
+  forgery, live result mutation, permission bypass, foreign read then refusal,
+  and principal deletion. The first two include genuine per-operation ordinary
+  ownership proofs and fail specifically at `certify`'s frozen protocol
+  binding, beyond mere permission/source mismatch. The harness verified exactly
+  five `PRIMARY_CHECK` rejections and at least two `Location: certify` messages;
+  follow-up requests confirmed unchanged state.
+- The state-limit case verifies absent business data followed by a different
+  input's successful issue under the same ID. The response-limit case uses
+  a 96-byte response ceiling: the 129-byte success cannot fit, but a conflict
+  refusal can. An absent business read plus a second `limit` on changed input
+  therefore verifies neither business row nor receipt was published.
+- **Real persistence restart passed**: create storage, issue and durably receive
+  `v:persist`, terminate, remove private `Seed.bend`, then open with no seed.
+  Same-input hit returns the original receipt; changed input conflicts and
+  voucher data remains `durable`. An oversized frame terminates the create
+  session before selection; reopening verifies no business/receipt was written
+  for it and a new small request with that ID succeeds.
+- `cargo test --locked`: **13 passed, zero failed/ignored**, including the new
+  `largest_logical_limit_still_recovers_a_small_complete_image` test for the
+  exact accepted overflow fix, authoritative-image recovery, ownership/fault
+  model, fatal no-response behavior and result-ready publication order.
+- `tools/check.py proof/Persistence.bend proof/Preprocessing.bend`: both modules
+  passed primary and BendTT.
+- Bounded cheap primary checks on the new modules and full staged binding
+  package, Python byte compilation, and final `git diff --check`: passed.
+
+Two earlier development runs did not complete: one used the stale pre-merge
+controller against the new staging protocol (`HOST_JSON: missing decode`);
+rebuilding resolved it. Another harness incorrectly attempted a follow-up call
+on a connection closed by the specified terminal oversized-frame behavior.
+The test now verifies that boundary across durable reopen. These were corrected
+before the complete passing frozen-source gate above. A redundant queued
+library-only check was cancelled rather than repeating it.
+
+Full canonical/admission/demo/other-library suites and performance benchmarks
+were not rerun by this feature gate. The separately accepted prerequisites
+retain their own validation records; no GPU feature or unrelated admission-mock
+fix was merged. All test/build/state paths are worktree-local, including native
+worker and host-unit temporary directories. `.tools` points to the immutable
+shared official distribution; no compiler/checker/runtime source was modified.
+The ignored local log is `applications/vouchers/.build/final-validation.log`.
 
 ## Costs and limitations
 
