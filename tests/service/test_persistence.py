@@ -201,9 +201,12 @@ class PersistenceTests(unittest.TestCase):
         env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
         listener = None
         if kill:
-            socket_path = ROOT/'.build/persistence/barrier'
-            socket_path.unlink(missing_ok=True)
-            listener = socket.socket(socket.AF_UNIX); listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
+            # Independent of the selected fault target directory and of long
+            # worktree/TMPDIR paths; each subcase owns its short Unix address.
+            gate = self.enterContext(tempfile.TemporaryDirectory(prefix='jaydb-storage-gate-', dir='/tmp'))
+            socket_path = Path(gate)/'socket'
+            listener = self.enterContext(socket.socket(socket.AF_UNIX))
+            listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
             env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
         server = self.server(env=env)
         request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments='new-token'))
