@@ -393,7 +393,6 @@ struct Database {
     stage: PathBuf,
     source: PathBuf,
     kernel: PathBuf,
-    decode: Program,
     authenticate: Program,
     limits: Limits,
     published: Published,
@@ -498,7 +497,6 @@ impl Database {
         let initial = Program::load(
             text(programs, if recovering { "recover" } else { "initialize" })?.into(),
         )?;
-        let decode = Program::load(text(programs, "decode")?.into())?;
         let authenticate = Program::load(text(programs, "authenticate")?.into())?;
         let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1)
@@ -543,7 +541,6 @@ impl Database {
             stage: text(&report, "stagePath")?.into(),
             source: options.source,
             kernel: options.kernel,
-            decode,
             authenticate,
             limits,
             published: Published {
@@ -655,10 +652,9 @@ impl Database {
             (None, body)
         };
         let input = packet(&self.published.state, body);
-        let decoded = self.preprocess(&self.decode, &input)?;
-        if decoded[0] == 0 {
-            return Ok((decoded[1..].to_vec(), None));
-        }
+        // Input.analyze decodes before authenticating and preserves decode
+        // errors. A separate decode child would repeat that entire pass.
+        // Execution still analyzes this same packet in its own fresh process.
         let authenticated = self.preprocess(&self.authenticate, &input)?;
         if authenticated[0] == 0 {
             return Ok((authenticated[1..].to_vec(), None));
