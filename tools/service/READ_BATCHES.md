@@ -25,7 +25,7 @@ such a finite witness for all contexts and arguments. The witness does not
 depend on database observations. Programs without this certificate, including
 read traversals needing state-dependent depth bounds, retain ordinary exclusive
 execution. `experiments/concurrency/Read{,Proof}.bend` is a complete example
-against `examples/credentials`.
+against `examples/credential-exchange`.
 
 The coordinator selects a fixed group of currently queued consecutive certified
 reads, stopping at the first barrier or worker bound. It never waits to fill or

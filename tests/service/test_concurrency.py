@@ -16,7 +16,7 @@ PROOF = (ROOT/'experiments/concurrency/ReadProof.bend').read_text()
 
 class ReadBatchTests(unittest.TestCase):
     def test_checked_read_preparation_and_native_failures(self):
-        server = Server(ROOT/'examples/credentials', threads=2, options=['--read-workers', '2'])
+        server = Server(ROOT/'examples/credential-exchange', threads=2, options=['--read-workers', '2'])
         self.addCleanup(server.close)
         receipt = server.prepared(3, CODE, 'alice-token', proof=PROOF)
         self.assertEqual(receipt['status'], 'prepared', server.diagnostics())
@@ -49,7 +49,9 @@ class ReadBatchTests(unittest.TestCase):
         server.finish()
 
     def test_real_overlapping_reads_fifo_credentials_control_and_delivery_failure(self):
-        with tempfile.TemporaryDirectory(prefix='read-gate-') as temporary:
+        scratch = ROOT/'build/concurrency'
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='read-gate-', dir=scratch) as temporary:
             directory = Path(temporary)
             library = directory/'gate.so'
             subprocess.run(['cc', '-shared', '-fPIC', str(ROOT/'tests/service/read_gate.c'),
@@ -68,7 +70,7 @@ class ReadBatchTests(unittest.TestCase):
             targets.write_text('')
             env = dict(os.environ, LD_PRELOAD=str(library), JAYDB_TEST_READ_GATE=str(gatepath),
                        JAYDB_TEST_READ_TARGETS=str(targets))
-            server = Server(ROOT/'examples/credentials', env=env, threads=2,
+            server = Server(ROOT/'examples/credential-exchange', env=env, threads=2,
                             options=['--read-workers', '2', '--storage', str(directory/'db'), '--storage-mode', 'create'])
             self.addCleanup(server.close)
             read = server.prepared(3, CODE, 'alice-token', proof=PROOF)
@@ -151,7 +153,7 @@ class ReadBatchTests(unittest.TestCase):
             self.assertEqual(server.process.wait(timeout=30), 0, server.diagnostics())
             gate.settimeout(0.1)
             with self.assertRaises(socket.timeout): gate.accept()  # queued write never launched
-            reopened = Server(ROOT/'examples/credentials', env=env, threads=2, seed=False,
+            reopened = Server(ROOT/'examples/credential-exchange', env=env, threads=2, seed=False,
                               options=['--read-workers', '2', '--storage', str(directory/'db'),
                                        '--storage-mode', 'open'])
             self.addCleanup(reopened.close)

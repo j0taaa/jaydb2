@@ -56,6 +56,17 @@ test('read flag cannot substitute a predicate, target, proof or administrator ce
     f.write('Bindings.bend', f.read('Bindings.bend').replace(/def proof_source\(\)[\s\S]*/, 'def proof_source() -> String:\n  ' + JSON.stringify(f.read('ClientProof.bend')) + '\n'));
     await rejects(manifest(), 'PRIMARY_CHECK');
   }
+  {
+    const { f, manifest } = readFixture(t);
+    const proof = f.read('ClientProof.bend');
+    f.write('ClientProof.bend', proof.slice(0, proof.indexOf('def B.certificate')) +
+      'def B.certificate(ctx, args, s, valid, identity, n):\n  Unit{}\n' +
+      proof.slice(proof.indexOf('def B.terminates')));
+    const bindings = f.read('Bindings.bend');
+    f.write('Bindings.bend', bindings.slice(0, bindings.indexOf('def proof_source')) +
+      'def proof_source() -> String:\n  ' + JSON.stringify(f.read('ClientProof.bend')) + '\n');
+    await rejects(manifest(), 'PRIMARY_CHECK');
+  }
   const { manifest } = readFixture(t);
   await rejects({ ...manifest(), certificateMode: 'concrete' }, 'MANIFEST');
 });

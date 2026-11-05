@@ -347,6 +347,23 @@ mod coordinator_tests {
             [b"wb".to_vec(), b"i".to_vec(), b"rb".to_vec()]
         );
     }
+    #[test]
+    fn terminal_framing_error_waits_for_the_complete_read_batch() {
+        let data = [packet(b"ra", &[]), packet(b"ra", &[]), vec![0]].concat();
+        let queue =
+            FrameQueue::start(Cursor::new(data), 2, QueueBounds { items: 4, bytes: 4 }).unwrap();
+        queue.wait_for_end();
+        let mut model = Model::new();
+        let mut output = Vec::new();
+        coordinate(&queue, &mut output, &mut model).unwrap();
+        assert_eq!(
+            output,
+            [b"aa".to_vec(), crate::error_frame("input")].concat()
+        );
+        assert_eq!(model.batches.len(), 1);
+        assert!(model.exclusive.is_empty());
+    }
+
     struct FailFlush;
     impl Write for FailFlush {
         fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
