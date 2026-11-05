@@ -99,6 +99,13 @@ Passed:
   real service integration tests passed. The full integration suite took
   151.589 s; this includes repeated admission/compilation, not a latency result.
 * `make build` (via `make test-demo-web`): release build passed.
+* `flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build"
+  make test-demo-web`: all 5 HTTP demo tests passed in 144.988 s. This covers
+  custom programs/proofs and live inspection, HTTP boundaries, publication and
+  rollback, session isolation, repeated reset, and startup-failure recovery.
+  The actual command exited 0; output is in
+  `build/preprocessing/demo-final.log`. Completed proof/core/native checks
+  were reused rather than rerun.
 
 The first broader command was `flock ... env TMPDIR=... make verify-contract
 verify test test-demo-web`. It completed the above proof checks, then stopped
@@ -114,12 +121,11 @@ paths over Linux's AF_UNIX path limit. A direct local bind/connect smoke check
 passed with `TMPDIR="$PWD/build"` (100-byte socket path). A demo-only rerun
 was queued, then cancelled while confirmed still waiting, at the user's explicit
 coordination request to prioritize the first Bend-host/concurrency/idempotency
-native gates. No running test was interrupted; no heavy job remains queued by
-this thread. After those first gates get a turn, the remaining broad regression
-command is `flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build"
-make test-demo-web`. All preprocessing feature checks and full `make test` are
-complete; the demo rerun is deferred, not claimed passed. No production code
-change is needed for its temporary-path failure.
+native gates. No running test was interrupted. Once the priority gates had
+their turn, the user authorized the single deferred demo rerun using the short
+local TMPDIR. It passed as recorded above. No production code change was needed
+for the temporary-path setup error, and no validation remains deferred or queued
+by this thread.
 
 The new native differential test is included in `make test-integration`.
 Optional `JAYDB_PREPROCESS_TRACE` requires Linux `strace`; the test otherwise
