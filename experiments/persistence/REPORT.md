@@ -127,6 +127,15 @@ There is no cross-version migration, portable deployment format or promise of
 reproducible executable bytes. Preserve the exact executable and environment
 needed to reopen an existing database.
 
+The current development databases are disposable and there are no deployed
+users requiring cross-build compatibility. Exact-environment reopening is the
+intended policy for this experiment, not a pending acceptance requirement. No
+backwards-compatibility layer, migration framework or portable upgrade format is
+planned as part of this change. After changing the executable, configuration or
+tooling, create a fresh database explicitly. To reopen an old development image,
+retain its matching executable and frozen environment. The existing identity
+check remains because it binds recovery to the established validity assumptions.
+
 SHA-256 detects accidental corruption and binds this format; it proves neither
 authorization nor logical validity. A privileged attacker able to replace an
 image and recompute its checksum is outside the protected-storage contract.

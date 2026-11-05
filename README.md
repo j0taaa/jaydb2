@@ -104,7 +104,9 @@ unchanged, but renamed record fields and status values are an API break.
 Optional complete-image persistence uses `--storage DIRECTORY --storage-mode
 create|open`. Create also requires `--seed FILE` and a new directory; open
 requires the exact same controller/environment and reads no seed. The default
-remains volatile. See the [storage contract and examples](experiments/persistence/REPORT.md)
+remains volatile. Saved images require their exact build/environment; development
+databases may be recreated after changes. Cross-build compatibility and migrations
+are intentionally out of scope. See the [storage contract and examples](experiments/persistence/REPORT.md)
 for ownership, uncertain commit behavior and filesystem assumptions.
 
 ```sh
