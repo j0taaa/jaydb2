@@ -167,3 +167,52 @@ flock /tmp/jaydb2-experiments-heavy.lock env TMPDIR="$PWD/build/gpu/tmp" \
   PYTHONPATH=. python3 -B experiments/gpu/heavy_benchmark.py \
   --output build/gpu/heavy-benchmark.json
 ```
+
+## Correctness and failure checks run
+
+All heavy commands below used `/tmp/jaydb2-experiments-heavy.lock`. Development
+outputs and temporary state are under `build/gpu`; `.tools` is an ignored
+symlink to the shared immutable official installation.
+
+- `make build` and `cargo test --locked`: passed; nine host tests cover CLI
+  bounds/defaults, CPU RTS arguments, both exact regular GPU bundle files,
+  missing/substituted/symlink artifacts, transport, rollback and pipe cleanup.
+- `make verify-contract`: passed official `--check-only` and `--verdict` on
+  `contract/VERIFY.bend`, including original/active contract hash checks.
+- Real GPU test class: the unwrapped CPU/GPU computation/publication/auth/refusal
+  case and real `CUDA_VISIBLE_DEVICES=''` case passed. The latter also checks
+  fresh authentication precedence and working CPU default with no visible GPU.
+- Focused `tests.service.test_gpu.GpuTests.test_bundle_integrity_real_launches_and_failure_rollback`:
+  passed in 23.109 s. A forwarding test-only driver wrapper observed successful
+  actual allocation, CUDA launches and synchronization. Six sealed artifact
+  types were deleted and substituted; each failure occurred before CUDA.
+  Device-unavailable, allocation, launch and runtime synchronization errors
+  each returned failure, preserved the old credential, and allowed a subsequent
+  fresh child to succeed. Ordinary unavailable-device compilation also failed
+  without publication or a registration. No injected successful GPU result
+  exists: successful wrapper calls forward to the actual installed driver.
+- Focused `tests.service.test_gpu.GpuTests.test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal`:
+  passed in 45.059 s after adding the administrator state feed. Every published
+  snapshot matched between unwrapped CPU and GPU instances, and final complete
+  state matched the independently specified rows. This includes ordinary and
+  prepared success, stale authentication, refusal after a private write,
+  unauthorized-read certificate rejection, invalidation and unknown handles.
+  `BENDRTS=--gpu-build` in the parent could not replace host-selected RTS options.
+- The first GPU-class invocation exposed a diagnostic `hasBangs` parser that
+  expected one space in the official C define; official C uses several. That
+  diagnostic was corrected, the fault/integrity gate reran successfully, and
+  the unwrapped state gate subsequently passed. Official C was not changed.
+- The first broad `make test` stopped at 14/15 admission tests because its
+  existing kernel-failure injection compared a symlink path with the official
+  loader's canonical path. Commit `adad1b9` fixes only the test hook to use the
+  actual canonical kernel and asserts that injection occurred. The broad rerun
+  was safely canceled while still waiting, as requested by the coordinator to
+  prioritize first native feature gates. Final broad rerun evidence follows
+  when that validation turn is available.
+
+The focused gate commands were direct Python `unittest` invocations with an
+outer `flock`, as recorded in `build/gpu/gpu-fault-tests.log` and
+`build/gpu/gpu-state-tests.log`. `make test-gpu` runs the full optional class and
+acquires the lock internally; do not wrap that target in another `flock`.
+The complete prepared-request benchmark passed and is preserved in the raw
+measurement file above; the focused heavier run is recorded separately.
