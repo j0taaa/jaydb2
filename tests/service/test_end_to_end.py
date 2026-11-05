@@ -14,12 +14,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class Server:
-    """Development harness only; the production controller is official Bend."""
-    def __init__(self, folder, env=None, command_prefix=(), threads=None):
+    """Development harness for the actual controller, with a reference override."""
+    def __init__(self, folder, env=None, command_prefix=(), threads=None,
+                 binary=None, arguments=(), seed=True):
         self.errors = tempfile.TemporaryFile()
-        command = [
-            os.environ.get('JAYDB2_TEST_HOST', str(ROOT/'jaydb2')), '--configuration', str(folder/'Configuration.bend'),
-            '--seed', str(folder/'Seed.bend')]
+        command = [str(binary or os.environ.get('JAYDB2_TEST_HOST', ROOT/'jaydb2')),
+                   '--configuration', str(folder/'Configuration.bend')]
+        if seed:
+            command.extend(['--seed', str(folder/'Seed.bend')])
+        command.extend(arguments)
         if threads is not None:
             command.extend(['--threads', str(threads)])
         self.process = subprocess.Popen([*command_prefix, *command], cwd=ROOT,
