@@ -1,11 +1,14 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
+mod service_policy;
+
 use serde_json::Value;
+use service_policy::{Attempt, Monotonic, Quota, ServicePolicy};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use std::fs::{self, DirBuilder};
+use std::fs::{self, DirBuilder, File, OpenOptions};
 use std::io::{self, Read, Write};
-use std::os::unix::fs::DirBuilderExt;
+use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
@@ -400,6 +403,39 @@ struct Database {
     inspection_sequence: u64,
     prepared: HashMap<String, PreparedProgram>,
     threads: usize,
+    service_policy: Option<ServicePolicy<Monotonic>>,
+    timing_log: Option<TimingLog>,
+}
+
+// Administrator output only, never inherited by workers or written to stdout.
+enum TimingLog {
+    Stderr,
+    File(File),
+}
+
+impl TimingLog {
+    fn open(path: &Path) -> Result<Self> {
+        if path == Path::new("-") {
+            Ok(Self::Stderr)
+        } else {
+            Ok(Self::File(
+                OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .mode(0o600)
+                    .open(path)?,
+            ))
+        }
+    }
+
+    fn write(&mut self, receipt: &Value) -> io::Result<()> {
+        let mut line = serde_json::to_vec(receipt)?;
+        line.push(b'\n');
+        match self {
+            Self::Stderr => io::stderr().lock().write_all(&line),
+            Self::File(file) => file.write_all(&line),
+        }
+    }
 }
 
 struct PreparedProgram {
@@ -461,6 +497,11 @@ impl Database {
         if let Some(stream) = &inspector {
             stream.set_write_timeout(Some(std::time::Duration::from_secs(2)))?;
         }
+        let timing_log = options
+            .timing_log
+            .as_deref()
+            .map(TimingLog::open)
+            .transpose()?;
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb2")?;
         let report = json_helper(
             &options.root.join("tools/service/stage.mjs"),
@@ -511,6 +552,12 @@ impl Database {
             inspection_sequence: 0,
             prepared: HashMap::new(),
             threads: options.threads,
+            service_policy: if timing_log.is_some() || options.quota.is_some() {
+                Some(ServicePolicy::new(Monotonic::new(), options.quota))
+            } else {
+                None
+            },
+            timing_log,
         };
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -555,13 +602,28 @@ impl Database {
     }
 
     fn request(&mut self, body: &[u8]) -> Vec<u8> {
-        let proposal = self.propose(body);
+        // Selection excludes reading/queueing the frame. For concurrent hosts
+        // the coordinator owns this token and completes it before delivery waits.
+        let mut attempt = self.service_policy.as_ref().map(ServicePolicy::selected);
+        let proposal = self.propose(body, &mut attempt);
         let diagnostic = proposal
             .as_ref()
             .err()
             .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
         let response = self.published.finish(proposal);
+        // A persistence adapter must commit durably before this completion hook.
+        // Publication, worker reaping, and all request temporary cleanup precede it.
         self.inspection_sequence += 1;
+        if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt) {
+            let mut receipt = policy.completed(attempt);
+            receipt["sequence"] = self.inspection_sequence.into();
+            if let Some(log) = &mut self.timing_log {
+                if let Err(error) = log.write(&receipt) {
+                    eprintln!("jaydb2: TIMING_LOG: {error}");
+                    self.timing_log = None;
+                }
+            }
+        }
         self.inspect(serde_json::json!({"event": "completed", "diagnostic": diagnostic}));
         response
     }
@@ -574,7 +636,11 @@ impl Database {
         Ok(output)
     }
 
-    fn propose(&mut self, body: &[u8]) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    fn propose(
+        &mut self,
+        body: &[u8],
+        attempt: &mut Option<Attempt>,
+    ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
         // 7 is outside the canonical Value tags (0..6). The extension contains
         // one opcode and an otherwise ordinary, officially decoded request.
         let (operation, body) = if body.first() == Some(&7) {
@@ -594,7 +660,19 @@ impl Database {
         if authenticated[0] == 0 {
             return Ok((authenticated[1..].to_vec(), None));
         }
-        let (code, rest) = split(&authenticated[1..])?;
+        // Private worker bytes: length-prefixed exact Context.id, then the
+        // prior metadata. Never parse identity out of generated Bend source.
+        let (principal, metadata) = split(&authenticated[1..])?;
+        let principal = std::str::from_utf8(principal)
+            .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
+        if let (Some(policy), Some(attempt)) = (&mut self.service_policy, attempt) {
+            if !policy.authenticated(attempt, principal) {
+                // Opt-in host policy receipt, outside S.Status and its response
+                // size limit. No admission, registry mutation, or program start.
+                return Ok((error_frame("quota"), None));
+            }
+        }
+        let (code, rest) = split(metadata)?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
         if matches!(operation, Some(1 | 2)) {
@@ -792,6 +870,8 @@ struct Options {
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
     threads: usize,
+    timing_log: Option<PathBuf>,
+    quota: Option<Quota>,
 }
 
 // The pinned official Bend runtime supports up to 128 CPU workers.
@@ -813,6 +893,21 @@ fn parse_threads(value: &OsStr) -> Result<usize> {
         .ok_or_else(|| Error::new("ARGUMENT", "--threads must be an integer from 1 to 128"))
 }
 
+fn parse_milliseconds(value: &OsStr) -> Result<std::time::Duration> {
+    value
+        .to_str()
+        .filter(|text| !text.is_empty() && text.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|text| text.parse::<u64>().ok())
+        .filter(|value| *value > 0)
+        .map(std::time::Duration::from_millis)
+        .ok_or_else(|| {
+            Error::new(
+                "ARGUMENT",
+                "quota milliseconds must be a positive uint64 integer",
+            )
+        })
+}
+
 impl Options {
     fn read() -> Result<Option<Self>> {
         Self::read_from(std::env::args_os().skip(1))
@@ -826,13 +921,16 @@ impl Options {
         let mut seed = None;
         let mut inspect_socket = None;
         let mut threads = default_threads();
+        let mut timing_log = None;
+        let mut quota_period = None;
+        let mut quota_budget = None;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE --seed FILE [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET]\n\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)"
+                    "Usage: jaydb2 --configuration FILE --seed FILE [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-] [--quota-period-ms N --quota-budget-ms N]\n\n--timing-log  Administrator NDJSON service timings; - selects stderr\n--quota-period-ms / --quota-budget-ms  Positive fixed-period soft per-user quota; opt-in quota control receipts\n--threads N  CPU workers per native program, 1 to 128 (default: available CPU parallelism, capped at 128)"
                 );
                 return Ok(None);
             }
@@ -846,6 +944,9 @@ impl Options {
                 Some("--bendtt") => kernel = PathBuf::from(value),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 Some("--threads") => threads = parse_threads(&value)?,
+                Some("--timing-log") => timing_log = Some(PathBuf::from(value)),
+                Some("--quota-period-ms") => quota_period = Some(parse_milliseconds(&value)?),
+                Some("--quota-budget-ms") => quota_budget = Some(parse_milliseconds(&value)?),
                 _ => {
                     return Err(Error::new(
                         "ARGUMENT",
@@ -854,6 +955,16 @@ impl Options {
                 }
             }
         }
+        let quota = match (quota_period, quota_budget) {
+            (None, None) => None,
+            (Some(period), Some(budget)) => Some(Quota { period, budget }),
+            _ => {
+                return Err(Error::new(
+                    "ARGUMENT",
+                    "--quota-period-ms and --quota-budget-ms must be supplied together",
+                ));
+            }
+        };
         Ok(Some(Self {
             root,
             configuration: fs::canonicalize(
@@ -867,6 +978,8 @@ impl Options {
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
             threads,
+            timing_log,
+            quota,
         }))
     }
 }
@@ -937,6 +1050,90 @@ mod tests {
             assert!(error.message.contains("--threads"));
         }
         assert!(Options::read_from(["--threads".into()]).is_err());
+    }
+
+    #[test]
+    fn policy_options_are_opt_in_and_require_positive_paired_milliseconds() {
+        for value in ["", "0", "-1", "+1", " 1", "1.5", "18446744073709551616"] {
+            assert!(parse_milliseconds(OsStr::new(value)).is_err());
+        }
+        assert_eq!(
+            parse_milliseconds(OsStr::new("1")).unwrap(),
+            std::time::Duration::from_millis(1)
+        );
+        assert!(parse_milliseconds(OsStr::new("18446744073709551615")).is_ok());
+        assert!(Options::read_from(["--quota-period-ms".into(), "100".into()]).is_err());
+        assert!(Options::read_from(["--quota-budget-ms".into(), "10".into()]).is_err());
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let base = vec![
+            "--configuration".into(),
+            root.join("examples/access/Configuration.bend")
+                .into_os_string(),
+            "--seed".into(),
+            root.join("examples/access/Seed.bend").into_os_string(),
+        ];
+        let ordinary = Options::read_from(base.clone()).unwrap().unwrap();
+        assert!(ordinary.quota.is_none() && ordinary.timing_log.is_none());
+        let enabled = Options::read_from(base.into_iter().chain([
+            "--quota-period-ms".into(),
+            "100".into(),
+            "--quota-budget-ms".into(),
+            "10".into(),
+            "--timing-log".into(),
+            "-".into(),
+        ]))
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            enabled.quota.unwrap().budget,
+            std::time::Duration::from_millis(10)
+        );
+        assert_eq!(enabled.timing_log.unwrap(), PathBuf::from("-"));
+    }
+
+    #[test]
+    fn private_auth_principal_is_exact_bytes_and_metadata_is_unchanged() {
+        for id in ["", "alice", "α\\\"\n", "alice\0bob"] {
+            let metadata = b"unchanged checked code/proof/instance/links";
+            let success = packet(id.as_bytes(), metadata);
+            let (principal, remaining) = split(&success).unwrap();
+            assert_eq!(std::str::from_utf8(principal).unwrap(), id);
+            assert_eq!(remaining, metadata);
+        }
+        assert!(split(&[0; 7]).is_err());
+        assert!(split(&9u64.to_be_bytes()).is_err());
+        // The host-only receipt deliberately has its own status and no value.
+        assert_ne!(error_frame("quota"), error_frame("limit"));
+        assert_ne!(error_frame("quota"), error_frame("failure"));
+        assert_ne!(error_frame("quota"), error_frame("certificate"));
+    }
+
+    #[test]
+    fn administrator_timing_log_is_ndjson_and_surfaces_write_errors() {
+        let mut directory = Temporary::new(&std::env::temp_dir(), "jaydb-timing-log-test").unwrap();
+        let path = directory.path.join("timing.ndjson");
+        let mut log = TimingLog::open(&path).unwrap();
+        log.write(&serde_json::json!({"principal": "alice\n\"", "elapsed_ns": "42"}))
+            .unwrap();
+        log.write(&serde_json::json!({"principal": null})).unwrap();
+        let bytes = fs::read_to_string(&path).unwrap();
+        let lines = bytes
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0]["principal"], "alice\n\"");
+        assert_eq!(
+            fs::metadata(path).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        assert!(
+            TimingLog::open(Path::new("/dev/full"))
+                .unwrap()
+                .write(&Value::Null)
+                .is_err()
+        );
+        directory.remove().unwrap();
     }
 
     #[test]

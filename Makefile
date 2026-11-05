@@ -24,7 +24,7 @@ test-native:
 	python3 -B tests/native/test_simple_runtime.py
 
 test-integration:
-	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared -v
+	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_timing -v
 
 test-library:
 	python3 -B applications/tasks/query_check.py

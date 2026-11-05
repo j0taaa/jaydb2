@@ -11,6 +11,12 @@ execution. Configuration contains only `message`, `state`, and `response`,
 measured in canonical bytes. Equality with a ceiling is allowed. There is no
 physical budget, observer, or execution deadline.
 
+The optional [service timing/quota extension](SERVICE_TIMING.md) adds administrator
+NDJSON elapsed timings and soft per-authenticated-user fixed-period accounting.
+Only quota-enabled instances can return the distinct `quota` host control receipt;
+ordinary status/value response bytes remain unchanged. This extension has its own
+host refinement/progress contract and no execution deadline.
+
 ## Call path
 
 The optional [prepared-program extension](PREPARED_PROGRAMS.md) checks a

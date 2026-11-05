@@ -15,11 +15,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Server:
     """Development harness only; the production server is the Rust executable."""
-    def __init__(self, folder, env=None):
+    def __init__(self, folder, env=None, options=()):
         self.errors = tempfile.TemporaryFile()
         self.process = subprocess.Popen([
             str(ROOT/'jaydb2'), '--configuration', str(folder/'Configuration.bend'),
-            '--seed', str(folder/'Seed.bend')], cwd=ROOT,
+            '--seed', str(folder/'Seed.bend'), *options], cwd=ROOT,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors,
             start_new_session=True, env=env)
 

@@ -46,6 +46,10 @@ def initial(ok: Bool) -> List<&2, U32>:
 def main() -> IO(Unit):
   Native.write(initial(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
 `;
+// Messages.authentication success is private host transport:
+// 1 || frame(exact authenticated Context.id UTF-8) || frame(code) ||
+// frame(proof) || frame(instance) || links remainder. Rejection is unchanged.
+// Keep the Rust parser and Messages.bend format in the same change.
 const PREPROCESS = COMMON + `import ./Input.bend as E
 import ./Messages.bend as M
 
