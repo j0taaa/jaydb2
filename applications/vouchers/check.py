@@ -152,11 +152,12 @@ def main():
                     check_call(db, ['issue', 'large', 'a'*1200, False], 'limit')
                     check_call(db, ['inspect', 'large'])
                     check_call(db, ['issue', 'large', 'small', False], value='v:large')
-                (directory / 'Configuration.bend').write_text(original.replace('32768n, 65536n, 32768n', '32768n, 65536n, 64n'))
+                (directory / 'Configuration.bend').write_text(original.replace('32768n, 65536n, 32768n', '32768n, 65536n, 96n'))
                 with session(directory, errors) as db:
                     check_call(db, ['issue', 'y'*64, 'oversized result', False], 'limit')
                     check_call(db, ['inspect', 'y'*64])
-                    # Same ID with changed input reaches a second limit, not conflict.
+                    # Conflict refusals fit 96 bytes; the 129-byte success does not.
+                    # A second limit with changed input proves the receipt is absent.
                     check_call(db, ['issue', 'y'*64, 'changed', False], 'limit')
                 (directory / 'Configuration.bend').write_text(original)
             if args.restart:
