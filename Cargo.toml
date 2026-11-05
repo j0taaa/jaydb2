@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2024"
 publish = false
 
+[features]
+# Development-only OS fault/barrier hooks; absent from normal builds.
+storage-fault-injection = []
+
 [[bin]]
 name = "jaydb2"
 path = "server/main.rs"
