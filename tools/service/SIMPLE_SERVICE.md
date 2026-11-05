@@ -19,13 +19,17 @@ worker with current authentication, state, and arguments. Its controls and
 receipts have a separate protocol boundary from the ordinary path below.
 
 1. The host reads framing and checks message size.
-2. Official Bend programs decode and authenticate against published state.
+2. One official native Bend authenticator decodes and authenticates against
+   published state. `Input.analyze` preserves decode errors before checking
+   credentials, so no separate decode child or decoder compilation is needed.
 3. Admission checks source, dependencies, and proof with official tools against
    the actual configuration, context, and arguments.
 4. The same checked Book is compiled by the official compiler. The stage only
    invokes Clang on literal C and records C and executable hashes.
 5. The program runs in a fresh native child process on CPU with GPU disabled.
-   Its proposal is private. The Codec remains the compiled Bend program.
+   Its proposal is private. It still runs `Input.analyze` on the same actual
+   state/request packet, obtaining its current authenticated context and
+   arguments. The Codec remains the compiled Bend program.
 6. The host receives all output, reaps the process, validates state/response,
    and removes the temporary directory before accepting publication.
 7. Success replaces the serial host's `Published { state, response }` pair.
