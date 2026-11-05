@@ -68,7 +68,7 @@ physical deadline or RAM consumption.
 | `packet`, `Program::run`, `Native.read/write` | Pipes preserve bytes and carry the published snapshot and actual body. Partial output or an unsuccessful process is not a complete proposal. |
 | `Native.loop` and `Execution.advance` | Each step and effect corresponds to the indicated Bend function, without omitting relevant operations, reads, constructions, or errors. |
 | `checked_proposal`, `request.remove`, `Published::finish` | The complete proposal is the result of `Core.conclude`; child exit and cleanup precedes the sole store. Other branches do not perform that store. |
-| `serve_stream`, `write_all/flush` | Actual consumption and delivery in serial order; read/delivery errors correspond to observed results; the next call uses current published state. No implicit reconnection. |
+| `FrameQueue`, `coordinate`, `SerialService`, `write_all/flush` | Complete frames selected and responses emitted in FIFO order; authentication uses current published state at service time. Read-ahead terminal events follow complete frames. Failed publication/delivery prevents later selection; cancellation joins the reader. No implicit reconnection. |
 | Official tools, processes, and IO | Checker correctness and compiler/runtime semantic preservation; primitive progress under the specified external conditions. |
 
 These contracts must cover **all** relevant facts of actual execution, without
@@ -82,6 +82,17 @@ integration contracts, the kernel and protocol satisfy the eight laws**.
 Hashes identify sources and tests support the operational bridge; neither
 alone proves those contracts. A mechanized proof of the Rust/Node/C bridge
 remains outside this result.
+
+The bounded framing reader is a host refinement of serial service: receipt and
+enqueue may precede earlier execution, but selection, authentication, admission,
+execution, cleanup, publication and response delivery remain serial. The
+existing serial theorem does not mechanize the Rust queue, byte reservations,
+poll/cancellation or their refinement. These are additional explicit host
+contracts supported by deterministic and real CLI tests; see the
+[scheduling report](../experiments/scheduling/REPORT.md). A fallible publication
+hook allows fatal commit errors to end service without an invented response;
+it does not by itself establish durability or extend the serial theorem to a
+persistent host.
 
 ## Prepared-program adapter
 

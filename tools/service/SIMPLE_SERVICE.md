@@ -24,7 +24,9 @@ universal certificate and compiles once, then reuses an instance-local native
 worker with current authentication, state, and arguments. Its controls and
 receipts have a separate protocol boundary from the ordinary path below.
 
-1. The host reads framing and checks message size.
+1. A bounded reader receives complete frames and checks message size. It
+   enqueues FIFO bodies without inspecting credentials or programs. One
+   coordinator selects a request for service against the current snapshot.
 2. One official native Bend authenticator decodes and authenticates against
    published state. `Input.analyze` preserves decode errors before checking
    credentials, so no separate decode child or decoder compilation is needed.
@@ -42,6 +44,34 @@ receipts have a separate protocol boundary from the ordinary path below.
    A refusal or earlier failure preserves the previous publication.
 8. Delivery follows. A delivery failure preserves the published pair and closes
    the channel without automatic retry or deduplication.
+
+`SerialService::execute` covers selection/service start through complete
+proposal/response preparation and child cleanup. `SerialService::publish`
+owns publication; its successful return marks response-ready. It is fallible
+so a durability adapter can terminate without a response on uncertain commit.
+The coordinator writes and flushes that response before selecting more work.
+Prepared registry mutations remain inside the same exclusively owned service.
+No identity is computed/cached by the framing reader.
+
+Queue reservations include a body currently being read: at most 8 items and
+`max(min(message limit, isize::MAX), 1 MiB)` body bytes, plus one header and one terminal slot.
+There is one additional active request of at most the message limit, and one
+ready/emitting response subject to the existing logical response checks (or a
+fixed canonical error). The published pair, proposal/worker intermediates,
+prepared registry, allocator overhead and OS pipe buffers retain their existing
+costs; this is not a total-process memory ceiling. All canonical uint64 message
+limits remain valid; the accounting ceiling is not an upfront allocation. An
+actual unallocatable body under the logical limit terminates as an ordered
+technical transport failure without a false canonical limit response.
+
+Clean EOF drains complete requests. Partial header/body, oversize declarations
+and input IO failure become terminal events behind earlier complete frames;
+only the coordinator may emit the canonical terminal input/limit response.
+Input IO failure retains its fatal behavior after preceding responses. No
+terminal event bypasses queued service. On output failure, no more work is
+selected and a cancellation socket wakes the reader's polling/capacity waits;
+the reader is joined before the service returns. Workers are already reaped
+before response-ready. This adds no execution or delivery timeout.
 
 Compilation directories receive code, proofs, and public admission data, never
 private state. The seed participates only in initialization and is removed

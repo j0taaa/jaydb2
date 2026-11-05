@@ -57,7 +57,15 @@ Official TypeScript modules are loaded only by stripping TypeScript syntax
 with Node. Installation does not build a derived verifier, V8 addon, or adapted
 source cache. Official-tool capabilities and limitations remain unchanged.
 
-`server/main.rs` retains published state in RAM and serves frames serially.
+`server/main.rs` retains published state in RAM and executes frames serially.
+One reader queues at most eight frames/reservations and at most
+`max(min(message limit, isize::MAX), 1 MiB)` body bytes, then applies pipe backpressure. One
+coordinator owns execution, handles, publication and FIFO response delivery;
+it owns at most one additional active request and one ready response. EOF and
+terminal framing errors follow all earlier complete requests. An output
+failure stops dispatch and joins the reader even if stdin remains open.
+See the [scheduling report](experiments/scheduling/REPORT.md) for retained-work
+accounting, lifecycle boundaries and the host refinement proof scope.
 Native Bend computation uses the CPU parallelism available to the host by
 default, capped at the official runtime's 128 workers. Use `--threads N` to
 choose 1–128 workers per native program, or `--threads 1` for single-threaded
