@@ -19,12 +19,15 @@ static Term host_drive(Env e, Term* fields, IoWork* work) {
     Term task = host_apply(e, step, state), values[2];
     u32 cid = (u32)term_aux(task);
     if (term_tag(task) != TAG_CTR && term_tag(task) != TAG_PAK) err_fail("Bend host invalid task");
-    if (cid == CID(Stop)) {
+    // The checked step returns Tasks.Task: its unary constructor is Stop,
+    // its binary constructor is Exchange. No compiler ID/namespace guessing.
+    u32 arity = cid_arity(cid);
+    if (arity == 1) {
       if (term_tag(task) == TAG_PAK) values[0] = term_loc(task);
       else spare_free(e, cls_fit(1), ctr_take(e, task, 1, values));
       exit((int)(u32)values[0]);
     }
-    if (cid != CID(Exchange)) err_fail("Bend host unknown task");
+    if (arity != 2) err_fail("Bend host unknown task");
     spare_free(e, cls_fit(2), ctr_take(e, task, 2, values));
     uint64_t size = 0;
     char* data = io_cbuf(e, values[0], &size, CID(Con));

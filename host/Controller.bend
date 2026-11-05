@@ -5,7 +5,7 @@ import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
 import ../src/Transport.bend as T
 import ./Policy.bend as P
-import ./Effects.bend as E
+import ./Tasks.bend as E
 
 type Handle is Data:
   Handle{key: P.Bytes, artifact: P.Bytes, code: P.Bytes, proof: P.Bytes}
