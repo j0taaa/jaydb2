@@ -1,6 +1,8 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
+mod scheduling;
 mod service_policy;
 
+use scheduling::{FrameInput, FrameQueue, PollInput, QueueBounds, SerialService};
 use serde_json::Value;
 use service_policy::{Attempt, Monotonic, Quota, ServicePolicy};
 use sha2::{Digest, Sha256};
@@ -598,11 +600,8 @@ impl Database {
         }
     }
 
-    fn request(&mut self, body: &[u8]) -> Vec<u8> {
-        // Selection excludes reading/queueing the frame. For concurrent hosts
-        // the coordinator owns this token and completes it before delivery waits.
-        let mut attempt = self.service_policy.as_ref().map(ServicePolicy::selected);
-        let proposal = self.propose(body, &mut attempt);
+    fn publish_completed(&mut self, completion: ServiceCompletion) -> Vec<u8> {
+        let ServiceCompletion { proposal, attempt } = completion;
         let diagnostic = proposal
             .as_ref()
             .err()
@@ -800,63 +799,49 @@ impl Database {
     }
 
     fn serve(&mut self) -> Result<()> {
-        serve_stream(
-            &mut io::stdin().lock(),
+        serve_serial(
+            PollInput(io::stdin()),
             &mut io::stdout().lock(),
             self.limits.message,
-            |body| self.request(body),
+            self,
         )
     }
 }
 
-fn serve_stream(
-    input: &mut impl Read,
-    output: &mut impl Write,
-    limit: u64,
-    mut request: impl FnMut(&[u8]) -> Vec<u8>,
-) -> Result<()> {
-    loop {
-        let mut header = [0; 8];
-        let quantity = read_up_to(input, &mut header)?;
-        if quantity == 0 {
-            return Ok(());
-        }
-        let terminal = if quantity != 8 {
-            Some("input")
-        } else if u64::from_be_bytes(header) > limit {
-            Some("limit")
-        } else {
-            None
-        };
-        if let Some(status) = terminal {
-            output.write_all(&error_frame(status))?;
-            output.flush()?;
-            return Ok(());
-        }
-        let size = usize::try_from(u64::from_be_bytes(header))
-            .map_err(|_| Error::new("HOST_TRANSPORT", "message length is not representable"))?;
-        let mut body = vec![0; size];
-        if read_up_to(input, &mut body)? != size {
-            output.write_all(&error_frame("input"))?;
-            output.flush()?;
-            return Ok(());
-        }
-        output.write_all(&request(&body))?;
-        output.flush()?;
+struct ServiceCompletion {
+    proposal: Result<(Vec<u8>, Option<Vec<u8>>)>,
+    attempt: Option<Attempt>,
+}
+
+impl SerialService for Database {
+    type Completion = ServiceCompletion;
+
+    fn execute(&mut self, body: &[u8]) -> Self::Completion {
+        // Only Request dispatch reaches this hook, after queue selection.
+        // Frame reception/queue waits and terminal events are not timed.
+        let mut attempt = self.service_policy.as_ref().map(ServicePolicy::selected);
+        let proposal = self.propose(body, &mut attempt);
+        ServiceCompletion { proposal, attempt }
+    }
+
+    fn publish(&mut self, completion: Self::Completion) -> Result<Vec<u8>> {
+        Ok(self.publish_completed(completion))
     }
 }
 
-fn read_up_to(reader: &mut impl Read, mut buffer: &mut [u8]) -> io::Result<usize> {
-    let expected = buffer.len();
-    while !buffer.is_empty() {
-        match reader.read(buffer) {
-            Ok(0) => break,
-            Ok(quantity) => buffer = &mut buffer[quantity..],
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => return Err(error),
-        }
-    }
-    Ok(expected - buffer.len())
+fn serve_serial(
+    input: impl FrameInput,
+    output: &mut impl Write,
+    limit: u64,
+    service: &mut impl SerialService,
+) -> Result<()> {
+    let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
+    let result = scheduling::coordinate(&queue, output, service, error_frame);
+    // This also wakes a reader still waiting on an open stdin or queue capacity.
+    let cleanup = queue.close();
+    result?;
+    cleanup?;
+    Ok(())
 }
 
 struct Options {
@@ -1002,6 +987,27 @@ mod tests {
     use super::*;
     use std::io::Cursor;
     use std::os::unix::fs::PermissionsExt;
+
+    struct TestService<F>(F);
+
+    impl<F: FnMut(&[u8]) -> Vec<u8>> SerialService for TestService<F> {
+        type Completion = Vec<u8>;
+        fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+            (self.0)(body)
+        }
+        fn publish(&mut self, response: Vec<u8>) -> Result<Vec<u8>> {
+            Ok(response)
+        }
+    }
+
+    fn serve_stream(
+        input: impl FrameInput,
+        output: &mut impl Write,
+        limit: u64,
+        request: impl FnMut(&[u8]) -> Vec<u8>,
+    ) -> Result<()> {
+        serve_serial(input, output, limit, &mut TestService(request))
+    }
 
     #[test]
     fn thread_options_select_available_cpus_and_allow_explicit_limits() {
@@ -1194,7 +1200,7 @@ mod tests {
         let mut seen = Vec::new();
         let mut response = Vec::new();
         let incoming = packet(b"bad", &packet(b"next", &[]));
-        serve_stream(&mut Cursor::new(incoming), &mut response, 4, |body| {
+        serve_stream(Cursor::new(incoming), &mut response, 4, |body| {
             seen.push(body.to_vec());
             error_frame(if body == b"bad" { "input" } else { "refusal" })
         })
@@ -1210,7 +1216,7 @@ mod tests {
             (packet(b"four", &[])[..9].to_vec(), "input"),
         ] {
             let mut response = Vec::new();
-            serve_stream(&mut Cursor::new(incoming), &mut response, 4, |_| {
+            serve_stream(Cursor::new(incoming), &mut response, 4, |_| {
                 panic!("incomplete request reached execution")
             })
             .unwrap();
@@ -1283,7 +1289,7 @@ mod tests {
             response: Vec::new(),
         };
         let result = serve_stream(
-            &mut Cursor::new(packet(b"call", &[])),
+            Cursor::new(packet(b"call", &[])),
             &mut BrokenOutput,
             4,
             |_| published.finish(Ok((error_frame("success"), Some(b"new".to_vec())))),
