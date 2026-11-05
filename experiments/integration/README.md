@@ -34,12 +34,18 @@ explicitly, rather than treating an old merge as evidence of current parity.
 Run heavy checks under the common advisory lock:
 
 ```sh
+ulimit -s unlimited
 flock /tmp/jaydb2-experiments-heavy.lock make verify-contract verify
 flock /tmp/jaydb2-experiments-heavy.lock make test
 flock /tmp/jaydb2-experiments-heavy.lock make test-library
 flock /tmp/jaydb2-experiments-heavy.lock make test-persistence
 flock /tmp/jaydb2-experiments-heavy.lock make test-idempotency test-idempotency-recovery
+flock /tmp/jaydb2-experiments-heavy.lock make test-feature-integration
+flock /tmp/jaydb2-experiments-heavy.lock make test-recovery-integration
 ```
+
+The direct fault-build tests need the launcher's unlimited soft stack setting,
+as shown above. Use a short private `TMPDIR` when running tests with Unix sockets.
 
 Benchmark runners that take the common lock themselves must be called directly,
 without an outer `flock`.

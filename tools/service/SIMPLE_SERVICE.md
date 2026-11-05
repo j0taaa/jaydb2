@@ -102,14 +102,16 @@ persistence is enabled explicitly:
 
 Create requires a new directory with an existing parent; open requires the
 authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
-Every exclusive successful state proposal writes and synchronizes a complete temporary
+Every successful state proposal on the serial/exclusive path writes and synchronizes a complete temporary
 image, atomically replaces the authoritative image, and synchronizes the
 directory before RAM publication and response delivery. Errors from replacement
 onward stop the instance with no response, since rollback may be false. Missing,
 corrupt or incompatible images stop startup; no seed or older image is used as
-fallback. Users and all tables survive; prepared handles do not. Certified reads
-check that their successful returned state equals the already durable pinned
-root, discard that copy, and do not rewrite the snapshot.
+fallback. Users and all tables survive; prepared handles do not. The certified
+batch path enabled by `--read-workers` greater than one checks that successful
+returned state equals the already durable pinned root, discards that copy, and
+does not rewrite the snapshot. Default one-worker reads retain serial
+publication and persistence behavior, even when their state is unchanged.
 
 Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable

@@ -39,8 +39,10 @@ process. Successful proposed state must equal the pinned state as an additional
 check; returned states are then discarded.
 
 The single coordinator emits in FIFO order. Read successes update the published
-last-success response in that order. With storage enabled, the unchanged root
-is already durable, so reads do not replace its image again. Writes still use
+last-success response in that order. With storage enabled, the batching path
+(`--read-workers` greater than one) borrows an already durable root and does not
+replace its image again. The default one-worker serial path still persists
+successful state proposals, including unchanged certified reads. Writes use
 the durable publication boundary. All earlier read emissions must succeed
 before an exclusive request starts. A write/flush failure stops dispatch and
 joins every already-active read; there is no rollback or retry. Cleanup waits

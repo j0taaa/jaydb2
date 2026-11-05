@@ -38,6 +38,7 @@ test-library: build
 	python3 -B tools/check.py library/VERIFY.bend build/library/application-proof/Check.bend
 	python3 -B experiments/library/test_negative.py
 	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
+	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_collections.py
 	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B applications/tasks/query_check.py
 
 demo: build

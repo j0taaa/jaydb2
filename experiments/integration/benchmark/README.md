@@ -34,7 +34,12 @@ with a U32 recurrence checksum. Both recurrence count and seed come from actual
 request arguments. The 0-iteration case measures a tiny real read. Larger cases
 perform dependent serial arithmetic, permitting independent requests to use
 different cores. Every response is compared with the credential and independent
-Python arithmetic oracle; requests within each burst use different inputs.
+Python arithmetic oracle; requests within each burst use different inputs. The
+oracle uses logarithmic affine composition modulo 2^32 so larger runtime
+counts do not spend billions of iterations in Python. `test_bench.py` compares
+it with the baseline's independent direct-loop oracle across varied seeds,
+small/large counts and U32 boundaries. Run these lightweight checks with
+`python3 -B -m unittest discover -s experiments/integration/benchmark -v`.
 
 The comparison holds `--threads 2` fixed and uses `--read-workers 1` versus `2`.
 Both service process trees inherit affinity to the same two distinct physical

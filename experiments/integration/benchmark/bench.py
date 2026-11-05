@@ -32,6 +32,20 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def reference_compute(n, seed):
+    """Compose x -> a*x+c modulo 2^32; independent of the native serial loop."""
+    if not 0 <= n < 2**32 or not 0 <= seed < 2**32:
+        raise ValueError('Recurrence arguments must be U32')
+    mask = 2**32-1
+    mul, add, step_mul, step_add = 1, 0, 1664525, 1013904223
+    while n:
+        if n & 1:
+            mul, add = step_mul*mul & mask, (step_mul*add+step_add) & mask
+        step_mul, step_add = step_mul*step_mul & mask, (step_mul+1)*step_add & mask
+        n >>= 1
+    return (mul*seed+add) & mask
+
+
 def bend_literal(text):
     return '"' + ''.join('\\"' if c == '"' else '\\\\' if c == '\\' else
                          f'\\u{{{ord(c):02x}}}' if ord(c) < 32 else c for c in text) + '"'
@@ -271,7 +285,7 @@ def main():
         os.sched_setaffinity(0, others)
     resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     binary, provenance = baseline.build_controller(ROOT, output, env, args.executable)
-    benchmark_sources = [SUITE/name for name in ('ReadCompute.bend', 'ReadComputeProof.bend', 'bench.py', 'run.sh')]
+    benchmark_sources = [SUITE/name for name in ('ReadCompute.bend', 'ReadComputeProof.bend', 'bench.py', 'run.sh', 'test_bench.py')]
     benchmark_hashes = {p.name: sha(p.read_bytes()) for p in benchmark_sources}
     result = {'created_at': datetime.now(timezone.utc).isoformat(), 'controller': provenance,
         'settings': {'native_threads_total': 2, 'read_workers': [1, 2], 'service_cpus': cpus,
@@ -301,7 +315,7 @@ def main():
             for round_number in range(args.samples+1):
                 arguments = [[count+(round_number % 2 if count else 0), 7+17*round_number+i]
                              for i in range(args.burst)]
-                expected = [baseline.compute(n, seed) for n, seed in arguments]
+                expected = [reference_compute(n, seed) for n, seed in arguments]
                 order = (1, 2) if round_number % 2 == 0 else (2, 1)
                 for workers in order:
                     record = sessions[workers].burst(arguments, expected)
