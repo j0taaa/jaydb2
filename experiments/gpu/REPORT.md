@@ -255,3 +255,22 @@ the host rejects its result, even if the rebuild succeeds. Ordinary and
 prepared physical failures can terminate the worker without publication;
 a host crash still loses RAM state. No persistence or stronger serial theorem
 is claimed by this feature.
+
+## External-review follow-up: helper cleanup
+
+The inherited `Scope::spawn` setup path could unwind before `Child::wait` and
+join a pipe blocked on a still-running helper. `server/capture.rs` now owns the
+child inside the scoped closure, uses `Builder::spawn_scoped` for fallible pipe
+startup, and kills/reaps on early return or unwind before implicit pipe joins.
+The original fatal startup-failure policy is retained after cleanup; no new
+public receipt or retry is introduced. Staging freezes this module alongside
+the other controller sources. The shared module is byte-identical across the
+nine active Rust-host variants. Main and the baseline comparison host remain
+unchanged; no experiment branches were merged.
+
+All 12 Rust host/model tests, strict all-target Clippy, formatting and release
+build passed on this branch. New tests cover an injected startup error and an
+unwind at EACH pipe-thread start, blocked stdin/output, actual child reaping,
+and the fatal public capture path. The real unwrapped CPU/CUDA publication, current-authentication,
+refusal and complete-state comparison test passed (51.024 s). This does not
+integrate GPU execution with CPU read batches; GPU service remains serial.
