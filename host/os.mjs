@@ -92,7 +92,7 @@ export class Adapter {
   constructor(options,controller) { this.options=options; this.controller=controller; this.resources=new Map(); this.children=new Set(); this.sequence=0; this.next=0; }
   async helper(script,args) {
     const result=await capture('node',['--stack_size=65536',script,...args],Buffer.alloc(0),this.children,
-      {JAYDB_CONTROLLER_PATH:this.controller});
+      {JAYDB_CONTROLLER_PID:String(this.controller)});
     if(result.code===0) return JSON.parse(result.stdout);
     for(const data of [result.stderr,result.stdout]) for(const line of data.toString('utf8').split('\n').reverse()) {
       let r; try {r=JSON.parse(line);} catch {continue;}

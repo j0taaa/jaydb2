@@ -182,12 +182,12 @@ function freeze(workdir, configuration, seed) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.
-  // The byte adapter names the verified official Bend controller it launched.
+  // The byte adapter names the actual live Bend controller it launched.
   // The legacy host keeps its original /proc binding for differential tests.
-  const controller = read(process.env.JAYDB_CONTROLLER_PATH ?? `/proc/${process.ppid}/exe`);
+  const controller = read(`/proc/${process.env.JAYDB_CONTROLLER_PID ?? process.ppid}/exe`);
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
   identityEntries.push(...[...tooling].map(([name, data]) => [name, digest(data)]).sort(), ['server/controller', digest(controller)]);
-  if (process.env.JAYDB_CONTROLLER_PATH) identityEntries.push(['server/adapter-node', digest(read(process.execPath))]);
+  if (process.env.JAYDB_CONTROLLER_PID) identityEntries.push(['server/adapter-node', digest(read(process.execPath))]);
   const identity = digest(JSON.stringify(identityEntries));
   sources.set('Environment.bend', Buffer.from('import Base\ndef identity() -> String:\n  ' + JSON.stringify(identity) + '\n'));
   for (const [name, data] of sources) write(path.join(workdir, 'public', name), data);
