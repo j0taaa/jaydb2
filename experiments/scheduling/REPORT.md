@@ -11,10 +11,15 @@ retaining fresh actual Input.analyze authentication.
 ## Supported behavior and contracts
 
 The ordinary CLI, canonical frames, three logical limits and prepared controls
-are unchanged. `./jaydb2 --configuration examples/access/Configuration.bend
---seed examples/access/Seed.bend --threads 1` now reads ahead through one
-bounded framing thread. It owns no database, handles or output. One serial
-coordinator owns all database service, handle operations, publication and output.
+are unchanged. Example:
+
+```sh
+./jaydb2 --configuration examples/access/Configuration.bend \
+  --seed examples/access/Seed.bend --threads 1
+```
+
+The host now reads ahead through one bounded framing thread. The reader owns
+no database, handles or output. One serial coordinator owns all database service, handle operations, publication and output.
 It selects FIFO work, executes with fresh authentication against current state,
 obtains a complete proposal after helper cleanup, publishes, then writes and
 flushes one response before selecting again. No retries or busy outcome.
@@ -44,10 +49,13 @@ bodies retain at most B bytes
 and 8 items (empty frames count); reserve before allocation and body reading.
 There is at most one 8-byte header and one fixed terminal slot. Selection
 releases capacity: one additional active body of at most A bytes is owned by
-the coordinator. There is at most one ready/emitting response, bounded by
+the coordinator. Total retained framing bodies are at most B + A bytes and
+nine requests, plus the fixed terminal event. There is at most one
+ready/emitting response, bounded by
 max(R + 8, largest fixed error frame); Published also retains its last success
 response and state as before. No multi-response backlog exists. Queue metadata,
-allocator overhead, OS pipe buffers, current/proposed state, compilation files,
+allocator overhead, OS pipe buffers, active transport/metadata copies,
+current/proposed state, compilation files,
 prepared artifact registry and existing worker stdout/stderr captures are
 outside the framing-body bound. This is not a total-process RAM guarantee;
 worker intermediates and prepared registry were not globally bounded before
@@ -79,10 +87,106 @@ integration assumptions. The new framing-to-serial-service refinement is a
 host implementation contract supported by tests and review; the old theorem
 does not prove threaded Rust, descriptor cancellation, or this FIFO adapter.
 A complete formal model of host scheduling is outside this implementation.
+The accepted preprocessing prerequisite adds
+`proof/Preprocessing.bend::gate_preserves_exact_output` and
+`single_pass_preserves_exact_output`, establishing pure exact-byte equivalence
+of the removed decode gate with the actual authenticate-pre route; they do
+not prove this queue or OS/compiler behavior.
 
-Real CLI integration/regression results and accepted prerequisite validation
-will be recorded in the final report update. No performance claim yet; one
+Heavy-lock real checks completed:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'export TMPDIR="$PWD/build/tmp"; make build && python3 -B -m unittest tests.service.test_scheduling -v' > build/scheduling-integration.log 2>&1
+```
+
+Release build and all 3 real CLI tests passed (86.797 seconds for the tests).
+Covers pipelined ordinary transactions with changing credentials, malformed
+complete frames, fresh authentication, prepared registration/execution/
+invalidation, and EOF draining queued controls. Separate terminal cases put
+clean EOF, partial header, partial body or oversize declaration after a real
+successful transaction and a complete invalid request. Closed-output test
+keeps stdin open, observes exactly one admission despite queued successors,
+and verifies owned artifacts disappear.
+
+The additional batch below was canceled while still waiting for the lock,
+before it spawned a child or ran any check, following the coordinator's final
+instruction to keep focused gates frozen and avoid extra broad tests while
+priority first native gates are pending:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'export TMPDIR="$PWD/build/tmp"; make verify-contract && python3 -B tools/check.py proof/Preprocessing.bend && python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing -v' > build/scheduling-regression.log 2>&1
+```
+
+Those six older service tests, `make verify-contract`, direct preprocessing
+proof recheck, full `make test`/admission/native suites, and demo/library suites
+were not run on this branch. The accepted prerequisite's earlier official
+proof/native differential results belong to its own report, not to checks run
+here. The test-only shared-symlink admission interception fix `adad1b9` was
+not needed because no admission suite was run here.
+
+Frozen focused native gate source: `0aeaa45` (the build and all three tests
+above). Production code is unchanged since `23f7bcb`; later commits only record
+verification and clarify documentation. No later runtime or test changes
+invalidate the completed gate. `cargo fmt -- --check`, strict Clippy and
+`git diff --check` also passed during implementation.
+
+Temporary/build/log/state paths are under this worktree (`build/tmp`,
+`target`, `build/scheduling-*.log`); `.tools` is an ignored symlink to the
+immutable official toolchain. No pinned tool or runtime was modified.
+
+No throughput/latency benchmark was run. Integration-test duration includes
+initialization and real checking/compilation and is not a performance claim. One
 reader thread, mutex/condition-variable synchronization and poll/read syscalls
 are added. No parallel execution, fairness, quotas, timing or persistence is
 implemented by this branch. A blocked output or nonreturning worker still has
 no deadline; cancellation starts only after an observed output/fatal failure.
+
+
+## Independent audit runtime-policy repair
+
+The audit also found inherited `BENDRTS` could request independent early-exit
+options despite explicit CPU arguments. `Program.run` now clears it, matching
+the GPU branch's existing policy. The accepted shared source change is
+`b7e873cb8e3638de23313ff3655d0feedfa2e4e0`; test-only follow-up
+`c39bebbd0a9b64380dd10cdeea9112b82b52d5fe` uses one immutable executable
+launch fixture. This avoids a write/exec race seen as `ETXTBSY` in an earlier
+parallel test run, without production retries or global environment mutation.
+
+Post-repair evidence, using the common heavy lock:
+
+- All **18** Rust host/model tests pass with no ignored tests; strict
+  all-target Clippy and formatting checks pass. Evidence:
+  `build/audit/runtime-policy-fixture.log`.
+- A release rebuild and the real
+  `EndToEndTests.test_native_runtime_options_are_owned_by_host` pass
+  (**16.217 s**). It starts with inherited `--gpu-build --help`, performs
+  an admitted ordinary credential update, prepares a universal program and
+  executes it with current credentials.
+- Validated `server/main.rs` SHA-256:
+  `4462d505e6f629a4796aea7145ea38a14d7cdabeff3cf131ffe5c9cd56650cee`. Later report-only edits do not change that source.
+
+This is a process-runtime boundary repair. The Bend admission/proof functions
+and canonical request/state/response formats are unchanged; their previous
+proof results are retained without claiming another full aggregate rerun.
+The previous performance measurements, if any, remain measurements of their
+recorded revisions; no benchmark was repeated for this repair.
+
+## External-review follow-up: helper cleanup
+
+The inherited `Scope::spawn` setup path could unwind before `Child::wait` and
+join a pipe blocked on a still-running helper. `server/capture.rs` now owns the
+child inside the scoped closure, uses `Builder::spawn_scoped` for fallible pipe
+startup, and kills/reaps on early return or unwind before implicit pipe joins.
+The original fatal startup-failure policy is retained after cleanup; no new
+public receipt or retry is introduced. Staging freezes this module alongside
+the other controller sources. The shared module is byte-identical across the
+nine active Rust-host variants. Main and the baseline comparison host remain
+unchanged; no experiment branches were merged.
+
+All 21 Rust host/model tests, strict all-target Clippy, formatting and release
+build passed on this branch. New tests cover an injected startup error and an
+unwind at EACH pipe-thread start, blocked stdin/output, actual child reaping,
+and the fatal public capture path. A real ordinary/prepared/current-authentication runtime-policy
+regression also passed. No Bend source proof, compiler, checker or runtime
+implementation changed, so their earlier proof results remain scoped to their
+recorded revisions rather than being relabelled as rerun aggregate evidence.
