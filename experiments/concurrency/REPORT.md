@@ -11,6 +11,8 @@ prerequisites:
 - FIFO scheduler: interface `d8ac16189df3869192581bffc5acad735226d512`,
   boundary fix `23f7bcb7e8b718288a7cad869215b8acee91b005`, real integration
   `0aeaa4569dcf164844e72fc368f07eae9f022446`.
+- Shared admission fault-injection harness: cherry-picked only test fix
+  `adad1b9ed9602af926cb3bb3935dab087985aca4` (no GPU feature).
 - Persistence: stable publication callback
   `83a9f3703345c234fe3b14363e6e14e15cb88b80`, uint64 image-limit fix
   `6c6e494c081b3332d244900b14a6a9581249a4aa`.
@@ -110,8 +112,26 @@ contract. Snapshot sharing is enforced by Rust borrows and coordinator barriers.
 
 ## Validation and costs
 
-Validation is still in progress. Commands/results will be finalized after the
-shared heavy-test lock grants the queued full gates. Current completed checks:
+Completed locked gates (local TMPDIR
+`.build/tmp`, shared lock `/tmp/jaydb2-experiments-heavy.lock`):
+
+- `python3 -B tools/check.py proof/ReadBatches.bend`: both official primary
+  and BendTT pass, including heterogeneous/Core/authentication targets.
+- `cargo test --locked`: 32 host/read/scheduler/storage tests pass, including
+  the accepted uint64 storage/queue boundary fixes.
+- `make build`: release build passes.
+- `python3 -B -m unittest tests.service.test_concurrency -v`: both native tests
+  pass in 42.650 seconds, including real overlap and durable reopen.
+- `make verify-contract`: both official checkers pass; historical/active
+  contract hash checks pass.
+- `make test-admission`: all 17 admission/verifier tests pass.
+- `python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared
+  tests.service.test_preprocessing tests.service.test_scheduling -v`: all 9
+  real service regressions pass (234.794 seconds).
+- `node --test --test-concurrency=1 tests/admission/read-only.test.mjs`: both
+  tests pass with all positive/negative subcases.
+
+Additional completed checks:
 
 - `cargo check --locked --tests`: pass.
 - `cargo clippy --locked --all-targets -- -D warnings`: pass.
@@ -122,6 +142,15 @@ shared heavy-test lock grants the queued full gates. Current completed checks:
   `false`, covering a write hidden in an otherwise unreachable continuation.
 - Quick aggregate primary check with a 20-second guard timed out without a
   verdict; no aggregate pass is claimed from that attempt.
+
+The first native run stopped at setup authentication because the selected
+`examples/credentials` seed uses `demo`. The fixture was corrected to the
+free-law Alice/Bob seed in `examples/credential-exchange`; this did not change
+production behavior. The corrected native rerun passes all scenarios.
+The queued baseline service regressions also pass. No test is skipped.
+The full `make verify` aggregate is not claimed from the bounded development
+attempt; the new proof file and contract aggregate both passed their complete
+official primary/BendTT gates.
 
 New admission tests cover source/proof substitution, zero depth, fake predicates,
 wrong targets, nonuniversal mode, and invalid independent administrator proof.
