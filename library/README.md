@@ -345,3 +345,11 @@ maintenance is added.
 cover complete prepared requests, hits/misses, maintained updates, narrow/wide
 rows, and batched unique checks. Historical measurements retain their original
 revision and API spelling; they are not relabelled as new-source measurements.
+## Optional receipt protocol
+
+`Receipts.bend` provides exact canonical-input/operation-bound ordinary-table
+lookup and small scalar writes. `ReceiptLaws.bend` provides prefix, completed
+success and stable provenance law templates. They add no kernel privilege or
+host retry machinery. See the [certified voucher flow](../applications/vouchers/README.md)
+and [experiment report](../experiments/idempotency/REPORT.md) for contracts,
+retirement semantics, proof scope and validation.

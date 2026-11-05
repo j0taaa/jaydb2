@@ -52,3 +52,14 @@ test-demo-web: build
 .PHONY: test-concurrency
 test-concurrency: build
 	python3 -B -m unittest tests.service.test_concurrency -v
+# Caller must hold /tmp/jaydb2-experiments-heavy.lock, as for other heavy tests.
+.PHONY: test-idempotency
+test-idempotency: build
+	python3 -B applications/vouchers/check.py
+
+# Caller holds the common heavy lock; hooks are absent from normal builds.
+.PHONY: test-idempotency-recovery
+test-idempotency-recovery:
+	cargo build --locked --release --features storage-fault-injection --target-dir .build/idempotency/fault
+	mkdir -p .build/idempotency/tmp
+	TMPDIR="$(CURDIR)/.build/idempotency/tmp" JAYDB_IDEMPOTENCY_BINARY="$(CURDIR)/.build/idempotency/fault/release/jaydb2" python3 -B -m unittest tests.service.test_receipt_recovery -v
