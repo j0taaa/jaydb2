@@ -32,8 +32,13 @@ test-native:
 test-integration:
 	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency -v
 
-test-library:
-	python3 -B applications/tasks/query_check.py
+test-library: build
+	mkdir -p build/library/tmp
+	python3 -B experiments/library/prepare_proofs.py
+	python3 -B tools/check.py library/VERIFY.bend build/library/application-proof/Check.bend
+	python3 -B experiments/library/test_negative.py
+	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
+	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B applications/tasks/query_check.py
 
 demo: build
 	bash examples/access/demo.sh

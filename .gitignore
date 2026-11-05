@@ -1,4 +1,4 @@
-/.tools
+.tools/
 build/
 /target/
 __pycache__/
@@ -21,4 +21,5 @@ node_modules/
 *.pem
 *.key
 
+# Shared immutable toolchain may be a symlink.
 /.tools

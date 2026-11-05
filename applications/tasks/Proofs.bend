@@ -8,15 +8,10 @@ import ./Termination.bend as T
 import ./ValidationFinal.bend as V
 import ./Policy.bend as P
 import ./Ownership.bend as O
+import ./Laws.bend as G
 
-def Safe(d: Nat, +ctx: D.Context, a: S.Action) -> Type:
-  match d:
-    case Zero{}: Empty
-    case Succ{m}:
-      match a:
-        case S.Finish{v}: Unit
-        case S.Refuse{v}: Unit
-        case S.Access{op, k}: L.E<P.Allowed(ctx, op), @r: S.Return -> Safe(m, ctx, k(r))>
+def Safe(d: Nat, ctx: D.Context, a: S.Action) -> Type:
+  G.Safe(~P.Allowed, d, ctx, a)
 
 def Good(+ctx: D.Context, +s: D.State, ts: List<&2, S.OperationEvent>) -> Data:
   P.Both<P.Owners(s), P.Both<{D.context_present(s, ctx) == True{} : Bool}, P.AllAllowed(ctx, ts)>>
