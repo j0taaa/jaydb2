@@ -1,0 +1,19 @@
+python3 -B tools/check.py
+OK --check-only: contract/VERIFY.bend
+OK --verdict: contract/VERIFY.bend
+python3 -B tools/check.py VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
+OK --check-only: VERIFY.bend
+OK --verdict: VERIFY.bend
+OK --check-only: tests/proof/VERIFY.bend
+OK --verdict: tests/proof/VERIFY.bend
+OK --check-only: library/VERIFY.bend
+OK --verdict: library/VERIFY.bend
+python3 -B tests/proof/test_proofs.py
+OK rejected: tests/proof/rejected/AllocationWithoutGuard.bend
+OK rejected: tests/proof/rejected/ForgedBytes.bend
+OK rejected: tests/proof/rejected/OmittedAdministrativeLaw.bend
+OK rejected: tests/proof/rejected/PreprocessingAuthenticationFirst.bend
+OK rejected: tests/proof/rejected/PublicationInvalid.bend
+OK rejected: tests/proof/rejected/ReadOnlyHiddenWrite.bend
+OK rejected: tests/proof/rejected/SwappedReification.bend
+OK rejected: tests/proof/rejected/WithoutIdentity.bend

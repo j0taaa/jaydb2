@@ -1,0 +1,206 @@
+{
+  "controller_sha256": "dd2742311f9c58c476b3182a2d3ffe1ac54e7c9ec4005490ca1aa07b4e5e791e",
+  "threads": 2,
+  "read_workers": 2,
+  "scope": "certified indexed application, durable snapshots and administrator timing",
+  "source_sha256": {
+    "server/main.rs": "c8b63de27c1a3286871698e290484f7af2ce5cf87c84c4744d516ed45210e701",
+    "server/capture.rs": "243f554451b674c798508c659d47884d488420b9e4c1513ed7bd8e16901a08a7",
+    "server/storage.rs": "97b79e045a90eda5c8d17c4990f9e00f150e343d5e9b2f4f9812f655cf51db6d",
+    "server/timing.rs": "69827ca20dc89468e8b6a1a57c6b199b0a26301a74e77e892974a6269f1eab35",
+    "server/read_batch.rs": "e9b41fee2f5edb684cbd47052b274846b939a1a1be379b9e6b665a1959e8529c",
+    "src/Messages.bend": "1e8a9f048e6642a6cf746e5ea37676aa3bafb3e46c7d7d5078e2c56833bdfb39"
+  },
+  "sessions": [
+    {
+      "mode": "create",
+      "requests": 9,
+      "state_sha256": "1d0d97fd71581582916fac65b0de9f6de9cb5ff43d3cfb297cc28463083a0b0e",
+      "timing": [
+        {
+          "elapsed_ns": "9803421887",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 1
+        },
+        {
+          "elapsed_ns": "13722818",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 2
+        },
+        {
+          "elapsed_ns": "18208147",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 3
+        },
+        {
+          "elapsed_ns": "19435389",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 4
+        },
+        {
+          "elapsed_ns": "26299595",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 5
+        },
+        {
+          "elapsed_ns": "21390431",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 6
+        },
+        {
+          "elapsed_ns": "34288345",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 7
+        },
+        {
+          "elapsed_ns": "29337539",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 8
+        },
+        {
+          "elapsed_ns": "33794952",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 9
+        }
+      ]
+    },
+    {
+      "mode": "open",
+      "seed_present": false,
+      "requests": 16,
+      "state_sha256": "1d0d97fd71581582916fac65b0de9f6de9cb5ff43d3cfb297cc28463083a0b0e",
+      "timing": [
+        {
+          "elapsed_ns": "1127914",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 1
+        },
+        {
+          "elapsed_ns": "9798975048",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 2
+        },
+        {
+          "elapsed_ns": "20533519",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 3
+        },
+        {
+          "elapsed_ns": "27449936",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 4
+        },
+        {
+          "elapsed_ns": "32239943",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 5
+        },
+        {
+          "elapsed_ns": "843129571",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 6
+        },
+        {
+          "elapsed_ns": "15050048",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 7
+        },
+        {
+          "elapsed_ns": "20466847",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 8
+        },
+        {
+          "elapsed_ns": "884587023",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 9
+        },
+        {
+          "elapsed_ns": "16663672",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 10
+        },
+        {
+          "elapsed_ns": "17837491",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 11
+        },
+        {
+          "elapsed_ns": "932178775",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 12
+        },
+        {
+          "elapsed_ns": "17737256",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 13
+        },
+        {
+          "elapsed_ns": "16855943",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 14
+        },
+        {
+          "elapsed_ns": "32408500",
+          "format": "jaydb-service-timing-v1",
+          "principal": "alice",
+          "read_batch": false,
+          "sequence": 15
+        },
+        {
+          "elapsed_ns": "29975597",
+          "format": "jaydb-service-timing-v1",
+          "principal": "bob",
+          "read_batch": false,
+          "sequence": 16
+        }
+      ]
+    }
+  ]
+}

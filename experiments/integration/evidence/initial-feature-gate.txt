@@ -1,0 +1,56 @@
+cargo build --locked --release
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling libc v0.2.191
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.2.17
+   Compiling cfg-if v1.0.5
+   Compiling generic-array v0.14.7
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/experiment-integration)
+    Finished `release` profile [optimized] target(s) in 3.40s
+python3 -B applications/indexed/run_check.py
+OK --check-only: build/library/indexed-proof/Check.bend
+OK --verdict: build/library/indexed-proof/Check.bend
+OK --check-only: build/library/indexed-omitted-permissions/Check.bend
+OK --verdict: build/library/indexed-omitted-permissions/Check.bend
+PASS omitted: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended omitted rejection --check-only
+PASS intended omitted rejection --verdict
+OK --check-only: build/library/indexed-forged-permissions/Check.bend
+OK --verdict: build/library/indexed-forged-permissions/Check.bend
+PASS forged: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended forged rejection --check-only
+PASS intended forged rejection --verdict
+PASS intended forbidden rejection --check-only
+PASS intended forbidden rejection --verdict
+PASS real indexed session: restricted Alice/Bob availability updates, X.scan_equal matching/nonmatching queries, X.maintain and X.rebuild, three intended certificate rejections, unchanged state after each denial, inherited BENDRTS neutralized.
+python3 -B experiments/integration/check_features.py
+PASS combined host: certified index maintenance/rebuild, seed-free durable reopen, ephemeral handles, three real certificate denials without publication, exact saved business/index/user rows, administrator timing and exclusive write-capable handles.
+python3 -B applications/vouchers/check.py --restart
+SOME PROOFS FAIL
+Error:
+- message  : no such file: /home/jota/.t3/worktrees/jaydb2/experiment-integration/applications/vouchers/.build/check-ijbwk5sx/Laws.bend
+Location:
+10 | import ./Ownership.bend as O
+11>| import ./Laws.bend as G
+   |        ^
+12 | 
+Traceback (most recent call last):
+  File "/home/jota/.t3/worktrees/jaydb2/experiment-integration/applications/vouchers/check.py", line 196, in <module>
+    main()
+  File "/home/jota/.t3/worktrees/jaydb2/experiment-integration/applications/vouchers/check.py", line 86, in main
+    proof_check(directory)
+  File "/home/jota/.t3/worktrees/jaydb2/experiment-integration/applications/vouchers/check.py", line 41, in proof_check
+    subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(directory / 'Check.bend'),
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '-B', '/home/jota/.t3/worktrees/jaydb2/experiment-integration/tools/check.py', '/home/jota/.t3/worktrees/jaydb2/experiment-integration/applications/vouchers/.build/check-ijbwk5sx/Check.bend', '/home/jota/.t3/worktrees/jaydb2/experiment-integration/experiments/idempotency/VERIFY.bend']' returned non-zero exit status 1.
+make: *** [Makefile:77: test-feature-integration] Error 1

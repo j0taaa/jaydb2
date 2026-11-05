@@ -56,6 +56,10 @@ scheduler gate. Natural underfilling of an initial batch counts in the result.
 The state has two users and no application tables; larger-state memory costs
 are outside this comparison.
 
+The raw `preparation_ns` field includes service startup/initialization plus the
+first checked read registration. It is recorded separately from every measured
+execution burst; it is not an isolated proof-checking or compilation duration.
+
 RSS is sampled every 10 ms for the selected controller and all descendants,
 with task-child traversal so children started from read-worker threads count.
 Also record RSS before each burst and after all responses have drained. Summed

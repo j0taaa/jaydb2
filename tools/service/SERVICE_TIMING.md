@@ -56,8 +56,9 @@ finishes can leave no completion record. No cancellation or deadline is added.
 Intermediate inspection during execution remains part of service time; final
 inspection, log serialization/write/lock waiting, FIFO response waiting and
 client write/flush are excluded. Overlapping requests each accumulate their
-own wall interval. Logs and the counter reset on restart, including durable
-reopen. The counter is process-local and not persistent.
+own wall interval. The sequence counter resets on restart, including durable
+reopen. An existing log file is appended to, so separate instances can produce
+the same sequence numbers. The counter is process-local and not persistent.
 
 ## Authentication transport and proof scope
 

@@ -1,0 +1,1625 @@
+{
+  "benchmark_source_sha256": {
+    "ReadCompute.bend": "49560e8e3ca0cf1b2b7d3a46d8bfd935885dfbf8a237ebda6a5391271a5a7eb5",
+    "ReadComputeProof.bend": "04b458bd8fe1d9643aa315901a0e38055502f23eef6b5a7cd237cf286e2d0bc8",
+    "bench.py": "6f5f8eeb09804e3459d6727d28a0e36a75785be9e1406f8c69de647dc8404329",
+    "run.sh": "05536838c0057d0ad8378c6728dd15e56a5962b301cc3eb12b40cdd4b51869d1",
+    "test_bench.py": "6ee6309ca3140f6096d5a05f1877f5b78b5809ac3bb376d04b8c2f35825a80ab"
+  },
+  "checked_responses": 128,
+  "controller": {
+    "build_elapsed_ns": 62971047,
+    "controller_build": {
+      "chosen_executable_verified_against_fresh_build": true,
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release"
+      ],
+      "cwd": "/home/jota/.t3/worktrees/jaydb2/experiment-integration",
+      "revision": {
+        "branch": "experiment-integration",
+        "head": "7191d6508c1640efb0da2a8df79a3ea192710a2d",
+        "status": "",
+        "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "source_identity": {
+        "files_sha256": {
+          ".gitignore": "fa0a93e0321bff807cb56c80b47d380afa9d34b69ce67d9fe0370a6e6569d72e",
+          "Cargo.lock": "040f67d9a40d539f9192841a7eacb9fc9cbb762d98d23de2a25ff7a9a0767977",
+          "Cargo.toml": "c2111c28cf375736021967a66d0ac48432fca042b537b31a49341c4c127a6d97",
+          "EXPERIMENTS.md": "4e4f510b1e44b665cc7574f608f79078cee52f07b37ac14afe600dda34ab53e2",
+          "INSTALL.md": "351189972c1dde9e4cfdf8b01a0ffe96d4376d76937657655d4d38521fe864fe",
+          "Makefile": "326a53c110402b658a88c6cac77f7df786926e1cad8ef14f9ad2d745c9289aee",
+          "README.md": "9a11be780bac4a078da6050149592b63fd718e3e30eb0d2c2882230ce023d142",
+          "RELEASE_NOTES.md": "262da583431e8b8d7097b9c493117349317fbf54f8e8441e3af011d2738014fc",
+          "SPECIFICATION.md": "961715f415939e678e5b7b9daf9dde06d33389a7ff9ea850b739e317b2a7f92a",
+          "VERIFY.bend": "7404a2dfa93df9a9df6bd0d513f119390c94b43ac1477bf0aa93d515d1e9f99b",
+          "applications/indexed/CheckedActions.bend": "bb2d83a5e986e8e3f37b4a45f3fc997c39ee01453586d48365e576d47bd5f735",
+          "applications/indexed/Client.bend": "f3c03b7e5eebe5d69e4b60e51f17899d892685992f04d34a6b15a0fce704148b",
+          "applications/indexed/ClientProof.bend": "16b3ba7af58bd0dbb41eb20841e1cc48549d29e9e77930ce944196a40cd34670",
+          "applications/indexed/Completion.bend": "06ab3ecd35d3461feaaa67693b92a21bd34cc148acc1a647720cc6db9142b480",
+          "applications/indexed/Configuration.bend": "57fa1ed4da4922116a8d0ed191e00b9e100ae328eaba036e1a91cc338db3c8e8",
+          "applications/indexed/Model.bend": "c1d93d764ae924a50ce41d7f6dc3cf6bbe4d41de2c7fc4a953d247005e97769f",
+          "applications/indexed/Policy.bend": "598731bbff31a45636eafe09299e2276e86122d8d8eaf5a088c53f9e49b10afa",
+          "applications/indexed/README.md": "0450681a60a2bba19c984314ff7b8eabbfb112bf5b3b952ace2e128def0a6b65",
+          "applications/indexed/Seed.bend": "9f3721a8774858c9fdb5c77fbd31aa3a1df7819173cdbbf6eb9ad6f82fe8d57a",
+          "applications/indexed/check.py": "27fd59b061782b6fa4b46e5d8b2c01f70ee16e04ae64b1bdf316515d6b937240",
+          "applications/indexed/negative_cases.py": "e06c10aada006123d6f20b1038b17d482a8d99631ec59461f3c5bba1e145ef57",
+          "applications/indexed/run_check.py": "4bbcb9d1a3913fd63d3b4704041046b4d0c39fdde0dce43b9bdd6e87a556486a",
+          "applications/tasks/Client.bend": "a8ad78f1d2093a42e994e389475a76176d336f8020bd5d940d6e5eabdbcc4789",
+          "applications/tasks/ClientProof.bend": "dbc2b8d65223d79ed12a3c62898839c8798a954f19ec937c853123b781328360",
+          "applications/tasks/Configuration.bend": "3abfcc5304b39ecdafc07c2f00472446678eeaea0d62e3ee4fdb66a28c9973f4",
+          "applications/tasks/Ownership.bend": "969f87ef1b6aacad206e9a9db2e6c0cc73a8c0ece0378f83361cf55d81637171",
+          "applications/tasks/Policy.bend": "958596c7d0b36c2ca039832a8b8fa8b5ba7d56fb22d236aa4ee21eb55d22ca1c",
+          "applications/tasks/Proofs.bend": "f430da7e9a850a36f80895a3bbdb38109a5195b9d7ecbcfc84ab6b581e2d875a",
+          "applications/tasks/QueryClient.bend": "7f9d3f23081bc3d5fbbddde57c5c75bf695b464a1e07e5bdb608e62449df4e7a",
+          "applications/tasks/QueryClientProof.bend": "8913ea35d72346b121a11f0f36772f5d686280a4e68bdb1972faec1a65b078cc",
+          "applications/tasks/README.md": "c1f3a8cac7ba2c3ce84bb9e8c5d2642742fe8d7e0bfbab7ca8ad280ac24a5b21",
+          "applications/tasks/Seed.bend": "a6cf40be6e4f9cf89ffee9b5bcb7a932728f52fee47b33d419f421cc0ed3b473",
+          "applications/tasks/app.py": "193f566044cf740953167cef12152cfe69b09f7cb628a8dbae9039df78a68bd8",
+          "applications/tasks/check.py": "b7e2f0eacc3f63fd2d46573a70eb1944adcfeab69993b85f15ea081fab0c3c6b",
+          "applications/tasks/query_check.py": "a6d1862201bed4ba49e5d9a64e60fc053873edc50e58d0d83851b678d5c1227f",
+          "applications/vouchers/Client.bend": "f6182334dcfda394ccf84b5b321ac5dcc1bc2f35d4a8bddf6a4b4169d9936e18",
+          "applications/vouchers/ClientProof.bend": "41c3f2b6b0dd2b2227b634f49695d169f069437e1ca6423e023f6f2c1f6df527",
+          "applications/vouchers/Configuration.bend": "9cf3cf107397381781ba1ba09da4648f70a144d2d1ec62ce29310ac4a9c83791",
+          "applications/vouchers/Initial.bend": "60f4288442fca7752bb06d59db2a9f10b1112eb6cb2c975baef7e4642c0b3876",
+          "applications/vouchers/README.md": "90fc2708855ee6bae47664d8d98aaa624d38e7b4f48339c1b63af96af477dd4c",
+          "applications/vouchers/Seed.bend": "159efdf17c7155404d7b64f3f77e679434d66cd88922cab0aeb790ee3648c9ed",
+          "applications/vouchers/Voucher.bend": "077d413492dd215381c2597c13e1316e65a43213153195ae71e9d7900bd30b85",
+          "applications/vouchers/check.py": "645cee1befcc090d39a293a1e8f1a9a2764a77fd219484de1eb8b1c4f482bbe2",
+          "contract-original.sha256.json": "fe6728020f37b73ef52bd8624d2dafa43f800138eca6aff4f4dfa6253b3c3a08",
+          "contract.sha256.json": "494d0af36b5c28c81463a1b4f8901b7a1b527c5f147512e65a098b80decd1e33",
+          "contract/Bytes.bend": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
+          "contract/Data.bend": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
+          "contract/DataExamples.bend": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
+          "contract/Interface.bend": "020d3b3370d9f25f23ed20b9c9a5466d8b469ecbe3d9016f69e3f9da6bbb3d63",
+          "contract/LAWS.bend": "2abb8e969e6c4324032370b4ce8f6f71211da84f114f305e8ca2fec47d7b28be",
+          "contract/LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
+          "contract/Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+          "contract/Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+          "contract/Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
+          "contract/ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+          "contract/README.md": "781779567f093351d7e34fee221c20efa78c039a14175fa1b22705f9596d72d0",
+          "contract/Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
+          "contract/Resources.bend": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
+          "contract/SPECIFICATION.original.md": "f458c35a06b39fa3f506a28bd5471962951c6a1ae9a00f658da6cf63e73ae033",
+          "contract/Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
+          "contract/VERIFICATION.json": "18060c2fde0e77856492da14d5429012a262511ee90d459442ace1fca63fae20",
+          "contract/VERIFY.bend": "3dea436a8a72b4863253ba966419433bf28846305f340c0f5216d371a1be9993",
+          "contract/verify.py": "654c94d84b8f1bbfbb3fba8976cc0589fc3b33b9b6b253c92e229f551886f0d4",
+          "demo/README.md": "5ca283764d3be9341a0a4d91aa573fcaba38e5866e1fb24ee516b739f847d97e",
+          "demo/jaydb2-demo.service": "c6d3af4968c4b635a1eb9a838d535261411ecf91081595c55f98d67de5a66870",
+          "demo/server.py": "627f8d975ddbca57ac8178192268de4492e697ef54113219d42142e81bfcad24",
+          "demo/static/app.js": "2a92eb33ab542f6b709fe10d31f64dd529ae21b2e79b9f790a0c00569375bd0b",
+          "demo/static/favicon.svg": "fb1193ea1f778cc31d5866e31333bbeb592ad124dfbb0cbc692210d57cb6ac44",
+          "demo/static/index.html": "e7454bee01e23403c2f031508431ed8a64b29991421e5c36b0bde89bcaa649e1",
+          "demo/static/styles.css": "48c17ce65f5b1f824af84dc1c6bf8c65dc8215e33d94d2d440947a7fe34c3444",
+          "examples/access/Client.bend": "370a5058a49d59692c9d06fecf6047f0f71650d151d1bbd99b544b69f070e61a",
+          "examples/access/ClientProof.bend": "c5baf8c7ecab29880e028c0f95ba2a1427b022ec10753308e561835addb6d95b",
+          "examples/access/Configuration.bend": "29c28781439617e19b0a5514308aca7c92c681e354f3988f8d275f616405d0d9",
+          "examples/access/README.md": "8cf35b1ebdf69336a4e9d944df44c5714df32144b4b9f65ddc7ade887df63d25",
+          "examples/access/Seed.bend": "0f25eb644aec255a7b0053f342f095f9a55275c5a62bdbbd3b3400c7ee7614cb",
+          "examples/access/demo.sh": "33eb58d295f4583e0913906dd92b8cf61c05d575e8befe72fb8db7f356ca12f1",
+          "examples/credential-exchange/Client.bend": "dd742c3fd939c00dfc73c28f81ae24a0fc668e6c14a1ec7512131317cf14f5fb",
+          "examples/credential-exchange/ClientProof.bend": "b4391aa5b53ef0dbbd148feea49e57fb7ea834caa67f841ff8b776090e989743",
+          "examples/credential-exchange/Configuration.bend": "4b1186ebee4495a2df94e01d0f7ad60d7e28768c5a1614e245cfce6f65739f60",
+          "examples/credential-exchange/README.md": "ddb1451ca34bd124eb109786ae2bbc74ceee03992e2e2e0250eb37c8f770e77c",
+          "examples/credential-exchange/Seed.bend": "136bc7e0fa1309d37ef798b3a01ebbf78d2b467c9793c7dcd6def4b878a51dba",
+          "examples/credential-exchange/Who.bend": "1383d752c910dad5b451671cfe972a80e97d4ca9df39ed3efc928997107dcc60",
+          "examples/credential-exchange/WhoProof.bend": "76de93da497c7a2c7d9d9ef87895b8887e5446baaf5bb3ac8076798000a13c96",
+          "examples/credentials/Client.bend": "13bff6b754151a238a79b93f89727f61a3882efb96c920c31073a8bfceb3e53c",
+          "examples/credentials/ClientProof.bend": "7798ca767d3ef29d325b2081d488031bbe4e6cb4b7370ffa7c70bd7cb6b8b7c6",
+          "examples/credentials/Configuration.bend": "4b1186ebee4495a2df94e01d0f7ad60d7e28768c5a1614e245cfce6f65739f60",
+          "examples/credentials/Echo.bend": "c2d62726cea39cbe79b8379328fe2a4281db1f6638b9d3d04967c1a704683b6c",
+          "examples/credentials/EchoProof.bend": "a792b70fafa5accd64c5d4d439f435e75f901632c3e4d2a54b62515b9b245e5e",
+          "examples/credentials/Seed.bend": "8f8350990802bc7b4e5181a910e3282ba4f504aa863a7e07169facecb633a06e",
+          "examples/no-observations/Client.bend": "b08d8f21e7e3762070ef7fef9e21317c01362baa52174ac4ad7b56b9bc70dceb",
+          "examples/no-observations/ClientProof.bend": "27b3bfad584d7ca9f6bf0bf6523942341e61e5d6e25e7656d061235532fd505c",
+          "examples/no-observations/Configuration.bend": "ef952c955725913f282cd1c4d4c61471f0e56d8586079149822b35d3c06ea0f2",
+          "examples/no-observations/Seed.bend": "c8607f25fdf06ca0134ddab0f85e9bd081b61d6d35302a3f723ac3bfdc221682",
+          "examples/no-observations/Success.bend": "0078d10ba8037835884d16c2cc95dd8f13307f9d6d5af0d17d23528e8cfbcf96",
+          "examples/no-observations/SuccessProof.bend": "e6c01c9eb4dbccf33618963bd332574084da2ea4bd6451012db615408474c6ae",
+          "history/README.md": "2b04b2b61aeb97137813972849497fb34a903942d4284f2f94fd48f8b8399b09",
+          "history/contract-v1/contract/Bytes.bend": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
+          "history/contract-v1/contract/Data.bend": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
+          "history/contract-v1/contract/DataExamples.bend": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
+          "history/contract-v1/contract/Interface.bend": "774a8aa461501d3615db8e7a791a6780b1a82ffc819bd1f4c90c5972840247b7",
+          "history/contract-v1/contract/LAWS.bend": "c108a902375db52844e101818a9da3e2630666fa3226020db30a077635d96d53",
+          "history/contract-v1/contract/LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
+          "history/contract-v1/contract/Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+          "history/contract-v1/contract/Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+          "history/contract-v1/contract/Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
+          "history/contract-v1/contract/ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+          "history/contract-v1/contract/README.md": "aa37b66a88bcf603e0dcf6105b0a5c970705ae3fa8ae2062163a61b84fc2a740",
+          "history/contract-v1/contract/Requirements.bend": "6d88e6f61020438361d8af3127be2ebaf81bb576ae02c0102d62a8547094ed8b",
+          "history/contract-v1/contract/Resources.bend": "20a1820ac0915c8187882d76defe62e9cee6c81955531cca284899dc75172b86",
+          "history/contract-v1/contract/SPECIFICATION.original.md": "f458c35a06b39fa3f506a28bd5471962951c6a1ae9a00f658da6cf63e73ae033",
+          "history/contract-v1/contract/Semantics.bend": "0fa3fcf50d278101d0b50d829ccd4452a9b0a3eb5be766c040474e51588b07cf",
+          "history/contract-v1/contract/VERIFICATION.json": "18060c2fde0e77856492da14d5429012a262511ee90d459442ace1fca63fae20",
+          "history/contract-v1/contract/VERIFY.bend": "3dea436a8a72b4863253ba966419433bf28846305f340c0f5216d371a1be9993",
+          "history/contract-v1/contract/verify.py": "654c94d84b8f1bbfbb3fba8976cc0589fc3b33b9b6b253c92e229f551886f0d4",
+          "jaydb2": "e4ee0e5af99025505bb34f60988e641ec54d27385fa54e49df7b7c59882c35d5",
+          "library/Action.bend": "7c3f0ac75d1663ba60065dd45eaa246ea7928648410497c14bcb8acc2300dc02",
+          "library/Aggregate.bend": "a0848a56b3f28f50b18881ae9447e6c1e51bfb8ed9d351786973e4f18ffffcdc",
+          "library/Index.bend": "902b0fe17ff0b296ae069737acce5ade316113e03a53bcb2776de77f1b8686cc",
+          "library/Int64.bend": "856782b312215c01378263970cb6c1c201da06f54034c854fb463b4cbea54665",
+          "library/Key.bend": "3fdb8127a5345a40ddb37d69aa695763939ef96f86ee33b54ba48adc21a46b6a",
+          "library/Laws.bend": "10cfa4e57266c18586eed554350830dfb6f20d8d627b69f542def305e214f334",
+          "library/Mutation.bend": "b13b812fcf776fb6e98af1abb23f52afdf394c82057511d99a7e401378c34dda",
+          "library/Proofs.bend": "4060481f9e59420573afdac9841bb8da704feb19074a38eeed66a38eeeb57aec",
+          "library/Query.bend": "fefe5c9120251fe7d9973b9b9ea6f55c584e1d75d29e554b58f758120b1e0b72",
+          "library/README.md": "b724554ad82ef9217f0e5dce06343fabdfa1cba285f34a8502d5044f2d032b41",
+          "library/Read.bend": "9f579bad6f8e7b325caa2e20b263581482a65b0a768be19c9ef30ec068177d0b",
+          "library/ReadProgram.bend": "cd9f6be0cb63c305418ab9eefe090811abc63d13b829e7fdd71ca39830ec3468",
+          "library/ReceiptLaws.bend": "c6fa631f6a22b6fc69aa881b12f28879d15c56da0ad8e4d2101fc95f5e746b96",
+          "library/Receipts.bend": "c644422df5ef65c77b51f8e698f6d8ffb49037b25e0c0e78c0c2c73b61435168",
+          "library/Record.bend": "e166054cfc7df0955545f1b99576a5cca52db2b5e1f21cc5bff6b9a1ca28a2d3",
+          "library/Relation.bend": "62dd5c87acd236d0ff0cef535b0e2988d14521abccaa0dac31dcc7f6dee3798b",
+          "library/Sequence.bend": "3bc50f8d27f1f8330775d1dc8cbb7d5b43032b6e564c68ce8b173e6856a5fac2",
+          "library/SortProof.bend": "733d54a33cf98af130803c51f19c6dcf40b65153b2448d24fa5ef3761704fa0d",
+          "library/Summary.bend": "ebfebde70defd407c109417a417cc1edb47188f944d533274cc45dc2a355f472",
+          "library/TableLaws.bend": "6f8abb2f94612b7535666821c2843eab7c7eed97001bec28616fccd634b9198a",
+          "library/VERIFY.bend": "f865f30f9cb09cddee7de82502629eb8027582ff83f0f63e0b5b4b1c24417707",
+          "library/Value.bend": "74b9592855ea8258551c8119649c60da36ebc0ee05d4ee530549d1be507bc6d8",
+          "native/README.md": "fa2676e8a6cf507063257140bc81045b1563bf4270248cde5350d07bd6434e2e",
+          "native/SIMPLE_RUNTIME.md": "74695b1718202e68249a487ee55d961c6b394b8e37847105592d2aa7c1cdc0d2",
+          "native/effects.bend": "88eec69913766ad9dd7ef126ad99e1e6fa1e2d227a75ef396772338392433ae5",
+          "native/effects.c": "b03b069930c80384c57cd4c07b88223ce1ef88d6f994992e38f83755967b17e5",
+          "proof/ALLOCATIONS.md": "5e4e8cc4aed40f98e3816a9b5e6c76d0944aee769693e0bf33d788e1b873f1bc",
+          "proof/Adapters.bend": "cd599e1667e81fcb65f138254314e30f0c3c2c6b5a43c0b8b275b4ce59a74fa2",
+          "proof/AllocationLengths.bend": "7aab7a54da3ac0bb992cff7622f28fb90d6612012c64caff596f19e67f463424",
+          "proof/Authentication.bend": "ac1e035bed09e9d63ccf0725f4e31d5200795102731381ec9a37d4f553c80c1d",
+          "proof/Call.bend": "63c81c98cbfab3003e44adf542a503ca586ea0f028f853d3bed32c2b60516ca8",
+          "proof/ChannelService.bend": "5007718785bd175aa264c3887f360a6f60c428ee23e441585849f1079e8a090c",
+          "proof/ClosuresService.bend": "3db789ef78fe7e2694947fea1fb827b3a6e02f7984c50a7a958064c2159fd16f",
+          "proof/Codec.bend": "a942732182e52ff53b2c995c1515dfc1493875dc5b15062491581541f8ce26e9",
+          "proof/CodecAcceptance.bend": "743b7b5b3fef8325dff8e7b0f41c78e46830af942286bbdef64634fae23810ac",
+          "proof/CodecAcceptanceChildren.bend": "431264568a7a50e2bd078197e84688d4f1e354fae0f969adf8cad7e1ba78660b",
+          "proof/CodecAcceptanceInduction.bend": "3697a97b46c330ff04a2226a9067d18d102129d97c4580718d9f1c803d4afcc6",
+          "proof/CodecAcceptanceList.bend": "4fa9e2506b1b8a86f6a645c9c3031b0ea948fc4c8a03fae563d9aff592e5f213",
+          "proof/CodecAcceptanceName.bend": "495d6dde81a0bc2650fe7770b22401e4746d0884f60511a9fc16a72888e04baa",
+          "proof/CodecAcceptancePrefix.bend": "b693ae5cdd5f6e65ca6eae76578f61dc7161befe8965ae95b82fbf77fb180880",
+          "proof/CodecAcceptancePreparation.bend": "d765c060282b11f7ffdfb28e861aa1ba5b747f20fd698d39e4633a6d5bdf1266",
+          "proof/CodecAcceptanceRecord.bend": "bb0386bf6fd0a13eb4bc19bc51831ff6799593c5ed173469b899ee4b38f46e4c",
+          "proof/CodecAcceptanceRoot.bend": "5d6045f06a3e43b9b4589602fde6e641fd08a8a0138bf656c6afb30787ce6f58",
+          "proof/CodecAcceptanceStack.bend": "c8ab7270fc2b3dcb7be951983607e6f71cb04ed24e05c313d7a675201c0deb64",
+          "proof/CodecAcceptanceTags.bend": "11429c8538f1393d4ab0bcd2d59cfc5a5430f372193fd967b2794e58720d4b12",
+          "proof/CodecAcceptanceText.bend": "f19f4f61e3001e2364106cb3ff77df22e7fff69971a3aa8e2ef07200ec09aced",
+          "proof/CodecAcceptanceWord.bend": "35a9c05bdc79d72fb77adf97c3d3baccb100310c63b1d3d9348477d74fc8ced1",
+          "proof/CodecArities.bend": "b36e50434e3955ae73c2c7830fcaef464d85bff713a15f7564cb4615b36807cd",
+          "proof/CodecAssembly.bend": "dc491ee1fa1424a3ae1a97d748e7a11f762ab4a215a3625a49813563e01332ea",
+          "proof/CodecAssemblyClosed.bend": "98b03ede2b95417531c94d2bb44994adfc83651bfe4081ad60933dc0aca444ff",
+          "proof/CodecAssemblyExposure.bend": "7387674035f56458a4d062499086cfe08d2dfa3de51597c0ab59e65ee9dd8c7e",
+          "proof/CodecAssemblyExposureRecord.bend": "e8292a77ae23feb3a6a1f5ddfb841eb8c141afe098def5ca3d2ad2cf6fb4d3a7",
+          "proof/CodecAssemblyNames.bend": "094c0addabdc63a5b2692fa04a49926a6370b6503c45234e8be31d4896b78338",
+          "proof/CodecAssemblyOrder.bend": "7efa275e67609efa9b320e1ab4a2892ea6354b0e4e7df36e430a9704cdedb94f",
+          "proof/CodecAssemblyVerify.bend": "2b7b80e6d7fc15fdceae65feb0479b131a0b67e9e38efbbdce5796c9850a2c34",
+          "proof/CodecCanonical.bend": "ff613f16a78f0fd0a87a7b42f5919f954fb0fcf2c44aeb323db719713897bb50",
+          "proof/CodecComplete.bend": "69c381ccd5dc1c52d2407c55316b158d7ca71834b11ba941eea5d7b5e578a844",
+          "proof/CodecCompleteStructure.bend": "e4a8a5747669ffbd0b6c4b8eeca4ef0db6ba588f108847036543bd9bf3c4b309",
+          "proof/CodecComposition.bend": "6f62e6a40924723ed6eba8fe6b012ca0c7d4cc055dbc0a214db03030ed5dd778",
+          "proof/CodecContent.bend": "c325eb1dd5a1ee9ea31c7b595d3b292df63f7b3f7dc6a4d6fd043269a185439c",
+          "proof/CodecCounters.bend": "c851484ef8a5da6494705c57b3307a0c8a8cbddb1af0fc5336621dd52f561174",
+          "proof/CodecFields.bend": "53b571f4243c3db40d39dca49b03e8bbb3f456c539370fbeb060362f23b96ee0",
+          "proof/CodecIntegers.bend": "90c0788667505ae10ac4f2f83e44837f0b272fe0fac347a6193718648a2420e0",
+          "proof/CodecLaw2.bend": "dc546cc66db148d7bf127a26ef003c90f74fa0444fc02b7bb9c1b9ec8ed555ff",
+          "proof/CodecLimitsCopy.bend": "bd4b9e337b1b2fdbb4aba817e85a08e2d651a6d39b31e2d3293fdf58f9b77764",
+          "proof/CodecLimitsNames.bend": "7d9f57ee718c80526e6009b641f32969775438e5860ac8b985bff8810e605bab",
+          "proof/CodecLimitsPartial.bend": "e30aa7ffd4ac1dec3179b02af5975305d85c43f932603afd0ec99cf170f153a1",
+          "proof/CodecLimitsSequences.bend": "e10e264b6e954e490af4caa84e9cc17eb856ac51f386e5561614ab80b48d5385",
+          "proof/CodecLimitsStack.bend": "57b50f33b824fabf34a1a0ce0cd0336c9fa28197d756d635dc8ddffb3df3154d",
+          "proof/CodecLocals.bend": "8a6871946b209145136e6dfd30b9ebd74196ada46f21e7762ee43a8710dd58d8",
+          "proof/CodecMinimum.bend": "9448be68e85192816efb7324f33528c55e1a2bd6123b8cf51e3b96ed450f8f2e",
+          "proof/CodecMinimumStack.bend": "930c1152dd611e46acfffd1620128b1c418c8fdee5661ae135fbae2af3812e19",
+          "proof/CodecNamesASCII.bend": "cad69f3fc89e33f21c6448d9c69b74f0e7297c55e9ebd1a1389c4d68ef5200b7",
+          "proof/CodecNamesChar.bend": "84c4ef431f1b91b6f7431b6784e59a68f41eac1441f190d562453d275f2c26d4",
+          "proof/CodecNamesLocals.bend": "8f1cd8d470b3f2ff091c551ae9d49ebc8b0b18f44983927afb9aeba621d78dc3",
+          "proof/CodecNamesOpening.bend": "6dac83c6537a8d46ea03d0b286ebe39b4c60404036a28a30990bd03e13ffba0b",
+          "proof/CodecOctets.bend": "28c79b9a3a2f73126a5b0862dca7c28e61b172c22063a2f1db7011bca01e9d8c",
+          "proof/CodecPrimitives.bend": "20000f06974595965993e4f33b35dbe2d01e91e3be49f1676939cdb7bd1c1c56",
+          "proof/CodecPublic.bend": "6e4bd999dc5dae44a757f1eaef8322e94b83458b9085e32e2995b01db1e16ea3",
+          "proof/CodecRecords.bend": "f3ed197735ab30ce58997d90b7f7145974d7ef44b8a0174d32683159d8084f42",
+          "proof/CodecRefusals.bend": "b735cfe173c5b72712c8e86eba3d9b15075fb1ae88081c3d19ee3faba23e4e40",
+          "proof/CodecRelax.bend": "faac291b7d5ac57605199e4abcb8b91e2c9df54689a57db9e237f215086f5593",
+          "proof/CodecRelaxArithmetic.bend": "f6adc777070de56c84ca5fa8d8227d96745de15d25a10c483f72fae684447a95",
+          "proof/CodecRelaxArithmeticNat.bend": "47e4c3d1a1ce5c98dc365eaedd29f752a3afb423488bf9de1604f867294dd0c5",
+          "proof/CodecRelaxArithmeticWord.bend": "614c98128c8b898c29b990ef814ae73bfb821093dbe783feefcf67a0ce897644",
+          "proof/CodecReservations.bend": "741e68e7abf03e93b9bb32b454f1a8f42a3ea320240d2205c682d52634d3ca0d",
+          "proof/CodecSequences.bend": "9e3373d18cd5e5dfbf33cca9e237cb7c6d83961e177a8e4544285ef7ca911975",
+          "proof/CodecSizes.bend": "03693c6eb7baf76c05c7ee52b6ecf36fa44cb73c0c6b2ee041544aa6b9434a77",
+          "proof/CodecStructures.bend": "68f6d921cef8238ef4ce168aced82e65c388f5c54d5f01811f79e180d25fbb3f",
+          "proof/CodecSums.bend": "853340730dcd0f754358d1f92744330313962f9deacca89bf4b298b7cbf79417",
+          "proof/CodecSums64.bend": "f1dd4f74eb517a46b8fc8dc648bd448c2fbb9d4c602f12b1a3f42aef7bf270ea",
+          "proof/CodecSumsBits.bend": "f42369a276dd21d75d7cceeca5f32f9891c3a13122634c1065779527cfcf1982",
+          "proof/CodecSumsMinimum.bend": "6ac3e11f55032591a9c625f9c97bd54fca4cf6b07b56140f6365ad690e02bfa9",
+          "proof/CodecSumsOrder.bend": "b070bec44e019fd1e9bf2fd705c788094fa34c0653974add4940b287e43cd869",
+          "proof/CodecTextAccepted.bend": "b0f0fa149fc444a700a7693e44cf96107bb0cf6a092dcefc9943fa34b4daf921",
+          "proof/CodecTexts.bend": "308714b95172639663a91b9bf263cb3150138c94fcc60ee3f419a5ddc643875e",
+          "proof/CodecTrace.bend": "3f9d59d85ba9a54d49d42f37ff9445450cdf70374192c0816147bd3adad1fbfe",
+          "proof/CodecUTF8.bend": "af9898b17e43efc785821ebe32058469fbf1b73232022e2732e972c1f5559971",
+          "proof/CodecUTF8Bits.bend": "13a88400931e5e356fc3794bec26559cfeaa8ae59b13e2b0b6e126d0908513f3",
+          "proof/CodecUTF8Inverse.bend": "e3c9dad71fa841d9cacc38b94810cdabd6d3aea17e8cb5d95d11f03eb849f319",
+          "proof/CodecUTF8InverseBits.bend": "2946c835e785d1aa574051555b9043a92cba9d76caced5704a4ed1d3c5283d85",
+          "proof/CodecUTF8InverseCanonical.bend": "d480eb906b20f4726b141065bc27fd61c870f37af813599de01525e9ca11163d",
+          "proof/CodecUTF8InverseOctets.bend": "f2b6ac0c7b00dc7e05f2196d3478b575e3e7877ed06033901fb95aa9e083cf96",
+          "proof/CodecUTF8InverseText.bend": "28a34d4df0bfc87b8966aa14bb3f1b2506ebbd13f162f0867ea27082f482fa6c",
+          "proof/CodecUnicode.bend": "10d6d674db6661ba5ec6fdcde120ecccc6ef6bd5bba68649d4119eb627c06217",
+          "proof/CodecVerify.bend": "905d736e4ac623177ae279e87da316844a7be610b67d28c806b0a54771f2382c",
+          "proof/CodecWordsBE64.bend": "6d275d1f69235fe3b7fc4619343a04750f6f1554a29d75a07a10eaeba26ba14e",
+          "proof/CodecWordsInverse.bend": "bd1ff0cadd24d8c7f563bb9ef6e4cf8eb97ff45bb6bc8f1ce15b87d54c708439",
+          "proof/CodecWordsWord.bend": "b617f1c4a389494590cb2ddda1e775bdc2ef0c31b4f203ded8026703a091c06a",
+          "proof/ConclusionService.bend": "9e6bb14ede1880e5ff43f221b492e4db6b27919e7a0164c3efcdf854edc16a05",
+          "proof/Configuration.bend": "c7b3aa652bb4738e8b32b8e5de5a9d6308eb5cecddc5e9755b591bbd7f25e363",
+          "proof/ContractService.bend": "afa775a7857b4ba8cd6a7aadfc2ec9eb6c6774df6a80926c883989b0090c768a",
+          "proof/ErrorLimitFixed.bend": "3c828b5109da70cd820af179973496a8c16ef9d74da673102bf9ed1097a09f0d",
+          "proof/ErrorsFixed.bend": "d931ad86378680168abdcd6716773af2c87597f0aef08488c18c03041210570d",
+          "proof/ExecutionService.bend": "af5ae472cbc0f15cc6c2fa6c4b9f41b8e0228f17fa5bd758041184fbdb217a60",
+          "proof/FieldsService.bend": "1ca4f4119f1094bad466e0fe8310e788f74ce162d5dd63332a4e4a2e02868777",
+          "proof/Foundations.bend": "db9bd1c7eee87b828a9f5eaed87d5fed6771a21340683c84129aecb2c6259ac4",
+          "proof/HistoryService.bend": "ba9ecb17576126667d4ad5ba07a389949c16b2f27d92c87828dad9f0f0a130ae",
+          "proof/Input.bend": "aef45789c59a49abc1e4c41ad790558db693a9130e2ecb836ec114bcc200ca6e",
+          "proof/InputErrors.bend": "496bca06e2640cf2fc55107f47a5c945afc09427acfaf8a1609c5197a0d36fc6",
+          "proof/InputMeasure.bend": "2ab5db46369bcbc8620ece9ff9808af4ee09241893f472b01328b3047cb81117",
+          "proof/InputRefusals.bend": "cb8bca92c7b71aa8a04ea2b31b9d81fa4002db9d4b9a415874383398cdf34f2a",
+          "proof/InputRelations.bend": "5e335f36810ddeff0f24494b0bc7774debf55b4a3aca64662929b64bb61320e6",
+          "proof/InputService.bend": "71e27bc82359b652b12a95d72f11ebb7e05f9605ec8f5ac2ffa3856842ef4c4f",
+          "proof/InputVerify.bend": "16e8682a3bd11ee541862abdcf11e2527f6f03b25c258467086a21147635d839",
+          "proof/Law1Service.bend": "6bdc2f8d4e0a81392505fad15ab90900ba3e878a8544f557e7e0a6ebb21a2914",
+          "proof/Law2Service.bend": "d83879301995b41f31cd59ea06c158c98af2ba90b3af50c2d9d16037a87a048e",
+          "proof/Law34Service.bend": "fc0e1047ac4f856291ca59a3d5b00065bdb661f48c3d3e95642a90f94df7e80a",
+          "proof/Law5Service.bend": "919aba25c74db2b3505aeb557493960e71fc9acfdc7f03b350344346937ac5a2",
+          "proof/Law6Service.bend": "606bff2731a5ea3323e335428927a9b5bc4161d25da7a09b8bb46c84b302036e",
+          "proof/Law7Service.bend": "b7f3a9555c1d87508e556da28350dabd8c53672f94e6bf54087a50e058afd4ed",
+          "proof/Law8Service.bend": "481ec1b4f689253206dde293cf1dbf25573ed6e49ff4393d3395e15737335d3a",
+          "proof/LinkageService.bend": "241cd9458199cf4a9f0cb666e74724cae9c6fb0bd178d7dc2e89665bee569cf1",
+          "proof/Machine.bend": "4f7bccc2844dbc685e0c2ca1e6a3fa47573d9d825de87eb1b808d3a4135538c7",
+          "proof/ModelService.bend": "757e5eedb3063963533d53e93ecea3aa1ffbc61d8f6086325955b7f8b14b324b",
+          "proof/Orders.bend": "a7fcd807e13fde07fc67151342d7d4fbcf8166ae861301fdf589f4add555b578",
+          "proof/Persistence.bend": "b74a6f78b01dbf0060d14bfc50df6c61e1ecbbb3413505d65137b06c73b99fd9",
+          "proof/PhasesService.bend": "5132a3814a6f99b431855bec09a1e65c1674c4ba81fb37d0b707abe2e7e7d636",
+          "proof/Preparation.bend": "344053c6caf69888bcc1ef6e79167cd429c9afaa24fe7909ce41ef434d3946a4",
+          "proof/PreparedPrograms.bend": "dd57c47836e5c2afd28d5440cb37ef574109f14180c9b571103ea068a9194d79",
+          "proof/Preprocessing.bend": "3ce0284127f3a11a461c0800d41c581e3cc994c4e2105354d7ba77dd101761df",
+          "proof/PrimitivesService.bend": "8e6f3a97ca08e9658b694b0b1808be5972744aba0c908f7a63474e9a094b7fe9",
+          "proof/Proposal.bend": "4883c1ca7e2d028e6830c1d44b30fb0caf20dfce62b690359b4283dda45b0049",
+          "proof/ProtocolService.bend": "c0af747ef3290ac26198a8e245bb26d00de0e4d9e2f3dd513d481fadd1294522",
+          "proof/Publication.bend": "e4fefb6adbd8233e575cf394bfc398cc1feb60cdbe6134d35248fbe18b55e197",
+          "proof/PublicationService.bend": "3f58cd1e28fd4166b66400f66403dd101b638baf8a2e56e7094902f4c2635e84",
+          "proof/README.md": "a778abe2b16b889a8b58a01e7e3b22f1293e125f9b68e8f9d6fb84a71de9a231",
+          "proof/RECEPTION_LIMITS.md": "3703bdf4559c1987ce0e126b26eb0c9f2a5759e73071b727d014c352de2333dd",
+          "proof/ReadBatches.bend": "13f7b4962e56d05797c49d11091721e93dfd050301aeebccae97ff81c540341b",
+          "proof/ReceptionLimits.bend": "06b6282a36f40f786bc9eeef9d2a9cc1501b4e5cdf4fd520001755f7a2bc91aa",
+          "proof/RefinementService.bend": "754dbdca97561c810f088eab75333a0a2fa4efe5efbf97c0a77178c12b032973",
+          "proof/Reification.bend": "49e3543953b18443958f10e464da79694d5b55efcdc980adab54c3c2e16236f3",
+          "proof/Representation.bend": "decce223c1354bb31b501b29f02a86475553e37208119f74975952d7a6258857",
+          "proof/Resources.bend": "429a6bb37ca186820921fc3b41855b220a4a75049e1137a2e45fb5f92b5906c2",
+          "proof/RoutesService.bend": "433d9349342a8d4f9780cb69226f20dd284024b53b4765ed37693361e598b5fe",
+          "proof/SERVICE_CONTRACT.md": "c213fc187a1ab99ddda8a654019501a344dc63cc2490bc5740d4dbfbc2ee1ee8",
+          "proof/Safety.bend": "d037d970b1db0dd98f06042b5dd30a42730a36953cf3763fcefbd209e9e36f14",
+          "proof/ScenariosService.bend": "6b01ab28e2cd2406d505cfaf8874524046452088a187043dfd0f84740f3c5776",
+          "proof/SourceService.bend": "3b5ecda90fd469d792694c4135c06f9cd18e644c44b7fbabf368e2ae7d3898ac",
+          "proof/Transport.bend": "7c2305d88d5dc27e3c20d02ff9d74328238a861e36c6e7ddad3dec6d5be375bc",
+          "proof/VERIFY.bend": "1e6e9687b8d2591d17fdbdafd4fe0ac08b94465fb0a0264f855f5367086fe175",
+          "proof/VisibilityService.bend": "b26d045a78e1d1e0e13f28f7a6a4d4ccf0a1a0bc88738f028d38d0b76db56742",
+          "server/capture.rs": "243f554451b674c798508c659d47884d488420b9e4c1513ed7bd8e16901a08a7",
+          "server/main.rs": "c8b63de27c1a3286871698e290484f7af2ce5cf87c84c4744d516ed45210e701",
+          "server/read_batch.rs": "e9b41fee2f5edb684cbd47052b274846b939a1a1be379b9e6b665a1959e8529c",
+          "server/scheduling.rs": "5e660eb27709f593d15ffc64393faaacc00474ee1190d01e6c9e5571f16d1a69",
+          "server/storage.rs": "97b79e045a90eda5c8d17c4990f9e00f150e343d5e9b2f4f9812f655cf51db6d",
+          "server/timing.rs": "69827ca20dc89468e8b6a1a57c6b199b0a26301a74e77e892974a6269f1eab35",
+          "src/Codec.bend": "795855595859156e5c53bac2734674618274b96d4b050ee25ed7907e09488540",
+          "src/ConfigurationCheck.bend": "98f84f75b8456aebdc086487299d75e59c06dbb8005aa13ec1d85e36524a9c63",
+          "src/Core.bend": "436cd07e044ae522e2cef159c76824b81162f34a41c365416772cb017e53460f",
+          "src/Execution.bend": "e36414a800b7c67feb358fd034530151e49d3be7d6bb693cedca0aa868b8f35b",
+          "src/Free.bend": "54a87ae0f138a2ead575e0819582e74dbb8d08ab0ffdbf5357ff4acb8f8e16ac",
+          "src/Generate.bend": "0ee68791e3a397fd1f19f272588befd36b48c4b327373b3a57757c6acbed100e",
+          "src/Input.bend": "0d20203fd91ac6f91148f63ac78c47acc919470017b77559fce93bcda679ffb1",
+          "src/Messages.bend": "1e8a9f048e6642a6cf746e5ea37676aa3bafb3e46c7d7d5078e2c56833bdfb39",
+          "src/Prepared.bend": "ed73910dae1c89d39979ac79fb47c3855a2dd5db50f9b98ff15344e974a1a27a",
+          "src/ReadOnly.bend": "e525c1eec917cca6e139f661c5aab9a9c64fd5375faea9fd980adb585632ed0a",
+          "src/Reification.bend": "5e054647a7ea0ecfb1e08e8a6459f5c46d602b5871094075d31f6939948066ac",
+          "src/Request.bend": "5d76e71e44efbe17fa0b62260530c399ddca58282107dcbfad17e0690c061874",
+          "src/State.bend": "44393d63b78f1725c117bd18836e802dbe2dadfcfec0cc2eddfe3aa82a5c5dd1",
+          "src/Termination.bend": "7db43aff11bac6f6d8f50791b57cf05ebf0878af13d46d4933e42d5e90808494",
+          "src/Transport.bend": "322e6e22d59d58276dbc0c54abd1c4ad28524620090bce7f24030b5299255f76",
+          "src/ValidationFinal.bend": "b06d2a3bebc0d55c9a9740180972cc652a38842d9baa4a624abd6f0423fc697c",
+          "tests/admission/admission.test.mjs": "db298cb86a0927994ec262126f45772387eceaa0fc64b77498abffd686279df3",
+          "tests/admission/correspondence.test.mjs": "3fbd658399cac8910daa6592089ee2c1b3dff78ac8cf82f254c55b8c1e7d1b0e",
+          "tests/admission/fixtures/Bindings.bend": "21060020ea3f10872c3f856d8081c37c3d16bb58f444d65ab36e7a0b550e5428",
+          "tests/admission/fixtures/Client.bend": "b9b44f3f422e2065d5fa14ad199844faf7a4e5d77a15be90b0f9c7c5b0e55cc3",
+          "tests/admission/fixtures/ClientProof.bend": "917f56c689aadad437530abffac00bd86c3b408ead32d0518cd8f856714c62ce",
+          "tests/admission/fixtures/Instance.bend": "b4a3c92e30ab39dac1b38f2554597759e6497369f19ea1a427d1bae7aca16863",
+          "tests/admission/fixtures/Main.bend": "ed4e558ba16f45cae368b0ffa5c4716cafa79ddee6511c58511d7723899c6d03",
+          "tests/admission/helpers.mjs": "2e843dab66d060b48366bda7e18a739f7d748fc4f362a3fab6df239bd83bf35a",
+          "tests/admission/read-only.test.mjs": "bc59bf68d0ab4cffa25252cfed0771fbb199d5848cfa8d75b817395f63a5188b",
+          "tests/demo/test_http.py": "6905c559f45ea8a07a9f0640abb80eff7137245a7a5c9d180c0feaf90dcb7415",
+          "tests/native/emit_fixture.mjs": "e13a180c629d040640cbebe0354b2f61069fa6f2e6e74627912421193ae85e33",
+          "tests/native/fixtures/echo.bend": "c3b98efc824a371fa9e74965955a219bde202a240d3cf181c4795cf6a108b4c3",
+          "tests/native/fixtures/loop.bend": "683d02d18eab1c3f8ab11b2a50b077f7aa724541412e766855dc5156b1c2655b",
+          "tests/native/fixtures/parallel.bend": "355ce4375b444a9442b8b5dc7a90552f1bae7c10036e182cd8a1e03b6fcd5092",
+          "tests/native/fixtures/representation.bend": "52a8e9d1afe98c55c7612999ede944c3bafbeec82d23f2c923620321643e1d56",
+          "tests/native/test_simple_runtime.py": "0f547fa342ab2a735e6eb0dbba0058bc8db4b4161eb3d0b481b576915dba61eb",
+          "tests/proof/AllocationLengths.bend": "7b6859990dd34978aa767d50e5669014f9e76542b9cde174a141fa688938a8d9",
+          "tests/proof/Certificate.bend": "bb1a02740238d7962c50d49b9a888b32717c710bcd1670a793565a6a67c15f78",
+          "tests/proof/Codec.bend": "5bf550799f3c85e5dfee991f47e0b569a524c24cca3ed6c95fc1bcecf81b4497",
+          "tests/proof/CodecCompleteness.bend": "55b82a46ea7da189b91716d97005e47a0f87db094fe9643742b8eaed7917a03b",
+          "tests/proof/CodecLaw2.bend": "f3edf8a6ef13e510ed0b8c4ec4cf89ea2a07f3565741e74ff9ba20dcecf2f2f8",
+          "tests/proof/Input.bend": "e00496736f25940b28552b6463ff37fd0b39b7827583e94cfaf8f1d29e2484cc",
+          "tests/proof/InputErrors.bend": "d5dfb91d447f86f314026eeba001533c200b9e3e6ab5183d6bb0207e16de0e77",
+          "tests/proof/InputLimit.bend": "986ab08b9ae685aeb625f276637ddb5108fa8fb7d0e27513e29fec4677be9269",
+          "tests/proof/InputMeasure.bend": "a2c3ebe545fe9fcf114e40be20db49ed7c8caba3bae014be6a8a318c27aee481",
+          "tests/proof/InputRefusals.bend": "e08734bfedd0dc2249462d242c11a55ce37e597d39e65385fce015848821859d",
+          "tests/proof/InputRelations.bend": "89bb5c58c9f689b58f010328c21ab69938333046a3080f661f1e63ba9c84ca4c",
+          "tests/proof/InputVerify.bend": "4df138bfa5ec1c14db191f74aa8db4aca650e2078cc58e846300e6f444261db8",
+          "tests/proof/Preparation.bend": "b9318ac29548ddc0ae67a72e18c097c0b5f61a192d9b8fbb95651537a9be85df",
+          "tests/proof/ReceptionLimits.bend": "bb66e871d495eb3aa0e6dc333fe718dc5769132049fa20c705450ed1190aacde",
+          "tests/proof/RefusalWithoutLimit.bend": "dc183c1078e121ceeab473642b6e7c4a964faac6957fc5611d918bc873568d80",
+          "tests/proof/Reification.bend": "0957be31e2ba3475387b10aa1ba240c7fe21789655119e0fa1d569812330ef6a",
+          "tests/proof/Representation.bend": "b6f9bd7c807c5551d00dac85d9d3daaeebef88d4ac0cad55b84b673111c03068",
+          "tests/proof/ResourcesLogical.bend": "8cd550d565428a2c71d3c487e2819a1f6dd7fc51146587541ff49d221b894368",
+          "tests/proof/Transport.bend": "0b098cd72c24d4317069f77fc799a2d41dfa4b4d9e2d7b1497e25397e83331ce",
+          "tests/proof/VERIFY.bend": "2f560c4a87a32f240b2ce9c0848ca40abf7b88e1e04c1100220a368ae6ba70df",
+          "tests/proof/rejected/AllocationWithoutGuard.bend": "437fcbf50e130375f8b7ae6d795ef4f548ae597450d9dfd5bae3664a0266de0f",
+          "tests/proof/rejected/ForgedBytes.bend": "83f6554d1a0b14f9b2df68dd99dfb619ccacbdb74553558bd887efa43aa37441",
+          "tests/proof/rejected/OmittedAdministrativeLaw.bend": "f89688781f479548c2a0b946975590681a25c311305cd0c153c690fe078dff92",
+          "tests/proof/rejected/PreprocessingAuthenticationFirst.bend": "2bc50bde114a4cc9b0e2e05cf62747748b7151ff4865d99ec4855f2c1c30cc89",
+          "tests/proof/rejected/PublicationInvalid.bend": "720ae710bd61c400ca5b6675d23dadc966e18ebe6f92c22b364ef0dc29636081",
+          "tests/proof/rejected/ReadOnlyHiddenWrite.bend": "2dbc3dfade57a01e38553963492a92de17b63208775d45a08e7943448891ebff",
+          "tests/proof/rejected/SwappedReification.bend": "3d705668b83fbc623857150fe859030c8a1fbe76e07ebeff4c4b44ebee702cab",
+          "tests/proof/rejected/WithoutIdentity.bend": "676c2995675c2e9de54a477827107b7c84fc7b61df89172c8b9d4f81e8fe6878",
+          "tests/proof/test_proofs.py": "dc714c25b0e4f2833d5a26666161d6f3792d744a9396a67ed437bda88cf8125e",
+          "tests/service/read_gate.c": "745ee74bfc5e96a01183057a420a58007c0fa91c61d8ac029b4440b33b6e31fd",
+          "tests/service/runtime_policy_worker.sh": "7ba04f02e48b642ea3c86e91f92b52ebdaf392f1f9cdb953e90da40c7959d1a2",
+          "tests/service/test_concurrency.py": "2d19bf02453e5e5a079db984c7e5a45e36369b66c2cc4b3f1f43d2ad45ef0c07",
+          "tests/service/test_end_to_end.py": "827f7e5b90d5a702ada93242ee55838d95ae66d2d3ca0923cc30775d7d569e42",
+          "tests/service/test_persistence.py": "098a6cbb180f17cada42457880289ee76f1e377e264c522ec3135199af63f9fb",
+          "tests/service/test_prepared.py": "cd3d9c1840269e71e6e57323b35733b68b54f420bdf918ba4a9ef54cf67c0d47",
+          "tests/service/test_preprocessing.py": "18b59b21bc773c37fe827d151945a60427d359aed98e898209fedf0e2d123f0c",
+          "tests/service/test_receipt_recovery.py": "dcaa1ed2d54bfeee769331fff228503906190d9c9b18553bc163528cb97ccd6a",
+          "tests/service/test_scheduling.py": "f45aba986616b6429357d9689939c969c91d5dcb49ca3c0d1c7d6da54880fdc0",
+          "tests/service/test_timing.py": "1faa9d367613e33d3d7d4896da233c016124518b70f520882692b643c33eb1b3",
+          "tests/service/test_timing_concurrency.py": "cb071ecb540e1f7e0e2fd17ae2998776d2b695e29cf8093154e7b325b7a61db7",
+          "tests/service/test_timing_persistence.py": "fddd9d5220ec8d5d3f6633e6cb178e9c90c4721419bc113ed84e7884f5584a94",
+          "tests/verifier/kernel.test.mjs": "56065495c87f65b7db680640abd7966902873eca39c1026c159b4b7897ca8be6",
+          "tools/admission/README.md": "aa9e9e5db421f97f58c42d10b7132ef5d3f26e815a2af9904b1118b700aefa81",
+          "tools/admission/bootstrap.mjs": "e2a8e08033cdd79b05d5ca44148c16b491db2a4aa2ece5d98656645cd7594d1a",
+          "tools/admission/cli.mjs": "bb64e00e50fff9ffd806e1ae13f82c0bf18ceaee54293ab40af450ed3897b5b0",
+          "tools/admission/contract.lock.json": "4c2a83399583b18c5394f850db4f77ce6b460ffbc08ed955073d1a424cfbd7d8",
+          "tools/admission/index.mjs": "8a25e46b248fdc67a3bac86b587781c27622bcf364abe1d440534edfd3f39a6b",
+          "tools/admission/kernel.mjs": "fba54f87f197238219be4f1a928d979f85bdf752985f65ea5746ebcd13050b7e",
+          "tools/admission/preflight.mjs": "c4ebeb6e308801fb7306c7c5ebdcca7813f84048dcc73722b70b61502df80e11",
+          "tools/admission/read-only.lock.json": "109346414fef2c6ab6bf5311c5b7168aaf407e1e96a38f1e19b58db3d104e2ae",
+          "tools/admission/toolchain.lock.json": "c71728215d75fa4124212b995037bd6ad8ffd7104ce40cf2b73d0589abb66274",
+          "tools/bend.py": "7eec4eb7533a20e5f3c2ec882ed7b8740af18c9f19176f6717f8aac33e388266",
+          "tools/bootstrap.py": "c66705331203b9f26f2809797819f72e74830e2c99d564a16b8471b3a72ba86d",
+          "tools/check.py": "2e0b58842020b900a54290669259c91535c93c1d55e0a756628dec432802dea6",
+          "tools/client.py": "2dd281042243ac28bf903594a09311115a5af699e2a844d51d4c91e738d1110d",
+          "tools/service/PREPARED_PROGRAMS.md": "50c8386d9856efc8c764b42d2b185ac35e45983d778df8534ac12d721cb3f082",
+          "tools/service/READ_BATCHES.md": "7cbba1420aa3a47fea5ad2408213817fe7361d4fe5cdf07452f47ae3e77746be",
+          "tools/service/SERVICE_TIMING.md": "36f1eb907eda97b49a8de80db54e82f602bc409f10e21f98525129afe9ee4209",
+          "tools/service/SIMPLE_SERVICE.md": "71286306303cb299d7c499ad64400ed829f5f782a8e796492185039ea3b7010e",
+          "tools/service/compile.mjs": "9609c43834f5b0faa31629341d6f0c50a2ed42e78908fe49094f22bec7ff2f76",
+          "tools/service/stage.mjs": "9b68984fd6247851f2c5dbdc9754febcd4971252082c64365146754d3adf693a",
+          "tools/verifier/README.md": "56827e6f79cc059e32becbd82414b124bc846c13c6d63840118cbfaea4048bfd",
+          "tools/verifier/check.mjs": "65bd82c660d3cdf49c62eac21b682542193644533a6ac8c76f42769e6c6da8f4"
+        },
+        "sha256": "6f9037769513a2a17cca7202ec5fc1c15fffd63430225a90cb3d2717a04e2b86"
+      },
+      "target_dir": "/home/jota/.t3/worktrees/jaydb2/experiment-integration/build/integration-benchmark-target"
+    },
+    "controller_executable": "/home/jota/.t3/worktrees/jaydb2/experiment-integration/target/release/jaydb2",
+    "controller_sha256": "dd2742311f9c58c476b3182a2d3ffe1ac54e7c9ec4005490ca1aa07b4e5e791e"
+  },
+  "created_at": "2026-11-05T23:34:26.553231+00:00",
+  "fixture_sha256": {
+    "Configuration.bend": "4b1186ebee4495a2df94e01d0f7ad60d7e28768c5a1614e245cfce6f65739f60",
+    "ReadCompute.bend": "49560e8e3ca0cf1b2b7d3a46d8bfd935885dfbf8a237ebda6a5391271a5a7eb5",
+    "ReadComputeProof.bend": "04b458bd8fe1d9643aa315901a0e38055502f23eef6b5a7cd237cf286e2d0bc8",
+    "Seed.bend": "136bc7e0fa1309d37ef798b3a01ebbf78d2b467c9793c7dcd6def4b878a51dba"
+  },
+  "hardware": {
+    "lscpu": "{\n   \"lscpu\": [\n      {\n         \"field\": \"Architecture:\",\n         \"data\": \"x86_64\"\n      },{\n         \"field\": \"CPU op-mode(s):\",\n         \"data\": \"32-bit, 64-bit\"\n      },{\n         \"field\": \"Address sizes:\",\n         \"data\": \"39 bits physical, 48 bits virtual\"\n      },{\n         \"field\": \"Byte Order:\",\n         \"data\": \"Little Endian\"\n      },{\n         \"field\": \"CPU(s):\",\n         \"data\": \"16\"\n      },{\n         \"field\": \"On-line CPU(s) list:\",\n         \"data\": \"0-15\"\n      },{\n         \"field\": \"Vendor ID:\",\n         \"data\": \"GenuineIntel\"\n      },{\n         \"field\": \"Model name:\",\n         \"data\": \"11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz\"\n      },{\n         \"field\": \"CPU family:\",\n         \"data\": \"6\"\n      },{\n         \"field\": \"Model:\",\n         \"data\": \"167\"\n      },{\n         \"field\": \"Thread(s) per core:\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Core(s) per socket:\",\n         \"data\": \"8\"\n      },{\n         \"field\": \"Socket(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"Stepping:\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"CPU(s) scaling MHz:\",\n         \"data\": \"63%\"\n      },{\n         \"field\": \"CPU max MHz:\",\n         \"data\": \"5000.0000\"\n      },{\n         \"field\": \"CPU min MHz:\",\n         \"data\": \"800.0000\"\n      },{\n         \"field\": \"BogoMIPS:\",\n         \"data\": \"7200.00\"\n      },{\n         \"field\": \"Flags:\",\n         \"data\": \"fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm md_clear flush_l1d arch_capabilities\"\n      },{\n         \"field\": \"Virtualization:\",\n         \"data\": \"VT-x\"\n      },{\n         \"field\": \"L1d cache:\",\n         \"data\": \"384 KiB (8 instances)\"\n      },{\n         \"field\": \"L1i cache:\",\n         \"data\": \"256 KiB (8 instances)\"\n      },{\n         \"field\": \"L2 cache:\",\n         \"data\": \"4 MiB (8 instances)\"\n      },{\n         \"field\": \"L3 cache:\",\n         \"data\": \"16 MiB (1 instance)\"\n      },{\n         \"field\": \"NUMA node(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"NUMA node0 CPU(s):\",\n         \"data\": \"0-15\"\n      },{\n         \"field\": \"Vulnerability Gather data sampling:\",\n         \"data\": \"Vulnerable\"\n      },{\n         \"field\": \"Vulnerability Ghostwrite:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Indirect target selection:\",\n         \"data\": \"Mitigation; Aligned branch/return thunks\"\n      },{\n         \"field\": \"Vulnerability Itlb multihit:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability L1tf:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Meltdown:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mmio stale data:\",\n         \"data\": \"Mitigation; Clear CPU buffers; SMT vulnerable\"\n      },{\n         \"field\": \"Vulnerability Old microcode:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Reg file data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Retbleed:\",\n         \"data\": \"Mitigation; Enhanced IBRS\"\n      },{\n         \"field\": \"Vulnerability Spec rstack overflow:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Spec store bypass:\",\n         \"data\": \"Mitigation; Speculative Store Bypass disabled via prctl\"\n      },{\n         \"field\": \"Vulnerability Spectre v1:\",\n         \"data\": \"Mitigation; usercopy/swapgs barriers and __user pointer sanitization\"\n      },{\n         \"field\": \"Vulnerability Spectre v2:\",\n         \"data\": \"Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\"\n      },{\n         \"field\": \"Vulnerability Srbds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsa:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsx async abort:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Vmscape:\",\n         \"data\": \"Not affected\"\n      }\n   ]\n}\n",
+    "platform": [
+      "Linux",
+      "jota-ubuntu",
+      "7.0.0-42-generic",
+      "#42~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Mon Oct 19 14:43:01 UTC 2",
+      "x86_64"
+    ]
+  },
+  "limitations": [
+    "End-to-end FIFO latencies include queue waiting; each burst is submitted together.",
+    "Fixed native budget is two workers and two physical cores, including host overhead.",
+    "Sampled descendant RSS counts shared pages repeatedly and may miss brief peaks.",
+    "No storage or timing log is enabled; only a small two-user state is measured.",
+    "Serial recurrence exposes independent-request parallelism; it does not speed up one request.",
+    "Naturally underfilled first batches are included; no injected scheduler gates."
+  ],
+  "paired_comparison": [
+    {
+      "iterations_base": 100000000,
+      "median_throughput_ratio_parallel_over_serial": 1.9580415832855536,
+      "throughput_ratio_parallel_over_serial": [
+        1.9624378208574946,
+        1.939825137788166,
+        1.9638032135354135,
+        1.939046278490667,
+        1.9580415832855536,
+        1.9463677999190088,
+        1.9646696287985053
+      ]
+    }
+  ],
+  "preparation_ns": {
+    "1": 10303252346,
+    "2": 10371074934
+  },
+  "records": [
+    {
+      "arguments": [
+        [
+          100000000,
+          7
+        ],
+        [
+          100000000,
+          8
+        ],
+        [
+          100000000,
+          9
+        ],
+        [
+          100000000,
+          10
+        ],
+        [
+          100000000,
+          11
+        ],
+        [
+          100000000,
+          12
+        ],
+        [
+          100000000,
+          13
+        ],
+        [
+          100000000,
+          14
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 108614264,
+      "expected": [
+        462348551,
+        2823169288,
+        889022729,
+        3249843466,
+        1315696907,
+        3676517644,
+        1742371085,
+        4103191822
+      ],
+      "iterations_base": 100000000,
+      "phase": "warmup",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 73.6551508556924,
+      "response_latency_ns": [
+        14250123,
+        27876164,
+        41359170,
+        54842232,
+        68277179,
+        81729651,
+        95181680,
+        108613014
+      ],
+      "round": 0,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3219456,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6762496
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          7
+        ],
+        [
+          100000000,
+          8
+        ],
+        [
+          100000000,
+          9
+        ],
+        [
+          100000000,
+          10
+        ],
+        [
+          100000000,
+          11
+        ],
+        [
+          100000000,
+          12
+        ],
+        [
+          100000000,
+          13
+        ],
+        [
+          100000000,
+          14
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55570098,
+      "expected": [
+        462348551,
+        2823169288,
+        889022729,
+        3249843466,
+        1315696907,
+        3676517644,
+        1742371085,
+        4103191822
+      ],
+      "iterations_base": 100000000,
+      "phase": "warmup",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 143.96231584835428,
+      "response_latency_ns": [
+        14260061,
+        14273937,
+        27988584,
+        28003060,
+        41793414,
+        41812442,
+        55553848,
+        55569248
+      ],
+      "round": 0,
+      "rss_after_drained_bytes": 5955584,
+      "rss_before_bytes": 3256320,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 12148736
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          24
+        ],
+        [
+          100000001,
+          25
+        ],
+        [
+          100000001,
+          26
+        ],
+        [
+          100000001,
+          27
+        ],
+        [
+          100000001,
+          28
+        ],
+        [
+          100000001,
+          29
+        ],
+        [
+          100000001,
+          30
+        ],
+        [
+          100000001,
+          31
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55185909,
+      "expected": [
+        1082500503,
+        252018596,
+        3716503985,
+        2886022078,
+        2055540171,
+        1225058264,
+        394576357,
+        3859061746
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 144.96454158252607,
+      "response_latency_ns": [
+        13855274,
+        13868960,
+        27599153,
+        27612527,
+        41284183,
+        41403431,
+        55170302,
+        55185377
+      ],
+      "round": 1,
+      "rss_after_drained_bytes": 6631424,
+      "rss_before_bytes": 5955584,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 12832768
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          24
+        ],
+        [
+          100000001,
+          25
+        ],
+        [
+          100000001,
+          26
+        ],
+        [
+          100000001,
+          27
+        ],
+        [
+          100000001,
+          28
+        ],
+        [
+          100000001,
+          29
+        ],
+        [
+          100000001,
+          30
+        ],
+        [
+          100000001,
+          31
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 108298915,
+      "expected": [
+        1082500503,
+        252018596,
+        3716503985,
+        2886022078,
+        2055540171,
+        1225058264,
+        394576357,
+        3859061746
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 73.86962279354323,
+      "response_latency_ns": [
+        13853630,
+        27433945,
+        40960028,
+        54445400,
+        67926143,
+        81413361,
+        94868911,
+        108297879
+      ],
+      "round": 1,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6758400
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          41
+        ],
+        [
+          100000000,
+          42
+        ],
+        [
+          100000000,
+          43
+        ],
+        [
+          100000000,
+          44
+        ],
+        [
+          100000000,
+          45
+        ],
+        [
+          100000000,
+          46
+        ],
+        [
+          100000000,
+          47
+        ],
+        [
+          100000000,
+          48
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 107466462,
+      "expected": [
+        3420842281,
+        1486695722,
+        3847516459,
+        1913369900,
+        4274190637,
+        2340044078,
+        405897519,
+        2766718256
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 74.441829116883,
+      "response_latency_ns": [
+        13536218,
+        26975546,
+        40394722,
+        53837135,
+        67242102,
+        80680699,
+        94073985,
+        107465356
+      ],
+      "round": 2,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6754304
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          41
+        ],
+        [
+          100000000,
+          42
+        ],
+        [
+          100000000,
+          43
+        ],
+        [
+          100000000,
+          44
+        ],
+        [
+          100000000,
+          45
+        ],
+        [
+          100000000,
+          46
+        ],
+        [
+          100000000,
+          47
+        ],
+        [
+          100000000,
+          48
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55400077,
+      "expected": [
+        3420842281,
+        1486695722,
+        3847516459,
+        1913369900,
+        4274190637,
+        2340044078,
+        405897519,
+        2766718256
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 144.40413142386066,
+      "response_latency_ns": [
+        14159859,
+        14173538,
+        27816133,
+        27830315,
+        41628523,
+        41675687,
+        55386194,
+        55399592
+      ],
+      "round": 2,
+      "rss_after_drained_bytes": 6631424,
+      "rss_before_bytes": 6631424,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 13279232
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          58
+        ],
+        [
+          100000001,
+          59
+        ],
+        [
+          100000001,
+          60
+        ],
+        [
+          100000001,
+          61
+        ],
+        [
+          100000001,
+          62
+        ],
+        [
+          100000001,
+          63
+        ],
+        [
+          100000001,
+          64
+        ],
+        [
+          100000001,
+          65
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55079337,
+      "expected": [
+        2910886737,
+        2080404830,
+        1249922923,
+        419441016,
+        3883926405,
+        3053444498,
+        2222962591,
+        1392480684
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 145.24503081799986,
+      "response_latency_ns": [
+        13760989,
+        13774598,
+        27480531,
+        27607335,
+        41362464,
+        41376329,
+        55064479,
+        55078875
+      ],
+      "round": 3,
+      "rss_after_drained_bytes": 7294976,
+      "rss_before_bytes": 6631424,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 13520896
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          58
+        ],
+        [
+          100000001,
+          59
+        ],
+        [
+          100000001,
+          60
+        ],
+        [
+          100000001,
+          61
+        ],
+        [
+          100000001,
+          62
+        ],
+        [
+          100000001,
+          63
+        ],
+        [
+          100000001,
+          64
+        ],
+        [
+          100000001,
+          65
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 108164979,
+      "expected": [
+        2910886737,
+        2080404830,
+        1249922923,
+        419441016,
+        3883926405,
+        3053444498,
+        2222962591,
+        1392480684
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 73.96109234209716,
+      "response_latency_ns": [
+        13816660,
+        27370390,
+        40903720,
+        54335968,
+        67786744,
+        81274963,
+        94747405,
+        108163870
+      ],
+      "round": 3,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6737920
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          75
+        ],
+        [
+          100000000,
+          76
+        ],
+        [
+          100000000,
+          77
+        ],
+        [
+          100000000,
+          78
+        ],
+        [
+          100000000,
+          79
+        ],
+        [
+          100000000,
+          80
+        ],
+        [
+          100000000,
+          81
+        ],
+        [
+          100000000,
+          82
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 107714936,
+      "expected": [
+        2084368715,
+        150222156,
+        2511042893,
+        576896334,
+        2937717071,
+        1003570512,
+        3364391249,
+        1430244690
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 74.27010865048464,
+      "response_latency_ns": [
+        13542657,
+        26984263,
+        40446447,
+        53882554,
+        67334957,
+        80807614,
+        94251890,
+        107713308
+      ],
+      "round": 4,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6758400
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          75
+        ],
+        [
+          100000000,
+          76
+        ],
+        [
+          100000000,
+          77
+        ],
+        [
+          100000000,
+          78
+        ],
+        [
+          100000000,
+          79
+        ],
+        [
+          100000000,
+          80
+        ],
+        [
+          100000000,
+          81
+        ],
+        [
+          100000000,
+          82
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55550472,
+      "expected": [
+        2084368715,
+        150222156,
+        2511042893,
+        576896334,
+        2937717071,
+        1003570512,
+        3364391249,
+        1430244690
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 144.01317778181973,
+      "response_latency_ns": [
+        14152190,
+        14165692,
+        27827605,
+        27972333,
+        41748065,
+        41763062,
+        55536425,
+        55549973
+      ],
+      "round": 4,
+      "rss_after_drained_bytes": 7958528,
+      "rss_before_bytes": 7294976,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 14176256
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          92
+        ],
+        [
+          100000001,
+          93
+        ],
+        [
+          100000001,
+          94
+        ],
+        [
+          100000001,
+          95
+        ],
+        [
+          100000001,
+          96
+        ],
+        [
+          100000001,
+          97
+        ],
+        [
+          100000001,
+          98
+        ],
+        [
+          100000001,
+          99
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55159374,
+      "expected": [
+        444305675,
+        3908791064,
+        3078309157,
+        2247827250,
+        1417345343,
+        586863436,
+        4051348825,
+        3220866918
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 145.0342783077995,
+      "response_latency_ns": [
+        13766033,
+        13779607,
+        27621364,
+        27634503,
+        41427448,
+        41444098,
+        55145841,
+        55158910
+      ],
+      "round": 5,
+      "rss_after_drained_bytes": 7958528,
+      "rss_before_bytes": 7958528,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 14147584
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          92
+        ],
+        [
+          100000001,
+          93
+        ],
+        [
+          100000001,
+          94
+        ],
+        [
+          100000001,
+          95
+        ],
+        [
+          100000001,
+          96
+        ],
+        [
+          100000001,
+          97
+        ],
+        [
+          100000001,
+          98
+        ],
+        [
+          100000001,
+          99
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 108004348,
+      "expected": [
+        444305675,
+        3908791064,
+        3078309157,
+        2247827250,
+        1417345343,
+        586863436,
+        4051348825,
+        3220866918
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 74.07109202677655,
+      "response_latency_ns": [
+        13801326,
+        27272818,
+        40740790,
+        54206334,
+        67683646,
+        81119795,
+        94556401,
+        108003291
+      ],
+      "round": 5,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6750208
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          109
+        ],
+        [
+          100000000,
+          110
+        ],
+        [
+          100000000,
+          111
+        ],
+        [
+          100000000,
+          112
+        ],
+        [
+          100000000,
+          113
+        ],
+        [
+          100000000,
+          114
+        ],
+        [
+          100000000,
+          115
+        ],
+        [
+          100000000,
+          116
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 107720379,
+      "expected": [
+        747895149,
+        3108715886,
+        1174569327,
+        3535390064,
+        1601243505,
+        3962064242,
+        2027917683,
+        93771124
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 74.26635585825409,
+      "response_latency_ns": [
+        13598136,
+        27107697,
+        40579776,
+        54025151,
+        67418280,
+        80886686,
+        94313180,
+        107719318
+      ],
+      "round": 6,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6762496
+    },
+    {
+      "arguments": [
+        [
+          100000000,
+          109
+        ],
+        [
+          100000000,
+          110
+        ],
+        [
+          100000000,
+          111
+        ],
+        [
+          100000000,
+          112
+        ],
+        [
+          100000000,
+          113
+        ],
+        [
+          100000000,
+          114
+        ],
+        [
+          100000000,
+          115
+        ],
+        [
+          100000000,
+          116
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55344308,
+      "expected": [
+        747895149,
+        3108715886,
+        1174569327,
+        3535390064,
+        1601243505,
+        3962064242,
+        2027917683,
+        93771124
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 144.54964365983218,
+      "response_latency_ns": [
+        14130965,
+        14145220,
+        27871511,
+        27885363,
+        41648426,
+        41662073,
+        55329359,
+        55343889
+      ],
+      "round": 6,
+      "rss_after_drained_bytes": 7958528,
+      "rss_before_bytes": 7958528,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 14163968
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          126
+        ],
+        [
+          100000001,
+          127
+        ],
+        [
+          100000001,
+          128
+        ],
+        [
+          100000001,
+          129
+        ],
+        [
+          100000001,
+          130
+        ],
+        [
+          100000001,
+          131
+        ],
+        [
+          100000001,
+          132
+        ],
+        [
+          100000001,
+          133
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 55043690,
+      "expected": [
+        2272691909,
+        1442210002,
+        611728095,
+        4076213484,
+        3245731577,
+        2415249670,
+        1584767763,
+        754285856
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 2,
+      "request_bytes": 1696,
+      "requests_per_second": 145.33909336383516,
+      "response_latency_ns": [
+        13810005,
+        13824194,
+        27568247,
+        27581933,
+        41347120,
+        41361165,
+        55028000,
+        55043204
+      ],
+      "round": 7,
+      "rss_after_drained_bytes": 7958528,
+      "rss_before_bytes": 7958528,
+      "rss_samples": 6,
+      "sampled_tree_peak_rss_bytes": 14200832
+    },
+    {
+      "arguments": [
+        [
+          100000001,
+          126
+        ],
+        [
+          100000001,
+          127
+        ],
+        [
+          100000001,
+          128
+        ],
+        [
+          100000001,
+          129
+        ],
+        [
+          100000001,
+          130
+        ],
+        [
+          100000001,
+          131
+        ],
+        [
+          100000001,
+          132
+        ],
+        [
+          100000001,
+          133
+        ]
+      ],
+      "checked_responses": 8,
+      "elapsed_ns": 108142666,
+      "expected": [
+        2272691909,
+        1442210002,
+        611728095,
+        4076213484,
+        3245731577,
+        2415249670,
+        1584767763,
+        754285856
+      ],
+      "iterations_base": 100000000,
+      "phase": "sample",
+      "read_workers": 1,
+      "request_bytes": 1696,
+      "requests_per_second": 73.97635268211346,
+      "response_latency_ns": [
+        13815080,
+        27378999,
+        40937026,
+        54392081,
+        67800869,
+        81244270,
+        94701122,
+        108141637
+      ],
+      "round": 7,
+      "rss_after_drained_bytes": 3633152,
+      "rss_before_bytes": 3633152,
+      "rss_samples": 11,
+      "sampled_tree_peak_rss_bytes": 6733824
+    }
+  ],
+  "settings": {
+    "burst": 8,
+    "iterations": [
+      100000000
+    ],
+    "native_threads_total": 2,
+    "read_workers": [
+      1,
+      2
+    ],
+    "rss_interval_seconds": 0.01,
+    "runner_avoids_service_core_siblings": true,
+    "runner_cpus": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "samples": 7,
+    "service_cpu_topology": {
+      "0": [
+        "0",
+        "0"
+      ],
+      "1": [
+        "0",
+        "1"
+      ]
+    },
+    "service_cpus": [
+      0,
+      1
+    ],
+    "storage": false,
+    "timing_log": false,
+    "warmup_bursts": 1
+  },
+  "summary": [
+    {
+      "burst_median_absolute_deviation_ns": 283969,
+      "bursts": 7,
+      "iterations_base": 100000000,
+      "max_burst_ns": 108298915,
+      "max_drained_rss_bytes": 3633152,
+      "max_sampled_tree_rss_bytes": 6762496,
+      "median_burst_ns": 108004348,
+      "median_requests_per_second": 74.07109202677655,
+      "min_burst_ns": 107466462,
+      "read_workers": 1,
+      "response_latency_p50_ns": 60843751.0,
+      "response_latency_p95_ns": 108141637
+    },
+    {
+      "burst_median_absolute_deviation_ns": 142219,
+      "bursts": 7,
+      "iterations_base": 100000000,
+      "max_burst_ns": 55550472,
+      "max_drained_rss_bytes": 7958528,
+      "max_sampled_tree_rss_bytes": 14200832,
+      "median_burst_ns": 55185909,
+      "median_requests_per_second": 144.96454158252607,
+      "min_burst_ns": 55043690,
+      "read_workers": 2,
+      "response_latency_p50_ns": 34628258.0,
+      "response_latency_p95_ns": 55399592
+    }
+  ],
+  "toolchain_lock_sha256": "c71728215d75fa4124212b995037bd6ad8ffd7104ce40cf2b73d0589abb66274"
+}
