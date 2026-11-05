@@ -604,7 +604,18 @@ impl Database {
     // Reusable service boundary: input is a complete checked proposal after
     // worker cleanup. Ok is result-ready; Err is fatal (no response or dispatch).
     // Scheduling/timing can wrap this method without moving the durable point.
-    fn publish(&mut self, mut proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Result<Vec<u8>> {
+    fn publish(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Result<Vec<u8>> {
+        self.publish_with_ready(proposal, || {})
+    }
+
+    // Timing records its endpoint here; final inspector/log/client delivery is
+    // outside the measured interval. The callback only records readiness and
+    // cannot turn an already committed result into an ordinary failure.
+    fn publish_with_ready(
+        &mut self,
+        mut proposal: Result<(Vec<u8>, Option<Vec<u8>>)>,
+        result_ready: impl FnOnce(),
+    ) -> Result<Vec<u8>> {
         if let Ok((_, Some(state))) = &proposal
             && let Some(storage) = &mut self.storage
         {
@@ -625,6 +636,7 @@ impl Database {
             .err()
             .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
         let response = self.published.finish(proposal);
+        result_ready();
         storage::fault_point("after_publish")
             .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
         self.inspection_sequence += 1;
@@ -1202,6 +1214,86 @@ mod tests {
         assert!(result.is_err());
         assert_eq!(published.state, b"new");
         assert_eq!(published.response, error_frame("success"));
+    }
+
+    #[test]
+    fn fatal_publication_emits_nothing_and_never_dispatches_the_next_frame() {
+        let incoming = [packet(b"commit", &[]), packet(b"later", &[])].concat();
+        let mut output = Vec::new();
+        let mut calls = 0;
+        let error = serve_stream(&mut Cursor::new(incoming), &mut output, 10, |body| {
+            calls += 1;
+            assert_eq!(body, b"commit");
+            Err(Error::new("STORAGE_UNCERTAIN", "directory sync failed"))
+        })
+        .unwrap_err();
+        assert_eq!(error.code, "STORAGE_UNCERTAIN");
+        assert_eq!(calls, 1);
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn result_ready_follows_commit_and_precedes_final_inspector_output() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-ready").unwrap();
+        let path = directory.path.join("db");
+        let limits = Limits {
+            message: 100,
+            state: 10,
+            response: 100,
+        };
+        let environment = "a".repeat(64);
+        let mut storage = storage::Storage::begin(&path, storage::Mode::Create).unwrap();
+        storage.persist(&environment, &limits, b"old").unwrap();
+        let previous = fs::read(path.join("snapshot")).unwrap();
+        let (inspector, mut observer) = UnixStream::pair().unwrap();
+        observer.set_nonblocking(true).unwrap();
+        let mut db = Database {
+            directory,
+            stage: PathBuf::new(),
+            source: PathBuf::new(),
+            kernel: PathBuf::new(),
+            authenticate: Program {
+                path: PathBuf::new(),
+                sha256: String::new(),
+            },
+            limits,
+            published: Published {
+                state: b"old".to_vec(),
+                response: Vec::new(),
+            },
+            inspector: Some(inspector),
+            inspection_sequence: 0,
+            prepared: HashMap::new(),
+            threads: 1,
+            storage: Some(storage),
+            environment,
+        };
+        let mut notified = false;
+        let response = error_frame("success");
+        assert_eq!(
+            db.publish_with_ready(Ok((response.clone(), Some(b"new".to_vec()))), || {
+                notified = true;
+                assert_ne!(fs::read(path.join("snapshot")).unwrap(), previous);
+                let mut byte = [0];
+                assert_eq!(
+                    observer.read(&mut byte).unwrap_err().kind(),
+                    io::ErrorKind::WouldBlock
+                );
+            })
+            .unwrap(),
+            response
+        );
+        assert!(notified);
+        assert_eq!(db.published.state, b"new");
+        assert_eq!(
+            db.storage
+                .as_ref()
+                .unwrap()
+                .recover(&db.environment, &db.limits)
+                .unwrap(),
+            b"new"
+        );
+        assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
     }
 
     #[test]
