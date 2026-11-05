@@ -1,6 +1,6 @@
 # Optional CUDA execution
 
-Implementation and validation in progress; final evidence will replace this paragraph.
+Implementation is complete; the validation and performance evidence below is being finalized.
 
 Base: `5925c57febd978d44fa24000233647a59e7898a6` (original reference
 `9b751fab3c7c349ff473a2d11a7133573b6c4df2`). Accepted preprocessing prerequisite
@@ -55,3 +55,53 @@ The test-only `tests/service/gpu_faults.c` forwards successful calls to the real
 CUDA driver, records launches and injects device/allocation/launch/synchronize
 failures. It is never linked, frozen or loaded in production; unwrapped real
 GPU and unavailable-device runs are separately required.
+
+## Hardware and exact proof boundary
+
+Inventory before implementation: NVIDIA GeForce RTX 3080 Ti, compute capability
+8.6, 12,288 MiB, NVIDIA driver 595.99.02 reporting CUDA 13.2; installed nvcc and
+NVRTC are CUDA 12.0 (nvcc 12.0.140). Host compiler: Ubuntu clang 19.1.1.
+GCC 13.3.0 builds only the test interposer. CPU: Intel i7-11700K at 3.60 GHz,
+16 hardware threads; Linux 7.0.0-38-generic, about 16 GiB system RAM. The desktop
+also uses this GPU. No official compiler source/binary or canonical contract
+file differs from the pinned starting point.
+
+The fixture proof's exact checked functions are `ClientProof.safe`,
+`response_safe`, `read_safe`, `write_safe`, `program_safe`, `execution_trace`,
+`finite`, and the `Bindings.certificate` / `Bindings.terminates` definitions.
+They retain the example's administrator `Configuration.Allowed` and
+`AllAllowed` restricted credential-access law, including failed operations
+and refusal prefixes. Preparation requires the universal context/arguments
+certificate, and ordinary calls use the original concrete access proof.
+The emitted executable retains the fresh input analysis and prepared exact
+source/proof substitution. Proof targets pass through primary checking and
+BendTT before native/GPU compilation; no GPU permission or validity assumption
+is added. Numerical equivalence is tested against an independent oracle;
+there is no new formal proof of the compiler, CUDA driver or hardware.
+The accepted preprocessing prerequisite additionally supplies
+`proof/Preprocessing.bend`; the native differential regression is rerun here.
+
+## Remaining limitations
+
+Linux/NVIDIA CUDA is the supported GPU integration. Metal, multi-GPU selection,
+CPU fallback on GPU failure, persistent workers and GPU query optimization are
+not implemented. The cap of one GPU execution is per server process; separate
+instances must be coordinated by their administrator. Read batching must keep
+GPU services exclusive. All execution requests remain serial in this branch.
+
+The 64–4096 MiB argument caps the requested official managed-memory corpus,
+not driver overhead or all device memory. Some accepted small sizes/workloads
+can still exhaust the runtime or physical device and return failure. Large
+computations can run arbitrarily long; there is no deadline or hard resource
+cancellation. The fixture intentionally leaves runtime input bounds to the
+caller and is a benchmark/example, not a resource-admission policy.
+
+Artifacts and generated code live in private instance directories. Hash checks
+assume protected host files/tools; they do not remove the OS file-use race
+against a hostile same-UID process, attest vendor libraries cryptographically,
+or prove the GPU obeys its execution contract. An architecture-incompatible
+artifact can cause the unmodified official runtime to attempt recompilation;
+the host rejects its result, even if the rebuild succeeds. Ordinary and
+prepared physical failures can terminate the worker without publication;
+a host crash still loses RAM state. No persistence or stronger serial theorem
+is claimed by this feature.
