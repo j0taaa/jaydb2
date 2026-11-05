@@ -751,7 +751,7 @@ fn serve_serial(
     limit: u64,
     service: &mut impl SerialService,
 ) -> Result<()> {
-    let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit)?)?;
+    let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
     let result = scheduling::coordinate(&queue, output, service, error_frame);
     // This also wakes a reader still waiting on an open stdin or queue capacity.
     let cleanup = queue.close();

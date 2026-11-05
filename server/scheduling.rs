@@ -15,15 +15,14 @@ pub struct QueueBounds {
 }
 
 impl QueueBounds {
-    pub fn for_message_limit(limit: u64) -> io::Result<Self> {
-        let bytes = usize::try_from(limit)
-            .ok()
-            .filter(|size| *size <= isize::MAX as usize)
-            .ok_or_else(|| io::Error::other("message limit is not allocatable"))?;
-        Ok(Self {
+    pub fn for_message_limit(limit: u64) -> Self {
+        // A logical uint64 limit is valid even beyond the host address space.
+        // This is an accounting ceiling, not an upfront allocation.
+        let bytes = limit.min(isize::MAX as u64) as usize;
+        Self {
             items: 8,
             bytes: bytes.max(1024 * 1024),
-        })
+        }
     }
 }
 
@@ -32,7 +31,7 @@ impl QueueBounds {
 pub enum InputEnd {
     Eof,
     Framing(&'static str),
-    Failed(io::Error),
+    Failed(crate::Error),
 }
 
 #[derive(Debug)]
@@ -65,7 +64,7 @@ pub fn coordinate(
                 (service.publish(completed)?, false)
             }
             FrameEvent::End(InputEnd::Eof) => return Ok(()),
-            FrameEvent::End(InputEnd::Failed(error)) => return Err(error.into()),
+            FrameEvent::End(InputEnd::Failed(error)) => return Err(error),
             FrameEvent::End(InputEnd::Framing(status)) => (terminal_response(status), true),
         };
         output.write_all(&response)?;
@@ -155,10 +154,12 @@ pub struct FrameQueue {
 
 impl FrameQueue {
     pub fn start(input: impl FrameInput, limit: u64, bounds: QueueBounds) -> io::Result<Self> {
-        if bounds.items == 0 || (bounds.bytes as u64) < limit || bounds.bytes > isize::MAX as usize
+        if bounds.items == 0
+            || (bounds.bytes as u64) < limit.min(isize::MAX as u64)
+            || bounds.bytes > isize::MAX as usize
         {
             return Err(io::Error::other(
-                "queue must hold at least one maximum-size frame",
+                "queue must hold at least one maximum allocatable frame",
             ));
         }
         let shared = Arc::new(Shared::default());
@@ -170,7 +171,9 @@ impl FrameQueue {
                 let end = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     receive(input, &wake, limit, bounds, &producer)
                 }))
-                .unwrap_or_else(|_| InputEnd::Failed(io::Error::other("framing reader panicked")));
+                .unwrap_or_else(|_| {
+                    InputEnd::Failed(io::Error::other("framing reader panicked").into())
+                });
                 let mut state = producer.state.lock().unwrap();
                 state.items = state.frames.len();
                 state.bytes = state.frames.iter().map(Vec::len).sum();
@@ -267,14 +270,21 @@ fn receive(
             Ok(0) => return InputEnd::Eof,
             Ok(8) => (),
             Ok(_) => return InputEnd::Framing("input"),
-            Err(error) => return InputEnd::Failed(error),
+            Err(error) => return InputEnd::Failed(error.into()),
         }
         let size = u64::from_be_bytes(header);
         if size > limit {
             return InputEnd::Framing("limit");
         }
-        // start() checked that limit fits the address space and the byte budget.
-        let size = size as usize;
+        let size = match usize::try_from(size) {
+            Ok(size) if size <= isize::MAX as usize => size,
+            _ => {
+                return InputEnd::Failed(crate::Error::new(
+                    "HOST_TRANSPORT",
+                    "message length is not allocatable",
+                ));
+            }
+        };
         {
             let mut state = shared.state.lock().unwrap();
             shared.changed.notify_all();
@@ -287,11 +297,18 @@ fn receive(
             state.bytes += size;
             shared.changed.notify_all();
         }
-        let mut body = vec![0; size];
+        let mut body = Vec::new();
+        if body.try_reserve_exact(size).is_err() {
+            return InputEnd::Failed(crate::Error::new(
+                "HOST_TRANSPORT",
+                "cannot allocate message body",
+            ));
+        }
+        body.resize(size, 0);
         match read(&mut input, &mut body) {
             Ok(quantity) if quantity == size => (),
             Ok(_) => return InputEnd::Framing("input"),
-            Err(error) => return InputEnd::Failed(error),
+            Err(error) => return InputEnd::Failed(error.into()),
         }
         let mut state = shared.state.lock().unwrap();
         if state.stopped {
@@ -593,23 +610,60 @@ mod tests {
     }
 
     #[test]
-    fn bounds_allow_maximum_message_and_reject_impossible_configuration_without_busy_response() {
+    fn bounds_hold_allocatable_messages_without_restricting_canonical_limits() {
+        assert_eq!(QueueBounds::for_message_limit(0).bytes, 1024 * 1024);
         assert_eq!(
-            QueueBounds::for_message_limit(0).unwrap().bytes,
-            1024 * 1024
-        );
-        assert_eq!(
-            QueueBounds::for_message_limit(2 * 1024 * 1024)
-                .unwrap()
-                .bytes,
+            QueueBounds::for_message_limit(2 * 1024 * 1024).bytes,
             2 * 1024 * 1024
         );
-        assert!(QueueBounds::for_message_limit(u64::MAX).is_err());
+        assert_eq!(
+            QueueBounds::for_message_limit(u64::MAX).bytes,
+            isize::MAX as usize
+        );
         for bounds in [
             QueueBounds { items: 0, bytes: 4 },
             QueueBounds { items: 1, bytes: 3 },
         ] {
             assert!(FrameQueue::start(Cursor::new(vec![]), 4, bounds).is_err());
+        }
+    }
+
+    #[test]
+    fn uint64_max_canonical_limit_serves_small_frames_without_large_allocation() {
+        let input = Cursor::new(
+            [
+                packet(b"small", &[]),
+                packet(b"", &[]),
+                packet(b"next", &[]),
+            ]
+            .concat(),
+        );
+        let queue =
+            FrameQueue::start(input, u64::MAX, QueueBounds::for_message_limit(u64::MAX)).unwrap();
+        let mut service = Service::default();
+        let mut output = Vec::new();
+        coordinate(&queue, &mut output, &mut service, error_frame).unwrap();
+        assert_eq!(
+            service.selected,
+            [b"small".to_vec(), vec![], b"next".to_vec()]
+        );
+        assert_eq!(output, b"smallnext");
+    }
+
+    #[test]
+    fn unallocatable_body_is_ordered_technical_failure_and_never_a_false_logical_limit() {
+        for size in [isize::MAX as u64 + 1, u64::MAX] {
+            let input = Cursor::new([packet(b"ok", &[]), size.to_be_bytes().to_vec()].concat());
+            let queue =
+                FrameQueue::start(input, u64::MAX, QueueBounds::for_message_limit(u64::MAX))
+                    .unwrap();
+            wait(&queue, |s| s.end.is_some());
+            let mut service = Service::default();
+            let mut output = Vec::new();
+            let error = coordinate(&queue, &mut output, &mut service, error_frame).unwrap_err();
+            assert_eq!(error.code, "HOST_TRANSPORT");
+            assert_eq!(output, b"ok");
+            assert_eq!(service.selected, [b"ok".to_vec()]);
         }
     }
 
