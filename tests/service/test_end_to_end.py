@@ -79,6 +79,20 @@ class Server:
 
 
 class EndToEndTests(unittest.TestCase):
+    def test_native_runtime_options_are_owned_by_host(self):
+        from tests.service.test_prepared import universal_access_proof
+        folder = ROOT/'examples/access'
+        code, proof = ((folder/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
+        server = Server(folder, env=dict(os.environ, BENDRTS='--gpu-build --help'))
+        self.addCleanup(server.close)
+        self.assertEqual(server.call(code, proof, 'alice-token', 'one'),
+                         {'status': 'success', 'value': 'one'}, server.diagnostics())
+        receipt = server.prepared(0, code, 'one', proof=universal_access_proof(proof))
+        self.assertEqual(receipt['status'], 'prepared', server.diagnostics())
+        self.assertEqual(server.prepared(1, receipt['value'], 'one', 'two'),
+                         {'status': 'success', 'value': 'two'}, server.diagnostics())
+        server.finish()
+
     def server(self, folder):
         server = Server(folder)
         self.addCleanup(server.close)
