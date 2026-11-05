@@ -1125,6 +1125,7 @@ fn main() {
 mod tests {
     use super::*;
     use std::io::Cursor;
+    use std::os::unix::fs::PermissionsExt;
 
     struct TestService<F>(F);
 

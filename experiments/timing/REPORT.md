@@ -215,3 +215,33 @@ under exhausted quota, invalid authentication, canonical decoding and opcode
 errors, and the permitted nonempty-proof `input` outcome and logged principal.
 The first invocation had a missing worktree-local `TMPDIR` and failed before
 initialization; creating the local directory resolved that test setup error.
+
+
+## Independent audit runtime-policy repair
+
+The audit also found inherited `BENDRTS` could request independent early-exit
+options despite explicit CPU arguments. `Program.run` now clears it, matching
+the GPU branch's existing policy. The accepted shared source change is
+`b7e873cb8e3638de23313ff3655d0feedfa2e4e0`; test-only follow-up
+`c39bebbd0a9b64380dd10cdeea9112b82b52d5fe` uses one immutable executable
+launch fixture. This avoids a write/exec race seen as `ETXTBSY` in an earlier
+parallel test run, without production retries or global environment mutation.
+
+Post-repair evidence, using the common heavy lock:
+
+- All **32** Rust host/model tests pass with no ignored tests; strict
+  all-target Clippy and formatting checks pass. Evidence:
+  `build/audit/runtime-policy-fixture.log`.
+- A release rebuild and the real
+  `EndToEndTests.test_native_runtime_options_are_owned_by_host` pass
+  (**16.256 s**). It starts with inherited `--gpu-build --help`, performs
+  an admitted ordinary credential update, prepares a universal program and
+  executes it with current credentials.
+- Validated `server/main.rs` SHA-256:
+  `32f2fd569c9413d1cc6d4bd79230262d1205c63514e619bbc7cf987ad8f47129`. Later report-only edits do not change that source.
+
+This is a process-runtime boundary repair. The Bend admission/proof functions
+and canonical request/state/response formats are unchanged; their previous
+proof results are retained without claiming another full aggregate rerun.
+The previous performance measurements, if any, remain measurements of their
+recorded revisions; no benchmark was repeated for this repair.
