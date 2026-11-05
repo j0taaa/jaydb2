@@ -60,8 +60,14 @@ def session(directory, errors, *, storage=None, mode=None):
     assert process.returncode == 0, process.returncode
 
 
-def check_call(db, args, status='success', value=None, user='alice-token', **kw):
-    actual = db.call(user, args, **kw)
+def check_call(db, args, status='success', value=None, user='alice-token', proof=None, **kw):
+    previous = db.proof
+    if proof is not None:
+        db.proof = proof
+    try:
+        actual = db.call(user, args, **kw)
+    finally:
+        db.proof = previous
     assert actual == {'status': status, 'value': value}, (args, actual, status, value)
     print(f'OK: {args[0]} -> {status}', flush=True)
 
@@ -124,11 +130,19 @@ def main():
                         # Principal deletion/reuse is forbidden.
                         'S.Access{D.RemoveRow{D.Users{}, "alice"}, r => S.Finish{D.VAbsent{}}}',
                     ]
-                    for body in bodies:
+                    # For the two forged writes, provide the actual ordinary
+                    # ownership proof too. Their failure must reach frozen
+                    # protocol binding, beyond mere source/proof mismatch.
+                    forged_proof = db.proof.replace(
+                        'dispatch_safe(id, kind, F.analyze(args))',
+                        'L.Both{P.Both{{==}, {==}}, r => Unit{}}')
+                    assert forged_proof != db.proof
+                    for index, body in enumerate(bodies):
                         bad = db.code.replace('P.start(ctx, args)', body)
                         # Preserve affine use of ctx in the two direct writes.
                         bad = bad.replace('S.Program{ctx => args => ', 'S.Program{+ctx => args => ')
-                        call(['issue', 'forged', 'fraud', False], 'certificate', None, code=bad)
+                        call(['issue', 'forged', 'fraud', False], 'certificate', None, code=bad,
+                             proof=forged_proof if index < 2 else None)
                         negatives += 1
                     call(['inspect', 'forged'], value=None)
                     call(['issue', 'r1', 'new lifetime', False], value='v:r1')
@@ -160,6 +174,7 @@ def main():
             assert diagnostics.count(b'PRIMARY_CHECK') == negatives, diagnostics.decode('utf-8', 'replace')
             if negatives:
                 assert b'- expected :' in diagnostics and b'- observed :' in diagnostics
+                assert diagnostics.count(b'Location: certify') >= 2, diagnostics.decode('utf-8', 'replace')
         finally:
             errors.seek(0)
             log = errors.read().decode('utf-8', 'replace')
