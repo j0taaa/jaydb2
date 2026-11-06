@@ -2,7 +2,9 @@
 
 Review started from merged `main` revision `1598ed4`. The earlier integration
 and accessory records remain historical evidence; this review did not rewrite
-their results or change any active/historical contract file or manifest.
+their results. The eight ordinary transaction laws and historical snapshot remain
+unchanged. After the initial review, the user authorized the additive prepared
+protocol contract described below on 2026-11-06.
 The reviewed repairs and new proofs are recorded in commit `0552c76`.
 
 ## Validated repairs
@@ -18,8 +20,10 @@ The reviewed repairs and new proofs are recorded in commit `0552c76`.
 | Structural comparison and signed-order properties lacked general helper theorems | Optional `ComparisonProofs` proves structural equality soundness/completeness and actual signed-comparison strict total order. Constant-true equality and constant-false order controls fail at the intended obligations. Runtime helper code/imports remain unchanged. |
 | Prepared-wire mismatch was documented without a direct checked exclusion theorem | `PreparedPrograms` now proves tag-7 exclusion from ordinary request encodings, `RequestReceived`, and ordinary authentication justification for the same raw scenario. A forged encoding control fails in both modes. |
 
-The import inventory reaches all **16 source, 132 proof and 22 library modules**,
-209 transitive modules in total. It detects omitted checking; it does not
+The initial review import inventory reached all **16 source, 132 proof and 22
+library modules**, 209 transitive modules in total. The authorized extension adds
+three contract and three proof modules; its updated inventory is recorded in
+the validation summary. It detects omitted checking; it does not
 establish an unstated functional theorem about every imported function.
 Application/generated roots, deliberately rejected fixtures, native effects and
 historical experiment variants have their separately documented scopes.
@@ -56,6 +60,13 @@ removing or replacing them had no validated benefit.
   controls in both modes. The earlier full native result is
   not relabeled as having run after these proof-only additions.
 
+The user-authorized prepared extension subsequently passed every combined
+contract/root/test/library aggregate in both modes, all **14 core negative
+controls per mode**, and the idempotency root. The 21 admission/verifier tests
+and both real prepared service suites passed on **463 unchanged recorded
+inputs**. Updated coverage reaches **215 modules**, including 135 proof modules.
+These are follow-up results, not a relabeling of the earlier full-release run.
+
 Current raw logs and manifests stay ignored under `.build/review/`, including
 `full.log`, `full-inputs.json`, `full-result.json`, `promoted-proofs.log` and
 `final-proofs.log`. No
@@ -88,28 +99,46 @@ a prepared body cannot satisfy `Interface.ResponseJustified(Authentication)`
 for that raw ordinary scenario. Successful `prepared`/`invalidated` control
 statuses are also outside the original `Semantics.Status` type.
 
-Consequently, silently normalizing the raw bytes is not a proof of the original
-whole-wire contract. The existing ordinary theorem remains useful within its
-declared scope. A single contract covering the extensions would require an
-explicit, approved contract extension, or a separately identified ordinary-only
-artifact. Removing the prepared workflow would break existing clients; neither
-that removal nor a law change was made during this review. This unresolved
-decision prevents claiming the user's strongest whole-project proof goal is
-complete.
+Consequently, silently normalizing raw bytes is not a proof of the original
+whole-wire contract. On 2026-11-06 the user authorized careful law changes when
+necessary to retain the prepared features. The chosen extension preserves all
+eight ordinary transaction laws and adds three explicit contract modules:
 
-A code-only migration can retain compile-once reuse under the original wire
-contract: transmit exact ordinary source/proof on every execution and cache
-universally certified sealed artifacts internally. Client-local handles can
-expand to those ordinary requests. This is not equivalent to all current
-prepared behavior: ahead-of-time server authentication/admission would move to
-first execution, invalidation would become local forgetting/cache eviction,
-old raw clients would need migration, and combined source/proof plus arguments
-can exceed a message ceiling even when the previous separate preparation and
-handle calls each fit. A generic no-op wrapper also cannot inherit arbitrary
-administrator laws that distinguish the actual source/program/arguments.
-Thus compile reuse itself is compatible with the laws; preserving every
-existing prepared wire, lifecycle and size behavior simultaneously is not.
-The review has not silently made these compatibility changes.
+- `PreparedProtocol`: exact `7 || opcode || canonical record` bodies, valid
+  physical reception, full prefixed lengths, canonical control receipts.
+- `PreparedRegistry`: immutable instance-scoped entries, authenticated lookup,
+  fresh insertion, invalidation, and general preservation/recovery of arbitrary
+  registered-entry invariants.
+- `PreparedLaws`: fresh current authentication, genuine universal/read
+  derivations, per-call/time artifact integrity, original source identity, exact
+  authorized control effects, response bounds, and unchanged published pairs.
+
+`PreparedWire`, `PreparedExtension`, and `PreparedControls` construct the new
+wire/control obligations and connect readiness to the actual resolver and Core
+conclusion proof. They do not assume final-state validity or publication
+permission. The original encoding-exclusion theorems remain valid and checked.
+Five additional negative fixtures cover unauthenticated resolution, invalidated
+handle reuse, oversized receipt mutation, source substitution, and false
+physical length. Each must fail for its intended proof obligation in both modes.
+
+The control contract distinguishes unknown handles from mathematical proof
+rejection and actual technical failure. Receipt overflow happens before sealing
+or registry mutation. Invalidation may remove a handle before directory cleanup
+fails, while preserving database state. Unauthorizing scheduling classification
+may consult the registry before authentication; semantic resolution still
+requires current authentication. Current artifact validation is indexed by the
+same physical call and time, rather than trusting a reusable cached Boolean.
+
+The protocol decision is resolved; complete executable proof is still open.
+The new `ControlLaw` states an obligation over all actual control observations.
+Its full host instantiation, physical event order, delivery/closure refinement,
+and compiler/OS/hardware bridge have not been mechanized. Pure transition
+proofs and tests do not discharge those obligations. No result is relabeled as
+an unconditional whole-project contract theorem.
+
+Ordinary transparent caching remains a possible alternative, but would change
+ahead-of-time admission, invalidation, cross-client handles, and message-size
+behavior. The additive extension avoids imposing those compatibility changes.
 
 Optional arithmetic currently has implementation-word and sign-predicate
 contracts plus extensive finite oracles. A separate interpretation over

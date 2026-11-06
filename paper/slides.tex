@@ -97,7 +97,7 @@ Does the index still match its source table?\par\gap
 8. Conditional progress
 \end{columns}
 \source{Normative statements: contract/LAWS.bend}
-\note{The laws remain unchanged. Administrator laws are additional propositions checked during transaction situations. Law 8 uses the external Processable condition, not a predicate redefined as whatever the service finishes. The only canonical logical limits are message, state and response sizes. There is no hard CPU time or whole-process memory theorem.}
+\note{The eight ordinary transaction laws remain unchanged; the prepared protocol has an explicitly authorized additive contract. Administrator laws are additional propositions checked during transaction situations. Law 8 uses the external Processable condition, not a predicate redefined as whatever the service finishes. The only canonical logical limits are message, state and response sizes. There is no hard CPU time or whole-process memory theorem.}
 \end{frame}
 
 \begin{frame}{What the proof establishes}
@@ -116,7 +116,7 @@ Check a universal certificate and compile\par\gap
 \textbf{Each execution}\par
 Authenticate fresh credentials and use fresh arguments\par\gap
 {\color{accent}Restart discards prepared handles}
-\note{Sources: src/Prepared.bend, proof/PreparedPrograms.bend, tools/service/PREPARED_PROGRAMS.md. The universal target quantifies over context and arguments. It does not freeze an old identity. The raw prepared control protocol is an extension whose registry and framing still require host refinement. Preparation costs are not hidden inside execution benchmark claims.}
+\note{Sources: src/Prepared.bend, proof/PreparedPrograms.bend, tools/service/PREPARED_PROGRAMS.md. The universal target quantifies over context and arguments. It does not freeze an old identity. The authorized additive contract now states physical framing, current artifact validation and exact control registry effects. General wire/registry/control-construction and Core bridge proofs are checked; proving the complete ControlLaw and host correspondence remains open. Preparation costs are not hidden inside execution benchmark claims.}
 \end{frame}
 
 \begin{frame}{Optional service capabilities}
@@ -198,7 +198,7 @@ More functional theorems and concrete host refinement\par\gap
 Larger states and equivalent established-database workflows\par\gap
 \textbf{Usability}\par
 Reduce application proof-writing effort
-\note{The requirement of unconditional 100 percent correctness of the entire implementation remains open. The original ordinary raw-protocol contract also cannot directly cover prepared tag-7 frames and added control statuses: an explicit approved specification extension or a distinct ordinary-only artifact would be needed. Additional proof terms cannot erase that encoding mismatch. General mathematical signed multiplication/division correctness is not supplied by finite native cases. Applications can prove law compliance without proving every desired business result. A well-typed policy can also express the wrong intention. These are material limitations for a TCC defense.}
+\note{The requirement of unconditional 100 percent correctness of the entire implementation remains open. The original ordinary raw-protocol contract also cannot directly cover prepared tag-7 frames and added control statuses: the prototype now has an additive protocol contract dated 6 November 2026. Its constructive model proofs retain identity, certification, limits and state preservation; complete actual-host ControlLaw refinement remains open. The original encoding exclusion remains valid. General mathematical signed multiplication/division correctness is not supplied by finite native cases. Applications can prove law compliance without proving every desired business result. A well-typed policy can also express the wrong intention. These are material limitations for a TCC defense.}
 \end{frame}
 
 \begin{frame}{Contribution and limits}

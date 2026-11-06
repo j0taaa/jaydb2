@@ -4,6 +4,17 @@ This contract contains the kernel definitions and eight general laws. The laws a
 
 Revision authorized on 2026-10-29: physical memory and time budgets were removed. The earlier contract remains in `history/contract-v1/`. The active contract in `contract/` retains the three canonical size limits and the authentication, proof, access, and publication guarantees. Historical files are English translations; their original Portuguese versions remain in Git history.
 
+Prepared-protocol extension authorized on 2026-11-06: the eight ordinary
+transaction laws retain their existing statements. The additive formal modules
+`contract/PreparedProtocol.bend`, `PreparedRegistry.bend`, and `PreparedLaws.bend`
+specify physical prepared envelopes, instance-local registration and authorized
+control results. Prepared execution requires fresh authentication, the genuine
+universal certificate for the exact original source, and current artifact
+validation. Metadata controls preserve the published state/response pair;
+receipt limits precede registry mutation. This extension does not turn the
+ordinary serial theorem into a proof of the complete extended executable.
+
+
 # Database concept
 
 An instance contains tables and users. A request presents a credential, a program, its arguments, and a proof. The database authenticates the request, checks whether the proof establishes the required obligations for that program, and executes the program when admitted. The program may query data, compute a result, and propose changes.

@@ -2,7 +2,7 @@
 
 [ContractService.bend](ContractService.bend) constructs exactly
 `LAWS.Contract(a,k)`, composing all eight current laws for the Bend kernel and
-its serial protocol. It neither changes the laws nor receives their
+its ordinary serial protocol. It neither changes the laws nor receives their
 conclusions as premises. `make verify` includes this composition in both
 official verifiers.
 
@@ -78,7 +78,7 @@ boundaries of published states; working states may contain temporarily empty
 or duplicate credentials when administrator laws permit.
 
 The executable conclusion is therefore: **under the explicit tool and
-integration contracts, the kernel and protocol satisfy the eight laws**.
+integration contracts, the kernel and ordinary protocol satisfy the eight laws**.
 Hashes identify sources and tests support the operational bridge; neither
 alone proves those contracts. A mechanized proof of the Rust/Node/C bridge
 remains outside this result.
@@ -94,7 +94,7 @@ hook allows fatal commit errors to end service without an invented response;
 it does not by itself establish durability or extend the serial theorem to a
 persistent host.
 
-## Prepared-program adapter
+## Additive prepared-program contract
 
 `PreparedPrograms.bend` checks the universal-certificate specialization and
 uses the actual `src/Prepared.bend` resolver invoked by prepared workers. It
@@ -102,15 +102,48 @@ proves preservation of current authentication, state, context and arguments,
 and derives faithful preparation/valid publication through `Call` and `Core`.
 The proof supplies neither final validity nor permission to publish as a premise.
 
-The ordinary eight-law composition above is unchanged. Prepared control frames
-and metadata receipts are an explicit interface extension, not ordinary
-`Semantics.Response` events. For prepared transactions the pure model consumes
-the resolved logical request. `Interface.RequestReceived`'s ordinary encoding
-equation does not hold for the raw handle body. Binding that body and its full
-physical size to the stored original source/proof, as well as registration,
-invalidation and receipt delivery, remains a host refinement contract supported
-by focused real tests. The normalization proof does not claim to mechanize the
-whole Rust registry or extend the old raw-protocol theorem silently.
+The user authorized an additive contract for this interface on 2026-11-06.
+`contract/PreparedProtocol.bend`, `PreparedRegistry.bend` and
+`PreparedLaws.bend` add precise prepared obligations. The ordinary eight-law
+composition above and its source files are unchanged. Control metadata receipts
+remain outside `Semantics.Response`; prepared transactions use the resolved
+logical request. `Interface.RequestReceived`'s ordinary encoding equation does
+not hold for a raw handle body.
+
+`PreparedProtocol.Received` requires valid actual reception and the exact
+physical prefix, canonical inner record and full message limit.
+`PreparedLaws.Ready` requires current authentication before semantic authority
+resolution, exact registered source/proof, universal admission, the fixed
+whole-program read proof for read-marked entries, and artifact correspondence
+indexed by the actual call and time. The scheduler's earlier candidate lookup
+only classifies a possible read batch; it grants no authority.
+
+`ControlOutcome` binds actual result bytes to bounded canonical receipts or
+specific error causes, exact authorized registry deltas and an unchanged
+published state/response pair. Preparation receipt overflow occurs before
+sealing or insertion. Invalidation checks its receipt before removal; a real
+cleanup failure for the selected directory can then replace the receipt with
+`failure` without restoring registration. Delivery failure does not roll back a
+registry change. The additional `ControlLaw` quantifies over actual control
+observations, with completeness required of the fixed environment rather than
+a log the candidate can selectively emit.
+
+`PreparedWire.bend` adds general physical-wire/ordinary-wire separation and
+receipt-encoding proofs. `PreparedExtension.bend` connects prepared readiness
+to the actual worker resolver and Core theorem, and proves full abstract
+registration/invalidation transitions and receipt bounds.
+`PreparedControls.bend` constructs authorized control outcomes from reception,
+authentication, admission, current artifacts, bounds and specific failure
+premises; it does not assume those outcomes as premises. These general/model
+results supplement the existing `PreparedPrograms` proofs.
+
+There is still no proof of the complete actual `ControlLaw` or the complete
+executable contract. Coverage of every host observation, physical ordering of
+receipt preparation and registry mutation, exact current artifact binding,
+compiler preservation and Rust/Node/C/OS/process/channel correspondence remain
+explicit bridge obligations supported by focused tests and review. Neither the
+normalization proof nor the new model proofs silently extends the legacy
+ordinary-wire eight-law theorem to the full prepared executable.
 
 ## Optional administrator service timing
 

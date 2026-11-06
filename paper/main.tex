@@ -301,9 +301,10 @@ of a broader raw protocol. It is a structural boundary: prepared messages use
 an initial tag outside the canonical value tags, while the unchanged ordinary
 request proposition requires the actual received body to encode an ordinary
 request. Prepared-control statuses are also additional interface results.
-A whole-wire contract covering these extensions therefore needs an explicitly
-approved specification extension or a separately identified ordinary-only
-artifact; additional proof terms alone cannot make the raw encodings equal.
+An additive protocol specification dated 6 November 2026 preserves the
+ordinary laws and introduces exact prepared-wire reception,
+instance-local registry semantics and authorized control outcomes. Additional
+proof terms alone cannot make the original raw encodings equal.
 
 \begin{proposition}[Prepared-wire exclusion]
 For every ordinary request $r$ and byte-list suffix $t$,
@@ -328,8 +329,28 @@ proof on every execution. This would defer admission to first execution and
 change invalidation semantics. Combined source/proof and arguments can also
 exceed the unchanged message ceiling even when the former separate messages
 each fit. A no-op wrapper cannot generally inherit a policy that distinguishes
-actual program/source/arguments. The compatibility tradeoff therefore needs
-an explicit design decision rather than a silent normalization.
+actual program/source/arguments. The chosen additive extension retains the prepared lifecycle and message-size
+behavior instead of silently imposing these compatibility changes.
+
+
+The new \code{PreparedLaws} contract requires fresh authentication, the exact
+original source/proof, the genuine universal derivation, and its constructive
+specialization. Read-marked entries also require the fixed whole-program
+read-only target. Artifact integrity is indexed by the physical call and time;
+a stored hash or a previous successful check is insufficient. Metadata outcomes
+preserve the published state/response pair and constrain the exact registry
+delta, canonical response bytes and response limit. A valid reception witness
+binds the actual full body to the declared frame length, including both prefix
+bytes. Oversized receipts cannot mutate the registry. Directory cleanup may
+fail after invalidation has removed a handle, without changing database state.
+
+General checked proofs establish scoped registry invariants, the ordinary-wire
+bridge under valid reception, control outcome constructors, and prepared
+admission through the actual resolver and \code{Core} conclusion theorem.
+They neither assume final-state validity nor relabel a universal proof as a
+concrete source derivation. Establishing the additional \code{ControlLaw}
+for all actual host observations and its complete temporal/compiler/OS bridge
+remains open; the extension is not an unconditional executable proof.
 
 \subsection{Persistence and concurrent reads}
 Optional persistence stores complete committed images and requires the exact

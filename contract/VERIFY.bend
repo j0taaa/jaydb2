@@ -6,3 +6,6 @@ import ./LAWS.bend as Laws
 import ./LEMMAS.bend as Lemmas
 import ./DataExamples.bend as ExamplesData
 import ./ProtocolTests.bend as ExamplesProtocol
+import ./PreparedProtocol.bend as PreparedProtocol
+import ./PreparedRegistry.bend as PreparedRegistry
+import ./PreparedLaws.bend as PreparedLaws
