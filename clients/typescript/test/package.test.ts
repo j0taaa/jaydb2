@@ -23,13 +23,14 @@ test('packed ESM and declarations work from an independent TypeScript applicatio
     assert.ok(packed.files.some(file => file.path === 'dist/index.d.ts'));
     assert.ok(packed.files.every(file => file.path.startsWith('dist/') || ['package.json', 'README.md'].includes(file.path)));
     writeFileSync(join(folder, 'package.json'), JSON.stringify({ type: 'module', private: true,
-      dependencies: { '@jaydb2/client': `file:./${packed.filename}` },
-      devDependencies: { typescript: '5.9.3', '@types/node': '24.19.0' } }));
-    // The package's npm ci already cached these exact development tools.
-    // This consumer installs the tarball, not a symlink into the repository.
-    run('npm', ['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund'], folder);
+      dependencies: { '@jaydb2/client': `file:./${packed.filename}` } }));
+    // A genuinely empty npm cache catches accidental registry dependencies.
+    // The installed SDK is a tarball, not a symlink into the repository.
+    run('npm', ['install', '--offline', '--cache', join(folder, 'empty-cache'), '--ignore-scripts', '--no-audit', '--no-fund'], folder);
     writeFileSync(join(folder, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
       strict: true, target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', outDir: 'dist',
+      // Reuse the test installation's development tools, never SDK source.
+      types: ['node'], typeRoots: [join(packageRoot, 'node_modules/@types')],
     }, include: ['app.ts'] }));
     writeFileSync(join(folder, 'app.ts'), `
 import { Client, encode, decode, type Value, type Response } from '@jaydb2/client';
@@ -46,7 +47,7 @@ await checked;
 await client.close();
 console.log('separate consumer passed');
 `);
-    run(process.execPath, ['node_modules/typescript/lib/tsc.js', '-p', 'tsconfig.json'], folder);
+    run(process.execPath, [join(packageRoot, 'node_modules/typescript/lib/tsc.js'), '-p', 'tsconfig.json'], folder);
     assert.equal(run(process.execPath, ['dist/app.js'], folder).trim(), 'separate consumer passed');
   } finally { rmSync(folder, { recursive: true, force: true }); }
 });
