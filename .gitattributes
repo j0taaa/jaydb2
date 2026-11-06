@@ -1,2 +1,3 @@
 # Archived command output is byte-exact evidence, including diagnostic padding.
 experiments/integration/evidence/*.txt -whitespace
+experiments/integration/evidence/main-review/*.txt -whitespace

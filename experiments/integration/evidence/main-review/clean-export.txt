@@ -1,0 +1,36 @@
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling libc v0.2.191
+   Compiling memchr v2.8.3
+   Compiling cfg-if v1.0.5
+   Compiling cpufeatures v0.2.17
+   Compiling itoa v1.0.18
+   Compiling generic-array v0.14.7
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/experiment-integration/build/review-main/clean-final)
+    Finished `release` profile [optimized] target(s) in 4.21s
+✔ seed aliases are rejected before public staging, including hardlinks and transitive imports (10.423551ms)
+✔ public dependencies cannot claim the reserved Seed namespace (0.998134ms)
+✔ administrator cycles reject before staging, including growing directory aliases (3.607204ms)
+✔ shared diamonds and finite hardlink chains still reach compilation (368.011039ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 441.331145
+test_native_runtime_options_are_owned_by_host (tests.service.test_end_to_end.EndToEndTests.test_native_runtime_options_are_owned_by_host) ... ok
+test_access_laws_cover_refusal_and_failed_child (tests.service.test_end_to_end.EndToEndTests.test_access_laws_cover_refusal_and_failed_child) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 80.986s
+
+OK

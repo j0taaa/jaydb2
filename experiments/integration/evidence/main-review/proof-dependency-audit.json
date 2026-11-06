@@ -1,0 +1,9 @@
+{
+  "reviewed_commit": "f514530036ec838f3c95e778ba6c46a27fbe90ab",
+  "direct_proof_modules": 208,
+  "proof_edges": 1817,
+  "untracked_direct_proof_imports": 0,
+  "evidence_hashes_checked": 19,
+  "publication_tree_mappings_checked": 11,
+  "full_graph_sha256": "76e2b3e9c99ddc5a8b9df4b4be2ce31543694a201135e75ed12c635d50ba476e"
+}

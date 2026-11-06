@@ -1,0 +1,5 @@
+result=Err(Error { code: "HOST_PIPE_SETUP", message: "injected startup failure" }); elapsed=25.726043ms
+descendant_pid=323917; descendant_still_present=true
+Name:	sleep
+Umask:	0002
+State:	S (sleeping)

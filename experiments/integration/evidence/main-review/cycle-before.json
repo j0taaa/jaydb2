@@ -1,0 +1,4 @@
+{
+  "timeout_seconds": 2,
+  "stderr": "\n<--- Last few GCs --->\n\n[361043:0x2b2d0000]     1380 ms: Mark-Compact 121.9 (188.5) -> 60.0 (191.0) MB, pooled: 0 MB, 4.70 / 0.00 ms  (average mu = 0.875, current mu = 0.876) allocation failure; scavenge might not succeed\n[361043:0x2b2d0000]     1420 ms: Mark-Compact 124.0 (191.0) -> 62.1 (193.5) MB, pooled: 0 MB, 5.50 / 0.00 ms  (average mu = 0.870, current mu = 0.863) allocation failure; scavenge might not succeed\n\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x75356c node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]\n 2: 0xc52cd0  [node]\n 3: 0xc52dbf  [node]\n 4: 0xef6695  [node]\n 5: 0xf07ffc  [node]\n 6: 0xedd4b3  [node]\n 7: 0xeb2fc0  [node]\n 8: 0x13aa8b8  [node]\n 9: 0x1ab3d09  [node]\n"
+}

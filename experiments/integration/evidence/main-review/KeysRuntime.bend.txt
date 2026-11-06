@@ -1,0 +1,49 @@
+import Base
+import ../../../native/effects.bend as N
+import ../../../library/Key.bend as K
+import ../../../contract/Data.bend as D
+import ../../../contract/Bytes.bend as B
+import ../../../contract/Protocol.bend as P
+import ../../../src/Codec.bend as C
+
+def strings(xs: D.Value) -> List<&2,String>:
+  match xs:
+    case D.VList{D.VText{x},rest}: Con{x,strings(rest)}
+    case _: Nil{}
+
+def values(xs: List<&2,String>) -> D.Value:
+  match xs:
+    case Nil{}: D.VListEmpty{}
+    case Con{x,rest}: D.VList{D.VText{x},values(rest)}
+
+def decoded(x: Maybe<&2,List<&2,String>>) -> D.Value:
+  match x:
+    case Some{xs}: values(xs)
+    case None{}: D.VAbsent{}
+
+def one(+x:D.Value) -> D.Value:
+  match x:
+    case D.VText{s}: decoded(K.decode(s))
+    case D.VListEmpty{}: D.VText{K.encode(Nil{})}
+    case D.VList{h,t}: D.VText{K.encode(strings(D.VList{h,t}))}
+    case _: D.VAbsent{}
+
+def each(xs:D.Value) -> D.Value:
+  match xs:
+    case D.VList{x,rest}: D.VList{one(x),each(rest)}
+    case _: D.VListEmpty{}
+
+def result(x:C.Outcome) -> D.Value:
+  match x:
+    case C.Decoded{v}: each(v)
+    case _: D.VAbsent{}
+
+def bytes(x:Maybe<&2,List<&2,U32>>) -> List<&2,U32>:
+  match x:
+    case Some{bs}: bs
+    case None{}: Nil{}
+
+def main() -> IO(Unit):
+  do IO<Unit>:
+    xs:List<&2,U32> <- N.read()
+    N.write(bytes(P.encode(result(C.decode(xs,B.Number64{0,1000000})))))
