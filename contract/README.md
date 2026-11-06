@@ -25,6 +25,7 @@ Start with `LAWS.bend`. It contains the eight propositions `Law1` through `Law8`
 | `PreparedProtocol.bend` | Additive prepared envelopes, full physical reception, dispatch, and metadata receipt encoding. |
 | `PreparedRegistry.bend` | Instance-local entries, exact lookup, fresh insertion, and invalidation. |
 | `PreparedLaws.bend` | Prepared admission/readiness, current artifact correspondence, authorized control outcomes, and the additional `ControlLaw` obligation. |
+| `ReadOnlyContract.bend` | Fixed whole-program read predicate, shared with the definitionally equal implementation wrappers and pinned transitively during read admission. |
 | `Resources.bend` | Framing, logical sizes, incomplete reception, EOF, channels, and actual-failure stages. |
 | `Logic.bend` | Logical foundations and proofs: conjunctions, disjunctions, implication, and prefixes. |
 | `LEMMAS.bend` | Proved consequences of the contract and semantics. |
@@ -189,6 +190,11 @@ justified errors, and an unchanged published state/response pair. Receipt
 overflow precedes sealing and registry mutation; invalidation cleanup failure
 can return `failure` after removal without restoring the registration. Lost
 receipt delivery also does not undo a completed registry change.
+
+These are separate component obligations. `ControlLaw` has no complete service
+proof here, and does not contain the full extended delivery, closure, progress
+or temporal-order composition. A helper result constructed from supplied
+admission evidence does not establish those missing obligations.
 
 [PreparedPrograms.bend](../proof/PreparedPrograms.bend) covers worker resolution
 and universal specialization through the actual `Core` publication functions.

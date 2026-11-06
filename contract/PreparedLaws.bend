@@ -12,7 +12,7 @@ import ./PreparedRegistry.bend as G
 import ./Requirements.bend as R
 import ./Resources.bend as X
 import ./Semantics.bend as S
-import ../src/ReadOnly.bend as RO
+import ./ReadOnlyContract.bend as RO
 
 # This relation is fixed by the concrete compiler/host environment, with the
 # same completeness obligation as Interface.Environment. It means CURRENT
@@ -149,8 +149,9 @@ def register_found(found: Maybe<&2, G.Entry>, c: S.Configuration,
     case None{}:
       register_fits(R.fits(R.limit_response(S.limits(c)), W.receipt_value(W.PreparedReceipt{G.handle(entry)})), state, entry, entries)
 
-# Called only after PreparationAuthorized (or the stronger read preparation
-# predicate) and a seal of the exact admitted dependency/native artifact.
+# Pure result computation after candidate selection. This function does not
+# implement or prove authentication/admission; ControlOutcome separately binds
+# actual successful effects to RegistrationReady and the exact admitted seal.
 def register(c: S.Configuration, state: D.State, instance: String,
   +entry: G.Entry, +entries: List<&2, G.Entry>) -> ControlResult:
   register_found(G.lookup(instance, G.handle(entry), entries), c, state, entry, entries)
@@ -169,8 +170,9 @@ def invalidate_found(found: Maybe<&2, G.Entry>, c: S.Configuration,
     case Some{entry}:
       invalidate_fits(R.fits(R.limit_response(S.limits(c)), W.receipt_value(W.InvalidatedReceipt{})), state, instance, handle, entries)
 
-# Called only after exact physical reception, current authentication and an
-# empty proof field. Unknown handles have a specific protocol failure cause.
+# Pure invalidation-result computation. Current authentication and exact
+# physical reception belong to ControlOutcome, not to this helper alone.
+# Unknown handles have a specific protocol failure cause.
 def invalidate(c: S.Configuration, state: D.State, +instance: String,
   +handle: String, +entries: List<&2, G.Entry>) -> ControlResult:
   invalidate_found(G.lookup(instance, handle, entries), c, state, instance, handle, entries)

@@ -144,5 +144,94 @@
         }
       ]
     }
+  },
+  "quality_reassessment": {
+    "base_main": "48fa34b937f1eecedb260f45dceee92dc52d8608",
+    "scope": "Critical quality reassessment; fixes below and revised academic drafts. Whole-project proof remains incomplete.",
+    "repairs": [
+      "Owned demo process-group cleanup after leader exit and observer thread startup failure.",
+      "Production-staged read-only predicate is defined once in the contract layer, with compatible wrappers and transitive pins.",
+      "Primary/kernel disagreement fails closed as infrastructure failure, retaining its diagnostic.",
+      "Registered mode-certificate invariant is instantiated through admitted abstract registry history; no actual host-history proof is claimed."
+    ],
+    "checks": {
+      "proof_gate": {
+        "command": "make verify-integration",
+        "exit_code": 0,
+        "modes": [
+          "--check-only",
+          "--verdict"
+        ],
+        "core_negative_controls_per_mode": 15,
+        "transitive_modules": 217,
+        "areas": {
+          "src": {
+            "modules": 16,
+            "law_declarations": 26
+          },
+          "proof": {
+            "modules": 136,
+            "law_declarations": 1106
+          },
+          "library": {
+            "modules": 22,
+            "law_declarations": 73
+          }
+        }
+      },
+      "admission_verifier": {
+        "tests": 23,
+        "exit_code": 0
+      },
+      "prepared_concurrency_native": {
+        "tests": 4,
+        "exit_code": 0
+      },
+      "demo_lifecycle_transport": {
+        "tests": 7,
+        "exit_code": 0
+      },
+      "quantitative_evidence_controls": {
+        "tests": 6,
+        "exit_code": 0
+      }
+    },
+    "causal_failures_retained": [
+      "Verifier disagreement was misclassified before the patch.",
+      "The first read-only pin used repository bytes; positive admission rejected until the staged-byte pin was corrected."
+    ],
+    "languages": {
+      "article": "English",
+      "defense_slides": "pt-BR",
+      "speaker_notes": "pt-BR"
+    },
+    "artifacts": {
+      ".build/tcc/output/jaydb2-tcc.pdf": {
+        "sha256": "a437daea23f34df1c1f67f882b7ecd391a5ddb921a59762f314ad48d293beb7a",
+        "pages": 12
+      },
+      ".build/tcc/output/jaydb2-defense.pdf": {
+        "sha256": "04ea79bfd8c16d45b15689240be8c3283bbcdc2beba15d37b4e504cd6dad28e0",
+        "pages": 18
+      }
+    },
+    "external_comparison": "Original raw inventory-guard failure retained with linked audited result; seven measured point-operation samples in each of 30 engine/fixture records; unequal policies/deployment paths explicitly disclosed.",
+    "evidence_sha256": {
+      ".build/review/quality-direct-model-gate.log": "dd4bb7a528c5526fdfde01fa440d43ad54e3869813b3fc45f593a9ebbfbe9855",
+      ".build/review/quality-proof-gate.log": "e1632fccf52176bef6be564c6a288186e8e07355ac7ed5fd821d0534b4309d0b",
+      ".build/review/quality-admission-gate.log": "0229bf3f0daf799c653375be02d9a71967d31fa92c96917d3ce0d3a9a09932e4",
+      ".build/review/quality-prepared-native.log": "04b55a8c4aeb0059ed31ea86f02254527f5bcda07635a62af88cc68f25b82ddb",
+      ".build/review/quality-demo-regressions.log": "b0e87d339dbd9f572dcb49d48a281e36246600761a567484856c4616c3e3019f",
+      ".build/review/quality-evidence-tests.log": "d4e4e92785441e02d5fe6a3dcdaac36a935048297b2ca7f4f91bf6bb8dbc5e4e",
+      ".build/review/quality-verifier-disagreement-before.log": "94b3a1afe993c60dae97697b4ff3e67f2cabcbc47658a582993fe1a44b972113",
+      ".build/review/quality-verifier-disagreement-after.log": "c2d44f21b1014614aeab77021af9aa8628dd724a19e2a642dcd431cb41a1ab1f",
+      ".build/review/quality-admission-before-pinfix.log": "d527e0f7f0cc330ad118f4b561d222f527127e8d108a4640dc5c053f5a5da666",
+      ".build/review/quality-proof-coverage.json": "eb83185f6c5f06875c40543f10fb31785bc65aa16f2d1162e83d16df82b3cd87"
+    },
+    "remaining": [
+      "No complete unified ordinary/prepared service composition or actual ControlLaw witness.",
+      "Physical ordering, delivery, closure and progress composition remain open.",
+      "Whole executable/compiler/OS refinement and all optional functional specifications are not established."
+    ]
   }
 }

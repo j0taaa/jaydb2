@@ -1,12 +1,101 @@
 #!/usr/bin/env python3
 """Derive the manuscript's numbers from retained measurements, never timings here."""
 import json
+import hashlib
 import math
 from pathlib import Path
 import statistics
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / ".build/tcc"
+
+COMPARISON_DIGESTS = {
+    "results.json": "355fd9b197d980dd590f0a2c5e2b6d6cd5f406616618d9da94a77f2db5d48ba6",
+    "raw-result.json": "fbce76fdafe3ed56f40f1264a16e188209a10119e5cb9ba0ec0eac0fbd8079a4",
+    "provenance-audit.json": "0d0906ee261582e6bd98d0056190f025c0613fb17a4f8a8b17b073c5f17d7498",
+}
+
+
+def canonical(value):
+    # JSON type identity matters: true is not the integer 1.
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def comparison_statistics(data, raw, audit, raw_digest):
+    """Recompute the narrowly scoped point-operation table, not an engine ranking."""
+    if audit.get("status") != "passed" or audit.get("raw_result_sha256") != raw_digest:
+        raise ValueError("Comparison provenance audit does not bind the raw result")
+    if data.get("provenance_audit") != audit or raw.get("status") != "failed":
+        raise ValueError("Comparison must retain its original inventory-guard failure")
+    allowed_changes = {"error", "status", "provenance_audit", "analysis_input_path",
+                       "original_inventory_guard_status"}
+    if any(canonical(data.get(key)) != canonical(raw.get(key))
+           for key in (set(data) | set(raw)) - allowed_changes):
+        raise ValueError("Audited comparison changed captured measurements or configuration")
+    if data.get("original_inventory_guard_status") != "failed" or audit.get("raw_result_status") != "failed":
+        raise ValueError("Original comparison failure must remain explicit")
+    if data.get("settings", {}).get("samples") != 7 or data["settings"].get("warmups") != 1:
+        raise ValueError("Comparison design changed; revise the article")
+    records = data["results"]
+    engines = ("jaydb2", "postgresql", "sqlite")
+    scenarios = {record["scenario"] for record in records}
+    identities = [(record["scenario"], record["engine"]) for record in records]
+    expected = {(scenario, engine) for scenario in scenarios for engine in engines}
+    if len(scenarios) != 10 or len(identities) != 30 or set(identities) != expected:
+        raise ValueError("Missing or duplicate comparison engine/scenario records")
+    values = {(workload, engine): [] for workload in ("point_read", "point_update") for engine in engines}
+    for record in records:
+        if record.get("status") != "passed":
+            raise ValueError("A comparison record failed")
+        for sample in record["samples"]:
+            if sample.get("checked") is not True or canonical(sample["actual"]) != canonical(sample["expected"]):
+                raise ValueError("An independently checked comparison output disagrees")
+        for workload in ("point_read", "point_update"):
+            rows = [sample for sample in record["samples"] if sample["workload"] == workload]
+            measured = [sample for sample in rows if sample["phase"] == "sample"]
+            warmup = [sample for sample in rows if sample["phase"] == "warmup"]
+            if (any(type(sample["iteration"]) is not int for sample in rows)
+                    or len(rows) != 8 or len(measured) != 7 or len(warmup) != 1
+                    or warmup[0]["iteration"] != 0
+                    or {sample["iteration"] for sample in measured} != set(range(1, 8))):
+                raise ValueError("Missing or duplicate comparison point-operation samples")
+            if any(type(sample["elapsed_ns"]) is not int or sample["elapsed_ns"] <= 0 for sample in rows):
+                raise ValueError("Invalid comparison latency")
+            median = statistics.median(sample["elapsed_ns"] for sample in measured)
+            summary = record["summary"][workload]
+            if summary["n"] != 7 or not math.isclose(median, summary["median_ns"]):
+                raise ValueError("Comparison summary disagrees with measured samples")
+            values[workload, record["engine"]].append(median)
+    for scenario in scenarios:
+        hashes = {record["final_data_sha256"] for record in records if record["scenario"] == scenario}
+        if len(hashes) != 1:
+            raise ValueError("Comparison final models disagree across engines")
+    return {key: statistics.median(samples) / 1e6 for key, samples in values.items()}
+
+
+def write_comparison():
+    directory = ROOT / "experiments/database-comparison/evidence"
+    payloads = {name: (directory / name).read_bytes() for name in COMPARISON_DIGESTS}
+    for name, payload in payloads.items():
+        if hashlib.sha256(payload).hexdigest() != COMPARISON_DIGESTS[name]:
+            raise ValueError(f"Retained comparison input changed: {name}")
+    data, raw, audit = (json.loads(payloads[name]) for name in COMPARISON_DIGESTS)
+    values = comparison_statistics(data, raw, audit, COMPARISON_DIGESTS["raw-result.json"])
+    rows, macros = [], []
+    for workload, label, suffix in (("point_read", "Point read", "Read"),
+                                    ("point_update", "Point update", "Update")):
+        numbers = []
+        for engine, prefix in (("jaydb2", "Jay"), ("postgresql", "Postgres"), ("sqlite", "Sqlite")):
+            value = f"{values[workload, engine]:.4g}"
+            numbers.append(value)
+            macros.append(f"\\newcommand{{\\Db{prefix}{suffix}}}{{{value}}}")
+        rows.append(label + " & " + " & ".join(numbers) + r" \\")
+    (OUT / "database-comparison-table.tex").write_text(
+        "\\begin{tabular}{lrrr}\\toprule\n"
+        "Operation & JayDB2 & PostgreSQL & SQLite \\\\\\midrule\n"
+        + "\n".join(rows) + "\n\\bottomrule\\end{tabular}\n")
+    (OUT / "database-comparison-numbers.tex").write_text("\n".join(macros) + "\n")
+    print("Verified raw/audited comparison linkage and 30 records; derived point-operation table")
 
 
 def main():
@@ -76,6 +165,7 @@ def main():
         "Workload & Readers & Requests/s & Burst ms & p95 ms & Peak MiB \\\\\\midrule\n"
         + "\n".join(table) + "\n\\bottomrule\\end{tabular}\n")
     print("Verified the count of 256 checked responses and all four seven-burst summaries; generated TCC data")
+    write_comparison()
 
 
 if __name__ == "__main__":

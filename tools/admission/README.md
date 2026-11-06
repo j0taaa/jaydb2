@@ -21,6 +21,14 @@ Sources and the kernel are checked against `toolchain.lock.json`. Official TypeS
 
 There are no alternative Safe layouts, custom instance closure, generated `source_links`, structural evaluators, or attempts through a second path after rejection. A form not represented by official Safe is not a proof of falsity; the database does not change the translator to admit it.
 
+If the primary checker accepts a source Book but BendTT rejects its translated
+payload, admission fails closed as `BENDTT_INFRASTRUCTURE`. This disagreement
+can arise from translation or checking limitations and does not establish that
+the original source certificate has no valid derivation. The original kernel
+diagnostic is retained; the host reports `failure` and publishes nothing.
+Standalone kernel-file checks still distinguish an actual kernel rejection
+from infrastructure failure.
+
 Application bindings still require the actual configuration, code, context, and arguments. Published state is not copied into the compilation directory.
 
 The optional host manifest mode `certificateMode: 'universal'` requires an

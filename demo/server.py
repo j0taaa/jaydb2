@@ -35,6 +35,7 @@ COOKIE = 'jaydb2_demo'
 TTL = 30 * 60
 MAX_SESSIONS = 8
 CALL_TIMEOUT = 180  # Web adapter watchdog; outside the database's contract.
+CLOSE_TIMEOUT = 5  # Grace for the owned leader to finish after stdin EOF.
 COMPILERS = threading.BoundedSemaphore(2)
 
 
@@ -82,6 +83,7 @@ class Session:
         self.inspection_error = None
         self.running = False
         self.failed = False
+        self.closed = False
         self.errors = deque(maxlen=30)
         self.inspection = None
         self.directory = tempfile.TemporaryDirectory(prefix='jaydb2-inspect-')
@@ -100,10 +102,16 @@ class Session:
             self.listener.close()
             self.directory.cleanup()
             raise
-        self.error_thread = threading.Thread(target=self._drain_errors, daemon=True)
-        self.inspection_thread = threading.Thread(target=self._inspect, daemon=True)
-        self.error_thread.start()
-        self.inspection_thread.start()
+        self.error_thread = None
+        self.inspection_thread = None
+        try:
+            self.error_thread = threading.Thread(target=self._drain_errors, daemon=True)
+            self.inspection_thread = threading.Thread(target=self._inspect, daemon=True)
+            self.error_thread.start()
+            self.inspection_thread.start()
+        except Exception:
+            self.close()
+            raise
 
     def _drain_errors(self):
         try:
@@ -196,7 +204,7 @@ class Session:
             pending = pending[count:]
 
     def _call(self, code, proof, credential, arguments):
-        if self.failed or self.process.poll() is not None:
+        if self.failed or not self._process_alive():
             raise Unavailable('Database unavailable. Reset the instance to reload the seed.')
         request = {'code': code, 'proof': proof, 'credential': credential, 'arguments': arguments}
         encoded = frame(request)
@@ -277,7 +285,7 @@ class Session:
             self.last_used = time.monotonic()
         with self.view:
             return {'database_pid': self.process.pid, 'created_at': self.created_at,
-                    'alive': not self.failed and self.process.poll() is None,
+                    'alive': not self.failed and self._process_alive(),
                     'expires_after_idle_seconds': TTL, 'receipts': list(self.receipts),
                     'running': self.running, 'version': self.version,
                     'inspection': {'sequence': self.native_sequence, 'observed_at': self.observed_at,
@@ -294,22 +302,48 @@ class Session:
                     'files': self.sources, 'environment': self.environment,
                     'schema': schema_from_sources(self.sources), 'limits': self.limits}
 
+    def _process_status(self):
+        # Keep an exited leader waitable until close has stopped its whole
+        # group. Reaping it during a liveness check would release the numeric
+        # group ID before compiler/native descendants have been cleaned up.
+        # A child already reaped elsewhere supplies no authority to signal.
+        if self.process.returncode is not None:
+            return False, True
+        try:
+            event = os.waitid(os.P_PID, self.process.pid,
+                              os.WEXITED | os.WNOHANG | os.WNOWAIT)
+        except ChildProcessError:
+            return False, True
+        return True, event is not None
+
+    def _process_alive(self):
+        return not self._process_status()[1]
+
     def close(self):
         with self.lock:
+            if self.closed:
+                return
             self.failed = True
             try:
                 self.process.stdin.close()
             except BrokenPipeError:
                 pass
-            if self.process.poll() is None:
+            deadline = time.monotonic() + CLOSE_TIMEOUT
+            while True:
+                owned, exited = self._process_status()
+                remaining = deadline - time.monotonic()
+                if not owned or exited or remaining <= 0:
+                    break
+                time.sleep(min(0.01, remaining))
+            if owned:
+                # Even a leader that exited cleanly can leave descendants
+                # holding pipes. Its unreaped PID pins the group's identity
+                # until this signal, so a reused group cannot be targeted.
                 try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    try:
-                        os.killpg(self.process.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                    self.process.wait()
+                    os.killpg(self.process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            self.process.wait()
             self.process.stdout.close()
             try:
                 # A failed startup may never connect to the inspector. Wake
@@ -323,9 +357,15 @@ class Session:
                     self.inspection.shutdown(socket.SHUT_RDWR)
                 except OSError:
                     pass
-            self.error_thread.join(timeout=2)
-            self.inspection_thread.join(timeout=2)
+            if self.error_thread is not None and self.error_thread.ident is not None:
+                self.error_thread.join(timeout=2)
+            else:
+                # Thread.start can fail before a reader acquires this pipe.
+                self.process.stderr.close()
+            if self.inspection_thread is not None and self.inspection_thread.ident is not None:
+                self.inspection_thread.join(timeout=2)
             self.directory.cleanup()
+            self.closed = True
             with self.view:
                 self.version += 1
                 self.view.notify_all()

@@ -100,3 +100,32 @@ test('shared diamonds and finite hardlink chains still reach compilation', t => 
     }
   }
 });
+
+test('prepared and read-only contract dependencies survive the production public staging closure', t => {
+  const f = fixture(t);
+  fs.writeFileSync(f.config, 'import ./PreparedLaws.bend as Prepared\n' +
+    'import ./ReadOnlyContract.bend as ReadContract\nimport ./ReadOnly.bend as ReadOnly\n');
+  const original = child.spawnSync;
+  let calls = 0;
+  child.spawnSync = (_program, args) => {
+    calls++;
+    const manifest = JSON.parse(fs.readFileSync(args[2], 'utf8'));
+    const staged = new Set(manifest.dependencies.map(dependency => dependency.path));
+    for (const name of ['PreparedLaws.bend', 'PreparedProtocol.bend', 'PreparedRegistry.bend',
+      'ReadOnlyContract.bend', 'ReadOnly.bend']) assert.ok(staged.has(name), name);
+    for (const dependency of manifest.dependencies) {
+      const source = fs.readFileSync(path.join(manifest.submissionDir, dependency.path), 'utf8');
+      assert.doesNotMatch(source, /^import\s+\.\.\//m, dependency.path);
+    }
+    return { status: 37 };
+  };
+  syncBuiltinESMExports();
+  try {
+    assert.throws(() => initialize(f.work, f.config, f.seed, '/unused-bend', '/unused-kernel'),
+      error => error.code === 'HELPER');
+    assert.equal(calls, 1, 'the complete closure must reach the compiler boundary');
+  } finally {
+    child.spawnSync = original;
+    syncBuiltinESMExports();
+  }
+});

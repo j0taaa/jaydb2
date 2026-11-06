@@ -1,8 +1,9 @@
 # TCC manuscript and defense slides
 
-English article by **Gabriel Jota Lizardo, PUC Minas**, with an editable
-16-slide defense presentation. Both use LaTeX; the slides use Beamer, with
-speaker notes in each frame. Change wording and layout directly in `slides.tex`.
+English article by **Gabriel Jota Lizardo, PUC Minas**, with a **Portuguese
+defense presentation**: 16 main slides and two appendices (GPU and the eight
+core laws). Both use LaTeX; the slides use Beamer, with
+Portuguese speaker notes in each frame. Change wording and layout directly in `slides.tex`.
 
 ```sh
 make -C paper
@@ -19,8 +20,20 @@ under `.build/tcc/`; the deliverables are:
 and derives the article's quantitative table. It does not run a benchmark or
 claim that historical measurements describe a new executable. Full raw
 provenance remains at `experiments/integration/evidence/main-review/benchmark.json`.
-The historical GPU branch is explicitly identified and is not a current
-mainline feature or a fresh measurement.
+The GPU appendix identifies its historical branch and does not present a fresh
+measurement. The external point-operation table uses the existing immutable
+`results.json`, `raw-result.json` and `provenance-audit.json` under
+`experiments/database-comparison/evidence/`. The builder checks their digests,
+raw/audited correspondence, measured outputs, sample identities and medians.
+It preserves the original inventory-guard failure and its subsequent audit.
+These flows have different policy and deployment semantics; the table is not
+an equivalent-policy engine ranking.
+
+Run the data rejection controls with:
+
+```sh
+python3 -B -m unittest discover -s paper -p test_evidence.py -v
+```
 
 The organization roughly follows the author's
 [tcc-final article](https://github.com/j0taaa/tcc-final/tree/main/paper), while
@@ -33,13 +46,13 @@ confirmation before submission; they have not been invented. The main text
 and abstract are English as requested. Source bibliography titles retain their
 original language.
 
-The presentation's PDF and LaTeX sources are supplied because the bundled
-PowerPoint authoring runtime is unavailable in this environment. There is no
-unvalidated PowerPoint conversion. The slides can be presented directly as a
-PDF, and their source keeps text, chart values and layout editable.
+The presentation is a Beamer PDF with editable LaTeX source. Text, tables,
+chart values and speaker notes remain in `slides.tex`; the chart values come
+from the retained evidence through `evidence.py`. The article remains English.
 
 The manuscript distinguishes source theorems, conditional service composition,
 finite tests, and trusted operational assumptions. Neither it nor the slides
 assert an unconditional proof of the entire executable or a performance win
-against PostgreSQL/SQLite. The outstanding full functional proof and host
-refinement obligations remain research work, not satisfied by import counts.
+against PostgreSQL/SQLite. The complete prepared-service composition, full functional proofs and host
+refinement obligations remain unfinished. Component predicates and import
+counts do not establish those results.

@@ -75,6 +75,66 @@ to Git. See [verification.md](verification.md) for reproduction commands.
 The small [validation summary](review-validation.json) retains the successful
 exit statuses, evidence digests and exact scope of the proof-only follow-up.
 
+## Reassessment after the quality review
+
+The presentation was incorrectly delivered in English. The defense is now
+Portuguese, including its speaker notes; the article remains English. The
+article now states research questions, a reproducible method, the concrete
+ownership/index case and the actual boundaries of each experiment.
+
+The earlier prepared extension must be read as component specifications and
+proofs. `ControlLaw` is a target without a complete service inhabitant.
+`PreparedControls` constructs selected outcomes from supplied admission facts;
+it does not establish temporal order, delivery, closure, progress or complete
+native-event coverage. `Ready` plus a Core execution equation is not a native
+refinement proof. The ordinary eight-law theorem has not become a theorem for
+the whole prepared service. Naming and helper comments were tightened to avoid
+implying admission was proved from a freshness/size check alone.
+
+Demonstrated integration defects were repaired:
+
+- The demo could reap its exited process-group leader during a liveness check,
+  leaving compiler/native descendants and a stderr-drain thread alive after
+  reset. Exit checks now preserve the waitable leader until cleanup signals
+  its owned group, then reap it. Real-process controls cover exited, active and
+  stalled leaders, repeated close and a reused unrelated group number.
+  Constructor cleanup also releases the group, descriptors, listener and
+  temporary directory if either observer thread cannot start.
+- `PreparedLaws` imported an implementation path that production public
+  flattening could not resolve. The unchanged whole-program read predicate now
+  lives in `contract/ReadOnlyContract.bend`; compatible implementation wrappers
+  retain the prior targets. Both specification and wrapper are pinned, and
+  positive staging plus transitive-tampering controls exercise the real boundary.
+
+A real valid history proof also exposed a verifier-pipeline disagreement.
+After primary acceptance, a rejection of the translated Book was labeled as a
+false source certificate. Admission now fails closed as technical infrastructure
+failure and retains the kernel diagnostic. The causal before/after test checks
+that exact classification at the real kernel boundary; it never bypasses a
+verifier or admits the disputed Book.
+
+The registry lifecycle proof now instantiates the generic entry invariant with
+actual existential mode-certificate evidence. Induction over insertion and
+invalidation can recover the exact registered certificate at lookup, beginning
+with the empty registry. It remains an abstract history result: authentication,
+current artifact integrity, temporal ordering and correspondence with the actual
+host still require their separate proofs.
+
+The external point-operation table uses the original raw comparison, the
+published audited result and its linked provenance audit. The original global
+inventory-guard failure remains visible. Numerical reconstruction checks exact
+outputs, sample identities and per-fixture medians; it does not turn unequal
+policy/deployment configurations into an equivalent-engine comparison.
+
+This correction passed `make verify-integration` in both official modes,
+including 15 intended core rejections per mode; 23 admission/verifier tests;
+four real prepared/concurrency tests; seven demo lifecycle/transport tests; and
+six quantitative-evidence controls. The article and defense build successfully,
+and all 12 article pages and 18 slides were visually inspected. These follow-up
+checks do not replace the historical full-release run or close the proof
+obligations below. Exact evidence and artifact digests are recorded in
+`review-validation.json`.
+
 ## What remains unproved
 
 The checked `ContractService.contract_of_service` target is exactly the unchanged
@@ -129,7 +189,8 @@ may consult the registry before authentication; semantic resolution still
 requires current authentication. Current artifact validation is indexed by the
 same physical call and time, rather than trusting a reusable cached Boolean.
 
-The protocol decision is resolved; complete executable proof is still open.
+The design choice is resolved; formal compatibility of the complete extended
+service and a complete executable proof are still open.
 The new `ControlLaw` states an obligation over all actual control observations.
 Its full host instantiation, physical event order, delivery/closure refinement,
 and compiler/OS/hardware bridge have not been mechanized. Pure transition
@@ -149,6 +210,22 @@ transaction authorization/publication laws; their absence alone does not refute
 the existing conditional eight-law result. No result here is labeled
 "100% proved for the entire project."
 
+## Proof obligations by scope
+
+| Scope | Checked witness or evidence | Remaining obligation |
+| --- | --- | --- |
+| Complete extended service | No complete unified contract composition or witness is present | Compose ordinary/prepared execution and controls, all physical events, ordering, delivery, closure and progress; preserve ordinary guarantees. |
+| Ordinary serial eight-law model | `ContractService.contract_of_service`, with its five explicit premise families | Concrete complete execution/source/IO correspondence; the theorem is not unconditional native correctness. |
+| Prepared logical execution | `PreparedPrograms`, `PreparedExtension`, actual resolver and Core conclusion | Connect every actual prepared call and program event to that model. |
+| Physical prepared controls | `PreparedProtocol.Received`, `PreparedControls` constructors | A complete `ControlLaw` inhabitant, temporal order, delivery, closure and progress composition. |
+| Registered certificates | `PreparedRegistryHistory` induction and lookup recovery | Correspondence of its admitted abstract history with every actual registry mutation; current integrity remains per-call. |
+| Certified concurrent reads | `ReadBatches`, fixed whole-program predicate and wrapper equality | Concrete scheduler, snapshot, barriers and FIFO refinement. |
+| Persistent state | Pure validity/origin results and fault tests | Complete crash/filesystem/OS trace refinement and compiler/runtime assumptions. |
+| Optional algorithms | Named equality/order/key and implementation-word results | Full mathematical arithmetic and broader functional specifications are not all proved. |
+
+The open rows are required work. They are not discharged by compiling imports,
+counting laws, adding tests, or naming a new contract type.
+
 ## GPU decision and TCC
 
 Optional GPU execution is plausible for large explicitly parallel pure work.
@@ -166,7 +243,7 @@ The laws were not changed to accommodate GPU behavior.
 
 The English [TCC and editable slides](../paper/README.md) identify Gabriel Jota
 Lizardo and PUC Minas, document the actual proof boundary, and derive quantitative
-results from existing raw evidence. Their article and sixteen-slide
+results from existing raw evidence. Their article and Portuguese eighteen-slide
 PDFs are generated under `.build/tcc/output/`; only the small editable source
 set is tracked. Rendered pages and an independent factual review were checked.
 The specific course template, advisor and defense metadata remain for local

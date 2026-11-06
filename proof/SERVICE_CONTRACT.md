@@ -124,18 +124,25 @@ published state/response pair. Preparation receipt overflow occurs before
 sealing or insertion. Invalidation checks its receipt before removal; a real
 cleanup failure for the selected directory can then replace the receipt with
 `failure` without restoring registration. Delivery failure does not roll back a
-registry change. The additional `ControlLaw` quantifies over actual control
-observations, with completeness required of the fixed environment rather than
-a log the candidate can selectively emit.
+registry change. The additional `ControlLaw` quantifies over its declared
+metadata observations. There is no complete actual observer instantiation:
+sent prefixes, delivery completion, closure and progress are not composed into
+this type. The separate `Delivery` predicate is not used by `ControlLaw`.
 
 `PreparedWire.bend` adds general physical-wire/ordinary-wire separation and
 receipt-encoding proofs. `PreparedExtension.bend` connects prepared readiness
 to the actual worker resolver and Core theorem, and proves full abstract
-registration/invalidation transitions and receipt bounds.
+registration/invalidation result equations and receipt bounds.
 `PreparedControls.bend` constructs authorized control outcomes from reception,
 authentication, admission, current artifacts, bounds and specific failure
 premises; it does not assume those outcomes as premises. These general/model
 results supplement the existing `PreparedPrograms` proofs.
+
+`PreparedRegistryHistory.bend` instantiates the generic registry invariant with
+actual mode-certificate evidence, propagates it from the empty registry through
+admitted abstract history, and recovers the exact certificate on lookup. The
+history still needs correspondence with all real host mutations; fresh
+authentication and current artifact integrity remain separate obligations.
 
 There is still no proof of the complete actual `ControlLaw` or the complete
 executable contract. Coverage of every host observation, physical ordering of
