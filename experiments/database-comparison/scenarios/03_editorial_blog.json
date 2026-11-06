@@ -1,0 +1,473 @@
+{
+  "id": "03_editorial_blog",
+  "title": "Editorial publishing desk",
+  "description": "Authors and sections support published articles, moderated reader comments, and editorial revision history.",
+  "tables": [
+    {
+      "name": "authors",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "type": "text"
+        },
+        {
+          "name": "role",
+          "type": "text"
+        },
+        {
+          "name": "active",
+          "type": "boolean"
+        }
+      ],
+      "rows": [
+        {
+          "id": "author_001",
+          "name": "Marina Costa",
+          "email": "marina@example.test",
+          "role": "editor",
+          "active": true
+        },
+        {
+          "id": "author_002",
+          "name": "Daniel Rocha",
+          "email": "daniel@example.test",
+          "role": "writer",
+          "active": true
+        },
+        {
+          "id": "author_003",
+          "name": "Aisha Nunes",
+          "email": "aisha@example.test",
+          "role": "writer",
+          "active": true
+        },
+        {
+          "id": "author_004",
+          "name": "Bruno Reis",
+          "email": "bruno@example.test",
+          "role": "writer",
+          "active": true
+        },
+        {
+          "id": "author_005",
+          "name": "Lara Mendes",
+          "email": "lara@example.test",
+          "role": "editor",
+          "active": true
+        },
+        {
+          "id": "author_006",
+          "name": "Rafael Lima",
+          "email": "rafael@example.test",
+          "role": "writer",
+          "active": true
+        },
+        {
+          "id": "author_007",
+          "name": "Sofia Alves",
+          "email": "sofia@example.test",
+          "role": "contributor",
+          "active": true
+        },
+        {
+          "id": "author_008",
+          "name": "Theo Carvalho",
+          "email": "theo@example.test",
+          "role": "contributor",
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "sections",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "slug",
+          "type": "text"
+        },
+        {
+          "name": "display_order",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "section_001",
+          "name": "Technology",
+          "slug": "technology",
+          "display_order": 1
+        },
+        {
+          "id": "section_002",
+          "name": "Local reporting",
+          "slug": "local",
+          "display_order": 2
+        },
+        {
+          "id": "section_003",
+          "name": "Food",
+          "slug": "food",
+          "display_order": 3
+        },
+        {
+          "id": "section_004",
+          "name": "Culture",
+          "slug": "culture",
+          "display_order": 4
+        },
+        {
+          "id": "section_005",
+          "name": "Science",
+          "slug": "science",
+          "display_order": 5
+        },
+        {
+          "id": "section_006",
+          "name": "Travel",
+          "slug": "travel",
+          "display_order": 6
+        },
+        {
+          "id": "section_007",
+          "name": "Work and careers",
+          "slug": "careers",
+          "display_order": 7
+        },
+        {
+          "id": "section_008",
+          "name": "Environment",
+          "slug": "environment",
+          "display_order": 8
+        }
+      ]
+    },
+    {
+      "name": "posts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "author_id",
+          "type": "text",
+          "references": "authors.id"
+        },
+        {
+          "name": "section_id",
+          "type": "text",
+          "references": "sections.id"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "published_on",
+          "type": "text"
+        },
+        {
+          "name": "reading_minutes",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "post_001",
+          "author_id": "author_002",
+          "section_id": "section_001",
+          "title": "Choosing a database for a small app",
+          "published_on": "2026-10-27",
+          "reading_minutes": 8
+        },
+        {
+          "id": "post_002",
+          "author_id": "author_003",
+          "section_id": "section_002",
+          "title": "New bus routes connect the north district",
+          "published_on": "2026-10-28",
+          "reading_minutes": 5
+        },
+        {
+          "id": "post_003",
+          "author_id": "author_004",
+          "section_id": "section_003",
+          "title": "Seasonal meals from the street market",
+          "published_on": "2026-10-29",
+          "reading_minutes": 6
+        },
+        {
+          "id": "post_004",
+          "author_id": "author_007",
+          "section_id": "section_004",
+          "title": "A guide to independent neighborhood cinemas",
+          "published_on": "2026-10-30",
+          "reading_minutes": 7
+        },
+        {
+          "id": "post_005",
+          "author_id": "author_006",
+          "section_id": "section_005",
+          "title": "How citizen weather stations work",
+          "published_on": "2026-11-01",
+          "reading_minutes": 9
+        },
+        {
+          "id": "post_006",
+          "author_id": "author_003",
+          "section_id": "section_006",
+          "title": "A weekend by train in the countryside",
+          "published_on": "2026-11-02",
+          "reading_minutes": 6
+        },
+        {
+          "id": "post_007",
+          "author_id": "author_002",
+          "section_id": "section_007",
+          "title": "Preparing for your first technical interview",
+          "published_on": "2026-11-04",
+          "reading_minutes": 10
+        },
+        {
+          "id": "post_008",
+          "author_id": "author_006",
+          "section_id": "section_008",
+          "title": "Measuring urban tree cover",
+          "published_on": "2026-11-06",
+          "reading_minutes": 7
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "post_id",
+          "type": "text",
+          "references": "posts.id"
+        },
+        {
+          "name": "display_name",
+          "type": "text"
+        },
+        {
+          "name": "body",
+          "type": "text"
+        },
+        {
+          "name": "approved",
+          "type": "boolean"
+        },
+        {
+          "name": "created_on",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "comment_001",
+          "post_id": "post_001",
+          "display_name": "Nina",
+          "body": "A worked example of migrations would help.",
+          "approved": true,
+          "created_on": "2026-10-27"
+        },
+        {
+          "id": "comment_002",
+          "post_id": "post_002",
+          "display_name": "Caio",
+          "body": "The new line reduces my commute by twenty minutes.",
+          "approved": true,
+          "created_on": "2026-10-28"
+        },
+        {
+          "id": "comment_003",
+          "post_id": "post_003",
+          "display_name": "Bia",
+          "body": "The squash recipe worked well at home.",
+          "approved": true,
+          "created_on": "2026-10-30"
+        },
+        {
+          "id": "comment_004",
+          "post_id": "post_004",
+          "display_name": "Ivo",
+          "body": "Please include accessible screening information.",
+          "approved": true,
+          "created_on": "2026-10-31"
+        },
+        {
+          "id": "comment_005",
+          "post_id": "post_005",
+          "display_name": "Luiza",
+          "body": "Where can schools borrow the sensor kits?",
+          "approved": true,
+          "created_on": "2026-11-02"
+        },
+        {
+          "id": "comment_006",
+          "post_id": "post_006",
+          "display_name": "Pedro",
+          "body": "The Sunday return train also needs booking.",
+          "approved": true,
+          "created_on": "2026-11-03"
+        },
+        {
+          "id": "comment_007",
+          "post_id": "post_007",
+          "display_name": "Marta",
+          "body": "I would like a follow-up on portfolio projects.",
+          "approved": false,
+          "created_on": "2026-11-05"
+        },
+        {
+          "id": "comment_008",
+          "post_id": "post_008",
+          "display_name": "Joana",
+          "body": "Our street has collected canopy measurements.",
+          "approved": true,
+          "created_on": "2026-11-06"
+        }
+      ]
+    },
+    {
+      "name": "revisions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "post_id",
+          "type": "text",
+          "references": "posts.id"
+        },
+        {
+          "name": "editor_id",
+          "type": "text",
+          "references": "authors.id"
+        },
+        {
+          "name": "revision_number",
+          "type": "integer"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "revised_on",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "revision_001",
+          "post_id": "post_001",
+          "editor_id": "author_001",
+          "revision_number": 1,
+          "summary": "Verify database version references",
+          "revised_on": "2026-10-26"
+        },
+        {
+          "id": "revision_002",
+          "post_id": "post_002",
+          "editor_id": "author_005",
+          "revision_number": 1,
+          "summary": "Confirm route names with transit office",
+          "revised_on": "2026-10-27"
+        },
+        {
+          "id": "revision_003",
+          "post_id": "post_003",
+          "editor_id": "author_001",
+          "revision_number": 1,
+          "summary": "Standardize ingredient quantities",
+          "revised_on": "2026-10-28"
+        },
+        {
+          "id": "revision_004",
+          "post_id": "post_004",
+          "editor_id": "author_005",
+          "revision_number": 1,
+          "summary": "Check cinema accessibility details",
+          "revised_on": "2026-10-29"
+        },
+        {
+          "id": "revision_005",
+          "post_id": "post_005",
+          "editor_id": "author_001",
+          "revision_number": 1,
+          "summary": "Review sensor accuracy wording",
+          "revised_on": "2026-10-31"
+        },
+        {
+          "id": "revision_006",
+          "post_id": "post_006",
+          "editor_id": "author_005",
+          "revision_number": 1,
+          "summary": "Update ticket reservation instructions",
+          "revised_on": "2026-11-01"
+        },
+        {
+          "id": "revision_007",
+          "post_id": "post_007",
+          "editor_id": "author_001",
+          "revision_number": 1,
+          "summary": "Add an interview preparation checklist",
+          "revised_on": "2026-11-03"
+        },
+        {
+          "id": "revision_008",
+          "post_id": "post_008",
+          "editor_id": "author_005",
+          "revision_number": 1,
+          "summary": "Verify tree cover methodology citation",
+          "revised_on": "2026-11-05"
+        }
+      ]
+    }
+  ],
+  "target": {
+    "table": "posts",
+    "column": "reading_minutes",
+    "key": "post_008"
+  },
+  "join": {
+    "from_table": "posts",
+    "fk": "author_id",
+    "to_table": "authors",
+    "column": "name"
+  },
+  "aggregate": {
+    "table": "posts",
+    "column": "reading_minutes"
+  },
+  "workflow": "Revise an article reading estimate, total reading time, and show each article with its author name.",
+  "limitations": [
+    "Dates use ISO 8601 strings; article bodies are omitted to keep the fixture focused on relational structure.",
+    "Revisions retain editorial summaries rather than complete content snapshots.",
+    "Email uniqueness, role permissions, and moderation policies are application concerns beyond the declared type and reference constraints.",
+    "Eight rows per table test schema feasibility and basic workflows, not a production publishing workload."
+  ]
+}
