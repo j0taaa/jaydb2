@@ -11,14 +11,18 @@ bash tools/ci/check.sh smoke
 ```
 
 This runs the TypeScript client's type checks and codec/transport tests, accessory
-unit tests, Rust host tests, strict Clippy, formatting, and benchmark-harness
-oracles. It needs Node 24, Rust/Cargo, and Python 3.12; no Bend distribution or
-Clang is needed. It does **not** attest real admission, emitted native programs,
-durability, or the application certificates.
+unit tests, all Rust host tests, strict Clippy, formatting, and benchmark-harness
+oracles. It needs Node 24, Rust/Cargo, Python 3.12 and the installed pinned Bend
+tools: an existing host options test canonicalizes those installed paths. Clang
+is not needed. Smoke does **not** execute the proof/native/recovery gates and
+does not attest admission, durability or the application certificates. Standalone
+client checks (`make test-client`) need no Bend distribution.
 
-The `Smoke` GitHub Actions workflow runs these same checks on pushes and pull
-requests. Actions are pinned to verified upstream commit IDs, and the workflow
-has read-only repository permissions.
+The `Smoke` GitHub Actions workflow installs the actual pinned tools and runs
+these same checks on pushes and pull requests. It does not create dummy tool
+paths or skip the host option test. Actions are pinned to verified upstream
+commit IDs, and the workflow has read-only repository permissions. Local smoke
+runs use the tool installation from [INSTALL](../INSTALL.md).
 
 ## Before a release: complete validation
 

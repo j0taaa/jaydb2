@@ -27,7 +27,11 @@ jobs:
         run: rustup toolchain install 1.98.0 --profile minimal --component clippy,rustfmt
       - name: Install client development dependencies
         run: npm ci --prefix clients/typescript
-      - name: Run smoke checks (no Bend distribution required)
+      - name: Install the pinned tools needed by host option tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash tools/ci/bootstrap.sh
+      - name: Run smoke checks
         env:
           RUSTUP_TOOLCHAIN: 1.98.0
         run: bash tools/ci/check.sh smoke

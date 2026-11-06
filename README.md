@@ -88,7 +88,7 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 ```sh
 npm ci --prefix clients/typescript
 make smoke
-# With the pinned Bend tools, Clang 19 and unlimited hard stack installed:
+# Complete proof/native checks also need Clang 19 and unlimited hard stack:
 make check-release
 ```
 
