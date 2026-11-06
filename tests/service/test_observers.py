@@ -1,5 +1,7 @@
 """Observer and diagnostic failures cannot replace ordinary client outcomes."""
 import json
+import os
+import signal
 from pathlib import Path
 import socket
 import subprocess
@@ -30,12 +32,18 @@ class ObserverTests(unittest.TestCase):
             requests = frame(dict(code=code, proof=proof, credential='alice-token', arguments='observed-new'))
             requests += frame(dict(code='', proof='', credential='alice-token', arguments=None))
             with open('/dev/full', 'wb') as diagnostics:
-                run = subprocess.run([str(ROOT/'jaydb2'), '--threads', '1',
+                with subprocess.Popen([str(ROOT/'jaydb2'), '--threads', '1',
                     '--configuration', str(folder/'Configuration.bend'), '--seed', str(folder/'Seed.bend'),
                     '--storage', str(storage), '--storage-mode', 'create', '--timing-log', '/dev/full'],
-                    input=requests, stdout=subprocess.PIPE, stderr=diagnostics, timeout=180, cwd=ROOT)
-            self.assertEqual(run.returncode, 0)
-            self.assertEqual(responses(run.stdout), [dict(status='success', value='observed-new'),
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=diagnostics,
+                    start_new_session=True, cwd=ROOT) as process:
+                    try:
+                        output, _ = process.communicate(requests, timeout=180)
+                    finally:
+                        if process.poll() is None:
+                            os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=10)
+            self.assertEqual(process.returncode, 0)
+            self.assertEqual(responses(output), [dict(status='success', value='observed-new'),
                                                     dict(status='authentication', value=None)])
             self.assertIn(b'observed-new', state_bytes(storage))
             self.assertNotIn(b'alice-token', state_bytes(storage))
@@ -49,7 +57,7 @@ class ObserverTests(unittest.TestCase):
                 process = subprocess.Popen([str(ROOT/'jaydb2'), '--threads', '1',
                     '--configuration', str(folder/'Configuration.bend'), '--seed', str(folder/'Seed.bend'),
                     '--inspect-socket', endpoint], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                    stderr=diagnostics, cwd=ROOT)
+                    stderr=diagnostics, start_new_session=True, cwd=ROOT)
                 try:
                     peer, _ = listener.accept()
                     with peer:
@@ -70,6 +78,6 @@ class ObserverTests(unittest.TestCase):
                     self.assertEqual(responses(output), [dict(status='authentication', value=None)]*2)
                 finally:
                     if process.poll() is None:
-                        process.kill(); process.wait(timeout=10)
+                        os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=10)
                     for stream in (process.stdin, process.stdout):
                         stream.close()

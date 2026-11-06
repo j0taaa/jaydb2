@@ -28,7 +28,7 @@ impl Drop for ChildGuard {
         if let Some(child) = &mut self.0 {
             let _ = child.kill(); // It may already have exited; still reap it.
             if let Err(error) = child.wait() {
-                crate::diagnostic(format_args!("jaydb2: cannot reap helper: {error}"));
+                crate::diagnostic(format_args!("cannot reap helper: {error}"));
                 std::process::abort();
             }
         }

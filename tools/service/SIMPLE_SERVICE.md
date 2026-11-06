@@ -166,15 +166,23 @@ by review/tests rather than a mechanized proof of those components.
 
 ## Rust helper pipe startup
 
-Rust helper capture uses fallible scoped pipe-thread creation. Its child guard
-lives inside the scope closure so every early return or Rust unwind kills and
-reaps the direct child BEFORE implicit joins of already-started pipe threads.
-This also releases a writer blocked on stdin and readers blocked on output.
-Normal successful captures still drain all binary bytes and wait for the child.
+Rust helper capture starts all three fallible scoped pipe threads before
+launching a helper. Each waits on a bounded one-shot channel for its owned pipe.
+Any thread-start failure or unwind drops the senders inside the scope, so all
+started threads finish without a helper or compiler descendant ever launching.
+A failed executable spawn also disconnects and joins those waiting threads.
+After spawn, a guard retains direct-child ownership before pipe handoff. Normal
+captures drain binary input/output/stderr concurrently and wait for the child.
+Process-group behavior is unchanged; this is not a general process-tree
+cancellation guarantee for arbitrary hard kills or aborts.
 
-A pipe-thread startup failure retains the existing fatal policy, now raised only
-after child cleanup and pipe joins. It cannot become a recoverable response or
-allow later queued requests to start. Tests inject errors and unwinding before
-each of the three pipe-thread creations and check actual child reaping. This
-is OS-boundary evidence, not a new mechanized proof or a hard deadline. On the
-Bend-host branch this describes the retained Rust reference only.
+A pipe-thread startup failure retains the existing fatal policy after waiting
+threads join; it cannot become a recoverable response or allow a later queued
+write. Tests inject errors and unwinds at all three starts with a pre-exec launch
+sentinel and a positive control, so they prove the helper never launched rather
+than merely missing an asynchronously written marker. These tests support the
+OS boundary without introducing a mechanized proof or an execution deadline.
+
+Host diagnostics are best-effort. A failed timing or inspection sink is disabled
+before attempting its diagnostic, and failed stderr writes cannot suppress an
+ordinary response, undo publication or turn an observer error into a panic.

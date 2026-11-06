@@ -10,7 +10,7 @@ separately certified prepared reads may run in bounded concurrent batches.
 This is the [curated integration experiment](experiments/integration/README.md).
 It excludes GPU execution, the Bend host replacement and quota enforcement.
 Individual experiment reports retain their historical validation scope; the
-integration report records checks of the combined revision.
+integration report records historical combined checks. The [main-merge review](experiments/integration/MAIN_REVIEW.md) records the repaired candidate and current verification.
 
 Each call runs in a native child process. The host retains published state and
 accepts only the helper's complete result before publishing a proposal. C
