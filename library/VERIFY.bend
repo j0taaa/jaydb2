@@ -5,6 +5,11 @@ import ../contract/Semantics.bend as S
 import ./Query.bend as Q
 import ./Action.bend as A
 import ./Proofs.bend as P
+import ./Receipts.bend as Receipts
+import ./ReceiptLaws.bend as ReceiptLaws
+import ./Value.bend as V
+import ./Int64.bend as I
+import ./ComparisonProofs.bend as Comparison
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:
@@ -122,3 +127,37 @@ def output(trace: S.Trace) -> D.Value:
 
 def main() -> D.Value:
   output(S.observe(5n, query(), schema(), state()))
+
+# Reapply the comparison interfaces to arbitrary actual inputs.
+law structural_equality_is_sound:
+  for +a: D.Value
+  for +b: D.Value
+  for h: {V.equal(a, b) == True{} : Bool}
+  {a == b : D.Value}
+def structural_equality_is_sound(a, b, h):
+  Comparison.equal_sound(a, b, h)
+
+law signed_comparison_is_transitive:
+  for +a: V.Int64
+  for +b: V.Int64
+  for +c: V.Int64
+  for ab: {I.lt(a, b) == True{} : Bool}
+  for bc: {I.lt(b, c) == True{} : Bool}
+  {I.lt(a, c) == True{} : Bool}
+def signed_comparison_is_transitive(a, b, c, ab, bc):
+  Comparison.lt_transitive(a, b, c, ab, bc)
+
+law signed_comparison_has_trichotomy:
+  for +a: V.Int64
+  for +b: V.Int64
+  Comparison.Trichotomy(a, b)
+def signed_comparison_has_trichotomy(a, b):
+  Comparison.lt_trichotomy(a, b)
+
+law minimum_integer_precedes_zero:
+  {I.lt(V.Int64{2147483648, 0}, V.Int64{0, 0}) == True{} : Bool}
+def minimum_integer_precedes_zero(): {==}
+
+law maximum_integer_does_not_precede_zero:
+  {I.lt(V.Int64{2147483647, 4294967295}, V.Int64{0, 0}) == False{} : Bool}
+def maximum_integer_does_not_precede_zero(): {==}

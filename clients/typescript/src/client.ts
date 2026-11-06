@@ -84,6 +84,10 @@ export class Client {
     });
     void this.#completion.catch(error => this.#fail(error));
     this.#input.on('error', error => this.#fail(new TransportError('Request pipe failed; submitted outcomes may be unknown', { cause: error })));
+    this.#input.once('close', () => {
+      if (!this.#input.writableFinished && !this.#ended && !this.#error)
+        this.#fail(new TransportError('Request pipe closed before completion; submitted outcomes may be unknown'));
+    });
     this.#output.on('error', error => this.#fail(new TransportError('Response pipe failed; submitted outcomes may be unknown', { cause: error })));
     this.#output.on('data', chunk => this.#receive(chunk));
     this.#output.once('end', () => {
@@ -94,6 +98,10 @@ export class Client {
     this.#output.once('close', () => {
       if (!this.#ended && !this.#error) this.#fail(new TransportError('Response pipe closed before EOF; submitted outcomes may be unknown'));
     });
+    // Existing streams may have emitted their terminal events before attachment.
+    if (this.#output.readableEnded) { this.#ended = true; this.#resolveEnd(); }
+    else if (this.#output.destroyed || this.#input.destroyed || this.#input.writableEnded)
+      this.#fail(new TransportError('Cannot attach to closed pipes; request was not submitted'));
   }
 
   static spawn(options: SpawnOptions): Client {

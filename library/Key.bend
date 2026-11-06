@@ -130,3 +130,51 @@ def injective(xs, ys, h):
       Equal.trans(List<&2, String>, Con{s, rest}, Con{t, rest}, Con{t, tail},
         Equal.cong(String, List<&2, String>, x => Con{x, rest}, s, t, head),
         Equal.cong(List<&2, String>, List<&2, String>, r => Con{t, r}, rest, tail, injective(rest, tail, ends)))
+
+# Structural fuel evidence: enough steps remain to inspect every encoded part.
+def Enough(n: Nat, xs: List<&2, String>) -> Type:
+  match n xs:
+    case Succ{m} Nil{}: Unit
+    case Succ{m} Con{s, rest}: Enough(m, rest)
+    case Zero{} _: Empty
+
+def enough_more(n: Nat, xs: List<&2, String>, h: Enough(n, xs)) -> Enough(Succ{n}, xs):
+  match n xs:
+    case Zero{} xs: impossible(Enough(1n, xs), h)
+    case Succ{m} Nil{}: Unit{}
+    case Succ{m} Con{s, rest}: enough_more(m, rest, h)
+
+# Segment encoding only adds characters; it cannot consume the tail's fuel.
+def part_enough(s: String, +tail: String, +xs: List<&2, String>,
+  h: Enough(Succ{String.length(tail)}, xs)) -> Enough(Succ{String.length(part(s, tail))}, xs):
+  match s:
+    case SNil{}: enough_more(Succ{String.length(tail)}, xs, h)
+    case SCon{c, +rest}:
+      enough_more(Succ{Succ{String.length(part(rest, tail))}}, xs,
+        enough_more(Succ{String.length(part(rest, tail))}, xs, part_enough(rest, tail, xs, h)))
+
+def encoded_enough(+xs: List<&2, String>) -> Enough(Succ{String.length(encode(xs))}, xs):
+  match xs:
+    case Nil{}: Unit{}
+    case Con{+s, +rest}: part_enough(s, encode(rest), rest, encoded_enough(rest))
+
+law roundtrip_enough:
+  for +n: Nat
+  for +xs: List<&2, String>
+  for h: Enough(n, xs)
+  {decode_fuel(n, encode(xs)) == Some{xs} : Maybe<&2, List<&2, String>>}
+def roundtrip_enough(n, xs, h):
+  match n xs:
+    case Zero{} xs: impossible({decode_fuel(0n, encode(xs)) == Some{xs} : Maybe<&2, List<&2, String>>}, h)
+    case Succ{m} Nil{}: {==}
+    case Succ{+m} Con{+s, +rest}:
+      %Equal.sym(Segment, segment(part(s, encode(rest))), Segment{s, encode(rest)}, segment_roundtrip(s, encode(rest))) : {decode_segment(_, tail => decode_fuel(m, tail)) == Some{Con{s, rest}} : Maybe<&2, List<&2, String>>}
+      %Equal.sym(Maybe<&2, List<&2, String>>, decode_fuel(m, encode(rest)), Some{rest}, roundtrip_enough(m, rest, h)) : {cons(s, _) == Some{Con{s, rest}} : Maybe<&2, List<&2, String>>}
+      {==}
+
+# The public decoder's actual string-length fuel suffices for every key.
+law decode_encode:
+  for +xs: List<&2, String>
+  {decode(encode(xs)) == Some{xs} : Maybe<&2, List<&2, String>>}
+def decode_encode(xs):
+  roundtrip_enough(Succ{String.length(encode(xs))}, xs, encoded_enough(xs))

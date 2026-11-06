@@ -261,8 +261,10 @@ def main():
     parser.add_argument('--burst', type=int, default=8)
     parser.add_argument('--iterations', type=int, nargs='+', default=[0, 250000, 1000000])
     args = parser.parse_args()
-    if args.samples < 5 or not 2 <= args.burst <= 8 or any(not 0 <= n < 2**32-1 for n in args.iterations):
-        parser.error('Need samples >=5, burst 2..8, iterations 0..2^32-2')
+    if (args.samples < 5 or not 2 <= args.burst <= 8
+            or len(set(args.iterations)) != len(args.iterations)
+            or any(not 0 <= n < 2**32-1 for n in args.iterations)):
+        parser.error('Need samples >=5, burst 2..8, distinct iterations in 0..2^32-2')
     output = (ROOT/args.output).resolve()
     if not output.is_relative_to(ROOT) or output.exists():
         parser.error('Output must be a fresh directory inside this worktree')

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The nonvacuous arithmetic contract rejects an always-None helper."""
+"""Reject false arithmetic, comparisons, public-decoder and read-only proofs."""
 from pathlib import Path
 import subprocess
 import sys

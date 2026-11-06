@@ -179,6 +179,22 @@ class Session:
             result.extend(chunk)
         return bytes(result)
 
+    def _write(self, data, deadline):
+        # A pipe can fill before startup finishes or after a stalled reader.
+        # Polling a blocking fd alone would still let a large write hang.
+        fd = self.process.stdin.fileno()
+        os.set_blocking(fd, False)
+        pending = memoryview(data)
+        while pending:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([], [fd], [], remaining)[1]:
+                raise Unavailable('Incomplete request or timeout. Outcome unknown; no automatic retry.')
+            try:
+                count = os.write(fd, pending)
+            except BlockingIOError:
+                continue
+            pending = pending[count:]
+
     def _call(self, code, proof, credential, arguments):
         if self.failed or self.process.poll() is not None:
             raise Unavailable('Database unavailable. Reset the instance to reload the seed.')
@@ -188,9 +204,8 @@ class Session:
             raise ValueError('Canonical request exceeds the 32,768-byte message limit.')
         self.call_sequence += 1
         try:
-            self.process.stdin.write(encoded)
-            self.process.stdin.flush()
             deadline = time.monotonic() + CALL_TIMEOUT
+            self._write(encoded, deadline)
             header = self._read(8, deadline)
             size = int.from_bytes(header, 'big')
             if size > 32768:

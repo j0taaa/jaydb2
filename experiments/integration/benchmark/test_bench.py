@@ -1,10 +1,25 @@
 """Independent oracle evidence; real native performance runs are separate."""
+import contextlib
+import io
+import sys
 import unittest
+from unittest.mock import patch
 
 import bench
 
 
 class OracleTests(unittest.TestCase):
+    def test_duplicate_workloads_reject_before_output_or_measurement(self):
+        error = io.StringIO()
+        # This path also makes an old runner stop safely without starting any
+        # measurement. Require the duplicate-workload diagnostic specifically.
+        with patch.object(sys, 'argv', ['bench.py', '--iterations', '0', '0',
+                                        '--output', '/outside-jaydb-benchmark']), \
+                contextlib.redirect_stderr(error), self.assertRaises(SystemExit) as raised:
+            bench.main()
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn('distinct iterations', error.getvalue())
+
     def test_affine_composition_matches_independent_direct_loop(self):
         for n in (0, 1, 2, 31, 32, 4096, 250000, 1000000):
             for seed in (0, 1, 7, 2**31, 2**32-1):

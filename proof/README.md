@@ -32,11 +32,26 @@ been mechanized in Bend.
 make verify
 ```
 
+Before invoking either checker, `make verify` requires its selected roots to
+import every Bend module under `src/`, `proof/`, and `library/`. This catches a
+new module accidentally left outside the aggregates, including receipt helpers.
+The coverage gate accepts the maintained local-import header syntax and fails
+on an unknown or missing dependency. Its negative controls include an omitted
+module in each of those three directories.
+
+Import coverage establishes which declarations reach the checkers. It does not
+establish a functional specification for each algorithm or discharge the host
+refinement assumptions. Applications, examples, native wrappers and historical
+experiments have their own generated roots and checks; they are outside the
+three-directory inventory.
+
 This checks hashes of the 18 translated historical files and 14 active
 contract modules, checks positive aggregates with separate `--check-only` and
-`--verdict` runs, and executes six negative controls that remove distinct
-premises: identity, bytes, administrator law, publication, length, and
-reification. The runner's timeout only stops stalled development checks.
+`--verdict` runs, and executes nine negative controls in both modes covering identity, bytes,
+administrator law, publication, length, reification, preprocessing order and
+whole-continuation read-only certification, and forged ordinary encoding of a
+prepared body. The runner's timeout only stops
+stalled development checks.
 
 Old closed examples and prior-run reports were removed from the current
 suite; their versions remain in Git. General proofs were not removed to
@@ -57,3 +72,9 @@ source, process, pipe, store, and delivery blocks described in the map. Review
 and tests support that operational bridge; they are not a mechanized proof of
 Rust/Node/C or the complete compiler. Traces omitting real observations and
 premises of post-publication validity are not allowed.
+
+`PreparedPrograms` also proves that canonical record/request encodings cannot
+start with tag 7. If reception processes that same raw prepared body, it has
+neither an ordinary `RequestReceived` witness nor an ordinary authentication
+response justification. This formalizes the wire-contract boundary; it does not
+extend the original contract to prepared frames or alter any law.

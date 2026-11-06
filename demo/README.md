@@ -76,8 +76,8 @@ or a service restart discards it. Event-stream heartbeats do not extend the
 idle lifetime. At most eight instances and two simultaneous adapter calls are
 retained. Requests to one instance are serialized around its binary pipes.
 
-The adapter's 180-second response watchdog is outside the database contract.
-An incomplete response closes the instance; a lost HTTP response can leave
+The adapter's 180-second request/response watchdog is outside the database contract.
+An incomplete request or response closes the instance; a lost HTTP response can leave
 the outcome unknown. Requests are never automatically retried. If inspection
 fails, the UI marks the displayed snapshot as stale/unavailable.
 

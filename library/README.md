@@ -125,6 +125,7 @@ state handle, trigger, grant, or assumed certificate is introduced.
 | `Record` | `make(fields)` validates canonical field order/names/nested values; `raw` and `fields` are unchecked construction/deconstruction with a general roundtrip proof. |
 | `Key` | `encode(parts)` produces an injective reversible composite row key; `decode` rejects malformed/trailing characters. Empty components, delimiters and Unicode are preserved. |
 | `Int64` | Signed comparison, checked `add`, `sub`, `mul`, `divmod`, `increment`, `decrement`; explicit `wrapping_add`/`wrapping_sub` for bit arithmetic. |
+| `ComparisonProofs` | Optional structural-equality reflection and actual signed-comparison strict total order; imports no new runtime behavior. |
 | `Read` | Typed CPS `keys`, `exists`, `count`, each performing exactly one ordinary operation; unexpected returns refuse. |
 | `Sequence` | Pure filtering, stable insertion sorting, grouping, offset/size pagination, length, conversion to a response `Value` list. |
 | `SortProof` | General content/occurrence preservation and independent all-pairs sortedness under explicit order proofs; discharged incomplete-before-complete task order. |
@@ -249,14 +250,23 @@ programs attempt another user's reads before refusing or failing comparison;
 the original certificates must be rejected. See the experiment report for the
 actual commands/results and remaining formal proof scope.
 
-General proofs include record/typed-integer roundtrips, key injectivity, two-sided
-checked add/sub overflow contracts, finite permission composition, and take/drop
-boundaries. `SortProof.sort_content` preserves every predicate count and
+General proofs include record/typed-integer roundtrips, key injectivity and the
+public `Key.decode(Key.encode(parts))` roundtrip for every finite parts list,
+two-sided checked add/sub overflow contracts, finite permission composition,
+and take/drop boundaries. `SortProof.sort_content` preserves every predicate count and
 `sort_occurrences` preserves each supplied value's multiplicity for arbitrary
 lists/comparators. `Sorted` independently requires every earlier element to be
 no greater than every later one; `sort_sorted` proves it under explicit
 transitivity/totality obligations for the induced non-strict order.
 `completed_sorted` discharges those obligations for the useful task order.
+`ComparisonProofs.equal_sound` and `equal_complete` connect the actual structural
+`Value.equal` Boolean to propositional equality for all values, including
+malformed list/record tails. This supports exact comparisons in conditional
+mutations and occurrence counts. Its signed-comparison theorems establish
+irreflexivity, transitivity, asymmetry, equality reflection and trichotomy through
+the actual sign-flipped word rank. They do not supply an independent mathematical
+integer interpretation or arithmetic correctness theorem. The proof module is
+optional; the runtime helpers retain their original dependency closures.
 Concrete functional proofs also exercise grouping, joins, aggregate signs and
 overflow, counter prefixes and index maintenance. A full algebraic proof of
 signed multiplication/division is still outside the claimed scope.

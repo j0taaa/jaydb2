@@ -4,6 +4,7 @@ import { PassThrough, Writable } from 'node:stream';
 import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { once } from 'node:events';
 import { Client, TransportError, ProtocolError, frame, unframe } from '../src/index.ts';
 import type { Value } from '../src/index.ts';
 
@@ -89,6 +90,39 @@ test('write and readable errors reject pending requests instead of hanging', asy
   await assert.rejects(client.request(request()), TransportError); await assert.rejects(client.close(), TransportError);
   const other = pair(); const rejected = assert.rejects(other.client.request(request()), TransportError);
   other.output.destroy(new Error('failed reader')); await rejected; await assert.rejects(other.client.close(), TransportError);
+});
+
+test('request pipe closing without an error rejects pending work', { timeout: 2000 }, async () => {
+  const { input, client } = pair();
+  const rejected = assert.rejects(client.request(request()), TransportError);
+  input.destroy();
+  await rejected;
+  await assert.rejects(client.close(), TransportError);
+});
+
+test('attaching to already-ended or destroyed streams cannot miss terminal events', { timeout: 2000 }, async () => {
+  const output = new PassThrough();
+  output.resume();
+  output.end();
+  await once(output, 'end');
+  const ended = new Client({ input: new PassThrough(), output });
+  await assert.rejects(ended.request(request()), /not submitted/);
+  await ended.close();
+
+  const input = new PassThrough();
+  input.end();
+  const finished = new Client({ input, output: new PassThrough() });
+  await assert.rejects(finished.request(request()), /closed pipes/);
+  await assert.rejects(finished.close(), TransportError);
+
+  for (const side of ['input', 'output'] as const) {
+    const streams = { input: new PassThrough(), output: new PassThrough() };
+    streams[side].destroy();
+    await once(streams[side], 'close');
+    const closed = new Client(streams);
+    await assert.rejects(closed.request(request()), /closed pipes/);
+    await assert.rejects(closed.close(), TransportError);
+  }
 });
 
 test('spawned fake peer supports preparation, current credentials, invalidation, pipelining and drain', async () => {
