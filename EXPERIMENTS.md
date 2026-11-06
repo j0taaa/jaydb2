@@ -1,5 +1,15 @@
 # JayDB2 experiment agreement
 
+## Reusable database comparison
+
+The ten-scenario JayDB2/PostgreSQL/SQLite benchmark and original evidence are
+retained in [experiments/database-comparison](experiments/database-comparison/README.md).
+Run from isolated checkouts with unchanged schemas, limits, durability, sample
+counts and oracle; use its comparison utility to expose every gain and
+regression. Distinguish engine changes from separately labelled application
+profiles. The benchmark is a repeatable measurement, not a license to weaken
+the database contract or a proof that finite tests exclude every regression.
+
 ## Integration scope amendment
 
 The user subsequently authorized `experiment-integration`, combining the

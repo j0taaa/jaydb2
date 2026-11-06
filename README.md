@@ -80,6 +80,10 @@ compiler; the host retains the last published state.
 - **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in
   `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
   Queue waiting and response delivery are excluded. Client bytes are unchanged.
+- **[Reusable database benchmark](experiments/database-comparison/README.md):**
+  ten realistic schemas on JayDB2, PostgreSQL and SQLite, checked results,
+  retained evidence and explicit before/after regression comparisons.
+  `make test-database-benchmark` checks its fixtures and comparison logic.
 
 These capabilities do not add GPU execution, a Bend host replacement or quotas.
 The database contract has three canonical size limits: message, state and
