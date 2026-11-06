@@ -7,10 +7,13 @@
   "contract/LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
   "contract/Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
   "contract/Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
+  "contract/PreparedLaws.bend": "041b94144e361e27de8d505d4635ca2da4c702e954c1494135f58b26dc690d0e",
+  "contract/PreparedProtocol.bend": "48e631dd58f88981b246405c501dd7b84c8313ecece57803d86e2f273f4bad5a",
+  "contract/PreparedRegistry.bend": "da19c6cb2f4db579762b432eca9d874f7f96bb1726d867830d1ec3f5a2312a95",
   "contract/Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
   "contract/ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
   "contract/Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
   "contract/Resources.bend": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
   "contract/Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
-  "contract/VERIFY.bend": "3dea436a8a72b4863253ba966419433bf28846305f340c0f5216d371a1be9993"
+  "contract/VERIFY.bend": "31f81d67e71937b2fbc6de0105a802fd1fd683fd7eae3153a83b88c969dcf34e"
 }

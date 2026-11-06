@@ -60,7 +60,89 @@
     ".build/review/proof-coverage.json": "7cc0873c4d06f2e60ff5834908e51594eb2b16dbc3f7107ed564e57d1dae554f"
   },
   "unresolved": [
-    "Original raw-wire contract cannot cover prepared tag-7 frames and added control statuses unchanged.",
-    "Complete executable/compiler/OS refinement and full mathematical integer arithmetic proofs are not established."
-  ]
+    "Complete actual ControlLaw and whole executable/compiler/OS refinement are not established.",
+    "Full mathematical integer arithmetic and broader functional application proofs remain open."
+  ],
+  "authorized_prepared_extension": {
+    "authorization_date": "2026-11-06",
+    "basis": "User approved careful law changes when necessary to retain prepared features.",
+    "ordinary_core": "LAWS, Interface, Protocol, Semantics, Requirements and historical snapshot remain unchanged; three additive contract modules and checked proof modules define the new scope.",
+    "proof_commands": [
+      "python3 -B tools/check.py --coverage contract/VERIFY.bend VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend",
+      "python3 -B tests/proof/test_proofs.py",
+      "python3 -B tools/check.py experiments/idempotency/VERIFY.bend"
+    ],
+    "proof_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "core_negative_controls_per_mode": 14,
+    "transitive_modules": 215,
+    "areas": {
+      "src": {
+        "modules": 16,
+        "law_declarations": 26
+      },
+      "proof": {
+        "modules": 135,
+        "law_declarations": 1099
+      },
+      "library": {
+        "modules": 22,
+        "law_declarations": 73
+      }
+    },
+    "runtime": {
+      "admission_verifier_tests": 21,
+      "prepared_service_suites": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "recorded_inputs": 463,
+      "changed_inputs": [],
+      "head_at_start": "92e901dedb980bb2bed1caf8708d8b4b96f2e3dd"
+    },
+    "evidence_sha256": {
+      ".build/review/prepared-extension-proofs.log": "e188e7507db7fce231558d1da067f92fc69176452c7adf2ae70ae312efac752e",
+      ".build/review/prepared-extension-negative.log": "284e686bf654922c4be31c26b4f4a0bc1fa11e18f83243e6724b6ef810aabca1",
+      ".build/review/prepared-extension-runtime-0.log": "ba1c8a25fb93c716005f789b6af530e2baaf9f071fa41b00055ba202f92c286f",
+      ".build/review/prepared-extension-runtime-1.log": "d7a7ff286c34b4bd5868f3b75a3edc12cc1f330268e165dd60cfdc1ce1b66866",
+      ".build/review/prepared-extension-runtime.json": "083421f6fac2e6f450d02a5e25e0e898b0a4343cdca8b15339bad7ecece5930a",
+      ".build/review/prepared-extension-inputs.json": "d65d9128efcf16531bc1bb24713986286fb8f28206cd0c6a4963cdcc92fee09c",
+      ".build/review/prepared-extension-coverage.json": "c8d2381646ed614ba69f53b79bdaf0e77621d10819db130c3071aeff8e5c2901",
+      ".build/review/prepared-extension-final-format.log": "c282b25b7053e4da010075cf75c6081c52cf1e836710e755d818eb19252e12c9"
+    },
+    "scope": "Constructive physical reception/registry/control model and Ready-to-Core bridge; no complete native ControlLaw, temporal/compiler/OS refinement or unconditional full executable proof.",
+    "post_validation_format_only": {
+      "change": "Removed one trailing space in PreparedLaws and one blank EOF line in PreparedRegistry; updated active/validator hashes. No definitions, proof terms, runtime sources or tests changed.",
+      "checks": [
+        {
+          "source": "contract/PreparedLaws.bend",
+          "mode": "--check-only",
+          "exit_code": 0
+        },
+        {
+          "source": "contract/PreparedLaws.bend",
+          "mode": "--verdict",
+          "exit_code": 0
+        },
+        {
+          "source": "contract/PreparedRegistry.bend",
+          "mode": "--check-only",
+          "exit_code": 0
+        },
+        {
+          "source": "contract/PreparedRegistry.bend",
+          "mode": "--verdict",
+          "exit_code": 0
+        }
+      ]
+    }
+  }
 }

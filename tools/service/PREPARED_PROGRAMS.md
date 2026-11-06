@@ -5,6 +5,10 @@ certificate once, then execute its frozen official native executable repeatedly.
 The ordinary four-field submission and its concrete proof remain supported.
 There is no transaction catalog, alternate checker, or modified runtime.
 
+The user authorized the additive prepared contract on 2026-11-06. Its wire,
+registry and control obligations supplement the unchanged eight core laws;
+the legacy ordinary-wire aggregate does not automatically prove this interface.
+
 ## Wire and lifecycle
 
 Ordinary bodies remain canonical encoded records with exactly `arguments`,
@@ -24,24 +28,31 @@ return `input`. Ordinary malformed records remain malformed.
 | 2 invalidate | Handle | Empty string | Public value, ignored | `invalidated`, value = null |
 
 All four operations authenticate the actual credential against current
-published state before admission, lookup, or invalidation. A handle grants no
-actor identity; another authenticated user can execute the program under their
-own context. Unknown, invalidated, and other-instance handles return
+published state before admission, semantic handle resolution, or invalidation.
+The read scheduler may inspect a candidate registration before authentication
+to classify a batch; that lookup grants no execution authority. A handle grants
+no actor identity; another authenticated user can execute the program under
+their own context. Unknown, invalidated, and other-instance handles return
 `failure`; nonempty handle-call proofs and malformed opcodes return `input`.
 These are protocol/control failures, not mathematical proof rejections. An
-invalid credential returns `authentication` before handle lookup/proof-field
-validation. Failure
-leaves published state unchanged. Invalidation removes the registration/files.
+invalid credential returns `authentication` before semantic handle
+resolution/proof-field validation. Malformed inner records are rejected before
+authentication. Control failures leave the published state/response pair
+unchanged. Invalidation removes the registration before deleting its directory;
+if that cleanup fails, the host returns `failure` and the handle remains removed.
 
 `prepared` and `invalidated` are **control metadata receipts**, outside
 `Semantics.Status`. They do not execute a transaction, publish working state,
 or replace the host's published state/response pair. Their canonical encoded
 bodies obey the response limit: `prepared` with a 64-character handle is 128
 bytes, and `invalidated` is 59 bytes, excluding the outer length. Receipt size
-is checked before either registry mutation. If a receipt exceeds the limit,
+is checked before either registry mutation and, for preparation, before sealing
+the admitted artifacts. If a receipt exceeds the limit,
 `limit` is returned with no registration/invalidation or publication. This
 includes configurations whose fixed errors fit but whose handle receipt does
-not. Handle IDs are random 256-bit strings in an instance-local in-memory map;
+not; the rejected preparation need not leave a sealed artifact behind. Handle
+IDs are random 256-bit strings, encoded as 64 lowercase hexadecimal characters,
+in an instance-local in-memory map;
 they do not survive instance exit. Losing a receipt does not roll back a
 registration or invalidation, and this interface has no deduplication.
 
@@ -151,17 +162,37 @@ certificate, and faithful preparation/valid publication using the actual Core
 functions. Its premises include the current state and actual execution result;
 they do not assume final-state validity or publication permission.
 
-The old protocol aggregate does not automatically prove this extension: tag 7
-was previously malformed and control receipts are outside `S.Status`. The
-normalization/specialization adapter covers the logical transaction; physical
-prefix dispatch, registry identity/lifecycle and receipt delivery remain
-explicit host integration contracts. In particular, the ordinary
-`Interface.RequestReceived` equation must not be applied directly to a raw
-handle body as if it contained the source text.
-The Rust/Node/C bridge and compiler semantic preservation remain an explicit
-trusted boundary supported by review/tests, not a mechanized proof of the
-complete executable. Official fragment/translation and physical failure
-limitations remain. This extension adds no runtime, quota, deadline or persistent prepared handles. Optional database-state persistence is provided separately.
+The additive contract is defined in `contract/PreparedProtocol.bend`,
+`contract/PreparedRegistry.bend` and `contract/PreparedLaws.bend`.
+`PreparedProtocol.Received` binds valid actual reception to the exact prefixed
+canonical bytes and full physical message limit. `PreparedLaws.Ready` binds a
+call to fresh authentication, exact original source/proof, universal admission,
+the fixed read certificate for read-marked entries, and current per-call
+artifact validation. `ControlOutcome` specifies exact authorized registry
+deltas and unchanged published pairs, including receipt limits, unknown-handle
+errors and cleanup failure after invalidation. The additional `ControlLaw`
+requires those obligations for all actual control observations; the fixed
+environment must account for every result and registry mutation, including
+lost delivery.
+
+`proof/PreparedWire.bend`, `proof/PreparedExtension.bend` and
+`proof/PreparedControls.bend` add general/model proofs of the wire relations,
+resolver/admission connection and control transitions. They cover exact receipt
+encoding, fresh registration, invalidation, receipt overflow and authorized
+outcomes without supplying the outcome as a premise. The existing
+`PreparedPrograms` adapter continues to cover the logical transaction through
+the actual Core functions.
+
+The ordinary eight-law composition remains ordinary-wire only: tag 7 was
+previously malformed and control receipts are outside `S.Status`.
+`Interface.RequestReceived` must not be applied directly to a raw handle body
+as if it contained source text. General/model proofs do not establish the
+complete actual `ControlLaw`, physical receipt-before-mutation ordering, or
+the Rust/Node/C, compiler and OS bridge. These remain explicit obligations
+supported by review and tests; hashes alone do not prove them. Official
+fragment/translation and physical failure limitations remain. This extension
+adds no runtime, quota, deadline or persistent prepared handles. Optional
+database-state persistence is provided separately.
 
 The optional [certified read-batch extension](READ_BATCHES.md) adds opcode 3;
 ordinary preparation and execution retain their original certificate requirements.
