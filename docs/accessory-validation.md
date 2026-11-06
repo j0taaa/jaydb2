@@ -34,8 +34,8 @@ frontends, starter export/check tools and the optional TS client are accessories
 
 ## GitHub smoke
 
-The real hosted smoke job passed on source `b5d1156`:
-https://github.com/j0taaa/jaydb2/actions/runs/42241149426
+The real hosted smoke job passed on the reviewed source `a788284`:
+https://github.com/j0taaa/jaydb2/actions/runs/42245798943
 
 It includes a cold pinned-tool installation, the client/consumer/task/starter
 checks, all 43 host tests, Clippy/formatting and benchmark-harness checks. The
@@ -47,19 +47,40 @@ created to obtain this result.
 
 ## Final local release and usage results
 
-The complete release **test commands** passed locally: both official modes for
-all selected proof aggregates and their negative controls, 21 admission/verifier,
-10 native runtime, 43 host, 19 service, nine recovery and five demo tests, plus
-library/index/receipt applications and all new native accessories.
+On 2026-11-06, **`bash tools/ci/check.sh full` completed with exit status 0**
+from the unchanged reviewed revision
+`a7882849d787fe3d31b5039a49325c0c375cea27` (tree
+`fa3d4068d6ea525c3064308bb5d4f4bfd9af516c`). The single complete invocation ran
+from 18:18:07 to 19:02:06 UTC, taking 2,639.107 seconds, about 44 minutes.
+Before/after hashes of every tracked file matched, HEAD stayed unchanged, and
+the checkout remained clean. No runner, test or implementation file was edited
+during that invocation.
 
-The first long wrapper was edited while its shell was waiting for those tests.
-After the final successful demo test, its stale input offset produced a stray
-`brary: command not found` and exit 127. That wrapper invocation is **not**
-recorded as a successful end-to-end script run. No database or test input was
-changed. The now-frozen runner was checked separately: normal smoke exited 0,
-and full-mode command-dispatch dry-run exited 0. The dry-run is evidence about
-shell dispatch only; it is not substituted for the actual complete suites above.
-Local raw outputs remain under `build/polish-checks/`.
+The [complete, byte-exact output](../experiments/integration/evidence/accessory-full-check.txt)
+and [machine-readable result](../experiments/integration/evidence/accessory-full-check.json)
+are committed. The output's SHA-256 is
+`3f1a05059a20b5aa444f18ac1d5310b52d8b3249dca292a4b0af1abe0455ed2b`.
+
+This invocation passed both official modes for the selected proof aggregates
+and their negative controls, 21 admission/verifier, 10 native runtime, 43 host,
+19 service, nine recovery and five demo tests, plus the library/index/receipt
+applications and all new native accessories. Recovery includes retrying a lost
+response without reexecuting the business writes. It also ran the client,
+accessory and benchmark-harness checks, formatting and strict Clippy.
+
+A separate [read-only evidence recheck](../experiments/integration/evidence/accessory-review-checks.json)
+confirmed all 21 archived engine source identities and 25 archived evidence
+digests. The engine and existing Bend files remain unchanged from `6285060`.
+The follow-up commit adds only this validation record and its evidence.
+
+Historically, the first long wrapper was edited while waiting for its tests and
+ended with `brary: command not found`, exit 127. Two subsequent attempts were
+interrupted with the chat session before an exit status could be recorded.
+None is counted as a passing full run. A temporary user service then ran the
+unchanged command independently of chat interruptions; that is the successful
+invocation recorded above. It closes the previous full-run evidence gap and
+supersedes the earlier command-dispatch dry run. Historical local outputs remain
+under `build/polish-checks/` and `build/polish-final-validation/`.
 
 The retained task workspace `.build/tasks/polish-workflow` contains the five
 actual polish work items. Nineteen TS CLI invocations saved them, completed them,
@@ -81,7 +102,8 @@ The local full check uses the existing official proof/native/recovery/demo
 commands. A first wrapper trial found an existing benchmark test module's
 script-local import and absent `unittest.main`; the final wrapper uses unittest
 discovery from that module's directory and the two oracle tests passed.
-The final smoke rerun covers that corrected selection and the cold-cache repair.
+The successful frozen full run covers that corrected selection and the
+cold-cache repair.
 
 Full GitHub release validation is available by manual dispatch/version tag;
 local full validation is separate from a hosted full-workflow result. Neither
