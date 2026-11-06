@@ -102,6 +102,11 @@ The [main-merge review](experiments/integration/MAIN_REVIEW.md) records the
 reviewed engine, concrete repairs and raw validation evidence. Experiment
 reports retain their historical revisions and measured scope.
 
+The subsequent [project review](docs/review.md) records further repairs,
+proof coverage and remaining obligations. The English
+[TCC article and editable defense slides](paper/README.md) use the project's
+verified evidence and identify its trusted boundaries.
+
 ## Guarantees and assumptions
 
 The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),

@@ -1,0 +1,225 @@
+\documentclass[aspectratio=169,12pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{booktabs,tikz}
+\input{../.build/tcc/numbers.tex}
+\definecolor{ink}{HTML}{142B42}
+\definecolor{accent}{HTML}{087F72}
+\definecolor{muted}{HTML}{566575}
+\setbeamercolor{normal text}{fg=ink,bg=white}
+\setbeamercolor{structure}{fg=accent}
+\setbeamercolor{frametitle}{fg=ink}
+\setbeamerfont{frametitle}{size=\LARGE,series=\bfseries}
+\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamerfont{normal text}{size=\large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill\color{muted}\small\insertframenumber\hspace{6mm}\vspace{4mm}}
+\setbeamertemplate{itemize item}{\color{accent}\small\textbullet}
+\setbeamersize{text margin left=10mm,text margin right=10mm}
+\newcommand{\source}[1]{\par\vspace{4mm}{\fontsize{9}{11}\selectfont\color{muted}#1}}
+\newcommand{\gap}{\par\vspace{6mm}}
+\title{JayDB2}
+\subtitle{Proof-carrying transactions\\under administrator-defined laws}
+\author{Gabriel Jota Lizardo}
+\institute{PUC Minas}
+\date{2026}
+\begin{document}
+
+\begin{frame}[plain]
+\vspace{8mm}
+{\Huge\bfseries JayDB2}\par\gap
+{\LARGE Proof-carrying transactions\\under administrator-defined laws}\par\gap
+Gabriel Jota Lizardo\par
+{\large PUC Minas\hspace{6mm}2026}
+\note{Introduce JayDB2 as an experimental database interface. Programs arrive with proofs of installed policies. The research concerns how admission connects to execution and publication. The paper is main.tex. Do not claim an unconditional proof of the full executable.}
+\end{frame}
+
+\begin{frame}{Transaction policies}
+Who may read this row?\par\gap
+Does this update preserve ownership?\par\gap
+Does the index still match its source table?\par\gap
+{\color{accent}One transaction can require several related guarantees}
+\note{Start with a task owned by Alice. An authorized update must preserve its owner and any related table invariant. PostgreSQL already offers constraints and row policies. The motivation is explicit whole-transaction evidence, not a claim that other databases have no security. Sources: https://www.postgresql.org/docs/18/ddl-rowsecurity.html and ddl-constraints.html.}
+\end{frame}
+
+\begin{frame}{Research question}
+{\Large How can a database check that submitted programs\\obey administrator policies?}\par\gap
+\begin{itemize}
+\item Administrator fixes schema and propositions
+\item Client supplies program and proof
+\item Service checks, executes and publishes
+\end{itemize}
+\note{Connect the question to proof-carrying code: Necula and Lee, CMU-CS-96-165, 1996. JayDB2 is an engineering case study applying source certificates to transaction semantics. Formal database work, including Fiat (POPL 2015), predates this project.}
+\end{frame}
+
+\begin{frame}{Useful application patterns}
+\begin{tabular}{@{}p{.38\linewidth}p{.56\linewidth}@{}}
+\textbf{Owned tasks} & Each person reads and updates their own data \\[5mm]
+\textbf{Ordinary-table indexes} & Application laws connect index and source \\[5mm]
+\textbf{Business receipts} & Matching retries reuse the retained result
+\end{tabular}
+\gap
+{\color{accent}Small sets of reusable, carefully certified programs}
+\note{Sources: applications/tasks, applications/indexed, applications/vouchers. Indexes and receipts are ordinary tables, not privileged kernel subsystems. A receipt must bind exact identity, operation and inputs, respect current permissions, and commit with the business effect. Retiring the receipt ends its deduplication protection. These are demonstrated workflows, not evidence of external adoption.}
+\end{frame}
+
+\begin{frame}{One request}
+\begin{enumerate}
+\item Authenticate against published state
+\item Check the actual program and proof
+\item Execute on a private proposal
+\item Prepare the complete accepted result
+\item Publish once, then deliver the response
+\end{enumerate}
+\gap
+{\color{accent}Refusal discards provisional writes}
+\note{Source: src/Core.bend, proof/Call.bend, server/main.rs. Each fresh worker receives the actual snapshot and arguments. Full output, child success and cleanup precede publication. A failed response delivery after publication does not undo the commit, and the caller can have an unknown outcome.}
+\end{frame}
+
+\begin{frame}{Eight fixed laws}
+\begin{columns}[T]
+\column{.49\textwidth}
+1. Valid initialization\gap
+
+2. Exact representation\gap
+
+3. Current identity\gap
+
+4. Correct certificate
+\column{.49\textwidth}
+5. Faithful execution\gap
+
+6. Valid publication\gap
+
+7. Responses and failures\gap
+
+8. Conditional progress
+\end{columns}
+\source{Normative statements: contract/LAWS.bend}
+\note{The laws remain unchanged. Administrator laws are additional propositions checked during transaction situations. Law 8 uses the external Processable condition, not a predicate redefined as whatever the service finishes. The only canonical logical limits are message, state and response sizes. There is no hard CPU time or whole-process memory theorem.}
+\end{frame}
+
+\begin{frame}{What the proof establishes}
+\textbf{Checked source result}\par
+Pure kernel and ordinary serial service model\par
+satisfy the eight laws\par\gap
+\textbf{Explicit assumptions}\par
+Correct official translation and host correspondence\par\gap
+{\color{accent}Rust, Node, C, OS and hardware remain trusted}
+\note{Source: proof/ContractService.bend and proof/SERVICE_CONTRACT.md. contract_of_service constructs exactly LAWS.Contract under five premise groups. Source proof checking does not establish end-to-end machine-code correctness. PreparedPrograms also proves that raw prepared tag7 bodies have no ordinary request witness or ordinary authentication justification for the same received scenario. ComparisonProofs establishes structural equality reflection and signed-word strict total order, without supplying mathematical integer arithmetic correctness. Import coverage only guards against omitted modules.}
+\end{frame}
+
+\begin{frame}{Prepared programs}
+\textbf{Once}\par
+Check a universal certificate and compile\par\gap
+\textbf{Each execution}\par
+Authenticate fresh credentials and use fresh arguments\par\gap
+{\color{accent}Restart discards prepared handles}
+\note{Sources: src/Prepared.bend, proof/PreparedPrograms.bend, tools/service/PREPARED_PROGRAMS.md. The universal target quantifies over context and arguments. It does not freeze an old identity. The raw prepared control protocol is an extension whose registry and framing still require host refinement. Preparation costs are not hidden inside execution benchmark claims.}
+\end{frame}
+
+\begin{frame}{Optional service capabilities}
+\begin{tabular}{@{}p{.34\linewidth}p{.60\linewidth}@{}}
+\textbf{Durable images} & Reopen with the exact frozen environment \\[5mm]
+\textbf{Certified readers} & Overlap whole read-only programs \\[5mm]
+\textbf{Timing log} & Observe service work through publication
+\end{tabular}
+\gap
+{\color{accent}Serial FIFO service remains the default}
+\note{Sources: experiments/persistence/REPORT.md, tools/service/READ_BATCHES.md, SERVICE_TIMING.md. Writes and control operations are barriers. Uncertain durable commits stop dispatch. Timing excludes queue wait and response delivery and does not enforce quotas. Exact-environment storage currently has no migrations.}
+\end{frame}
+
+\begin{frame}{Correctness evidence}
+\textbf{Proof checks and negative controls}\par
+Missing premises and forbidden accesses must fail\par\gap
+\textbf{Native and application tests}\par
+Actual responses match independent expectations\par\gap
+\textbf{Recovery faults}\par
+Publication, restart and lost-response retries
+\source{Retained review: 43 Rust, 19 service and 9 recovery tests}
+\note{These counts describe the retained main-review source, not a newly invented current total. Other retained counts: 21 admission/verifier, 10 native runtime, 5 demo tests, eight negative aggregate controls. The current review adds causal regressions for silent TS transport close, demo blocked writes, duplicate benchmark workloads, and proof import coverage, plus checked equality/order and wire-exclusion theorems. Its full release run passed over 436 unchanged inputs, including 7 demo tests. Pure proof additions have separate dual-mode checks. Sources: experiments/integration/MAIN_REVIEW.md, docs/accessory-validation.md and docs/review.md. Finite tests are not a general proof.}
+\end{frame}
+
+\begin{frame}{Read-batch throughput}
+{\large Median throughput in requests/second}\par\vspace{3mm}
+\begin{tikzpicture}[x=.011cm,y=.88cm]
+\fill[ink] (0,3) rectangle (\TinyOneRps,3.33);
+\fill[accent] (0,2.55) rectangle (\TinyTwoRps,2.88);
+\fill[ink] (0,1.2) rectangle (\HeavyOneRps,1.53);
+\fill[accent] (0,.75) rectangle (\HeavyTwoRps,1.08);
+\node[anchor=east,font=\small] at (-10,3.15) {Tiny, 1 reader};
+\node[anchor=east,font=\small] at (-10,2.7) {Tiny, 2 readers};
+\node[anchor=east,font=\small] at (-10,1.35) {Heavy, 1 reader};
+\node[anchor=east,font=\small] at (-10,.9) {Heavy, 2 readers};
+\node[anchor=west,font=\small] at (275,3.15) {\TinyOneRps};
+\node[anchor=west,font=\small] at (499,2.7) {\TinyTwoRps};
+\node[anchor=west,font=\small] at (75,1.35) {\HeavyOneRps};
+\node[anchor=west,font=\small] at (139,.9) {\HeavyTwoRps};
+\draw[muted] (0,.45) -- (550,.45);
+\foreach \n in {0,100,200,300,400,500}{\draw[muted] (\n,.45) -- (\n,.36);\node[below,font=\tiny] at (\n,.34) {\n};}
+\end{tikzpicture}
+\source{Two physical cores, eight-request bursts, seven paired measured rounds}
+\note{Retained data: experiments/integration/evidence/main-review/benchmark.json at source 00d973e. Both configurations have total native thread budget two. Tiny: zero recurrence updates. Heavy: base 100 million dependent U32 recurrence updates per request, alternating 100,000,000 and 100,000,001 across paired rounds, with varied seeds within bursts. Four values are medians over bursts. Median paired ratios are 1.95 and 1.98; do not calculate these by dividing separate medians. paper/evidence.py recomputes all numbers. All 256 responses including warmup matched the oracle.}
+\end{frame}
+
+\begin{frame}{Scope of the comparison}
+\begin{itemize}
+\item One machine, small state, volatile storage
+\item Independent requests share two CPU cores
+\item More readers increase observed memory
+\item No PostgreSQL or SQLite timing comparison
+\end{itemize}
+\gap
+{\color{accent}Next experiment: larger states and mixed reads/writes}
+\note{CPU: Intel i7-11700K. Warmup: one burst per configuration/workload. Seven paired samples have considerable variation, especially the tiny workload. RSS sums shared pages and samples every 10 ms, so it is approximate. End-to-end latency includes queueing and response delivery. Do not generalize to one-request acceleration, large databases, persistence or sustained production load.}
+\end{frame}
+
+\begin{frame}{GPU support needs a narrow target}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Historical fixture & CPU & CUDA \\
+\midrule
+Small & 5.8 ms & 174.9 ms \\
+Large compute & 715.1 ms & 215.7 ms \\
+\bottomrule
+\end{tabular}
+\gap
+{\color{accent}Possible benefit for large pure parallel computations}\par\vspace{3mm}
+Current mainline keeps CPU execution
+\source{Separate experiment-gpu branch, RTX 3080 Ti, two complete samples per case}
+\note{Source: experiment-gpu:experiments/gpu/REPORT.md and heavy-benchmark-results.json, revision 425074e. Small control: 32,768 rounds. Heavy: 4,294,967,296 rounds. Historical settings: eight CPU workers, GPU worker cap one, 512 MiB GPU corpus. These are rounded median complete-request latencies, not kernel timing or current mainline measurements or equal hardware budgets. Integration needs GPU artifact sealing, failure rollback, persistence identity and exclusive scheduling with CPU read batches. CUDA/compiler/hardware remain trusted. Official semantics: https://raw.githubusercontent.com/bendlang/bend/v2.0.39/guide/GUIDE.md.}
+\end{frame}
+
+\begin{frame}{Remaining work}
+\textbf{Verification}\par
+More functional theorems and concrete host refinement\par\gap
+\textbf{Evaluation}\par
+Larger states and equivalent established-database workflows\par\gap
+\textbf{Usability}\par
+Reduce application proof-writing effort
+\note{The requirement of unconditional 100 percent correctness of the entire implementation remains open. The original ordinary raw-protocol contract also cannot directly cover prepared tag-7 frames and added control statuses: an explicit approved specification extension or a distinct ordinary-only artifact would be needed. Additional proof terms cannot erase that encoding mismatch. General mathematical signed multiplication/division correctness is not supplied by finite native cases. Applications can prove law compliance without proving every desired business result. A well-typed policy can also express the wrong intention. These are material limitations for a TCC defense.}
+\end{frame}
+
+\begin{frame}{Contribution and limits}
+{\LARGE Programs arrive with evidence\\for the database's installed policies}\par\gap
+The prototype connects checked prefixes to publication\par\gap
+{\color{accent}Useful for specialized workflows with reusable proofs}\par\vspace{3mm}
+Complete executable verification remains open
+\note{Conclude with the research question. The artifact demonstrates a conditioned source-level safety construction and concrete executable tests. It does not establish superiority over production databases or unconditional end-to-end verification. Invite questions about policy expressiveness, proof effort and the operational boundary.}
+\end{frame}
+
+\begin{frame}{Selected references}
+\small
+Necula and Lee. \emph{Proof-carrying code}. CMU-CS-96-165, 1996.\gap
+
+Nanevski et al. \emph{Ynot}. ICFP, 2008.\gap
+
+Delaware et al. \emph{Fiat}. POPL, 2015.\gap
+
+PostgreSQL 18 documentation. Row security and constraints.\gap
+
+\url{https://github.com/j0taaa/jaydb2}
+\note{Full bibliographic references and reproducibility details appear in the companion article. The source repository provides the eight-law contract, source proof terms, raw historical measurements and current review record.}
+\end{frame}
+\end{document}

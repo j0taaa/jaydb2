@@ -1,0 +1,66 @@
+{
+  "review_base": "1598ed48cd1c0f188993d28aecf3fc7ea78e5cf4",
+  "implementation_commit": "0552c768811d0c05af07fcf5d02fbec03e245db2",
+  "full_release": {
+    "command": "bash tools/ci/check.sh full",
+    "exit_code": 0,
+    "elapsed_seconds": 2831.469,
+    "source_inputs": 436,
+    "changed_inputs": []
+  },
+  "after_full": {
+    "changed_previous_inputs": [
+      "experiments/library/test_negative.py",
+      "library/VERIFY.bend",
+      "proof/PreparedPrograms.bend",
+      "tests/proof/test_proofs.py"
+    ],
+    "scope": "Proofs and verification only; runtime helpers and host/admission sources match the full-run inputs."
+  },
+  "final_proof_gate": {
+    "command": "make verify-integration",
+    "exit_code": 0,
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "core_negative_controls_per_mode": 9,
+    "transitive_modules": 209,
+    "areas": {
+      "src": {
+        "modules": 16,
+        "law_declarations": 26
+      },
+      "proof": {
+        "modules": 132,
+        "law_declarations": 1072
+      },
+      "library": {
+        "modules": 22,
+        "law_declarations": 73
+      }
+    }
+  },
+  "library_negative_gate": {
+    "command": "python3 -B experiments/library/test_negative.py",
+    "exit_code": 0,
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "negative_controls_per_mode": 5,
+    "log": ".build/review/promoted-proofs.log"
+  },
+  "evidence_sha256": {
+    ".build/review/full.log": "ccae7381ec1114c96c92eb13b4cb927c5bfe5090635157ec2db13d7c79b50d1f",
+    ".build/review/full-inputs.json": "a6f971616bc955902e463ef0ad4c3e94e87165e3c99ec2c4a769993c12488123",
+    ".build/review/full-result.json": "28c8b0821591c8df4ced7ed04c44971d5f6a44ce2e2e7f32f6f641d504677cc2",
+    ".build/review/final-proofs.log": "424c7483fb37bba7735637024e90adf858f246d101f41044c224035cb7eca977",
+    ".build/review/promoted-proofs.log": "4c0583e6ed88d4d02a82ba719ca64fee23d52e33057b71719393fd62fcb62255",
+    ".build/review/proof-coverage.json": "7cc0873c4d06f2e60ff5834908e51594eb2b16dbc3f7107ed564e57d1dae554f"
+  },
+  "unresolved": [
+    "Original raw-wire contract cannot cover prepared tag-7 frames and added control statuses unchanged.",
+    "Complete executable/compiler/OS refinement and full mathematical integer arithmetic proofs are not established."
+  ]
+}
