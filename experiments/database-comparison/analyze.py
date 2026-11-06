@@ -33,6 +33,19 @@ WORKLOAD_LABELS = {'point_read': 'Point read', 'point_update': 'Point update',
 TABLE_COUNTS = [1, 3, 5, 8, 10, 12, 15, 18, 22, 26]
 
 
+def workflow_note(manifest):
+    profile = manifest['settings'].get('profile', 'legacy')
+    if profile == 'legacy':
+        return ('SQL SUM/JOIN are one native query; JayDB2 uses 9/17 prepared service requests for these eight-row client workflows. '
+                'The multi-request queries do not provide a transaction snapshot under concurrent writes. '
+                'Point operations and two-row transactions each use one service request.')
+    if profile == 'single-call-queries-v1':
+        return ('SQL SUM/JOIN are one native query; JayDB2 SUM/JOIN each use one generic prepared transaction over actual keys. '
+                'Point reads use a separately read-only-certified Reader. All six program preparation costs are measured separately. '
+                'This application profile changes the access strategy and does not isolate an engine improvement.')
+    raise ValueError(f'Unknown application profile: {profile}')
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -155,7 +168,9 @@ def analyze(manifest, raw, scenarios, specs, by_pair, rows):
                      for r in by_pair.values() if r['status'] == 'failed'],
         'attempted_seed_rows_per_engine': 8 * sum(TABLE_COUNTS), 'samples_per_workload_per_database': manifest['settings']['samples'],
         'warmups_per_workload_per_database': manifest['settings']['warmups'],
-        'workload_note': 'SQL SUM/JOIN are one native query; JayDB2 uses 9/17 prepared service requests for these eight-row client workflows. Point operations and two-row transactions each use one service request.',
+        'profile': manifest['settings'].get('profile', 'legacy'),
+        'profile_metadata': manifest['settings'].get('profile_metadata', {}),
+        'workload_note': workflow_note(manifest),
         'scope_notes': [
             'Feasibility-sized synthetic fixtures: eight rows per table, with schema complexity varied; not a row-count scaling study.',
             'One client, durable writes, warmed caches and prepared JayDB2 programs; setup/preparation excluded from workload samples.',
@@ -254,7 +269,8 @@ def matplotlib_charts(output, manifest, scenarios, specs, rows, analysis):
     axis.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: f'{x:g}'))
     axis.legend(ncol=3, frameon=False, loc='upper left')
     fig.suptitle('Five application workflows — unweighted median of per-scenario medians', fontsize=13)
-    fig.text(.5, .005, 'Native SQL SUM/JOIN versus 9/17 prepared JayDB2 service calls; these are client workflow measurements.', ha='center', fontsize=9)
+    calls = '9/17 prepared JayDB2 service calls' if analysis['profile'] == 'legacy' else 'one prepared JayDB2 transaction each'
+    fig.text(.5, .005, f'Native SQL SUM/JOIN versus {calls}; profile: {analysis["profile"]}.', ha='center', fontsize=9)
     fig.savefig(output / 'workloads.svg', metadata={'Date': None})
     fig.savefig(output / 'workloads.png', dpi=180)
     plt.close(fig)
@@ -329,7 +345,7 @@ def html_charts(output, manifest, scenarios, specs, rows, analysis):
 </style><main>'''
     markup += f'<div class="legend">{legend}</div><p class="note">{analysis["passed_database_count"]}/30 databases passed; {analysis["failed_database_count"]} failed databases have no timing plotted. {manifest["settings"]["samples"]} checked samples per workload/database after {manifest["settings"]["warmups"]} warmup. One client, durable storage, eight rows per table. Lower latency is faster; each grid step is a tenfold change.</p>'
     markup += ''.join(figures)
-    markup += '<p class="note">Point charts show each scenario’s sample median. The workflow chart gives equal weight to each scenario median: up to ten successful scenarios for reads, updates, transactions and SUM; up to nine for JOIN. Exact successful counts are retained per engine in analysis.json. SQL uses native SUM/JOIN; JayDB2 composes 9/17 prepared service calls. These are client workflow timings, with setup and compilation excluded. The multi-request JayDB2 queries do not provide a transaction snapshot under concurrent writes.</p>'
+    markup += '<p class="note">Point charts show each scenario’s sample median. The workflow chart gives equal weight to each scenario median: up to ten successful scenarios for reads, updates, transactions and SUM; up to nine for JOIN. Exact successful counts are retained per engine in analysis.json. These are client workflow timings, with setup and compilation excluded. Profile: ' + escape(analysis['profile']) + '. ' + escape(analysis['workload_note']) + '</p>'
     markup += '<p class="note">Scenario numbers follow the report: tasks, budget, blog, ecommerce, clinic, learning, hotel, logistics, manufacturing and municipal services. These small fixtures compare schema feasibility and measured access paths, not production-scale capacity.</p></main></html>'
     (output / 'charts.html').write_text(markup)
 
