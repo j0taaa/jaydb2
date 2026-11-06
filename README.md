@@ -1,171 +1,120 @@
 # JayDB2
 
-An experimental RAM database that executes Bend programs accompanied by proofs
-against administrator laws. It authenticates each call against published
-state, works on a private proposal, and publishes complete state and response
-with a single reference replacement. Requests use FIFO stdin/stdout delivery,
-with code emitted by the official compiler. Execution is serial by default;
-separately certified prepared reads may run in bounded concurrent batches.
+An experimental database that runs Bend programs accompanied by proofs against
+administrator-defined laws. Every request authenticates against published state,
+executes on a private proposal, and publishes only an accepted complete result.
 
-This is the [curated integration experiment](experiments/integration/README.md).
-It excludes GPU execution, the Bend host replacement and quota enforcement.
-Individual experiment reports retain their historical validation scope; the
-integration report records historical combined checks. The [main-merge review](experiments/integration/MAIN_REVIEW.md) records the repaired candidate and current verification.
+Start with **[your first durable TypeScript application](QUICKSTART.md)**.
+It saves a task, exits, reopens the database, and demonstrates isolation and
+refusal rollback using the real service and existing application certificate.
 
-Each call runs in a native child process. The host retains published state and
-accepts only the helper's complete result before publishing a proposal. C
-emitted by the official compiler is not rewritten to create a custom runtime.
+## Install and try it
 
-The contract has **three canonical size limits: message, state, and response**.
-There is no total-process memory budget, memory observer, or per-stage deadline.
-A fatal failure can terminate the instance. Without optional persistence, its
-RAM data is then lost.
+The supported execution profile is Linux x86-64, Node 24, Clang 19, Rust/Cargo,
+and an unlimited hard stack limit. [INSTALL.md](INSTALL.md) installs the pinned
+official Bend 2.0.39 and BendTT locally. Python 3.12 is used by development tools
+and example clients; the server is Rust + Node + ordinary native executables.
 
-## Installation
-
-Execution profile: Linux x86_64, Node 24, and Clang 19. The controller is a Rust
-binary; Python is used only for development tools, tests, and example clients.
-
-The Node helper uses `--stack_size=65536` and an unlimited soft stack limit.
-The launcher requires an already unlimited Linux hard stack limit; it does not
-change Node or Bend sources.
-
-Follow the [installation and first-session guide](INSTALL.md). It installs
-tools locally and uses the unpatched BendTT distributed with the experimental
-release. After installation:
+After installation:
 
 ```sh
-make demo
+make build
+node applications/tasks/tasks.ts \
+  --workspace .build/tasks/first --storage-mode create \
+  --command save t1 "Try JayDB2"
+node applications/tasks/tasks.ts \
+  --workspace .build/tasks/first --storage-mode open --command view t1
 ```
 
-This runs the [credential-change application](examples/access/README.md) on the
-real server and shows five JSON responses, including publication,
-authentication, and refusal rollback. State exists only for that session.
+Use a fresh workspace for create. These examples have public demo credentials;
+they are not a provisioned production account system.
 
-To try the same real database in a browser, run `make demo-web` and open
-**http://localhost:8094**. The [web demonstration](demo/README.md) forwards
-operations to a real JayDB2 instance per session, with authentication, Bend
-proof admission, publication, and rollback. State stays in RAM; refreshing
-retains the instance, and restarting reloads the seed. The workbench lets you
-edit code and proofs, inspect schema/laws/sources, and watch published state
-live through optional administrator inspection outside the ordinary client
-interface and service-contract proofs. The hosted version is available at
-**https://jaydb2-demo.jaypussy.site**.
+For a disposable five-response credential/rollback session, use `make demo`.
+For the local browser workbench, run `make demo-web` and open
+http://localhost:8094. It uses a real database per session and supports editing
+programs/proofs and administrator inspection. Its sessions remain volatile.
+See [the web demo](demo/README.md) for its interface and limits.
 
-The distribution is **official Bend 2.0.39**. The five official sources and
-binaries are identified in `tools/admission/toolchain.lock.json`. On Linux
-x86_64 the Bend executable has SHA-256
-`2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd`;
-the original BendTT has SHA-256
-`e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`.
+## Build an application
 
-JayDB has no modified frontend, translator, compiler, or BendTT kernel.
-Official TypeScript modules are loaded only by stripping TypeScript syntax
-with Node. Installation does not build a derived verifier, V8 addon, or adapted
-source cache. Official-tool capabilities and limitations remain unchanged.
+- **[TypeScript client](clients/typescript/README.md):** optional Node library
+  for binary framing, ordinary requests and prepared handles. Runtime dependencies
+  are zero; int64 values use `bigint`. It never silently retries a write.
+- **[Programs and proofs](docs/programs-and-proofs.md):** copyable CRUD and
+  conditional-operation starters with working certificates, actual permission
+  obligations and both-checker validation. No database extension is required.
+- **[Optional Bend helpers](library/README.md):** values, records, keys,
+  arithmetic, queries, conditional writes, relationships, ordinary-table index
+  maintenance and receipts. Helpers retain their actual reads and application
+  permission requirements; using the library is optional.
+- **[Persistent tasks](applications/tasks/README.md):** a small Node/TypeScript
+  application and interactive Python client using the same Bend program/proof.
+- **[Receipt application](applications/vouchers/README.md):** application-level
+  idempotency with exact inputs, current permissions and ordinary tables/laws.
 
-`server/main.rs` retains published state in RAM and coordinates FIFO execution.
-One reader queues at most eight frames/reservations and at most
-`max(min(message limit, isize::MAX), 1 MiB)` body bytes, then applies pipe backpressure. One
-coordinator owns execution, handles, publication and FIFO response delivery;
-With the default serial setting it owns at most one additional active request
-and one ready response; certified batching retains at most `read-workers` active
-requests and results. EOF and
-terminal framing errors follow all earlier complete requests. An output
-failure stops dispatch and joins the reader even if stdin remains open.
-See the [scheduling report](experiments/scheduling/REPORT.md) for retained-work
-accounting, lifecycle boundaries and the host refinement proof scope.
-Native Bend computation uses the CPU parallelism available to the host by
-default, capped at the official runtime's 128 workers. Use `--threads N` to
-choose a total native CPU-worker budget of 1–128. Exclusive requests use the
-whole budget; concurrent certified reads each use
-`floor(threads / read-workers)` workers. `--threads 1` selects single-threaded
-computation. Independent work must be expressed in the Bend program to benefit
-within one request.
-The Node helper freezes the public environment and verifies and compiles
-workers; the seed appears only in initialization compilation. Each worker
-receives bytes through pipes and exits before a complete proposal replaces
-published state. Server execution does not load Python.
+The service uses stdin/stdout rather than a network listener. TypeScript web
+applications can host the client in their Node backend; the client does not
+expose the database directly to a browser or add a network security policy.
 
-## Client
+## Existing database capabilities
+
+Requests are FIFO and serial by default. The host bounds queued work and applies
+pipe backpressure. Each call uses fresh native workers emitted by the official
+compiler; the host retains the last published state.
+
+- **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
+  a universally certified program once, then execute its instance-local handle
+  with fresh credentials and arguments. Restart loses handles.
+- **[Complete-image persistence](experiments/persistence/REPORT.md):** opt-in
+  `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
+  requires the exact executable/environment. Development databases can be
+  recreated after changes; cross-build compatibility and migrations are outside
+  scope. Uncertain commit failures stop service rather than promise rollback.
+- **[Certified CPU read batches](tools/service/READ_BATCHES.md):** optional
+  `--threads 4 --read-workers 2`; only separately certified whole-program reads
+  overlap. Writes and prepared controls remain FIFO barriers. One reader is
+  the default. `--threads N` selects a total native-worker budget of 1–128.
+- **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in
+  `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
+  Queue waiting and response delivery are excluded. Client bytes are unchanged.
+
+These capabilities do not add GPU execution, a Bend host replacement or quotas.
+The database contract has three canonical size limits: message, state and
+response. There is no total-process memory guarantee or custom per-stage
+deadline. A fatal failure can terminate an instance; volatile data is then lost.
+
+## Checks
 
 ```sh
-python3 tools/client.py --code examples/no-observations/Client.bend \
-  --proof examples/no-observations/ClientProof.bend --credential demo
+npm ci --prefix clients/typescript
+make smoke
+# With the pinned Bend tools, Clang 19 and unlimited hard stack installed:
+make check-release
 ```
 
-This writes a framed canonical message. `python3 tools/client.py --decode`
-reads a sequence of responses and prints one JSON line per response.
-Configuration and dependencies are public and immutable; seed and current
-state remain private.
+[Verification](docs/verification.md) describes the fast smoke gate and complete
+proof/native/recovery/application checks, locally and in GitHub Actions. Smoke
+alone does not establish proof or durability correctness. The older individual
+`make verify-contract`, `make verify`, `make test` and application targets remain
+available.
 
-The optional [prepared-program protocol](tools/service/PREPARED_PROGRAMS.md)
-admits a universally certified program once and returns an instance-local
-handle for repeated native execution with fresh authentication and arguments.
-Use `--prepare`, `--handle`, or `--invalidate` with the Python client. Concrete
-per-call proofs keep their existing route. Control receipts and handle
-resolution extend the ordinary protocol and have a separate integration scope.
+The [main-merge review](experiments/integration/MAIN_REVIEW.md) records the
+reviewed engine, concrete repairs and raw validation evidence. Experiment
+reports retain their historical revisions and measured scope.
 
-The optional [Bend query library](library/README.md) composes selected-field
-reads, filtering/projection and sequential row writes over existing operations.
-It adds no database primitive or policy and is not required by client programs.
-Run `make test-library` for its real task application flow.
-
-Current `main` uses English-only public names: request fields are
-`arguments`, `code`, `credential`, and `proof`; responses use `status` and
-`value`; logical limits are `message`, `state`, and `response`; user records
-use `credential`, `id`, and `kind`. CLI options, Bend symbols, and module paths
-are also English. Clients and application sources using the former names must
-migrate; there are no legacy aliases. The binary tag and framing format is
-unchanged, but renamed record fields and status values are an API break.
-
-## Verification
-
-Optional complete-image persistence uses `--storage DIRECTORY --storage-mode
-create|open`. Create also requires `--seed FILE` and a new directory; open
-requires the exact same controller/environment and reads no seed. The default
-remains volatile. Saved images require their exact build/environment; development
-databases may be recreated after changes. Cross-build compatibility and migrations
-are intentionally out of scope. See the [storage contract and examples](experiments/persistence/REPORT.md)
-for ownership, uncertain commit behavior and filesystem assumptions.
-
-```sh
-make verify-contract
-make verify
-make test
-```
-
-`make verify` checks the general and optional-library aggregates in both official modes and six
-causal mutations. `make test` covers boundaries those proofs do not check:
-same-Book admission/emission, execution, publication/rollback, and framing.
-Logs, compiled C, and snapshots are not versioned as parallel suites.
-Historical results obtained with removed adapters do not attest the current
-official path.
-
-The [general proofs](proof/README.md) include canonical Codec equivalence.
-[Admission](tools/admission/README.md) uses official frontend, Safe, and BendTT
-without rewriting proofs to widen the accepted fragment.
-`ContractService.contract_of_service` composes the eight laws for the kernel
-and serial protocol under the [explicit tool and integration contracts](proof/SERVICE_CONTRACT.md).
-The Rust/Node/C bridge is supported by review and tests; those components and
-the compiler have no mechanized proof here.
+## Guarantees and assumptions
 
 The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),
-[service](tools/service/SIMPLE_SERVICE.md), and
-[runtime](native/SIMPLE_RUNTIME.md) describe the project. English translations
-of the 18 historical contract files are in `history/contract-v1/`; original
-Portuguese versions and removed implementations/captures remain in Git history.
+[service](tools/service/SIMPLE_SERVICE.md), and [runtime](native/SIMPLE_RUNTIME.md)
+define behavior and official-tool limitations. The source proofs cover the
+kernel and declared service models under the explicit
+[integration contracts](proof/SERVICE_CONTRACT.md). Rust/Node/C, Clang, the OS,
+storage assumptions and official translations remain trusted boundaries;
+review and tests do not constitute a mechanized proof of those components.
 
-Optional [certified prepared read batches](tools/service/READ_BATCHES.md) use
-`--threads 4 --read-workers 2`. Only separately checked whole-program reads may
-overlap; writes and prepared control operations remain FIFO barriers.
-
-Optional [administrator timing](tools/service/SERVICE_TIMING.md) uses
-`--timing-log FILE` (or `-` for stderr). It measures elapsed service time through
-cleanup and publication, excluding queue waiting and response delivery. The
-client response format is unchanged. There is no quota enforcement in this
-integration branch.
-
-The optional [receipt helpers and laws](applications/vouchers/README.md) keep
-idempotency in ordinary tables. They require explicit application certificates
-and do not add host retries or receipt privileges.
+JayDB2 does not modify the official frontend, checker, compiler, runtime, or
+emitted C. Source and executable hashes are pinned in
+[toolchain.lock.json](tools/admission/toolchain.lock.json). Authentication uses
+current published state; configuration and dependencies are public and immutable,
+while seed/current state remain private. Public names and protocol fields are
+English-only, with no legacy aliases.

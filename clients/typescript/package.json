@@ -1,0 +1,19 @@
+{
+  "name": "@jaydb2/client",
+  "version": "0.1.0",
+  "description": "Optional TypeScript client for the existing JayDB2 pipe protocol",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.test.json",
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
+    "test:integration": "node test/integration.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.0",
+    "typescript": "5.9.3"
+  }
+}

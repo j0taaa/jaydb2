@@ -40,6 +40,12 @@ python3 tools/bend.py version
 make build
 ```
 
+The download/bootstrap steps above can also be run with
+`bash tools/ci/bootstrap.sh`; it wraps the same pinned installer and still
+requires authorized `gh` access for the release download. Supplying an existing
+kernel path (`bash tools/ci/bootstrap.sh /path/to/bendtt`) avoids that download.
+Neither route builds a substitute checker.
+
 The checkout is current English-language `main`; the v0.1.0 release download
 is used only for the unchanged pinned BendTT distribution.
 
@@ -63,6 +69,10 @@ python3 tools/bootstrap.py --source /path/to/bend-2.0.39 \
 ```
 
 ## Use the example application
+
+For a persistent Node/TypeScript application, continue with the
+[durable quickstart](QUICKSTART.md). It writes a task and reads it after a real
+process restart. The command below remains a useful disposable RAM smoke demo.
 
 ```sh
 make demo
@@ -102,6 +112,19 @@ proof, then send programs/proofs through the same stdin/stdout protocol.
 function accesses data exclusively through database operations.
 
 ## Verify the installation
+
+The optional TypeScript client has development dependencies only for building,
+type checking and tests. Install them, then run the accessory/host smoke gate:
+
+```sh
+npm ci --prefix clients/typescript
+make smoke
+```
+
+For the complete proof/native/recovery/application release gate, run
+`make check-release`. See [verification](docs/verification.md) for prerequisites,
+the common heavy-work lock, CI workflows and the precise scope of each gate.
+Individual original checks remain available:
 
 ```sh
 make verify-contract

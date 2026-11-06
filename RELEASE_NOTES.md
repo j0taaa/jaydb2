@@ -1,4 +1,30 @@
-# Prepared programs and optional Bend helpers — unreleased
+# Developer workflow accessories — unreleased
+
+The durable TypeScript quickstart, optional Node/TypeScript pipe client,
+copyable certified CRUD/conditional starter projects, persistent task workspace,
+and smoke/full-release automation are development accessories. The database
+engine, protocol, existing administrator laws, Bend proofs, official toolchain
+and runtime are unchanged by this work. Start at [QUICKSTART.md](QUICKSTART.md).
+
+The client keeps credentials explicit, preserves int64 as `bigint`, handles
+ordinary and prepared requests, and never silently retries a write after a lost
+response. The task application uses the existing persistence feature and the
+same existing application program/proof. Starter checks target actual source,
+all authenticated contexts/arguments and both official checkers; they do not
+generate assumptions that make a changed program safe.
+
+The current engine already includes complete-image persistence, bounded FIFO
+scheduling, optional certified CPU read batches, administrator timing and the
+expanded optional Bend helpers/receipt laws. These were integrated and reviewed
+at `6285060`; [the main-merge review](experiments/integration/MAIN_REVIEW.md)
+records that separate validation. GPU, the Bend host replacement and quotas
+remain excluded. Saved development images require their exact environment;
+no migration or compatibility layer is added.
+
+See [verification](docs/verification.md) for the new local/CI entry points.
+Adding workflow files is not a claim that GitHub-hosted checks have run.
+
+# Earlier unreleased work: prepared programs and optional Bend helpers
 
 Programs with universally quantified certificates can be prepared once and
 executed through instance-local handles with current authentication, arguments

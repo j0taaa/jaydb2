@@ -1,0 +1,41 @@
+name: Full release checks
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-checks-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: 24.19.0
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y clang-19
+          rustup toolchain install 1.98.0 --profile minimal --component clippy,rustfmt
+      - name: Install client development dependencies
+        run: npm ci --prefix clients/typescript
+      - name: Install and verify the pinned Bend tools in a fresh checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash tools/ci/bootstrap.sh
+      - name: Run proof, native, recovery and accessory checks
+        env:
+          RUSTUP_TOOLCHAIN: 1.98.0
+        run: bash tools/ci/check.sh full

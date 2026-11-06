@@ -5,6 +5,30 @@ all: build
 build:
 	cargo build --locked --release
 
+# Optional developer accessories; no engine or protocol changes.
+.PHONY: test-client test-accessories test-accessories-native smoke check-release
+test-client:
+	npm --prefix clients/typescript run check
+	npm --prefix clients/typescript test
+	npm --prefix clients/typescript run build
+
+test-accessories: test-client
+	clients/typescript/node_modules/.bin/tsc -p applications/tasks/tsconfig.json
+	python3 -B -m unittest tests.accessories.test_tasks -v
+	python3 -B -m unittest discover -s examples/starter -p test_starter.py -v
+
+# Caller holds the shared heavy-work lock, as for the existing native targets.
+test-accessories-native: build
+	npm --prefix clients/typescript run test:integration
+	python3 -B examples/starter/check.py --all
+	python3 -B -m unittest tests.accessories.test_tasks_native -v
+
+smoke:
+	bash tools/ci/check.sh smoke
+
+check-release:
+	bash tools/ci/check.sh full
+
 verify-contract:
 	python3 -B tools/check.py
 
