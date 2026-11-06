@@ -138,9 +138,9 @@ function loadAdministrator(configuration, seed, sources) {
   const reserved = new Set([...sources.keys(), 'Environment.bend', 'Seed.bend', 'Main.bend',
     'Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend', 'Check.bend']);
   const load = (entry, name, initializing = false) => {
-    const result = new Map(), pending = [[entry, name]];
+    const result = new Map(), pending = [[entry, name, null]];
     while (pending.length) {
-      const [input, target] = pending.pop(), file = fs.realpathSync(input), relative = path.relative(root, file);
+      const [input, target, ancestors] = pending.pop(), file = fs.realpathSync(input), relative = path.relative(root, file);
       if (!initializing && privateSeed !== null) {
         const identity = fs.statSync(file, { bigint: true });
         if (identity.dev === privateSeed.dev && identity.ino === privateSeed.ino)
@@ -148,6 +148,11 @@ function loadAdministrator(configuration, seed, sources) {
       }
       if (relative === '..' || relative.startsWith('../') || path.isAbsolute(relative))
         fail('DEPENDENCY', 'Dependency outside the configuration directory');
+      // Logical aliases can grow through directory symlinks even while the
+      // physical import graph loops. Detect cycles before expanding aliases;
+      // branch-local realpaths still allow diamonds and finite hardlink chains.
+      for (let parent = ancestors; parent !== null; parent = parent.parent)
+        if (parent.file === file) fail('IMPORT_CYCLE', 'Administrator import cycle: ' + target);
       const data = read(file);
       if (result.has(target)) {
         if (!result.get(target).equals(data)) fail('DEPENDENCY', 'Administrator dependency collision');
@@ -155,10 +160,10 @@ function loadAdministrator(configuration, seed, sources) {
       }
       if (reserved.has(target) && !(initializing && target === 'Seed.bend')) fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
       result.set(target, data);
-      const children = [];
+      const children = [], trail = { file, parent: ancestors };
       for (const imp of imports(data)) {
         const name = path.posix.normalize(path.posix.join(path.posix.dirname(target), imp));
-        if (!sources.has(name) && name !== 'Environment.bend') children.push([path.resolve(path.dirname(file), imp), name]);
+        if (!sources.has(name) && name !== 'Environment.bend') children.push([path.resolve(path.dirname(file), imp), name, trail]);
       }
       pending.push(...children.reverse());
     }
