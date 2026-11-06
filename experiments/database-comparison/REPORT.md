@@ -1,10 +1,12 @@
 # Ten realistic databases: JayDB2, PostgreSQL, and SQLite
 
-**Run status: results pending.** The final measurement run is writing to
-`build/database-comparison-final/result.json`. Replace the result placeholders
-below only after the run has finished, its source checks have passed, and all
-30 engine/scenario records have been reviewed. The methodology and inspected
-capabilities below describe the frozen suite used by that run.
+**Completed: 30/30 engine/scenario runs passed on 6 November 2026.**
+The measured run took 25.4 minutes. All ten frozen JayDB2 environments were
+independently verified against the original source inventory. The repository
+inventory guard flagged late additions; its raw failure and the successful
+provenance audit are both retained. The full run is retained at
+`build/database-comparison-final/`; compact [evidence](evidence/results.json),
+[CSV](evidence/summary.csv), and charts are included with this report.
 
 This experiment asks whether the same application data can be created, accessed,
 changed, checked, and reopened in three real engines. It separates three questions:
@@ -12,22 +14,102 @@ whether a schema and its sample data can be represented; whether the database
 enforces the application's relationships; and what the implemented workflows cost.
 A successful import alone does not establish production application feasibility.
 
-## Results to complete after the measured run
+## Measured results
 
-<!-- RESULTS_SUMMARY_START: replace this block after final result.json passes. -->
+All **30 databases passed**: ten schemas on each of three engines, with
+**360 application-table instances and 2,880 seeded rows** in total. Every timed
+result and all initial/final data comparisons passed, as did nonnumeric type
+rejection, failed-second-write rollback, missing-row reads, and CRUD roundtrips.
+All ten JayDB2 services and SQLite files reopened successfully; all ten PostgreSQL
+databases also survived an orderly whole-cluster restart with full-data checks.
 
-- Engine/scenario completion: **[PENDING: passed/failed counts and specific failures]**.
-- Data and transaction checks: **[PENDING: equivalence, type errors, rollback,
-  duplicate IDs, foreign keys, and reopen/restart outcomes]**.
-- Point operations and setup: **[PENDING: per-project medians and setup totals]**.
-- Aggregation and relationships: **[PENDING: per-project medians, labeled as
-  native SQL versus the implemented multi-call Jay workflows]**.
-- Storage and observed memory: **[PENDING: values with the scope qualifications
-  below attached]**.
-- Practical interpretation: **[PENDING: conclusions supported by completed runs;
-  distinguish representation success from missing enforced invariants]**.
+The stored data is representable in JayDB2 through 26 tables. That is a narrower
+result than relational application equivalence: all nine relationship probes
+accepted orphans in the permissive Jay fixture, while PostgreSQL and SQLite
+rejected them. Jay replaced existing IDs in all ten probes; SQL INSERT rejected
+all ten duplicates per engine. These are configured semantics, not unexplained
+test failures.
 
-<!-- RESULTS_SUMMARY_END -->
+The SQL engines were substantially faster on these local client operations.
+SQLite provides the shortest access path here; PostgreSQL adds a server and
+connection while retaining declarative relationship constraints and native SQL.
+Jay's measured service/worker/persistence path adds considerable cost even to
+one-cell operations. This experiment does not measure whether restrictive
+verified application policies justify that cost, nor does it isolate the time
+spent in each internal stage.
+
+The following values are **unweighted medians of per-project sample medians**,
+in milliseconds. Each underlying project median uses seven checked samples.
+Reads, updates, transactions and SUM cover ten projects; JOIN covers nine.
+
+| Workload | JayDB2 (ms) | PostgreSQL (ms) | SQLite (ms) |
+| --- | ---: | ---: | ---: |
+| Point read | 127.3 | 0.08626 | 0.01256 |
+| Point update | 117.7 | 3.523 | 5.751 |
+| Two-row transaction | 128.4 | 3.637 | 6.042 |
+| SUM: native SQL / 9-call Jay workflow | 1228 | 0.1171 | 0.01929 |
+| JOIN: native SQL / 17-call Jay workflow | 2215 | 0.1366 | 0.05155 |
+
+SUM/JOIN compare the implemented client workflows, not equivalent single-call
+query plans. Jay's multi-call queries also lack a shared transaction snapshot
+under concurrent writes; this run has no competing client.
+
+![Per-project point-read and update latency, logarithmic scale](evidence/latency.png)
+
+[Exportable SVG](evidence/latency.svg) · [Workflow chart](evidence/workloads.png) ·
+[Exact per-project statistics and samples](evidence/results.json) ·
+[Comparison spreadsheet data](evidence/summary.csv)
+
+Per-project point-read medians, in milliseconds:
+
+| Project | Tables | JayDB2 | PostgreSQL | SQLite |
+| --- | ---: | ---: | ---: | ---: |
+| 01_personal_tasks | 1 | 87.37 | 0.1323 | 0.00787 |
+| 02_household_budget | 3 | 87.83 | 0.08738 | 0.01377 |
+| 03_editorial_blog | 5 | 168.5 | 0.1725 | 0.0318 |
+| 04_ecommerce | 8 | 107 | 0.06673 | 0.01208 |
+| 05_clinic | 10 | 147.7 | 0.08514 | 0.006494 |
+| 06_learning_platform | 12 | 95.78 | 0.05777 | 0.01243 |
+| 07_hotel | 15 | 100.4 | 0.04759 | 0.007287 |
+| 08_logistics | 18 | 175.6 | 0.1008 | 0.0187 |
+| 09_manufacturing | 22 | 247.4 | 0.1211 | 0.01269 |
+| 10_municipal_services | 26 | 176.2 | 0.05809 | 0.03261 |
+
+Database/schema/client creation is measured separately from population and
+steady-state operations. Jay includes startup and preparation of three certified
+programs. PostgreSQL cluster creation and shared toolchain provisioning/builds
+are excluded from each database's setup. SQL DDL commits each table separately.
+
+| Engine | Schema/client creation: median seconds (range) | Population: median seconds | Per-project reopen: median seconds |
+| --- | ---: | ---: | ---: |
+| JayDB2 | 28.6 (21.72–49.7) | 14.84 | 25.57 |
+| PostgreSQL | 0.5117 (0.2337–1.287) | 0.4174 | 0.003053 |
+| SQLite | 0.1032 (0.04503–2.995) | 0.5878 | 0.008821 |
+
+The separate final PostgreSQL **whole-cluster** stop/start took 2.657 seconds. Per-project reopen is asymmetric: Jay restarts/re-prepares; PostgreSQL reconnects a client; SQLite closes/opens the file.
+
+Observed resource ranges across projects follow. **These scopes differ and are
+not an efficiency ranking**; see the accounting section below.
+
+| Engine | Live storage range (KiB) | Closed storage range (KiB) | Observed peak process-tree RSS range (MiB) |
+| --- | ---: | ---: | ---: |
+| JayDB2 | 1.91–39.08 | 1.91–39.08 | 70.18–71.87 |
+| PostgreSQL | 7623–8775 | not recorded per database | 78.48–133.6 |
+| SQLite | 44–256 | 12–224 | 29.59–46.19 |
+
+For an ordinary application matching these access patterns, SQLite is the
+simplest local option demonstrated here; PostgreSQL supplies the most direct
+server-based relational path. JayDB2 is feasible for the tested permissive
+storage schemas, with much higher measured access/setup costs and additional
+proof work needed for relationship or authorization guarantees. That conclusion
+is limited to these adapters, durable settings, tiny fixtures and one machine.
+
+The highest-value follow-ups are a single-call certified Jay SUM/JOIN, its
+read-only durable path, a controlled row-count sweep, and equivalent enforced
+application policies. Profile worker startup, state processing and publication
+separately before choosing an engine optimization. Concurrent clients, crash
+recovery, migrations and production-size datasets need separate measurements.
+
 
 ## Projects and data
 
@@ -353,8 +435,17 @@ database file. A PostgreSQL SQL dump is produced after the cluster restart.
 Production source identities and suite sources are checked for changes after
 the measurement. Editing report Markdown does not change the frozen inputs.
 
-**[PENDING: insert links to the compact committed evidence, final chart, and
-reproduction README, and confirm the successful end-of-run identity checks.]**
+The repository inventory guard failed on late source additions. A separate
+post-run audit verified all original production and suite bytes, controller/tool
+hashes, all ten complete frozen environment identities in durable snapshots,
+and snapshot checksums. No added module entered any measured instance. The
+[raw failure](evidence/raw-result.json) and [provenance audit](evidence/provenance-audit.json)
+are retained alongside the explicitly audited analysis input. Retained evidence includes [audited results](evidence/results.json),
+[recomputed analysis](evidence/analysis.json), [CSV statistics](evidence/summary.csv),
+[latency SVG](evidence/latency.svg), and [workflow SVG](evidence/workloads.svg).
+The [suite README](README.md) gives exact setup and reproduction commands.
+The analysis generator independently rechecks sample counts, scenario hashes,
+and stored medians, p95 and MAD against the raw checked samples before exporting.
 
 Reproduction must use a new output directory and the documented local
 PostgreSQL/driver environment; `run.sh` takes the shared heavy-work lock.

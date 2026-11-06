@@ -1,0 +1,94 @@
+{
+  "added_files_excluded_from_all_measured_environments": [
+    "contract/PreparedLaws.bend",
+    "contract/PreparedProtocol.bend",
+    "contract/PreparedRegistry.bend",
+    "proof/PreparedWire.bend"
+  ],
+  "all_final_model_hashes_match_across_engines": true,
+  "frozen_environments": [
+    {
+      "expected_environment": "c3179c920e6c2c12b69b64519e79f19fa3506a8cebba8e3571d92cccf31fb42a",
+      "matched": true,
+      "scenario": "01_personal_tasks",
+      "snapshot_sha256": "80c048cbae6eec4a7947bfb49078ebbec8a4dccbbe2c83cf106a5786c218b9c9",
+      "stored_environment": "c3179c920e6c2c12b69b64519e79f19fa3506a8cebba8e3571d92cccf31fb42a"
+    },
+    {
+      "expected_environment": "75d716d775e94d569a18922a4f785664d77ef1b681f03500f14404a41268450c",
+      "matched": true,
+      "scenario": "02_household_budget",
+      "snapshot_sha256": "956365fbdfe0a095495333ef1d00f9cffe661dd34cb1f3aca817744ec4a9b051",
+      "stored_environment": "75d716d775e94d569a18922a4f785664d77ef1b681f03500f14404a41268450c"
+    },
+    {
+      "expected_environment": "d28b9df3bd33f4cc0ebc6c64a853428f8e4664190861f2324a5d4b092054431b",
+      "matched": true,
+      "scenario": "03_editorial_blog",
+      "snapshot_sha256": "d47d86492a93d92132833d776d8ef1630c11096e17582b83b38b3ddc106c9901",
+      "stored_environment": "d28b9df3bd33f4cc0ebc6c64a853428f8e4664190861f2324a5d4b092054431b"
+    },
+    {
+      "expected_environment": "33de54c01a99139bc3a01de4a37c37bce8b518faf2d83a30ac09789bf0c2b676",
+      "matched": true,
+      "scenario": "04_ecommerce",
+      "snapshot_sha256": "11a2862ef00d04d05f333a09724e6676f5de535c0cf38cbb38ae2d518b6d4dc8",
+      "stored_environment": "33de54c01a99139bc3a01de4a37c37bce8b518faf2d83a30ac09789bf0c2b676"
+    },
+    {
+      "expected_environment": "073742c523b1418f517d71c09980551f3cfa2a46b7d51b67a92b711f1fed13c3",
+      "matched": true,
+      "scenario": "05_clinic",
+      "snapshot_sha256": "8969576bf2cbc3da979926180edb22f4d0879121ccb103c49a59848dbc5bf19a",
+      "stored_environment": "073742c523b1418f517d71c09980551f3cfa2a46b7d51b67a92b711f1fed13c3"
+    },
+    {
+      "expected_environment": "b67fdd81613280e1f7980a2119c6c877a95f4f6359274d34aa76bd84b96ffef3",
+      "matched": true,
+      "scenario": "06_learning_platform",
+      "snapshot_sha256": "5fc7f90b3e95331b379cc4e1d2a6a7a286abf489b4e7263ed1b388e3b6a23642",
+      "stored_environment": "b67fdd81613280e1f7980a2119c6c877a95f4f6359274d34aa76bd84b96ffef3"
+    },
+    {
+      "expected_environment": "275368702c44399428fc2cc03aff89997f6f82ff9b7f9249fb24f347128d7f57",
+      "matched": true,
+      "scenario": "07_hotel",
+      "snapshot_sha256": "274fb32ff3ee76badd5d97db0182a8ad99644115da3eb085446006ef4cd6f82e",
+      "stored_environment": "275368702c44399428fc2cc03aff89997f6f82ff9b7f9249fb24f347128d7f57"
+    },
+    {
+      "expected_environment": "c243806fc779e9605a1158869da9180aacb71bb62befc7f9a020f56fa8fa6607",
+      "matched": true,
+      "scenario": "08_logistics",
+      "snapshot_sha256": "d004a17d919c0b5ff319bf890368d79458682f4f86c9648e6e8bfc8b4e89461e",
+      "stored_environment": "c243806fc779e9605a1158869da9180aacb71bb62befc7f9a020f56fa8fa6607"
+    },
+    {
+      "expected_environment": "293780a92decd9cc62eb8b1a20774a0b9086e7ac78fe53a197cb11fced6e59dd",
+      "matched": true,
+      "scenario": "09_manufacturing",
+      "snapshot_sha256": "4c68762d43ec925ac8cd6ea3243084289cf90698df09ca1001f4677947f93cbe",
+      "stored_environment": "293780a92decd9cc62eb8b1a20774a0b9086e7ac78fe53a197cb11fced6e59dd"
+    },
+    {
+      "expected_environment": "f48f286ba218434060360234b9870f77cf45790819dcebd623ef4c3a206d8974",
+      "matched": true,
+      "scenario": "10_municipal_services",
+      "snapshot_sha256": "24fd81f9f15989aef22efdb7bffccb9de26f3459733cf37867a6919a42e6c0d3",
+      "stored_environment": "f48f286ba218434060360234b9870f77cf45790819dcebd623ef4c3a206d8974"
+    }
+  ],
+  "functional_records_passed": 30,
+  "original_production_files_verified": 228,
+  "original_suite_files_verified": 102,
+  "postgres_restart_checks_passed": 10,
+  "raw_result_error": "RuntimeError: Benchmark inputs changed: contract/PreparedRegistry.bend, contract/PreparedProtocol.bend",
+  "raw_result_sha256": "fbce76fdafe3ed56f40f1264a16e188209a10119e5cb9ba0ec0eac0fbd8079a4",
+  "raw_result_status": "failed",
+  "repository_guard_historical_additions": [
+    "contract/PreparedRegistry.bend",
+    "contract/PreparedProtocol.bend"
+  ],
+  "scope": "All original bytes unchanged; reconstructed complete frozen environments match all durable images. Repository inventory guard failed on late additions; original raw manifest is retained unchanged.",
+  "status": "passed"
+}

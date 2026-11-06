@@ -2,7 +2,7 @@
 """Derive retained evidence and charts from a complete 30-database experiment.
 
 Usage: build/database-comparison-analysis-venv/bin/python \
-  build/database-comparison-analysis/generate.py build/database-comparison-final/result.json
+  experiments/database-comparison/analyze.py build/database-comparison-analysis/audited-result.json
 
 Incomplete, fatal, duplicate, unchecked, or statistically inconsistent runs are
 rejected before writing evidence. Completed engine failures are retained as
@@ -96,7 +96,7 @@ def load_checked(path, scenario_dir=None):
     require(len(scenarios) == 10, 'Expected exactly ten scenarios')
     by_pair = {(r['scenario'], r['engine']): r for r in records}
     require(set(by_pair) == {(s, e) for s in scenarios for e in ENGINES}, 'Missing or duplicate engine/scenario record')
-    specs_dir = scenario_dir or path.parent / 'suite' / 'scenarios'
+    specs_dir = scenario_dir or Path(manifest['output']) / 'suite' / 'scenarios'
     specs = {}
     rows = []
     for index, scenario in enumerate(scenarios):
@@ -145,7 +145,7 @@ def load_checked(path, scenario_dir=None):
 
 def analyze(manifest, raw, scenarios, specs, by_pair, rows):
     analysis = {
-        'source_result_sha256': sha(raw), 'source_result_path': manifest['output'] + '/result.json',
+        'source_result_sha256': sha(raw), 'source_result_path': manifest.get('analysis_input_path', manifest['output'] + '/result.json'),
         'aggregation': 'One median per engine/scenario/workload, then an unweighted median across scenarios; never pooled requests',
         'scenario_count': 10, 'database_count': 30, 'attempted_tables_per_engine': sum(TABLE_COUNTS),
         'passed_database_count': sum(r['status'] == 'passed' for r in by_pair.values()),
@@ -348,11 +348,13 @@ def main():
     save(output / 'results.json', public)
     save(output / 'analysis.json', analysis)
     with (output / 'summary.csv').open('w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=list(rows[0]) if rows else ['scenario', 'engine', 'workload', 'samples', 'median_ms'])
+        writer = csv.DictWriter(file, fieldnames=list(rows[0]) if rows else ['scenario', 'engine', 'workload', 'samples', 'median_ms'], lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
     matplotlib_charts(output, manifest, scenarios, specs, rows, analysis)
     html_charts(output, manifest, scenarios, specs, rows, analysis)
+    for svg in output.glob("*.svg"):
+        svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     print(json.dumps({'status': 'generated', 'source_result_sha256': sha(raw), 'output': str(output),
                       'databases': len(records), 'workload_summaries': len(rows),
                       'files': ['results.json', 'analysis.json', 'summary.csv', 'latency.svg', 'latency.png', 'workloads.svg', 'workloads.png', 'charts.html']}, indent=2))
