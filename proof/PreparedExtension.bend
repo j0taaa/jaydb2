@@ -207,7 +207,7 @@ law oversized_invalidation_receipt_preserves_registry:
 def oversized_invalidation_receipt_preserves_registry(c, initial, instance, handle, entries, oversized):
   oversized_invalidate_found(G.lookup(instance, handle, entries), c, initial, instance, handle, entries, oversized)
 
-law admitted_fresh_registration_returns_receipt_and_exact_entry:
+law fresh_fitting_registration_returns_receipt_and_exact_entry:
   for -c: S.Configuration
   for -initial: D.State
   for -instance: String
@@ -217,7 +217,7 @@ law admitted_fresh_registration_returns_receipt_and_exact_entry:
   for fits: {R.fits(R.limit_response(S.limits(c)), W.receipt_value(W.PreparedReceipt{G.handle(entry)})) == True{} : Bool}
   {H.register(c, initial, instance, entry, entries) ==
     H.ControlResult{initial, Con{entry, entries}, H.Metadata{W.PreparedReceipt{G.handle(entry)}}} : H.ControlResult}
-def admitted_fresh_registration_returns_receipt_and_exact_entry(c, initial, instance, entry, entries, fresh, fits):
+def fresh_fitting_registration_returns_receipt_and_exact_entry(c, initial, instance, entry, entries, fresh, fits):
   %Equal.sym(Maybe<&2, G.Entry>, G.lookup(instance, G.handle(entry), entries), None{}, fresh) :
     {H.register_found(_, c, initial, entry, entries) ==
       H.ControlResult{initial, Con{entry, entries}, H.Metadata{W.PreparedReceipt{G.handle(entry)}}} : H.ControlResult}

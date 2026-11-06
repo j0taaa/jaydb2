@@ -7,6 +7,7 @@ import { fixture, repo } from './helpers.mjs';
 function readFixture(t) {
   const f = fixture(t);
   f.write('ReadOnly.bend', fs.readFileSync(repo + '/src/ReadOnly.bend', 'utf8').replaceAll('../contract/', './'), 'library');
+  f.write('ReadOnlyContract.bend', fs.readFileSync(repo + '/contract/ReadOnlyContract.bend', 'utf8'), 'library');
   f.write('Bindings.bend', 'import ./ReadOnly.bend as RO\n' + f.read('Bindings.bend').replace(
     'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())',
     '@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)') +
@@ -32,7 +33,17 @@ test('read-only admission checks an additional universal source-bound law', asyn
 test('read flag cannot substitute a predicate, target, proof or administrator certificate', async t => {
   {
     const { f, manifest } = readFixture(t);
-    f.write('ReadOnly.bend', f.read('ReadOnly.bend').replace('case 0n: Empty', 'case 0n: Unit'));
+    f.write('ReadOnly.bend', f.read('ReadOnly.bend').replace('C.Program(p)', 'Unit'));
+    await rejects(manifest(), 'READ_ONLY');
+  }
+  {
+    const { f, manifest } = readFixture(t);
+    f.write('ReadOnlyContract.bend', f.read('ReadOnlyContract.bend').replace('case 0n: Empty', 'case 0n: Unit'));
+    await rejects(manifest(), 'CONTRACT');
+  }
+  {
+    const { f, manifest } = readFixture(t);
+    f.roles.delete('ReadOnlyContract.bend');
     await rejects(manifest(), 'READ_ONLY');
   }
   {

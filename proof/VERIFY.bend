@@ -34,6 +34,7 @@ import ./PreparedPrograms.bend as PreparedPrograms
 import ./PreparedWire.bend as PreparedWire
 import ./PreparedExtension.bend as PreparedExtension
 import ./PreparedControls.bend as PreparedControls
+import ./PreparedRegistryHistory.bend as PreparedRegistryHistory
 import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing
 

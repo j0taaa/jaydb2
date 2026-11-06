@@ -171,9 +171,11 @@ the fixed read certificate for read-marked entries, and current per-call
 artifact validation. `ControlOutcome` specifies exact authorized registry
 deltas and unchanged published pairs, including receipt limits, unknown-handle
 errors and cleanup failure after invalidation. The additional `ControlLaw`
-requires those obligations for all actual control observations; the fixed
-environment must account for every result and registry mutation, including
-lost delivery.
+states obligations over the declared metadata observations. Its observation
+type does not yet express sent prefixes, delivery completion, closure or
+progress; the separate `Delivery` predicate is not composed into it. A complete
+extended trace relation and proof must account for those facts as well as
+every actual result and registry mutation.
 
 `proof/PreparedWire.bend`, `proof/PreparedExtension.bend` and
 `proof/PreparedControls.bend` add general/model proofs of the wire relations,
@@ -182,6 +184,10 @@ encoding, fresh registration, invalidation, receipt overflow and authorized
 outcomes without supplying the outcome as a premise. The existing
 `PreparedPrograms` adapter continues to cover the logical transaction through
 the actual Core functions.
+
+`PreparedRegistryHistory.bend` separately derives registered mode certificates
+through an admitted abstract insertion/invalidation history. It does not prove
+that every real host mutation follows that history or establish current seals.
 
 The ordinary eight-law composition remains ordinary-wire only: tag 7 was
 previously malformed and control receipts are outside `S.Status`.

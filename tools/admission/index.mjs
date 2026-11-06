@@ -270,7 +270,11 @@ async function admit(options, kernelOnly) {
     const checkedDefinitions = Object.entries(state.book.tlds).map(([k, t]) => [k, t, t.T, t.v, t.e, t.n, t.x, t.b]);
     try {
       state.verifier = checkBook(S, state.book, tc.info.verifier);
-      if (state.verifier.why !== null) throw new AdmissionError('BENDTT_CHECK', 'bendtt', state.verifier.why);
+      // The source Book has already passed the primary checker. A negative
+      // result for its translated payload establishes pipeline disagreement,
+      // not absence of a derivation for the original source certificate.
+      if (state.verifier.why !== null) throw new AdmissionError('BENDTT_INFRASTRUCTURE', 'bendtt',
+        'Primary checker accepted but the official kernel rejected the translated Book:\n' + state.verifier.why);
       // Official Safe may add symbolic template constants. Preserve those,
       // while the existing checked definitions remain the ones sent to C.
       if (checkedDefinitions.some(([k, t, T, v, e, n, x, b]) =>

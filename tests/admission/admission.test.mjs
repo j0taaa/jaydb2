@@ -126,6 +126,35 @@ test('kernel infrastructure failure cannot admit a submission', async t => {
   finally { child.spawnSync = spawn; syncBuiltinESMExports(); }
 });
 
+// A translated-payload rejection after primary acceptance is a disagreement
+// in the checking pipeline, not proof that the original certificate is false.
+test('primary acceptance followed by kernel rejection is infrastructure', async t => {
+  const f = fixture(t);
+  await admitSubmission(f.manifest()); // Same source succeeds without the fault.
+  const spawn = child.spawnSync;
+  const kernel = fs.realpathSync(bootstrapInfo().verifier.kernelPath);
+  const why = 'In valid_source:\n- expected: AllEntries.qv_2\n- observed: AllEntries.qv_1';
+  let injected = 0;
+  child.spawnSync = function (bin, args, options) {
+    if (bin === kernel) {
+      injected++;
+      fs.writeSync(options.stdio[1], 'SOME PROOFS FAIL\n' + why + '\n');
+      return { status: 1 };
+    }
+    return spawn(bin, args, options);
+  };
+  syncBuiltinESMExports();
+  try {
+    await assert.rejects(admitSubmission(f.manifest()), error =>
+      error instanceof AdmissionError && error.code === 'BENDTT_INFRASTRUCTURE'
+      && error.message.includes(why));
+    assert.ok(injected > 0, 'the primary checker must reach the actual kernel boundary');
+  } finally {
+    child.spawnSync = spawn;
+    syncBuiltinESMExports();
+  }
+});
+
 // A public report/source record cannot forge the private checked-Book handle.
 test('preflight preserves bytes and emission requires an authentic handle', t => {
   const f = fixture(t);

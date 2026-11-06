@@ -10,7 +10,7 @@
 \usepackage{url}
 \urlstyle{same}
 \hypersetup{pdftitle={JayDB2: Proof-Carrying Transactions under Administrator-Defined Laws},
-pdfauthor={Gabriel Jota Lizardo},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
+pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
 \input{../.build/tcc/numbers.tex}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\jay}{JayDB2}
@@ -29,37 +29,46 @@ pdfauthor={Gabriel Jota Lizardo},pdfkeywords={databases, proof-carrying code, Be
 \begin{document}
 \maketitle
 \begin{abstract}
-Applications often enforce access restrictions and data invariants through a
-combination of database constraints and application code. This work investigates
-a different interface: a database accepts a program together with a proof that
-its execution obeys administrator-defined propositions. \jay{} implements this
-interface with Bend 2 programs, a private transaction proposal, and a publication
-boundary governed by eight fixed laws. We describe its formal model, proof
-admission, prepared programs, complete-image persistence, and certified concurrent
-reads. Checked source proofs establish the pure kernel and an ordinary serial service model under
-explicit toolchain and host-refinement premises. They do not establish an
-unconditional theorem about the complete executable. Evaluation combines
-positive proofs, deliberately invalid certificates, native execution,
-fault-injected recovery, and independently checked benchmark responses. In a
-retained two-core experiment, two certified readers achieve median paired
-throughput ratios of \TinyRatio{} and \HeavyRatio{} over one reader for two
-small-state workloads. These results support an experimental interface for
-specialized applications requiring explicit transaction policies, while leaving
-substantial proof-authoring, portability, and scaling costs. No general
-performance advantage over established database systems is claimed.
+Application policies can constrain both the final database state and the
+observations made while a transaction runs. This article studies a transaction
+interface in which clients submit Bend 2 programs with proofs of
+administrator-defined propositions. The prototype, \jay{}, binds admission to
+the actual program, authenticated context and arguments, executes a private
+proposal, and separates publication from response delivery. The contribution is
+an executable case study connecting these mechanisms to an eight-law service
+specification. Checked source proofs establish the ordinary serial service
+model under explicit toolchain and integration premises; the full executable
+and the additional prepared-control law remain unproved. Evaluation combines
+policy-preserving application certificates, deliberately invalid variants,
+native execution and selected recovery faults. A retained experiment compares
+one and two prepared read workers under the same two-core budget. Across seven
+paired rounds, median throughput ratios are \TinyRatio{} and \HeavyRatio{} for
+two small-state workloads, with increased sampled memory. These observations
+are complemented by a ten-fixture comparison showing substantially higher
+durable point-operation latencies through the evaluated JayDB2 path, with
+different application constraints and deployment costs. The results establish
+feasibility for the studied cases, rather than lower proof-authoring cost or
+superiority to established databases. Complete-state transfer, manual
+proofs and the trusted source-to-executable bridge limit the result.
 \end{abstract}
 \noindent\textbf{Keywords:} proof-carrying code; databases; dependent types;
-transaction safety; formal verification; Bend.
+transaction policies; formal verification; Bend.
 
 \section{Introduction}
-An application can correctly validate a request in one code path and omit the
-same validation in another. Multi-tenant access and relationships among several
-tables make this problem particularly visible: protecting each individual row
-does not automatically establish that a complete business operation preserves
-every intended invariant. Database constraints, transactions and row security
-already address important parts of this problem. The question in this work is
-whether an executable transaction can instead carry explicit evidence that it
-respects the administrator's entire installed policy throughout execution.
+Consider an availability service with a primary row and a secondary-index table
+for each user. Changing availability requires several writes; a successful
+commit must restore agreement between the two tables. A query must also avoid
+reading another user's index, even if it eventually returns no rows or refuses.
+The implemented \code{applications/indexed} example \citep{artifact} makes this distinction
+explicit: ownership constrains every execution prefix, whereas exact index
+consistency constrains stable states and successful completion. A final-state
+invariant alone does not express both requirements.
+
+Transactions, integrity constraints, row policies and controlled application
+entry points are established ways to address such requirements. This study asks
+what changes when a client supplies a proof about the complete submitted
+transaction. It investigates that interface without assuming that existing
+database mechanisms are unable to implement equivalent application behavior.
 
 \jay{} is an experimental database for that question. An administrator fixes
 the schema and laws. A client submits a pure Bend program, a credential,
@@ -70,23 +79,28 @@ and publishes only a complete accepted result. A refusal discards provisional
 changes. The caller cannot pass an arbitrary native pointer or directly inspect
 the database state.
 
-The research question is: \emph{How can a small programmable database connect
-proof admission, effectful execution and atomic publication while making its
-remaining implementation assumptions explicit?} A second question concerns
-cost: which parts of checking and execution can be reused or overlapped without
-weakening that policy boundary? The objectives are to specify the interface,
-construct and check source proofs for its kernel, exercise the concrete boundary
-with adversarial and fault tests, and measure selected implementations of the
-same request semantics.
+Three research questions delimit the study:
+\begin{enumerate}
+\item \textbf{RQ1:} Under which explicit premises can certified transaction
+execution establish the fixed eight-law ordinary service contract?
+\item \textbf{RQ2:} Can concrete application certificates express both access
+restrictions during execution and publication invariants, with controls that
+fail at the intended obligations?
+\item \textbf{RQ3:} For the retained prepared-read workloads, how does a second
+certified read worker affect complete-request throughput, latency and sampled
+memory under a fixed CPU budget?
+\end{enumerate}
 
-The contribution is a concrete engineering case study rather than a claim to
-have invented proof-carrying code or verified databases. Its useful elements are
-the administrator-defined propositions over transaction situations, exact
-binding of client certificates to the admitted environment, composition into
-eight fixed service obligations, and an executable prototype with reproducible
-evidence. Optional indexes and receipts remain ordinary application tables
-governed by ordinary laws. This design avoids adding a privileged implementation
-for every application abstraction.
+The contribution is the combination of a transaction certificate over actual
+execution prefixes, exact binding of admission targets, and a checked
+composition into the ordinary service contract, accompanied by executable
+application and operational evidence. The indexed and receipt examples show
+how application abstractions can remain ordinary tables governed by explicit
+policies. The operational experiments examine prepared-read concurrency and
+durable point-operation costs through three engine adapters. Their different
+application constraints limit interpretation of the latter comparison.
+Neither proof-carrying code, verified query structures, nor a general
+database performance advantage is claimed as a new result.
 
 \section{Foundations and Related Work}
 Proof-carrying code lets the producer of a program supply a machine-checkable
@@ -99,17 +113,23 @@ requires a correct translation and execution path.
 
 Dependent types let specifications refer to program values. Ynot demonstrates
 reasoning about higher-order imperative programs using a dependently typed
-setting and an explicit axiomatic extension \citep{ynot2008}. \jay{} uses
-propositions expressed as Bend types and a finite action interpreter. This work
-does not equate the different logical foundations or transfer Ynot's results to
-Bend. Fiat refines abstract data type specifications, including relational query
-structures, into implementations with a proof trail \citep{fiat2015}. Its
-existence rules out any broad novelty claim that verified query structures or
-certified indexes originate here. \jay{} focuses on admitting externally
-submitted programs against a fixed live configuration.
+setting and an explicit axiomatic extension \citep{ynot2008}. \jay{} expresses
+propositions as Bend types and exposes database effects through an action
+interpreter. Ynot's logical results do not establish the soundness of this
+different toolchain. A directly relevant database antecedent is the Coq/Ynot
+prototype of \citet{malecha2010}: it verifies relational algebra, B+ tree
+implementations and selected query optimizations. Its focus on functional
+database internals differs from this study's admission of client programs
+against administrator-defined transaction propositions.
 
-Established databases are also stronger comparators than an application with
-no checks. PostgreSQL supplies row policies restricting normal row access and
+Fiat refines abstract data type specifications, including relational query
+structures, into implementations with a proof trail \citep{fiat2015}. Its
+verified query structures and index-directed refinements are relevant
+antecedents. \jay{} instead studies admission of externally submitted programs
+against a fixed live configuration; it does not provide Fiat's automated
+synthesis pipeline.
+
+PostgreSQL supplies row policies restricting normal row access and
 modification, along with integrity constraints \citep{postgresrls,postgresconstraints}.
 These mechanisms are valuable alternatives. A logical comparison is whether
 the policy appears as runtime predicates or as a proposition certified for a
@@ -123,36 +143,55 @@ executables. Pinning makes the evaluated object identifiable. It is not a proof
 of the checker, compiler, runtime, or hardware. Later upstream releases and
 different environments are outside the measured artifact.
 
-\section{Method}
-The study combines artifact construction, deductive source reasoning, negative
-controls, and controlled operational experiments. Its unit of correctness is
-first the pure transaction interpreter, then an explicitly modeled service, and
-finally the concrete host under stated refinement assumptions. These levels
-are kept distinct when interpreting results.
+\section{Research Method and Evidence}
+This is an artifact-based systems case study combining deductive source
+reasoning with controlled execution. RQ1 concerns a theorem of an explicit
+model; RQ2 concerns representative policy constructions and their executable
+counterparts; RQ3 concerns measured behavior. Passing an execution test is not
+used as a premise establishing a universal theorem.
 
-The fixed contract is the active \code{contract/} package. Its eight laws and
-canonical manifests are inputs, not outcomes edited to make the implementation
-pass. The implementation uses source-level proof terms checked in both the
-official \code{--check-only} and \code{--verdict} modes. Both modes share a
-toolchain and should not be described as two independently implemented trusted
-proof assistants. Negative controls remove or contradict required premises and
-must fail at the intended obligation. Finite runtime cases provide separate
-evidence about compilation and the host bridge.
+The ordinary contract in \code{contract/LAWS.bend} is the fixed criterion for
+RQ1. Proof terms construct its actual conjunction, rather than a smaller
+surrogate. Verification checks the general, contract, library and receipt roots
+with both official \code{--check-only} and \code{--verdict} modes. These are
+two modes of the same pinned toolchain, not independent proof assistants.
+Acceptance supports a source result conditional on that toolchain. The concrete
+Rust/Node/C implementation must separately correspond to the modeled operations.
 
-The principal quantitative dataset is the retained main-review experiment \citep{artifact} at
-source revision \code{00d973e58217dbb589e4fdd0a48815a623faae9a}. It identifies
-the controller, toolchain, fixture, raw bursts and expected responses. The
-later merged validation at \code{1598ed4} records a successful complete check
-of the accessory workflow. Measurements from earlier revisions remain
-historical; they are not relabeled as fresh measurements of later repairs.
-The accompanying evidence script recomputes the reported throughput summaries
-and paired ratios from the retained burst records.
+For RQ2, positive application certificates are checked against the installed
+policy and actual interpreter. Negative variants omit a required invariant or
+alter a protected access. A useful negative control must fail at that obligation,
+while its unchanged premises still check; a missing dependency is not an adequate
+rejection. The actual host then exercises ordinary requests, checks responses
+and subsequent state, and tests selected faults around worker completion,
+publication and reopening. Application examples are deliberately small and
+author-constructed, rather than a sample of independently developed deployments.
 
-This is a single-machine systems case study. There is no user study, external
-deployment trial or broad benchmark campaign against production databases.
-Correctness experiments intentionally include failure behavior. Performance
-experiments deliberately isolate selected volatile read workloads rather than
-pretend to estimate all transaction costs.
+For RQ3, the experimental factor is one versus two read workers; the two
+workloads, total CPU budget, fixture, request arguments and expected results are
+held equal within each pair. Warmup, alternating run order, timing boundaries
+and descriptive statistics are specified in Section~\ref{sec:read-experiment}.
+No estimate of proof-authoring effort, isolated compiler cost or production
+database performance is inferred from this experiment.
+
+A complementary exploratory comparison measures point reads and updates on ten
+fixtures per engine through JayDB2, PostgreSQL and SQLite adapters. It uses
+durable settings and one client, but deliberately different application
+constraints and deployment paths. Section~\ref{sec:database-comparison} reports
+its protocol and limitations separately from the read-worker experiment.
+
+Evidence provenance is part of the protocol. The retained main-review directory
+\citep{artifact} identifies source revision
+\code{00d973e58217dbb589e4fdd0a48815a623faae9a}, exact controller and toolchain
+identities, commands, application/test outcomes, and raw benchmark records.
+Its \code{validation.json} distinguishes the aggregate proof run from the final
+JavaScript-only guard change and repeated runtime gates; the Bend inputs were
+unchanged between them. Later model-proof and prepared-extension checks are
+summarized separately in \code{docs/review-validation.json}; they are not new
+timing measurements. This article reuses and reanalyzes the retained dataset.
+The accompanying \code{paper/evidence.py} checks unique burst identities,
+response counts and elapsed-time throughput. It recomputes the quantitative
+tables from retained samples and the paired medians from read-worker bursts.
 
 \section{Data and Transaction Model}
 The data model contains schemas, named tables, rows, typed values and a user
@@ -160,11 +199,13 @@ registry. Configuration contains schema, laws and technical environment; users
 are mutable data. Values distinguish missing rows, optional absence and actual
 values. Integer payloads use two 32-bit words representing signed two's-complement
 64-bit values. Canonical encoding uses explicit tags, big-endian lengths, valid
-UTF-8 and ordered record fields. Rejecting ambiguous representations prevents a
-proof and an executable from assigning different meanings to the same message.
+UTF-8 and ordered record fields. These rules give the specified interface a
+canonical representation; the host must implement the same encoding and decoding
+semantics for source proofs to apply to actual bytes.
 
 Let $C$ denote the fixed configuration, $s$ published state, $c$ an authenticated
-context, $v$ request arguments and $p$ a pure client program. The program produces
+context, $v$ request arguments, $\sigma$ the program's source string and $p$ the
+corresponding pure client program. The program produces
 an action, not a state transformer supplied with unrestricted access to $s$.
 Actions describe explicit operations and typed continuations. The interpreter
 alone supplies database results. A write returns a unit value, so a caller does
@@ -178,27 +219,64 @@ Rollback cannot erase a disclosure that already occurred during an unlawful
 prefix. Likewise, a collection helper must justify every actual access and
 continuation, not merely its final returned list.
 
-\begin{definition}[Transaction certificate, informal notation]
-For the actual $C,c,v,p$, a certificate establishes that, for every valid state
-authenticating the same context, all actual execution prefixes obey the installed
-laws, actual completion obeys them, and every technically possible publication
-preserves required validity. Termination is a separate mandatory obligation.
+\begin{definition}[Transaction certificate]
+Using abbreviations for the source definitions, the certificate target is
+\[
+\begin{aligned}
+\operatorname{Certifies}(C,\sigma,p,c,v) \equiv {}&
+\forall s.\;\operatorname{Valid}(C,s)\to\operatorname{Present}(s,c)\to{}\\
+&\forall n.\;\operatorname{SafeTrace}(\tau_n(s),C,s,c,\sigma,v).
+\end{aligned}
+\]
+Here $n$ is an observation depth and $\tau_n(s)$ is the actual source
+interpreter result for $p$, the schema of $C$, $s$, $c$ and $v$ at that depth.
+A prefix must satisfy the installed laws in
+its executing situation and in a technical-failure closure; a completed trace
+must additionally satisfy its finalized closed situation and establish validity
+if finalization permits successful publication. Termination is a separate
+mandatory obligation.
 \end{definition}
-This is a readable description of \code{Requirements.Certifies}; the Bend
-definition remains normative. The quantification over states prevents a client
+Here \(\operatorname{Valid}\) includes structural validity, the state-size limit
+and the stable-state laws; \(\operatorname{Present}\) is the actual authenticated
+context's presence in the registry. The notation abbreviates
+\code{Requirements.Certifies}; the Bend definition remains normative.
+The quantification over states prevents a client
 from obtaining a proof by assuming a convenient private snapshot. The proof
 need not reveal that snapshot to the client compiler.
 
-Consider a task application where each principal owns a table and every row
-contains its matching owner. Saving a row requires permission for the actual
-table and a correctly owned complete row. Reading and then conditionally
-replacing it requires permission for the observation as well as the write.
-A refusal after two lawful provisional writes preserves the old published
-state. A proof for that workflow does not justify changing an access to another
-principal's table. These cases make the policies more useful than an empty
-program or a policy that denies every operation.
+\subsection{Application case: ownership and an exact index}
+The implemented availability example has two fixed principals, Alice and Bob.
+Each has one Boolean availability row and a separate index table mapping
+\code{ready}/\code{busy} to that row's key. A \code{set} transaction removes
+the old index entry, writes its replacement, and writes the business row.
+A \code{query} enumerates and reads index entries, returning matching targets.
+An explicit \code{rebuild} reconstructs the index from the business value.
+
+Two independent administrator propositions express the intended policy.
+\code{Policy.Rule} restricts each actual access to the authenticated
+principal's tables and preserves the fixed user/business layout.
+\code{Policy.IndexRule} requires the index to equal the business-row projection
+in stable states and successful closed situations. Intermediate index rows may
+be stale while maintenance is incomplete. Thus a certificate must justify the
+read of every enumerated entry, including nonmatches, and restore the exact
+projection before successful publication. It need not establish index
+consistency after each provisional write.
+
+This separates two testable errors. Omitting maintenance or forging its value
+can preserve access permissions while violating the terminal projection
+equality. Reading Bob's index as Alice violates a prefix permission even if
+the result would later be discarded. The example's negative controls preserve
+the former variants' independent permission proofs so that the full certificate
+fails specifically at the index equality. The host rejects these variants and
+subsequent queries check that the publication is unchanged. This demonstrates
+the selected policies, not automatic certification of arbitrary indexes.
 
 \section{Architecture and the Eight Laws}
+Administrator propositions are application-specific and may constrain state,
+accesses or complete workflows. The eight service laws in Table~\ref{tab:laws}
+are a separate, fixed specification of how the database receives, authenticates,
+admits, executes and publishes requests under those propositions.
+
 The prototype separates a pure Bend kernel from a Rust host, Node-based source
 staging and official-tool invocation, and a small native effect adapter. The
 service speaks binary frames on standard input/output. It is not itself a
@@ -217,8 +295,8 @@ unsuccessful or incomplete worker cannot supply a complete accepted proposal.
 \begin{table}[htbp]\centering\small
 \caption{Fixed obligations and their principal source proof components.}
 \label{tab:laws}
-\begin{tabular}{p{0.07\linewidth}p{0.40\linewidth}p{0.41\linewidth}}\toprule
-Law & Required behavior & Representative implementation proof \\\midrule
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.07\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}>{\raggedright\arraybackslash}p{0.41\linewidth}}\toprule
+Law & Required behavior & Representative source proof \\\midrule
 1 & Valid startup and fixed configuration & \code{Law1Service}, \code{HistoryService} \\
 2 & Exact bytes, operations and length checks & \code{CodecLaw2}, \code{Law2Service} \\
 3 & Current authenticated identity & \code{Law34Service} \\
@@ -231,13 +309,18 @@ Law & Required behavior & Representative implementation proof \\\midrule
 \end{table}
 
 \subsection{Meaning of the checked result}
-The checked function \code{ContractService.}\allowbreak\code{contract\_of\_service}
+The term \code{contract\_of\_service} in module \code{ContractService}
 constructs exactly the conjunction
-\code{LAWS.Contract(a,k)}. Its assumptions are grouped into initial judgment,
-observations, source execution, communication and model availability. They
-describe primitive results and their correspondence to the source interpreter,
-rather than assume each law as an input. Current-state validity follows from
-the initial proof and successive certified publications.
+\code{LAWS.Contract(a,k)}. Five premise groups specify the boundary:
+\code{Initial} supplies the judgment of the actual closed seed-validity
+declaration; \code{Observations} supplies codec, copying and framing results
+for the actual bytes; \code{SourcesExecution} connects checked source
+judgments, authentication and execution equations to the same history;
+\code{Communication} supplies byte origin, real errors and written prefixes;
+and \code{AvailabilityOfModel} requires primitive returns under the external
+operating conditions. These premises describe primitive behavior rather than
+assume the eight law conclusions. Current-state validity is derived from the
+initial proof and successive certified publications.
 
 \begin{proposition}[Conditional service correctness]
 For the ordinary serial service model, the explicit source/tool/communication premises of
@@ -260,13 +343,6 @@ Defining processable to mean that this implementation happened to finish would
 make progress circular. The source model avoids that substitution. It also
 does not promise a maximum elapsed time or physical memory consumption.
 
-The trusted components remain significant: the official checker and
-translations, generated native behavior, Rust/Node/C integration, process and
-pipe behavior, OS, hardware, and storage assumptions. Neither source hashes nor
-many passing tests discharge these premises. Thus ``the Bend proofs check''
-and ``every real execution unconditionally obeys all laws'' are different
-claims. The latter is not a result of this project.
-
 \subsection{Limits and failures}
 The contract has exactly three canonical sizes: message, state and response.
 They count encoded bytes and include the boundary value. External frame bytes
@@ -283,80 +359,39 @@ must not be represented as a guaranteed rollback. This distinction is crucial
 for both durable storage and client retry behavior.
 
 \section{Reusable Programs and Optional Features}
-\subsection{Prepared programs}
-Ordinary admission may check and compile the same source repeatedly. Prepared
-programs instead establish a certificate universally over request contexts and
-arguments, compile once, and store an instance-local handle. Execution still
-authenticates fresh credentials and binds fresh arguments. The theorem is
-specialized to the actual call; it does not authorize a captured old identity.
-Restart loses handles. Integrity checks bind the sealed source and native
-artifacts to the registration.
+\subsection{Prepared programs and their proof boundary}
+Ordinary admission checks and compiles submitted source for each call. Prepared
+programs instead establish a certificate universal over contexts and arguments,
+compile once, and return an instance-local handle. Execution authenticates
+against current published state and specializes the universal certificate to
+fresh inputs. Restart loses handles; the sealed source and native artifacts
+must still match the registration at the actual call.
 
-Prepared controls extend the wire interface. A raw handle message is not the
-ordinary encoded source request in the serial law statement. The source
-normalization theorem concerns the resolved logical request; physical framing,
-registry integrity and receipt delivery remain explicit host obligations.
-This qualification prevents treating a useful adapter proof as a silent proof
-of a broader raw protocol. It is a structural boundary: prepared messages use
-an initial tag outside the canonical value tags, while the unchanged ordinary
-request proposition requires the actual received body to encode an ordinary
-request. Prepared-control statuses are also additional interface results.
-An additive protocol specification dated 6 November 2026 preserves the
-ordinary laws and introduces exact prepared-wire reception,
-instance-local registry semantics and authorized control outcomes. Additional
-proof terms alone cannot make the original raw encodings equal.
+This extension has a distinct raw protocol. Prepared bodies begin with tag~7,
+whereas an ordinary request is a canonical record encoded with tag~6. Checked
+\code{PreparedPrograms} exclusion theorems establish that the same prepared raw
+body cannot have an ordinary \code{RequestReceived} witness. Consequently,
+normalizing a handle to a logical source request does not prove compliance of
+those physical bytes with the original ordinary-wire contract.
 
-\begin{proposition}[Prepared-wire exclusion]
-For every ordinary request $r$ and byte-list suffix $t$,
-$\operatorname{Encoding}(\operatorname{request\_value}(r),7::t)$ implies
-falsehood. If reception processes that same raw body, it has neither an ordinary
-\code{RequestReceived} witness nor an ordinary authentication-response
-justification.
-\end{proposition}
-\begin{proof}[Proof structure]
-The canonical ordinary request is a record. Encoding either rejects it or emits
-record tag 6, which cannot equal the initial tag 7. Transporting this exclusion
-through the unchanged reception equation rules out \code{RequestReceived};
-the authentication-justification definition requires that witness. Four checked
-theorems in \code{PreparedPrograms} construct these implications. This is a
-source theorem about the original contract, with no assumed encoding conclusion
-or altered rule. Native tests separately establish the prepared host behavior.
-\end{proof}
-
-Transparent caching of ordinary full-source requests could retain compilation
-reuse without adding wire tags. Client-local handles would expand to source and
-proof on every execution. This would defer admission to first execution and
-change invalidation semantics. Combined source/proof and arguments can also
-exceed the unchanged message ceiling even when the former separate messages
-each fit. A no-op wrapper cannot generally inherit a policy that distinguishes
-actual program/source/arguments. The chosen additive extension retains the prepared lifecycle and message-size
-behavior instead of silently imposing these compatibility changes.
-
-
-The new \code{PreparedLaws} contract requires fresh authentication, the exact
-original source/proof, the genuine universal derivation, and its constructive
-specialization. Read-marked entries also require the fixed whole-program
-read-only target. Artifact integrity is indexed by the physical call and time;
-a stored hash or a previous successful check is insufficient. Metadata outcomes
-preserve the published state/response pair and constrain the exact registry
-delta, canonical response bytes and response limit. A valid reception witness
-binds the actual full body to the declared frame length, including both prefix
-bytes. Oversized receipts cannot mutate the registry. Directory cleanup may
-fail after invalidation has removed a handle, without changing database state.
-
-General checked proofs establish scoped registry invariants, the ordinary-wire
-bridge under valid reception, control outcome constructors, and prepared
-admission through the actual resolver and \code{Core} conclusion theorem.
-They neither assume final-state validity nor relabel a universal proof as a
-concrete source derivation. Establishing the additional \code{ControlLaw}
-for all actual host observations and its complete temporal/compiler/OS bridge
-remains open; the extension is not an unconditional executable proof.
+The additive \code{PreparedProtocol}, \code{PreparedRegistry} and
+\code{PreparedLaws} specifications retain the eight ordinary laws and separately
+state physical reception, instance-scoped registration, fresh authentication,
+current artifact identity and authorized control outcomes. Model proofs connect
+prepared readiness to the actual resolver and \code{Core} conclusion, and
+construct bounded registration/invalidation outcomes. They do not establish
+\code{PreparedLaws.ControlLaw} for every actual host observation. Its metadata
+observer does not compose sent prefixes, closure, progress and prepared program
+execution into a complete extended-service contract. That composition and the
+complete compiler/host/OS refinement remain open. The prepared-read
+measurements below therefore provide operational evidence for an extension
+whose full executable contract is not proved.
 
 \subsection{Persistence and concurrent reads}
 Optional persistence stores complete committed images and requires the exact
 frozen environment on reopening. The host commits the durable image before
 acknowledging success. Recovery depends on a protected publication origin and
-exact bytes, not on a checksum magically proving validity. Corrupt, missing or
+exact bytes; a checksum alone cannot establish policy validity. Corrupt, missing or
 incompatible storage must not silently become an empty database. An uncertain
 commit stops dispatch. Cross-build migration and compatibility are outside the
 prototype's scope.
@@ -369,84 +404,88 @@ read-only proof supports this refinement, but the Rust scheduler still needs
 its concrete queueing and synchronization contract. More readers can also
 increase simultaneous snapshot and worker memory.
 
-\subsection{Libraries, receipts and observation}
-The optional library supplies values, records, arithmetic, collection helpers,
-queries, conditional mutation and table-based indexes. An index is an ordinary
-table with explicit maintenance. Its policy must account for information
-disclosure and consistency with primary data. No hidden privilege or implicit
-database index maintenance follows from importing a helper.
+\subsection{Receipt application}
+The voucher example addresses an observable publication problem: the host may
+commit an operation and lose its response. Repeating the business action can
+then duplicate its effect. The example stores voucher \code{v:request-1} and
+receipt \code{r:request-1} in the authenticated principal's table in the same
+transaction. A receipt binds the request ID to the exact operation, inputs and
+retained result. Reusing the ID with identical inputs returns the retained
+result after current authorization; conflicting reuse refuses. Cancellation
+performs both provisional writes and then refuses, publishing neither.
+Explicit retirement removes both rows and ends protection for that ID.
 
-Receipts pair an operation's exact identity and inputs with a retained result
-inside the same transaction as the business effect. Permission to read the
-result is checked against current policy. Conflicting reuse must fail. An
-explicit retention policy determines when deduplication protection ends.
-These mechanisms support retries after a lost reply; a bare transport retry
-does not. The TypeScript client therefore does not automatically repeat writes.
-
-An optional administrator timing log measures service work through cleanup and
-publication. It excludes queue waiting and response delivery. It changes no
-client response and provides no quota enforcement. Observer failures must not
-suppress a normal transaction response.
+These are ordinary table operations, with no privileged receipt store or
+implicit retry. The administrator's law requires the actual execution to refine
+the specified voucher protocol, including successful completion before
+publication. A retained lost-response test kills the service after durable
+publication and before reply, reopens without a seed, and retries the same ID.
+An independent native trace check distinguishes a receipt hit with no repeated
+business writes from a fresh issue with writes. This establishes the tested
+recovery path under the stated storage assumptions; it does not guarantee
+unbounded deduplication after retirement or storage loss.
 
 \section{Evaluation}
-\subsection{Correctness evidence}
-The retained integration review reports checked general, contract, library and
-receipt roots in both official modes, with eight aggregate negative controls.
-The controls cover missing identity, false byte correspondence, omitted policy,
-invalid publication, unguarded allocation length, swapped reification,
-authentication/preprocessing order and a hidden write in an alleged read-only
-program. Their role is causal: a check that only fails because a dependency is
-missing would not establish the intended proof obligation.
+\subsection{Source and operational evidence}
+For RQ1, the retained integration roots checked in both official modes. The
+source-level result has the exact eight-law target and the five premise groups
+described above. Eight aggregate negative controls exercised missing identity,
+false byte correspondence, omitted policy, invalid publication, unguarded
+allocation length, swapped reification, authentication/preprocessing order and
+a hidden write in a purported read-only program. Their intended rejections
+support the specificity of those obligations; they neither prove checker
+soundness nor discharge the integration premises.
 
-On its final reviewed source the retained suite passed 21 admission/verifier,
-10 native-runtime, 43 Rust, 19 service, nine recovery and five demo tests.
-Application checks exercised 25 indexed durable requests and 43 voucher
-requests. Native library tests covered 1,980 signed-integer cases, 1,980
-collection cases and 250 variable-length content cases. An additional review
-compared 98,305 arithmetic/order results over 19,661 operand pairs and 2,025
-composite-key cases against independent oracles. These counts describe finite
-checks, not a mathematical proof for arbitrary integer inputs.
+For RQ2, the retained final-source record reports 25 indexed durable requests
+and 43 voucher requests, including refusal and protected-access behavior.
+The indexed certificate and causal maintenance controls distinguish prefix
+permissions from successful-boundary consistency. The voucher case exercises
+exact-input receipt reuse, conflict and cancellation. These are finite native
+checks paired with general source certificates, not a demonstration that every
+business requirement has been specified.
 
-Fault tests exercise failures around publication, process death, interrupted
-delivery and reopening. They check that acknowledged writes survive, that
-uncertain commits stop service, and that application receipts avoid repeating
-business writes after a lost response. Such tests cover selected schedules
-and injected faults. They cannot exhaust all filesystem, OS or hardware failures.
-
-The subsequent full accessory gate completed with exit zero on an unchanged
-checkout, as recorded in \code{docs/accessory-validation.md}. This supplies
-evidence for the real TypeScript/persistent-task workflow in addition to the
-engine review. A fresh review found further client lifecycle and demo delivery
-edge cases and a library aggregate omission. Their repairs and targeted
-regressions belong to the current review record. This history illustrates why
-a previous passing suite cannot be treated as proof of absence of defects.
-The current review also records a complete exit-zero run over 436 unchanged
-source, test and configuration inputs. Subsequent pure proof additions have
-separate dual-mode checks; the runtime helper implementations remain unchanged
-from that run.
+Operational suites exercise framing and source admission, native effects,
+worker completion, interrupted response delivery and persistence recovery.
+Fault cases check survival of acknowledged writes, service termination after an
+uncertain commit, and a receipt-protected retry after a lost reply. They cover
+selected injected faults and schedules. They do not exhaust filesystem,
+operating-system or hardware failure behavior. Later prepared-control model
+checks and regressions are recorded separately from this retained source run.
+The ordinary theorem's premises and the unproved prepared-control refinement
+therefore remain material limitations despite these passing cases.
 
 \subsection{Read-batch experiment}
+\label{sec:read-experiment}
 The retained comparison uses an Intel Core i7-11700K, Linux x86-64 and two
 distinct physical cores. Both configurations receive the same total native
 thread budget of two. They differ in one versus two certified read workers.
 The client and sampler avoid the service cores and their SMT siblings where
 available. Each burst contains eight requests submitted in one pipe write.
 There is one warmup burst and seven measured paired rounds per workload and
-configuration, giving 256 checked responses including warmup.
+configuration, giving 256 checked responses including warmup. Across paired
+rounds, configuration order alternates between one-first and two-first; the
+comparison is paired but not randomized.
 
-Both workloads use a small state containing two users and no application
-tables. The tiny workload returns after the read; the heavier workload also
+Both configurations execute the same registered prepared read program. Proof
+checking and compilation occur during registration, outside the measured bursts;
+the experiment therefore measures neither ordinary full-source admission nor
+its amortization. Both workloads use a small state containing two users and no
+application tables. The tiny workload returns after reading its own credential;
+the heavier workload also
 computes a runtime-input recurrence with base $10^8$ dependent U32 updates per
 request, alternating $10^8$ and $10^8+1$ across paired rounds. Different seeds
 within each burst prevent substituting a single cached result.
 An independent arithmetic oracle checks every complete response. Neither
 persistence nor timing logs are enabled.
 
-Latency begins just before transmitting an already encoded burst and ends at
-receipt of complete responses. It includes queueing, authentication, artifact
-checks, worker startup, execution, cleanup and pipe delivery. Client encoding,
-expected-result computation and preparation are separate. The recorded setup
-cost includes service initialization and registration, so it cannot be labeled
+Each response latency starts immediately before transmission of the already
+encoded burst and ends at receipt of that complete response. Burst elapsed time
+ends after all eight responses have been received and checked. These boundaries
+include queueing, authentication, artifact checks, worker startup, execution,
+cleanup and pipe delivery; burst throughput also includes client response
+validation. Client encoding, expected-result computation and preparation are
+separate. The recorded setup cost includes service initialization and registration,
+so it cannot be labeled
 as isolated compilation or proof-checking time.
 
 \begin{table}[htbp]\centering\small
@@ -457,9 +496,13 @@ process-tree RSS, not a memory bound.}
 \input{../.build/tcc/table.tex}
 \end{table}
 
-The median of the seven paired throughput ratios is \TinyRatio{} for tiny
-reads and \HeavyRatio{} for heavier reads. This statistic differs from dividing
-two separately computed medians. For tiny reads, the largest paired ratio is
+For each measured round $j$, burst throughput is $q_j=8/T_j$, where $T_j$
+is complete burst elapsed time in seconds. The reported paired statistic is
+$\operatorname{median}_j(q_{j,2}/q_{j,1})$, yielding \TinyRatio{} for tiny
+reads and \HeavyRatio{} for heavier reads. This differs from dividing two
+separately computed medians. The p95 uses the nearest-rank value among the 56
+measured response latencies per workload/configuration; responses in a burst
+are not independent samples. For tiny reads, the largest paired ratio is
 about 3.81, indicating substantial runtime variation. Seven rounds do not
 establish a stable population confidence interval or a universal speedup.
 The experiment supports overlapping independent requests on this hardware.
@@ -469,105 +512,147 @@ The second reader increases observed memory: the maximum sampled process-tree
 RSS rises from approximately 7.05 to 13.71 MiB for tiny reads and from 6.51 to
 14.21 MiB for heavier reads. Sampling every 10 ms can miss brief peaks, and
 summing RSS double-counts shared pages. Large states, mixed writes, sustained
-load and disk behavior require separate experiments. One reader therefore
-remains a sensible default.
+load and disk behavior require separate experiments. The experiment alone does
+not determine the best worker count for those conditions.
 
-\subsection{GPU feasibility}
-An existing, separate CUDA experiment provides evidence for a narrow extension.
-Its focused heavy fixture compares identical complete-request results on CPU
-and an NVIDIA RTX 3080 Ti. With 32,768 total arithmetic rounds, median complete
-latency is 5.756 ms on CPU and 174.945 ms on CUDA. With 4,294,967,296 rounds,
-it is 715.124 ms on CPU and 215.706 ms on CUDA, approximately $3.32\times$
-faster for CUDA. The recorded profile uses eight CPU workers, a per-server GPU
-worker cap of one and a 512 MiB GPU corpus. These are the historical compared
-profiles, not equal CPU/GPU hardware budgets. There are only two complete samples per size/backend and one
-separate native trial. These are historical branch measurements, not current
-mainline results or a measured general break-even point.
+\subsection{Exploratory durable point-operation comparison}
+\label{sec:database-comparison}
+A separate retained run \citep{artifact} on 6 November 2026 exercised ten fixtures on each of
+JayDB2, PostgreSQL 16.15 and SQLite 3.53.1, on the same CPU model as the read-worker
+experiment. All 30 engine/fixture records report checked operation results and
+successful final-data comparisons after reopening. The table summarizes two
+operations with matching observed results: reading one existing integer cell
+by key and updating one integer cell. Each project/engine/operation has one
+warmup and seven measured samples; the reported value is the unweighted median
+of the ten per-fixture sample medians, in milliseconds.
 
-The engineering conclusion is conditional: optional CUDA can make sense for
-large explicitly parallel pure computations. General database acceleration
-does not follow. Integrating it with the current service would require sealed
-GPU artifact identity, authentic current requests, failure rollback, compatible
-persistence identity and exclusive GPU scheduling alongside read batches.
-The compiler, driver and GPU semantic bridge would remain trusted. Importing
-the old branch wholesale would add unsupported combinations. The present
-mainline therefore retains CPU execution while recording a concrete future
-integration path.
+\begin{table}[htbp]\centering\small
+\caption{Durable local adapter-call latency. Each entry is an unweighted median
+of ten fixture medians, each based on seven checked samples. The engines enforce
+different application constraints and use different execution paths.}
+\label{tab:database-comparison}
+\input{../.build/tcc/database-comparison-table.tex}
+\end{table}
+
+One client reuses warmed instances; engine order rotates across fixtures.
+Timing covers the Python adapter call through the decoded result, including
+encoding and transport where present, while preparation, compilation,
+expected-result calculation and validation reads are outside timed samples.
+JayDB2 uses prepared programs, one native worker, the default single-reader
+path and complete-image durable publication even for unchanged reads.
+PostgreSQL uses a local Unix socket with synchronous commits; SQLite uses an
+in-process connection with WAL and full synchronization. These are complete
+adapter costs, including unlike worker, transport and persistence mechanisms,
+rather than isolated storage-engine instruction costs or equal-resource trials.
+
+The JayDB2 fixture installs zero administrator application laws. Authentication,
+type checks, certificate admission and technical publication checks remain, but
+relationship and ownership invariants are not certified here. In the probes,
+JayDB2 accepts all nine tested orphan references and replaces existing IDs in
+all ten fixtures; both SQL adapters reject those references and duplicate
+inserts. The additional SUM/JOIN workflows use nine/seventeen JayDB2 calls
+versus one SQL query and lack a shared snapshot under competing writes; they
+are excluded from this table. Thus the higher JayDB2 latencies characterize the
+implemented paths under these conditions, not the cost of equivalent policy
+enforcement or an intrinsic limit on certified queries.
+
+The measured controller is identified by its binary and 228 recorded input hashes,
+not the later checkout alone. The original manifest's final inventory guard
+failed after new contract modules appeared. A separate retained audit reconstructs
+all ten frozen environment identities and preserves the original failed status
+and unchanged measurements. The three linked files are
+\code{raw-result.json}, \code{provenance-audit.json} and \code{results.json}
+under \code{experiments/database-comparison/evidence/}. The raw manifest SHA-256
+begins \code{fbce76fdafe3}; the derived analysis input begins
+\code{355fd9b197d9}. This auditable historical scope does not make the run a
+measurement of the current optional interfaces.
 
 \section{Discussion and Threats to Validity}
-The strongest supported safety claim concerns checked source semantics and
-the explicitly conditioned service model. It is weaker than an end-to-end
-machine-code and operating-system theorem. Conversely, stating the premises
-does not make the source proof useless: it exposes the exact places where
-operational evidence or a future refinement proof is necessary.
+RQ1 is answered by the conditional composition: certificates over actual
+prefixes and finalization feed a publication result, and history induction
+connects successive calls to the eight-law ordinary model. The theorem exposes
+source judgments, byte/operation correspondence, communication and primitive
+progress as premises. It is useful as a precise interface for future refinement,
+but does not establish an unconditional property of every Rust/Node/C execution.
+Prepared raw messages, read-batch scheduling and persistent publication have
+additional concrete obligations beyond this theorem.
 
-A transaction safety certificate also differs from a functional specification
-of every helper. For example, lawful arithmetic may still calculate the wrong
-business result, and a lawful read may select the wrong authorized row.
-Arithmetic helpers have checked word-level and sign-predicate contracts, but
-these do not supply a separate general interpretation theorem over mathematical
-integers. Multiplication and division are the largest remaining algebraic gaps,
-despite extensive finite tests. The public key
-decoder now has a general roundtrip theorem for its actual length-derived fuel,
-closing the previous gap between the public function and an internal decoder
-given conveniently chosen fuel. Proof coverage must
-therefore name the target property and actual function. Counting imports or
-law declarations alone cannot measure semantic completeness.
+For RQ2, the indexed case demonstrates separate access and consistency
+properties; its negative controls show why permission alone is insufficient for
+correct maintenance. The voucher case demonstrates explicit retry semantics
+around a lost response. Both require application-specific laws and hand-written
+proofs. Their limited layouts and fixed principals leave scalability of policy
+construction and proof effort unresolved. Policy adequacy is also a separate
+question: an accepted proof establishes the installed proposition, which may
+still omit a user's intended requirement.
 
-The optional \code{ComparisonProofs} module now establishes soundness and
-completeness of structural value equality, including malformed list/record
-tails. It also derives strict-order properties, equality reflection and
-trichotomy for the actual signed comparator through its sign-flipped word rank.
-Constant-true equality and constant-false ordering controls fail at the intended
-obligations in both official modes. These results strengthen conditional
-comparison and sorting specifications while leaving the separate mathematical
-integer interpretation and arithmetic proofs open.
+For RQ3, the descriptive result supports overlapping independent prepared
+requests on the measured hardware at increased memory cost. The heavy program
+is a synthetic recurrence rather than a representative business query. The
+small fixture, burst traffic, volatile state, seven paired rounds and one machine
+limit external validity. Alternating order reduces one order effect but does
+not control every source of runtime variation. The additional durable comparison
+provides checked point-operation adapter latencies, but its application laws,
+deployment paths and I/O work differ across engines. It does not compare
+equivalent complete application policies or establish a relative security or
+general throughput result.
 
-The threat model trusts the administrator, protected host files and the
-technical environment. Public configuration and code are separated from the
-private seed and state. A hostile same-identity operating-system process or a
-defective compiler is not neutralized by source hashing. Credential secrecy,
-network authentication, provisioning, side channels, availability budgets and
-production operations need their own engineering. Policy authors can also
-write a permissive or mistaken proposition: proof establishes the installed
-statement, not its adequacy for an unstated intention.
+Transaction-policy compliance also differs from functional correctness of every
+helper. A lawful read can select the wrong authorized row, and lawful arithmetic
+can compute the wrong business result. Optional helper proofs establish named
+properties such as structural equality, signed-word order and roundtrip of the
+public composite-key encoder/decoder. Word-level arithmetic contracts and finite
+oracle tests do not supply
+a general interpretation theorem over mathematical integers, particularly for
+multiplication and division. Broader query and business specifications need
+additional proofs. Module import coverage measures what was checked, not what
+was specified.
 
-External validity is limited by one machine, small states, selected application
-policies and narrow workloads. The performance controls compare implementations
-of the same JayDB2 read interface, not SQL engines. No throughput claim against
-PostgreSQL or SQLite is justified. A useful next study would compare complete
-equivalent workflows, including proof construction and admission, against
-database constraints and row policies at several state sizes.
+Internal validity depends on correspondence between the checked and executed
+objects. The retained benchmark identifies the executable against a fresh build
+and records source, fixture and toolchain hashes; the number generator checks
+raw-record consistency. These checks identify and audit the measured object,
+but do not verify the compiler. The trusted boundary includes the official
+checker and translations, native runtime, host integration, processes, pipes,
+storage assumptions, operating system and hardware. Both checker modes share
+this trust. Current proofs cannot make historical timing results measurements
+of a later executable.
 
-Reproducibility requires more than publishing rounded tables. The repository
-retains raw requests/measurements, controller and source identities, expected
-results, failure logs and exact commands. The article's generator verifies
-counts and recomputes its quantitative table. Nevertheless, historical runs
-cannot automatically establish present hardware timing or results for a
-modified executable.
+The threat model additionally trusts the administrator and protected host
+files. An attacker controlling the same operating-system identity is outside
+this boundary. Credential provisioning, network authentication, side channels,
+resource budgets, migration and production operations are not established by
+the transaction certificate. Complete-state transfer and complete-image
+persistence also impose costs not evaluated by the small read fixture.
+
+The most direct next evaluation would extend the permissive point-operation
+comparison to equivalent ownership/index or receipt workflows, increasing state
+sizes and mixed reads/writes, reporting admission and proof construction as
+separate costs. Strengthening the concrete refinement and establishing the
+prepared-control law would address a different gap: extending the theorem to
+the actual optional interfaces rather than merely extending test coverage.
 
 \section{Conclusion}
-\jay{} demonstrates an executable transaction interface in which clients
-supply programs and administrator-policy proofs. The pure kernel and modeled
-service connect authentication, certified prefixes, finalization and atomic
-publication under explicit integration premises. Real application, negative
-admission and recovery tests provide evidence for the concrete prototype.
-Prepared programs and optional certified readers reduce selected repeated-work
-costs while retaining fresh authentication and the publication boundary.
+\jay{} implements proof-carrying transactions whose certificates constrain
+administrator-defined situations throughout execution and at publication. The
+principal formal result is the checked composition of the eight-law ordinary
+serial service model under explicit toolchain and integration premises.
+Ownership/index and voucher/receipt applications demonstrate selected policies,
+with controls and fault cases exercising their executable boundaries.
 
-The most plausible use is a specialized system where a small number of reusable
-transactions justify deliberate policy proofs, such as ownership-restricted
-tasks, consistent application indexes, or receipt-protected business updates.
-The costs include proof expertise, a pinned experimental toolchain,
-complete-state transfer and limited operational features. The prototype does
-not yet establish that these costs beat established database alternatives.
+The retained prepared-read experiment reports median paired throughput ratios
+of \TinyRatio{} and \HeavyRatio{} for two versus one read worker under the same
+two-core budget, accompanied by increased sampled memory. It concerns small
+volatile states after registration, and the complete prepared-control
+refinement remains unproved. The result is a scoped feasibility case for
+transactions that justify deliberate policy proofs. The separate durable
+comparison records much higher JayDB2 point-operation latencies through the
+evaluated adapter and persistence path; unequal constraints preclude attributing
+the difference to proof enforcement alone. Neither experiment establishes that
+manual proof construction, complete-state processing and the trusted
+implementation boundary are preferable to established database alternatives.
 
-Future work should first close functional theorem gaps and strengthen the
-concrete source-to-executable refinement. Broader state-size and mixed-workload
-experiments should precede general scaling claims. Optional GPU execution is
-reasonable only with a validated integration and a workload large enough to
-amortize startup. The eight laws remain fixed criteria for these improvements.
-
+\raggedright
 \begin{thebibliography}{99}\small
 \bibitem[Necula and Lee(1996)]{necula1996}
 NECULA, G. C.; LEE, P. \textbf{Proof-carrying code}. Pittsburgh: Carnegie Mellon
@@ -584,6 +669,13 @@ DELAWARE, B.; PIT-CLAUDEL, C.; GROSS, J.; CHLIPALA, A.
 Fiat: deductive synthesis of abstract data types in a proof assistant.
 In: \textbf{POPL}, 2015.
 \url{https://hdl.handle.net/1721.1/91993.2}.
+
+\bibitem[Malecha et al.(2010)]{malecha2010}
+MALECHA, G.; MORRISETT, G.; SHINNAR, A.; WISNESKY, R.
+Toward a verified relational database management system.
+In: \textbf{POPL}, 2010, p. 237--248.
+DOI: \href{https://doi.org/10.1145/1706299.1706329}{10.1145/1706299.1706329}.
+\url{https://dash.harvard.edu/entities/publication/73120378-8571-6bd4-e053-0100007fdf3b}.
 
 \bibitem[PostgreSQL Global Development Group(2026a)]{postgresrls}
 POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 18 documentation:
@@ -604,14 +696,9 @@ version 2.0.39, pinned by the JayDB2 admission manifest.
 \bibitem[Lizardo(2026)]{artifact}
 LIZARDO, G. J. \textbf{JayDB2: source, specification and experimental evidence}.
 2026. \url{https://github.com/j0taaa/jaydb2}.
-Retained measurements: revision \code{00d973e}; merged validation: \code{1598ed4}.
-GPU historical fixture: branch \code{experiment-gpu}, revision \code{425074e}.
+Retained source and measurements: revision \code{00d973e}.
+Evidence: \path{experiments/integration/evidence/main-review/}.
+Later proof scope: \code{docs/review-validation.json}.
 
-\bibitem[PUC Minas(2025)]{puc}
-PONTIF\'ICIA UNIVERSIDADE CAT\'OLICA DE MINAS GERAIS.
-Sistema Integrado de Bibliotecas. \textbf{Orienta\c{c}\~oes para elabora\c{c}\~ao
-de projetos de pesquisa, trabalhos acad\^emicos, relat\'orios t\'ecnicos e/ou
-cient\'ificos e artigos cient\'ificos}. 6. ed. Belo Horizonte: PUC Minas, 2025.
-\url{https://www.pucminas.br/biblioteca}. Accessed: 6 Nov. 2026.
 \end{thebibliography}
 \end{document}

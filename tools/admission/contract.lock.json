@@ -7,13 +7,14 @@
   "LEMMAS.bend": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
   "Links.bend": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
   "Logic.bend": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
-  "PreparedLaws.bend": "041b94144e361e27de8d505d4635ca2da4c702e954c1494135f58b26dc690d0e",
+  "PreparedLaws.bend": "a2bfe05c593a5169c178fbd61e0430f8f844c44fb9336a12772d477626fe785c",
   "PreparedProtocol.bend": "48e631dd58f88981b246405c501dd7b84c8313ecece57803d86e2f273f4bad5a",
   "PreparedRegistry.bend": "da19c6cb2f4db579762b432eca9d874f7f96bb1726d867830d1ec3f5a2312a95",
   "Protocol.bend": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
   "ProtocolTests.bend": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
+  "ReadOnlyContract.bend": "bc885e52b5c63233fccae01410e5a831eb5d0f2e9387f016117b29e7f7bb653f",
   "Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
   "Resources.bend": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
   "Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
-  "VERIFY.bend": "31f81d67e71937b2fbc6de0105a802fd1fd683fd7eae3153a83b88c969dcf34e"
+  "VERIFY.bend": "8d6f1afc9204332a22ac850f4a3f4d1e038c233e0f153f3ee1b1c17826e4af87"
 }

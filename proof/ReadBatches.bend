@@ -4,6 +4,7 @@ import Base
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
 import ../contract/Logic.bend as L
+import ../contract/ReadOnlyContract.bend as ROC
 import ../src/Core.bend as Core
 import ../src/ReadOnly.bend as RO
 import ../src/Termination.bend as T
@@ -269,3 +270,30 @@ def incremental_read_preserves_state(p, n, e, s, ctx, args, certificate):
       Core.traverse(n, Core.start(p, ctx, args, s), e), S.execute(n, p, e, s, ctx, args),
       Core.fidelity_of_all_os_prefixes(n, p, ctx, args, e, s)),
     program_preserves_every_prefix(n, p, e, s, ctx, args, certificate))
+
+# Legacy public admission targets are definitionally the fixed contract types.
+law operation_target_is_fixed_contract:
+  for -operation: D.Operation
+  {RO.Operation(operation) == ROC.Operation(operation) : Type}
+def operation_target_is_fixed_contract(operation):
+  {==}
+
+law prefix_target_is_fixed_contract:
+  for -n: Nat
+  for -action: S.Action
+  {RO.Prefix(n, action) == ROC.Prefix(n, action) : Type}
+def prefix_target_is_fixed_contract(n, action):
+  {==}
+
+law finite_action_target_is_fixed_contract:
+  for -n: Nat
+  for -action: S.Action
+  {RO.Action(n, action) == ROC.Action(n, action) : Type}
+def finite_action_target_is_fixed_contract(n, action):
+  {==}
+
+law program_target_is_fixed_contract:
+  for -program: S.Program
+  {RO.Program(program) == ROC.Program(program) : Type}
+def program_target_is_fixed_contract(program):
+  {==}

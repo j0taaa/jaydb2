@@ -9,3 +9,4 @@ import ./ProtocolTests.bend as ExamplesProtocol
 import ./PreparedProtocol.bend as PreparedProtocol
 import ./PreparedRegistry.bend as PreparedRegistry
 import ./PreparedLaws.bend as PreparedLaws
+import ./ReadOnlyContract.bend as ReadOnlyContract
