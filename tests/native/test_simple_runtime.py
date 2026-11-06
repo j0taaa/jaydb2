@@ -86,6 +86,12 @@ class RuntimeTests(unittest.TestCase):
         for value in (0, 1, 31, 65536):
             self.assertEqual(self.execute('fast_bytes', b'\1'+value.to_bytes(4, 'big')),
                              b'\1'+value.to_bytes(8, 'big'))
+        # The second guarded candidate covers the full official native Nat
+        # domain without constructing any natural above its existing 48-bit
+        # representation boundary.
+        for value in (2**32, 2**32+1, 2**40+13, 2**48-1):
+            self.assertEqual(self.execute('fast_bytes', b'\3'+value.to_bytes(8, 'big')),
+                             b'\1'+value.to_bytes(8, 'big'))
         self.assertEqual(self.execute('fast_bytes', b'\2\0'), b'\1'+(2**64-2).to_bytes(8, 'big'))
         self.assertEqual(self.execute('fast_bytes', b'\2\1'), b'\1'+(2**64-1).to_bytes(8, 'big'))
         self.assertEqual(self.execute('fast_bytes', b'\2\2'), b'\0')

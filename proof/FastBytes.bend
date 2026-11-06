@@ -99,6 +99,67 @@ def word32_measured_exactly(word):
         {B.nat64(_) == Some{B.Number64{0, U32{bits}}} : Maybe<&2, B.Number64>}
       R.nat64_measures_number(B.Number64{0, U32{bits}})
 
+law word_join_exact:
+  for +k: Nat
+  for +n: Nat
+  for +low: Word(k)
+  for +high: Word(n)
+  {F.word_join(k, n, low, high) == W.join(k, n, low, high) : Word(Nat.add(k, n))}
+def word_join_exact(k, n, low, high):
+  match k:
+    case 0n:
+      {==}
+    case 1n+p:
+      match low:
+        case WCon{bit, rest}:
+          Equal.cong(Word(Nat.add(p, n)), Word(1n+Nat.add(p, n)), x => WCon{bit, x},
+            F.word_join(p, n, rest, high), W.join(p, n, rest, high), word_join_exact(p, n, rest, high))
+
+law bits_exact:
+  for +number: B.Number64
+  {F.bits(number) == P.bits(number) : Word(64n)}
+def bits_exact(number):
+  match number:
+    case B.Number64{U32{high}, U32{low}}:
+      word_join_exact(32n, 32n, low, high)
+
+law measure_exact:
+  for +number: B.Number64
+  {F.measure(number) == Word.to_nat(64n, P.bits(number)) : Nat}
+def measure_exact(number):
+  Equal.cong(Word(64n), Nat, w => Word.to_nat(64n, w),
+    F.bits(number), P.bits(number), bits_exact(number))
+
+law measured_candidate_exact:
+  for +number: B.Number64
+  {B.nat64(F.measure(number)) == Some{number} : Maybe<&2, B.Number64>}
+def measured_candidate_exact(number):
+  %Equal.sym(Nat, F.measure(number), Word.to_nat(64n, P.bits(number)), measure_exact(number)) :
+    {B.nat64(_) == Some{number} : Maybe<&2, B.Number64>}
+  R.nat64_measures_number(number)
+
+law checked64_exact:
+  for +n: Nat
+  for +number: B.Number64
+  for roundtrip: Bool
+  for valid: {Nat.is_eq(F.measure(number), n) == roundtrip : Bool}
+  {F.checked64(n, number, roundtrip) == B.nat64(n) : Maybe<&2, B.Number64>}
+def checked64_exact(n, number, roundtrip, valid):
+  match roundtrip:
+    case False{}:
+      nat64_exact(n)
+    case True{}:
+      %natural_equal_reflects(F.measure(number), n, valid) :
+        {Some{number} == B.nat64(_) : Maybe<&2, B.Number64>}
+      Equal.sym(Maybe<&2, B.Number64>, B.nat64(F.measure(number)),
+        Some{number}, measured_candidate_exact(number))
+
+law nat64_wide_exact:
+  for +n: Nat
+  {F.nat64_wide(n) == B.nat64(n) : Maybe<&2, B.Number64>}
+def nat64_wide_exact(n):
+  checked64_exact(n, F.candidate(n), Nat.is_eq(F.measure(F.candidate(n)), n), {==})
+
 law checked32_exact:
   for +n: Nat
   for +word: U32
@@ -108,7 +169,7 @@ law checked32_exact:
 def checked32_exact(n, word, roundtrip, valid):
   match roundtrip:
     case False{}:
-      nat64_exact(n)
+      nat64_wide_exact(n)
     case True{}:
       %natural_equal_reflects(U32.to_nat(word), n, valid) :
         {Some{B.Number64{0, word}} == B.nat64(_) : Maybe<&2, B.Number64>}

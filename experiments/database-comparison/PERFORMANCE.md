@@ -14,9 +14,10 @@ state and message ceilings in every authentication and execution worker. The
 stored data. The benchmark keeps that same ceiling.
 
 `FastBytes.nat64_checked` uses the official U32 conversion and an exact natural
-roundtrip guard. Values through `U32::MAX` use the native constant-work path;
-larger naturals use a tail-recursive conversion. The checked shortcut and tail
-fallback are both proved equal to the original function for every natural,
+roundtrip guard. Values through `U32::MAX` use the short native path; larger
+values try a two-word candidate checked against its exact fixed-width natural
+measure. Values outside these guarded paths use a tail-recursive conversion.
+The checked shortcuts and tail fallback are proved equal to the original for every natural,
 including overflow. No arithmetic axiom, compiler change, truncated comparison,
 cached answer or smaller logical limit is introduced.
 

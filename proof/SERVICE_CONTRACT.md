@@ -156,9 +156,9 @@ functions are unchanged; this equality supplies the source-level bridge to
 the executed entry. It does not prove the Rust/Node/C/OS bridge.
 
 `proof/FastBytes.bend` proves the checked conversion equals `Bytes.nat64` for
-every natural, including overflow. The shortcut returns a U32-derived value
-only after its exact natural roundtrip matches the input. Otherwise the proved
-tail conversion implements the original result. No logical ceiling is lowered
+every natural, including overflow. The shortcuts return one- or two-word
+candidates only after their exact natural measures match the input. Otherwise
+the proved tail conversion implements the original result. No logical ceiling is lowered
 and no malformed-input, authentication or publication check is omitted. The
 official compiler and runtime remain unchanged.
 
