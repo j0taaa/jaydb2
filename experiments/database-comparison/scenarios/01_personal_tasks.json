@@ -1,0 +1,118 @@
+{
+  "id": "01_personal_tasks",
+  "title": "Personal task planner",
+  "description": "A single-user planner with priorities, completion state, deadlines, and effort estimates.",
+  "tables": [
+    {
+      "name": "tasks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "priority",
+          "type": "integer"
+        },
+        {
+          "name": "completed",
+          "type": "boolean"
+        },
+        {
+          "name": "due_on",
+          "type": "text"
+        },
+        {
+          "name": "estimated_minutes",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "task_001",
+          "title": "Renew apartment insurance",
+          "priority": 2,
+          "completed": false,
+          "due_on": "2026-11-10",
+          "estimated_minutes": 25
+        },
+        {
+          "id": "task_002",
+          "title": "Book annual dental cleaning",
+          "priority": 2,
+          "completed": true,
+          "due_on": "2026-11-07",
+          "estimated_minutes": 15
+        },
+        {
+          "id": "task_003",
+          "title": "Prepare interview portfolio",
+          "priority": 1,
+          "completed": false,
+          "due_on": "2026-11-12",
+          "estimated_minutes": 180
+        },
+        {
+          "id": "task_004",
+          "title": "Replace bicycle brake pads",
+          "priority": 2,
+          "completed": false,
+          "due_on": "2026-11-14",
+          "estimated_minutes": 45
+        },
+        {
+          "id": "task_005",
+          "title": "Submit electricity meter reading",
+          "priority": 1,
+          "completed": true,
+          "due_on": "2026-11-06",
+          "estimated_minutes": 10
+        },
+        {
+          "id": "task_006",
+          "title": "Plan meals for next week",
+          "priority": 3,
+          "completed": false,
+          "due_on": "2026-11-08",
+          "estimated_minutes": 30
+        },
+        {
+          "id": "task_007",
+          "title": "Return library books",
+          "priority": 2,
+          "completed": false,
+          "due_on": "2026-11-09",
+          "estimated_minutes": 20
+        },
+        {
+          "id": "task_008",
+          "title": "Back up family photos",
+          "priority": 3,
+          "completed": false,
+          "due_on": "2026-11-15",
+          "estimated_minutes": 60
+        }
+      ]
+    }
+  ],
+  "target": {
+    "table": "tasks",
+    "column": "estimated_minutes",
+    "key": "task_008"
+  },
+  "join": null,
+  "aggregate": {
+    "table": "tasks",
+    "column": "estimated_minutes"
+  },
+  "workflow": "Look up and revise the effort estimate for the last task; total the planned minutes across all tasks.",
+  "limitations": [
+    "Dates are ISO 8601 date strings; all tasks belong to one implicit user.",
+    "Priority 1 means highest urgency; priority range and nonnegative effort are application conventions, not declared constraints.",
+    "Eight rows exercise API feasibility, not production scale."
+  ]
+}

@@ -1,0 +1,1354 @@
+{
+  "id": "08_logistics",
+  "title": "Contract logistics and delivery",
+  "description": "A third-party logistics operator manages customer stock, warehouses, carrier trips, shipments, tracking, and invoice charges.",
+  "tables": [
+    {
+      "name": "customers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "billing_email",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "customers_01",
+          "name": "Aurora Books",
+          "billing_email": "billing@aurora.test"
+        },
+        {
+          "id": "customers_02",
+          "name": "Bela Casa",
+          "billing_email": "finance@bela.test"
+        },
+        {
+          "id": "customers_03",
+          "name": "Cafe Serra",
+          "billing_email": "accounts@cafe.test"
+        },
+        {
+          "id": "customers_04",
+          "name": "Delta Parts",
+          "billing_email": "ap@delta.test"
+        },
+        {
+          "id": "customers_05",
+          "name": "Eco Wear",
+          "billing_email": "billing@eco.test"
+        },
+        {
+          "id": "customers_06",
+          "name": "Flor de Sal",
+          "billing_email": "finance@flor.test"
+        },
+        {
+          "id": "customers_07",
+          "name": "Giro Bikes",
+          "billing_email": "ap@giro.test"
+        },
+        {
+          "id": "customers_08",
+          "name": "Horizonte Labs",
+          "billing_email": "accounts@horizonte.test"
+        }
+      ]
+    },
+    {
+      "name": "warehouses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "city",
+          "type": "text"
+        },
+        {
+          "name": "capacity_pallets",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "warehouses_01",
+          "name": "Guarulhos Hub",
+          "city": "Guarulhos",
+          "capacity_pallets": 1200
+        },
+        {
+          "id": "warehouses_02",
+          "name": "Campinas Depot",
+          "city": "Campinas",
+          "capacity_pallets": 450
+        },
+        {
+          "id": "warehouses_03",
+          "name": "Santos DC",
+          "city": "Santos",
+          "capacity_pallets": 800
+        },
+        {
+          "id": "warehouses_04",
+          "name": "Curitiba Hub",
+          "city": "Curitiba",
+          "capacity_pallets": 950
+        },
+        {
+          "id": "warehouses_05",
+          "name": "Belo Horizonte DC",
+          "city": "Belo Horizonte",
+          "capacity_pallets": 700
+        },
+        {
+          "id": "warehouses_06",
+          "name": "Ribeirao Depot",
+          "city": "Ribeirao Preto",
+          "capacity_pallets": 300
+        },
+        {
+          "id": "warehouses_07",
+          "name": "Joinville DC",
+          "city": "Joinville",
+          "capacity_pallets": 550
+        },
+        {
+          "id": "warehouses_08",
+          "name": "Porto Alegre Hub",
+          "city": "Porto Alegre",
+          "capacity_pallets": 1000
+        }
+      ]
+    },
+    {
+      "name": "carriers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "service_level",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "carriers_01",
+          "name": "Rota Sul",
+          "service_level": "road_standard"
+        },
+        {
+          "id": "carriers_02",
+          "name": "Expresso Vale",
+          "service_level": "road_express"
+        },
+        {
+          "id": "carriers_03",
+          "name": "Costa Cargo",
+          "service_level": "road_standard"
+        },
+        {
+          "id": "carriers_04",
+          "name": "Via Serra",
+          "service_level": "road_standard"
+        },
+        {
+          "id": "carriers_05",
+          "name": "Minas Frete",
+          "service_level": "road_express"
+        },
+        {
+          "id": "carriers_06",
+          "name": "Interior Express",
+          "service_level": "road_standard"
+        },
+        {
+          "id": "carriers_07",
+          "name": "Norte Sul Cargo",
+          "service_level": "road_standard"
+        },
+        {
+          "id": "carriers_08",
+          "name": "Pampa Log",
+          "service_level": "road_express"
+        }
+      ]
+    },
+    {
+      "name": "vehicle_types",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "max_payload_kg",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "vehicle_types_01",
+          "name": "Urban van",
+          "max_payload_kg": 900
+        },
+        {
+          "id": "vehicle_types_02",
+          "name": "Medium truck",
+          "max_payload_kg": 6000
+        },
+        {
+          "id": "vehicle_types_03",
+          "name": "Refrigerated van",
+          "max_payload_kg": 1500
+        },
+        {
+          "id": "vehicle_types_04",
+          "name": "Box truck",
+          "max_payload_kg": 9000
+        },
+        {
+          "id": "vehicle_types_05",
+          "name": "Heavy truck",
+          "max_payload_kg": 14000
+        },
+        {
+          "id": "vehicle_types_06",
+          "name": "Flatbed",
+          "max_payload_kg": 12000
+        },
+        {
+          "id": "vehicle_types_07",
+          "name": "Electric van",
+          "max_payload_kg": 800
+        },
+        {
+          "id": "vehicle_types_08",
+          "name": "Articulated truck",
+          "max_payload_kg": 28000
+        }
+      ]
+    },
+    {
+      "name": "drivers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "full_name",
+          "type": "text"
+        },
+        {
+          "name": "license_class",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "drivers_01",
+          "full_name": "Ana Ribeiro",
+          "license_class": "B"
+        },
+        {
+          "id": "drivers_02",
+          "full_name": "Bruno Costa",
+          "license_class": "C"
+        },
+        {
+          "id": "drivers_03",
+          "full_name": "Clara Mendes",
+          "license_class": "B"
+        },
+        {
+          "id": "drivers_04",
+          "full_name": "Daniel Souza",
+          "license_class": "C"
+        },
+        {
+          "id": "drivers_05",
+          "full_name": "Elisa Rocha",
+          "license_class": "D"
+        },
+        {
+          "id": "drivers_06",
+          "full_name": "Felipe Lima",
+          "license_class": "D"
+        },
+        {
+          "id": "drivers_07",
+          "full_name": "Gabriela Alves",
+          "license_class": "B"
+        },
+        {
+          "id": "drivers_08",
+          "full_name": "Hugo Santos",
+          "license_class": "E"
+        }
+      ]
+    },
+    {
+      "name": "vehicles",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "carrier_id",
+          "type": "text",
+          "references": "carriers.id"
+        },
+        {
+          "name": "vehicle_type_id",
+          "type": "text",
+          "references": "vehicle_types.id"
+        },
+        {
+          "name": "registration",
+          "type": "text"
+        },
+        {
+          "name": "payload_kg",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "vehicles_01",
+          "carrier_id": "carriers_01",
+          "vehicle_type_id": "vehicle_types_01",
+          "registration": "LOG1A01",
+          "payload_kg": 850
+        },
+        {
+          "id": "vehicles_02",
+          "carrier_id": "carriers_02",
+          "vehicle_type_id": "vehicle_types_02",
+          "registration": "LOG2B02",
+          "payload_kg": 5800
+        },
+        {
+          "id": "vehicles_03",
+          "carrier_id": "carriers_03",
+          "vehicle_type_id": "vehicle_types_03",
+          "registration": "LOG3C03",
+          "payload_kg": 1400
+        },
+        {
+          "id": "vehicles_04",
+          "carrier_id": "carriers_04",
+          "vehicle_type_id": "vehicle_types_04",
+          "registration": "LOG4D04",
+          "payload_kg": 8700
+        },
+        {
+          "id": "vehicles_05",
+          "carrier_id": "carriers_05",
+          "vehicle_type_id": "vehicle_types_05",
+          "registration": "LOG5E05",
+          "payload_kg": 13600
+        },
+        {
+          "id": "vehicles_06",
+          "carrier_id": "carriers_06",
+          "vehicle_type_id": "vehicle_types_06",
+          "registration": "LOG6F06",
+          "payload_kg": 11800
+        },
+        {
+          "id": "vehicles_07",
+          "carrier_id": "carriers_07",
+          "vehicle_type_id": "vehicle_types_07",
+          "registration": "LOG7G07",
+          "payload_kg": 750
+        },
+        {
+          "id": "vehicles_08",
+          "carrier_id": "carriers_08",
+          "vehicle_type_id": "vehicle_types_08",
+          "registration": "LOG8H08",
+          "payload_kg": 27500
+        }
+      ]
+    },
+    {
+      "name": "addresses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "customer_id",
+          "type": "text",
+          "references": "customers.id"
+        },
+        {
+          "name": "label",
+          "type": "text"
+        },
+        {
+          "name": "postal_code",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "addresses_01",
+          "customer_id": "customers_01",
+          "label": "Bookstore receiving",
+          "postal_code": "01311000"
+        },
+        {
+          "id": "addresses_02",
+          "customer_id": "customers_02",
+          "label": "Homeware outlet",
+          "postal_code": "13010000"
+        },
+        {
+          "id": "addresses_03",
+          "customer_id": "customers_03",
+          "label": "Cafe roastery",
+          "postal_code": "11010000"
+        },
+        {
+          "id": "addresses_04",
+          "customer_id": "customers_04",
+          "label": "Parts distributor",
+          "postal_code": "80010000"
+        },
+        {
+          "id": "addresses_05",
+          "customer_id": "customers_05",
+          "label": "Clothing shop",
+          "postal_code": "30110000"
+        },
+        {
+          "id": "addresses_06",
+          "customer_id": "customers_06",
+          "label": "Gourmet store",
+          "postal_code": "14010000"
+        },
+        {
+          "id": "addresses_07",
+          "customer_id": "customers_07",
+          "label": "Bicycle workshop",
+          "postal_code": "89201000"
+        },
+        {
+          "id": "addresses_08",
+          "customer_id": "customers_08",
+          "label": "Lab receiving",
+          "postal_code": "90010000"
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "customer_id",
+          "type": "text",
+          "references": "customers.id"
+        },
+        {
+          "name": "sku",
+          "type": "text"
+        },
+        {
+          "name": "unit_weight_grams",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "products_01",
+          "customer_id": "customers_01",
+          "sku": "BOOK-ATLAS",
+          "unit_weight_grams": 900
+        },
+        {
+          "id": "products_02",
+          "customer_id": "customers_02",
+          "sku": "VASE-CLAY",
+          "unit_weight_grams": 1200
+        },
+        {
+          "id": "products_03",
+          "customer_id": "customers_03",
+          "sku": "BEAN-ARABICA",
+          "unit_weight_grams": 1000
+        },
+        {
+          "id": "products_04",
+          "customer_id": "customers_04",
+          "sku": "BEARING-6204",
+          "unit_weight_grams": 180
+        },
+        {
+          "id": "products_05",
+          "customer_id": "customers_05",
+          "sku": "SHIRT-COTTON",
+          "unit_weight_grams": 220
+        },
+        {
+          "id": "products_06",
+          "customer_id": "customers_06",
+          "sku": "SALT-FLAKES",
+          "unit_weight_grams": 250
+        },
+        {
+          "id": "products_07",
+          "customer_id": "customers_07",
+          "sku": "CHAIN-11SPD",
+          "unit_weight_grams": 280
+        },
+        {
+          "id": "products_08",
+          "customer_id": "customers_08",
+          "sku": "KIT-PIPETTE",
+          "unit_weight_grams": 1500
+        }
+      ]
+    },
+    {
+      "name": "inventory",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "product_id",
+          "type": "text",
+          "references": "products.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "inventory_01",
+          "warehouse_id": "warehouses_01",
+          "product_id": "products_01",
+          "quantity": 240
+        },
+        {
+          "id": "inventory_02",
+          "warehouse_id": "warehouses_02",
+          "product_id": "products_02",
+          "quantity": 90
+        },
+        {
+          "id": "inventory_03",
+          "warehouse_id": "warehouses_03",
+          "product_id": "products_03",
+          "quantity": 400
+        },
+        {
+          "id": "inventory_04",
+          "warehouse_id": "warehouses_04",
+          "product_id": "products_04",
+          "quantity": 1600
+        },
+        {
+          "id": "inventory_05",
+          "warehouse_id": "warehouses_05",
+          "product_id": "products_05",
+          "quantity": 850
+        },
+        {
+          "id": "inventory_06",
+          "warehouse_id": "warehouses_06",
+          "product_id": "products_06",
+          "quantity": 700
+        },
+        {
+          "id": "inventory_07",
+          "warehouse_id": "warehouses_07",
+          "product_id": "products_07",
+          "quantity": 300
+        },
+        {
+          "id": "inventory_08",
+          "warehouse_id": "warehouses_08",
+          "product_id": "products_08",
+          "quantity": 65
+        }
+      ]
+    },
+    {
+      "name": "shipments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "customer_id",
+          "type": "text",
+          "references": "customers.id"
+        },
+        {
+          "name": "origin_warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "destination_address_id",
+          "type": "text",
+          "references": "addresses.id"
+        },
+        {
+          "name": "carrier_id",
+          "type": "text",
+          "references": "carriers.id"
+        },
+        {
+          "name": "service",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "shipments_01",
+          "customer_id": "customers_01",
+          "origin_warehouse_id": "warehouses_01",
+          "destination_address_id": "addresses_01",
+          "carrier_id": "carriers_01",
+          "service": "standard"
+        },
+        {
+          "id": "shipments_02",
+          "customer_id": "customers_02",
+          "origin_warehouse_id": "warehouses_02",
+          "destination_address_id": "addresses_02",
+          "carrier_id": "carriers_02",
+          "service": "express"
+        },
+        {
+          "id": "shipments_03",
+          "customer_id": "customers_01",
+          "origin_warehouse_id": "warehouses_03",
+          "destination_address_id": "addresses_01",
+          "carrier_id": "carriers_03",
+          "service": "standard"
+        },
+        {
+          "id": "shipments_04",
+          "customer_id": "customers_04",
+          "origin_warehouse_id": "warehouses_04",
+          "destination_address_id": "addresses_04",
+          "carrier_id": "carriers_04",
+          "service": "standard"
+        },
+        {
+          "id": "shipments_05",
+          "customer_id": "customers_05",
+          "origin_warehouse_id": "warehouses_05",
+          "destination_address_id": "addresses_05",
+          "carrier_id": "carriers_05",
+          "service": "express"
+        },
+        {
+          "id": "shipments_06",
+          "customer_id": "customers_06",
+          "origin_warehouse_id": "warehouses_06",
+          "destination_address_id": "addresses_06",
+          "carrier_id": "carriers_06",
+          "service": "standard"
+        },
+        {
+          "id": "shipments_07",
+          "customer_id": "customers_05",
+          "origin_warehouse_id": "warehouses_07",
+          "destination_address_id": "addresses_05",
+          "carrier_id": "carriers_07",
+          "service": "standard"
+        },
+        {
+          "id": "shipments_08",
+          "customer_id": "customers_08",
+          "origin_warehouse_id": "warehouses_08",
+          "destination_address_id": "addresses_08",
+          "carrier_id": "carriers_08",
+          "service": "express"
+        }
+      ]
+    },
+    {
+      "name": "shipment_items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "shipment_id",
+          "type": "text",
+          "references": "shipments.id"
+        },
+        {
+          "name": "product_id",
+          "type": "text",
+          "references": "products.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "shipment_items_01",
+          "shipment_id": "shipments_01",
+          "product_id": "products_01",
+          "quantity": 12
+        },
+        {
+          "id": "shipment_items_02",
+          "shipment_id": "shipments_02",
+          "product_id": "products_02",
+          "quantity": 6
+        },
+        {
+          "id": "shipment_items_03",
+          "shipment_id": "shipments_03",
+          "product_id": "products_01",
+          "quantity": 20
+        },
+        {
+          "id": "shipment_items_04",
+          "shipment_id": "shipments_04",
+          "product_id": "products_04",
+          "quantity": 100
+        },
+        {
+          "id": "shipment_items_05",
+          "shipment_id": "shipments_05",
+          "product_id": "products_05",
+          "quantity": 40
+        },
+        {
+          "id": "shipment_items_06",
+          "shipment_id": "shipments_06",
+          "product_id": "products_06",
+          "quantity": 24
+        },
+        {
+          "id": "shipment_items_07",
+          "shipment_id": "shipments_07",
+          "product_id": "products_05",
+          "quantity": 18
+        },
+        {
+          "id": "shipment_items_08",
+          "shipment_id": "shipments_08",
+          "product_id": "products_08",
+          "quantity": 4
+        }
+      ]
+    },
+    {
+      "name": "routes",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "carrier_id",
+          "type": "text",
+          "references": "carriers.id"
+        },
+        {
+          "name": "origin_warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "destination_warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "distance_km",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "routes_01",
+          "carrier_id": "carriers_01",
+          "origin_warehouse_id": "warehouses_01",
+          "destination_warehouse_id": "warehouses_02",
+          "distance_km": 95
+        },
+        {
+          "id": "routes_02",
+          "carrier_id": "carriers_02",
+          "origin_warehouse_id": "warehouses_02",
+          "destination_warehouse_id": "warehouses_03",
+          "distance_km": 180
+        },
+        {
+          "id": "routes_03",
+          "carrier_id": "carriers_03",
+          "origin_warehouse_id": "warehouses_03",
+          "destination_warehouse_id": "warehouses_04",
+          "distance_km": 410
+        },
+        {
+          "id": "routes_04",
+          "carrier_id": "carriers_04",
+          "origin_warehouse_id": "warehouses_04",
+          "destination_warehouse_id": "warehouses_05",
+          "distance_km": 840
+        },
+        {
+          "id": "routes_05",
+          "carrier_id": "carriers_05",
+          "origin_warehouse_id": "warehouses_05",
+          "destination_warehouse_id": "warehouses_06",
+          "distance_km": 320
+        },
+        {
+          "id": "routes_06",
+          "carrier_id": "carriers_06",
+          "origin_warehouse_id": "warehouses_06",
+          "destination_warehouse_id": "warehouses_07",
+          "distance_km": 580
+        },
+        {
+          "id": "routes_07",
+          "carrier_id": "carriers_07",
+          "origin_warehouse_id": "warehouses_07",
+          "destination_warehouse_id": "warehouses_08",
+          "distance_km": 720
+        },
+        {
+          "id": "routes_08",
+          "carrier_id": "carriers_08",
+          "origin_warehouse_id": "warehouses_08",
+          "destination_warehouse_id": "warehouses_01",
+          "distance_km": 1140
+        }
+      ]
+    },
+    {
+      "name": "trips",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "route_id",
+          "type": "text",
+          "references": "routes.id"
+        },
+        {
+          "name": "vehicle_id",
+          "type": "text",
+          "references": "vehicles.id"
+        },
+        {
+          "name": "driver_id",
+          "type": "text",
+          "references": "drivers.id"
+        },
+        {
+          "name": "departure_date",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "trips_01",
+          "route_id": "routes_01",
+          "vehicle_id": "vehicles_01",
+          "driver_id": "drivers_01",
+          "departure_date": "2026-11-01"
+        },
+        {
+          "id": "trips_02",
+          "route_id": "routes_02",
+          "vehicle_id": "vehicles_02",
+          "driver_id": "drivers_02",
+          "departure_date": "2026-11-02"
+        },
+        {
+          "id": "trips_03",
+          "route_id": "routes_03",
+          "vehicle_id": "vehicles_03",
+          "driver_id": "drivers_03",
+          "departure_date": "2026-11-03"
+        },
+        {
+          "id": "trips_04",
+          "route_id": "routes_04",
+          "vehicle_id": "vehicles_04",
+          "driver_id": "drivers_04",
+          "departure_date": "2026-11-04"
+        },
+        {
+          "id": "trips_05",
+          "route_id": "routes_05",
+          "vehicle_id": "vehicles_05",
+          "driver_id": "drivers_05",
+          "departure_date": "2026-11-05"
+        },
+        {
+          "id": "trips_06",
+          "route_id": "routes_06",
+          "vehicle_id": "vehicles_06",
+          "driver_id": "drivers_06",
+          "departure_date": "2026-11-06"
+        },
+        {
+          "id": "trips_07",
+          "route_id": "routes_07",
+          "vehicle_id": "vehicles_07",
+          "driver_id": "drivers_07",
+          "departure_date": "2026-11-07"
+        },
+        {
+          "id": "trips_08",
+          "route_id": "routes_08",
+          "vehicle_id": "vehicles_08",
+          "driver_id": "drivers_08",
+          "departure_date": "2026-11-08"
+        }
+      ]
+    },
+    {
+      "name": "shipment_legs",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "shipment_id",
+          "type": "text",
+          "references": "shipments.id"
+        },
+        {
+          "name": "trip_id",
+          "type": "text",
+          "references": "trips.id"
+        },
+        {
+          "name": "sequence",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "shipment_legs_01",
+          "shipment_id": "shipments_01",
+          "trip_id": "trips_01",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_02",
+          "shipment_id": "shipments_02",
+          "trip_id": "trips_02",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_03",
+          "shipment_id": "shipments_03",
+          "trip_id": "trips_03",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_04",
+          "shipment_id": "shipments_04",
+          "trip_id": "trips_04",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_05",
+          "shipment_id": "shipments_05",
+          "trip_id": "trips_05",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_06",
+          "shipment_id": "shipments_06",
+          "trip_id": "trips_06",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_07",
+          "shipment_id": "shipments_07",
+          "trip_id": "trips_07",
+          "sequence": 1
+        },
+        {
+          "id": "shipment_legs_08",
+          "shipment_id": "shipments_08",
+          "trip_id": "trips_08",
+          "sequence": 1
+        }
+      ]
+    },
+    {
+      "name": "tracking_events",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "shipment_id",
+          "type": "text",
+          "references": "shipments.id"
+        },
+        {
+          "name": "status",
+          "type": "text"
+        },
+        {
+          "name": "occurred_at",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "tracking_events_01",
+          "shipment_id": "shipments_01",
+          "status": "delivered",
+          "occurred_at": "2026-11-01T16:30:00Z"
+        },
+        {
+          "id": "tracking_events_02",
+          "shipment_id": "shipments_02",
+          "status": "out_for_delivery",
+          "occurred_at": "2026-11-02T08:15:00Z"
+        },
+        {
+          "id": "tracking_events_03",
+          "shipment_id": "shipments_03",
+          "status": "delivered",
+          "occurred_at": "2026-11-03T12:45:00Z"
+        },
+        {
+          "id": "tracking_events_04",
+          "shipment_id": "shipments_04",
+          "status": "in_transit",
+          "occurred_at": "2026-11-04T19:10:00Z"
+        },
+        {
+          "id": "tracking_events_05",
+          "shipment_id": "shipments_05",
+          "status": "delivered",
+          "occurred_at": "2026-11-05T14:20:00Z"
+        },
+        {
+          "id": "tracking_events_06",
+          "shipment_id": "shipments_06",
+          "status": "exception",
+          "occurred_at": "2026-11-06T11:05:00Z"
+        },
+        {
+          "id": "tracking_events_07",
+          "shipment_id": "shipments_07",
+          "status": "delivered",
+          "occurred_at": "2026-11-07T17:40:00Z"
+        },
+        {
+          "id": "tracking_events_08",
+          "shipment_id": "shipments_08",
+          "status": "out_for_delivery",
+          "occurred_at": "2026-11-08T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "name": "delivery_attempts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "shipment_id",
+          "type": "text",
+          "references": "shipments.id"
+        },
+        {
+          "name": "driver_id",
+          "type": "text",
+          "references": "drivers.id"
+        },
+        {
+          "name": "attempt_date",
+          "type": "text"
+        },
+        {
+          "name": "successful",
+          "type": "boolean"
+        }
+      ],
+      "rows": [
+        {
+          "id": "delivery_attempts_01",
+          "shipment_id": "shipments_01",
+          "driver_id": "drivers_01",
+          "attempt_date": "2026-11-01",
+          "successful": true
+        },
+        {
+          "id": "delivery_attempts_02",
+          "shipment_id": "shipments_02",
+          "driver_id": "drivers_02",
+          "attempt_date": "2026-11-02",
+          "successful": false
+        },
+        {
+          "id": "delivery_attempts_03",
+          "shipment_id": "shipments_03",
+          "driver_id": "drivers_03",
+          "attempt_date": "2026-11-03",
+          "successful": true
+        },
+        {
+          "id": "delivery_attempts_04",
+          "shipment_id": "shipments_04",
+          "driver_id": "drivers_04",
+          "attempt_date": "2026-11-04",
+          "successful": false
+        },
+        {
+          "id": "delivery_attempts_05",
+          "shipment_id": "shipments_05",
+          "driver_id": "drivers_05",
+          "attempt_date": "2026-11-05",
+          "successful": true
+        },
+        {
+          "id": "delivery_attempts_06",
+          "shipment_id": "shipments_06",
+          "driver_id": "drivers_06",
+          "attempt_date": "2026-11-06",
+          "successful": false
+        },
+        {
+          "id": "delivery_attempts_07",
+          "shipment_id": "shipments_07",
+          "driver_id": "drivers_07",
+          "attempt_date": "2026-11-07",
+          "successful": true
+        },
+        {
+          "id": "delivery_attempts_08",
+          "shipment_id": "shipments_08",
+          "driver_id": "drivers_08",
+          "attempt_date": "2026-11-08",
+          "successful": false
+        }
+      ]
+    },
+    {
+      "name": "invoices",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "customer_id",
+          "type": "text",
+          "references": "customers.id"
+        },
+        {
+          "name": "issued_date",
+          "type": "text"
+        },
+        {
+          "name": "total_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "invoices_01",
+          "customer_id": "customers_01",
+          "issued_date": "2026-11-01",
+          "total_cents": 8500
+        },
+        {
+          "id": "invoices_02",
+          "customer_id": "customers_02",
+          "issued_date": "2026-11-02",
+          "total_cents": 12000
+        },
+        {
+          "id": "invoices_03",
+          "customer_id": "customers_01",
+          "issued_date": "2026-11-03",
+          "total_cents": 9800
+        },
+        {
+          "id": "invoices_04",
+          "customer_id": "customers_04",
+          "issued_date": "2026-11-04",
+          "total_cents": 24000
+        },
+        {
+          "id": "invoices_05",
+          "customer_id": "customers_05",
+          "issued_date": "2026-11-05",
+          "total_cents": 11000
+        },
+        {
+          "id": "invoices_06",
+          "customer_id": "customers_06",
+          "issued_date": "2026-11-06",
+          "total_cents": 7800
+        },
+        {
+          "id": "invoices_07",
+          "customer_id": "customers_05",
+          "issued_date": "2026-11-07",
+          "total_cents": 13500
+        },
+        {
+          "id": "invoices_08",
+          "customer_id": "customers_08",
+          "issued_date": "2026-11-08",
+          "total_cents": 28000
+        }
+      ]
+    },
+    {
+      "name": "invoice_lines",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "invoice_id",
+          "type": "text",
+          "references": "invoices.id"
+        },
+        {
+          "name": "shipment_id",
+          "type": "text",
+          "references": "shipments.id"
+        },
+        {
+          "name": "charge_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "invoice_lines_01",
+          "invoice_id": "invoices_01",
+          "shipment_id": "shipments_01",
+          "charge_cents": 8500
+        },
+        {
+          "id": "invoice_lines_02",
+          "invoice_id": "invoices_02",
+          "shipment_id": "shipments_02",
+          "charge_cents": 12000
+        },
+        {
+          "id": "invoice_lines_03",
+          "invoice_id": "invoices_03",
+          "shipment_id": "shipments_03",
+          "charge_cents": 9800
+        },
+        {
+          "id": "invoice_lines_04",
+          "invoice_id": "invoices_04",
+          "shipment_id": "shipments_04",
+          "charge_cents": 24000
+        },
+        {
+          "id": "invoice_lines_05",
+          "invoice_id": "invoices_05",
+          "shipment_id": "shipments_05",
+          "charge_cents": 11000
+        },
+        {
+          "id": "invoice_lines_06",
+          "invoice_id": "invoices_06",
+          "shipment_id": "shipments_06",
+          "charge_cents": 7800
+        },
+        {
+          "id": "invoice_lines_07",
+          "invoice_id": "invoices_07",
+          "shipment_id": "shipments_07",
+          "charge_cents": 13500
+        },
+        {
+          "id": "invoice_lines_08",
+          "invoice_id": "invoices_08",
+          "shipment_id": "shipments_08",
+          "charge_cents": 28000
+        }
+      ]
+    }
+  ],
+  "target": {
+    "table": "invoice_lines",
+    "column": "charge_cents",
+    "key": "invoice_lines_08"
+  },
+  "aggregate": {
+    "table": "invoice_lines",
+    "column": "charge_cents"
+  },
+  "join": {
+    "from_table": "shipments",
+    "fk": "customer_id",
+    "to_table": "customers",
+    "column": "name"
+  },
+  "workflow": "Receive customer stock, allocate shipment items, route a carrier trip, record tracking and delivery attempts, and bill the shipment.",
+  "limitations": [
+    "Money is integer BRL cents and weights use grams or kilograms as named. There is one representative stock item and shipment per customer. Inventory reservations, customs, vehicle capacity across combined loads, event history completeness, route optimization, and invoice reconciliation are outside this fixture."
+  ]
+}

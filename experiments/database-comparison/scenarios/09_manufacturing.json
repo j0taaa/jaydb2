@@ -1,0 +1,1665 @@
+{
+  "id": "09_manufacturing",
+  "title": "Discrete manufacturing and procurement",
+  "description": "A small industrial group links purchased materials and stock lots to bills of material, production work, quality results, and customer orders.",
+  "tables": [
+    {
+      "name": "plants",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "city",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "plants_01",
+          "name": "Valinhos Assembly",
+          "city": "Valinhos"
+        },
+        {
+          "id": "plants_02",
+          "name": "Sorocaba Machining",
+          "city": "Sorocaba"
+        },
+        {
+          "id": "plants_03",
+          "name": "Jundiai Motors",
+          "city": "Jundiai"
+        },
+        {
+          "id": "plants_04",
+          "name": "Itu Fabrication",
+          "city": "Itu"
+        },
+        {
+          "id": "plants_05",
+          "name": "Sumare Controls",
+          "city": "Sumare"
+        },
+        {
+          "id": "plants_06",
+          "name": "Limeira Pumps",
+          "city": "Limeira"
+        },
+        {
+          "id": "plants_07",
+          "name": "Americana Fixtures",
+          "city": "Americana"
+        },
+        {
+          "id": "plants_08",
+          "name": "Piracicaba Drives",
+          "city": "Piracicaba"
+        }
+      ]
+    },
+    {
+      "name": "units_of_measure",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "code",
+          "type": "text"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "units_of_measure_01",
+          "code": "EA",
+          "description": "each"
+        },
+        {
+          "id": "units_of_measure_02",
+          "code": "KG",
+          "description": "kilogram"
+        },
+        {
+          "id": "units_of_measure_03",
+          "code": "M",
+          "description": "metre"
+        },
+        {
+          "id": "units_of_measure_04",
+          "code": "L",
+          "description": "litre"
+        },
+        {
+          "id": "units_of_measure_05",
+          "code": "SET",
+          "description": "matched set"
+        },
+        {
+          "id": "units_of_measure_06",
+          "code": "BOX",
+          "description": "sealed box"
+        },
+        {
+          "id": "units_of_measure_07",
+          "code": "ROLL",
+          "description": "standard roll"
+        },
+        {
+          "id": "units_of_measure_08",
+          "code": "PAIR",
+          "description": "matched pair"
+        }
+      ]
+    },
+    {
+      "name": "suppliers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "lead_days",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "suppliers_01",
+          "name": "Aco Paulista",
+          "lead_days": 7
+        },
+        {
+          "id": "suppliers_02",
+          "name": "Polimeros Vale",
+          "lead_days": 5
+        },
+        {
+          "id": "suppliers_03",
+          "name": "Cobre Brasil",
+          "lead_days": 10
+        },
+        {
+          "id": "suppliers_04",
+          "name": "Fixadores Sul",
+          "lead_days": 3
+        },
+        {
+          "id": "suppliers_05",
+          "name": "Motores Serra",
+          "lead_days": 14
+        },
+        {
+          "id": "suppliers_06",
+          "name": "Tintas Aurora",
+          "lead_days": 4
+        },
+        {
+          "id": "suppliers_07",
+          "name": "Rolamentos Centro",
+          "lead_days": 6
+        },
+        {
+          "id": "suppliers_08",
+          "name": "Cabos Horizonte",
+          "lead_days": 8
+        }
+      ]
+    },
+    {
+      "name": "customers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "credit_limit_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "customers_01",
+          "name": "Agro Campo",
+          "credit_limit_cents": 5000000
+        },
+        {
+          "id": "customers_02",
+          "name": "Frio Industrial",
+          "credit_limit_cents": 8000000
+        },
+        {
+          "id": "customers_03",
+          "name": "Elevadores Alto",
+          "credit_limit_cents": 6500000
+        },
+        {
+          "id": "customers_04",
+          "name": "Hidraulica Rio",
+          "credit_limit_cents": 3500000
+        },
+        {
+          "id": "customers_05",
+          "name": "Energia Verde",
+          "credit_limit_cents": 9000000
+        },
+        {
+          "id": "customers_06",
+          "name": "Bombas Costa",
+          "credit_limit_cents": 4200000
+        },
+        {
+          "id": "customers_07",
+          "name": "Fabrica Norte",
+          "credit_limit_cents": 7000000
+        },
+        {
+          "id": "customers_08",
+          "name": "Transmissoes Sul",
+          "credit_limit_cents": 8500000
+        }
+      ]
+    },
+    {
+      "name": "employees",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "plant_id",
+          "type": "text",
+          "references": "plants.id"
+        },
+        {
+          "name": "full_name",
+          "type": "text"
+        },
+        {
+          "name": "role",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "employees_01",
+          "plant_id": "plants_01",
+          "full_name": "Ana Ribeiro",
+          "role": "assembler"
+        },
+        {
+          "id": "employees_02",
+          "plant_id": "plants_02",
+          "full_name": "Bruno Costa",
+          "role": "machinist"
+        },
+        {
+          "id": "employees_03",
+          "plant_id": "plants_03",
+          "full_name": "Clara Mendes",
+          "role": "motor_winder"
+        },
+        {
+          "id": "employees_04",
+          "plant_id": "plants_04",
+          "full_name": "Daniel Souza",
+          "role": "welder"
+        },
+        {
+          "id": "employees_05",
+          "plant_id": "plants_05",
+          "full_name": "Elisa Rocha",
+          "role": "technician"
+        },
+        {
+          "id": "employees_06",
+          "plant_id": "plants_06",
+          "full_name": "Felipe Lima",
+          "role": "assembler"
+        },
+        {
+          "id": "employees_07",
+          "plant_id": "plants_07",
+          "full_name": "Gabriela Alves",
+          "role": "toolmaker"
+        },
+        {
+          "id": "employees_08",
+          "plant_id": "plants_08",
+          "full_name": "Hugo Santos",
+          "role": "machinist"
+        }
+      ]
+    },
+    {
+      "name": "work_centers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "plant_id",
+          "type": "text",
+          "references": "plants.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "hourly_cost_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "work_centers_01",
+          "plant_id": "plants_01",
+          "name": "Final assembly",
+          "hourly_cost_cents": 8500
+        },
+        {
+          "id": "work_centers_02",
+          "plant_id": "plants_02",
+          "name": "CNC turning",
+          "hourly_cost_cents": 16000
+        },
+        {
+          "id": "work_centers_03",
+          "plant_id": "plants_03",
+          "name": "Motor winding",
+          "hourly_cost_cents": 11000
+        },
+        {
+          "id": "work_centers_04",
+          "plant_id": "plants_04",
+          "name": "Weld station",
+          "hourly_cost_cents": 12500
+        },
+        {
+          "id": "work_centers_05",
+          "plant_id": "plants_05",
+          "name": "Control assembly",
+          "hourly_cost_cents": 9800
+        },
+        {
+          "id": "work_centers_06",
+          "plant_id": "plants_06",
+          "name": "Pump assembly",
+          "hourly_cost_cents": 10500
+        },
+        {
+          "id": "work_centers_07",
+          "plant_id": "plants_07",
+          "name": "Fixture machining",
+          "hourly_cost_cents": 14500
+        },
+        {
+          "id": "work_centers_08",
+          "plant_id": "plants_08",
+          "name": "Gear cutting",
+          "hourly_cost_cents": 17500
+        }
+      ]
+    },
+    {
+      "name": "materials",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "unit_id",
+          "type": "text",
+          "references": "units_of_measure.id"
+        },
+        {
+          "name": "sku",
+          "type": "text"
+        },
+        {
+          "name": "reorder_quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "materials_01",
+          "unit_id": "units_of_measure_02",
+          "sku": "STEEL-1045",
+          "reorder_quantity": 200
+        },
+        {
+          "id": "materials_02",
+          "unit_id": "units_of_measure_02",
+          "sku": "RESIN-ABS",
+          "reorder_quantity": 150
+        },
+        {
+          "id": "materials_03",
+          "unit_id": "units_of_measure_03",
+          "sku": "WIRE-CU",
+          "reorder_quantity": 500
+        },
+        {
+          "id": "materials_04",
+          "unit_id": "units_of_measure_01",
+          "sku": "BOLT-M8",
+          "reorder_quantity": 1000
+        },
+        {
+          "id": "materials_05",
+          "unit_id": "units_of_measure_01",
+          "sku": "MOTOR-075",
+          "reorder_quantity": 20
+        },
+        {
+          "id": "materials_06",
+          "unit_id": "units_of_measure_04",
+          "sku": "PAINT-BLUE",
+          "reorder_quantity": 60
+        },
+        {
+          "id": "materials_07",
+          "unit_id": "units_of_measure_01",
+          "sku": "BEARING-6205",
+          "reorder_quantity": 100
+        },
+        {
+          "id": "materials_08",
+          "unit_id": "units_of_measure_03",
+          "sku": "CABLE-4MM",
+          "reorder_quantity": 300
+        }
+      ]
+    },
+    {
+      "name": "supplier_materials",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "supplier_id",
+          "type": "text",
+          "references": "suppliers.id"
+        },
+        {
+          "name": "material_id",
+          "type": "text",
+          "references": "materials.id"
+        },
+        {
+          "name": "unit_cost_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "supplier_materials_01",
+          "supplier_id": "suppliers_01",
+          "material_id": "materials_01",
+          "unit_cost_cents": 850
+        },
+        {
+          "id": "supplier_materials_02",
+          "supplier_id": "suppliers_02",
+          "material_id": "materials_02",
+          "unit_cost_cents": 1850
+        },
+        {
+          "id": "supplier_materials_03",
+          "supplier_id": "suppliers_03",
+          "material_id": "materials_03",
+          "unit_cost_cents": 420
+        },
+        {
+          "id": "supplier_materials_04",
+          "supplier_id": "suppliers_04",
+          "material_id": "materials_04",
+          "unit_cost_cents": 65
+        },
+        {
+          "id": "supplier_materials_05",
+          "supplier_id": "suppliers_05",
+          "material_id": "materials_05",
+          "unit_cost_cents": 185000
+        },
+        {
+          "id": "supplier_materials_06",
+          "supplier_id": "suppliers_06",
+          "material_id": "materials_06",
+          "unit_cost_cents": 3200
+        },
+        {
+          "id": "supplier_materials_07",
+          "supplier_id": "suppliers_07",
+          "material_id": "materials_07",
+          "unit_cost_cents": 4500
+        },
+        {
+          "id": "supplier_materials_08",
+          "supplier_id": "suppliers_08",
+          "material_id": "materials_08",
+          "unit_cost_cents": 680
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "unit_id",
+          "type": "text",
+          "references": "units_of_measure.id"
+        },
+        {
+          "name": "sku",
+          "type": "text"
+        },
+        {
+          "name": "list_price_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "products_01",
+          "unit_id": "units_of_measure_01",
+          "sku": "PUMP-A20",
+          "list_price_cents": 420000
+        },
+        {
+          "id": "products_02",
+          "unit_id": "units_of_measure_01",
+          "sku": "FAN-B10",
+          "list_price_cents": 185000
+        },
+        {
+          "id": "products_03",
+          "unit_id": "units_of_measure_01",
+          "sku": "LIFT-DRIVE",
+          "list_price_cents": 980000
+        },
+        {
+          "id": "products_04",
+          "unit_id": "units_of_measure_01",
+          "sku": "VALVE-C30",
+          "list_price_cents": 125000
+        },
+        {
+          "id": "products_05",
+          "unit_id": "units_of_measure_01",
+          "sku": "PANEL-D40",
+          "list_price_cents": 650000
+        },
+        {
+          "id": "products_06",
+          "unit_id": "units_of_measure_01",
+          "sku": "PUMP-E50",
+          "list_price_cents": 580000
+        },
+        {
+          "id": "products_07",
+          "unit_id": "units_of_measure_01",
+          "sku": "JIG-F60",
+          "list_price_cents": 220000
+        },
+        {
+          "id": "products_08",
+          "unit_id": "units_of_measure_01",
+          "sku": "GEARBOX-G70",
+          "list_price_cents": 1250000
+        }
+      ]
+    },
+    {
+      "name": "bills_of_material",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "product_id",
+          "type": "text",
+          "references": "products.id"
+        },
+        {
+          "name": "revision",
+          "type": "text"
+        },
+        {
+          "name": "active",
+          "type": "boolean"
+        }
+      ],
+      "rows": [
+        {
+          "id": "bills_of_material_01",
+          "product_id": "products_01",
+          "revision": "A",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_02",
+          "product_id": "products_02",
+          "revision": "B",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_03",
+          "product_id": "products_03",
+          "revision": "A",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_04",
+          "product_id": "products_04",
+          "revision": "C",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_05",
+          "product_id": "products_05",
+          "revision": "A",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_06",
+          "product_id": "products_06",
+          "revision": "B",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_07",
+          "product_id": "products_07",
+          "revision": "D",
+          "active": true
+        },
+        {
+          "id": "bills_of_material_08",
+          "product_id": "products_08",
+          "revision": "A",
+          "active": true
+        }
+      ]
+    },
+    {
+      "name": "bom_components",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "bill_id",
+          "type": "text",
+          "references": "bills_of_material.id"
+        },
+        {
+          "name": "material_id",
+          "type": "text",
+          "references": "materials.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "bom_components_01",
+          "bill_id": "bills_of_material_01",
+          "material_id": "materials_01",
+          "quantity": 12
+        },
+        {
+          "id": "bom_components_02",
+          "bill_id": "bills_of_material_02",
+          "material_id": "materials_02",
+          "quantity": 4
+        },
+        {
+          "id": "bom_components_03",
+          "bill_id": "bills_of_material_03",
+          "material_id": "materials_03",
+          "quantity": 80
+        },
+        {
+          "id": "bom_components_04",
+          "bill_id": "bills_of_material_04",
+          "material_id": "materials_04",
+          "quantity": 16
+        },
+        {
+          "id": "bom_components_05",
+          "bill_id": "bills_of_material_05",
+          "material_id": "materials_05",
+          "quantity": 1
+        },
+        {
+          "id": "bom_components_06",
+          "bill_id": "bills_of_material_06",
+          "material_id": "materials_06",
+          "quantity": 3
+        },
+        {
+          "id": "bom_components_07",
+          "bill_id": "bills_of_material_07",
+          "material_id": "materials_07",
+          "quantity": 2
+        },
+        {
+          "id": "bom_components_08",
+          "bill_id": "bills_of_material_08",
+          "material_id": "materials_08",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "name": "warehouses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "plant_id",
+          "type": "text",
+          "references": "plants.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "warehouses_01",
+          "plant_id": "plants_01",
+          "name": "Assembly stores"
+        },
+        {
+          "id": "warehouses_02",
+          "plant_id": "plants_02",
+          "name": "Machining raw stock"
+        },
+        {
+          "id": "warehouses_03",
+          "plant_id": "plants_03",
+          "name": "Motor stores"
+        },
+        {
+          "id": "warehouses_04",
+          "plant_id": "plants_04",
+          "name": "Fabrication stores"
+        },
+        {
+          "id": "warehouses_05",
+          "plant_id": "plants_05",
+          "name": "Electronics stores"
+        },
+        {
+          "id": "warehouses_06",
+          "plant_id": "plants_06",
+          "name": "Pump parts"
+        },
+        {
+          "id": "warehouses_07",
+          "plant_id": "plants_07",
+          "name": "Tool crib"
+        },
+        {
+          "id": "warehouses_08",
+          "plant_id": "plants_08",
+          "name": "Drive stores"
+        }
+      ]
+    },
+    {
+      "name": "stock_lots",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "material_id",
+          "type": "text",
+          "references": "materials.id"
+        },
+        {
+          "name": "supplier_id",
+          "type": "text",
+          "references": "suppliers.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "stock_lots_01",
+          "warehouse_id": "warehouses_01",
+          "material_id": "materials_01",
+          "supplier_id": "suppliers_01",
+          "quantity": 450
+        },
+        {
+          "id": "stock_lots_02",
+          "warehouse_id": "warehouses_02",
+          "material_id": "materials_02",
+          "supplier_id": "suppliers_02",
+          "quantity": 280
+        },
+        {
+          "id": "stock_lots_03",
+          "warehouse_id": "warehouses_03",
+          "material_id": "materials_03",
+          "supplier_id": "suppliers_03",
+          "quantity": 1300
+        },
+        {
+          "id": "stock_lots_04",
+          "warehouse_id": "warehouses_04",
+          "material_id": "materials_04",
+          "supplier_id": "suppliers_04",
+          "quantity": 4200
+        },
+        {
+          "id": "stock_lots_05",
+          "warehouse_id": "warehouses_05",
+          "material_id": "materials_05",
+          "supplier_id": "suppliers_05",
+          "quantity": 42
+        },
+        {
+          "id": "stock_lots_06",
+          "warehouse_id": "warehouses_06",
+          "material_id": "materials_06",
+          "supplier_id": "suppliers_06",
+          "quantity": 120
+        },
+        {
+          "id": "stock_lots_07",
+          "warehouse_id": "warehouses_07",
+          "material_id": "materials_07",
+          "supplier_id": "suppliers_07",
+          "quantity": 250
+        },
+        {
+          "id": "stock_lots_08",
+          "warehouse_id": "warehouses_08",
+          "material_id": "materials_08",
+          "supplier_id": "suppliers_08",
+          "quantity": 900
+        }
+      ]
+    },
+    {
+      "name": "machines",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "work_center_id",
+          "type": "text",
+          "references": "work_centers.id"
+        },
+        {
+          "name": "asset_tag",
+          "type": "text"
+        },
+        {
+          "name": "service_interval_hours",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "machines_01",
+          "work_center_id": "work_centers_01",
+          "asset_tag": "ASSY-001",
+          "service_interval_hours": 500
+        },
+        {
+          "id": "machines_02",
+          "work_center_id": "work_centers_02",
+          "asset_tag": "CNC-014",
+          "service_interval_hours": 250
+        },
+        {
+          "id": "machines_03",
+          "work_center_id": "work_centers_03",
+          "asset_tag": "WIND-003",
+          "service_interval_hours": 400
+        },
+        {
+          "id": "machines_04",
+          "work_center_id": "work_centers_04",
+          "asset_tag": "WELD-007",
+          "service_interval_hours": 300
+        },
+        {
+          "id": "machines_05",
+          "work_center_id": "work_centers_05",
+          "asset_tag": "TEST-002",
+          "service_interval_hours": 600
+        },
+        {
+          "id": "machines_06",
+          "work_center_id": "work_centers_06",
+          "asset_tag": "PRESS-005",
+          "service_interval_hours": 350
+        },
+        {
+          "id": "machines_07",
+          "work_center_id": "work_centers_07",
+          "asset_tag": "MILL-009",
+          "service_interval_hours": 200
+        },
+        {
+          "id": "machines_08",
+          "work_center_id": "work_centers_08",
+          "asset_tag": "HOB-004",
+          "service_interval_hours": 250
+        }
+      ]
+    },
+    {
+      "name": "work_orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "product_id",
+          "type": "text",
+          "references": "products.id"
+        },
+        {
+          "name": "work_center_id",
+          "type": "text",
+          "references": "work_centers.id"
+        },
+        {
+          "name": "planned_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "due_date",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "work_orders_01",
+          "product_id": "products_01",
+          "work_center_id": "work_centers_01",
+          "planned_quantity": 20,
+          "due_date": "2026-11-10"
+        },
+        {
+          "id": "work_orders_02",
+          "product_id": "products_02",
+          "work_center_id": "work_centers_02",
+          "planned_quantity": 45,
+          "due_date": "2026-11-11"
+        },
+        {
+          "id": "work_orders_03",
+          "product_id": "products_01",
+          "work_center_id": "work_centers_03",
+          "planned_quantity": 8,
+          "due_date": "2026-11-12"
+        },
+        {
+          "id": "work_orders_04",
+          "product_id": "products_04",
+          "work_center_id": "work_centers_04",
+          "planned_quantity": 60,
+          "due_date": "2026-11-13"
+        },
+        {
+          "id": "work_orders_05",
+          "product_id": "products_05",
+          "work_center_id": "work_centers_05",
+          "planned_quantity": 12,
+          "due_date": "2026-11-14"
+        },
+        {
+          "id": "work_orders_06",
+          "product_id": "products_06",
+          "work_center_id": "work_centers_06",
+          "planned_quantity": 18,
+          "due_date": "2026-11-15"
+        },
+        {
+          "id": "work_orders_07",
+          "product_id": "products_05",
+          "work_center_id": "work_centers_07",
+          "planned_quantity": 30,
+          "due_date": "2026-11-16"
+        },
+        {
+          "id": "work_orders_08",
+          "product_id": "products_08",
+          "work_center_id": "work_centers_08",
+          "planned_quantity": 6,
+          "due_date": "2026-11-17"
+        }
+      ]
+    },
+    {
+      "name": "operations",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "work_order_id",
+          "type": "text",
+          "references": "work_orders.id"
+        },
+        {
+          "name": "machine_id",
+          "type": "text",
+          "references": "machines.id"
+        },
+        {
+          "name": "sequence",
+          "type": "integer"
+        },
+        {
+          "name": "planned_minutes",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "operations_01",
+          "work_order_id": "work_orders_01",
+          "machine_id": "machines_01",
+          "sequence": 10,
+          "planned_minutes": 360
+        },
+        {
+          "id": "operations_02",
+          "work_order_id": "work_orders_02",
+          "machine_id": "machines_02",
+          "sequence": 10,
+          "planned_minutes": 540
+        },
+        {
+          "id": "operations_03",
+          "work_order_id": "work_orders_03",
+          "machine_id": "machines_03",
+          "sequence": 10,
+          "planned_minutes": 420
+        },
+        {
+          "id": "operations_04",
+          "work_order_id": "work_orders_04",
+          "machine_id": "machines_04",
+          "sequence": 10,
+          "planned_minutes": 300
+        },
+        {
+          "id": "operations_05",
+          "work_order_id": "work_orders_05",
+          "machine_id": "machines_05",
+          "sequence": 10,
+          "planned_minutes": 480
+        },
+        {
+          "id": "operations_06",
+          "work_order_id": "work_orders_06",
+          "machine_id": "machines_06",
+          "sequence": 10,
+          "planned_minutes": 390
+        },
+        {
+          "id": "operations_07",
+          "work_order_id": "work_orders_07",
+          "machine_id": "machines_07",
+          "sequence": 10,
+          "planned_minutes": 450
+        },
+        {
+          "id": "operations_08",
+          "work_order_id": "work_orders_08",
+          "machine_id": "machines_08",
+          "sequence": 10,
+          "planned_minutes": 600
+        }
+      ]
+    },
+    {
+      "name": "production_runs",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "operation_id",
+          "type": "text",
+          "references": "operations.id"
+        },
+        {
+          "name": "employee_id",
+          "type": "text",
+          "references": "employees.id"
+        },
+        {
+          "name": "completed_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "scrap_quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "production_runs_01",
+          "operation_id": "operations_01",
+          "employee_id": "employees_01",
+          "completed_quantity": 20,
+          "scrap_quantity": 0
+        },
+        {
+          "id": "production_runs_02",
+          "operation_id": "operations_02",
+          "employee_id": "employees_02",
+          "completed_quantity": 44,
+          "scrap_quantity": 1
+        },
+        {
+          "id": "production_runs_03",
+          "operation_id": "operations_03",
+          "employee_id": "employees_03",
+          "completed_quantity": 8,
+          "scrap_quantity": 0
+        },
+        {
+          "id": "production_runs_04",
+          "operation_id": "operations_04",
+          "employee_id": "employees_04",
+          "completed_quantity": 58,
+          "scrap_quantity": 2
+        },
+        {
+          "id": "production_runs_05",
+          "operation_id": "operations_05",
+          "employee_id": "employees_05",
+          "completed_quantity": 12,
+          "scrap_quantity": 0
+        },
+        {
+          "id": "production_runs_06",
+          "operation_id": "operations_06",
+          "employee_id": "employees_06",
+          "completed_quantity": 18,
+          "scrap_quantity": 0
+        },
+        {
+          "id": "production_runs_07",
+          "operation_id": "operations_07",
+          "employee_id": "employees_07",
+          "completed_quantity": 29,
+          "scrap_quantity": 1
+        },
+        {
+          "id": "production_runs_08",
+          "operation_id": "operations_08",
+          "employee_id": "employees_08",
+          "completed_quantity": 6,
+          "scrap_quantity": 0
+        }
+      ]
+    },
+    {
+      "name": "quality_checks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "production_run_id",
+          "type": "text",
+          "references": "production_runs.id"
+        },
+        {
+          "name": "inspector_id",
+          "type": "text",
+          "references": "employees.id"
+        },
+        {
+          "name": "result",
+          "type": "text"
+        },
+        {
+          "name": "defect_count",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "quality_checks_01",
+          "production_run_id": "production_runs_01",
+          "inspector_id": "employees_02",
+          "result": "pass",
+          "defect_count": 0
+        },
+        {
+          "id": "quality_checks_02",
+          "production_run_id": "production_runs_02",
+          "inspector_id": "employees_03",
+          "result": "rework",
+          "defect_count": 1
+        },
+        {
+          "id": "quality_checks_03",
+          "production_run_id": "production_runs_03",
+          "inspector_id": "employees_04",
+          "result": "pass",
+          "defect_count": 0
+        },
+        {
+          "id": "quality_checks_04",
+          "production_run_id": "production_runs_04",
+          "inspector_id": "employees_05",
+          "result": "hold",
+          "defect_count": 2
+        },
+        {
+          "id": "quality_checks_05",
+          "production_run_id": "production_runs_05",
+          "inspector_id": "employees_06",
+          "result": "pass",
+          "defect_count": 0
+        },
+        {
+          "id": "quality_checks_06",
+          "production_run_id": "production_runs_06",
+          "inspector_id": "employees_07",
+          "result": "pass",
+          "defect_count": 0
+        },
+        {
+          "id": "quality_checks_07",
+          "production_run_id": "production_runs_07",
+          "inspector_id": "employees_08",
+          "result": "rework",
+          "defect_count": 1
+        },
+        {
+          "id": "quality_checks_08",
+          "production_run_id": "production_runs_08",
+          "inspector_id": "employees_01",
+          "result": "pass",
+          "defect_count": 0
+        }
+      ]
+    },
+    {
+      "name": "purchase_orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "supplier_id",
+          "type": "text",
+          "references": "suppliers.id"
+        },
+        {
+          "name": "warehouse_id",
+          "type": "text",
+          "references": "warehouses.id"
+        },
+        {
+          "name": "ordered_date",
+          "type": "text"
+        },
+        {
+          "name": "total_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "purchase_orders_01",
+          "supplier_id": "suppliers_01",
+          "warehouse_id": "warehouses_01",
+          "ordered_date": "2026-11-01",
+          "total_cents": 170000
+        },
+        {
+          "id": "purchase_orders_02",
+          "supplier_id": "suppliers_02",
+          "warehouse_id": "warehouses_02",
+          "ordered_date": "2026-11-02",
+          "total_cents": 277500
+        },
+        {
+          "id": "purchase_orders_03",
+          "supplier_id": "suppliers_03",
+          "warehouse_id": "warehouses_03",
+          "ordered_date": "2026-11-03",
+          "total_cents": 210000
+        },
+        {
+          "id": "purchase_orders_04",
+          "supplier_id": "suppliers_04",
+          "warehouse_id": "warehouses_04",
+          "ordered_date": "2026-11-04",
+          "total_cents": 65000
+        },
+        {
+          "id": "purchase_orders_05",
+          "supplier_id": "suppliers_05",
+          "warehouse_id": "warehouses_05",
+          "ordered_date": "2026-11-05",
+          "total_cents": 3700000
+        },
+        {
+          "id": "purchase_orders_06",
+          "supplier_id": "suppliers_06",
+          "warehouse_id": "warehouses_06",
+          "ordered_date": "2026-11-06",
+          "total_cents": 192000
+        },
+        {
+          "id": "purchase_orders_07",
+          "supplier_id": "suppliers_07",
+          "warehouse_id": "warehouses_07",
+          "ordered_date": "2026-11-07",
+          "total_cents": 450000
+        },
+        {
+          "id": "purchase_orders_08",
+          "supplier_id": "suppliers_08",
+          "warehouse_id": "warehouses_08",
+          "ordered_date": "2026-11-08",
+          "total_cents": 204000
+        }
+      ]
+    },
+    {
+      "name": "purchase_order_lines",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "purchase_order_id",
+          "type": "text",
+          "references": "purchase_orders.id"
+        },
+        {
+          "name": "material_id",
+          "type": "text",
+          "references": "materials.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        },
+        {
+          "name": "unit_cost_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "purchase_order_lines_01",
+          "purchase_order_id": "purchase_orders_01",
+          "material_id": "materials_01",
+          "quantity": 200,
+          "unit_cost_cents": 850
+        },
+        {
+          "id": "purchase_order_lines_02",
+          "purchase_order_id": "purchase_orders_02",
+          "material_id": "materials_02",
+          "quantity": 150,
+          "unit_cost_cents": 1850
+        },
+        {
+          "id": "purchase_order_lines_03",
+          "purchase_order_id": "purchase_orders_03",
+          "material_id": "materials_03",
+          "quantity": 500,
+          "unit_cost_cents": 420
+        },
+        {
+          "id": "purchase_order_lines_04",
+          "purchase_order_id": "purchase_orders_04",
+          "material_id": "materials_04",
+          "quantity": 1000,
+          "unit_cost_cents": 65
+        },
+        {
+          "id": "purchase_order_lines_05",
+          "purchase_order_id": "purchase_orders_05",
+          "material_id": "materials_05",
+          "quantity": 20,
+          "unit_cost_cents": 185000
+        },
+        {
+          "id": "purchase_order_lines_06",
+          "purchase_order_id": "purchase_orders_06",
+          "material_id": "materials_06",
+          "quantity": 60,
+          "unit_cost_cents": 3200
+        },
+        {
+          "id": "purchase_order_lines_07",
+          "purchase_order_id": "purchase_orders_07",
+          "material_id": "materials_07",
+          "quantity": 100,
+          "unit_cost_cents": 4500
+        },
+        {
+          "id": "purchase_order_lines_08",
+          "purchase_order_id": "purchase_orders_08",
+          "material_id": "materials_08",
+          "quantity": 300,
+          "unit_cost_cents": 680
+        }
+      ]
+    },
+    {
+      "name": "sales_orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "customer_id",
+          "type": "text",
+          "references": "customers.id"
+        },
+        {
+          "name": "ordered_date",
+          "type": "text"
+        },
+        {
+          "name": "total_cents",
+          "type": "integer"
+        },
+        {
+          "name": "status",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "sales_orders_01",
+          "customer_id": "customers_01",
+          "ordered_date": "2026-11-01",
+          "total_cents": 8400000,
+          "status": "confirmed"
+        },
+        {
+          "id": "sales_orders_02",
+          "customer_id": "customers_02",
+          "ordered_date": "2026-11-02",
+          "total_cents": 8325000,
+          "status": "in_production"
+        },
+        {
+          "id": "sales_orders_03",
+          "customer_id": "customers_03",
+          "ordered_date": "2026-11-03",
+          "total_cents": 3360000,
+          "status": "confirmed"
+        },
+        {
+          "id": "sales_orders_04",
+          "customer_id": "customers_04",
+          "ordered_date": "2026-11-04",
+          "total_cents": 7500000,
+          "status": "quality_hold"
+        },
+        {
+          "id": "sales_orders_05",
+          "customer_id": "customers_05",
+          "ordered_date": "2026-11-05",
+          "total_cents": 7800000,
+          "status": "confirmed"
+        },
+        {
+          "id": "sales_orders_06",
+          "customer_id": "customers_06",
+          "ordered_date": "2026-11-06",
+          "total_cents": 10440000,
+          "status": "in_production"
+        },
+        {
+          "id": "sales_orders_07",
+          "customer_id": "customers_07",
+          "ordered_date": "2026-11-07",
+          "total_cents": 19500000,
+          "status": "confirmed"
+        },
+        {
+          "id": "sales_orders_08",
+          "customer_id": "customers_08",
+          "ordered_date": "2026-11-08",
+          "total_cents": 7500000,
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "name": "sales_order_lines",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "sales_order_id",
+          "type": "text",
+          "references": "sales_orders.id"
+        },
+        {
+          "name": "product_id",
+          "type": "text",
+          "references": "products.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        },
+        {
+          "name": "unit_price_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "sales_order_lines_01",
+          "sales_order_id": "sales_orders_01",
+          "product_id": "products_01",
+          "quantity": 20,
+          "unit_price_cents": 420000
+        },
+        {
+          "id": "sales_order_lines_02",
+          "sales_order_id": "sales_orders_02",
+          "product_id": "products_02",
+          "quantity": 45,
+          "unit_price_cents": 185000
+        },
+        {
+          "id": "sales_order_lines_03",
+          "sales_order_id": "sales_orders_03",
+          "product_id": "products_01",
+          "quantity": 8,
+          "unit_price_cents": 420000
+        },
+        {
+          "id": "sales_order_lines_04",
+          "sales_order_id": "sales_orders_04",
+          "product_id": "products_04",
+          "quantity": 60,
+          "unit_price_cents": 125000
+        },
+        {
+          "id": "sales_order_lines_05",
+          "sales_order_id": "sales_orders_05",
+          "product_id": "products_05",
+          "quantity": 12,
+          "unit_price_cents": 650000
+        },
+        {
+          "id": "sales_order_lines_06",
+          "sales_order_id": "sales_orders_06",
+          "product_id": "products_06",
+          "quantity": 18,
+          "unit_price_cents": 580000
+        },
+        {
+          "id": "sales_order_lines_07",
+          "sales_order_id": "sales_orders_07",
+          "product_id": "products_05",
+          "quantity": 30,
+          "unit_price_cents": 650000
+        },
+        {
+          "id": "sales_order_lines_08",
+          "sales_order_id": "sales_orders_08",
+          "product_id": "products_08",
+          "quantity": 6,
+          "unit_price_cents": 1250000
+        }
+      ]
+    }
+  ],
+  "target": {
+    "table": "sales_order_lines",
+    "column": "unit_price_cents",
+    "key": "sales_order_lines_08"
+  },
+  "aggregate": {
+    "table": "sales_order_lines",
+    "column": "unit_price_cents"
+  },
+  "join": {
+    "from_table": "work_orders",
+    "fk": "product_id",
+    "to_table": "products",
+    "column": "sku"
+  },
+  "workflow": "Procure and receive material lots, release a bill of material and work order, record machine production and inspection, then fulfill a customer order.",
+  "limitations": [
+    "Money uses integer BRL cents; material quantities use their referenced unit with whole-unit precision. Each bill and order has one representative line. Unit conversion, multi-level BOMs, yield accounting, inventory valuation, serial traceability, and enforceable material availability are beyond this fixture."
+  ]
+}
