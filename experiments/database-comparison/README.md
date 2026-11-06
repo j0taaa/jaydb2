@@ -107,3 +107,23 @@ python3 experiments/database-comparison/analyze.py build/database-comparison-fin
 It validates every stored timing summary against checked samples and keeps
 completed engine failures visible. Failed/partial runs with a fatal top-level
 error cannot produce passing performance evidence.
+
+The retained 6 November run has a special, explicit provenance audit: another
+session added two contract modules after the measured services had frozen their
+sources, tripping the repository-wide inventory guard. All original bytes and
+all ten stored environment hashes were verified independently. The raw guard
+failure remains in [evidence/raw-result.json](evidence/raw-result.json); the
+[evidence notes](evidence/README.md) explain the derived analysis input.
+With the original run files and matching experiment checkout, reproduce it with:
+
+```sh
+python3 experiments/database-comparison/audit.py \
+  build/database-comparison-final/result.json \
+  --derived build/database-comparison-analysis/audited-result.json \
+  --evidence experiments/database-comparison/evidence
+python3 experiments/database-comparison/analyze.py \
+  build/database-comparison-analysis/audited-result.json
+```
+
+Use a dedicated checkout for future measurements; the runner intentionally
+rejects repository inventory changes rather than silently ignoring them.
