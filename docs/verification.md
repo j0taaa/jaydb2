@@ -64,3 +64,8 @@ to the terminal and can be captured with normal shell redirection.
 
 Workflow files being present does not establish that GitHub-hosted jobs have
 run. Local validation and hosted results are separate evidence.
+
+The [accessory validation record](accessory-validation.md) lists the completed
+local and hosted checks and their exact scope. Run checks from a frozen checkout;
+editing a running shell script can invalidate the wrapper result even after its
+child test command completes successfully.

@@ -22,7 +22,9 @@ remain excluded. Saved development images require their exact environment;
 no migration or compatibility layer is added.
 
 See [verification](docs/verification.md) for the new local/CI entry points.
-Adding workflow files is not a claim that GitHub-hosted checks have run.
+The [accessory validation record](docs/accessory-validation.md) records the
+actual hosted smoke success and local native/application checks. Hosted full
+release execution remains separate from the local test results.
 
 # Earlier unreleased work: prepared programs and optional Bend helpers
 

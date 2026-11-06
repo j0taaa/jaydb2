@@ -49,15 +49,27 @@ distribution or native build. `node --check applications/tasks/tasks.ts` and
 also passed. The latter uses the thin client package's development-only compiler
 and Node types; the TypeScript application has no runtime npm dependencies.
 
-The separate native acceptance case is
-`python3 -B -m unittest tests.accessories.test_tasks_native -v`, run under the
-shared heavy-work lock after building JayDB2. It checks the actual TypeScript
+The separate native acceptance case,
+`python3 -B -m unittest tests.accessories.test_tasks_native -v`, passed locally
+in 101.441 seconds under the shared heavy-work lock after building JayDB2.
+It checked the actual TypeScript
 and Python clients, durable restart without a seed, exact task contents,
 completion, refusal rollback, Bob isolation, invalid credentials, second-create
-rejection and unchanged staged configuration. Its final run is coordinated with
-the accessory release gate; do not infer a completed native result from this
-static test description.
+rejection and unchanged staged configuration. It ran as part of the accessory
+release gate, with the original application program, proofs and laws unchanged.
+The [accessory validation record](../../docs/accessory-validation.md) distinguishes
+this local native result from the hosted smoke job and longer release checks.
 
 A scripted acceptance session establishes correctness of the demonstrated
 workflow. It is not evidence of long-term adoption, external users or sustained
 daily use. Future usability issues should be recorded from actual sessions.
+
+## Actual polish work list
+
+The parent session also used the TypeScript CLI for the real quickstart, proof
+starter, client, verification and task-app work items. Nineteen invocations saved,
+completed and reopened all five, checked another identity and refused an update
+without altering the saved title. The local workspace is retained at
+`.build/tasks/polish-workflow`; `--storage-mode open --command list` reads it.
+Its ignored image is not shipped as source or a production seed. This is actual
+use within the development session, not a claim of external or long-term use.
