@@ -209,3 +209,19 @@ python3 -B -m unittest discover -s experiments/database-comparison -p 'test_*.py
 CLI exit codes are 0 for a passed configured gate, 1 for a failed gate, and 2
 for invalid/incompatible inputs. Output directories must be new, preserving
 earlier evidence and making this suitable for an optional CI performance job.
+
+For a three-run follow-up containing a baseline, an unchanged-workload engine
+candidate and the optional `single-call-queries-v1` profile, create combined
+JSON, Markdown, PNG/SVG and HTML evidence with:
+
+```sh
+/path/to/python-with-matplotlib experiments/database-comparison/performance_report.py \
+  build/performance-before/result.json build/performance-after/result.json \
+  build/comparison-single-call-queries/result.json --output build/performance-summary
+```
+
+The summary requires all thirty databases to pass in each run, validates matched
+settings/profile identities using the comparator, and checks final data hashes
+across all nine matching engine/run records per scenario. Its output directory
+must be new. Run `compare.py` separately for configured latency/setup gate results;
+the visual summary exposes measurements and does not replace those gates.
