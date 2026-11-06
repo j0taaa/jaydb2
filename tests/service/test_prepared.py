@@ -84,7 +84,8 @@ class PreparedTests(unittest.TestCase):
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
-            self.assertIn('Prepared.resolve_analysis(', (prepared/'Main.bend').read_text())
+            self.assertIn('Prepared.resolve_analysis(FastInput.analyze(',
+                          (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             for source in prepared.rglob('*.bend'):
                 self.assertNotIn('alice-token', source.read_text())

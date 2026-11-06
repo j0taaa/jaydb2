@@ -36,5 +36,7 @@ import ./PreparedExtension.bend as PreparedExtension
 import ./PreparedControls.bend as PreparedControls
 import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing
+import ./FastBytes.bend as FastBytes
+import ./OptimizedInput.bend as OptimizedInput
 
 import ./ReadBatches.bend as ReadBatches

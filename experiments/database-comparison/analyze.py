@@ -20,6 +20,7 @@ import math
 from pathlib import Path
 import re
 import statistics
+from model import equal
 
 ROOT = Path(__file__).resolve().parents[2]
 ENGINES = ('jaydb2', 'postgresql', 'sqlite')
@@ -113,7 +114,7 @@ def load_checked(path, scenario_dir=None):
             if record['status'] == 'failed':
                 continue
             require(set(record['summary']) == expected_workloads, f'Missing or extra workload: {scenario}/{engine}')
-            require(all(sample.get('checked') is True and sample['actual'] == sample['expected']
+            require(all(sample.get('checked') is True and equal(sample['actual'], sample['expected'])
                         for sample in record['samples']), f'Unchecked or incorrect sample: {scenario}/{engine}')
             for workload in WORKLOADS:
                 if workload not in expected_workloads:

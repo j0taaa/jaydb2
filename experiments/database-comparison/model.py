@@ -8,6 +8,17 @@ from pathlib import Path
 NAME = re.compile(r'[a-z][a-z0-9_]{0,62}\Z')
 
 
+def equal(actual, expected):
+    """Compare canonical values recursively without Python bool/int coercion."""
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(expected, dict):
+        return actual.keys() == expected.keys() and all(equal(actual[k], v) for k, v in expected.items())
+    if isinstance(expected, list):
+        return len(actual) == len(expected) and all(equal(a, b) for a, b in zip(actual, expected))
+    return actual == expected
+
+
 def validate(s):
     assert NAME.fullmatch('s' + s['id'])
     seen = {}

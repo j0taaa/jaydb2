@@ -107,11 +107,13 @@ image, atomically replaces the authoritative image, and synchronizes the
 directory before RAM publication and response delivery. Errors from replacement
 onward stop the instance with no response, since rollback may be false. Missing,
 corrupt or incompatible images stop startup; no seed or older image is used as
-fallback. Users and all tables survive; prepared handles do not. The certified
-batch path enabled by `--read-workers` greater than one checks that successful
-returned state equals the already durable pinned root, discards that copy, and
-does not rewrite the snapshot. Default one-worker reads retain serial
-publication and persistence behavior, even when their state is unchanged.
+fallback. Users and all tables survive; prepared handles do not. The
+certified-read path checks that successful returned state equals the already
+durable pinned root, discards that copy, and does not rewrite the snapshot.
+This includes singleton groups with the default `--read-workers 1`; only
+explicitly read-only-certified prepared programs use this path. Ordinary and
+write-capable prepared requests retain serial durable publication even when
+their returned state happens to be unchanged.
 
 Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable

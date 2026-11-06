@@ -145,6 +145,23 @@ explicit bridge obligations supported by focused tests and review. Neither the
 normalization proof nor the new model proofs silently extends the legacy
 ordinary-wire eight-law theorem to the full prepared executable.
 
+## Equivalent fast input entry
+
+Native authentication and execution now call `OptimizedInput.analyze`. The
+`proof/OptimizedInput.bend` theorems establish equality to the original
+`Input.decode` and `Input.analyze` for every byte sequence, schema and limits,
+without assuming valid input or credentials. Its exact private authentication
+output is also proved equal. The original eight-law models and contract
+functions are unchanged; this equality supplies the source-level bridge to
+the executed entry. It does not prove the Rust/Node/C/OS bridge.
+
+`proof/FastBytes.bend` proves the checked conversion equals `Bytes.nat64` for
+every natural, including overflow. The shortcut returns a U32-derived value
+only after its exact natural roundtrip matches the input. Otherwise the proved
+tail conversion implements the original result. No logical ceiling is lowered
+and no malformed-input, authentication or publication check is omitted. The
+official compiler and runtime remain unchanged.
+
 ## Optional administrator service timing
 
 [`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in

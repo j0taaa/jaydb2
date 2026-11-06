@@ -39,14 +39,20 @@ process. Successful proposed state must equal the pinned state as an additional
 check; returned states are then discarded.
 
 The single coordinator emits in FIFO order. Read successes update the published
-last-success response in that order. With storage enabled, the batching path
-(`--read-workers` greater than one) borrows an already durable root and does not
-replace its image again. The default one-worker serial path still persists
-successful state proposals, including unchanged certified reads. Writes use
-the durable publication boundary. All earlier read emissions must succeed
-before an exclusive request starts. A write/flush failure stops dispatch and
+last-success response in that order. With storage enabled, every certified-read
+group borrows an already durable root and does not replace its image again.
+This also applies to singleton groups with the default `--read-workers 1`:
+reader count controls overlap, not whether a certified unchanged root needs
+another commit. Uncertified programs, including ordinary read-shaped requests,
+retain the durable publication boundary, as do all write-capable programs.
+All earlier read emissions must succeed before an exclusive request starts.
+A write/flush failure stops dispatch and
 joins every already-active read; there is no rollback or retry. Cleanup waits
 for active certified computations rather than cancelling them at a deadline.
+
+Administrator timing records mark this certified-read path with
+`read_batch: true`, including a singleton group. The flag describes the checked pinned-root
+path; it does not assert that another request actually overlapped it.
 
 Retained work is bounded by the existing framing queue, at most N active bodies
 and native pipelines, and at most N ready response frames. One host state is
@@ -66,3 +72,8 @@ hold two real checked worker processes concurrently with a test-only preload
 adapter and verify writes, credential rotation, invalidation, failure, delivery
 cleanup and persistent reopening. See the experiment report for actual checks
 and results.
+
+Those source theorems quantify over finite call lists, including singleton
+lists; selecting a one-request certified group uses the existing refinement.
+The Rust scheduling, artifact, storage and delivery effects remain the same
+explicit host bridge obligations rather than new mechanically verified code.

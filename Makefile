@@ -16,6 +16,22 @@ test-sql:
 	npm --prefix clients/sql run check
 	npm --prefix clients/sql test
 
+# A new output directory is required for each real-engine measurement.
+.PHONY: test-database-benchmark benchmark-databases
+test-database-benchmark:
+	python3 -B -m unittest discover -s experiments/database-comparison -p 'test_*.py' -v
+	python3 -B -m unittest discover -s experiments/database-comparison/query -p 'test_*.py' -v
+	python3 -B experiments/database-comparison/materialize.py --check
+
+benchmark-databases:
+	test -n "$(BENCHMARK_OUTPUT)"
+	experiments/database-comparison/run.sh --output "$(BENCHMARK_OUTPUT)" $(BENCHMARK_ARGS)
+
+# Caller holds the heavy-work lock, as for all other native integration gates.
+.PHONY: test-query-profile-native
+test-query-profile-native: build
+	python3 -B experiments/database-comparison/query/check.py --output build/query-profile-check-$$(date -u +%Y%m%dT%H%M%SZ)-$$$$
+
 # Caller holds the common heavy-work lock. Uses the real official toolchain.
 test-sql-native: build
 	python3 -B applications/sql/check.py

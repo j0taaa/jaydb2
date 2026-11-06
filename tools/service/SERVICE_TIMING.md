@@ -53,6 +53,10 @@ are logged even when a preceding delivery fails and their responses are
 suppressed. A process kill, aborted thread start, panic or request that never
 finishes can leave no completion record. No cancellation or deadline is added.
 
+`read_batch: true` identifies this certified pinned-root path, including a
+singleton group with `--read-workers 1`. It does not by itself establish that
+two requests overlapped. Ordinary and write-capable calls retain `false`.
+
 Intermediate inspection during execution remains part of service time; final
 inspection, log serialization/write/lock waiting, FIFO response waiting and
 client write/flush are excluded. Overlapping requests each accumulate their

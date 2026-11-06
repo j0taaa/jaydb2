@@ -21,6 +21,7 @@ export TMPDIR="$check_tmp"
 export BEND_NO_TELEMETRY=1
 printf 'Checking %s at %s\n' "$mode" "$(git rev-parse HEAD)"
 make test-accessories
+make test-database-benchmark
 cargo test --locked
 cargo fmt --check
 cargo clippy --locked --all-targets -- -D warnings
@@ -30,5 +31,5 @@ python3 -B -m unittest experiments.baseline.test_bench -v
 python3 -B -m unittest discover -s experiments/integration/benchmark -p test_bench.py -v
 if [[ "$mode" == full ]]; then
   # Fail on new application/client boundaries before the longer core aggregates.
-  make build test-accessories-native verify-integration test test-library test-feature-integration test-recovery-integration test-demo-web
+  make build test-accessories-native test-query-profile-native verify-integration test test-library test-feature-integration test-recovery-integration test-demo-web
 fi

@@ -226,7 +226,12 @@ pub(super) fn coordinate(
     loop {
         let response = match queue.select() {
             FrameEvent::Request(body) => {
-                if service.max_readers() > 1 && service.is_read(&body) {
+                // A certified read borrows the already-published durable root
+                // even when its fixed group contains one request. Reader count
+                // controls overlap, not whether an unchanged root needs another
+                // commit. Full authentication and native validation still run
+                // inside Service::reads; this selection grants no authority.
+                if service.is_read(&body) {
                     let mut batch = vec![body];
                     while batch.len() < service.max_readers() {
                         match queue.select_if(|next| service.is_read(next)) {
@@ -262,6 +267,7 @@ mod coordinator_tests {
     use std::io::{self, Cursor, Write};
 
     struct Model {
+        readers: usize,
         credential: u8,
         registered: bool,
         batches: Vec<Vec<Vec<u8>>>,
@@ -270,6 +276,7 @@ mod coordinator_tests {
     impl Model {
         fn new() -> Self {
             Self {
+                readers: 2,
                 credential: b'a',
                 registered: true,
                 batches: vec![],
@@ -294,7 +301,7 @@ mod coordinator_tests {
     }
     impl Service for Model {
         fn max_readers(&self) -> usize {
-            2
+            self.readers
         }
         fn is_read(&self, body: &[u8]) -> bool {
             self.registered && body[0] == b'r'
@@ -340,6 +347,28 @@ mod coordinator_tests {
             [
                 vec![b"ra".to_vec(), b"ra".to_vec()],
                 vec![b"ra".to_vec(), b"rb".to_vec()]
+            ]
+        );
+        assert_eq!(
+            model.exclusive,
+            [b"wb".to_vec(), b"i".to_vec(), b"rb".to_vec()]
+        );
+    }
+    #[test]
+    fn one_reader_uses_certified_groups_and_preserves_write_and_control_barriers() {
+        let queue = queue(&[b"ra", b"ra", b"wb", b"ra", b"rb", b"i", b"rb"]);
+        let mut model = Model::new();
+        model.readers = 1;
+        let mut output = Vec::new();
+        coordinate(&queue, &mut output, &mut model).unwrap();
+        assert_eq!(output, b"aaw!bir");
+        assert_eq!(
+            model.batches,
+            [
+                vec![b"ra".to_vec()],
+                vec![b"ra".to_vec()],
+                vec![b"ra".to_vec()],
+                vec![b"rb".to_vec()],
             ]
         );
         assert_eq!(

@@ -1,4 +1,5 @@
 """Checked read admission and real native read execution; FIFO tests below."""
+import json
 import os
 import socket
 import subprocess
@@ -15,6 +16,82 @@ PROOF = (ROOT/'experiments/concurrency/ReadProof.bend').read_text()
 
 
 class ReadBatchTests(unittest.TestCase):
+    def test_single_reader_reuses_durable_root_and_preserves_authentication_and_barriers(self):
+        with tempfile.TemporaryDirectory(prefix='jaydb-single-read-') as temporary:
+            directory = Path(temporary)
+            storage, timing = directory/'db', directory/'timing.ndjson'
+            server = Server(ROOT/'examples/credential-exchange', threads=1,
+                            options=['--storage', str(storage), '--storage-mode', 'create',
+                                     '--timing-log', str(timing)])
+            self.addCleanup(server.close)
+            read = server.prepared(3, CODE, 'alice-token', proof=PROOF)
+            self.assertEqual(read['status'], 'prepared', server.diagnostics())
+            handle = read['value']
+            image = storage/'snapshot'
+            before, inode = image.read_bytes(), image.stat().st_ino
+            for credential, arguments, expected in [
+                ('alice-token', None, {'status': 'success', 'value': 'alice-token'}),
+                ('bob-token', 37, {'status': 'success', 'value': 37}),
+                ('invalid', None, {'status': 'authentication', 'value': None}),
+                ('alice-token', True, {'status': 'failure', 'value': None}),
+            ]:
+                self.assertEqual(server.prepared(1, handle, credential, arguments),
+                                 expected, server.diagnostics())
+                self.assertEqual(image.read_bytes(), before)
+                self.assertEqual(image.stat().st_ino, inode,
+                                 'certified singleton read must not replace the durable root')
+            records = [json.loads(line) for line in timing.read_text().splitlines()]
+            self.assertEqual([r['read_batch'] for r in records], [False, True, True, True, True])
+            # A read-shaped program without the additional read certificate still
+            # follows ordinary durable publication, including replacing its image.
+            ordinary_proof = PROOF.replace('def B.read_only(ctx, args):\n  (2n, read_only(ctx, args))', '')
+            ordinary = server.prepared(0, CODE, 'alice-token', proof=ordinary_proof)
+            self.assertEqual(ordinary['status'], 'prepared', server.diagnostics())
+            self.assertEqual(server.prepared(1, ordinary['value'], 'alice-token'),
+                             {'status': 'success', 'value': 'alice-token'})
+            self.assertNotEqual(image.stat().st_ino, inode,
+                                'uncertified reads retain the ordinary commit boundary')
+            writecode = (ROOT/'examples/credentials/Client.bend').read_text()
+            writeproof = universal_access_proof((ROOT/'examples/credentials/ClientProof.bend').read_text())
+            write = server.prepared(0, writecode, 'alice-token', proof=writeproof)
+            self.assertEqual(write['status'], 'prepared', server.diagnostics())
+            messages = [
+                prepared_frame(1, handle, 'alice-token', 11),
+                prepared_frame(1, write['value'], 'alice-token', 'fresh-token'),
+                prepared_frame(1, handle, 'alice-token'),
+                prepared_frame(1, handle, 'fresh-token'),
+                prepared_frame(2, handle, 'fresh-token'),
+                prepared_frame(1, handle, 'fresh-token'),
+            ]
+            server.process.stdin.write(b''.join(messages))
+            server.process.stdin.flush()
+            for expected in [
+                {'status': 'success', 'value': 11},
+                {'status': 'success', 'value': 'fresh-token'},
+                {'status': 'authentication', 'value': None},
+                {'status': 'success', 'value': 'fresh-token'},
+                {'status': 'invalidated', 'value': None},
+                {'status': 'failure', 'value': None},
+            ]:
+                header = server.read(8)
+                self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))),
+                                 expected, server.diagnostics())
+            self.assertIn(b'fresh-token', image.read_bytes())
+            self.assertNotIn(b'alice-token', image.read_bytes())
+            server.finish()
+            reopened = Server(ROOT/'examples/credential-exchange', threads=1, seed=False,
+                              options=['--storage', str(storage), '--storage-mode', 'open'])
+            self.addCleanup(reopened.close)
+            self.assertEqual(reopened.prepared(1, handle, 'fresh-token'),
+                             {'status': 'failure', 'value': None}, 'restart must lose prepared handles')
+            read = reopened.prepared(3, CODE, 'fresh-token', proof=PROOF)
+            self.assertEqual(read['status'], 'prepared', reopened.diagnostics())
+            inode = image.stat().st_ino
+            self.assertEqual(reopened.prepared(1, read['value'], 'fresh-token'),
+                             {'status': 'success', 'value': 'fresh-token'})
+            self.assertEqual(image.stat().st_ino, inode)
+            reopened.finish()
+
     def test_checked_read_preparation_and_native_failures(self):
         server = Server(ROOT/'examples/credential-exchange', threads=2, options=['--read-workers', '2'])
         self.addCleanup(server.close)

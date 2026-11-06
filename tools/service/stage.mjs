@@ -63,14 +63,16 @@ def main() -> IO(Unit):
 // || frame(code) || frame(proof) || frame(instance) || links remainder.
 const PREPROCESS = COMMON + `import ./Input.bend as E
 import ./Messages.bend as M
+import ./OptimizedInput.bend as FastInput
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    Native.write(M.FUNCTION(E.PARSER(bytes, S.schema(C.config()), S.limits(C.config()))))
+    Native.write(M.FUNCTION(FastInput.PARSER(bytes, S.schema(C.config()), S.limits(C.config()))))
 `;
 const EXECUTE = COMMON + `import ./Protocol.bend as P
 import ./Input.bend as Input
+import ./OptimizedInput.bend as FastInput
 import ./Execution.bend as E
 import ./Client.bend as Client
 import ./ClientProof.bend as ClientProof
@@ -103,7 +105,7 @@ def launch(input: Input.Analysis) -> IO(Unit):
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))
+    launch(FastInput.analyze(bytes, S.schema(C.config()), S.limits(C.config())))
 `;
 
 function imports(data) {
@@ -238,8 +240,8 @@ function stage(environment, directory, purpose, metadata) {
     main = ['prepare', 'prepare-read'].includes(purpose)
       ? EXECUTE.replace('import ./Input.bend as Input',
           'import ./Input.bend as Input\nimport ./Prepared.bend as Prepared')
-        .replace('launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))',
-          'launch(Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source()))')
+        .replace('launch(FastInput.analyze(bytes, S.schema(C.config()), S.limits(C.config())))',
+          'launch(Prepared.resolve_analysis(FastInput.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source()))')
       : EXECUTE;
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = ['execute', 'prepare', 'prepare-read'].includes(purpose);

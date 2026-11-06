@@ -59,6 +59,11 @@ inside a custom certified Bend program. They are not concurrency-safe snapshots
 in this adapter. Full initial and post-reopen data validation uses a separate
 certified six-cell read program outside timed samples.
 
+New runs compare outputs recursively with exact primitive types: `True` differs
+from `1`, including inside nested lists and records. This equality policy is
+recorded in settings. It strengthens validation without changing the timed
+workloads or historical result files.
+
 The runner checks wrong-type rejection, rollback after a valid first write and
 invalid second write, missing reads, insert/delete, duplicate-key behavior,
 orphan-reference behavior, and every final field after reopening. JayDB2 is
@@ -127,3 +132,80 @@ python3 experiments/database-comparison/analyze.py \
 
 Use a dedicated checkout for future measurements; the runner intentionally
 rejects repository inventory changes rather than silently ignoring them.
+
+## Reuse as a performance regression benchmark
+
+Keep this directory, its ten canonical fixtures, and the historical evidence in
+version control. Measure from dedicated checkouts so another task cannot change
+the engine mid-run. Preserve the executable recorded by each run: a subsequent
+build in the same checkout can replace that binary, making its old persistent
+databases impossible to reopen under the exact-environment contract.
+
+For a quick end-to-end comparison, run the same explicit subset and settings
+before and after an engine change, each with a fresh output directory:
+
+```sh
+experiments/database-comparison/run.sh \
+  --scenarios 01_personal_tasks 04_ecommerce 10_municipal_services \
+  --samples 7 --warmups 1 --output build/performance-before
+# Implement and verify the engine change; retain the baseline executable.
+experiments/database-comparison/run.sh \
+  --scenarios 01_personal_tasks 04_ecommerce 10_municipal_services \
+  --samples 7 --warmups 1 --output build/performance-after
+python3 experiments/database-comparison/compare.py \
+  build/performance-before/result.json build/performance-after/result.json \
+  --output build/performance-comparison \
+  --noise-percent 5 --fail-regression-percent 15
+```
+
+Run all ten projects for the final comparison. The same utility also accepts
+JayDB2-only runs (`run.sh --engines jaydb2`) for quicker engine development,
+but those runs cannot establish an advantage over the SQL engines. An explicit
+`compare.py --engines jaydb2` selects which engines gate a comparison; selected
+engines must exist on both sides, and their scenario sets must match exactly.
+
+`compare.py` writes `comparison.json` and `comparison.md` with every paired
+scenario/workload, setup measurements, failed database checks, integrity-behavior
+changes, binary/source identities, tool versions, and hardware. It recomputes
+medians, p95 and MAD from checked raw samples rather than trusting stored
+summaries. It rejects incomplete/fatal runs, duplicate or missing records,
+changed schemas or seed rows, changed sample counts/settings, and unchecked or
+incorrect results. It never pools away a slow scenario or produces a composite
+score with adjustable workload weights.
+
+The default gate fails when a selected workload median slows by more than 15%,
+when a selected database fails, or when duplicate-key/foreign-key behavior
+changes. Setup changes are always displayed and can also be gated using
+`--gate-metrics latency setup`; each setup value has only one observation.
+Changes inside 5% are labeled `within_tolerance`; slowdowns between 5% and 15%
+remain visible as `possible_regression`. These are configurable engineering
+thresholds, not statistical-significance tests. A passing finite benchmark
+cannot prove the absence of regressions; repeat suspicious/noisy measurements
+and run the correctness, proof, recovery and application regression gates too.
+
+Measured adapters, driver, sampler, actual root Bend programs, and fixture
+identities must normally match. The legacy profile reads root `Access.bend`,
+`Batch.bend`, and `ReadRow.bend`; unused `query/` additions and generated
+`projects/` copies are excluded from its measured-source comparison. A nonlegacy
+profile additionally checks its `query/` Python/Bend sources.
+`--allow-workload-change` makes application-profile experiments
+explicit and labels them as such: they do not isolate an engine optimization.
+It permits different `settings.profile` and `settings.profile_metadata` while
+retaining both values and a warning. An absent historical profile means
+`legacy`. All other measured settings, including samples, warmups, durability,
+client count, native threads, readers and exact-type equality, remain identical.
+`--allow-environment-change` similarly reports changed tools, versions or
+hardware instead of attributing all differences to the engine. Neither option
+permits changed scenario hashes, nonprofile settings or workload coverage. This prevents
+an apparent win obtained by reducing durability, omitting work, changing data,
+or silently substituting a different query implementation.
+
+Lightweight checks for the reusable comparison and type-aware result validator:
+
+```sh
+python3 -B -m unittest discover -s experiments/database-comparison -p 'test_*.py' -v
+```
+
+CLI exit codes are 0 for a passed configured gate, 1 for a failed gate, and 2
+for invalid/incompatible inputs. Output directories must be new, preserving
+earlier evidence and making this suitable for an optional CI performance job.

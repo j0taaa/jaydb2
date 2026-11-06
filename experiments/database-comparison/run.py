@@ -19,7 +19,7 @@ import time
 import traceback
 
 from jay import Jay, ROOT, SUITE
-from model import load, state, joined
+from model import load, state, joined, equal
 from sql_engines import SQL
 from memory import Memory
 
@@ -33,7 +33,7 @@ def save(path, value):
 
 
 def check(actual, expected):
-    if actual != expected:
+    if not equal(actual, expected):
         raise AssertionError(f'Expected {expected!r}, got {actual!r}')
 
 
@@ -290,6 +290,7 @@ def main():
                 'source_sha256': before, 'suite_sha256': suite_before, 'status': 'running', 'results': [],
                 'settings': {'samples': options.samples, 'warmups': options.warmups, 'engines': options.engines,
                              'durable': True, 'clients': 1, 'jay_threads': 1, 'read_workers': 1,
+                             'result_equality': 'recursive-exact-types-v1',
                              'timing': 'Python API call through decoded result; encoding/decoding included, validation excluded',
                              'lock': '/tmp/jaydb2-experiments-heavy.lock'},
                 'hardware': {'platform': platform.platform(), 'cpu': next(x.split(':', 1)[1].strip() for x in Path('/proc/cpuinfo').read_text().splitlines() if x.startswith('model name')),

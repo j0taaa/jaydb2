@@ -73,6 +73,24 @@ class RuntimeTests(unittest.TestCase):
     def test_native_loop_prepare_and_continue(self):
         self.assertEqual(self.execute('loop', b'\1\0\2'), b'\2\1')
 
+    def test_checked_length_conversion_and_tail_overflow(self):
+        # These include the benchmark's actual ceilings and the full U32
+        # endpoint. A linear predecessor conversion at that endpoint cannot
+        # finish within the ordinary native-test timeout.
+        for value in (0, 1, 255, 65536, 262144, 8388608, 2**32-1):
+            with self.subTest(value=value):
+                packet = b'\0' + value.to_bytes(4, 'big')
+                self.assertEqual(self.execute('fast_bytes', packet),
+                                 b'\1' + value.to_bytes(8, 'big'))
+        # Exercise the proved tail fallback independently of its fast guard.
+        for value in (0, 1, 31, 65536):
+            self.assertEqual(self.execute('fast_bytes', b'\1'+value.to_bytes(4, 'big')),
+                             b'\1'+value.to_bytes(8, 'big'))
+        self.assertEqual(self.execute('fast_bytes', b'\2\0'), b'\1'+(2**64-2).to_bytes(8, 'big'))
+        self.assertEqual(self.execute('fast_bytes', b'\2\1'), b'\1'+(2**64-1).to_bytes(8, 'big'))
+        self.assertEqual(self.execute('fast_bytes', b'\2\2'), b'\0')
+        self.assertEqual(self.execute('fast_bytes', b'\2\3'), b'\0')
+
     def test_parallel_reduction_matches_independent_reference(self):
         def leaf(value):
             for _ in range(64):
