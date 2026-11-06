@@ -7,6 +7,7 @@ They do not replace proofs with mocks or alter server behavior.
 
 ```sh
 npm ci --prefix clients/typescript
+npm ci --prefix clients/sql
 bash tools/ci/check.sh smoke
 ```
 
@@ -16,7 +17,8 @@ oracles. It needs Node 24, Rust/Cargo, Python 3.12 and the installed pinned Bend
 tools: an existing host options test canonicalizes those installed paths. Clang
 is not needed. Smoke does **not** execute the proof/native/recovery gates and
 does not attest admission, durability or the application certificates. Standalone
-client checks (`make test-client`) need no Bend distribution.
+client checks (`make test-client`) and SQL/Drizzle frontend checks
+(`make test-sql`) need no Bend distribution.
 
 The `Smoke` GitHub Actions workflow installs the actual pinned tools and runs
 these same checks on pushes and pull requests. It does not create dummy tool
@@ -34,6 +36,7 @@ bash tools/ci/bootstrap.sh
 # Or supply an already downloaded exact pinned kernel:
 bash tools/ci/bootstrap.sh /path/to/bendtt
 npm ci --prefix clients/typescript
+npm ci --prefix clients/sql
 bash tools/ci/check.sh full
 ```
 
@@ -46,7 +49,8 @@ The complete path adds the general/contract/library/receipt proof aggregates in
 both official modes, proof-negative controls, real native and service tests,
 library applications, storage-fault and lost-response recovery tests, the web
 demo, TypeScript real-service checks, the starter templates, and persistent task
-usage. It requires a Linux session with unlimited hard stack. It can take a
+usage, plus generated SQL certificates and real Drizzle CRUD/rollback/recovery
+(`make test-sql-native`). It requires a Linux session with unlimited hard stack. It can take a
 substantial amount of time. A passing smoke run alone is insufficient for a
 release.
 

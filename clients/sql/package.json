@@ -1,0 +1,15 @@
+{
+  "name": "@jaydb2/sql",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Experimental PostgreSQL-subset frontend and Drizzle adapter for certified JayDB2 task programs",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
+    "test:integration": "node test/integration.ts"
+  },
+  "dependencies": { "drizzle-orm": "0.45.4" },
+  "devDependencies": { "@types/node": "24.19.0", "typescript": "5.9.3" }
+}

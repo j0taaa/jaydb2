@@ -6,19 +6,28 @@ build:
 	cargo build --locked --release
 
 # Optional developer accessories; no engine or protocol changes.
-.PHONY: test-client test-accessories test-accessories-native smoke check-release
+.PHONY: test-client test-sql test-sql-native test-accessories test-accessories-native smoke check-release
 test-client:
 	npm --prefix clients/typescript run check
 	npm --prefix clients/typescript test
 	npm --prefix clients/typescript run build
 
-test-accessories: test-client
+test-sql:
+	npm --prefix clients/sql run check
+	npm --prefix clients/sql test
+
+# Caller holds the common heavy-work lock. Uses the real official toolchain.
+test-sql-native: build
+	python3 -B applications/sql/check.py
+	npm --prefix clients/sql run test:integration
+
+test-accessories: test-client test-sql
 	clients/typescript/node_modules/.bin/tsc -p applications/tasks/tsconfig.json
 	python3 -B -m unittest tests.accessories.test_tasks -v
 	python3 -B -m unittest discover -s examples/starter -p test_starter.py -v
 
 # Caller holds the shared heavy-work lock, as for the existing native targets.
-test-accessories-native: build
+test-accessories-native: build test-sql-native
 	npm --prefix clients/typescript run test:integration
 	python3 -B examples/starter/check.py --all
 	python3 -B -m unittest tests.accessories.test_tasks_native -v

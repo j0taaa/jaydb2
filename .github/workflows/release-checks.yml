@@ -30,7 +30,9 @@ jobs:
           sudo apt-get install --no-install-recommends -y clang-19
           rustup toolchain install 1.98.0 --profile minimal --component clippy,rustfmt
       - name: Install client development dependencies
-        run: npm ci --prefix clients/typescript
+        run: |
+          npm ci --prefix clients/typescript
+          npm ci --prefix clients/sql
       - name: Install and verify the pinned Bend tools in a fresh checkout
         env:
           GH_TOKEN: ${{ github.token }}

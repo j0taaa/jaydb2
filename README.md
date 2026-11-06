@@ -37,6 +37,9 @@ See [the web demo](demo/README.md) for its interface and limits.
 
 ## Build an application
 
+- **[Experimental SQL and Drizzle](clients/sql/README.md):** PostgreSQL-subset
+  key-based task CRUD compiled to ordinary Bend programs and universal proofs,
+  with a real Drizzle proxy adapter. Uses the existing ownership laws.
 - **[TypeScript client](clients/typescript/README.md):** optional Node library
   for binary framing, ordinary requests and prepared handles. Runtime dependencies
   are zero; int64 values use `bigint`. It never silently retries a write.
@@ -87,6 +90,7 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 
 ```sh
 npm ci --prefix clients/typescript
+npm ci --prefix clients/sql
 make smoke
 # Complete proof/native checks also need Clang 19 and unlimited hard stack:
 make check-release
