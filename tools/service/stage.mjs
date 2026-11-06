@@ -134,14 +134,18 @@ function sourceClosure(available, entries, missing, reverseImports = true) {
 
 function loadAdministrator(configuration, seed, sources) {
   const root = path.dirname(fs.realpathSync(configuration));
-  const privateSeed = seed === null ? null : fs.realpathSync(seed);
+  const privateSeed = seed === null ? null : fs.statSync(seed, { bigint: true });
   const reserved = new Set([...sources.keys(), 'Environment.bend', 'Seed.bend', 'Main.bend',
     'Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend', 'Check.bend']);
   const load = (entry, name, initializing = false) => {
     const result = new Map(), pending = [[entry, name]];
     while (pending.length) {
       const [input, target] = pending.pop(), file = fs.realpathSync(input), relative = path.relative(root, file);
-      if (!initializing && file === privateSeed) fail('DEPENDENCY', 'Public configuration cannot import the private seed');
+      if (!initializing && privateSeed !== null) {
+        const identity = fs.statSync(file, { bigint: true });
+        if (identity.dev === privateSeed.dev && identity.ino === privateSeed.ino)
+          fail('DEPENDENCY', 'Public configuration cannot import the private seed');
+      }
       if (relative === '..' || relative.startsWith('../') || path.isAbsolute(relative))
         fail('DEPENDENCY', 'Dependency outside the configuration directory');
       const data = read(file);
@@ -149,7 +153,7 @@ function loadAdministrator(configuration, seed, sources) {
         if (!result.get(target).equals(data)) fail('DEPENDENCY', 'Administrator dependency collision');
         continue;
       }
-      if (reserved.has(target) && target !== 'Seed.bend') fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
+      if (reserved.has(target) && !(initializing && target === 'Seed.bend')) fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
       result.set(target, data);
       const children = [];
       for (const imp of imports(data)) {

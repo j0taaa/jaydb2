@@ -24,6 +24,12 @@ use timing::{Attempt, Timing};
 
 type Result<T> = std::result::Result<T, Error>;
 
+// Diagnostics cannot turn an ordinary outcome or disabled observer into a
+// panic when the administrator's stderr destination is unavailable.
+fn diagnostic(message: std::fmt::Arguments<'_>) {
+    let _ = writeln!(io::stderr().lock(), "jaydb2: {message}");
+}
+
 #[derive(Debug)]
 struct Error {
     code: String,
@@ -323,7 +329,7 @@ impl Published {
                 response
             }
             Err(error) => {
-                eprintln!("jaydb2: {}: {}", error.code, error.message);
+                diagnostic(format_args!("{}: {}", error.code, error.message));
                 error.response()
             }
         }
@@ -338,7 +344,7 @@ impl Published {
             }
             Ok((response, None)) => response,
             Err(error) => {
-                eprintln!("jaydb2: {}: {}", error.code, error.message);
+                diagnostic(format_args!("{}: {}", error.code, error.message));
                 error.response()
             }
         }
@@ -845,8 +851,8 @@ fn inspect_snapshot(
             stream.flush()
         })();
         if let Err(error) = result {
-            eprintln!("jaydb2: INSPECTOR: {error}");
             *inspector = None;
+            diagnostic(format_args!("INSPECTOR: {error}"));
         }
     }
 }
@@ -1164,7 +1170,7 @@ fn main() {
         if error.code == "HOST_IO" && error.message.contains("Broken pipe") {
             return;
         }
-        eprintln!("jaydb2: {}: {}", error.code, error.message);
+        diagnostic(format_args!("{}: {}", error.code, error.message));
         std::process::exit(1);
     }
 }

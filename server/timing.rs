@@ -102,8 +102,8 @@ impl Timing {
         if let Some(output) = &mut *sink
             && let Err(error) = output.write(&bytes)
         {
-            eprintln!("jaydb2: TIMING_LOG: {error}");
             *sink = None;
+            crate::diagnostic(format_args!("TIMING_LOG: {error}"));
         }
     }
 }

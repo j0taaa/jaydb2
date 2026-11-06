@@ -1,5 +1,10 @@
 # Curated integration experiment
 
+> Historical acceptance record for `f514530`. The subsequent main-merge code
+> review and repaired candidate are recorded in `MAIN_REVIEW.md`. Its fresh
+> verification and benchmark results supersede this record for merge readiness;
+> the original measurements below remain unchanged historical evidence.
+
 ## Decision and scope
 
 This branch combines baseline tooling, preprocessing, persistence, optional

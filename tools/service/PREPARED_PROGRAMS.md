@@ -23,7 +23,7 @@ return `input`. Ordinary malformed records remain malformed.
 | 1 execute | Handle | Empty string | Actual call arguments | Ordinary transaction response |
 | 2 invalidate | Handle | Empty string | Public value, ignored | `invalidated`, value = null |
 
-All three operations authenticate the actual credential against current
+All four operations authenticate the actual credential against current
 published state before admission, lookup, or invalidation. A handle grants no
 actor identity; another authenticated user can execute the program under their
 own context. Unknown, invalidated, and other-instance handles return
@@ -161,7 +161,7 @@ handle body as if it contained the source text.
 The Rust/Node/C bridge and compiler semantic preservation remain an explicit
 trusted boundary supported by review/tests, not a mechanized proof of the
 complete executable. Official fragment/translation and physical failure
-limitations remain. There is no new runtime, quota, deadline, or persistence.
+limitations remain. This extension adds no runtime, quota, deadline or persistent prepared handles. Optional database-state persistence is provided separately.
 
 The optional [certified read-batch extension](READ_BATCHES.md) adds opcode 3;
 ordinary preparation and execution retain their original certificate requirements.

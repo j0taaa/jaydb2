@@ -30,7 +30,7 @@ test-native:
 	python3 -B tests/native/test_simple_runtime.py
 
 test-integration:
-	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency tests.service.test_timing tests.service.test_timing_concurrency -v
+	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency tests.service.test_timing tests.service.test_timing_concurrency tests.service.test_observers -v
 
 test-library: build
 	mkdir -p build/library/tmp
