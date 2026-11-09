@@ -1,0 +1,44 @@
+{
+  "database_runs": 150,
+  "final_hashes_match_all15_records_per_scenario": true,
+  "measured_samples": 5145,
+  "runs": [
+    {
+      "controller_sha256": "62f1f6f4ab9c924c340e2af73012f44f7b9c066749b55b2a5ab74c2c5600f201",
+      "databases": 30,
+      "manifest_sha256": "7bf39116a0fd115709ae312b85e631c05972751efea518a146416b2019427d03",
+      "result_path": "/home/jota/projects/jaydb2-performance-baseline/build/performance-baseline/result.json",
+      "source_files_checked": 234
+    },
+    {
+      "controller_sha256": "da1ef7906f279d9d54358655afa3965fb618acf07e41c1c866810da3f1b33fe9",
+      "databases": 30,
+      "manifest_sha256": "d96632389623cb56b934852ac5889a5ad9057f67d3e4879c82c2207e2507a5d0",
+      "result_path": "/home/jota/projects/jaydb2-performance/build/performance-candidate/result.json",
+      "source_files_checked": 238
+    },
+    {
+      "controller_sha256": "da1ef7906f279d9d54358655afa3965fb618acf07e41c1c866810da3f1b33fe9",
+      "databases": 30,
+      "manifest_sha256": "cc87ae8268ea47384ed56b7050fbeee72373e3f54be16333f56cd3368b60e4df",
+      "result_path": "/home/jota/projects/jaydb2-performance/build/performance-query/result.json",
+      "source_files_checked": 238
+    },
+    {
+      "controller_sha256": "c60a629dd253bbd10bfac71ce154cd2ed6e49989cc5c4c422b644639bc24ed89",
+      "databases": 30,
+      "manifest_sha256": "33d687cc9e39305450c8c1314116e22187741bcbe4facf9ed8aabc18c4f8e70c",
+      "result_path": "/home/jota/projects/jaydb2-performance-scalar/build/performance-final-engine/result.json",
+      "source_files_checked": 238
+    },
+    {
+      "controller_sha256": "c60a629dd253bbd10bfac71ce154cd2ed6e49989cc5c4c422b644639bc24ed89",
+      "databases": 30,
+      "manifest_sha256": "4fac97b3e717b7847f8cc61411ec19f0be71dc6612251d9f79b87abc7b17dc03",
+      "result_path": "/home/jota/projects/jaydb2-performance-scalar/build/performance-final-query/result.json",
+      "source_files_checked": 238
+    }
+  ],
+  "scope": "Recomputed summaries/checked exact-type samples via comparator loader; matched recorded engine source to recorded commits, current retained binaries to hashes, and each final-data file to recorded digest. No native/database process is started.",
+  "status": "passed"
+}

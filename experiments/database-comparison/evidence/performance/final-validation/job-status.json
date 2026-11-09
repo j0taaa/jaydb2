@@ -1,0 +1,58 @@
+{
+  "git_head": "72245d4af21ce87300516080bab591df3f62649c",
+  "started_utc": "2026-11-09T17:07:50.515602+00:00",
+  "status": "passed",
+  "stages": [
+    {
+      "name": "release",
+      "command": [
+        "make",
+        "check-release"
+      ],
+      "started_utc": "2026-11-09T17:07:50.515727+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 4339.874318850008,
+      "finished_utc": "2026-11-09T18:20:10.391072+00:00"
+    },
+    {
+      "name": "candidate",
+      "command": [
+        "experiments/database-comparison/run.sh",
+        "--output",
+        "build/performance-final-engine",
+        "--samples",
+        "7",
+        "--warmups",
+        "1"
+      ],
+      "started_utc": "2026-11-09T18:20:10.475381+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 2521.483222630006,
+      "finished_utc": "2026-11-09T19:02:11.961186+00:00"
+    },
+    {
+      "name": "query",
+      "command": [
+        "flock",
+        "/tmp/jaydb2-experiments-heavy.lock",
+        "build/database-comparison-venv/bin/python",
+        "-B",
+        "experiments/database-comparison/query/optimized.py",
+        "--output",
+        "build/performance-final-query",
+        "--samples",
+        "7",
+        "--warmups",
+        "1"
+      ],
+      "started_utc": "2026-11-09T19:02:11.963263+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 1397.357642390998,
+      "finished_utc": "2026-11-09T19:25:29.321733+00:00"
+    }
+  ],
+  "finished_utc": "2026-11-09T19:25:29.322476+00:00"
+}

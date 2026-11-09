@@ -8,6 +8,9 @@ The [scenario JSON files](scenarios/) are the single source of schema, seed
 data, query inputs, and domain caveats. All money uses integer minor units;
 dates and domain enums are text. These are feasibility-sized datasets.
 
+Read [PERFORMANCE.md](PERFORMANCE.md) for the verified optimization follow-up,
+full validation, gains, failed regression gates and retained raw measurements.
+
 Read [REPORT.md](REPORT.md) for results, interpretation, and important differences
 in integrity semantics and query execution. Each project contains actual Bend
 configurations, programs and certificates, and executable SQLite/PostgreSQL DDL.

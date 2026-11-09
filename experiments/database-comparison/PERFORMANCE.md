@@ -1,16 +1,13 @@
-> Final scalar refinement: fresh full validation and database measurements are running.
-> The first-candidate report below is retained separately in [PERFORMANCE-WORD-CANDIDATE.md](PERFORMANCE-WORD-CANDIDATE.md); final results will replace this page when complete.
-
 # Verified performance improvements
 
-The original ten-scenario benchmark is retained unchanged as a historical
-report. This follow-up starts from engine revision `441f807` plus that saved
-suite and uses separate frozen baseline/candidate checkouts. All 90 databases
-in the baseline, engine and query-profile runs passed. Runs finished on
-6–7 November 2026 UTC; this report was finalized after resuming on 9 November.
-JayDB2 became substantially faster, but it does **not** beat PostgreSQL or
-SQLite overall in these workloads. The strict setup gates have losses, retained
-below rather than described as a regression-free result.
+The reusable benchmark and measured optimizations are saved on
+`perf/certified-runtime-performance`. The final scalar engine revision is
+`72245d4`. Its complete `make check-release` passed before both final database
+runs. The original engine anchor is `441f807`; the frozen measured baseline is
+`3dbde8d` with the same exact-type benchmark oracle. Workload latency improved
+substantially, but JayDB2 still loses most SQL comparisons and the strict
+performance gates retain regressions. This is **not** a regression-free or
+SQL-beating result; no functional failure was found in full release validation.
 
 ## Implemented changes and preserved behavior
 
@@ -51,155 +48,140 @@ have genuine read-only certificates; SUM/JOIN retain ordinary admission with
 actual-state termination. All six program preparation costs remain measured.
 This profile is reported separately from the engine-only comparison.
 
-## Measured results
+The final refinement computes a candidate's natural measure as its low word
+plus 32 doublings of its high word. A checked all-Nat theorem equates this to
+the original codec's structural word measure. Native candidate intermediates
+fit the existing 48-bit Nat domain; stored signed64 values retain their two-word
+representation. This reduces compiled code growth without dropping wide
+conversion or altering the official compiler/runtime.
 
-All 49 JayDB2 scenario/workload medians improved in the engine comparison, with
-paired workload speedups of **4.23–4.86×**. Every corresponding median in the
-separate application-profile comparison also improved over baseline; its
-point-read, SUM and JOIN paired median speedups were **8.82×, 33.13× and
-58.32×**. This second comparison combines the engine changes and a different
-application access strategy.
+## Final measurements
 
 | Workload | Jay baseline ms | Jay engine ms | Paired speedup | Jay single-call ms | Paired speedup | PostgreSQL ms | SQLite ms |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Point read | 107.674 | 24.280 | 4.86× | 14.145 | 8.82× | 0.1118 | 0.0085 |
-| Point update | 110.616 | 25.885 | 4.33× | 31.575 | 3.96× | 2.6935 | 6.8775 |
-| Two-row transaction | 104.377 | 24.584 | 4.47× | 30.705 | 3.83× | 3.4363 | 6.4815 |
-| SUM | 998.669 | 256.389 | 4.42× | 32.520 | 33.13× | 0.1228 | 0.0108 |
-| JOIN | 1876.728 | 500.636 | 4.23× | 36.138 | 58.32× | 0.1421 | 0.0289 |
+| Point read | 107.674 | 30.552 | 3.51× | 10.250 | 11.74× | 0.0893 | 0.0100 |
+| Point update | 110.616 | 26.308 | 4.16× | 26.462 | 4.26× | 3.3145 | 6.2066 |
+| Two-row transaction | 104.377 | 27.054 | 3.91× | 25.132 | 4.36× | 3.7196 | 6.5926 |
+| SUM | 998.669 | 303.991 | 3.09× | 31.314 | 40.23× | 0.1055 | 0.0136 |
+| JOIN | 1876.728 | 565.692 | 3.34× | 24.571 | 74.47× | 0.1396 | 0.0394 |
 
-Latency columns are unweighted medians of per-scenario medians, in milliseconds.
-Speedups are medians of paired scenario ratios; they are not the ratio of the
-adjacent aggregate columns. PostgreSQL/SQLite columns come from the query-profile
-run, with unchanged SQL adapters. [Every engine-run SQL measurement](evidence/performance/candidate/summary.csv)
-and [every query-profile measurement](evidence/performance/query/summary.csv)
-remain available.
+Times are milliseconds, aggregated as an unweighted median of scenario medians.
+Paired speedups are medians of per-scenario ratios, so they need not equal the
+ratio of adjacent aggregate columns. SQL columns come from the same final
+query-profile run. JOIN covers nine scenarios; other workloads cover ten.
 
-![Performance comparison](evidence/performance/summary/comparison.png)
+![Final comparison](evidence/performance/final-summary/comparison.png)
 
-The engine run beat PostgreSQL in only two individual durable-write medians and
-SQLite in two two-row transaction medians; all other paired medians were slower.
-The single-call profile beat neither rival in any of its 49 paired medians.
-These isolated write observations are not evidence of a general advantage.
-Native SQL still has much lower read/query latency. The remaining fresh-worker,
-full-state and certification costs need separate profiling and preservation
-arguments before more architectural changes.
+JayDB2 engine run: **2/49** paired workload medians faster than PostgreSQL.
 
-### Setup and resource costs
+JayDB2 engine run: **3/49** paired workload medians faster than SQLite.
 
-| JayDB2 metric | Baseline | Engine change | Single-call profile |
+JayDB2 query run: **0/49** paired workload medians faster than PostgreSQL.
+
+JayDB2 query run: **0/49** paired workload medians faster than SQLite.
+
+These observations do not establish that JayDB2 beats SQL overall. Its
+fresh workers, authentication, proof-bound execution and durable publication
+remain in place; SQL read/query latency remains a substantial comparison point.
+
+## Setup and resources
+
+| JayDB2 metric | Baseline | Final engine | Final query profile |
 | --- | ---: | ---: | ---: |
-| Create schema/client and prepare, seconds | 24.628 | 25.825 | 46.979 |
-| Populate, seconds | 14.740 | 2.885 | 4.018 |
-| Reopen and prepare, seconds | 24.369 | 24.391 | 44.750 |
-| Observed peak process-tree RSS, MiB | 70.760 | 7.625 | 11.230 |
-| Live/closed snapshot size, KiB | 15.232 | 15.232 | 15.232 |
+| Create/client preparation, seconds | 24.628 | 30.804 | 41.550 |
+| Populate, seconds | 14.740 | 2.454 | 2.450 |
+| Reopen/preparation, seconds | 24.369 | 31.174 | 40.796 |
+| Observed peak tree RSS, MiB | 70.760 | 7.605 | 12.746 |
+| Live snapshot, KiB | 15.232 | 15.232 | 15.232 |
 
-Each entry is a median across ten scenarios, not a per-row cost. Population
-varies with schema size. Snapshot size is identical across runs for each
-scenario. RSS is an observed 10 ms sample maximum during workload execution;
-shorter workers may be missed more often after optimization, so these numbers
-do not establish a memory bound or independently attribute allocations.
+Each value is a median across scenarios, not a per-row cost. Setup has one
+observation per scenario. RSS is sampled every 10 ms during workloads and may
+miss short worker peaks; scopes and shared-page accounting prevent a simple
+cross-engine memory ranking. All paired observations remain in raw evidence.
 
-The additional profile prepares six programs instead of three, adding a real
-setup/reopen cost. It is an explicit opt-in profile; the saved legacy benchmark
-and normal service preparation API retain their original behavior. It must not
-be promoted as an improvement in every dimension.
+## Regression gates
 
-### Regression gates and follow-up
+Thresholds were fixed before measurement: 5% noise classification and 15%
+regression threshold. Finite sampled gates cannot prove zero regressions.
 
-The preselected engineering thresholds were 5% noise classification and a 15%
-regression threshold. Both [engine latency](evidence/performance/compare-engine-latency/comparison.md)
-and [application-profile latency](evidence/performance/compare-query-latency/comparison.md)
-gates pass: 49/49 medians improve in each, with no functional failures or
-changed duplicate-key/foreign-key behavior. All nine final data hashes per
-scenario (three engines × three runs) agree.
+- [engine-all](evidence/performance/compare-final-engine-all/comparison.md): **gate_failed**, 16 observations above threshold, 0 functional failures, 0 integrity-behavior changes.
+- [engine-latency](evidence/performance/compare-final-engine-latency/comparison.md): **gate_passed**, 0 observations above threshold, 0 functional failures, 0 integrity-behavior changes.
+- [query-all](evidence/performance/compare-final-query-all/comparison.md): **gate_failed**, 19 observations above threshold, 0 functional failures, 0 integrity-behavior changes.
+- [query-latency](evidence/performance/compare-final-query-latency/comparison.md): **gate_failed**, 1 observation above threshold, 0 functional failures, 0 integrity-behavior changes.
+- [engine-query](evidence/performance/compare-final-engine-query/comparison.md): **gate_failed**, 21 observation above threshold, 0 functional failures, 0 integrity-behavior changes.
 
-The [strict engine latency/setup gate](evidence/performance/compare-engine-all/comparison.md)
-**fails** four single-observation setup cases:
+The engine-only comparison improves all 49 workload medians, with paired
+workload speedups of 3.09–4.16×. Its 16 threshold regressions are setup timings.
+The application profile has one latency regression against baseline:
+**ecommerce point update +23.49%**. Its aggregate gains must not hide this loss.
 
-| Scenario | Metric | Original observed slowdown |
-| --- | --- | ---: |
-| Personal tasks | Reopen and prepare | 25.50% |
-| Household budget | Create and prepare | 20.75% |
-| Editorial blog | Reopen and prepare | 16.63% |
-| Ecommerce | Create and prepare | 22.87% |
+The application profile changes the access strategy and prepares six programs
+instead of three. Additional preparation is a real cost; mixed write timings
+remain observations, not evidence of a uniform causal penalty or benefit.
+Neither comparison establishes a universal win.
+Every flagged observation is retained in the linked comparisons.
 
-The [strict query-profile gate](evidence/performance/compare-query-all/comparison.md)
-also fails, with 20 setup/population observations over threshold, dominated by
-the six-program preparation cost. Its raw observations remain visible.
+Host load differed materially. The baseline's one-minute load average was
+4.22→6.52; the final engine run's was 8.14→10.05, and the query run's was
+10.76→2.93. These sequential runs cannot isolate every timing change from host
+activity. This uncertainty does not erase failed gates or establish zero
+regressions. The closely interleaved setup diagnostics provide separate,
+limited evidence for the scalar refinement.
 
-A [direct engine-to-query comparison](evidence/performance/compare-engine-query/comparison.md)
-also retains mixed write timings: three point-update scenarios and four two-row
-transaction scenarios slow by more than 15% between those sequential runs.
-Their absolute aggregate medians are visible in the table above. The paired
-median changes are -6.68% and -2.29%, respectively, so the data do not support
-attributing a uniform write penalty or claiming a uniform profile improvement.
-The optional profile is useful for fewer read/query requests, with measured
-setup and write-variability tradeoffs.
+## Why the implementation was refined
 
-Setup has only one observation per scenario in the original full runs, so it
-cannot establish whether those four engine-only flags are systematic. A
-[three-pair interleaved follow-up](evidence/performance/setup-followup/README.md)
-confirmed all four costs: every one of the twelve pairs was slower. Median
-paired changes were +15.93% (tasks reopen), +20.83% (budget create), +17.24%
-(blog reopen) and +29.11% (ecommerce create). All 24 observations passed actual
-preparation, copied-snapshot readback where applicable, and original input,
-source and binary guards. The failed original gate is preserved.
+The first Word-measure candidate improved every workload median but reproduced
+setup slowdowns in all twelve follow-up pairs: median paired costs +15.93%,
++20.83%, +17.24% and +29.11% in the four flagged cases. That candidate and its
+failed gates remain in [the first report](PERFORMANCE-WORD-CANDIDATE.md).
 
-Matched generated C grew by approximately 54 KiB after adding the conversion
-helpers. This supports investigating compilation footprint, but does not prove
-per-phase causality. A smaller scalar-measure variant is under separate proof,
-native and setup validation; it is not the measured candidate in these tables.
+Scalar measurement reduced observed generated-C growth from about 54 KiB to
+7.7 KiB. Three paired create tests each for budget and ecommerce then had
+median paired changes +5.56% and +2.84%, with no pair above 15%. These short
+prototypes justified the refinement, not a zero-overhead claim. Fresh full
+release and final 30-database runs validate the promoted implementation.
 
-## Validation
+## Validation and retained evidence
 
-All full release targets completed successfully across recorded segments.
-The first `make check-release` and its first continuation ended by SIGTERM;
-neither logged a failed assertion. The remaining targets were resumed at the
-same engine bytes and completed with exit 0. This is full target coverage,
-not a claim of one uninterrupted successful `make check-release` invocation.
-[Validation metadata and logs](evidence/performance/validation/validation.json)
-record the exact source identity and execution history.
+[The final full-release log and source identity](evidence/performance/final-validation/validation.json)
+record one successful `make check-release` invocation at the frozen scalar
+revision. It covers both official proof modes, negative controls, native numeric
+boundaries, Rust checks, SQL/Drizzle and TypeScript clients, starter/task/indexed/
+receipt applications, 20 service tests, nine recovery tests, and seven web tests.
+No test failure was bypassed or converted into an assumed final-validity check.
 
-Validation includes both official proof modes for the contract, implementation,
-library and idempotency roots; proof negative controls; native boundary checks
-through the supported 48-bit Nat domain; 44 Rust tests, formatting and clippy;
-20 native service integration tests; 25 SQL/Drizzle checks; TypeScript and starter
-flows; 17 generic query edge checks; thousands of library arithmetic/collection
-cases; restricted-user indexed/task/receipt applications; nine fault/recovery
-tests; and seven web-demo integration tests. The 30 benchmark/comparator tests
-and five profile-wrapper tests also pass. No functional regression was found.
+The five primary benchmark runs contain 150 real databases and 5,145 measured
+samples, all passed. The [all-runs audit](evidence/performance/all-runs-audit.json)
+recomputed checked summaries, verified retained suite snapshots, matched engine
+source to recorded commits and binaries to their hashes, and checked every
+final-data file. All fifteen final-data hashes agree per scenario. Canonical
+fixtures, exact-type outputs, full readback and source/tool guards remain
+checked. Run dates, host load and versions are recorded
+in each manifest. Sequential host-load variation is not statistical proof of
+causality or population tail latency.
 
-[Two independent reviews](evidence/performance/review-notes.md) checked the proof
-bridges, host boundaries and measurement fairness. The candidate engine/tool/
-proof bytes match tested revision `183042e`; later changes are reporting tools,
-documentation and evidence. Passing finite tests and sampled gates cannot prove
-the absence of every possible regression. The setup flags above prevent an
-unqualified claim of zero observed performance regressions.
+[Final engine raw data](evidence/performance/final-engine/results.json),
+[final query raw data](evidence/performance/final-query/results.json),
+[combined analysis](evidence/performance/final-summary/combined-analysis.json),
+[first setup follow-up](evidence/performance/setup-followup/README.md), and
+[scalar prototype setup](evidence/performance/scalar-setup/README.md) preserve
+the measurement history. Keep each frozen checkout and its matching executable;
+exact-environment durable reopening is unchanged.
 
-The benchmark is retained with canonical fixtures, materialized project sources,
-raw checked samples, source/tool identities, Make targets, and smoke/full CI
-fixture checks. Reuse it with:
+Reuse the suite with:
 
 ```sh
 make test-database-benchmark
-make benchmark-databases BENCHMARK_OUTPUT=build/my-comparison
+make benchmark-databases BENCHMARK_OUTPUT=build/my-run
 python3 experiments/database-comparison/compare.py \
   build/before/result.json build/after/result.json \
   --engines jaydb2 --gate-metrics latency setup --output build/my-gate
 ```
 
-Keep matching binaries and frozen baseline/candidate checkouts. See the
-[reproduction guide](README.md#reuse-as-a-performance-regression-benchmark),
-[raw baseline](evidence/performance/baseline/results.json),
-[raw candidate](evidence/performance/candidate/results.json),
-[raw query profile](evidence/performance/query/results.json), and
-[combined analysis](evidence/performance/summary/combined-analysis.json).
-
 ## Measurement controls
 
-Three complete runs use the same ten schema/data fixtures and the same oracle:
+The three runs in the final comparison use the same ten schema/data fixtures
+and oracle; the two earlier candidates are retained separately:
 1/3/5/8/10/12/15/18/22/26 tables, eight rows per table, seven measured samples
 and one warmup per workload, one client, one native thread and one reader.
 The five workflows cover point reads, point updates, atomic two-row updates,
