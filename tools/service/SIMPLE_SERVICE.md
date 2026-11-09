@@ -183,6 +183,9 @@ sentinel and a positive control, so they prove the helper never launched rather
 than merely missing an asynchronously written marker. These tests support the
 OS boundary without introducing a mechanized proof or an execution deadline.
 
+The administrator inspection sequence is a modulo-2^64 diagnostic counter;
+it wraps explicitly and does not identify semantic worlds, runs or proof times.
+
 Host diagnostics are best-effort. A failed timing or inspection sink is disabled
 before attempting its diagnostic, and failed stderr writes cannot suppress an
 ordinary response, undo publication or turn an observer error into a panic.

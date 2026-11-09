@@ -602,5 +602,78 @@
       "Broader functional library/application specifications beyond the verified interfaces."
     ],
     "post_gate_changes": "Validation metadata and scope documentation only; checked proof/runtime inputs unchanged."
+  },
+  "inspection_counter_2026_11_09": {
+    "base_main": "6fb1963",
+    "repair": "Use one explicit modulo2^64 helper at both diagnostic inspection increments; semantic histories remain independent.",
+    "causal_before": "Real Database.publish test at u64::MAX panics with addition overflow in debug build, exit101.",
+    "after": {
+      "rust_unit_tests": 49,
+      "checks": [
+        {
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--",
+            "--check"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.06377983093261719
+        },
+        {
+          "command": [
+            "cargo",
+            "test",
+            "--locked"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.708383321762085
+        },
+        {
+          "command": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.5411121845245361
+        },
+        {
+          "command": [
+            "cargo",
+            "build",
+            "--locked",
+            "--release"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 1.5403597354888916
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "tests.service.test_observers",
+            "tests.service.test_concurrency",
+            "-v"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 63.946651220321655
+        }
+      ],
+      "changed_inputs": []
+    },
+    "evidence_sha256": {
+      ".build/review/inspection-counter/before.log": "43bfcd6130983c7c91d38461cd6811f2686946db11aef5126cfbe97f4b55fd6a",
+      ".build/review/inspection-counter/before-source.sha256": "6e546a01a1b295740d442f33d3366b5d5d559e3abf30adb8f0f9f42016edc2b6",
+      ".build/review/inspection-counter/native-gate.log": "e1b72a57fa5f7d6432a01af61563c82705a303e80618a7cf9d3451fbcc022450"
+    },
+    "proof_scope": "Administrative-counter fix; adds no new whole-contract or runtime-refinement claim."
   }
 }

@@ -667,7 +667,7 @@ impl Database {
         result_ready();
         storage::fault_point("after_publish")
             .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
-        self.inspection_sequence += 1;
+        advance_inspection_sequence(&mut self.inspection_sequence);
         self.inspect(serde_json::json!({"event": "completed", "diagnostic": diagnostic}));
         Ok(response)
     }
@@ -864,6 +864,12 @@ impl Database {
     }
 }
 
+// Administrator diagnostics use a modulo-2^64 counter. Semantic run/world/time
+// indices in the proofs are independent of this finite display identifier.
+fn advance_inspection_sequence(sequence: &mut u64) {
+    *sequence = sequence.wrapping_add(1);
+}
+
 fn inspect_snapshot(
     inspector: &mut Option<UnixStream>,
     sequence: u64,
@@ -1011,7 +1017,7 @@ impl read_batch::Service for Database {
                     .err()
                     .map(|e| serde_json::json!({"code":e.code,"message":e.message}));
                 let response = Published::finish_read(last_response, result);
-                *sequence += 1;
+                advance_inspection_sequence(sequence);
                 inspect_snapshot(
                     inspector,
                     *sequence,
@@ -1658,7 +1664,7 @@ mod tests {
                 response: Vec::new(),
             },
             inspector: Some(inspector),
-            inspection_sequence: 0,
+            inspection_sequence: u64::MAX,
             prepared: HashMap::new(),
             threads: 1,
             read_workers: 1,
@@ -1683,6 +1689,7 @@ mod tests {
         );
         assert!(notified);
         assert_eq!(db.published.state, b"new");
+        assert_eq!(db.inspection_sequence, 0);
         assert_eq!(
             db.storage
                 .as_ref()
