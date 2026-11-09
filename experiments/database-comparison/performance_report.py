@@ -82,6 +82,8 @@ def charts(output,d):
     fig.supxlabel('7 checked samples + 1 warmup; 10 scenarios (9 JOINs); 8 rows/table; one client. Setup excluded and reported separately.',fontsize=9,y=.015)
     for suffix in ['svg','png']:
         fig.savefig(output/f'comparison.{suffix}',dpi=180,metadata={'Date':None} if suffix=='svg' else None)
+    svg=output/'comparison.svg'
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines())+'\n')
     plt.close(fig)
 
 def html_chart(output,d):
