@@ -1,0 +1,1145 @@
+{
+  "id": "07_hotel",
+  "title": "Hotel operations and guest stays",
+  "description": "A small hotel group coordinates rooms, reservations, guest charges, housekeeping, maintenance, and feedback across properties.",
+  "tables": [
+    {
+      "name": "properties",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "city",
+          "type": "text"
+        },
+        {
+          "name": "timezone",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "properties_01",
+          "name": "Serra Lodge",
+          "city": "Campos do Jordao",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_02",
+          "name": "Centro Hotel",
+          "city": "Sao Paulo",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_03",
+          "name": "Praia Suites",
+          "city": "Santos",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_04",
+          "name": "Jardim Inn",
+          "city": "Curitiba",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_05",
+          "name": "Estacao Hotel",
+          "city": "Campinas",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_06",
+          "name": "Rio Retreat",
+          "city": "Paraty",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_07",
+          "name": "Vale Resort",
+          "city": "Gramado",
+          "timezone": "America/Sao_Paulo"
+        },
+        {
+          "id": "properties_08",
+          "name": "Porto House",
+          "city": "Recife",
+          "timezone": "America/Sao_Paulo"
+        }
+      ]
+    },
+    {
+      "name": "room_types",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "property_id",
+          "type": "text",
+          "references": "properties.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "base_nightly_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "room_types_01",
+          "property_id": "properties_01",
+          "name": "Mountain double",
+          "base_nightly_cents": 45000
+        },
+        {
+          "id": "room_types_02",
+          "property_id": "properties_02",
+          "name": "Business queen",
+          "base_nightly_cents": 32000
+        },
+        {
+          "id": "room_types_03",
+          "property_id": "properties_03",
+          "name": "Ocean family",
+          "base_nightly_cents": 58000
+        },
+        {
+          "id": "room_types_04",
+          "property_id": "properties_04",
+          "name": "Garden twin",
+          "base_nightly_cents": 28000
+        },
+        {
+          "id": "room_types_05",
+          "property_id": "properties_05",
+          "name": "Accessible king",
+          "base_nightly_cents": 34000
+        },
+        {
+          "id": "room_types_06",
+          "property_id": "properties_06",
+          "name": "River studio",
+          "base_nightly_cents": 42000
+        },
+        {
+          "id": "room_types_07",
+          "property_id": "properties_07",
+          "name": "Valley suite",
+          "base_nightly_cents": 72000
+        },
+        {
+          "id": "room_types_08",
+          "property_id": "properties_08",
+          "name": "Courtyard double",
+          "base_nightly_cents": 39000
+        }
+      ]
+    },
+    {
+      "name": "rooms",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "room_type_id",
+          "type": "text",
+          "references": "room_types.id"
+        },
+        {
+          "name": "room_number",
+          "type": "text"
+        },
+        {
+          "name": "floor",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "rooms_01",
+          "room_type_id": "room_types_01",
+          "room_number": "101",
+          "floor": 1
+        },
+        {
+          "id": "rooms_02",
+          "room_type_id": "room_types_02",
+          "room_number": "204",
+          "floor": 2
+        },
+        {
+          "id": "rooms_03",
+          "room_type_id": "room_types_03",
+          "room_number": "305",
+          "floor": 3
+        },
+        {
+          "id": "rooms_04",
+          "room_type_id": "room_types_04",
+          "room_number": "102",
+          "floor": 1
+        },
+        {
+          "id": "rooms_05",
+          "room_type_id": "room_types_05",
+          "room_number": "201",
+          "floor": 2
+        },
+        {
+          "id": "rooms_06",
+          "room_type_id": "room_types_06",
+          "room_number": "108",
+          "floor": 1
+        },
+        {
+          "id": "rooms_07",
+          "room_type_id": "room_types_07",
+          "room_number": "402",
+          "floor": 4
+        },
+        {
+          "id": "rooms_08",
+          "room_type_id": "room_types_08",
+          "room_number": "203",
+          "floor": 2
+        }
+      ]
+    },
+    {
+      "name": "guests",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "full_name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "type": "text"
+        },
+        {
+          "name": "loyalty_tier",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "guests_01",
+          "full_name": "Ana Ribeiro",
+          "email": "ana@example.test",
+          "loyalty_tier": "silver"
+        },
+        {
+          "id": "guests_02",
+          "full_name": "Bruno Costa",
+          "email": "bruno@example.test",
+          "loyalty_tier": "standard"
+        },
+        {
+          "id": "guests_03",
+          "full_name": "Clara Mendes",
+          "email": "clara@example.test",
+          "loyalty_tier": "gold"
+        },
+        {
+          "id": "guests_04",
+          "full_name": "Daniel Souza",
+          "email": "daniel@example.test",
+          "loyalty_tier": "standard"
+        },
+        {
+          "id": "guests_05",
+          "full_name": "Elisa Rocha",
+          "email": "elisa@example.test",
+          "loyalty_tier": "silver"
+        },
+        {
+          "id": "guests_06",
+          "full_name": "Felipe Lima",
+          "email": "felipe@example.test",
+          "loyalty_tier": "standard"
+        },
+        {
+          "id": "guests_07",
+          "full_name": "Gabriela Alves",
+          "email": "gabriela@example.test",
+          "loyalty_tier": "gold"
+        },
+        {
+          "id": "guests_08",
+          "full_name": "Hugo Santos",
+          "email": "hugo@example.test",
+          "loyalty_tier": "standard"
+        }
+      ]
+    },
+    {
+      "name": "departments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "property_id",
+          "type": "text",
+          "references": "properties.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "monthly_budget_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "departments_01",
+          "property_id": "properties_01",
+          "name": "Front desk",
+          "monthly_budget_cents": 2400000
+        },
+        {
+          "id": "departments_02",
+          "property_id": "properties_02",
+          "name": "Housekeeping",
+          "monthly_budget_cents": 1800000
+        },
+        {
+          "id": "departments_03",
+          "property_id": "properties_03",
+          "name": "Maintenance",
+          "monthly_budget_cents": 1500000
+        },
+        {
+          "id": "departments_04",
+          "property_id": "properties_04",
+          "name": "Guest services",
+          "monthly_budget_cents": 1200000
+        },
+        {
+          "id": "departments_05",
+          "property_id": "properties_05",
+          "name": "Front desk",
+          "monthly_budget_cents": 2100000
+        },
+        {
+          "id": "departments_06",
+          "property_id": "properties_06",
+          "name": "Housekeeping",
+          "monthly_budget_cents": 1600000
+        },
+        {
+          "id": "departments_07",
+          "property_id": "properties_07",
+          "name": "Food service",
+          "monthly_budget_cents": 2800000
+        },
+        {
+          "id": "departments_08",
+          "property_id": "properties_08",
+          "name": "Reservations",
+          "monthly_budget_cents": 1400000
+        }
+      ]
+    },
+    {
+      "name": "employees",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "department_id",
+          "type": "text",
+          "references": "departments.id"
+        },
+        {
+          "name": "full_name",
+          "type": "text"
+        },
+        {
+          "name": "hourly_rate_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "employees_01",
+          "department_id": "departments_01",
+          "full_name": "Iara Gomes",
+          "hourly_rate_cents": 2200
+        },
+        {
+          "id": "employees_02",
+          "department_id": "departments_02",
+          "full_name": "Joao Pinto",
+          "hourly_rate_cents": 1900
+        },
+        {
+          "id": "employees_03",
+          "department_id": "departments_03",
+          "full_name": "Karen Dias",
+          "hourly_rate_cents": 2800
+        },
+        {
+          "id": "employees_04",
+          "department_id": "departments_04",
+          "full_name": "Lucas Reis",
+          "hourly_rate_cents": 2300
+        },
+        {
+          "id": "employees_05",
+          "department_id": "departments_05",
+          "full_name": "Marina Nunes",
+          "hourly_rate_cents": 2200
+        },
+        {
+          "id": "employees_06",
+          "department_id": "departments_06",
+          "full_name": "Natan Mota",
+          "hourly_rate_cents": 1900
+        },
+        {
+          "id": "employees_07",
+          "department_id": "departments_07",
+          "full_name": "Olivia Cruz",
+          "hourly_rate_cents": 2500
+        },
+        {
+          "id": "employees_08",
+          "department_id": "departments_08",
+          "full_name": "Paulo Silva",
+          "hourly_rate_cents": 2400
+        }
+      ]
+    },
+    {
+      "name": "rate_plans",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "room_type_id",
+          "type": "text",
+          "references": "room_types.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "nightly_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "rate_plans_01",
+          "room_type_id": "room_types_01",
+          "name": "Breakfast flexible",
+          "nightly_cents": 49000
+        },
+        {
+          "id": "rate_plans_02",
+          "room_type_id": "room_types_02",
+          "name": "Corporate saver",
+          "nightly_cents": 29000
+        },
+        {
+          "id": "rate_plans_03",
+          "room_type_id": "room_types_03",
+          "name": "Family advance",
+          "nightly_cents": 55000
+        },
+        {
+          "id": "rate_plans_04",
+          "room_type_id": "room_types_04",
+          "name": "Weekend flexible",
+          "nightly_cents": 31000
+        },
+        {
+          "id": "rate_plans_05",
+          "room_type_id": "room_types_05",
+          "name": "Accessible standard",
+          "nightly_cents": 34000
+        },
+        {
+          "id": "rate_plans_06",
+          "room_type_id": "room_types_06",
+          "name": "Long stay",
+          "nightly_cents": 39000
+        },
+        {
+          "id": "rate_plans_07",
+          "room_type_id": "room_types_07",
+          "name": "Romance package",
+          "nightly_cents": 78000
+        },
+        {
+          "id": "rate_plans_08",
+          "room_type_id": "room_types_08",
+          "name": "Early booking",
+          "nightly_cents": 36000
+        }
+      ]
+    },
+    {
+      "name": "reservations",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "guest_id",
+          "type": "text",
+          "references": "guests.id"
+        },
+        {
+          "name": "room_id",
+          "type": "text",
+          "references": "rooms.id"
+        },
+        {
+          "name": "check_in",
+          "type": "text"
+        },
+        {
+          "name": "nights",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "reservations_01",
+          "guest_id": "guests_01",
+          "room_id": "rooms_01",
+          "check_in": "2026-11-01",
+          "nights": 2
+        },
+        {
+          "id": "reservations_02",
+          "guest_id": "guests_02",
+          "room_id": "rooms_02",
+          "check_in": "2026-11-02",
+          "nights": 3
+        },
+        {
+          "id": "reservations_03",
+          "guest_id": "guests_01",
+          "room_id": "rooms_03",
+          "check_in": "2026-11-03",
+          "nights": 5
+        },
+        {
+          "id": "reservations_04",
+          "guest_id": "guests_04",
+          "room_id": "rooms_04",
+          "check_in": "2026-11-04",
+          "nights": 1
+        },
+        {
+          "id": "reservations_05",
+          "guest_id": "guests_05",
+          "room_id": "rooms_05",
+          "check_in": "2026-11-05",
+          "nights": 2
+        },
+        {
+          "id": "reservations_06",
+          "guest_id": "guests_02",
+          "room_id": "rooms_06",
+          "check_in": "2026-11-06",
+          "nights": 7
+        },
+        {
+          "id": "reservations_07",
+          "guest_id": "guests_07",
+          "room_id": "rooms_07",
+          "check_in": "2026-11-07",
+          "nights": 3
+        },
+        {
+          "id": "reservations_08",
+          "guest_id": "guests_08",
+          "room_id": "rooms_08",
+          "check_in": "2026-11-08",
+          "nights": 4
+        }
+      ]
+    },
+    {
+      "name": "reservation_rates",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "reservation_id",
+          "type": "text",
+          "references": "reservations.id"
+        },
+        {
+          "name": "rate_plan_id",
+          "type": "text",
+          "references": "rate_plans.id"
+        },
+        {
+          "name": "nightly_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "reservation_rates_01",
+          "reservation_id": "reservations_01",
+          "rate_plan_id": "rate_plans_01",
+          "nightly_cents": 49000
+        },
+        {
+          "id": "reservation_rates_02",
+          "reservation_id": "reservations_02",
+          "rate_plan_id": "rate_plans_02",
+          "nightly_cents": 29000
+        },
+        {
+          "id": "reservation_rates_03",
+          "reservation_id": "reservations_03",
+          "rate_plan_id": "rate_plans_03",
+          "nightly_cents": 55000
+        },
+        {
+          "id": "reservation_rates_04",
+          "reservation_id": "reservations_04",
+          "rate_plan_id": "rate_plans_04",
+          "nightly_cents": 31000
+        },
+        {
+          "id": "reservation_rates_05",
+          "reservation_id": "reservations_05",
+          "rate_plan_id": "rate_plans_05",
+          "nightly_cents": 34000
+        },
+        {
+          "id": "reservation_rates_06",
+          "reservation_id": "reservations_06",
+          "rate_plan_id": "rate_plans_06",
+          "nightly_cents": 39000
+        },
+        {
+          "id": "reservation_rates_07",
+          "reservation_id": "reservations_07",
+          "rate_plan_id": "rate_plans_07",
+          "nightly_cents": 78000
+        },
+        {
+          "id": "reservation_rates_08",
+          "reservation_id": "reservations_08",
+          "rate_plan_id": "rate_plans_08",
+          "nightly_cents": 36000
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "reservation_id",
+          "type": "text",
+          "references": "reservations.id"
+        },
+        {
+          "name": "method",
+          "type": "text"
+        },
+        {
+          "name": "amount_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "payments_01",
+          "reservation_id": "reservations_01",
+          "method": "card",
+          "amount_cents": 98000
+        },
+        {
+          "id": "payments_02",
+          "reservation_id": "reservations_02",
+          "method": "bank_transfer",
+          "amount_cents": 87000
+        },
+        {
+          "id": "payments_03",
+          "reservation_id": "reservations_03",
+          "method": "card",
+          "amount_cents": 275000
+        },
+        {
+          "id": "payments_04",
+          "reservation_id": "reservations_04",
+          "method": "cash",
+          "amount_cents": 31000
+        },
+        {
+          "id": "payments_05",
+          "reservation_id": "reservations_05",
+          "method": "card",
+          "amount_cents": 68000
+        },
+        {
+          "id": "payments_06",
+          "reservation_id": "reservations_06",
+          "method": "bank_transfer",
+          "amount_cents": 273000
+        },
+        {
+          "id": "payments_07",
+          "reservation_id": "reservations_07",
+          "method": "card",
+          "amount_cents": 234000
+        },
+        {
+          "id": "payments_08",
+          "reservation_id": "reservations_08",
+          "method": "card",
+          "amount_cents": 144000
+        }
+      ]
+    },
+    {
+      "name": "amenities",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "property_id",
+          "type": "text",
+          "references": "properties.id"
+        },
+        {
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "name": "unit_price_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "amenities_01",
+          "property_id": "properties_01",
+          "name": "Spa session",
+          "unit_price_cents": 18000
+        },
+        {
+          "id": "amenities_02",
+          "property_id": "properties_02",
+          "name": "Airport transfer",
+          "unit_price_cents": 12000
+        },
+        {
+          "id": "amenities_03",
+          "property_id": "properties_03",
+          "name": "Beach cabana",
+          "unit_price_cents": 9000
+        },
+        {
+          "id": "amenities_04",
+          "property_id": "properties_04",
+          "name": "Bike rental",
+          "unit_price_cents": 4500
+        },
+        {
+          "id": "amenities_05",
+          "property_id": "properties_05",
+          "name": "Late checkout",
+          "unit_price_cents": 8000
+        },
+        {
+          "id": "amenities_06",
+          "property_id": "properties_06",
+          "name": "Kayak rental",
+          "unit_price_cents": 6000
+        },
+        {
+          "id": "amenities_07",
+          "property_id": "properties_07",
+          "name": "Wine tasting",
+          "unit_price_cents": 14000
+        },
+        {
+          "id": "amenities_08",
+          "property_id": "properties_08",
+          "name": "City tour",
+          "unit_price_cents": 7000
+        }
+      ]
+    },
+    {
+      "name": "reservation_amenities",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "reservation_id",
+          "type": "text",
+          "references": "reservations.id"
+        },
+        {
+          "name": "amenity_id",
+          "type": "text",
+          "references": "amenities.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "reservation_amenities_01",
+          "reservation_id": "reservations_01",
+          "amenity_id": "amenities_01",
+          "quantity": 1
+        },
+        {
+          "id": "reservation_amenities_02",
+          "reservation_id": "reservations_02",
+          "amenity_id": "amenities_02",
+          "quantity": 2
+        },
+        {
+          "id": "reservation_amenities_03",
+          "reservation_id": "reservations_03",
+          "amenity_id": "amenities_03",
+          "quantity": 3
+        },
+        {
+          "id": "reservation_amenities_04",
+          "reservation_id": "reservations_04",
+          "amenity_id": "amenities_04",
+          "quantity": 2
+        },
+        {
+          "id": "reservation_amenities_05",
+          "reservation_id": "reservations_05",
+          "amenity_id": "amenities_05",
+          "quantity": 1
+        },
+        {
+          "id": "reservation_amenities_06",
+          "reservation_id": "reservations_06",
+          "amenity_id": "amenities_06",
+          "quantity": 2
+        },
+        {
+          "id": "reservation_amenities_07",
+          "reservation_id": "reservations_07",
+          "amenity_id": "amenities_07",
+          "quantity": 2
+        },
+        {
+          "id": "reservation_amenities_08",
+          "reservation_id": "reservations_08",
+          "amenity_id": "amenities_08",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "name": "housekeeping_tasks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "room_id",
+          "type": "text",
+          "references": "rooms.id"
+        },
+        {
+          "name": "employee_id",
+          "type": "text",
+          "references": "employees.id"
+        },
+        {
+          "name": "service_date",
+          "type": "text"
+        },
+        {
+          "name": "planned_minutes",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "housekeeping_tasks_01",
+          "room_id": "rooms_01",
+          "employee_id": "employees_01",
+          "service_date": "2026-11-01",
+          "planned_minutes": 35
+        },
+        {
+          "id": "housekeeping_tasks_02",
+          "room_id": "rooms_02",
+          "employee_id": "employees_02",
+          "service_date": "2026-11-02",
+          "planned_minutes": 30
+        },
+        {
+          "id": "housekeeping_tasks_03",
+          "room_id": "rooms_03",
+          "employee_id": "employees_03",
+          "service_date": "2026-11-03",
+          "planned_minutes": 50
+        },
+        {
+          "id": "housekeeping_tasks_04",
+          "room_id": "rooms_04",
+          "employee_id": "employees_04",
+          "service_date": "2026-11-04",
+          "planned_minutes": 25
+        },
+        {
+          "id": "housekeeping_tasks_05",
+          "room_id": "rooms_05",
+          "employee_id": "employees_05",
+          "service_date": "2026-11-05",
+          "planned_minutes": 35
+        },
+        {
+          "id": "housekeeping_tasks_06",
+          "room_id": "rooms_06",
+          "employee_id": "employees_06",
+          "service_date": "2026-11-06",
+          "planned_minutes": 40
+        },
+        {
+          "id": "housekeeping_tasks_07",
+          "room_id": "rooms_07",
+          "employee_id": "employees_07",
+          "service_date": "2026-11-07",
+          "planned_minutes": 60
+        },
+        {
+          "id": "housekeeping_tasks_08",
+          "room_id": "rooms_08",
+          "employee_id": "employees_08",
+          "service_date": "2026-11-08",
+          "planned_minutes": 30
+        }
+      ]
+    },
+    {
+      "name": "maintenance_requests",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "room_id",
+          "type": "text",
+          "references": "rooms.id"
+        },
+        {
+          "name": "reported_by",
+          "type": "text",
+          "references": "employees.id"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "estimated_cost_cents",
+          "type": "integer"
+        }
+      ],
+      "rows": [
+        {
+          "id": "maintenance_requests_01",
+          "room_id": "rooms_01",
+          "reported_by": "employees_01",
+          "description": "Leaking shower valve",
+          "estimated_cost_cents": 18000
+        },
+        {
+          "id": "maintenance_requests_02",
+          "room_id": "rooms_02",
+          "reported_by": "employees_02",
+          "description": "Desk lamp flickers",
+          "estimated_cost_cents": 4500
+        },
+        {
+          "id": "maintenance_requests_03",
+          "room_id": "rooms_03",
+          "reported_by": "employees_03",
+          "description": "Balcony latch loose",
+          "estimated_cost_cents": 9000
+        },
+        {
+          "id": "maintenance_requests_04",
+          "room_id": "rooms_04",
+          "reported_by": "employees_04",
+          "description": "Air conditioner filter",
+          "estimated_cost_cents": 6500
+        },
+        {
+          "id": "maintenance_requests_05",
+          "room_id": "rooms_05",
+          "reported_by": "employees_05",
+          "description": "Bathroom grab bar inspection",
+          "estimated_cost_cents": 8000
+        },
+        {
+          "id": "maintenance_requests_06",
+          "room_id": "rooms_06",
+          "reported_by": "employees_06",
+          "description": "Kitchen tap drip",
+          "estimated_cost_cents": 7000
+        },
+        {
+          "id": "maintenance_requests_07",
+          "room_id": "rooms_07",
+          "reported_by": "employees_07",
+          "description": "Safe battery replacement",
+          "estimated_cost_cents": 3500
+        },
+        {
+          "id": "maintenance_requests_08",
+          "room_id": "rooms_08",
+          "reported_by": "employees_08",
+          "description": "Window seal repair",
+          "estimated_cost_cents": 16000
+        }
+      ]
+    },
+    {
+      "name": "reviews",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text"
+        },
+        {
+          "name": "reservation_id",
+          "type": "text",
+          "references": "reservations.id"
+        },
+        {
+          "name": "rating",
+          "type": "integer"
+        },
+        {
+          "name": "comment",
+          "type": "text"
+        }
+      ],
+      "rows": [
+        {
+          "id": "reviews_01",
+          "reservation_id": "reservations_01",
+          "rating": 5,
+          "comment": "Quiet mountain view"
+        },
+        {
+          "id": "reviews_02",
+          "reservation_id": "reservations_02",
+          "rating": 4,
+          "comment": "Good meeting access"
+        },
+        {
+          "id": "reviews_03",
+          "reservation_id": "reservations_03",
+          "rating": 5,
+          "comment": "Children loved the beach"
+        },
+        {
+          "id": "reviews_04",
+          "reservation_id": "reservations_04",
+          "rating": 3,
+          "comment": "Slow check-in"
+        },
+        {
+          "id": "reviews_05",
+          "reservation_id": "reservations_05",
+          "rating": 5,
+          "comment": "Helpful accessible room"
+        },
+        {
+          "id": "reviews_06",
+          "reservation_id": "reservations_06",
+          "rating": 4,
+          "comment": "Comfortable long stay"
+        },
+        {
+          "id": "reviews_07",
+          "reservation_id": "reservations_07",
+          "rating": 5,
+          "comment": "Excellent anniversary dinner"
+        },
+        {
+          "id": "reviews_08",
+          "reservation_id": "reservations_08",
+          "rating": 4,
+          "comment": "Convenient old-town location"
+        }
+      ]
+    }
+  ],
+  "target": {
+    "table": "payments",
+    "column": "amount_cents",
+    "key": "payments_08"
+  },
+  "aggregate": {
+    "table": "payments",
+    "column": "amount_cents"
+  },
+  "join": {
+    "from_table": "reservations",
+    "fk": "guest_id",
+    "to_table": "guests",
+    "column": "full_name"
+  },
+  "workflow": "Book a room and rate plan, record payment and optional amenities, then assign room service and collect post-stay feedback.",
+  "limitations": [
+    "Money is integer BRL cents; dates use ISO text. Room availability overlaps, refunds, tax, card processing, and staff scheduling need application logic or additional constraints. Each property has one representative room and only eight rows per table."
+  ]
+}
