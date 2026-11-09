@@ -113,30 +113,39 @@ Overhead is 144 bytes. Reads are bounded by the configured state limit plus
 overhead before allocating the image; embedded lengths cannot request an
 unbounded allocation. Both truncation and trailing bytes are rejected.
 
-The environment identity includes public configuration/dependency bytes,
-contract and runtime sources, host/admission/compiler tooling, Cargo inputs,
-`server/main.rs`, `server/storage.rs`, and the **actual calling controller
-executable bytes** read through `/proc`. Pinned compiler/checker identity is
-also enforced by the existing admission pipeline. The private seed is not
-part of the public environment. Equal configuration bytes in another path are
-compatible; changed configuration/tooling or controller bytes are not. Tests
-reopen with the exact same executable, reject an executable copy with one
-appended byte, and reject a changed configuration. A rebuild, source change,
-release/debug switch or fault-feature switch may require a new database.
-There is no cross-version migration, portable deployment format or promise of
-reproducible executable bytes. Preserve the exact executable and environment
-needed to reopen an existing database.
+Recovery also requires the immutable `environment` descriptor stored once in
+its owned database directory. Its `jaydb2-environment-v1\n` header precedes
+sorted, disjoint `public/`, `runtime/` and `server/controller` entries. Each name
+and content is a separate u64-length-prefixed byte frame. This includes exact
+public configuration/dependencies, contract/runtime sources, admission/compiler
+tooling, Cargo inputs and the actual calling controller executable read through
+`/proc`. The generated `Environment.bend` identity is derived and excluded to
+avoid self reference. The private seed is excluded, preserving seed-free open.
+
+Create writes and synchronizes the descriptor and directory before the first
+image. Open compares its complete bytes with the current frozen descriptor
+before accepting any image. Missing, truncated, modified or nonregular
+descriptors fail startup; open never creates, repairs or replaces them. Storage
+operations also reject use before this binding step. Descriptor equality binds
+names, contents and ordering without a hash collision assumption. Pinned
+compiler/checker identity remains enforced by the existing admission pipeline.
+The image's environment hash is retained as a diagnostic compatibility check.
+
+Equal configuration bytes in another path are compatible. Changed public
+source/tooling or controller bytes are not. Tests reject a controller copy with
+one appended byte, changed configuration, a same-size modified descriptor, a
+missing descriptor and a descriptor symlink. A rebuild, release/debug switch
+or fault-feature switch may require a new database. Preserve the exact
+executable and environment needed to reopen an existing database.
 
 The current development databases are disposable and there are no deployed
-users requiring cross-build compatibility. Exact-environment reopening is the
-intended policy for this experiment, not a pending acceptance requirement. No
-backwards-compatibility layer, migration framework or portable upgrade format is
-planned as part of this change. After changing the executable, configuration or
-tooling, create a fresh database explicitly. To reopen an old development image,
-retain its matching executable and frozen environment. The existing identity
-check remains because it binds recovery to the established validity assumptions.
+users requiring cross-build compatibility. There is no automatic migration or
+fallback for older hash-only stores: they lack the descriptor and fail closed.
+No existing image is rewritten. After changing the executable, configuration or
+tooling, explicitly create a fresh database in a new directory. This change
+does not introduce a cross-version or portable deployment format.
 
-SHA-256 detects accidental corruption and binds this format; it proves neither
+SHA-256 detects accidental corruption; it proves neither
 authorization nor logical validity. A privileged attacker able to replace an
 image and recompute its checksum is outside the protected-storage contract.
 There is no malicious rollback detection or authenticated external storage.
@@ -157,6 +166,13 @@ There is no malicious rollback detection or authenticated external storage.
   `CodecComplete.all_encoding_canonical_representable_and_decoded` and
   `Representation.transport_private_preserves_state`, with explicit canonical
   encoding, length, limit and protected-byte-equality premises.
+
+`proof/EnvironmentBinding.bend` proves that the exact framed descriptor binds
+all entry names, contents and order, including exact valid UTF-8 source text.
+`proof/DurableCommit.bend` adds the four-call fault transition model: errors
+before or after effects, safe-versus-uncertain failure, acknowledgment only
+after directory sync, and certified old/new recovery at every modeled cut.
+The Rust/OS call-by-call refinement is still a separate proof obligation.
 
 Together these describe recovery validity as certified origin + exact
 serialization/refinement + protected persistence, under the same frozen

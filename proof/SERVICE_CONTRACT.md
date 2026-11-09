@@ -188,6 +188,28 @@ These proofs use an independent parser for the emitted grammar. Agreement with
 the actual JavaScript frontend and compiler remains a distinct obligation. None of these results supplies an actual
 native observer or the whole extended eight-law contract witness.
 
+`GeneratedModule` parses context and arguments together from the complete
+actual instance source, without receiving the expected context as parser input.
+It also proves that `Generate.links` preserves the exact client code literal
+and the complete certificate/termination declaration suffix.
+
+`EnvironmentBinding` proves exact descriptor framing is injective in every
+name, content and position, and valid UTF-8 source-byte equality implies exact
+source-text equality. Storage creates and syncs this immutable descriptor once
+before its first image and requires exact comparison on reopen. This removes
+the hash-injectivity gap in configuration binding; filesystem protection and
+actual source/compiler correspondence remain explicit obligations.
+
+For replacement of an existing certified image, `DurableCommit` models the
+four-call write/sync/replace/directory-sync order, admitting errors both before
+and after each effect. It proves that
+ordinary rollback errors cannot recover a new image, acknowledgment requires
+directory sync, and any modeled crash recovers the old certified state or the
+certified actual Core candidate. It derives candidate validity from
+`History.Origin`, rather than receiving post-validity or trusting a checksum.
+Atomic rename/fsync semantics and native call-by-call correspondence are the
+filesystem/implementation boundary of this model.
+
 ## Optional administrator service timing
 
 [`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in

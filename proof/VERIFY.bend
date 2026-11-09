@@ -24,6 +24,9 @@ import ./ExecutionAdapter.bend as ExecutionAdapter
 import ./GeneratedLiterals.bend as GeneratedLiterals
 import ./GeneratedContext.bend as GeneratedContext
 import ./GeneratedInstance.bend as GeneratedInstance
+import ./GeneratedModule.bend as GeneratedModule
+import ./EnvironmentBinding.bend as EnvironmentBinding
+import ./DurableCommit.bend as DurableCommit
 import ./PreparedControlDispatch.bend as PreparedControlDispatch
 import ./PreparedInvalidationDispatch.bend as PreparedInvalidationDispatch
 import ./PreparedControlTrace.bend as PreparedControlTrace

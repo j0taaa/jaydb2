@@ -11,6 +11,7 @@ const MAGIC: &[u8] = b"jaydb2-image-v1\n";
 const OVERHEAD: usize = MAGIC.len() + 64 + 4 * 8 + 32;
 const IMAGE: &str = "snapshot";
 const TEMP: &str = ".snapshot.tmp";
+const ENVIRONMENT: &str = "environment";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -24,6 +25,8 @@ pub struct Storage {
     // Never unlink or replace this file: its locked inode identifies ownership.
     _owner: File,
     temporary: Option<File>,
+    creating: bool,
+    environment_bound: bool,
 }
 
 #[derive(Debug)]
@@ -134,10 +137,67 @@ impl Storage {
             directory,
             _owner: owner,
             temporary: None,
+            creating: mode == Mode::Create,
+            environment_bound: false,
         })
     }
 
+    // Bind once, before reading or writing any authoritative image. The
+    // immutable descriptor contains exact public source/tooling/controller
+    // bytes. Hashes in images remain diagnostics and corruption checks.
+    pub fn bind_environment(&mut self, expected: &[u8]) -> Result<()> {
+        if self.environment_bound {
+            return Err(storage_error("environment already bound"));
+        }
+        let path = self.path.join(ENVIRONMENT);
+        if self.creating {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(path)
+                .map_err(storage_error)?;
+            file.write_all(expected)
+                .and_then(|()| file.sync_all())
+                .and_then(|()| self.directory.sync_all())
+                .map_err(storage_error)?;
+        } else {
+            if !fs::symlink_metadata(&path)
+                .map_err(storage_error)?
+                .file_type()
+                .is_file()
+            {
+                return Err(storage_error(
+                    "missing or nonregular exact environment descriptor",
+                ));
+            }
+            let file = File::open(path).map_err(storage_error)?;
+            let size = expected.len() as u64;
+            if file.metadata().map_err(storage_error)?.len() != size {
+                return Err(storage_error(
+                    "incompatible image environment (exact descriptor size differs)",
+                ));
+            }
+            let mut actual = Vec::new();
+            file.take(size.saturating_add(1))
+                .read_to_end(&mut actual)
+                .map_err(storage_error)?;
+            if actual != expected {
+                return Err(storage_error(
+                    "incompatible image environment (exact source or controller bytes differ)",
+                ));
+            }
+        }
+        self.environment_bound = true;
+        Ok(())
+    }
+
     pub fn recover(&self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
+        if !self.environment_bound {
+            return Err(storage_error(
+                "exact environment descriptor has not been bound",
+            ));
+        }
         // Bound allocation before reading untrusted/corrupt lengths. There is
         // exactly one candidate; a leftover temp image is never recovery input.
         // The logical limit may be u64::MAX. Header overhead must not narrow
@@ -160,6 +220,15 @@ impl Storage {
         limits: &Limits,
         state: &[u8],
     ) -> std::result::Result<(), CommitError> {
+        if !self.environment_bound {
+            return Err(CommitError {
+                uncertain: false,
+                cause: io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "exact environment descriptor has not been bound",
+                ),
+            });
+        }
         let bytes = encode_image(environment, limits, state).map_err(|cause| CommitError {
             uncertain: false,
             cause,
@@ -298,6 +367,50 @@ mod tests {
         "a".repeat(64)
     }
 
+    fn bound_storage(path: &Path, mode: Mode) -> Storage {
+        let mut storage = Storage::begin(path, mode).unwrap();
+        storage.bind_environment(b"exact test environment").unwrap();
+        storage
+    }
+
+    #[test]
+    fn descriptor_is_required_exact_and_immutable() {
+        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage-binding").unwrap();
+        let path = parent.path.join("db");
+        let mut storage = Storage::begin(&path, Mode::Create).unwrap();
+        assert!(
+            !storage
+                .persist(&environment(), &limits(), b"old")
+                .unwrap_err()
+                .uncertain
+        );
+        assert!(!path.join(IMAGE).exists());
+        storage.bind_environment(b"original environment").unwrap();
+        assert!(storage.bind_environment(b"different descriptor").is_err());
+        assert_eq!(
+            fs::read(path.join(ENVIRONMENT)).unwrap(),
+            b"original environment"
+        );
+        storage.persist(&environment(), &limits(), b"old").unwrap();
+        drop(storage);
+        let mut storage = Storage::begin(&path, Mode::Open).unwrap();
+        assert!(storage.recover(&environment(), &limits()).is_err());
+        // Same image digest and same-length descriptor still cannot bind
+        // changed bytes. No SHA collision-resistance premise is involved.
+        assert!(storage.bind_environment(b"changed! environment").is_err());
+        assert_eq!(
+            fs::read(path.join(ENVIRONMENT)).unwrap(),
+            b"original environment"
+        );
+        storage.bind_environment(b"original environment").unwrap();
+        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"old");
+        drop(storage);
+        fs::remove_file(path.join(ENVIRONMENT)).unwrap();
+        let mut storage = Storage::begin(&path, Mode::Open).unwrap();
+        assert!(storage.bind_environment(b"original environment").is_err());
+        assert!(!path.join(ENVIRONMENT).exists());
+    }
+
     #[test]
     fn image_is_exact_bound_and_fail_closed() {
         let state: Vec<_> = (0..=255).collect();
@@ -326,7 +439,7 @@ mod tests {
         let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage").unwrap();
         let path = parent.path.join("db");
         assert!(Storage::begin(&path, Mode::Open).is_err());
-        let mut storage = Storage::begin(&path, Mode::Create).unwrap();
+        let mut storage = bound_storage(&path, Mode::Create);
         assert!(Storage::begin(&path, Mode::Create).is_err());
         assert!(Storage::begin(&path, Mode::Open).is_err());
         storage.persist(&environment(), &limits(), b"old").unwrap();
@@ -334,7 +447,7 @@ mod tests {
         storage.persist(&environment(), &limits(), b"new").unwrap();
         drop(storage);
         fs::write(path.join(TEMP), b"orphan").unwrap();
-        let storage = Storage::begin(&path, Mode::Open).unwrap();
+        let storage = bound_storage(&path, Mode::Open);
         assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"new");
         fs::write(path.join(IMAGE), b"corrupt").unwrap();
         assert!(storage.recover(&environment(), &limits()).is_err());
@@ -350,10 +463,10 @@ mod tests {
         let path = parent.path.join("db");
         let mut limits = limits();
         limits.state = u64::MAX;
-        let mut storage = Storage::begin(&path, Mode::Create).unwrap();
+        let mut storage = bound_storage(&path, Mode::Create);
         storage.persist(&environment(), &limits, b"small").unwrap();
         drop(storage);
-        let storage = Storage::begin(&path, Mode::Open).unwrap();
+        let storage = bound_storage(&path, Mode::Open);
         assert_eq!(storage.recover(&environment(), &limits).unwrap(), b"small");
     }
 

@@ -167,6 +167,26 @@ class PersistenceTests(unittest.TestCase):
         self.assertIn(b'incompatible image environment', result.stderr)
         self.assertEqual((self.path/'snapshot').read_bytes(), image)
 
+    def test_exact_descriptor_missing_modified_and_symlinked_are_rejected(self):
+        descriptor = self.path/'environment'
+        original = descriptor.read_bytes()
+        image = (self.path/'snapshot').read_bytes()
+        descriptor.unlink()
+        self.assertIn(b'STORAGE', self.open_failure().stderr)
+        self.assertFalse(descriptor.exists(), 'opening cannot silently create a missing binding')
+        changed = bytearray(original); changed[-1] ^= 1
+        descriptor.write_bytes(changed)
+        self.assertIn(b'exact source or controller bytes', self.open_failure().stderr)
+        self.assertEqual(descriptor.read_bytes(), changed, 'opening cannot repair a mismatched binding')
+        external = self.directory/'other-environment'; external.write_bytes(original)
+        descriptor.unlink(); descriptor.symlink_to(external)
+        self.assertIn(b'nonregular', self.open_failure().stderr)
+        descriptor.unlink(); descriptor.write_bytes(original)
+        server = self.server()
+        self.assertEqual(self.call(server)['status'], 'refusal', server.diagnostics())
+        server.finish()
+        self.assertEqual((self.path/'snapshot').read_bytes(), image)
+
     def test_create_open_policy_and_real_owner_contention(self):
         self.assertNotEqual(self.run_cli('--storage', self.path).returncode, 0)
         result = self.run_cli('--storage', self.path, '--storage-mode', 'open', '--seed', self.directory/'absent')

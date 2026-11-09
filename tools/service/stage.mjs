@@ -196,6 +196,18 @@ function freeze(workdir, configuration, seed) {
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
   identityEntries.push(...[...tooling].map(([name, data]) => [name, digest(data)]).sort(), ['server/controller', digest(controller)]);
   const identity = digest(JSON.stringify(identityEntries));
+  // Recovery compares these exact bytes, not the diagnostic hashes above.
+  // Disjoint namespaces and length frames bind every name, byte and position.
+  // The private seed is deliberately absent: opening never requires it.
+  const descriptor = [Buffer.from('jaydb2-environment-v1\n')];
+  const exactEntries = [...sources].map(([name, data]) => ['public/' + name, data]);
+  exactEntries.push(...[...tooling].map(([name, data]) => ['runtime/' + name, data]), ['server/controller', controller]);
+  exactEntries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+  for (const [name, data] of exactEntries) for (const bytes of [Buffer.from(name, 'utf8'), data]) {
+    const size = Buffer.alloc(8); size.writeBigUInt64BE(BigInt(bytes.length));
+    descriptor.push(size, bytes);
+  }
+  write(path.join(workdir, 'environment.bytes'), Buffer.concat(descriptor));
   sources.set('Environment.bend', Buffer.from('import Base\ndef identity() -> String:\n  ' + JSON.stringify(identity) + '\n'));
   for (const [name, data] of sources) write(path.join(workdir, 'public', name), data);
   for (const [name, data] of tooling) write(path.join(workdir, 'runtime', name), data);

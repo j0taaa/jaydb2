@@ -129,3 +129,57 @@ test('prepared and read-only contract dependencies survive the production public
     syncBuiltinESMExports();
   }
 });
+
+test('the frozen recovery descriptor retains exact public, tooling and controller bytes without the private seed', t => {
+  const f = fixture(t), privateText = 'seed-only-' + path.basename(f.root);
+  fs.writeFileSync(f.seed, `import Base\ndef secret() -> String: "${privateText}"\n`);
+  fs.writeFileSync(f.config, 'import ./Helper.bend as Helper\n');
+  fs.writeFileSync(path.join(f.root, 'Helper.bend'), 'import Base\n# original helper\n');
+  const original = child.spawnSync;
+  child.spawnSync = () => ({ status: 37 });
+  syncBuiltinESMExports();
+  const decode = work => {
+    const descriptor = fs.readFileSync(path.join(work, 'environment.bytes'));
+    const magic = Buffer.from('jaydb2-environment-v1\n');
+    assert.deepEqual(descriptor.subarray(0, magic.length), magic);
+    let position = magic.length;
+    const take = () => {
+      assert.ok(descriptor.length - position >= 8);
+      const length = descriptor.readBigUInt64BE(position); position += 8;
+      assert.ok(length <= BigInt(descriptor.length - position));
+      const bytes = descriptor.subarray(position, position + Number(length));
+      position += Number(length); return bytes;
+    };
+    const entries = [];
+    while (position < descriptor.length) entries.push([take().toString('utf8'), take()]);
+    assert.equal(position, descriptor.length);
+    assert.deepEqual(entries.map(([name]) => name), entries.map(([name]) => name).sort());
+    assert.equal(new Set(entries.map(([name]) => name)).size, entries.length);
+    assert.equal(descriptor.includes(Buffer.from(privateText)), false);
+    const values = new Map(entries);
+    assert.equal(values.has('public/Seed.bend'), false);
+    assert.equal(values.has('public/Environment.bend'), false, 'the derived identity is excluded to avoid self reference');
+    for (const [name, bytes] of entries) {
+      const actual = name === 'server/controller' ? fs.readFileSync(`/proc/${process.ppid}/exe`)
+        : fs.readFileSync(path.join(work, name));
+      assert.deepEqual(bytes, actual, name);
+    }
+    return { descriptor, values };
+  };
+  try {
+    assert.throws(() => initialize(f.work, f.config, f.seed, '/unused-bend', '/unused-kernel'), e => e.code === 'HELPER');
+    const first = decode(f.work);
+    const again = path.join(f.root, 'again');
+    assert.throws(() => initialize(again, f.config, f.seed, '/unused-bend', '/unused-kernel'), e => e.code === 'HELPER');
+    assert.deepEqual(decode(again).descriptor, first.descriptor, 'temporary paths do not change environment identity');
+    fs.writeFileSync(path.join(f.root, 'Helper.bend'), 'import Base\n# modified helper\n');
+    const changed = path.join(f.root, 'changed');
+    assert.throws(() => initialize(changed, f.config, f.seed, '/unused-bend', '/unused-kernel'), e => e.code === 'HELPER');
+    const last = decode(changed);
+    assert.notDeepEqual(last.descriptor, first.descriptor);
+    assert.equal(last.values.get('public/Helper.bend').toString('utf8'), 'import Base\n# modified helper\n');
+  } finally {
+    child.spawnSync = original;
+    syncBuiltinESMExports();
+  }
+});

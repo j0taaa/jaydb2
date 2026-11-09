@@ -548,6 +548,9 @@ impl Database {
         let environment: Value =
             serde_json::from_slice(&fs::read(directory.path.join("environment.json"))?)?;
         let environment = text(&environment, "identity")?.to_owned();
+        if let Some(storage) = &mut storage {
+            storage.bind_environment(&fs::read(directory.path.join("environment.bytes"))?)?;
+        }
         let state = if recovering {
             storage
                 .as_ref()
@@ -1633,6 +1636,9 @@ mod tests {
         };
         let environment = "a".repeat(64);
         let mut storage = storage::Storage::begin(&path, storage::Mode::Create).unwrap();
+        storage
+            .bind_environment(b"publication test environment")
+            .unwrap();
         storage.persist(&environment, &limits, b"old").unwrap();
         let previous = fs::read(path.join("snapshot")).unwrap();
         let (inspector, mut observer) = UnixStream::pair().unwrap();

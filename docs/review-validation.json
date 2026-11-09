@@ -363,5 +363,188 @@
       "Concrete FIFO/read-batch/durable origin/observer refinements and Temporary::new progress still require proofs."
     ],
     "post_gate_changes": "This validation metadata only; proof and runtime inputs remain unchanged."
+  },
+  "recovery_binding_followup_2026_11_09": {
+    "base_main": "80bc7ab",
+    "whole_goal_complete": false,
+    "scope": "Checked recovery binding, arithmetic and source-generation batch; full operational witness remains unfinished.",
+    "theorems": [
+      "Total checked signed subtraction against independent Nat-difference integer semantics, including rejection of every representable result on overflow.",
+      "Actual generated instance source independently parses the original context and argument value together; actual generated bindings retain exact code and judgment suffix.",
+      "Exact environment descriptors are injective in entry names/content/order; equal valid UTF-8 source bytes imply identical source text.",
+      "Four-call existing-image commit model covers errors before/after effects, safe versus uncertain failure, acknowledgment only after directory sync, and certified old/new state recovery. Native/OS refinement remains explicit."
+    ],
+    "runtime_repairs": [
+      "Persistent images require a separately synchronized immutable exact public-source/tooling/controller descriptor; missing/modified/nonregular descriptors fail closed without repair.",
+      "Cancel the framing reader by dropping the sole socket endpoint before joining; no fallible shutdown return can skip joining."
+    ],
+    "integration_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "frozen_inputs": 607,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 46
+    },
+    "coverage": {
+      "transitive_modules": 241,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 157,
+          "law_declarations": 1283
+        },
+        "library": {
+          "modules": 25,
+          "law_declarations": 139
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "native_cancellation_gate": {
+      "rust_unit_tests": 49,
+      "checks": [
+        {
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--",
+            "--check"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.05993843078613281
+        },
+        {
+          "command": [
+            "cargo",
+            "test",
+            "--locked"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.8254566192626953
+        },
+        {
+          "command": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.3671720027923584
+        },
+        {
+          "command": [
+            "cargo",
+            "build",
+            "--locked",
+            "--release"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 1.308053731918335
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "tests.service.test_prepared",
+            "tests.service.test_concurrency",
+            "-v"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 111.15556597709656
+        }
+      ],
+      "changed_inputs": []
+    },
+    "exact_binding_recovery_gate": {
+      "rust_unit_tests": 48,
+      "node_tests": 27,
+      "checks": [
+        {
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--",
+            "--check"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.063
+        },
+        {
+          "command": [
+            "cargo",
+            "test",
+            "--locked"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.348
+        },
+        {
+          "command": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 0.348
+        },
+        {
+          "command": [
+            "node",
+            "--test",
+            "--test-concurrency=1",
+            "tests/admission/admission.test.mjs",
+            "tests/admission/correspondence.test.mjs",
+            "tests/admission/read-only.test.mjs",
+            "tests/admission/staging.test.mjs",
+            "tests/verifier/kernel.test.mjs"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 8.014
+        },
+        {
+          "command": [
+            "make",
+            "test-recovery-integration"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 593.124
+        }
+      ],
+      "frozen_inputs": 592,
+      "changed_inputs": []
+    },
+    "causal_cancellation_regression": "Actual shutdown denied with EPERM in an isolated child: pre-fix source fails, endpoint-drop fix passes. No security filter is installed in production.",
+    "evidence_sha256": {
+      ".build/review/proof-resumption-recovery-gate.log": "68e9dcb12331fa1cc08c08241774ab2ffad16529ee5f11e75e8f08991118eaa4",
+      ".build/review/scheduling-refinement/native-gate.log": "8646bc5e9ec732b2d79dcb3f3610ddb033f79a0c3744e5e9ee5f4ac1929715fa",
+      ".build/review/scheduling-refinement/cancel-validation.json": "f62ebb7a3b54feeb7e655f4b6928e7226c6acedb643b8c45ddbf164fc7ff2911",
+      ".build/review/scheduling-refinement/cancel-before-tests.log": "255ff8e72fb24a377fb70068e2f4bbe4b19114ce193aa673ef420aa48289064b",
+      ".build/review/scheduling-refinement/cancel-fixed-tests.log": "bcfc16ee8c18767e4ee076f45958ff3cdbe86f4bc47526e664210e7d5a34d0b5",
+      ".build/review/environment-binding/native-gate.log": "5c204d29e169f01fd22e46dff45fcb5bbdfd706fe4a209a39f1e60e6399dc937",
+      ".build/review/durable-commit/proof-validation.json": "e377b2c62e5fc047a87e37a97387fe7681925840d3dcf18268f2d78702bc8de1",
+      ".build/review/arithmetic-next/subtraction-validation.json": "743abcefd22bfe8b6eb6b85bbbe1944e91eca36b917adf08b9dc41056ae59cfe"
+    },
+    "remaining": [
+      "Complete extended eight-law operational witness, including deterministic dispatch/progress and recovery startup.",
+      "Mechanized actual Rust/Node/C/compiler/OS correspondence; exact protected storage origin and observer coverage.",
+      "General mathematical multiplication/division and broader library functional specifications.",
+      "Queue/read-batch refinement currently under development; no maintained source proof claims its unfinished results."
+    ],
+    "post_gate_changes": "Validation metadata and scope documentation only; verified runtime/proof inputs remain unchanged."
   }
 }

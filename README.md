@@ -70,7 +70,8 @@ compiler; the host retains the last published state.
   with fresh credentials and arguments. Restart loses handles.
 - **[Complete-image persistence](experiments/persistence/REPORT.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
-  requires the exact executable/environment. Development databases can be
+  compares an immutable descriptor of the exact executable/environment bytes.
+  Development databases can be
   recreated after changes; cross-build compatibility and migrations are outside
   scope. Uncertain commit failures stop service rather than promise rollback.
 - **[Certified CPU read batches](tools/service/READ_BATCHES.md):** optional

@@ -2,7 +2,6 @@
 //! The owner selects FIFO work, completes it, then emits before selecting again.
 use std::collections::VecDeque;
 use std::io;
-use std::net::Shutdown;
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, Condvar, Mutex};
@@ -149,7 +148,7 @@ struct Shared {
 
 pub struct FrameQueue {
     shared: Arc<Shared>,
-    cancel: UnixStream,
+    cancel: Option<UnixStream>,
     reader: Option<JoinHandle<()>>,
 }
 
@@ -183,7 +182,7 @@ impl FrameQueue {
             })?;
         Ok(Self {
             shared,
-            cancel,
+            cancel: Some(cancel),
             reader: Some(reader),
         })
     }
@@ -244,7 +243,9 @@ impl FrameQueue {
             state.stopped = true;
             self.shared.changed.notify_all();
         }
-        self.cancel.shutdown(Shutdown::Both)?;
+        // HUP is part of FrameInput's cancellation contract. Drop the sole
+        // sender before joining, with no fallible wakeup that can bypass join.
+        drop(self.cancel.take());
         if let Some(reader) = self.reader.take() {
             reader
                 .join()
@@ -639,6 +640,82 @@ mod tests {
             joined.join().unwrap();
             drop(writer);
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn cancellation_drops_endpoint_and_joins_when_shutdown_is_denied() {
+        const CHILD: &str = "JAYDB_SCHEDULING_CANCEL_TEST_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "scheduling::tests::cancellation_drops_endpoint_and_joins_when_shutdown_is_denied", "--nocapture"])
+                .env(CHILD, "1")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "isolated cancellation test failed: {}\n{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+        // The filter is confined to this isolated child. The descriptors stay
+        // valid and connected; only the real shutdown syscall returns EPERM.
+        let mut rules = [
+            libc::sock_filter {
+                code: (libc::BPF_LD | libc::BPF_W | libc::BPF_ABS) as u16,
+                jt: 0,
+                jf: 0,
+                k: 0,
+            },
+            libc::sock_filter {
+                code: (libc::BPF_JMP | libc::BPF_JEQ | libc::BPF_K) as u16,
+                jt: 0,
+                jf: 1,
+                k: libc::SYS_shutdown as u32,
+            },
+            libc::sock_filter {
+                code: (libc::BPF_RET | libc::BPF_K) as u16,
+                jt: 0,
+                jf: 0,
+                k: libc::SECCOMP_RET_ERRNO | libc::EPERM as u32,
+            },
+            libc::sock_filter {
+                code: (libc::BPF_RET | libc::BPF_K) as u16,
+                jt: 0,
+                jf: 0,
+                k: libc::SECCOMP_RET_ALLOW,
+            },
+        ];
+        let program = libc::sock_fprog {
+            len: rules.len() as u16,
+            filter: rules.as_mut_ptr(),
+        };
+        // SAFETY: these scalar arguments install no-new-privileges only in
+        // this child test thread; no process outside it is affected.
+        assert_eq!(
+            unsafe { libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) },
+            0
+        );
+        // SAFETY: the live program and instruction slice outlive prctl; the
+        // kernel copies them before returning. Other syscalls remain allowed.
+        assert_eq!(
+            unsafe { libc::prctl(libc::PR_SET_SECCOMP, libc::SECCOMP_MODE_FILTER, &program) },
+            0
+        );
+        let (writer, reader) = UnixStream::pair().unwrap();
+        let mut queue =
+            FrameQueue::start(PollInput(reader), 1, QueueBounds { items: 1, bytes: 1 }).unwrap();
+        wait(&queue, |state| state.items == 1);
+        let result = queue.close();
+        assert!(
+            result.is_ok(),
+            "cleanup returned before joining: {result:?}"
+        );
+        assert!(queue.reader.is_none());
+        queue.close().unwrap();
+        drop(writer);
     }
 
     #[test]
