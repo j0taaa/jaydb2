@@ -1,0 +1,46 @@
+cargo build --locked --release
+    Finished `release` profile [optimized] target(s) in 0.07s
+mkdir -p build/library/tmp
+python3 -B experiments/library/prepare_proofs.py
+/home/jota/projects/jaydb2-performance/build/library/application-proof/Check.bend
+python3 -B tools/check.py library/VERIFY.bend build/library/application-proof/Check.bend
+OK --check-only: library/VERIFY.bend
+OK --verdict: library/VERIFY.bend
+OK --check-only: build/library/application-proof/Check.bend
+OK --verdict: build/library/application-proof/Check.bend
+python3 -B experiments/library/test_negative.py
+PASS rejected AlwaysNone.bend --check-only
+PASS rejected AlwaysNone.bend --verdict
+PASS rejected ComparisonAlwaysTrue.bend --check-only
+PASS rejected ComparisonAlwaysTrue.bend --verdict
+PASS rejected ComparisonFalseOrder.bend --check-only
+PASS rejected ComparisonFalseOrder.bend --verdict
+PASS rejected HiddenWrite.bend --check-only
+PASS rejected HiddenWrite.bend --verdict
+PASS rejected PublicKeyNone.bend --check-only
+PASS rejected PublicKeyNone.bend --verdict
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
+(node:1618825) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS: 1980 native dynamic signed64 add/sub/mul/divmod/order cases and 1980 sort/average/summary/join/group cases; official C unchanged.
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B experiments/library/test_collections.py
+(node:1618897) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS: 250 variable-length native content cases (lengths 0..80); duplicates, stable equal-key identities, complete inner/left join pairs and group keys/members; official C unchanged.
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B applications/tasks/query_check.py
+PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.
+python3 -B applications/indexed/run_check.py
+OK --check-only: build/library/indexed-proof/Check.bend
+OK --verdict: build/library/indexed-proof/Check.bend
+OK --check-only: build/library/indexed-omitted-permissions/Check.bend
+OK --verdict: build/library/indexed-omitted-permissions/Check.bend
+PASS omitted: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended omitted rejection --check-only
+PASS intended omitted rejection --verdict
+OK --check-only: build/library/indexed-forged-permissions/Check.bend
+OK --verdict: build/library/indexed-forged-permissions/Check.bend
+PASS forged: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended forged rejection --check-only
+PASS intended forged rejection --verdict
+PASS intended forbidden rejection --check-only
+PASS intended forbidden rejection --verdict

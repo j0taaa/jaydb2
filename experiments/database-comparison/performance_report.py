@@ -69,7 +69,8 @@ def charts(output,d):
     from matplotlib.ticker import FuncFormatter
     plt.rcParams.update({'font.family':'DejaVu Sans','font.size':10,'svg.hashsalt':'jaydb2-performance-followup'})
     indexed={(x['run'],x['engine'],x['workload']):x['median_ms'] for x in d['aggregate']}
-    fig,axs=plt.subplots(2,1,figsize=(11.8,8.0),layout='constrained')
+    fig,axs=plt.subplots(2,1,figsize=(11.8,9.2))
+    fig.subplots_adjust(top=.87,bottom=.10,hspace=.52,left=.09,right=.98)
     series=[('baseline','jaydb2','JayDB2 baseline','#888888'),('engine','jaydb2','JayDB2 engine change','#475bd6'),('query','jaydb2','JayDB2 + single-call profile','#7f44b5')]
     for j,(run,e,label,color) in enumerate(series):
         axs[0].bar([x+(j-1)*.24 for x in range(5)],[indexed[run,e,w] for w in WORKLOADS],width=.22,label=label,color=color)
@@ -77,8 +78,8 @@ def charts(output,d):
         axs[1].bar([x+(j-1)*.24 for x in range(5)],[indexed[run,e,w] for w in WORKLOADS],width=.22,label=label,color=color)
     for ax,title in zip(axs,['Same JayDB2 engine workload; application profile shown separately','Single-call application profile compared with real SQL engines']):
         ax.set_yscale('log');ax.set_ylabel('Median of scenario medians (ms, log scale)');ax.set_title(title,loc='left',fontweight='bold',pad=30);ax.grid(axis='y',alpha=.25);ax.set_axisbelow(True);ax.spines[['top','right']].set_visible(False);ax.yaxis.set_major_formatter(FuncFormatter(lambda x,_:f'{x:g}'));ax.set_xticks(range(5),LABELS);ax.legend(frameon=False,fontsize=9,ncol=3,loc='lower left',bbox_to_anchor=(0,1))
-    fig.suptitle('Measured performance without changing durability or logical limits',fontsize=14)
-    fig.supxlabel('7 checked samples + 1 warmup; 10 scenarios (9 JOINs); 8 rows/table; one client. Setup excluded and reported separately.',fontsize=9)
+    fig.suptitle('Measured performance without changing durability or logical limits',fontsize=14,y=.99)
+    fig.supxlabel('7 checked samples + 1 warmup; 10 scenarios (9 JOINs); 8 rows/table; one client. Setup excluded and reported separately.',fontsize=9,y=.015)
     for suffix in ['svg','png']:
         fig.savefig(output/f'comparison.{suffix}',dpi=180,metadata={'Date':None} if suffix=='svg' else None)
     plt.close(fig)

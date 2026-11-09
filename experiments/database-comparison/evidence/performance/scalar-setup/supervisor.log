@@ -1,0 +1,24 @@
+2026-11-09T16:59:16.460545+00:00 02_household_budget 0 baseline start
+2026-11-09T16:59:38.106072+00:00 02_household_budget 0 baseline 21.331 seconds
+2026-11-09T16:59:38.106144+00:00 02_household_budget 0 scalar start
+2026-11-09T17:00:01.985586+00:00 02_household_budget 0 scalar 23.717 seconds
+2026-11-09T17:00:01.985646+00:00 04_ecommerce 0 baseline start
+2026-11-09T17:00:26.656578+00:00 04_ecommerce 0 baseline 23.965 seconds
+2026-11-09T17:00:26.656622+00:00 04_ecommerce 0 scalar start
+2026-11-09T17:00:46.092835+00:00 04_ecommerce 0 scalar 19.139 seconds
+2026-11-09T17:00:46.092883+00:00 02_household_budget 1 scalar start
+2026-11-09T17:01:05.641428+00:00 02_household_budget 1 scalar 19.416 seconds
+2026-11-09T17:01:05.641471+00:00 02_household_budget 1 baseline start
+2026-11-09T17:01:24.338551+00:00 02_household_budget 1 baseline 18.393 seconds
+2026-11-09T17:01:24.338598+00:00 04_ecommerce 1 scalar start
+2026-11-09T17:01:44.642938+00:00 04_ecommerce 1 scalar 20.057 seconds
+2026-11-09T17:01:44.642985+00:00 04_ecommerce 1 baseline start
+2026-11-09T17:02:04.771474+00:00 04_ecommerce 1 baseline 19.43 seconds
+2026-11-09T17:02:04.771538+00:00 02_household_budget 2 baseline start
+2026-11-09T17:02:25.912294+00:00 02_household_budget 2 baseline 20.833 seconds
+2026-11-09T17:02:25.912338+00:00 02_household_budget 2 scalar start
+2026-11-09T17:02:44.942842+00:00 02_household_budget 2 scalar 18.918 seconds
+2026-11-09T17:02:44.942903+00:00 04_ecommerce 2 baseline start
+2026-11-09T17:03:04.902396+00:00 04_ecommerce 2 baseline 19.249 seconds
+2026-11-09T17:03:04.902473+00:00 04_ecommerce 2 scalar start
+2026-11-09T17:03:24.982063+00:00 04_ecommerce 2 scalar 19.796 seconds

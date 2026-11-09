@@ -1,0 +1,171 @@
+cargo build --locked --release
+    Finished `release` profile [optimized] target(s) in 0.03s
+python3 -B applications/indexed/run_check.py
+OK --check-only: build/library/indexed-proof/Check.bend
+OK --verdict: build/library/indexed-proof/Check.bend
+OK --check-only: build/library/indexed-omitted-permissions/Check.bend
+OK --verdict: build/library/indexed-omitted-permissions/Check.bend
+PASS omitted: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended omitted rejection --check-only
+PASS intended omitted rejection --verdict
+OK --check-only: build/library/indexed-forged-permissions/Check.bend
+OK --verdict: build/library/indexed-forged-permissions/Check.bend
+PASS forged: independently proved ordinary permissions on ALL valid states and ALL prefixes
+PASS intended forged rejection --check-only
+PASS intended forged rejection --verdict
+PASS intended forbidden rejection --check-only
+PASS intended forbidden rejection --verdict
+PASS real indexed session: restricted Alice/Bob availability updates, X.scan_equal matching/nonmatching queries, X.maintain and X.rebuild, three intended certificate rejections, unchanged state after each denial, inherited BENDRTS neutralized.
+python3 -B experiments/integration/check_features.py
+PASS combined host: certified index maintenance/rebuild, seed-free durable reopen, ephemeral handles, three real certificate denials without publication, exact saved business/index/user rows, administrator timing and exclusive write-capable handles.
+python3 -B applications/vouchers/check.py --restart
+OK --check-only: applications/vouchers/.build/check-8mor2uq4/Check.bend
+OK --verdict: applications/vouchers/.build/check-8mor2uq4/Check.bend
+OK --check-only: experiments/idempotency/VERIFY.bend
+OK --verdict: experiments/idempotency/VERIFY.bend
+OK: issue -> success
+OK: issue -> success
+OK: issue -> refusal
+OK: issue -> refusal
+OK: inspect -> success
+OK: issue -> success
+OK: permission -> success
+OK: issue -> refusal
+OK: issue -> refusal
+OK: permission -> success
+OK: issue -> success
+OK: issue -> refusal
+OK: inspect -> success
+OK: issue -> success
+OK: retire -> success
+OK: inspect -> success
+OK: issue -> success
+OK: issue -> success
+OK: issue -> refusal
+OK: issue -> success
+OK: issue -> success
+OK: issue -> refusal
+OK: issue -> authentication
+OK: issue -> certificate
+OK: issue -> certificate
+OK: issue -> certificate
+OK: issue -> certificate
+OK: issue -> certificate
+OK: inspect -> success
+OK: issue -> success
+OK: issue -> limit
+OK: inspect -> success
+OK: issue -> success
+OK: issue -> limit
+OK: inspect -> success
+OK: issue -> limit
+OK: issue -> success
+OK: issue -> limit
+OK: issue -> success
+OK: issue -> refusal
+OK: inspect -> success
+OK: inspect -> success
+OK: issue -> success
+PASS: certified receipt flow, law gates, permissions, conflicts, retirement and rollback; real restart survival
+cargo build --locked --release --features storage-fault-injection --target-dir .build/integration/fault
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling libc v0.2.191
+   Compiling serde_json v1.0.154
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.2.17
+   Compiling itoa v1.0.18
+   Compiling cfg-if v1.0.5
+   Compiling generic-array v0.14.7
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling jaydb2 v0.1.0 (/home/jota/projects/jaydb2-performance)
+    Finished `release` profile [optimized] target(s) in 4.13s
+JAYDB_PERSISTENCE_BINARY="/home/jota/projects/jaydb2-performance/.build/integration/fault/release/jaydb2" JAYDB_IDEMPOTENCY_BINARY="/home/jota/projects/jaydb2-performance/.build/integration/fault/release/jaydb2" python3 -B -m unittest tests.service.test_persistence tests.service.test_timing_persistence tests.service.test_receipt_recovery -v
+test_acknowledged_restart_credentials_handles_and_seed_free_open (tests.service.test_persistence.PersistenceTests.test_acknowledged_restart_credentials_handles_and_seed_free_open) ... ok
+test_all_application_tables_and_users_survive (tests.service.test_persistence.PersistenceTests.test_all_application_tables_and_users_survive) ... ok
+test_create_open_policy_and_real_owner_contention (tests.service.test_persistence.PersistenceTests.test_create_open_policy_and_real_owner_contention) ... ok
+test_disk_errors_and_uncertain_failure_never_emit_false_rollback (tests.service.test_persistence.PersistenceTests.test_disk_errors_and_uncertain_failure_never_emit_false_rollback) ... ok
+test_missing_corrupt_incompatible_and_no_fallback (tests.service.test_persistence.PersistenceTests.test_missing_corrupt_incompatible_and_no_fallback) ... ok
+test_process_death_at_meaningful_commit_boundaries (tests.service.test_persistence.PersistenceTests.test_process_death_at_meaningful_commit_boundaries) ... ok
+test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged (tests.service.test_persistence.PersistenceTests.test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged) ... ok
+test_failed_commits_log_once_and_uncertain_commits_stop_queued_dispatch (tests.service.test_timing_persistence.TimingPersistenceTests.test_failed_commits_log_once_and_uncertain_commits_stop_queued_dispatch) ... ok
+test_lost_response_retries_original_receipt_without_reexecuting_business_writes (tests.service.test_receipt_recovery.ReceiptRecoveryTests.test_lost_response_retries_original_receipt_without_reexecuting_business_writes) ... (node:1669943) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 782.731s
+
+OK
+python3 -B -m unittest discover -s tests/demo -v
+test_custom_program_proof_and_live_published_state (test_http.DemoHTTPTests.test_custom_program_proof_and_live_published_state) ... demo: POST /api/session 201
+demo: GET /api/events 200
+demo: GET /api/session 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 400
+demo: GET /api/session 200
+demo: POST /api/reset 200
+ok
+test_http_boundaries_and_no_implicit_instance_or_replay (test_http.DemoHTTPTests.test_http_boundaries_and_no_implicit_instance_or_replay) ... demo: GET /api/health 200
+demo: GET /api/session 200
+demo: POST /api/execute 409
+demo: POST /api/execute 400
+demo: POST /api/execute 400
+demo: POST /api/execute 400
+demo: POST /api/session 403
+demo: GET /../../examples/access/Seed.bend 404
+demo: GET / 200
+demo: GET /api/session 200
+ok
+test_real_database_publication_rollback_proof_and_session_isolation (test_http.DemoHTTPTests.test_real_database_publication_rollback_proof_and_session_isolation) ... demo: POST /api/session 201
+demo: GET /api/sources 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: POST /api/execute 200
+demo: GET /api/session 200
+demo: POST /api/session 201
+demo: POST /api/execute 200
+demo: POST /api/reset 200
+demo: POST /api/reset 200
+demo: GET /api/session 200
+demo: POST /api/session 201
+demo: POST /api/execute 200
+demo: POST /api/reset 200
+ok
+test_reset_recovers_a_stopped_database_and_can_repeat (test_http.DemoHTTPTests.test_reset_recovers_a_stopped_database_and_can_repeat) ... demo: POST /api/session 201
+demo: GET /api/session 200
+demo: POST /api/reset 200
+demo: POST /api/session 201
+demo: POST /api/execute 200
+demo: POST /api/reset 200
+demo: POST /api/session 201
+demo: POST /api/execute 200
+demo: POST /api/reset 200
+ok
+test_startup_failure_reports_diagnostic_and_recovers (test_http.DemoHTTPTests.test_startup_failure_reports_diagnostic_and_recovers) ... demo: POST /api/session 503
+demo: POST /api/session 503
+demo: POST /api/session 201
+demo: POST /api/reset 200
+ok
+test_full_request_pipe_times_out_and_closes_without_retry (test_transport.DemoTransportTests.test_full_request_pipe_times_out_and_closes_without_retry) ... ok
+test_partial_request_writes_deliver_exact_bytes_to_a_live_reader (test_transport.DemoTransportTests.test_partial_request_writes_deliver_exact_bytes_to_a_live_reader) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 204.946s
+
+OK

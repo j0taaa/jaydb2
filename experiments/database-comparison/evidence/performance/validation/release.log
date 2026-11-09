@@ -1,0 +1,572 @@
+bash tools/ci/check.sh full
+Checking full at 183042e55b0946bd3600dbe99275a08f8090981f
+make[1]: Entering directory '/home/jota/projects/jaydb2-performance'
+npm --prefix clients/typescript run check
+
+> @jaydb2/client@0.1.0 check
+> tsc --noEmit -p tsconfig.test.json
+
+npm --prefix clients/typescript test
+
+> @jaydb2/client@0.1.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ fragmented and coalesced responses preserve FIFO and canonical failure responses (5.170808ms)
+✔ a request validation failure writes no bytes (0.463112ms)
+✔ local outstanding-request bound rejects unsent work without breaking the session (0.521852ms)
+✔ close drains already-submitted responses and prevents new submissions (0.44634ms)
+✔ EOF before header rejects every pending operation with unknown outcome (0.595533ms)
+✔ partial header rejects every pending operation with unknown outcome (0.359643ms)
+✔ partial body rejects every pending operation with unknown outcome (0.299366ms)
+✔ oversized response declaration rejects before body allocation (0.263189ms)
+✔ malformed response null is a client protocol failure (0.231022ms)
+✔ malformed response {} is a client protocol failure (0.297938ms)
+✔ malformed response {"status":"unknown","value":null} is a client protocol failure (0.210121ms)
+✔ malformed response {"status":"success","value":null,"extra":true} is a client protocol failure (0.194203ms)
+✔ write and readable errors reject pending requests instead of hanging (1.140171ms)
+✔ request pipe closing without an error rejects pending work (0.332226ms)
+✔ attaching to already-ended or destroyed streams cannot miss terminal events (0.66591ms)
+✔ spawned fake peer supports preparation, current credentials, invalidation, pipelining and drain (88.036028ms)
+✔ process death and invalid process launch are transport errors, with no retries (78.976563ms)
+✔ abort terminates an owned session and rejects pending work as uncertain (2.059897ms)
+✔ invalid spawn limits reject before the actual launch boundary (1.020806ms)
+✔ abort after owned process completion never signals a stale process group (21.182409ms)
+✔ wire matches independent Python codec and keeps all int64 bits (25.580628ms)
+✔ prototype-sensitive names are ordinary record fields (0.181032ms)
+✔ dense and deeply nested values need no recursive JS codec stack (73.931354ms)
+✔ unrepresentable JS values fail before transmission (0.627674ms)
+✔ invalid, noncanonical and truncated wire values are rejected (0.96143ms)
+✔ packed ESM and declarations work from an independent TypeScript application (3377.037812ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3908.161927
+npm --prefix clients/typescript run build
+
+> @jaydb2/client@0.1.0 build
+> tsc -p tsconfig.json
+
+npm --prefix clients/sql run check
+
+> @jaydb2/sql@0.1.0 check
+> tsc --noEmit -p tsconfig.json
+
+npm --prefix clients/sql test
+
+> @jaydb2/sql@0.1.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ binding separates SQL values from generated code and checks all types before submission (5.200149ms)
+✔ one preparation per source shape, concurrent deduplication, fresh credentials (0.934554ms)
+✔ database and transport errors propagate without write retry or empty success (0.697654ms)
+✔ concurrent valid credentials do not inherit a failed preparation authentication (0.5625ms)
+✔ failed preparation is not cached and cache is bounded (0.620426ms)
+✔ synchronous transport rejection releases the pending cache slot (0.367601ms)
+✔ Drizzle emits supported CRUD SQL and maps positional return values (5.227772ms)
+✔ malformed program results preserve unknown outcome rather than coercing (1.188083ms)
+✔ Drizzle SELECT quoting, qualified fields, aliases and parameters (1.907843ms)
+✔ SQL strings contain SQL punctuation without becoming statements (0.325675ms)
+✔ UPDATE and DELETE preserve assignments and RETURNING order (0.255313ms)
+✔ parenthesized predicates and operands, case folding, comments and repeated parameters (0.443381ms)
+✔ star expands in logical schema order and duplicate projections remain ordered (0.178016ms)
+✔ literal values keep booleans, absence and large integers exact (0.140297ms)
+✔ reject unsupported syntax, scans, extra clauses and multiple statements (0.886861ms)
+✔ reject malformed lexemes and unknown identifiers with PostgreSQL-style error codes (0.375547ms)
+✔ Drizzle full schema INSERT permits owner DEFAULT and preserves owner RETURNING (3.089627ms)
+✔ predicate parsing bounds nesting and handles adversarial ambiguous wrappers without backtracking (4.357639ms)
+✔ numeric and parameter lexemes cannot run into identifiers; punctuation in values stays opaque (0.469623ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1426.664685
+clients/typescript/node_modules/.bin/tsc -p applications/tasks/tsconfig.json
+python3 -B -m unittest tests.accessories.test_tasks -v
+test_commands_keep_boolean_types_and_reject_bad_arity (tests.accessories.test_tasks.TaskAccessoryTests.test_commands_keep_boolean_types_and_reject_bad_arity) ... ok
+test_create_freezes_sources_and_open_never_repackages_or_requires_seed (tests.accessories.test_tasks.TaskAccessoryTests.test_create_freezes_sources_and_open_never_repackages_or_requires_seed) ... ok
+test_incomplete_response_is_unknown_outcome_without_retry (tests.accessories.test_tasks.TaskAccessoryTests.test_incomplete_response_is_unknown_outcome_without_retry) ... ok
+test_open_missing_workspace_leaves_no_files (tests.accessories.test_tasks.TaskAccessoryTests.test_open_missing_workspace_leaves_no_files) ... ok
+test_open_spawn_has_no_seed_and_uses_existing_package (tests.accessories.test_tasks.TaskAccessoryTests.test_open_spawn_has_no_seed_and_uses_existing_package) ... ok
+test_prepare_retains_existing_call_signature_and_exact_programs (tests.accessories.test_tasks.TaskAccessoryTests.test_prepare_retains_existing_call_signature_and_exact_programs) ... ok
+test_workspace_options_must_be_paired_before_launch (tests.accessories.test_tasks.TaskAccessoryTests.test_workspace_options_must_be_paired_before_launch) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.013s
+
+OK
+python3 -B -m unittest discover -s examples/starter -p test_starter.py -v
+test_both_profiles_export_matching_concrete_and_universal_wrappers (test_starter.StarterTests.test_both_profiles_export_matching_concrete_and_universal_wrappers) ... ok
+test_changed_certificate_wrapper_requires_explicit_update (test_starter.StarterTests.test_changed_certificate_wrapper_requires_explicit_update) ... ok
+test_existing_directory_and_symlink_are_not_modified (test_starter.StarterTests.test_existing_directory_and_symlink_are_not_modified) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.009s
+
+OK
+make[1]: Leaving directory '/home/jota/projects/jaydb2-performance'
+make[1]: Entering directory '/home/jota/projects/jaydb2-performance'
+python3 -B -m unittest discover -s experiments/database-comparison -p 'test_*.py' -v
+test_application_profile_metadata_requires_flag_and_is_recorded (test_compare.ComparisonTests.test_application_profile_metadata_requires_flag_and_is_recorded) ... ok
+test_changed_used_legacy_bend_source_requires_explicit_profile_flag (test_compare.ComparisonTests.test_changed_used_legacy_bend_source_requires_explicit_profile_flag) ... ok
+test_cli_has_separate_invalid_gate_and_success_exit_codes (test_compare.ComparisonTests.test_cli_has_separate_invalid_gate_and_success_exit_codes) ... Invalid comparison: [Errno 17] File exists: '/tmp/jaydb-check.95dgdExO/tmpn0z8eo4d/success'
+ok
+test_engine_provenance_changes_are_reported_not_hidden (test_compare.ComparisonTests.test_engine_provenance_changes_are_reported_not_hidden) ... ok
+test_explicit_application_and_environment_changes_are_labelled (test_compare.ComparisonTests.test_explicit_application_and_environment_changes_are_labelled) ... ok
+test_explicit_legacy_metadata_matches_historical_missing_profile (test_compare.ComparisonTests.test_explicit_legacy_metadata_matches_historical_missing_profile) ... ok
+test_failed_engine_and_semantic_changes_fail_gate (test_compare.ComparisonTests.test_failed_engine_and_semantic_changes_fail_gate) ... ok
+test_invalid_thresholds_are_rejected (test_compare.ComparisonTests.test_invalid_thresholds_are_rejected) ... ok
+test_noise_tolerance_does_not_claim_significance (test_compare.ComparisonTests.test_noise_tolerance_does_not_claim_significance) ... ok
+test_profile_flag_cannot_change_work_or_durability_settings (test_compare.ComparisonTests.test_profile_flag_cannot_change_work_or_durability_settings) ... ok
+test_query_profile_does_include_its_used_query_sources (test_compare.ComparisonTests.test_query_profile_does_include_its_used_query_sources) ... ok
+test_rejects_changed_fixtures_settings_and_workload_coverage (test_compare.ComparisonTests.test_rejects_changed_fixtures_settings_and_workload_coverage) ... ok
+test_rejects_fatal_partial_duplicate_and_incorrect_records (test_compare.ComparisonTests.test_rejects_fatal_partial_duplicate_and_incorrect_records) ... ok
+test_reports_gains_and_regressions_without_composite_score (test_compare.ComparisonTests.test_reports_gains_and_regressions_without_composite_score) ... ok
+test_setup_changes_are_visible_and_optionally_gated (test_compare.ComparisonTests.test_setup_changes_are_visible_and_optionally_gated) ... ok
+test_unused_query_and_generated_project_sources_do_not_change_legacy_identity (test_compare.ComparisonTests.test_unused_query_and_generated_project_sources_do_not_change_legacy_identity) ... ok
+test_bool_integer_and_float_are_not_equivalent (test_compare.ExactResultTests.test_bool_integer_and_float_are_not_equivalent) ... ok
+test_recursive_match_preserves_order_and_dictionary_meaning (test_compare.ExactResultTests.test_recursive_match_preserves_order_and_dictionary_meaning) ... ok
+test_reserved_words_are_quoted_and_unsafe_names_rejected (test_suite.SQLIdentifierTests.test_reserved_words_are_quoted_and_unsafe_names_rejected) ... ok
+test_all_ten_sqlite_schemas_round_trip (test_suite.SQLiteBehaviorTests.test_all_ten_sqlite_schemas_round_trip) ... ok
+test_bound_text_values_do_not_change_sql_structure (test_suite.SQLiteBehaviorTests.test_bound_text_values_do_not_change_sql_structure) ... ok
+test_committed_changes_survive_reopen (test_suite.SQLiteBehaviorTests.test_committed_changes_survive_reopen) ... ok
+test_dump_and_business_queries (test_suite.SQLiteBehaviorTests.test_dump_and_business_queries) ... ok
+test_failed_second_write_rolls_back_first (test_suite.SQLiteBehaviorTests.test_failed_second_write_rolls_back_first) ... ok
+test_foreign_key_and_strict_type_failures_preserve_row (test_suite.SQLiteBehaviorTests.test_foreign_key_and_strict_type_failures_preserve_row) ... ok
+test_known_medium_project_aggregate_oracles (test_suite.ScenarioCatalogTests.test_known_medium_project_aggregate_oracles) ... ok
+test_known_product_join_oracle (test_suite.ScenarioCatalogTests.test_known_product_join_oracle) ... ok
+test_model_rejects_invalid_types_identity_and_relationships (test_suite.ScenarioCatalogTests.test_model_rejects_invalid_types_identity_and_relationships) ... ok
+test_model_state_is_a_sorted_independent_copy (test_suite.ScenarioCatalogTests.test_model_state_is_a_sorted_independent_copy) ... ok
+test_ten_schemas_and_exact_complexity_levels (test_suite.ScenarioCatalogTests.test_ten_schemas_and_exact_complexity_levels) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 10.038s
+
+OK
+gate_passed: /tmp/jaydb-check.95dgdExO/tmpn0z8eo4d/success/comparison.json
+gate_failed: /tmp/jaydb-check.95dgdExO/tmpn0z8eo4d/fail/comparison.json
+python3 -B -m unittest discover -s experiments/database-comparison/query -p 'test_*.py' -v
+test_each_optimized_public_query_uses_one_service_call (test_optimized.ProfileTests.test_each_optimized_public_query_uses_one_service_call) ... ok
+test_engine_records_and_sql_settings_are_not_relabelled (test_optimized.ProfileTests.test_engine_records_and_sql_settings_are_not_relabelled) ... ok
+test_entrypoint_restores_legacy_globals_when_runner_raises (test_optimized.ProfileTests.test_entrypoint_restores_legacy_globals_when_runner_raises) ... ok
+test_preparation_registers_each_program_once_in_its_actual_mode (test_optimized.ProfileTests.test_preparation_registers_each_program_once_in_its_actual_mode) ... ok
+test_running_successful_and_failed_root_manifests_are_labelled_before_save (test_optimized.ProfileTests.test_running_successful_and_failed_root_manifests_are_labelled_before_save) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+
+OK
+python3 -B experiments/database-comparison/materialize.py --check
+Checked 10 projects, 110 files; 0 changed.
+make[1]: Leaving directory '/home/jota/projects/jaydb2-performance'
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running unittests server/main.rs (target/debug/deps/jaydb2-01e0699c03f4d9c3)
+
+running 44 tests
+test capture::tests::every_pipe_startup_error_joins_waiters_without_launching_a_helper ... ok
+test capture::tests::failed_process_spawn_disconnects_and_joins_all_waiting_threads ... ok
+test capture::tests::startup_failure_remains_fatal_without_launching_a_helper ... ok
+test capture::tests::unsuccessful_child_retains_status_despite_broken_input_pipe ... ok
+test read_batch::tests::candidates_require_the_execute_envelope_and_first_canonical_fields ... ok
+test capture::tests::unwinding_at_every_pipe_start_joins_waiters_without_launching_a_helper ... ok
+test read_batch::coordinator_tests::terminal_framing_error_waits_for_the_complete_read_batch ... ok
+test read_batch::execution_tests::delivery_failure_stops_emission_and_drains_an_active_read ... ok
+test scheduling::tests::bounds_hold_allocatable_messages_without_restricting_canonical_limits ... ok
+test read_batch::coordinator_tests::failed_read_emission_never_starts_queued_exclusive_work ... ok
+test capture::tests::launch_sentinel_observes_a_real_helper ... ok
+test scheduling::tests::fatal_publication_emits_nothing_and_never_selects_the_next_request ... ok
+test read_batch::coordinator_tests::fixed_head_batches_do_not_bypass_writes_and_reauthenticate_after_rotation_and_invalidation ... ok
+test scheduling::tests::fragmented_interrupted_input_and_read_failure_preserve_complete_requests ... ok
+test scheduling::tests::controlled_execution_cleanup_and_delivery_gate_later_selection_and_terminal ... ok
+test scheduling::tests::bytes_reserved_before_body_read_and_item_backpressure_includes_empty_frames ... ok
+test storage::tests::actual_commit_algorithm_covers_every_fault_and_crash_boundary ... ok
+test read_batch::execution_tests::workers_overlap_and_reverse_completion_emits_fifo ... ok
+test scheduling::tests::uint64_max_canonical_limit_serves_small_frames_without_large_allocation ... ok
+test read_batch::tests::argument_skipping_is_iterative_and_checks_lengths ... ok
+test tests::certified_success_rejects_changed_state_even_if_transport_is_valid ... ok
+test read_batch::coordinator_tests::one_reader_uses_certified_groups_and_preserves_write_and_control_barriers ... ok
+test tests::fixed_errors_match_the_proved_canonical_frames ... ok
+test tests::fatal_publication_emits_nothing_and_never_dispatches_the_next_frame ... ok
+test tests::delivery_failure_after_publication_does_not_undo_the_state ... ok
+test scheduling::tests::partial_write_and_flush_failures_stop_dispatch_without_undo_or_retry ... ok
+jaydb2: NATIVE: injected
+jaydb2: HOST_TRANSPORT: invalid publication marker
+jaydb2: HOST_TRANSPORT: invalid publication marker
+jaydb2: HOST_TRANSPORT: truncated internal length
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: HOST_TRANSPORT: proposed state exceeds logical limit
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: HOST_TRANSPORT: invalid internal length
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: PRIMARY_CHECK: rejected
+test scheduling::tests::unallocatable_body_is_ordered_technical_failure_and_never_a_false_logical_limit ... ok
+test tests::read_successes_publish_the_last_success_pair_and_errors_preserve_it ... ok
+test tests::only_a_complete_valid_proposal_replaces_the_published_pair ... ok
+test read_batch::pipe_failure_tests::every_pipe_failure_stops_the_actual_coordinator_before_queued_exclusive_work ... ok
+test scheduling::tests::cancel_joins_reader_blocked_in_header_body_or_capacity_with_input_still_open ... ok
+test timing::tests::reverse_completion_preserves_dispatch_identity_and_excludes_delivery ... ok
+test timing::tests::empty_identity_and_failed_authentication_remain_distinct ... ok
+test tests::framing_preserves_the_next_request_and_stops_on_unknown_extent ... ok
+test scheduling::tests::terminal_eof_partial_header_partial_body_and_oversize_follow_all_complete_frames ... ok
+test tests::native_runtime_policy_is_not_inherited ... ok
+test tests::thread_options_select_available_cpus_and_allow_explicit_limits ... ok
+test tests::native_launch_forwards_selected_cpu_workers_with_gpu_disabled ... ok
+test tests::helpers_drain_binary_pipes_and_are_reaped_on_failure ... ok
+test storage::tests::image_is_exact_bound_and_fail_closed ... ok
+test capture::tests::binary_input_and_large_stderr_drain_concurrently ... ok
+test storage::tests::largest_logical_limit_still_recovers_a_small_complete_image ... ok
+test tests::result_ready_follows_commit_and_precedes_final_inspector_output ... ok
+test storage::tests::real_storage_owns_and_recovers_only_authoritative_image ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+test_bad_measurement_settings_fail_before_starting_a_server (experiments.baseline.test_bench.BenchmarkTests.test_bad_measurement_settings_fail_before_starting_a_server) ... ok
+test_chosen_executable_must_match_current_build_and_stable_sources (experiments.baseline.test_bench.BenchmarkTests.test_chosen_executable_must_match_current_build_and_stable_sources) ... ok
+test_compute_reference_known_answers_and_runtime_input_changes (experiments.baseline.test_bench.BenchmarkTests.test_compute_reference_known_answers_and_runtime_input_changes) ... ok
+test_mismatch_is_recorded_and_fails_instead_of_reporting_a_timing (experiments.baseline.test_bench.BenchmarkTests.test_mismatch_is_recorded_and_fails_instead_of_reporting_a_timing) ... ok
+test_output_cannot_escape_target (experiments.baseline.test_bench.BenchmarkTests.test_output_cannot_escape_target) ... ok
+test_session_controls_runtime_environment_without_mutating_caller (experiments.baseline.test_bench.BenchmarkTests.test_session_controls_runtime_environment_without_mutating_caller) ... ok
+test_smoke_and_default_have_repeats_and_distinct_meaningful_sizes (experiments.baseline.test_bench.BenchmarkTests.test_smoke_and_default_have_repeats_and_distinct_meaningful_sizes) ... ok
+test_statistics_preserve_variability_and_exclude_warmups (experiments.baseline.test_bench.BenchmarkTests.test_statistics_preserve_variability_and_exclude_warmups) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.035s
+
+OK
+test_affine_composition_matches_independent_direct_loop (test_bench.OracleTests.test_affine_composition_matches_independent_direct_loop) ... ok
+test_duplicate_workloads_reject_before_output_or_measurement (test_bench.OracleTests.test_duplicate_workloads_reject_before_output_or_measurement) ... ok
+test_known_answers_and_unsigned_boundaries (test_bench.OracleTests.test_known_answers_and_unsigned_boundaries) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.392s
+
+OK
+make[1]: Entering directory '/home/jota/projects/jaydb2-performance'
+cargo build --locked --release
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling libc v0.2.191
+   Compiling serde_json v1.0.154
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling cfg-if v1.0.5
+   Compiling cpufeatures v0.2.17
+   Compiling generic-array v0.14.7
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling jaydb2 v0.1.0 (/home/jota/projects/jaydb2-performance)
+    Finished `release` profile [optimized] target(s) in 3.79s
+python3 -B applications/sql/check.py
+PASS SQL select --check-only
+PASS SQL select --verdict
+PASS SQL insert --check-only
+PASS SQL insert --verdict
+PASS SQL insert-two --check-only
+PASS SQL insert-two --verdict
+PASS SQL update --check-only
+PASS SQL update --verdict
+PASS SQL delete --check-only
+PASS SQL delete --verdict
+npm --prefix clients/sql run test:integration
+
+> @jaydb2/sql@0.1.0 test:integration
+> node test/integration.ts
+
+Checking real Drizzle CRUD, bound text and returning...
+Checking duplicate-key refusal and rollback after a provisional write...
+Checking fresh authentication and owner isolation using shared prepared programs...
+Checking generated-source mutations fail real certificate admission...
+jaydb2: PRIMARY_CHECK: Error:
+- expected : "bob"
+- observed : owner
+Context:
+- owner : String
+- kind  : String
+- key   : String
+- title : String
+Location: got_title_safe
+33 |     case S.Datum{D.Cell{D.VText{title}}}:
+34>|       L.Both{{==}, r => got_done_safe(owner, kind, key, title, r)}
+   |              ^^^^
+35 |         case S.Datum{D.Cell{D.VAbsent{}}}: Unit{}
+jaydb2: PRIMARY_CHECK: Error:
+- expected : Some{D.VText{"mallory"}}
+- observed : Some{D.VText{owner}}
+Context:
+- owner  : String
+- kind   : String
+- key0   : String
+- title0 : String
+- done0  : Bool
+- rows   : D.Value
+Location: exists_0_safe
+33 |     case S.Datum{D.Existence{False{}}}:
+34>|       L.Both{P.Both{{==}, {==}}, r => written_0_safe(owner, kind, key0, title0, done0, rows, r)}
+   |                           ^^^^
+35 |     case S.Datum{D.Existence{True{}}}: Unit{}
+Checking durable data after close/reopen and fresh preparation...
+jaydb2: HANDLE: unknown or invalidated handle
+PASS: 25 real SQL/Drizzle checks; universal proofs, native execution, rollback, isolation, certificate rejection and persistence.
+npm --prefix clients/typescript run test:integration
+
+> @jaydb2/client@0.1.0 test:integration
+> node test/integration.ts
+
+jaydb2: HANDLE: unknown or invalidated handle
+jaydb2: HANDLE: unknown or invalidated handle
+PASS: TypeScript client checked 11 real ordinary/prepared responses, fresh identities, refusal rollback, invalidation and instance-local handles.
+python3 -B examples/starter/check.py --all
+PASS positive --check-only
+PASS positive --verdict
+PASS forbidden-read --check-only
+PASS forbidden-read --verdict
+PASS forged-owner --check-only
+PASS forged-owner --verdict
+PASS real crud prepared session, source negatives and unchanged-state followups
+PASS starter crud: both official modes, real execution and source-bound law rejection; logs in /home/jota/projects/jaydb2-performance/build/starter/profiles-66w915gw/crud/.check
+PASS positive --check-only
+PASS positive --verdict
+PASS forbidden-read --check-only
+PASS forbidden-read --verdict
+PASS forbidden-write --check-only
+PASS forbidden-write --verdict
+PASS real conditional prepared session, source negatives and unchanged-state followups
+PASS starter conditional: both official modes, real execution and source-bound law rejection; logs in /home/jota/projects/jaydb2-performance/build/starter/profiles-66w915gw/conditional/.check
+PASS both exported profiles; retained proof/service logs in /home/jota/projects/jaydb2-performance/build/starter
+python3 -B -m unittest tests.accessories.test_tasks_native -v
+test_saved_tasks_survive_reopen_across_ts_and_python_clients (tests.accessories.test_tasks_native.PersistentTaskWorkflowTests.test_saved_tasks_survive_reopen_across_ts_and_python_clients) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 115.816s
+
+OK
+python3 -B experiments/database-comparison/query/check.py --output build/query-profile-check-$(date -u +%Y%m%dT%H%M%SZ)-$$
+17 real native query checks passed: /home/jota/projects/jaydb2-performance/build/query-profile-check-20261106T223833Z-1576349/result.json
+python3 -B tools/check.py
+OK --check-only: contract/VERIFY.bend
+OK --verdict: contract/VERIFY.bend
+python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
+OK import coverage: src 18 modules, proof 137 modules, library 22 modules
+OK --check-only: VERIFY.bend
+OK --verdict: VERIFY.bend
+OK --check-only: tests/proof/VERIFY.bend
+OK --verdict: tests/proof/VERIFY.bend
+OK --check-only: library/VERIFY.bend
+OK --verdict: library/VERIFY.bend
+python3 -B tests/proof/test_proofs.py
+OK import-coverage positive and negative controls
+OK rejected --check-only: tests/proof/rejected/AllocationWithoutGuard.bend
+OK rejected --verdict: tests/proof/rejected/AllocationWithoutGuard.bend
+OK rejected --check-only: tests/proof/rejected/ForgedBytes.bend
+OK rejected --verdict: tests/proof/rejected/ForgedBytes.bend
+OK rejected --check-only: tests/proof/rejected/OmittedAdministrativeLaw.bend
+OK rejected --verdict: tests/proof/rejected/OmittedAdministrativeLaw.bend
+OK rejected --check-only: tests/proof/rejected/PreparedInvalidLength.bend
+OK rejected --verdict: tests/proof/rejected/PreparedInvalidLength.bend
+OK rejected --check-only: tests/proof/rejected/PreparedInvalidationReuse.bend
+OK rejected --verdict: tests/proof/rejected/PreparedInvalidationReuse.bend
+OK rejected --check-only: tests/proof/rejected/PreparedReceiptLimit.bend
+OK rejected --verdict: tests/proof/rejected/PreparedReceiptLimit.bend
+OK rejected --check-only: tests/proof/rejected/PreparedSourceSwap.bend
+OK rejected --verdict: tests/proof/rejected/PreparedSourceSwap.bend
+OK rejected --check-only: tests/proof/rejected/PreparedUnauthenticatedResolution.bend
+OK rejected --verdict: tests/proof/rejected/PreparedUnauthenticatedResolution.bend
+OK rejected --check-only: tests/proof/rejected/PreparedWireAsOrdinary.bend
+OK rejected --verdict: tests/proof/rejected/PreparedWireAsOrdinary.bend
+OK rejected --check-only: tests/proof/rejected/PreprocessingAuthenticationFirst.bend
+OK rejected --verdict: tests/proof/rejected/PreprocessingAuthenticationFirst.bend
+OK rejected --check-only: tests/proof/rejected/PublicationInvalid.bend
+OK rejected --verdict: tests/proof/rejected/PublicationInvalid.bend
+OK rejected --check-only: tests/proof/rejected/ReadOnlyHiddenWrite.bend
+OK rejected --verdict: tests/proof/rejected/ReadOnlyHiddenWrite.bend
+OK rejected --check-only: tests/proof/rejected/SwappedReification.bend
+OK rejected --verdict: tests/proof/rejected/SwappedReification.bend
+OK rejected --check-only: tests/proof/rejected/WithoutIdentity.bend
+OK rejected --verdict: tests/proof/rejected/WithoutIdentity.bend
+python3 -B tools/check.py experiments/idempotency/VERIFY.bend
+OK --check-only: experiments/idempotency/VERIFY.bend
+OK --verdict: experiments/idempotency/VERIFY.bend
+node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs
+(node:1588086) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ wrong supplied proof is rejected by the primary checker (264.400433ms)
+✔ unused IO, foreign code, unsafe definitions and holes are rejected (366.211965ms)
+✔ source, target and proof-authority substitutions are rejected (140.619681ms)
+✔ hash mismatch, missing dependency and import cycle fail before checking (40.482173ms)
+✔ private host capture is rejected (1.929736ms)
+✔ universal targets reject concrete substitution and transitive captured values (641.714897ms)
+✔ kernel infrastructure failure cannot admit a submission (209.362052ms)
+✔ preflight preserves bytes and emission requires an authentic handle (1.687427ms)
+(node:1588103) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ official tools preserve checked source and emitted behavior (784.014017ms)
+✔ official nested template preserves the checked result in C (518.162081ms)
+✔ official dependent-template translation limit is technical (85.399466ms)
+(node:1588134) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ read-only admission checks an additional universal source-bound law (476.876632ms)
+✔ read flag cannot substitute a predicate, target, proof or administrator certificate (418.430679ms)
+✔ seed aliases are rejected before public staging, including hardlinks and transitive imports (6.235689ms)
+✔ public dependencies cannot claim the reserved Seed namespace (1.523841ms)
+✔ administrator cycles reject before staging, including growing directory aliases (4.303915ms)
+✔ shared diamonds and finite hardlink chains still reach compilation (243.384548ms)
+✔ official kernel accepts a proof and rejects a false one (25.540745ms)
+✔ erased fields cannot export a live witness (28.256022ms)
+✔ unsupported representation is infrastructure (0.775267ms)
+✔ official fuel exhaustion is infrastructure, not a false certificate (19.916429ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4574.149443
+python3 -B tests/native/test_simple_runtime.py
+test_binary_effects_and_fresh_processes (__main__.ParallelRuntimeTests.test_binary_effects_and_fresh_processes) ... ok
+test_checked_length_conversion_and_tail_overflow (__main__.ParallelRuntimeTests.test_checked_length_conversion_and_tail_overflow) ... ok
+test_native_loop_prepare_and_continue (__main__.ParallelRuntimeTests.test_native_loop_prepare_and_continue) ... ok
+test_official_failure_does_not_affect_another_process (__main__.ParallelRuntimeTests.test_official_failure_does_not_affect_another_process) ... ok
+test_official_representations_and_explicit_native_limits (__main__.ParallelRuntimeTests.test_official_representations_and_explicit_native_limits) ... ok
+test_parallel_reduction_matches_independent_reference (__main__.ParallelRuntimeTests.test_parallel_reduction_matches_independent_reference) ... ok
+test_binary_effects_and_fresh_processes (__main__.RuntimeTests.test_binary_effects_and_fresh_processes) ... ok
+test_checked_length_conversion_and_tail_overflow (__main__.RuntimeTests.test_checked_length_conversion_and_tail_overflow) ... ok
+test_native_loop_prepare_and_continue (__main__.RuntimeTests.test_native_loop_prepare_and_continue) ... ok
+test_official_failure_does_not_affect_another_process (__main__.RuntimeTests.test_official_failure_does_not_affect_another_process) ... ok
+test_official_representations_and_explicit_native_limits (__main__.RuntimeTests.test_official_representations_and_explicit_native_limits) ... ok
+test_parallel_reduction_matches_independent_reference (__main__.RuntimeTests.test_parallel_reduction_matches_independent_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 8.492s
+
+OK
+cargo test --locked
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running unittests server/main.rs (target/debug/deps/jaydb2-01e0699c03f4d9c3)
+
+running 44 tests
+test capture::tests::every_pipe_startup_error_joins_waiters_without_launching_a_helper ... ok
+test read_batch::tests::candidates_require_the_execute_envelope_and_first_canonical_fields ... ok
+test capture::tests::launch_sentinel_observes_a_real_helper ... ok
+test read_batch::coordinator_tests::fixed_head_batches_do_not_bypass_writes_and_reauthenticate_after_rotation_and_invalidation ... ok
+test read_batch::coordinator_tests::failed_read_emission_never_starts_queued_exclusive_work ... ok
+test capture::tests::startup_failure_remains_fatal_without_launching_a_helper ... ok
+test capture::tests::failed_process_spawn_disconnects_and_joins_all_waiting_threads ... ok
+test capture::tests::unwinding_at_every_pipe_start_joins_waiters_without_launching_a_helper ... ok
+test scheduling::tests::bounds_hold_allocatable_messages_without_restricting_canonical_limits ... ok
+test capture::tests::unsuccessful_child_retains_status_despite_broken_input_pipe ... ok
+test read_batch::execution_tests::delivery_failure_stops_emission_and_drains_an_active_read ... ok
+test read_batch::coordinator_tests::terminal_framing_error_waits_for_the_complete_read_batch ... ok
+test scheduling::tests::bytes_reserved_before_body_read_and_item_backpressure_includes_empty_frames ... ok
+test read_batch::execution_tests::workers_overlap_and_reverse_completion_emits_fifo ... ok
+test read_batch::coordinator_tests::one_reader_uses_certified_groups_and_preserves_write_and_control_barriers ... ok
+test scheduling::tests::fatal_publication_emits_nothing_and_never_selects_the_next_request ... ok
+test scheduling::tests::controlled_execution_cleanup_and_delivery_gate_later_selection_and_terminal ... ok
+test storage::tests::actual_commit_algorithm_covers_every_fault_and_crash_boundary ... ok
+test tests::certified_success_rejects_changed_state_even_if_transport_is_valid ... ok
+test scheduling::tests::uint64_max_canonical_limit_serves_small_frames_without_large_allocation ... ok
+test scheduling::tests::fragmented_interrupted_input_and_read_failure_preserve_complete_requests ... ok
+test tests::fixed_errors_match_the_proved_canonical_frames ... ok
+test tests::delivery_failure_after_publication_does_not_undo_the_state ... ok
+test read_batch::tests::argument_skipping_is_iterative_and_checks_lengths ... ok
+test tests::fatal_publication_emits_nothing_and_never_dispatches_the_next_frame ... ok
+jaydb2: NATIVE: injected
+jaydb2: HOST_TRANSPORT: invalid publication marker
+jaydb2: HOST_TRANSPORT: invalid publication marker
+jaydb2: HOST_TRANSPORT: truncated internal length
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: HOST_TRANSPORT: proposed state exceeds logical limit
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: HOST_TRANSPORT: invalid internal length
+jaydb2: HOST_TRANSPORT: invalid proposed response
+jaydb2: PRIMARY_CHECK: rejected
+test scheduling::tests::partial_write_and_flush_failures_stop_dispatch_without_undo_or_retry ... ok
+test scheduling::tests::unallocatable_body_is_ordered_technical_failure_and_never_a_false_logical_limit ... ok
+test read_batch::pipe_failure_tests::every_pipe_failure_stops_the_actual_coordinator_before_queued_exclusive_work ... ok
+test tests::read_successes_publish_the_last_success_pair_and_errors_preserve_it ... ok
+test tests::only_a_complete_valid_proposal_replaces_the_published_pair ... ok
+test tests::framing_preserves_the_next_request_and_stops_on_unknown_extent ... ok
+test scheduling::tests::cancel_joins_reader_blocked_in_header_body_or_capacity_with_input_still_open ... ok
+test timing::tests::reverse_completion_preserves_dispatch_identity_and_excludes_delivery ... ok
+test timing::tests::empty_identity_and_failed_authentication_remain_distinct ... ok
+test scheduling::tests::terminal_eof_partial_header_partial_body_and_oversize_follow_all_complete_frames ... ok
+test tests::thread_options_select_available_cpus_and_allow_explicit_limits ... ok
+test tests::native_launch_forwards_selected_cpu_workers_with_gpu_disabled ... ok
+test tests::native_runtime_policy_is_not_inherited ... ok
+test storage::tests::image_is_exact_bound_and_fail_closed ... ok
+test tests::helpers_drain_binary_pipes_and_are_reaped_on_failure ... ok
+test capture::tests::binary_input_and_large_stderr_drain_concurrently ... ok
+test storage::tests::largest_logical_limit_still_recovers_a_small_complete_image ... ok
+test tests::result_ready_follows_commit_and_precedes_final_inspector_output ... ok
+test storage::tests::real_storage_owns_and_recovers_only_authoritative_image ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_concurrency tests.service.test_timing tests.service.test_timing_concurrency tests.service.test_observers -v
+test_access_laws_cover_refusal_and_failed_child (tests.service.test_end_to_end.EndToEndTests.test_access_laws_cover_refusal_and_failed_child) ... ok
+test_initialization_rejects_another_environment_identity (tests.service.test_end_to_end.EndToEndTests.test_initialization_rejects_another_environment_identity) ... ok
+test_native_runtime_options_are_owned_by_host (tests.service.test_end_to_end.EndToEndTests.test_native_runtime_options_are_owned_by_host) ... ok
+test_transaction_rollback_publication_and_authenticated_identity (tests.service.test_end_to_end.EndToEndTests.test_transaction_rollback_publication_and_authenticated_identity) ... ok
+test_preparation_requires_universal_proof_and_pure_capture_free_sources (tests.service.test_prepared.PreparedTests.test_preparation_requires_universal_proof_and_pure_capture_free_sources) ... ok
+test_reuse_current_identity_state_and_sealed_native_without_admission (tests.service.test_prepared.PreparedTests.test_reuse_current_identity_state_and_sealed_native_without_admission) ... ok
+test_native_differential_and_host_error_precedence (tests.service.test_preprocessing.PreprocessingTests.test_native_differential_and_host_error_precedence) ... ok
+test_closed_output_stops_later_dispatch_and_cleans_workers_without_input_eof (tests.service.test_scheduling.SchedulingTests.test_closed_output_stops_later_dispatch_and_cleans_workers_without_input_eof) ... ok
+test_pipelined_ordinary_and_prepared_controls_use_successive_current_snapshots (tests.service.test_scheduling.SchedulingTests.test_pipelined_ordinary_and_prepared_controls_use_successive_current_snapshots) ... ok
+test_read_ahead_terminals_follow_real_transaction_and_complete_invalid_frame (tests.service.test_scheduling.SchedulingTests.test_read_ahead_terminals_follow_real_transaction_and_complete_invalid_frame) ... ok
+test_checked_read_preparation_and_native_failures (tests.service.test_concurrency.ReadBatchTests.test_checked_read_preparation_and_native_failures) ... ok
+test_real_overlapping_reads_fifo_credentials_control_and_delivery_failure (tests.service.test_concurrency.ReadBatchTests.test_real_overlapping_reads_fifo_credentials_control_and_delivery_failure) ... ok
+test_single_reader_reuses_durable_root_and_preserves_authentication_and_barriers (tests.service.test_concurrency.ReadBatchTests.test_single_reader_reuses_durable_root_and_preserves_authentication_and_barriers) ... ok
+test_durable_publication_and_same_binary_reopen (tests.service.test_timing.TimingTests.test_durable_publication_and_same_binary_reopen) ... ok
+test_queued_credential_exchange_uses_fresh_identity (tests.service.test_timing.TimingTests.test_queued_credential_exchange_uses_fresh_identity) ... ok
+test_stderr_log_and_terminal_framing_are_outside_service (tests.service.test_timing.TimingTests.test_stderr_log_and_terminal_framing_are_outside_service) ... ok
+test_timing_is_admin_only_and_preserves_source_and_argument_binding (tests.service.test_timing.TimingTests.test_timing_is_admin_only_and_preserves_source_and_argument_binding) ... ok
+test_distinct_reads_log_completion_before_fifo_delivery_and_after_channel_failure (tests.service.test_timing_concurrency.TimingConcurrencyTests.test_distinct_reads_log_completion_before_fifo_delivery_and_after_channel_failure) ... ok
+test_disconnected_inspector_and_failed_stderr_preserve_responses (tests.service.test_observers.ObserverTests.test_disconnected_inspector_and_failed_stderr_preserve_responses) ... ok
+test_failed_timing_and_stderr_preserve_durable_commit_and_next_response (tests.service.test_observers.ObserverTests.test_failed_timing_and_stderr_preserve_durable_commit_and_next_response) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 600.328s
+
+OK
+mkdir -p build/library/tmp
+python3 -B experiments/library/prepare_proofs.py
+/home/jota/projects/jaydb2-performance/build/library/application-proof/Check.bend
+python3 -B tools/check.py library/VERIFY.bend build/library/application-proof/Check.bend
+OK --check-only: library/VERIFY.bend
+OK --verdict: library/VERIFY.bend
+OK --check-only: build/library/application-proof/Check.bend
+OK --verdict: build/library/application-proof/Check.bend
+python3 -B experiments/library/test_negative.py
+PASS rejected AlwaysNone.bend --check-only
+PASS rejected AlwaysNone.bend --verdict
+PASS rejected ComparisonAlwaysTrue.bend --check-only
+PASS rejected ComparisonAlwaysTrue.bend --verdict
+PASS rejected ComparisonFalseOrder.bend --check-only
+PASS rejected ComparisonFalseOrder.bend --verdict
+PASS rejected HiddenWrite.bend --check-only
+PASS rejected HiddenWrite.bend --verdict
+PASS rejected PublicKeyNone.bend --check-only
+PASS rejected PublicKeyNone.bend --verdict
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
+(node:1608243) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS: 1980 native dynamic signed64 add/sub/mul/divmod/order cases and 1980 sort/average/summary/join/group cases; official C unchanged.
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B experiments/library/test_collections.py
+(node:1608259) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS: 250 variable-length native content cases (lengths 0..80); duplicates, stable equal-key identities, complete inner/left join pairs and group keys/members; official C unchanged.
+TMPDIR="/home/jota/projects/jaydb2-performance/build/library/tmp" python3 -B applications/tasks/query_check.py
+PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.
+python3 -B applications/indexed/run_check.py
+OK --check-only: build/library/indexed-proof/Check.bend

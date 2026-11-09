@@ -1,0 +1,48 @@
+2026-11-09T16:41:14.435941+00:00 01_personal_tasks reopen_and_client_prepare_ns 0 baseline start
+2026-11-09T16:41:53.045863+00:00 01_personal_tasks reopen_and_client_prepare_ns 0 baseline 18.58 seconds
+2026-11-09T16:41:53.045917+00:00 01_personal_tasks reopen_and_client_prepare_ns 0 candidate start
+2026-11-09T16:42:35.878376+00:00 01_personal_tasks reopen_and_client_prepare_ns 0 candidate 21.24 seconds
+2026-11-09T16:42:35.878425+00:00 02_household_budget create_schema_and_client_ns 0 baseline start
+2026-11-09T16:42:55.375146+00:00 02_household_budget create_schema_and_client_ns 0 baseline 19.071 seconds
+2026-11-09T16:42:55.375200+00:00 02_household_budget create_schema_and_client_ns 0 candidate start
+2026-11-09T16:43:18.545182+00:00 02_household_budget create_schema_and_client_ns 0 candidate 23.043 seconds
+2026-11-09T16:43:18.545227+00:00 03_editorial_blog reopen_and_client_prepare_ns 0 baseline start
+2026-11-09T16:44:03.128655+00:00 03_editorial_blog reopen_and_client_prepare_ns 0 baseline 18.097 seconds
+2026-11-09T16:44:03.128703+00:00 03_editorial_blog reopen_and_client_prepare_ns 0 candidate start
+2026-11-09T16:44:52.936828+00:00 03_editorial_blog reopen_and_client_prepare_ns 0 candidate 22.445 seconds
+2026-11-09T16:44:52.936885+00:00 04_ecommerce create_schema_and_client_ns 0 baseline start
+2026-11-09T16:45:15.015477+00:00 04_ecommerce create_schema_and_client_ns 0 baseline 20.888 seconds
+2026-11-09T16:45:15.015611+00:00 04_ecommerce create_schema_and_client_ns 0 candidate start
+2026-11-09T16:45:42.234257+00:00 04_ecommerce create_schema_and_client_ns 0 candidate 26.982 seconds
+2026-11-09T16:45:42.234303+00:00 01_personal_tasks reopen_and_client_prepare_ns 1 candidate start
+2026-11-09T16:46:30.328320+00:00 01_personal_tasks reopen_and_client_prepare_ns 1 candidate 24.498 seconds
+2026-11-09T16:46:30.328368+00:00 01_personal_tasks reopen_and_client_prepare_ns 1 baseline start
+2026-11-09T16:47:07.756113+00:00 01_personal_tasks reopen_and_client_prepare_ns 1 baseline 17.663 seconds
+2026-11-09T16:47:07.756156+00:00 02_household_budget create_schema_and_client_ns 1 candidate start
+2026-11-09T16:47:30.347997+00:00 02_household_budget create_schema_and_client_ns 1 candidate 22.367 seconds
+2026-11-09T16:47:30.348054+00:00 02_household_budget create_schema_and_client_ns 1 baseline start
+2026-11-09T16:47:49.552287+00:00 02_household_budget create_schema_and_client_ns 1 baseline 18.809 seconds
+2026-11-09T16:47:49.552406+00:00 03_editorial_blog reopen_and_client_prepare_ns 1 candidate start
+2026-11-09T16:48:36.258253+00:00 03_editorial_blog reopen_and_client_prepare_ns 1 candidate 21.298 seconds
+2026-11-09T16:48:36.258296+00:00 03_editorial_blog reopen_and_client_prepare_ns 1 baseline start
+2026-11-09T16:49:20.199042+00:00 03_editorial_blog reopen_and_client_prepare_ns 1 baseline 18.166 seconds
+2026-11-09T16:49:20.199084+00:00 04_ecommerce create_schema_and_client_ns 1 candidate start
+2026-11-09T16:49:46.326471+00:00 04_ecommerce create_schema_and_client_ns 1 candidate 25.851 seconds
+2026-11-09T16:49:46.326519+00:00 04_ecommerce create_schema_and_client_ns 1 baseline start
+2026-11-09T16:50:07.058382+00:00 04_ecommerce create_schema_and_client_ns 1 baseline 20.023 seconds
+2026-11-09T16:50:07.058444+00:00 01_personal_tasks reopen_and_client_prepare_ns 2 baseline start
+2026-11-09T16:50:47.612923+00:00 01_personal_tasks reopen_and_client_prepare_ns 2 baseline 18.206 seconds
+2026-11-09T16:50:47.612968+00:00 01_personal_tasks reopen_and_client_prepare_ns 2 candidate start
+2026-11-09T16:51:30.422118+00:00 01_personal_tasks reopen_and_client_prepare_ns 2 candidate 21.107 seconds
+2026-11-09T16:51:30.422162+00:00 02_household_budget create_schema_and_client_ns 2 baseline start
+2026-11-09T16:51:50.901351+00:00 02_household_budget create_schema_and_client_ns 2 baseline 20.095 seconds
+2026-11-09T16:51:50.901425+00:00 02_household_budget create_schema_and_client_ns 2 candidate start
+2026-11-09T16:52:17.269563+00:00 02_household_budget create_schema_and_client_ns 2 candidate 26.205 seconds
+2026-11-09T16:52:17.269610+00:00 03_editorial_blog reopen_and_client_prepare_ns 2 baseline start
+2026-11-09T16:53:01.509167+00:00 03_editorial_blog reopen_and_client_prepare_ns 2 baseline 19.025 seconds
+2026-11-09T16:53:01.509208+00:00 03_editorial_blog reopen_and_client_prepare_ns 2 candidate start
+2026-11-09T16:53:50.320830+00:00 03_editorial_blog reopen_and_client_prepare_ns 2 candidate 22.189 seconds
+2026-11-09T16:53:50.320900+00:00 04_ecommerce create_schema_and_client_ns 2 baseline start
+2026-11-09T16:54:10.774426+00:00 04_ecommerce create_schema_and_client_ns 2 baseline 19.72 seconds
+2026-11-09T16:54:10.774524+00:00 04_ecommerce create_schema_and_client_ns 2 candidate start
+2026-11-09T16:54:34.107153+00:00 04_ecommerce create_schema_and_client_ns 2 candidate 23.146 seconds

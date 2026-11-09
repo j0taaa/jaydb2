@@ -1,0 +1,52 @@
+python3 -B -m unittest discover -s experiments/database-comparison -p 'test_*.py' -v
+test_application_profile_metadata_requires_flag_and_is_recorded (test_compare.ComparisonTests.test_application_profile_metadata_requires_flag_and_is_recorded) ... ok
+test_changed_used_legacy_bend_source_requires_explicit_profile_flag (test_compare.ComparisonTests.test_changed_used_legacy_bend_source_requires_explicit_profile_flag) ... ok
+test_cli_has_separate_invalid_gate_and_success_exit_codes (test_compare.ComparisonTests.test_cli_has_separate_invalid_gate_and_success_exit_codes) ... Invalid comparison: [Errno 17] File exists: '/tmp/tmpa3ir0vx7/success'
+ok
+test_engine_provenance_changes_are_reported_not_hidden (test_compare.ComparisonTests.test_engine_provenance_changes_are_reported_not_hidden) ... ok
+test_explicit_application_and_environment_changes_are_labelled (test_compare.ComparisonTests.test_explicit_application_and_environment_changes_are_labelled) ... ok
+test_explicit_legacy_metadata_matches_historical_missing_profile (test_compare.ComparisonTests.test_explicit_legacy_metadata_matches_historical_missing_profile) ... ok
+test_failed_engine_and_semantic_changes_fail_gate (test_compare.ComparisonTests.test_failed_engine_and_semantic_changes_fail_gate) ... ok
+test_invalid_thresholds_are_rejected (test_compare.ComparisonTests.test_invalid_thresholds_are_rejected) ... ok
+test_noise_tolerance_does_not_claim_significance (test_compare.ComparisonTests.test_noise_tolerance_does_not_claim_significance) ... ok
+test_profile_flag_cannot_change_work_or_durability_settings (test_compare.ComparisonTests.test_profile_flag_cannot_change_work_or_durability_settings) ... ok
+test_query_profile_does_include_its_used_query_sources (test_compare.ComparisonTests.test_query_profile_does_include_its_used_query_sources) ... ok
+test_rejects_changed_fixtures_settings_and_workload_coverage (test_compare.ComparisonTests.test_rejects_changed_fixtures_settings_and_workload_coverage) ... ok
+test_rejects_fatal_partial_duplicate_and_incorrect_records (test_compare.ComparisonTests.test_rejects_fatal_partial_duplicate_and_incorrect_records) ... ok
+test_reports_gains_and_regressions_without_composite_score (test_compare.ComparisonTests.test_reports_gains_and_regressions_without_composite_score) ... ok
+test_setup_changes_are_visible_and_optionally_gated (test_compare.ComparisonTests.test_setup_changes_are_visible_and_optionally_gated) ... ok
+test_unused_query_and_generated_project_sources_do_not_change_legacy_identity (test_compare.ComparisonTests.test_unused_query_and_generated_project_sources_do_not_change_legacy_identity) ... ok
+test_bool_integer_and_float_are_not_equivalent (test_compare.ExactResultTests.test_bool_integer_and_float_are_not_equivalent) ... ok
+test_recursive_match_preserves_order_and_dictionary_meaning (test_compare.ExactResultTests.test_recursive_match_preserves_order_and_dictionary_meaning) ... ok
+test_reserved_words_are_quoted_and_unsafe_names_rejected (test_suite.SQLIdentifierTests.test_reserved_words_are_quoted_and_unsafe_names_rejected) ... ok
+test_all_ten_sqlite_schemas_round_trip (test_suite.SQLiteBehaviorTests.test_all_ten_sqlite_schemas_round_trip) ... ok
+test_bound_text_values_do_not_change_sql_structure (test_suite.SQLiteBehaviorTests.test_bound_text_values_do_not_change_sql_structure) ... ok
+test_committed_changes_survive_reopen (test_suite.SQLiteBehaviorTests.test_committed_changes_survive_reopen) ... ok
+test_dump_and_business_queries (test_suite.SQLiteBehaviorTests.test_dump_and_business_queries) ... ok
+test_failed_second_write_rolls_back_first (test_suite.SQLiteBehaviorTests.test_failed_second_write_rolls_back_first) ... ok
+test_foreign_key_and_strict_type_failures_preserve_row (test_suite.SQLiteBehaviorTests.test_foreign_key_and_strict_type_failures_preserve_row) ... ok
+test_known_medium_project_aggregate_oracles (test_suite.ScenarioCatalogTests.test_known_medium_project_aggregate_oracles) ... ok
+test_known_product_join_oracle (test_suite.ScenarioCatalogTests.test_known_product_join_oracle) ... ok
+test_model_rejects_invalid_types_identity_and_relationships (test_suite.ScenarioCatalogTests.test_model_rejects_invalid_types_identity_and_relationships) ... ok
+test_model_state_is_a_sorted_independent_copy (test_suite.ScenarioCatalogTests.test_model_state_is_a_sorted_independent_copy) ... ok
+test_ten_schemas_and_exact_complexity_levels (test_suite.ScenarioCatalogTests.test_ten_schemas_and_exact_complexity_levels) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 13.120s
+
+OK
+gate_passed: /tmp/tmpa3ir0vx7/success/comparison.json
+gate_failed: /tmp/tmpa3ir0vx7/fail/comparison.json
+python3 -B -m unittest discover -s experiments/database-comparison/query -p 'test_*.py' -v
+test_each_optimized_public_query_uses_one_service_call (test_optimized.ProfileTests.test_each_optimized_public_query_uses_one_service_call) ... ok
+test_engine_records_and_sql_settings_are_not_relabelled (test_optimized.ProfileTests.test_engine_records_and_sql_settings_are_not_relabelled) ... ok
+test_entrypoint_restores_legacy_globals_when_runner_raises (test_optimized.ProfileTests.test_entrypoint_restores_legacy_globals_when_runner_raises) ... ok
+test_preparation_registers_each_program_once_in_its_actual_mode (test_optimized.ProfileTests.test_preparation_registers_each_program_once_in_its_actual_mode) ... ok
+test_running_successful_and_failed_root_manifests_are_labelled_before_save (test_optimized.ProfileTests.test_running_successful_and_failed_root_manifests_are_labelled_before_save) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+OK
+python3 -B experiments/database-comparison/materialize.py --check
+Checked 10 projects, 110 files; 0 changed.
