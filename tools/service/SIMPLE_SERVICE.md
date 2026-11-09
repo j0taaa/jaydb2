@@ -11,6 +11,12 @@ execution. Configuration contains only `message`, `state`, and `response`,
 measured in canonical bytes. Equality with a ceiling is allowed. There is no
 total-process memory budget, observer, or execution deadline.
 
+The optional [GPU backend](../../experiments/gpu/REPORT.md) uses literal
+official CUDA-enabled C and a prebuilt device artifact for explicit `!` calls.
+CPU remains the default. Authentication stays on CPU, and GPU failures cannot
+publish provisional state. The additional corpus capacity is a runtime
+resource setting, separate from the three canonical byte limits.
+
 ## Call path
 
 The optional [prepared-program extension](PREPARED_PROGRAMS.md) checks a
@@ -28,7 +34,7 @@ receipts have a separate protocol boundary from the ordinary path below.
    the actual configuration, context, and arguments.
 4. The same checked Book is compiled by the official compiler. The stage only
    invokes Clang on literal C and records C and executable hashes.
-5. The program runs in a fresh native child process on CPU with GPU disabled.
+5. The program runs in a fresh native child process (CPU by default, optionally CUDA for explicit `!` calls).
    Its proposal is private. It still runs `Input.analyze` on the same actual
    state/request packet, obtaining its current authenticated context and
    arguments. The Codec remains the compiled Bend program.

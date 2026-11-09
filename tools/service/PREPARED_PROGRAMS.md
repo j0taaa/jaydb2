@@ -202,3 +202,10 @@ database-state persistence is provided separately.
 
 The optional [certified read-batch extension](READ_BATCHES.md) adds opcode 3;
 ordinary preparation and execution retain their original certificate requirements.
+
+The optional [CUDA backend](../../experiments/gpu/REPORT.md) prebuilds and seals
+both the native executable and its `.gpu` before issuing a handle. Each use
+checks both hashes before and after execution and includes both in the complete
+prepared integrity snapshot. Compatible sealed bundles require no device
+compilation during execution. An incompatible-device rebuild is rejected before
+publication, with a new preparation required. The official runtime is unchanged.

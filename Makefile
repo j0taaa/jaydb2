@@ -121,3 +121,14 @@ test-feature-integration: build
 test-recovery-integration:
 	cargo build --locked --release --features storage-fault-injection --target-dir .build/integration/fault
 	JAYDB_PERSISTENCE_BINARY="$(CURDIR)/.build/integration/fault/release/jaydb2" JAYDB_IDEMPOTENCY_BINARY="$(CURDIR)/.build/integration/fault/release/jaydb2" python3 -B -m unittest tests.service.test_persistence tests.service.test_timing_persistence tests.service.test_receipt_recovery -v
+
+# Opt-in: real NVIDIA hardware, CUDA headers/libraries and clang-19 required.
+# Keep these expensive checks serialized with the other experiment branches.
+.PHONY: test-gpu benchmark-gpu
+test-gpu:
+	mkdir -p build/gpu/tmp
+	flock /tmp/jaydb2-experiments-heavy.lock sh -c 'make build && TMPDIR="$(CURDIR)/build/gpu/tmp" python3 -B -m unittest tests.service.test_gpu -v'
+
+benchmark-gpu:
+	mkdir -p build/gpu/tmp
+	flock /tmp/jaydb2-experiments-heavy.lock sh -c 'make build && TMPDIR="$(CURDIR)/build/gpu/tmp" PYTHONPATH=. python3 -B experiments/gpu/benchmark.py --output build/gpu/benchmark.json'

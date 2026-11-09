@@ -213,10 +213,11 @@ impl Limits {
 struct Program {
     path: PathBuf,
     sha256: String,
+    gpu: Option<(usize, String)>,
 }
 
 impl Program {
-    fn load(path: PathBuf) -> Result<Self> {
+    fn load(path: PathBuf, gpu_mib: usize) -> Result<Self> {
         let report: Value = serde_json::from_slice(&fs::read(format!("{}.json", path.display()))?)?;
         if text(&report, "format")? != "jaydb-official-c-v1" {
             return Err(Error::new(
@@ -224,8 +225,27 @@ impl Program {
                 "invalid official executable manifest",
             ));
         }
+        let expected_backend = if gpu_mib == 0 { "cpu" } else { "cuda" };
+        if text(&report, "backend")? != expected_backend {
+            return Err(Error::new(
+                "HOST_NATIVE",
+                "requested/compiled backend mismatch",
+            ));
+        }
+        let gpu = if gpu_mib == 0 {
+            if report.get("gpuSha256").is_some() {
+                return Err(Error::new("HOST_NATIVE", "unexpected GPU artifact"));
+            }
+            None
+        } else {
+            if report.get("gpuMiB").and_then(Value::as_u64) != Some(gpu_mib as u64) {
+                return Err(Error::new("HOST_NATIVE", "GPU option/manifest mismatch"));
+            }
+            Some((gpu_mib, text(&report, "gpuSha256")?.into()))
+        };
         let program = Self {
             path,
+            gpu,
             sha256: text(&report, "executableSha256")?.into(),
         };
         program.validate()?;
@@ -233,25 +253,43 @@ impl Program {
     }
 
     fn validate(&self) -> Result<()> {
-        let actual = format!("{:x}", Sha256::digest(fs::read(&self.path)?));
-        if actual != self.sha256 {
-            return Err(Error::new(
-                "HOST_NATIVE",
-                "official executable hash mismatch",
+        let mut files = vec![(self.path.clone(), &self.sha256)];
+        if let Some((_, digest)) = &self.gpu {
+            files.push((
+                PathBuf::from(format!("{}.gpu", self.path.display())),
+                digest,
             ));
+        }
+        for (path, expected) in files {
+            let valid = (|| -> io::Result<bool> {
+                Ok(fs::symlink_metadata(&path)?.file_type().is_file()
+                    && format!("{:x}", Sha256::digest(fs::read(&path)?)) == *expected)
+            })()
+            .unwrap_or(false);
+            if !valid {
+                return Err(Error::new(
+                    "HOST_NATIVE",
+                    format!("missing or changed artifact: {}", path.display()),
+                ));
+            }
         }
         Ok(())
     }
 
     fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
         self.validate()?;
+        let gpu_option = self
+            .gpu
+            .as_ref()
+            .map(|(mib, _)| format!("{mib}MB"))
+            .unwrap_or_else(|| "off".into());
         let output = capture(
             Command::new(&self.path)
                 // The host owns runtime policy, including early-exit flags.
                 .env("BENDRTS", "")
                 .args(["+RTS", "--threads"])
                 .arg(threads.to_string())
-                .args(["--gpu", "off", "-RTS"]),
+                .args(["--gpu", &gpu_option, "-RTS"]),
             input,
         )?;
         if !output.status.success() {
@@ -262,6 +300,17 @@ impl Program {
                     output.status,
                     String::from_utf8_lossy(&output.stderr)
                 ),
+            ));
+        }
+        // No success can publish if a bundle changed during execution or if
+        // the official runtime rebuilt a device artifact (e.g. device change).
+        self.validate()?;
+        if self.gpu.is_some()
+            && String::from_utf8_lossy(&output.stderr).contains("bend: compiling the GPU program")
+        {
+            return Err(Error::new(
+                "GPU_REBUILD",
+                "GPU artifact is incompatible; prepare again",
             ));
         }
         Ok(output.stdout)
@@ -401,6 +450,7 @@ struct Database {
     timing: Option<Arc<Timing>>,
     storage: Option<storage::Storage>,
     environment: String,
+    gpu_mib: usize,
 }
 
 struct PreparedProgram {
@@ -437,13 +487,15 @@ impl PreparedProgram {
 
     fn validate(&self) -> Result<()> {
         for (path, expected) in &self.sealed {
-            let metadata = fs::symlink_metadata(path)?;
-            if !metadata.file_type().is_file()
-                || format!("{:x}", Sha256::digest(fs::read(path)?)) != *expected
-            {
+            let valid = (|| -> io::Result<bool> {
+                Ok(fs::symlink_metadata(path)?.file_type().is_file()
+                    && format!("{:x}", Sha256::digest(fs::read(path)?)) == *expected)
+            })()
+            .unwrap_or(false);
+            if !valid {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
-                    "sealed prepared artifact changed",
+                    "sealed prepared artifact missing or changed",
                 ));
             }
         }
@@ -501,8 +553,9 @@ impl Database {
         let limits = Limits::read(&report)?;
         let initial = Program::load(
             text(programs, if recovering { "recover" } else { "initialize" })?.into(),
+            0,
         )?;
-        let authenticate = Program::load(text(programs, "authenticate")?.into())?;
+        let authenticate = Program::load(text(programs, "authenticate")?.into(), 0)?;
         let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1)
             || output.len() as u64 - 1 > limits.state
@@ -560,6 +613,7 @@ impl Database {
             timing,
             storage,
             environment,
+            gpu_mib: options.gpu_mib,
         };
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -709,6 +763,7 @@ impl Database {
             // authenticates the received credential again on this same state;
             // E.start receives that context and the actual decoded arguments.
             let output = prepared.program.run(&input, self.threads)?;
+            prepared.validate()?;
             return if prepared.read_only {
                 checked_read_proposal(&output, &self.limits, &self.published.state)
             } else {
@@ -752,6 +807,7 @@ impl Database {
                 metadata.into_os_string(),
                 self.source.clone().into_os_string(),
                 self.kernel.clone().into_os_string(),
+                self.gpu_mib.to_string().into(),
             ],
         )?;
         if Limits::read(&report)? != self.limits {
@@ -760,7 +816,7 @@ impl Database {
                 "request configuration changed",
             ));
         }
-        let program = Program::load(text(&report, "program")?.into())?;
+        let program = Program::load(text(&report, "program")?.into(), self.gpu_mib)?;
         if matches!(operation, Some(0 | 3)) {
             if text(&report, "certificateMode")? != "universal" {
                 return Err(Error::new(
@@ -932,7 +988,9 @@ fn read_proposal(
         .filter(|p| p.read_only)
         .ok_or_else(|| Error::new("READ_DISPATCH", "uncertified read selection"))?;
     program.validate()?;
-    checked_read_proposal(&program.program.run(&input, threads)?, limits, state)
+    let output = program.program.run(&input, threads)?;
+    program.validate()?;
+    checked_read_proposal(&output, limits, state)
 }
 
 impl read_batch::Service for Database {
@@ -942,7 +1000,9 @@ impl read_batch::Service for Database {
     fn is_read(&self, body: &[u8]) -> bool {
         read_batch::candidate(body)
             .and_then(|handle| self.prepared.get(handle))
-            .is_some_and(|p| p.read_only)
+            // CUDA bundles stay exclusive, including certified reads. The GPU
+            // experiment supports one device worker per service instance.
+            .is_some_and(|p| p.read_only && p.program.gpu.is_none())
     }
     fn reads(&mut self, bodies: Vec<Vec<u8>>, output: &mut impl Write) -> Result<()> {
         let state = &self.published.state;
@@ -1023,6 +1083,7 @@ struct Options {
     read_workers: usize,
     timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
+    gpu_mib: usize,
 }
 
 // The pinned official Bend runtime supports up to 128 CPU workers.
@@ -1044,6 +1105,23 @@ fn parse_threads(value: &OsStr) -> Result<usize> {
         .ok_or_else(|| Error::new("ARGUMENT", "--threads must be an integer from 1 to 128"))
 }
 
+fn parse_gpu(value: &OsStr) -> Result<usize> {
+    if value == "off" {
+        return Ok(0);
+    }
+    value
+        .to_str()
+        .filter(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+        .and_then(|s| s.parse::<usize>().ok())
+        .filter(|n| (64..=4096).contains(n))
+        .ok_or_else(|| {
+            Error::new(
+                "ARGUMENT",
+                "--gpu must be off or an integer MiB from 64 to 4096",
+            )
+        })
+}
+
 impl Options {
     fn read() -> Result<Option<Self>> {
         Self::read_from(std::env::args_os().skip(1))
@@ -1061,13 +1139,14 @@ impl Options {
         let mut timing_log = None;
         let mut storage = None;
         let mut storage_mode = None;
+        let mut gpu_mib = 0;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--read-workers N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Total native CPU-worker budget, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1)"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--read-workers N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Total native CPU-worker budget, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1); CUDA programs remain exclusive\n--gpu off|MiB  Official CUDA backend for ! calls, 64..4096 MiB (default: off)"
                 );
                 return Ok(None);
             }
@@ -1104,6 +1183,7 @@ impl Options {
                         }
                     })
                 }
+                Some("--gpu") => gpu_mib = parse_gpu(&value)?,
                 _ => {
                     return Err(Error::new(
                         "ARGUMENT",
@@ -1155,6 +1235,7 @@ impl Options {
             read_workers,
             timing_log,
             storage,
+            gpu_mib,
         }))
     }
 }
@@ -1273,6 +1354,13 @@ mod tests {
             .threads;
         assert!((1..=MAX_THREADS).contains(&automatic));
         assert_eq!(automatic, default_threads());
+        assert_eq!(
+            Options::read_from(arguments.clone())
+                .unwrap()
+                .unwrap()
+                .gpu_mib,
+            0
+        );
         for count in [1, 8, 128] {
             arguments.extend(["--threads".into(), count.to_string().into()]);
             assert_eq!(
@@ -1310,6 +1398,7 @@ mod tests {
         let program = Program {
             sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
             path,
+            gpu: None,
         };
         for count in [1, 8, 128] {
             assert_eq!(
@@ -1346,11 +1435,55 @@ mod tests {
         let program = Program {
             sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
             path,
+            gpu: None,
         };
         assert_eq!(
             program.run(&[], 1).unwrap(),
             b"\n+RTS\n--threads\n1\n--gpu\noff\n-RTS\n"
         );
+    }
+
+    #[test]
+    fn gpu_option_is_explicit_bounded_and_defaults_off() {
+        assert_eq!(parse_gpu(OsStr::new("off")).unwrap(), 0);
+        for count in [64, 512, 4096] {
+            assert_eq!(parse_gpu(OsStr::new(&count.to_string())).unwrap(), count);
+        }
+        for value in [
+            "on", "auto", "0", "63", "4097", "-1", "64MB", "1.5", "+512", "",
+        ] {
+            assert!(parse_gpu(OsStr::new(value)).is_err());
+        }
+    }
+
+    #[test]
+    fn gpu_bundle_requires_both_exact_regular_files() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-gpu-test").unwrap();
+        let path = directory.path.join("worker");
+        let device = directory.path.join("worker.gpu");
+        fs::write(&path, b"native").unwrap();
+        fs::write(&device, b"device").unwrap();
+        let program = Program {
+            sha256: format!("{:x}", Sha256::digest(b"native")),
+            gpu: Some((512, format!("{:x}", Sha256::digest(b"device")))),
+            path,
+        };
+        program.validate().unwrap();
+        for (file, original) in [
+            (&program.path, b"native".as_slice()),
+            (&device, b"device".as_slice()),
+        ] {
+            fs::write(file, b"substitute").unwrap();
+            assert!(program.validate().is_err());
+            fs::remove_file(file).unwrap();
+            assert!(program.validate().is_err());
+            fs::write(file, original).unwrap();
+        }
+        fs::remove_file(&device).unwrap();
+        let identical = directory.path.join("identical");
+        fs::write(&identical, b"device").unwrap();
+        std::os::unix::fs::symlink(identical, &device).unwrap();
+        assert!(program.validate().is_err());
     }
 
     fn hex(value: &str) -> Vec<u8> {
@@ -1536,6 +1669,7 @@ mod tests {
             authenticate: Program {
                 path: PathBuf::new(),
                 sha256: String::new(),
+                gpu: None,
             },
             limits,
             published: Published {
@@ -1550,6 +1684,7 @@ mod tests {
             timing: None,
             storage: Some(storage),
             environment,
+            gpu_mib: 0,
         };
         let mut notified = false;
         let response = error_frame("success");

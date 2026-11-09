@@ -59,6 +59,11 @@ The service uses stdin/stdout rather than a network listener. TypeScript web
 applications can host the client in their Node backend; the client does not
 expose the database directly to a browser or add a network security policy.
 
+GPU execution is available on this experimental integration branch. Use
+`--gpu 512` to opt into official CUDA execution for explicit `!` calls,
+with a 512 MiB corpus. CPU remains the default (`--gpu off`); initialization
+and authentication always use CPU. See [GPU scope and requirements](experiments/gpu/REPORT.md).
+
 ## Existing database capabilities
 
 Requests are FIFO and serial by default. The host bounds queued work and applies

@@ -1,0 +1,73 @@
+node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs
+(node:3833617) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ wrong supplied proof is rejected by the primary checker (265.830557ms)
+✔ unused IO, foreign code, unsafe definitions and holes are rejected (308.22444ms)
+✔ source, target and proof-authority substitutions are rejected (128.18239ms)
+✔ hash mismatch, missing dependency and import cycle fail before checking (4.674665ms)
+✔ private host capture is rejected (1.648239ms)
+✔ universal targets reject concrete substitution and transitive captured values (548.936803ms)
+✔ kernel infrastructure failure cannot admit a submission (198.931706ms)
+✔ preflight preserves bytes and emission requires an authentic handle (1.822274ms)
+(node:3833632) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ official tools preserve checked source and emitted behavior (754.690334ms)
+✔ official nested template preserves the checked result in C (504.951781ms)
+✔ official dependent-template translation limit is technical (89.723521ms)
+✔ official kernel accepts a proof and rejects a false one (28.88426ms)
+✔ erased fields cannot export a live witness (18.774437ms)
+✔ unsupported representation is infrastructure (0.862241ms)
+✔ official fuel exhaustion is infrastructure, not a false certificate (16.936367ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3049.837774
+python3 -B tests/native/test_simple_runtime.py
+test_binary_effects_and_fresh_processes (__main__.ParallelRuntimeTests.test_binary_effects_and_fresh_processes) ... ok
+test_native_loop_prepare_and_continue (__main__.ParallelRuntimeTests.test_native_loop_prepare_and_continue) ... ok
+test_official_failure_does_not_affect_another_process (__main__.ParallelRuntimeTests.test_official_failure_does_not_affect_another_process) ... ok
+test_official_representations_and_explicit_native_limits (__main__.ParallelRuntimeTests.test_official_representations_and_explicit_native_limits) ... ok
+test_parallel_reduction_matches_independent_reference (__main__.ParallelRuntimeTests.test_parallel_reduction_matches_independent_reference) ... ok
+test_binary_effects_and_fresh_processes (__main__.RuntimeTests.test_binary_effects_and_fresh_processes) ... ok
+test_native_loop_prepare_and_continue (__main__.RuntimeTests.test_native_loop_prepare_and_continue) ... ok
+test_official_failure_does_not_affect_another_process (__main__.RuntimeTests.test_official_failure_does_not_affect_another_process) ... ok
+test_official_representations_and_explicit_native_limits (__main__.RuntimeTests.test_official_representations_and_explicit_native_limits) ... ok
+test_parallel_reduction_matches_independent_reference (__main__.RuntimeTests.test_parallel_reduction_matches_independent_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 5.223s
+
+OK
+cargo test --locked
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests server/main.rs (target/debug/deps/jaydb2-1e97f212065cd77e)
+
+running 9 tests
+test tests::delivery_failure_after_publication_does_not_undo_the_state ... ok
+test tests::framing_preserves_the_next_request_and_stops_on_unknown_extent ... ok
+test tests::fixed_errors_match_the_proved_canonical_frames ... ok
+test tests::gpu_option_is_explicit_bounded_and_defaults_off ... ok
+test tests::only_a_complete_valid_proposal_replaces_the_published_pair ... ok
+test tests::gpu_bundle_requires_both_exact_regular_files ... ok
+test tests::thread_options_select_available_cpus_and_allow_explicit_limits ... ok
+test tests::native_launch_forwards_selected_cpu_workers_with_gpu_disabled ... ok
+test tests::helpers_drain_binary_pipes_and_are_reaped_on_failure ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing -v
+test_access_laws_cover_refusal_and_failed_child (tests.service.test_end_to_end.EndToEndTests.test_access_laws_cover_refusal_and_failed_child) ... ok
+test_initialization_rejects_another_environment_identity (tests.service.test_end_to_end.EndToEndTests.test_initialization_rejects_another_environment_identity) ... ok
+test_transaction_rollback_publication_and_authenticated_identity (tests.service.test_end_to_end.EndToEndTests.test_transaction_rollback_publication_and_authenticated_identity) ... ok
+test_preparation_requires_universal_proof_and_pure_capture_free_sources (tests.service.test_prepared.PreparedTests.test_preparation_requires_universal_proof_and_pure_capture_free_sources) ... ok
+test_reuse_current_identity_state_and_sealed_native_without_admission (tests.service.test_prepared.PreparedTests.test_reuse_current_identity_state_and_sealed_native_without_admission) ... ok
+test_native_differential_and_host_error_precedence (tests.service.test_preprocessing.PreprocessingTests.test_native_differential_and_host_error_precedence) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 148.687s
+
+OK

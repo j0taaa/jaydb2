@@ -1,0 +1,6 @@
+test_bundle_integrity_real_launches_and_failure_rollback (tests.service.test_gpu.GpuTests.test_bundle_integrity_real_launches_and_failure_rollback) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 23.109s
+
+OK

@@ -1,0 +1,95 @@
+{
+  "revision": "1c9400ac2ccdd1209c27e4cb01329b60de5bbc6e",
+  "dirty": false,
+  "toolchain": {
+    "version": "2.0.39",
+    "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+    "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+    "files": {
+      "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+      "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+      "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+      "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+      "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+    },
+    "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+    "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+  },
+  "machine": {
+    "system": "Linux",
+    "node": "jota-ubuntu",
+    "release": "7.0.0-38-generic",
+    "version": "#38~24.04.4-Ubuntu SMP PREEMPT_DYNAMIC Mon Sep 14 16:37:11 UTC 2",
+    "machine": "x86_64",
+    "processor": "x86_64"
+  },
+  "cpu_workers": 8,
+  "gpu_worker_cap": 1,
+  "gpu_inventory": "NVIDIA GeForce RTX 3080 Ti, 595.99.02, 12288 MiB",
+  "source_sha256": "6881cc50145ab153d5691eb7f99cd99dbc16e1e0ec00d6e2725b6488162593fa",
+  "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2023 NVIDIA Corporation\nBuilt on Fri_Jan__6_16:45:21_PST_2023\nCuda compilation tools, release 12.0, V12.0.140\nBuild cuda_12.0.r12.0/compiler.32267302_0",
+  "runs": [
+    {
+      "backend": "cpu",
+      "startup_ms": 5706.573441,
+      "first_preparation_ms": 5570.246201,
+      "prepared_requests": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "leaf_rounds": 64,
+          "result": 689817445,
+          "request_ms": [
+            5.998034,
+            5.197487,
+            5.185062
+          ],
+          "median_ms": 5.197487
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "leaf_rounds": 64,
+          "result": 3127646773,
+          "request_ms": [
+            5.682199,
+            5.75528,
+            5.94623
+          ],
+          "median_ms": 5.75528
+        }
+      ]
+    },
+    {
+      "backend": "cuda",
+      "startup_ms": 5472.01703,
+      "first_preparation_ms": 6922.759258,
+      "prepared_requests": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "leaf_rounds": 64,
+          "result": 689817445,
+          "request_ms": [
+            175.658724,
+            181.182279,
+            171.59234
+          ],
+          "median_ms": 175.658724
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "leaf_rounds": 64,
+          "result": 3127646773,
+          "request_ms": [
+            166.517479,
+            169.40911,
+            158.150273
+          ],
+          "median_ms": 166.517479
+        }
+      ]
+    }
+  ]
+}
