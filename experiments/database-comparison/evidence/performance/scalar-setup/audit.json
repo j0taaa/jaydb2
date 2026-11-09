@@ -1,0 +1,20 @@
+{
+  "all_actual_worker_python_versions_match": true,
+  "binary_stability_checks": 12,
+  "full_initial_empty_state_checks": 12,
+  "paired_canonical_input_hashes_match": true,
+  "prototype_touched_files_match_build_bundle_source_snapshot": {
+    "proof/FastBytes.bend": true,
+    "src/FastBytes.bend": true
+  },
+  "prototype_validation_status_sha256": "9b199cf57481799e0998bb1b59eae1092b10845361bb115c85ae8cdefa8088e2",
+  "records": 12,
+  "scalar_parent_source_differences": [
+    "proof/FastBytes.bend",
+    "src/FastBytes.bend"
+  ],
+  "scope": "Private build artifact only; does not pass or replace any committed production benchmark gate. Existing database snapshots are never opened or modified: each observation creates a fresh empty storage directory.",
+  "source_stability_checks": 12,
+  "status": "passed",
+  "worker_python": "3.11.16 (main, Aug 14 2026, 15:35:36) [Clang 22.1.3 ]"
+}

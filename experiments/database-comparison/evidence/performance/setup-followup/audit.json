@@ -1,0 +1,35 @@
+{
+  "binary_matches_original_benchmark": true,
+  "full_data_checks": 24,
+  "harness_sha256": {
+    "baseline": {
+      "jay.py": "438d70e6f02e7efb9d51290efaad45afc72358ad8de0709f529f45929043449a",
+      "model.py": "edf3fd65fbb99ca982d1f7445d3fbd1cb078ebbca3a5fa84dae349e62e5c570a",
+      "run.py": "7537ae5bcfab11062bae6fbbcdc6f0dc4420e42968e8b32dea2feb8c8539b95b"
+    },
+    "candidate": {
+      "jay.py": "438d70e6f02e7efb9d51290efaad45afc72358ad8de0709f529f45929043449a",
+      "model.py": "edf3fd65fbb99ca982d1f7445d3fbd1cb078ebbca3a5fa84dae349e62e5c570a",
+      "run.py": "7537ae5bcfab11062bae6fbbcdc6f0dc4420e42968e8b32dea2feb8c8539b95b"
+    }
+  },
+  "inputs_match_original_benchmark": true,
+  "manifests": {
+    "baseline": {
+      "binary_sha256": "62f1f6f4ab9c924c340e2af73012f44f7b9c066749b55b2a5ab74c2c5600f201",
+      "git_head": "3dbde8de39d200d5b4d6abd2000f53f8c8fb84cc",
+      "path": "/home/jota/projects/jaydb2-performance-baseline/build/performance-baseline/result.json",
+      "sha256": "7bf39116a0fd115709ae312b85e631c05972751efea518a146416b2019427d03"
+    },
+    "candidate": {
+      "binary_sha256": "da1ef7906f279d9d54358655afa3965fb618acf07e41c1c866810da3f1b33fe9",
+      "git_head": "9d7b26cf6255b18cec2a36ed33e9067a689c9bb9",
+      "path": "/home/jota/projects/jaydb2-performance/build/performance-candidate/result.json",
+      "sha256": "d96632389623cb56b934852ac5889a5ad9057f67d3e4879c82c2207e2507a5d0"
+    }
+  },
+  "original_snapshot_preservation_checks": 24,
+  "records": 24,
+  "source_matches_original_benchmark": true,
+  "status": "passed"
+}

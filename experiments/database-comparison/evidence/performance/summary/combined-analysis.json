@@ -1,0 +1,1148 @@
+{
+  "aggregate": [
+    {
+      "engine": "jaydb2",
+      "max_ms": 180.614195,
+      "median_ms": 107.67376200000001,
+      "min_ms": 85.754742,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 162.28286,
+      "median_ms": 110.6155545,
+      "min_ms": 77.761179,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 170.242372,
+      "median_ms": 104.3772855,
+      "min_ms": 77.083619,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 1330.885927,
+      "median_ms": 998.6690510000001,
+      "min_ms": 734.680865,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 2709.945561,
+      "median_ms": 1876.728464,
+      "min_ms": 1498.474594,
+      "run": "baseline",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.135232,
+      "median_ms": 0.106131,
+      "min_ms": 0.048836,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 39.295012,
+      "median_ms": 3.147832,
+      "min_ms": 1.960998,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 7.76487,
+      "median_ms": 3.4300319999999997,
+      "min_ms": 2.526883,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.300073,
+      "median_ms": 0.1109295,
+      "min_ms": 0.055458,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.506453,
+      "median_ms": 0.142917,
+      "min_ms": 0.066109,
+      "run": "baseline",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.035551,
+      "median_ms": 0.010891999999999999,
+      "min_ms": 0.005134,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 50.186161,
+      "median_ms": 6.6042295,
+      "min_ms": 5.729092,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 51.910269,
+      "median_ms": 6.631184,
+      "min_ms": 4.223034,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.037156,
+      "median_ms": 0.018638000000000002,
+      "min_ms": 0.008066,
+      "run": "baseline",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.099981,
+      "median_ms": 0.045151,
+      "min_ms": 0.022344,
+      "run": "baseline",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 50.710102,
+      "median_ms": 24.2801725,
+      "min_ms": 16.770074,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 70.090947,
+      "median_ms": 25.884570500000002,
+      "min_ms": 18.765662,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 68.901977,
+      "median_ms": 24.584418499999998,
+      "min_ms": 17.936351,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 468.009664,
+      "median_ms": 256.3894125,
+      "min_ms": 159.338613,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 1049.37456,
+      "median_ms": 500.635661,
+      "min_ms": 315.220823,
+      "run": "engine",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.415338,
+      "median_ms": 0.0832975,
+      "min_ms": 0.043892,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 36.805671,
+      "median_ms": 3.1561755,
+      "min_ms": 2.077349,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 73.904479,
+      "median_ms": 3.5992224999999998,
+      "min_ms": 2.07916,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.405916,
+      "median_ms": 0.08942900000000001,
+      "min_ms": 0.038831,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.401967,
+      "median_ms": 0.088072,
+      "min_ms": 0.053917,
+      "run": "engine",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.036119,
+      "median_ms": 0.0079635,
+      "min_ms": 0.006828,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 6.76674,
+      "median_ms": 5.5399115000000005,
+      "min_ms": 4.301136,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 63.111659,
+      "median_ms": 6.548315499999999,
+      "min_ms": 4.33036,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.03562,
+      "median_ms": 0.0107245,
+      "min_ms": 0.009001,
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.100309,
+      "median_ms": 0.026352,
+      "min_ms": 0.020652,
+      "run": "engine",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 32.326669,
+      "median_ms": 14.1453725,
+      "min_ms": 5.091176,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 79.816967,
+      "median_ms": 31.574779,
+      "min_ms": 15.169424,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 76.51811,
+      "median_ms": 30.70464,
+      "min_ms": 16.02202,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 72.454522,
+      "median_ms": 32.5203475,
+      "min_ms": 15.257126,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 128.321939,
+      "median_ms": 36.137663,
+      "min_ms": 15.893975,
+      "run": "query",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.489138,
+      "median_ms": 0.111816,
+      "min_ms": 0.053239,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 3.953819,
+      "median_ms": 2.6935260000000003,
+      "min_ms": 2.179637,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 38.857292,
+      "median_ms": 3.4363205,
+      "min_ms": 2.324197,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.463632,
+      "median_ms": 0.12283250000000001,
+      "min_ms": 0.077115,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 0.319581,
+      "median_ms": 0.142067,
+      "min_ms": 0.082679,
+      "run": "query",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.037416,
+      "median_ms": 0.008533,
+      "min_ms": 0.007082,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 7.398028,
+      "median_ms": 6.877534499999999,
+      "min_ms": 5.734296,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 41.087118,
+      "median_ms": 6.4815435,
+      "min_ms": 5.454879,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.037913,
+      "median_ms": 0.010762,
+      "min_ms": 0.009542,
+      "run": "query",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 0.108085,
+      "median_ms": 0.028929,
+      "min_ms": 0.021494,
+      "run": "query",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    }
+  ],
+  "aggregation": "Unweighted median of per-scenario sample medians. Speedups are medians of paired scenario ratios; no composite score.",
+  "matching_final_data_sha256": {
+    "01_personal_tasks": "066e1079d8ec3dfdb013a721256d6e049de36d5d53ebc43acc79bc16df9deaa6",
+    "02_household_budget": "7d2047d4f32a7a8fcd5f3dd863a6b2e9e91e2f72196bcbb9a954f3f4f0efeb64",
+    "03_editorial_blog": "624493baa095c4e41cdd139b392d39a5313e96b7af23d7ef99e4649928d0e99a",
+    "04_ecommerce": "cc3b866e05216f3d19e210be24d1f3abd8584f1a1c62a09d202fe07b964d7359",
+    "05_clinic": "febbc57f5525a7ced1bea4b258b60c4b467f2793bede84062330b5fad2667bf3",
+    "06_learning_platform": "1241de104bee0345bc195e45855b7c83b9b5fe8065709bd020eb694b394a45c4",
+    "07_hotel": "f906d0f57fe1d8c51cac6986df2eed04913a1316cabadcd456486a071e6b799d",
+    "08_logistics": "4b0a3a65a63bdc4b13ebf2b3b4739d2228f3559fc28de0c43d4573dfd32c705d",
+    "09_manufacturing": "54afd0c055146250cb91b8a850b6547acfb4d0919aea6a2dc71482eea00152a9",
+    "10_municipal_services": "f1622d905b95668fc0fa244fc4b5b741c4e162e1b67747a89285cd6435c20873"
+  },
+  "resources": [
+    {
+      "engine": "jaydb2",
+      "max_observed_peak_tree_rss_mib": 72.02734375,
+      "median_closed_storage_kib": 15.23193359375,
+      "median_live_storage_kib": 15.23193359375,
+      "median_observed_peak_tree_rss_mib": 70.759765625,
+      "memory_scope": "Jay controller and descendants",
+      "min_observed_peak_tree_rss_mib": 70.1015625,
+      "run": "baseline"
+    },
+    {
+      "engine": "postgresql",
+      "max_observed_peak_tree_rss_mib": 148.29296875,
+      "median_closed_storage_kib": null,
+      "median_live_storage_kib": 8075.0224609375,
+      "median_observed_peak_tree_rss_mib": 115.619140625,
+      "memory_scope": "whole private PostgreSQL cluster",
+      "min_observed_peak_tree_rss_mib": 76.99609375,
+      "run": "baseline"
+    },
+    {
+      "engine": "sqlite",
+      "max_observed_peak_tree_rss_mib": 47.74609375,
+      "median_closed_storage_kib": 92.0,
+      "median_live_storage_kib": 124.0,
+      "median_observed_peak_tree_rss_mib": 46.060546875,
+      "memory_scope": "Python harness including embedded SQLite; not attributable database memory",
+      "min_observed_peak_tree_rss_mib": 42.98828125,
+      "run": "baseline"
+    },
+    {
+      "engine": "jaydb2",
+      "max_observed_peak_tree_rss_mib": 8.65234375,
+      "median_closed_storage_kib": 15.23193359375,
+      "median_live_storage_kib": 15.23193359375,
+      "median_observed_peak_tree_rss_mib": 7.625,
+      "memory_scope": "Jay controller and descendants",
+      "min_observed_peak_tree_rss_mib": 6.23828125,
+      "run": "engine"
+    },
+    {
+      "engine": "postgresql",
+      "max_observed_peak_tree_rss_mib": 138.8671875,
+      "median_closed_storage_kib": null,
+      "median_live_storage_kib": 8075.0224609375,
+      "median_observed_peak_tree_rss_mib": 113.50390625,
+      "memory_scope": "whole private PostgreSQL cluster",
+      "min_observed_peak_tree_rss_mib": 78.125,
+      "run": "engine"
+    },
+    {
+      "engine": "sqlite",
+      "max_observed_peak_tree_rss_mib": 47.80078125,
+      "median_closed_storage_kib": 92.0,
+      "median_live_storage_kib": 124.0,
+      "median_observed_peak_tree_rss_mib": 45.103515625,
+      "memory_scope": "Python harness including embedded SQLite; not attributable database memory",
+      "min_observed_peak_tree_rss_mib": 43.08984375,
+      "run": "engine"
+    },
+    {
+      "engine": "jaydb2",
+      "max_observed_peak_tree_rss_mib": 14.875,
+      "median_closed_storage_kib": 15.23193359375,
+      "median_live_storage_kib": 15.23193359375,
+      "median_observed_peak_tree_rss_mib": 11.23046875,
+      "memory_scope": "Jay controller and descendants",
+      "min_observed_peak_tree_rss_mib": 8.7109375,
+      "run": "query"
+    },
+    {
+      "engine": "postgresql",
+      "max_observed_peak_tree_rss_mib": 147.66796875,
+      "median_closed_storage_kib": null,
+      "median_live_storage_kib": 8075.0224609375,
+      "median_observed_peak_tree_rss_mib": 119.015625,
+      "memory_scope": "whole private PostgreSQL cluster",
+      "min_observed_peak_tree_rss_mib": 78.2890625,
+      "run": "query"
+    },
+    {
+      "engine": "sqlite",
+      "max_observed_peak_tree_rss_mib": 46.953125,
+      "median_closed_storage_kib": 92.0,
+      "median_live_storage_kib": 124.0,
+      "median_observed_peak_tree_rss_mib": 43.92578125,
+      "memory_scope": "Python harness including embedded SQLite; not attributable database memory",
+      "min_observed_peak_tree_rss_mib": 42.2578125,
+      "run": "query"
+    }
+  ],
+  "rivals": [
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 573.1444556212349,
+      "median_paired_jay_over_rival": 372.9071016596466,
+      "min_paired_jay_over_rival": 40.37693155935648,
+      "rival": "postgresql",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "jay_wins": 1,
+      "max_paired_jay_over_rival": 33.37807191736789,
+      "median_paired_jay_over_rival": 9.30990279314068,
+      "min_paired_jay_over_rival": 0.5278023324177408,
+      "rival": "postgresql",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "jay_wins": 1,
+      "max_paired_jay_over_rival": 20.044433073005607,
+      "median_paired_jay_over_rival": 6.35207921291411,
+      "min_paired_jay_over_rival": 0.7563399506544116,
+      "rival": "postgresql",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 6582.3812160387315,
+      "median_paired_jay_over_rival": 3960.4758136908686,
+      "min_paired_jay_over_rival": 392.54085327998894,
+      "rival": "postgresql",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 13703.1635304718,
+      "median_paired_jay_over_rival": 5828.162911099058,
+      "min_paired_jay_over_rival": 1285.7441332248668,
+      "rival": "postgresql",
+      "run": "engine",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 4360.968072642062,
+      "median_paired_jay_over_rival": 2966.717418936848,
+      "min_paired_jay_over_rival": 522.2207205804502,
+      "rival": "sqlite",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 14.97135893203898,
+      "median_paired_jay_over_rival": 5.314553283811279,
+      "min_paired_jay_over_rival": 2.870823912253168,
+      "rival": "sqlite",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "jay_wins": 2,
+      "max_paired_jay_over_rival": 11.424637443979016,
+      "median_paired_jay_over_rival": 3.617302910791457,
+      "min_paired_jay_over_rival": 0.3574586618564357,
+      "rival": "sqlite",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 29303.298185816384,
+      "median_paired_jay_over_rival": 24872.408671196838,
+      "min_paired_jay_over_rival": 4509.2430665610145,
+      "rival": "sqlite",
+      "run": "engine",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 25325.145507363093,
+      "median_paired_jay_over_rival": 17917.59997852618,
+      "min_paired_jay_over_rival": 10461.419812778515,
+      "rival": "sqlite",
+      "run": "engine",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 465.92141099569864,
+      "median_paired_jay_over_rival": 102.87811593974551,
+      "min_paired_jay_over_rival": 10.408465504622418,
+      "rival": "postgresql",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 31.2779813767067,
+      "median_paired_jay_over_rival": 12.725934127719167,
+      "min_paired_jay_over_rival": 4.929350015987688,
+      "rival": "postgresql",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 23.68489849787574,
+      "median_paired_jay_over_rival": 8.762382659381352,
+      "min_paired_jay_over_rival": 1.8151666101693344,
+      "rival": "postgresql",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 472.1671543359118,
+      "median_paired_jay_over_rival": 306.17042675546355,
+      "min_paired_jay_over_rival": 32.907836387479726,
+      "rival": "postgresql",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 590.3713642930097,
+      "median_paired_jay_over_rival": 324.6384956707832,
+      "min_paired_jay_over_rival": 145.40339694787863,
+      "rival": "postgresql",
+      "run": "query",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 4564.624258683987,
+      "median_paired_jay_over_rival": 843.8516835695773,
+      "min_paired_jay_over_rival": 264.3010379630692,
+      "rival": "sqlite",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_read"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 11.195309040562586,
+      "median_paired_jay_over_rival": 4.5432005727321565,
+      "min_paired_jay_over_rival": 2.294013923696113,
+      "rival": "sqlite",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "point_update"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 12.419470679213477,
+      "median_paired_jay_over_rival": 3.8368503035875587,
+      "min_paired_jay_over_rival": 1.8501849168393851,
+      "rival": "sqlite",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "two_row_transaction"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 7593.221756445189,
+      "median_paired_jay_over_rival": 1910.4238342269518,
+      "min_paired_jay_over_rival": 942.5458286076016,
+      "rival": "sqlite",
+      "run": "query",
+      "scenarios": 10,
+      "workload": "scan_sum"
+    },
+    {
+      "jay_wins": 0,
+      "max_paired_jay_over_rival": 5970.128361403183,
+      "median_paired_jay_over_rival": 821.6878653976886,
+      "min_paired_jay_over_rival": 334.3448489614655,
+      "rival": "sqlite",
+      "run": "query",
+      "scenarios": 9,
+      "workload": "relationship_join"
+    }
+  ],
+  "setup": [
+    {
+      "engine": "jaydb2",
+      "max_ms": 37602.530125,
+      "median_ms": 24627.9464605,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 21323.86537,
+      "run": "baseline"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 41262.900488,
+      "median_ms": 14740.2298835,
+      "metric": "populate_ns",
+      "min_ms": 735.257043,
+      "run": "baseline"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 41997.4554,
+      "median_ms": 24369.204618,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 18834.832938,
+      "run": "baseline"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 1536.466308,
+      "median_ms": 498.747334,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 104.142037,
+      "run": "baseline"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 2746.814137,
+      "median_ms": 524.8761625,
+      "metric": "populate_ns",
+      "min_ms": 25.424727,
+      "run": "baseline"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 5.869631,
+      "median_ms": 2.3295250000000003,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 1.652313,
+      "run": "baseline"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 572.503372,
+      "median_ms": 132.373515,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 28.257307,
+      "run": "baseline"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 3098.588381,
+      "median_ms": 1144.997337,
+      "metric": "populate_ns",
+      "min_ms": 43.46886,
+      "run": "baseline"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 86.844977,
+      "median_ms": 12.685295,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 7.361659,
+      "run": "baseline"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 28624.206011,
+      "median_ms": 25825.026259500002,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 24449.945702,
+      "run": "engine"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 9996.881916,
+      "median_ms": 2884.8674465,
+      "metric": "populate_ns",
+      "min_ms": 130.706298,
+      "run": "engine"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 26617.51801,
+      "median_ms": 24391.4637705,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 23291.524583,
+      "run": "engine"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 1253.580167,
+      "median_ms": 383.7002655,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 102.118176,
+      "run": "engine"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 1630.122912,
+      "median_ms": 426.150042,
+      "metric": "populate_ns",
+      "min_ms": 30.355084,
+      "run": "engine"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 5.396956,
+      "median_ms": 2.2684495,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 1.711727,
+      "run": "engine"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 559.924994,
+      "median_ms": 131.137079,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 36.286262,
+      "run": "engine"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 2400.318927,
+      "median_ms": 820.9339255,
+      "metric": "populate_ns",
+      "min_ms": 43.898433,
+      "run": "engine"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 81.830876,
+      "median_ms": 9.49708,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 6.101602,
+      "run": "engine"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 49892.838302,
+      "median_ms": 46978.700838000004,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 45432.451539,
+      "run": "query"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 6918.837899,
+      "median_ms": 4017.7805820000003,
+      "metric": "populate_ns",
+      "min_ms": 144.941592,
+      "run": "query"
+    },
+    {
+      "engine": "jaydb2",
+      "max_ms": 46292.90743,
+      "median_ms": 44750.457548499995,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 43518.871313,
+      "run": "query"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 1727.192893,
+      "median_ms": 593.7723955,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 106.726953,
+      "run": "query"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 3852.200477,
+      "median_ms": 666.497005,
+      "metric": "populate_ns",
+      "min_ms": 29.304171,
+      "run": "query"
+    },
+    {
+      "engine": "postgresql",
+      "max_ms": 6.675158,
+      "median_ms": 1.906593,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 1.690445,
+      "run": "query"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 937.763979,
+      "median_ms": 147.98319500000002,
+      "metric": "create_schema_and_client_ns",
+      "min_ms": 30.035689,
+      "run": "query"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 5645.692352,
+      "median_ms": 1085.737081,
+      "metric": "populate_ns",
+      "min_ms": 45.687315,
+      "run": "query"
+    },
+    {
+      "engine": "sqlite",
+      "max_ms": 72.730351,
+      "median_ms": 10.501901,
+      "metric": "reopen_and_client_prepare_ns",
+      "min_ms": 7.524109,
+      "run": "query"
+    }
+  ],
+  "sources": [
+    {
+      "git_head": "3dbde8de39d200d5b4d6abd2000f53f8c8fb84cc",
+      "hardware": {
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "load_end": [
+          6.52294921875,
+          6.03271484375,
+          6.0703125
+        ],
+        "load_start": [
+          4.224609375,
+          5.279296875,
+          5.1689453125
+        ],
+        "logical_cpus": 16,
+        "mem_total": "MemTotal:       16219996 kB",
+        "platform": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39"
+      },
+      "path": "/home/jota/projects/jaydb2-performance-baseline/build/performance-baseline/result.json",
+      "profile": "legacy",
+      "sha256": "7bf39116a0fd115709ae312b85e631c05972751efea518a146416b2019427d03"
+    },
+    {
+      "git_head": "9d7b26cf6255b18cec2a36ed33e9067a689c9bb9",
+      "hardware": {
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "load_end": [
+          3.6767578125,
+          3.71875,
+          4.51220703125
+        ],
+        "load_start": [
+          4.31005859375,
+          5.52587890625,
+          5.87451171875
+        ],
+        "logical_cpus": 16,
+        "mem_total": "MemTotal:       16219996 kB",
+        "platform": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39"
+      },
+      "path": "build/performance-candidate/result.json",
+      "profile": "legacy",
+      "sha256": "d96632389623cb56b934852ac5889a5ad9057f67d3e4879c82c2207e2507a5d0"
+    },
+    {
+      "git_head": "9d7b26cf6255b18cec2a36ed33e9067a689c9bb9",
+      "hardware": {
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "load_end": [
+          3.12646484375,
+          3.1689453125,
+          3.564453125
+        ],
+        "load_start": [
+          3.6767578125,
+          3.71875,
+          4.51220703125
+        ],
+        "logical_cpus": 16,
+        "mem_total": "MemTotal:       16219996 kB",
+        "platform": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39"
+      },
+      "path": "build/performance-query/result.json",
+      "profile": "single-call-queries-v1",
+      "sha256": "cc87ae8268ea47384ed56b7050fbeee72373e3f54be16333f56cd3368b60e4df"
+    }
+  ],
+  "speedups": [
+    {
+      "max_paired_speedup": 6.065623647222038,
+      "median_paired_speedup": 4.857986441737346,
+      "min_paired_speedup": 1.8902996684960327,
+      "run": "engine",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "point_read"
+    },
+    {
+      "max_paired_speedup": 6.452312153975703,
+      "median_paired_speedup": 4.329919040191948,
+      "min_paired_speedup": 1.4986885681541726,
+      "run": "engine",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "point_update"
+    },
+    {
+      "max_paired_speedup": 6.612569258691903,
+      "median_paired_speedup": 4.473239999437819,
+      "min_paired_speedup": 1.3496703875420004,
+      "run": "engine",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "two_row_transaction"
+    },
+    {
+      "max_paired_speedup": 6.338515399912284,
+      "median_paired_speedup": 4.419903195937446,
+      "min_paired_speedup": 1.8310583261802047,
+      "run": "engine",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "scan_sum"
+    },
+    {
+      "max_paired_speedup": 5.953694448669085,
+      "median_paired_speedup": 4.225781927862093,
+      "min_paired_speedup": 1.7191639113111337,
+      "run": "engine",
+      "scenarios": 9,
+      "slower_count": 0,
+      "workload": "relationship_join"
+    },
+    {
+      "max_paired_speedup": 19.992664816636488,
+      "median_paired_speedup": 8.821199152833499,
+      "min_paired_speedup": 4.111683421511818,
+      "run": "query",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "point_read"
+    },
+    {
+      "max_paired_speedup": 7.049799632924794,
+      "median_paired_speedup": 3.956185621610736,
+      "min_paired_speedup": 1.111395623658899,
+      "run": "query",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "point_update"
+    },
+    {
+      "max_paired_speedup": 7.842884480234078,
+      "median_paired_speedup": 3.831432328000738,
+      "min_paired_speedup": 1.2276746511381422,
+      "run": "query",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "two_row_transaction"
+    },
+    {
+      "max_paired_speedup": 57.22829508131668,
+      "median_paired_speedup": 33.12835896790595,
+      "min_paired_speedup": 11.934188419584705,
+      "run": "query",
+      "scenarios": 10,
+      "slower_count": 0,
+      "workload": "scan_sum"
+    },
+    {
+      "max_paired_speedup": 118.07798011510651,
+      "median_paired_speedup": 58.318327776374545,
+      "min_paired_speedup": 15.018560162187075,
+      "run": "query",
+      "scenarios": 9,
+      "slower_count": 0,
+      "workload": "relationship_join"
+    }
+  ]
+}

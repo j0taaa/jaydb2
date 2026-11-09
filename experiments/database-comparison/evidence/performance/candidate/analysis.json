@@ -1,0 +1,512 @@
+{
+  "aggregation": "One median per engine/scenario/workload, then an unweighted median across scenarios; never pooled requests",
+  "attempted_seed_rows_per_engine": 960,
+  "attempted_tables_per_engine": 120,
+  "database_count": 30,
+  "engines": {
+    "jaydb2": {
+      "create_schema_and_client_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 28624.206011,
+        "median": 25825.026259500002,
+        "min": 24449.945702,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "duplicate_id_behavior": [
+        "replaced_existing_row"
+      ],
+      "foreign_key_behavior": [
+        "accepted_orphan"
+      ],
+      "initial_preparation_ms": {
+        "prepare_access_ns": {
+          "aggregation": "Median, minimum and maximum of one value per scenario",
+          "max": 6227.699862,
+          "median": 5750.08325,
+          "min": 5517.943698,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "prepare_batch_ns": {
+          "aggregation": "Median, minimum and maximum of one value per scenario",
+          "max": 6209.511996,
+          "median": 5619.062178,
+          "min": 5362.614553,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "prepare_readrow_ns": {
+          "aggregation": "Median, minimum and maximum of one value per scenario",
+          "max": 7000.221034,
+          "median": 5920.1421325,
+          "min": 5549.034483,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "startup_ns": {
+          "aggregation": "Median, minimum and maximum of one value per scenario",
+          "max": 10193.246626,
+          "median": 8516.6432965,
+          "min": 7488.336303,
+          "n_scenarios": 10,
+          "unit": "ms"
+        }
+      },
+      "memory_scope": "Jay controller and descendants",
+      "n_failed_scenarios": 0,
+      "n_passed_scenarios": 10,
+      "observed_peak_tree_rss_bytes": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 9072640,
+        "median": 7995392.0,
+        "min": 6541312,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "populate_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 9996.881916,
+        "median": 2884.8674465,
+        "min": 130.706298,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "reopen_and_client_prepare_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 26617.51801,
+        "median": 24391.4637705,
+        "min": 23291.524583,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "storage_bytes_closed": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 40015,
+        "median": 15597.5,
+        "min": 1956,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "storage_bytes_live": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 40015,
+        "median": 15597.5,
+        "min": 1956,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "successful_seed_rows": 960,
+      "successful_tables": 120,
+      "workloads": {
+        "point_read": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 50.710102,
+          "median_of_scenario_medians_ms": 24.2801725,
+          "min_scenario_median_ms": 16.770074,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "point_update": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 70.090947,
+          "median_of_scenario_medians_ms": 25.884570500000002,
+          "min_scenario_median_ms": 18.765662,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "relationship_join": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 1049.37456,
+          "median_of_scenario_medians_ms": 500.635661,
+          "min_scenario_median_ms": 315.220823,
+          "n_scenarios": 9,
+          "unit": "ms"
+        },
+        "scan_sum": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 468.009664,
+          "median_of_scenario_medians_ms": 256.3894125,
+          "min_scenario_median_ms": 159.338613,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "two_row_transaction": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 68.901977,
+          "median_of_scenario_medians_ms": 24.584418499999998,
+          "min_scenario_median_ms": 17.936351,
+          "n_scenarios": 10,
+          "unit": "ms"
+        }
+      }
+    },
+    "postgresql": {
+      "create_schema_and_client_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 1253.580167,
+        "median": 383.7002655,
+        "min": 102.118176,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "duplicate_id_behavior": [
+        "rejected"
+      ],
+      "foreign_key_behavior": [
+        "rejected"
+      ],
+      "memory_scope": "whole private PostgreSQL cluster",
+      "n_failed_scenarios": 0,
+      "n_passed_scenarios": 10,
+      "observed_peak_tree_rss_bytes": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 145612800,
+        "median": 119017472.0,
+        "min": 81920000,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "populate_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 1630.122912,
+        "median": 426.150042,
+        "min": 30.355084,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "reopen_and_client_prepare_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 5.396956,
+        "median": 2.2684495,
+        "min": 1.711727,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "storage_bytes_live": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 8985623,
+        "median": 8268823.0,
+        "min": 7740439,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "successful_seed_rows": 960,
+      "successful_tables": 120,
+      "workloads": {
+        "point_read": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.415338,
+          "median_of_scenario_medians_ms": 0.0832975,
+          "min_scenario_median_ms": 0.043892,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "point_update": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 36.805671,
+          "median_of_scenario_medians_ms": 3.1561755,
+          "min_scenario_median_ms": 2.077349,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "relationship_join": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.401967,
+          "median_of_scenario_medians_ms": 0.088072,
+          "min_scenario_median_ms": 0.053917,
+          "n_scenarios": 9,
+          "unit": "ms"
+        },
+        "scan_sum": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.405916,
+          "median_of_scenario_medians_ms": 0.08942900000000001,
+          "min_scenario_median_ms": 0.038831,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "two_row_transaction": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 73.904479,
+          "median_of_scenario_medians_ms": 3.5992224999999998,
+          "min_scenario_median_ms": 2.07916,
+          "n_scenarios": 10,
+          "unit": "ms"
+        }
+      }
+    },
+    "sqlite": {
+      "create_schema_and_client_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 559.924994,
+        "median": 131.137079,
+        "min": 36.286262,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "duplicate_id_behavior": [
+        "rejected"
+      ],
+      "foreign_key_behavior": [
+        "rejected"
+      ],
+      "memory_scope": "Python harness including embedded SQLite; not attributable database memory",
+      "n_failed_scenarios": 0,
+      "n_passed_scenarios": 10,
+      "observed_peak_tree_rss_bytes": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 50122752,
+        "median": 47294464.0,
+        "min": 45182976,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "populate_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 2400.318927,
+        "median": 820.9339255,
+        "min": 43.898433,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "reopen_and_client_prepare_ms": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 81.830876,
+        "median": 9.49708,
+        "min": 6.101602,
+        "n_scenarios": 10,
+        "unit": "ms"
+      },
+      "storage_bytes_closed": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 229376,
+        "median": 94208.0,
+        "min": 12288,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "storage_bytes_live": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 262144,
+        "median": 126976.0,
+        "min": 45056,
+        "n_scenarios": 10,
+        "unit": "bytes"
+      },
+      "successful_seed_rows": 960,
+      "successful_tables": 120,
+      "workloads": {
+        "point_read": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.036119,
+          "median_of_scenario_medians_ms": 0.0079635,
+          "min_scenario_median_ms": 0.006828,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "point_update": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 6.76674,
+          "median_of_scenario_medians_ms": 5.5399115000000005,
+          "min_scenario_median_ms": 4.301136,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "relationship_join": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.100309,
+          "median_of_scenario_medians_ms": 0.026352,
+          "min_scenario_median_ms": 0.020652,
+          "n_scenarios": 9,
+          "unit": "ms"
+        },
+        "scan_sum": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 0.03562,
+          "median_of_scenario_medians_ms": 0.0107245,
+          "min_scenario_median_ms": 0.009001,
+          "n_scenarios": 10,
+          "unit": "ms"
+        },
+        "two_row_transaction": {
+          "aggregation": "Median of per-scenario workload medians",
+          "max_scenario_median_ms": 63.111659,
+          "median_of_scenario_medians_ms": 6.548315499999999,
+          "min_scenario_median_ms": 4.33036,
+          "n_scenarios": 10,
+          "unit": "ms"
+        }
+      }
+    }
+  },
+  "failed_database_count": 0,
+  "failures": [],
+  "passed_database_count": 30,
+  "profile": "legacy",
+  "profile_metadata": {},
+  "relative_workflow_latency_ratios": {
+    "jaydb2_over_postgresql": {
+      "point_read": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 573.1444556212349,
+        "median": 372.9071016596466,
+        "min": 40.37693155935648,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "point_update": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 33.37807191736789,
+        "median": 9.30990279314068,
+        "min": 0.5278023324177408,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "relationship_join": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 13703.1635304718,
+        "median": 5828.162911099058,
+        "min": 1285.7441332248668,
+        "n_scenarios": 9,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "scan_sum": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 6582.381216038732,
+        "median": 3960.4758136908686,
+        "min": 392.540853279989,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "two_row_transaction": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 20.044433073005607,
+        "median": 6.35207921291411,
+        "min": 0.7563399506544116,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      }
+    },
+    "jaydb2_over_sqlite": {
+      "point_read": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 4360.968072642062,
+        "median": 2966.717418936848,
+        "min": 522.2207205804502,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "point_update": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 14.97135893203898,
+        "median": 5.314553283811279,
+        "min": 2.8708239122531674,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "relationship_join": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 25325.14550736309,
+        "median": 17917.59997852618,
+        "min": 10461.419812778515,
+        "n_scenarios": 9,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "scan_sum": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 29303.298185816377,
+        "median": 24872.408671196838,
+        "min": 4509.2430665610145,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      },
+      "two_row_transaction": {
+        "aggregation": "Median, minimum and maximum of one value per scenario",
+        "max": 11.424637443979016,
+        "median": 3.617302910791457,
+        "min": 0.35745866185643566,
+        "n_scenarios": 10,
+        "unit": "dimensionless ratio of paired scenario medians"
+      }
+    }
+  },
+  "run_wall_seconds": 745.782589,
+  "samples_per_workload_per_database": 7,
+  "scenario_count": 10,
+  "scenarios": [
+    {
+      "id": "01_personal_tasks",
+      "seed_rows": 8,
+      "tables": 1,
+      "title": "Personal task planner"
+    },
+    {
+      "id": "02_household_budget",
+      "seed_rows": 24,
+      "tables": 3,
+      "title": "Household budget ledger"
+    },
+    {
+      "id": "03_editorial_blog",
+      "seed_rows": 40,
+      "tables": 5,
+      "title": "Editorial publishing desk"
+    },
+    {
+      "id": "04_ecommerce",
+      "seed_rows": 64,
+      "tables": 8,
+      "title": "Specialty coffee ecommerce fulfillment"
+    },
+    {
+      "id": "05_clinic",
+      "seed_rows": 80,
+      "tables": 10,
+      "title": "Outpatient clinic scheduling and billing"
+    },
+    {
+      "id": "06_learning_platform",
+      "seed_rows": 96,
+      "tables": 12,
+      "title": "Cohort based professional learning platform"
+    },
+    {
+      "id": "07_hotel",
+      "seed_rows": 120,
+      "tables": 15,
+      "title": "Hotel operations and guest stays"
+    },
+    {
+      "id": "08_logistics",
+      "seed_rows": 144,
+      "tables": 18,
+      "title": "Contract logistics and delivery"
+    },
+    {
+      "id": "09_manufacturing",
+      "seed_rows": 176,
+      "tables": 22,
+      "title": "Discrete manufacturing and procurement"
+    },
+    {
+      "id": "10_municipal_services",
+      "seed_rows": 208,
+      "tables": 26,
+      "title": "Municipal service administration"
+    }
+  ],
+  "scope_notes": [
+    "Feasibility-sized synthetic fixtures: eight rows per table, with schema complexity varied; not a row-count scaling study.",
+    "One client, durable writes, warmed caches and prepared JayDB2 programs; setup/preparation excluded from workload samples.",
+    "Successful scenario medians are equally weighted. Relationship JOIN has up to nine scenarios; the single-table project has no join. Completed failures are retained but have no timing values.",
+    "Sample p95 is nearest-rank over the small measured sample set, not a reliable population tail estimate.",
+    "RSS scopes differ; summed RSS double-counts shared pages and 10 ms sampling may miss peaks. SQLite includes the Python harness.",
+    "Storage scopes differ: PostgreSQL catalogs, live SQLite WAL/SHM, and JayDB2 snapshot storage exclude/include different overheads.",
+    "Schema/client setup excludes initial PostgreSQL cluster startup but includes JayDB2 startup and certified-program compilation."
+  ],
+  "source_result_path": "/home/jota/projects/jaydb2-performance/build/performance-candidate/result.json",
+  "source_result_sha256": "d96632389623cb56b934852ac5889a5ad9057f67d3e4879c82c2207e2507a5d0",
+  "warmups_per_workload_per_database": 1,
+  "workload_note": "SQL SUM/JOIN are one native query; JayDB2 uses 9/17 prepared service requests for these eight-row client workflows. The multi-request queries do not provide a transaction snapshot under concurrent writes. Point operations and two-row transactions each use one service request."
+}

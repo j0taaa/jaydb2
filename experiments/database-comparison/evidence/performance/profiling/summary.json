@@ -1,0 +1,65 @@
+{
+  "scope": "Diagnostic only, not a replacement for the frozen full benchmark. Same seeded eight-row tasks and nine prepared point reads, with different configured state ceilings. Timers exclude setup.",
+  "engine_root": "/home/jota/projects/jaydb2-performance-baseline",
+  "engine_commit": "3dbde8d",
+  "canonical_8MiB": {
+    "median_ms": 149.479082,
+    "min_ms": 88.689087,
+    "max_ms": 216.253366,
+    "samples_ms": [
+      216.253366,
+      147.810186,
+      155.065311,
+      139.716522,
+      166.802006,
+      133.421344,
+      149.479082,
+      213.324721,
+      88.689087
+    ]
+  },
+  "diagnostic_64KiB": {
+    "median_ms": 46.554207,
+    "min_ms": 15.319168,
+    "max_ms": 70.820036,
+    "samples_ms": [
+      52.285725,
+      55.18466,
+      16.961904,
+      47.858285,
+      46.554207,
+      31.649893,
+      46.075241,
+      70.820036,
+      15.319168
+    ]
+  },
+  "median_ratio_large_over_small": 3.2108608788030697,
+  "sealed_file_count": 97,
+  "sealed_bytes": 1490981,
+  "all_sealed_python_sha256_median_ms": 1.380962,
+  "executable_python_sha256_median_ms": 0.178274,
+  "c_stats": {
+    "authentication": {
+      "STAT_LEN": "1652",
+      "BANGS": "0"
+    },
+    "access": {
+      "STAT_LEN": "5278",
+      "BANGS": "0"
+    }
+  },
+  "direct_worker_diagnostic_discarded": "The private input slice used a 15-byte magic rather than the correct 16 bytes, yielding a seven-byte invalid state. Direct authentication/execution and strace timings are invalid for valid-request performance and excluded. Source program statistics and actual service-call measurements are unaffected.",
+  "raw_diagnostic_sha256": "d97629992cbb301ab865c0977ed1f805f5a388fa86da19260b020bda49785d46",
+  "source_evidence": [
+    "contract/Bytes.bend:177-182: nat64 uses predecessor recursion with a deferred increment.",
+    "src/Input.bend:110-111: authentication and execution each convert configured state/message ceilings.",
+    "server/main.rs:665-693,724-730: separate authentication and prepared execution both analyze the complete state.",
+    ".tools/bend-source-2.0.39/bend2/comp.ts:171-172,207-209: official native U32 conversion and Nat division intrinsics."
+  ],
+  "caveats": [
+    "Only nine calls per configuration, measured sequentially rather than interleaved; unrelated host load may affect wall time.",
+    "Python hashing cost is indicative, not an exact Rust stage profile.",
+    "Large RSS suggested deferred-conversion stack costs, but no independent memory attribution was established."
+  ]
+}

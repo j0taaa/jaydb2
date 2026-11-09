@@ -1,0 +1,61 @@
+{
+  "git_head": "9603d320bd9bf6b63b2c259241db68f61ba2c6de",
+  "started_utc": "2026-11-06T23:08:56.701742+00:00",
+  "status": "passed",
+  "stages": [
+    {
+      "name": "release-final-targets",
+      "command": [
+        "flock",
+        "/tmp/jaydb2-experiments-heavy.lock",
+        "bash",
+        "-c",
+        "ulimit -s unlimited; export BEND_NO_TELEMETRY=1; make test-feature-integration test-recovery-integration test-demo-web"
+      ],
+      "started_utc": "2026-11-06T23:08:56.702542+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 1908.1834528430045,
+      "finished_utc": "2026-11-06T23:40:44.886411+00:00"
+    },
+    {
+      "name": "candidate",
+      "command": [
+        "experiments/database-comparison/run.sh",
+        "--output",
+        "build/performance-candidate",
+        "--samples",
+        "7",
+        "--warmups",
+        "1"
+      ],
+      "started_utc": "2026-11-06T23:40:44.886813+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 746.0055594499863,
+      "finished_utc": "2026-11-06T23:53:10.892523+00:00"
+    },
+    {
+      "name": "query",
+      "command": [
+        "flock",
+        "/tmp/jaydb2-experiments-heavy.lock",
+        "build/database-comparison-venv/bin/python",
+        "-B",
+        "experiments/database-comparison/query/optimized.py",
+        "--output",
+        "build/performance-query",
+        "--samples",
+        "7",
+        "--warmups",
+        "1"
+      ],
+      "started_utc": "2026-11-06T23:53:10.893050+00:00",
+      "status": "passed",
+      "exit_code": 0,
+      "wall_seconds": 1070.3536929380061,
+      "finished_utc": "2026-11-07T00:11:01.246917+00:00"
+    }
+  ],
+  "finished_utc": "2026-11-07T00:11:01.247204+00:00"
+}

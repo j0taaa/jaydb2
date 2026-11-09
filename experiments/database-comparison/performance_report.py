@@ -55,7 +55,8 @@ def derive(paths):
         for e in ['jaydb2','postgresql','sqlite']:
             records=[r for r in m['results'] if r['engine']==e]
             rss=[r['memory']['observed_peak_tree_rss_bytes']/2**20 for r in records]
-            resources.append(dict(run=name,engine=e,median_observed_peak_tree_rss_mib=statistics.median(rss),min_observed_peak_tree_rss_mib=min(rss),max_observed_peak_tree_rss_mib=max(rss),median_live_storage_kib=statistics.median(r['storage_bytes_live']/1024 for r in records),median_closed_storage_kib=statistics.median(r['storage_bytes_closed']/1024 for r in records),memory_scope=records[0]['memory_scope']))
+            closed=[r['storage_bytes_closed']/1024 for r in records if 'storage_bytes_closed' in r]
+            resources.append(dict(run=name,engine=e,median_observed_peak_tree_rss_mib=statistics.median(rss),min_observed_peak_tree_rss_mib=min(rss),max_observed_peak_tree_rss_mib=max(rss),median_live_storage_kib=statistics.median(r['storage_bytes_live']/1024 for r in records),median_closed_storage_kib=statistics.median(closed) if len(closed)==len(records) else None,memory_scope=records[0]['memory_scope']))
             for key in ['create_schema_and_client_ns','populate_ns','reopen_and_client_prepare_ns']:
                 xs=[r[key]/1e6 for r in m['results'] if r['engine']==e]
                 setup.append(dict(run=name,engine=e,metric=key,median_ms=statistics.median(xs),min_ms=min(xs),max_ms=max(xs)))
@@ -75,9 +76,9 @@ def charts(output,d):
     for j,(run,e,label,color) in enumerate([('query','jaydb2','JayDB2 + single-call profile','#7f44b5'),('query','postgresql','PostgreSQL','#087f8c'),('query','sqlite','SQLite','#c4780c')]):
         axs[1].bar([x+(j-1)*.24 for x in range(5)],[indexed[run,e,w] for w in WORKLOADS],width=.22,label=label,color=color)
     for ax,title in zip(axs,['Same JayDB2 engine workload; application profile shown separately','Single-call application profile compared with real SQL engines']):
-        ax.set_yscale('log');ax.set_ylabel('Median of scenario medians (ms, log scale)');ax.set_title(title,loc='left',fontweight='bold');ax.grid(axis='y',alpha=.25);ax.set_axisbelow(True);ax.spines[['top','right']].set_visible(False);ax.yaxis.set_major_formatter(FuncFormatter(lambda x,_:f'{x:g}'));ax.set_xticks(range(5),LABELS);ax.legend(frameon=False,fontsize=9)
+        ax.set_yscale('log');ax.set_ylabel('Median of scenario medians (ms, log scale)');ax.set_title(title,loc='left',fontweight='bold',pad=30);ax.grid(axis='y',alpha=.25);ax.set_axisbelow(True);ax.spines[['top','right']].set_visible(False);ax.yaxis.set_major_formatter(FuncFormatter(lambda x,_:f'{x:g}'));ax.set_xticks(range(5),LABELS);ax.legend(frameon=False,fontsize=9,ncol=3,loc='lower left',bbox_to_anchor=(0,1))
     fig.suptitle('Measured performance without changing durability or logical limits',fontsize=14)
-    fig.text(.5,.002,'7 checked samples + 1 warmup; 10 scenarios (9 JOINs); 8 rows/table; one client. Setup excluded and reported separately.',ha='center',fontsize=9)
+    fig.supxlabel('7 checked samples + 1 warmup; 10 scenarios (9 JOINs); 8 rows/table; one client. Setup excluded and reported separately.',fontsize=9)
     for suffix in ['svg','png']:
         fig.savefig(output/f'comparison.{suffix}',dpi=180,metadata={'Date':None} if suffix=='svg' else None)
     plt.close(fig)
@@ -105,7 +106,7 @@ def html_chart(output,d):
     legend=''.join(f'<span><i class="s{i}"></i>{escape(label)}</span>' for i,(_,_,label) in enumerate(series))
     html='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JayDB2 performance follow-up</title><style>
     *{box-sizing:border-box}body{margin:0;padding:0;color:var(--foreground);font:14px/1.5 var(--font-sans),sans-serif}main{margin:0}figure{margin:0}figcaption{font-size:18px;font-weight:650;margin-bottom:12px}.legend{display:flex;flex-wrap:wrap;gap:7px 18px;font-size:12px}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%}svg{display:block;width:100%;height:350px}svg text{fill:var(--muted-foreground);font:13px var(--font-sans),sans-serif}.grid{stroke:var(--border);stroke-dasharray:3 4;fill:none}.note{color:var(--muted-foreground);font-size:12px;margin:8px 0 0}
-    '''+styles+'</style><main><figure><figcaption>Measured latency across the ten databases</figcaption><div class="legend">'+legend+'</div>'+''.join(parts)+'''</figure><p class="note">Unweighted median of each scenario’s seven checked sample medians; one warmup, one client, durable storage, eight rows/table. JOIN covers nine scenarios; other workloads cover ten. Program preparation is excluded here and reported separately.</p><p class="note">The engine comparison keeps the original access strategy. The single-call profile changes the application: generic SUM/JOIN each run in one transaction, and certified point reads reuse a durable root. SQL values are from the same profile run. Bar titles show exact values.</p></main></html>'''
+    '''+styles+'</style><main><figure><figcaption>Measured latency across the ten databases</figcaption><div class="legend">'+legend+'</div>'+''.join(parts)+'''</figure><p class="note">Unweighted median of scenario medians, with seven checked samples each; one warmup, one client, durable storage, eight rows/table. JOIN covers nine scenarios; other workloads cover ten. Program preparation is excluded here and reported separately.</p><p class="note">The engine comparison keeps the original access strategy. The single-call profile changes the application: generic SUM/JOIN each run in one transaction, and certified point reads reuse a durable root. SQL values are from the same profile run. Bar titles show exact values.</p></main></html>'''
     (output/'charts.html').write_text(html)
 
 def main():

@@ -1,0 +1,290 @@
+[
+  {
+    "scenario": "01_personal_tasks",
+    "program": "Access",
+    "baseline_c_bytes_median": 632825.0,
+    "candidate_c_bytes_median": 686796.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5278"
+    ],
+    "candidate_STAT_LEN": [
+      "5278"
+    ]
+  },
+  {
+    "scenario": "01_personal_tasks",
+    "program": "Batch",
+    "baseline_c_bytes_median": 579745.0,
+    "candidate_c_bytes_median": 633732.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "3333"
+    ],
+    "candidate_STAT_LEN": [
+      "3333"
+    ]
+  },
+  {
+    "scenario": "01_personal_tasks",
+    "program": "ReadRow",
+    "baseline_c_bytes_median": 624302.0,
+    "candidate_c_bytes_median": 678823.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "4828"
+    ],
+    "candidate_STAT_LEN": [
+      "4828"
+    ]
+  },
+  {
+    "scenario": "01_personal_tasks",
+    "program": "authenticate",
+    "baseline_c_bytes_median": 444517.0,
+    "candidate_c_bytes_median": 498444.0,
+    "baseline_dependencies": [
+      20
+    ],
+    "candidate_dependencies": [
+      22
+    ],
+    "baseline_STAT_LEN": [
+      "1652"
+    ],
+    "candidate_STAT_LEN": [
+      "1652"
+    ]
+  },
+  {
+    "scenario": "02_household_budget",
+    "program": "Access",
+    "baseline_c_bytes_median": 637036,
+    "candidate_c_bytes_median": 691004,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5452"
+    ],
+    "candidate_STAT_LEN": [
+      "5452"
+    ]
+  },
+  {
+    "scenario": "02_household_budget",
+    "program": "Batch",
+    "baseline_c_bytes_median": 583956,
+    "candidate_c_bytes_median": 637940,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "3507"
+    ],
+    "candidate_STAT_LEN": [
+      "3507"
+    ]
+  },
+  {
+    "scenario": "02_household_budget",
+    "program": "ReadRow",
+    "baseline_c_bytes_median": 628513,
+    "candidate_c_bytes_median": 683031,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5002"
+    ],
+    "candidate_STAT_LEN": [
+      "5002"
+    ]
+  },
+  {
+    "scenario": "02_household_budget",
+    "program": "authenticate",
+    "baseline_c_bytes_median": 448726,
+    "candidate_c_bytes_median": 502650,
+    "baseline_dependencies": [
+      20
+    ],
+    "candidate_dependencies": [
+      22
+    ],
+    "baseline_STAT_LEN": [
+      "1826"
+    ],
+    "candidate_STAT_LEN": [
+      "1826"
+    ]
+  },
+  {
+    "scenario": "03_editorial_blog",
+    "program": "Access",
+    "baseline_c_bytes_median": 640525.0,
+    "candidate_c_bytes_median": 694481.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5595"
+    ],
+    "candidate_STAT_LEN": [
+      "5595"
+    ]
+  },
+  {
+    "scenario": "03_editorial_blog",
+    "program": "Batch",
+    "baseline_c_bytes_median": 587446.0,
+    "candidate_c_bytes_median": 641418.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "3650"
+    ],
+    "candidate_STAT_LEN": [
+      "3650"
+    ]
+  },
+  {
+    "scenario": "03_editorial_blog",
+    "program": "ReadRow",
+    "baseline_c_bytes_median": 632002.0,
+    "candidate_c_bytes_median": 686508.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5145"
+    ],
+    "candidate_STAT_LEN": [
+      "5145"
+    ]
+  },
+  {
+    "scenario": "03_editorial_blog",
+    "program": "authenticate",
+    "baseline_c_bytes_median": 452218.0,
+    "candidate_c_bytes_median": 506130.0,
+    "baseline_dependencies": [
+      20
+    ],
+    "candidate_dependencies": [
+      22
+    ],
+    "baseline_STAT_LEN": [
+      "1969"
+    ],
+    "candidate_STAT_LEN": [
+      "1969"
+    ]
+  },
+  {
+    "scenario": "04_ecommerce",
+    "program": "Access",
+    "baseline_c_bytes_median": 642572.0,
+    "candidate_c_bytes_median": 696539.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5668"
+    ],
+    "candidate_STAT_LEN": [
+      "5668"
+    ]
+  },
+  {
+    "scenario": "04_ecommerce",
+    "program": "Batch",
+    "baseline_c_bytes_median": 589492.0,
+    "candidate_c_bytes_median": 643475.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "3723"
+    ],
+    "candidate_STAT_LEN": [
+      "3723"
+    ]
+  },
+  {
+    "scenario": "04_ecommerce",
+    "program": "ReadRow",
+    "baseline_c_bytes_median": 634049.0,
+    "candidate_c_bytes_median": 688566.0,
+    "baseline_dependencies": [
+      28
+    ],
+    "candidate_dependencies": [
+      30
+    ],
+    "baseline_STAT_LEN": [
+      "5218"
+    ],
+    "candidate_STAT_LEN": [
+      "5218"
+    ]
+  },
+  {
+    "scenario": "04_ecommerce",
+    "program": "authenticate",
+    "baseline_c_bytes_median": 454267.0,
+    "candidate_c_bytes_median": 508190.0,
+    "baseline_dependencies": [
+      20
+    ],
+    "candidate_dependencies": [
+      22
+    ],
+    "baseline_STAT_LEN": [
+      "2042"
+    ],
+    "candidate_STAT_LEN": [
+      "2042"
+    ]
+  }
+]
