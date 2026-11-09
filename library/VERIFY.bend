@@ -12,6 +12,7 @@ import ./Int64.bend as I
 import ./ComparisonProofs.bend as Comparison
 import ./Int64Proofs.bend as Int64Proofs
 import ./Int64Subtraction.bend as Int64Subtraction
+import ./Int64Multiplication.bend as Int64Multiplication
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

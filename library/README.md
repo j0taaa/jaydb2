@@ -252,8 +252,7 @@ actual commands/results and remaining formal proof scope.
 
 General proofs include record/typed-integer roundtrips, key injectivity and the
 public `Key.decode(Key.encode(parts))` roundtrip for every finite parts list,
-two-sided checked add/sub overflow contracts, finite permission composition,
-and take/drop boundaries. `SortProof.sort_content` preserves every predicate count and
+finite permission composition, and take/drop boundaries. `SortProof.sort_content` preserves every predicate count and
 `sort_occurrences` preserves each supplied value's multiplicity for arbitrary
 lists/comparators. `Sorted` independently requires every earlier element to be
 no greater than every later one; `sort_sorted` proves it under explicit
@@ -265,11 +264,22 @@ malformed list/record tails. This supports exact comparisons in conditional
 mutations and occurrence counts. Its signed-comparison theorems establish
 irreflexivity, transitivity, asymmetry, equality reflection and trichotomy through
 the actual sign-flipped word rank. They do not supply an independent mathematical
-integer interpretation or arithmetic correctness theorem. The proof module is
-optional; the runtime helpers retain their original dependency closures.
+integer interpretation. The proof module is optional; runtime helper dependency
+closures remain small.
+
+`Int64Proofs.checked_add_is_integer_addition`,
+`Int64Subtraction.checked_sub_is_integer_subtraction` and
+`Int64Multiplication.checked_mul_is_integer_multiplication` prove complete
+arithmetic correctness against independent integers represented as differences
+of unbounded naturals. Successful results equal the mathematical operation;
+rejection rules out every representable signed64 result. These public theorems
+have no output, carry, overflow, sign or loop-invariant premise. Multiplication
+includes actual two-word shifts, carry guards, finite fuel, unsigned magnitude,
+signed range and the INT64_MIN boundary. Both official checkers verify them.
+
 Concrete functional proofs also exercise grouping, joins, aggregate signs and
-overflow, counter prefixes and index maintenance. A full algebraic proof of
-signed multiplication/division is still outside the claimed scope.
+overflow, counter prefixes and index maintenance. General signed division
+correctness remains under development.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

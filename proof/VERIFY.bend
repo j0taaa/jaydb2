@@ -46,6 +46,11 @@ import ./PreparedExtension.bend as PreparedExtension
 import ./PreparedControls.bend as PreparedControls
 import ./PreparedRegistryHistory.bend as PreparedRegistryHistory
 import ./PreparedServiceHistory.bend as PreparedServiceHistory
+import ./HostHistory.bend as HostHistory
+import ./HostInvalidation.bend as HostInvalidation
+import ./PreparedAuthority.bend as PreparedAuthority
+import ./PreparedRejects.bend as PreparedRejects
+import ./SchedulingRefinement.bend as SchedulingRefinement
 import ./HandleAllocation.bend as HandleAllocation
 import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing

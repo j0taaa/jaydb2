@@ -210,6 +210,32 @@ certified actual Core candidate. It derives candidate validity from
 Atomic rename/fsync semantics and native call-by-call correspondence are the
 filesystem/implementation boundary of this model.
 
+`HostTransitions` derives shared database validity and original preparation
+provenance through actual pure Core/register/invalidate transitions.
+`HostHistory` constructs every completed-call edge and proves exact replay,
+linkage and inclusion. Its closed factory supplies original source judgments
+and primitive Core equations; its fields do not supply resulting validity or
+an observer satisfying the laws. Cached calls reopen the original declaration
+from current registry provenance instead of receiving a new certificate.
+
+`HostInvalidation` and `PreparedDispatch` derive selection from the real pure
+authentication, proof-field and current-lookup computations. `PreparedProgress`
+derives complete adapter output from the original termination certificate.
+`PreparedAuthority` obtains current validity, full `Ready` and certification of
+the actual arguments from a proved seed and interleaving plus exact current
+artifact binding. `PreparedRejects` proves concrete rejection causes and
+complete bounded wire responses. A full phase observer and the entire extended
+eight-law witness still need composition.
+
+`SchedulingRefinement` includes reservation accounting, FIFO conservation,
+conditional head selection, producer interleavings during read collection,
+fixed worker batches, complete joining after failures, and constructive finite
+queue progress. Collected frames form a bounded classified reception prefix,
+including arrivals during collection. These models prove their outcomes from
+transitions and primitive returns. Actual Rust atomic effects, integer
+representation, classifier correspondence and OS/IO progress remain separate
+bridges; finite individual EINTR returns alone do not establish termination.
+
 ## Optional administrator service timing
 
 [`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in

@@ -546,5 +546,61 @@
       "Queue/read-batch refinement currently under development; no maintained source proof claims its unfinished results."
     ],
     "post_gate_changes": "Validation metadata and scope documentation only; verified runtime/proof inputs remain unchanged."
+  },
+  "operational_and_multiplication_2026_11_09": {
+    "base_main": "66a85ed",
+    "whole_goal_complete": false,
+    "scope": "Verified operational relation/authority, scheduling refinements and complete signed multiplication; full phase observer and whole extended-law witness unfinished.",
+    "theorems": [
+      "Actual pure Core/register/invalidate transitions preserve DB validity and original preparation provenance from seed/empty registry; constructed completed-call history includes every operational edge and replays the complete pair/registry.",
+      "Current lookup recovers original universal/termination declarations and yields full Ready plus certification for actual arguments, with exact artifact binding left explicit. Cached termination yields complete pure adapter output without a completed-execution premise.",
+      "Deterministic invalidation/execute selection and cached rejection responses follow actual authentication, proof-field and scoped lookup computations.",
+      "Bounded queue accounting and FIFO conservation for arbitrary finite reservation/receive/select/end/cancel interleavings. Concurrent read collection includes new arrivals, preserves classified prefix/budget; worker lifecycle joins every started worker and suppresses later response attempts after failure. Constructive finite queue progress supplies enabled paths, not fairness or infinite-retry termination.",
+      "Complete signed64 multiplication against independent Nat-difference integer product: Some is exact; None refutes every representable candidate. Actual shifts, carry checks, fuel, magnitude and sign conversion are proved without output/invariant premises."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "frozen_inputs": 660,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 70
+    },
+    "coverage": {
+      "transitive_modules": 270,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1363
+        },
+        "library": {
+          "modules": 40,
+          "law_declarations": 269
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "native_changes_since_base": false,
+    "native_validation": "Runtime sources unchanged since 66a85ed: its49unit/strictClippy/4prepared-concurrency checks and earlier10recovery checks continue to apply; no native rerun for proof-only additions.",
+    "proof_restructuring": [
+      "Official kernel rejected runtime-dependent closed-template fields despite primary acceptance. Replaced them with per-entry Data provenance, live per-step primitive families and original closed factory reopening with explicit type equality, retaining advertised current-lookup/validity conclusions.",
+      "Concrete unsigned-magnitude radix equality exhausted the frontend on unary2^64. Proved it at symbolic word width and specialized the final implementation bridge. No tool/limit/axiom changes."
+    ],
+    "evidence_sha256": {
+      ".build/review/proof-resumption-operational-gate.log": "a508c234e9522dc11710182f532605d991debe486ba99f29772147537c5a8ac7",
+      ".build/review/service-operational/frozen-validation.json": "9bcf4df6ebec29828ae316c5b8a2ef73148da7f0d27befe42555665be45ff531",
+      ".build/review/multiplication-proof/multiplication-validation.json": "6b5156fcb818b197f09c92fa19b9081efa154947afe1b60ac9cfb1bcd34c1fe5",
+      ".build/review/scheduling-refinement/validation.json": "e3a21b9229ccf3e3b3dec77bacdd91677787ca84e521d600cd8d8563f4ff067b"
+    },
+    "remaining": [
+      "General complete signed divmod correctness.",
+      "Full chronological phase observer and eight-law ordinary/prepared witness, including recovery startup; completed-call history alone is insufficient for progress.",
+      "Actual Rust/Node/C/compiler/OS/storage simulation and external primitive progress.",
+      "Broader functional library/application specifications beyond the verified interfaces."
+    ],
+    "post_gate_changes": "Validation metadata and scope documentation only; checked proof/runtime inputs unchanged."
   }
 }
