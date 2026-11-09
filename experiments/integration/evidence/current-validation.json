@@ -1,0 +1,55 @@
+{
+  "revision": "ad799835e4d7182180b9f1641561ba5ca8403b85",
+  "stages": [
+    {
+      "command": [
+        "bash",
+        "-c",
+        "ulimit -s unlimited && make build && python3 -B /tmp/jaydb2-change-audit/run-gpu-tests.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "bash",
+        "-c",
+        "ulimit -s unlimited && make verify-integration test test-sql-native"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "exit_code": 0,
+  "finished_utc": "2026-11-09T18:41:21.540041+00:00",
+  "head_unchanged": true,
+  "changed_tracked_inputs": [],
+  "log_sha256": "7574ed156326b74b1136f9dc67108308fecfec4eab131e8aaae5a2018de40a3d",
+  "elapsed_including_queue_seconds": 1811.4266839027405,
+  "log": "build/branch-integration-validation/experimental-native.log",
+  "scope": "Fresh selected GPU, proof, admission, native-runtime, host, service and SQL gates; not a new complete release invocation.",
+  "checks": {
+    "real_gpu_tests": 4,
+    "admission_verifier_tests": 23,
+    "native_runtime_tests": 10,
+    "rust_host_tests": 45,
+    "service_integration_tests": 19,
+    "sql_official_proof_checks": 20,
+    "sql_native_integration_checks": 26,
+    "sql_native_boundary_checks": 31,
+    "proof_modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "rustfmt_exit_code": 0,
+    "strict_clippy_exit_code": 0,
+    "accessory_checks_exit_code": 0
+  },
+  "gpu_composition": "Certified CUDA reads remain exclusive with read-workers=2; pipelined results and timing stay ordered; durable reopen rejects an old handle and accepts a freshly prepared handle.",
+  "unchanged_suites": "Optional library/index/receipt applications, storage fault injection and web demo retain the existing source-bound mainline validation; those complete suites were not rerun in this gate.",
+  "main_smoke": {
+    "revision": "8af8e14da23af131383ba05857e7797b4e1e6c22",
+    "scope": "Fresh smoke components; unchanged native sources retain the source-bound validation recorded in docs/review-validation.json and clients/sql/validation/",
+    "exit_code": 0,
+    "elapsed_seconds": 17.943882703781128,
+    "log_sha256": "5930430d363cf949c4abfccd050863985016bc6d3679b6d07188e9bd12205d25"
+  }
+}

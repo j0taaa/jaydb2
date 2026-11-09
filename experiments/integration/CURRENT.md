@@ -22,4 +22,26 @@ unavailable devices, sealed artifacts and injected driver failures.
 
 Historical experiment reports and measurement digests remain tied to their
 original sources. They are not relabeled as measurements of this combined tree.
-Fresh validation results will be recorded after the frozen candidate finishes.
+Fresh selected validation passed on the frozen candidate
+`ad799835e4d7182180b9f1641561ba5ca8403b85`. HEAD and every tracked input
+remained unchanged throughout the run. The subsequent merge brings in main's
+documentation/validation record and updates this report; runtime, proof and test
+sources remain identical to the tested candidate.
+
+- All four real GPU cases passed, including the new composed read/timing/reopen
+  test, unwrapped CPU/GPU state parity, real fault injection, sealed artifacts
+  and unavailable-device behavior without automatic fallback.
+- `make verify-integration test test-sql-native` exited zero: both official proof
+  modes and rejection controls; 23 admission/verifier, 10 native-runtime, 45 Rust
+  host and 19 service cases; 20 SQL proof checks, 26 SQL native integration cases
+  and 31 SQL boundary checks.
+- Formatting, strict all-target Clippy and accessory checks also passed. Main's
+  fresh smoke components, comparison suite and paper evidence checks passed
+  separately. Main's release binary built successfully.
+
+[Machine-readable results](evidence/current-validation.json) retain the exact
+candidate, commands, source-stability check and raw-log digest. The byte-exact
+local logs remain ignored under `build/branch-integration-validation/`.
+This is selected fresh validation, not a new complete release invocation.
+Unchanged optional-library/index/receipt application, filesystem-fault and demo
+suites retain the existing mainline source-bound validation.
