@@ -86,6 +86,18 @@ The database contract has three canonical size limits: message, state and
 response. There is no total-process memory guarantee or custom per-stage
 deadline. A fatal failure can terminate an instance; volatile data is then lost.
 
+## Branches
+
+`main` contains the accepted CPU capabilities, optional SQL/Drizzle frontend,
+database comparison suite and TCC sources. SQL/Drizzle is an application layer;
+it does not replace the engine or change its core laws.
+
+[`experiment-integration`](https://github.com/j0taaa/jaydb2/tree/experiment-integration)
+is the combined experimental branch. It follows main and adds opt-in GPU
+execution. New GPU work stays there and on `experiment-gpu` until separately
+accepted for main. The Bend controller replacement remains isolated on
+`experiment-bend-host`; quota enforcement remains excluded from integration.
+
 ## Checks
 
 ```sh
