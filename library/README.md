@@ -268,18 +268,23 @@ integer interpretation. The proof module is optional; runtime helper dependency
 closures remain small.
 
 `Int64Proofs.checked_add_is_integer_addition`,
-`Int64Subtraction.checked_sub_is_integer_subtraction` and
-`Int64Multiplication.checked_mul_is_integer_multiplication` prove complete
+`Int64Subtraction.checked_sub_is_integer_subtraction`,
+`Int64Multiplication.checked_mul_is_integer_multiplication` and
+`Int64DivisionProofs.checked_divmod_is_truncating_integer_division` prove complete
 arithmetic correctness against independent integers represented as differences
 of unbounded naturals. Successful results equal the mathematical operation;
 rejection rules out every representable signed64 result. These public theorems
 have no output, carry, overflow, sign or loop-invariant premise. Multiplication
 includes actual two-word shifts, carry guards, finite fuel, unsigned magnitude,
-signed range and the INT64_MIN boundary. Both official checkers verify them.
+signed range and the INT64_MIN boundary. Division covers the actual 64 restoring
+steps, quotient and remainder, truncation toward zero, the ordinary integer
+equation, strict absolute remainder bound, dividend-sign remainder, zero divisor
+and INT64_MIN/-1. Its rejection theorem quantifies over every representable
+quotient/remainder pair. The unsigned loop's input/range conditions are proved
+at the public signed boundary. Both official checkers verify these theorems.
 
 Concrete functional proofs also exercise grouping, joins, aggregate signs and
-overflow, counter prefixes and index maintenance. General signed division
-correctness remains under development.
+overflow, counter prefixes and index maintenance.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

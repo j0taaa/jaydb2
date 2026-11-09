@@ -158,11 +158,14 @@ def signed_division(neg_q: Bool, neg_r: Bool, result: Division) -> Maybe<&2, Div
   Division{q, +r} = result
   division_quotient(signed(neg_q, q), Bool.pick(V.Int64, neg_r, wrapping_sub(V.Int64{0, 0}, r), r))
 
-def divide_nonzero(is_zero: Bool, +a: V.Int64, +b: V.Int64) -> Maybe<&2, Division>:
+def divide_count(steps: Nat, is_zero: Bool, +a: V.Int64, +b: V.Int64) -> Maybe<&2, Division>:
   match is_zero:
     case True{}: None{}
     case False{}: signed_division(Bool.xor(negative(a), negative(b)), negative(a),
-      divide_step(64n, magnitude(a), magnitude(b), V.Int64{0, 0}, V.Int64{0, 0}))
+      divide_step(steps, magnitude(a), magnitude(b), V.Int64{0, 0}, V.Int64{0, 0}))
+
+def divide_nonzero(is_zero: Bool, +a: V.Int64, +b: V.Int64) -> Maybe<&2, Division>:
+  divide_count(64n, is_zero, a, b)
 
 # Truncates toward zero; remainder has dividend's sign. Rejects zero divisor
 # and INT64_MIN/-1, so quotient/remainder always fit stored signed64.

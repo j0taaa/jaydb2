@@ -675,5 +675,74 @@
       ".build/review/inspection-counter/native-gate.log": "e1b72a57fa5f7d6432a01af61563c82705a303e80618a7cf9d3451fbcc022450"
     },
     "proof_scope": "Administrative-counter fix; adds no new whole-contract or runtime-refinement claim."
+  },
+  "division_2026_11_09": {
+    "base_main": "bc7bec6",
+    "whole_goal_complete": false,
+    "scope": "Complete checked signed division in maintained library; full service/native correspondence remains unfinished.",
+    "theorems": [
+      "Int64DivisionProofs.checked_divmod_is_truncating_integer_division(a,b) has no premises beyond actual arbitrary Int64 operands. Some proves ordinary integer a=b*q+r, strict absolute remainder bound and truncation-toward-zero quotient/dividend-sign remainder. None refutes every representable quotient/remainder pair.",
+      "Actual 64-step restoring unsigned division is proved from actual word bits; input stream, remainder invariants, lost-carry exclusion, unsigned comparison/subtraction and quotient reconstruction are derived. Signed boundary derives divisor nonzero/range conditions.",
+      "Independent natural Euclidean uniqueness proves signed rejection completeness; magnitude/sign postprocessing is connected to the separately proved Nat-difference integer interpretation."
+    ],
+    "implementation_change": "Extract identical divide_nonzero body into divide_count(steps,is_zero,a,b), replacing only literal64 by steps; divide_nonzero delegates unconditionally to divide_count(64n,...). Both generic branch equations and exact64 delegation are checked. No algorithm/tool/pin/limit/law changes.",
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "frozen_inputs": 699,
+      "changed_inputs": [],
+      "elapsed_seconds": 408.65101075172424,
+      "core_rejection_controls_per_mode": 86
+    },
+    "coverage": {
+      "transitive_modules": 293,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1363
+        },
+        "library": {
+          "modules": 63,
+          "law_declarations": 361
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "causal_division_controls": "16 controls in both modes: signed integer equation/sign/remainder/floor/MINoverflow/zero/alwaysNone; unsigned quotient/strict remainder/subtraction/input-bit/zero; independent uniqueness premises.",
+    "native_validation": {
+      "command": [
+        "python3",
+        "-B",
+        "experiments/library/test_arithmetic.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.3238089084625244,
+      "inputs": {
+        "library/Int64.bend": "a3d24c7f73663506f009d712b085c18c3154fc26868de97ae8946eea2d8f01d4",
+        "experiments/library/test_arithmetic.py": "bd3ff7dbe28ac68e80d8525330ca7664f842dba3bd68e2ef448977a6efca5888",
+        "experiments/library/ArithmeticRuntime.bend": "8616a157a97fe42ff0015b28368250505f2fbd304181ba629f6659d0f02d978a",
+        "tests/native/emit_fixture.mjs": "e13a180c629d040640cbebe0354b2f61069fa6f2e6e74627912421193ae85e33"
+      },
+      "changed_inputs": [],
+      "official_c_sha256": "c24ba9340e58772375d62dd3fbafc7f118538f6d88c823d4ce39d9ca0ac8b8ff"
+    },
+    "evidence_sha256": {
+      ".build/review/proof-resumption-division-gate.log": "86af2dc96b485ca2cbdb2834336697b37979157fb3b681fcf7cb16014c63e49b",
+      ".build/review/normalization-debug/final-validation.json": "fac165044b49c6ecc27da6efae5e7c14017e1464aa8e87acd3b7a6acd31bd8c3",
+      ".build/review/normalization-debug/extraction.json": "739fe676057b64885036083e7af5e95b5ae88dc6d0628ad95c191b4bac5f868f",
+      ".build/review/normalization-debug/native-arithmetic.json": "f2ae487f48df1887f434816839bab65e3f394887b28bde18e84979a5e784fb93",
+      ".build/review/normalization-debug/promoted.json": "a93f14e1a959341b4e4bd10b9aa351b7f86340de3f5002b9830afab27f4af94f",
+      ".build/review/division-audit/semantic-audit.md": "afbf35b922439e7d326157879315fd7cac0cd2c53fd58c66cb6f66e7f483e42c"
+    },
+    "remaining": [
+      "Full chronological common observer and eight-law ordinary/prepared composition, including admission completeness and recovery startup.",
+      "Source/derivation/IO/native/compiler/OS/storage correspondence and explicit external primitive progress.",
+      "Broader library/application functional specifications beyond these arithmetic theorems."
+    ],
+    "post_gate_changes": "Validation metadata only after the frozen gate; arithmetic runtime/proof/test inputs unchanged."
   }
 }

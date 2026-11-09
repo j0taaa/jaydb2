@@ -201,14 +201,20 @@ Ordinary transparent caching remains a possible alternative, but would change
 ahead-of-time admission, invalidation, cross-client handles, and message-size
 behavior. The additive extension avoids imposing those compatibility changes.
 
-Optional arithmetic currently has implementation-word and sign-predicate
-contracts plus extensive finite oracles. A separate interpretation over
-mathematical integers, especially general multiplication/division correctness,
-remains open. Broader join/group/business functional specifications also require
-additional theorems. These stronger algorithm contracts are distinct from the
-transaction authorization/publication laws; their absence alone does not refute
-the existing conditional eight-law result. No result here is labeled
-"100% proved for the entire project."
+The optional arithmetic library now proves checked addition, subtraction,
+multiplication and division against independent mathematical integers represented
+as differences of unbounded naturals. Each public theorem covers arbitrary actual
+operands: successful results have the exact mathematical meaning, and rejection
+excludes every representable result. Division also proves the ordinary equation,
+strict absolute remainder bound, truncation toward zero and dividend-sign
+remainder, including zero divisors and INT64_MIN/-1. Its actual 64-step algorithm
+is connected to those properties without output or loop-invariant premises.
+The small `divide_count` extraction preserves the previous algorithm; checked
+branch equations and the exact 64-step delegation accompany the proof.
+Broader join/group/business functional specifications still require additional
+theorems. These algorithm contracts are distinct from the transaction
+authorization/publication laws. No result here is labeled "100% proved for the
+entire project."
 
 ## Proof obligations by scope
 
@@ -221,7 +227,7 @@ the existing conditional eight-law result. No result here is labeled
 | Registered certificates | `PreparedRegistryHistory` induction and lookup recovery | Correspondence of its admitted abstract history with every actual registry mutation; current integrity remains per-call. |
 | Certified concurrent reads | `ReadBatches`, fixed whole-program predicate and wrapper equality | Concrete scheduler, snapshot, barriers and FIFO refinement. |
 | Persistent state | Pure validity/origin results and fault tests | Complete crash/filesystem/OS trace refinement and compiler/runtime assumptions. |
-| Optional algorithms | Named equality/order/key and implementation-word results | Full mathematical arithmetic and broader functional specifications are not all proved. |
+| Optional algorithms | Equality/order/key results; complete independent-integer `Int64Proofs`, `Int64Subtraction`, `Int64Multiplication` and `Int64DivisionProofs` | Broader collection and business functional specifications; native compiler correspondence. |
 
 The open rows are required work. They are not discharged by compiling imports,
 counting laws, adding tests, or naming a new contract type.
