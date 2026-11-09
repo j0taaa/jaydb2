@@ -45,3 +45,11 @@ local logs remain ignored under `build/branch-integration-validation/`.
 This is selected fresh validation, not a new complete release invocation.
 Unchanged optional-library/index/receipt application, filesystem-fault and demo
 suites retain the existing mainline source-bound validation.
+
+
+Published main `9ca1b44080c15fd6819548d87dbaea88660b097d` also passed an
+independent smoke-component and release-build run from an isolated detached
+worktree. All seven command stages exited zero, HEAD and every tracked input
+remained unchanged, and the checkout stayed clean. The machine-readable record
+includes these commands and the separate raw-log digest. This check validates
+the published commit independently of any subsequent local working-tree edits.

@@ -51,5 +51,89 @@
     "exit_code": 0,
     "elapsed_seconds": 17.943882703781128,
     "log_sha256": "5930430d363cf949c4abfccd050863985016bc6d3679b6d07188e9bd12205d25"
+  },
+  "main_clean_validation": {
+    "revision": "9ca1b44080c15fd6819548d87dbaea88660b097d",
+    "checkout": "Isolated detached worktree containing only the published commit and ignored build/dependency/toolchain files.",
+    "stages": [
+      {
+        "command": [
+          "make",
+          "test-accessories"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "cargo",
+          "test",
+          "--locked"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "cargo",
+          "fmt",
+          "--check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "experiments.baseline.test_bench",
+          "-v"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "experiments/integration/benchmark",
+          "-p",
+          "test_bench.py",
+          "-v"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "--release"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 33.3539662361145,
+    "finished_utc": "2026-11-09T18:45:44.545826+00:00",
+    "head_unchanged": true,
+    "changed_tracked_inputs": [],
+    "clean_after": true,
+    "log_sha256": "3a80ed4e7485e7b618b13586193b2f9a4746f6e1595e68b24e2efcc8992b2bf6",
+    "log": "build/branch-integration-validation/main-clean-validation.log"
   }
 }
