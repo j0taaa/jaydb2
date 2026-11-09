@@ -16,23 +16,19 @@ def advance(n: Nat, value: Maybe<&2, B.Number64>) -> Maybe<&2, B.Number64>:
 def nat64(n: Nat) -> Maybe<&2, B.Number64>:
   advance(n, zero())
 
-# Structural bit assembly is bounded by the fixed word width, never by n.
-# Its proof bridge matches the established codec representation exactly.
-def word_join(k: Nat, -n: Nat, low: Word(k), high: Word(n)) -> Word(Nat.add(k, n)):
+# Keep runtime measurement scalar. This is mathematically the same low/high
+# concatenation as the codec; only its proof reconstructs Word(64n).
+def shift(k: Nat, value: Nat) -> Nat:
   match k:
     case 0n:
-      high
+      value
     case 1n+p:
-      match low:
-        case WCon{bit, rest}:
-          WCon{bit, word_join(p, n, rest, high)}
-
-def bits(number: B.Number64) -> Word(64n):
-  B.Number64{U32{high}, U32{low}} = number
-  word_join(32n, 32n, low, high)
+      Nat.double(shift(p, value))
 
 def measure(number: B.Number64) -> Nat:
-  Word.to_nat(64n, bits(number))
+  match number:
+    case B.Number64{high, low}:
+      Nat.add(U32.to_nat(low), shift(32n, U32.to_nat(high)))
 
 def candidate(+n: Nat) -> B.Number64:
   B.Number64{U32.from_nat(Nat.div(n, 1n+4294967295n)), U32.from_nat(n)}

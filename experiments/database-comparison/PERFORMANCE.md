@@ -1,3 +1,6 @@
+> Final scalar refinement: fresh full validation and database measurements are running.
+> The first-candidate report below is retained separately in [PERFORMANCE-WORD-CANDIDATE.md](PERFORMANCE-WORD-CANDIDATE.md); final results will replace this page when complete.
+
 # Verified performance improvements
 
 The original ten-scenario benchmark is retained unchanged as a historical

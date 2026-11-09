@@ -99,36 +99,72 @@ def word32_measured_exactly(word):
         {B.nat64(_) == Some{B.Number64{0, U32{bits}}} : Maybe<&2, B.Number64>}
       R.nat64_measures_number(B.Number64{0, U32{bits}})
 
-law word_join_exact:
+# All arithmetic remains proved in the source language. The runtime shift
+# has fixed width32; no division or machine-cast correctness axiom is assumed.
+law double_add:
+  for +a: Nat
+  for +b: Nat
+  {Nat.double(Nat.add(a, b)) == Nat.add(Nat.double(a), Nat.double(b)) : Nat}
+def double_add(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      Equal.cong(Nat, Nat, x => 2n+x,
+        Nat.double(Nat.add(p, b)), Nat.add(Nat.double(p), Nat.double(b)),
+        double_add(p, b))
+
+law double_sum_from_equal:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  for equal: {a == Nat.add(b, c) : Nat}
+  {Nat.double(a) == Nat.add(Nat.double(b), Nat.double(c)) : Nat}
+def double_sum_from_equal(a, b, c, equal):
+  Equal.trans(Nat, Nat.double(a), Nat.double(Nat.add(b, c)),
+    Nat.add(Nat.double(b), Nat.double(c)),
+    Equal.cong(Nat, Nat, Nat.double, a, Nat.add(b, c), equal),
+    double_add(b, c))
+
+law join_measure:
   for +k: Nat
   for +n: Nat
   for +low: Word(k)
   for +high: Word(n)
-  {F.word_join(k, n, low, high) == W.join(k, n, low, high) : Word(Nat.add(k, n))}
-def word_join_exact(k, n, low, high):
+  {Word.to_nat(Nat.add(k, n), W.join(k, n, low, high)) ==
+    Nat.add(Word.to_nat(k, low), F.shift(k, Word.to_nat(n, high))) : Nat}
+def join_measure(k, n, low, high):
   match k:
     case 0n:
-      {==}
+      match low:
+        case WNil{}:
+          {==}
     case 1n+p:
       match low:
-        case WCon{bit, rest}:
-          Equal.cong(Word(Nat.add(p, n)), Word(1n+Nat.add(p, n)), x => WCon{bit, x},
-            F.word_join(p, n, rest, high), W.join(p, n, rest, high), word_join_exact(p, n, rest, high))
-
-law bits_exact:
-  for +number: B.Number64
-  {F.bits(number) == P.bits(number) : Word(64n)}
-def bits_exact(number):
-  match number:
-    case B.Number64{U32{high}, U32{low}}:
-      word_join_exact(32n, 32n, low, high)
+        case WCon{False{}, tail}:
+          double_sum_from_equal(
+            Word.to_nat(Nat.add(p, n), W.join(p, n, tail, high)),
+            Word.to_nat(p, tail), F.shift(p, Word.to_nat(n, high)),
+            join_measure(p, n, tail, high))
+        case WCon{True{}, tail}:
+          Equal.cong(Nat, Nat, x => 1n+x,
+            Nat.double(Word.to_nat(Nat.add(p, n), W.join(p, n, tail, high))),
+            Nat.add(Nat.double(Word.to_nat(p, tail)), Nat.double(F.shift(p, Word.to_nat(n, high)))),
+            double_sum_from_equal(
+              Word.to_nat(Nat.add(p, n), W.join(p, n, tail, high)),
+              Word.to_nat(p, tail), F.shift(p, Word.to_nat(n, high)),
+              join_measure(p, n, tail, high)))
 
 law measure_exact:
   for +number: B.Number64
   {F.measure(number) == Word.to_nat(64n, P.bits(number)) : Nat}
 def measure_exact(number):
-  Equal.cong(Word(64n), Nat, w => Word.to_nat(64n, w),
-    F.bits(number), P.bits(number), bits_exact(number))
+  match number:
+    case B.Number64{U32{high}, U32{low}}:
+      Equal.sym(Nat,
+        Word.to_nat(64n, W.join(32n, 32n, low, high)),
+        Nat.add(Word.to_nat(32n, low), F.shift(32n, Word.to_nat(32n, high))),
+        join_measure(32n, 32n, low, high))
 
 law measured_candidate_exact:
   for +number: B.Number64
