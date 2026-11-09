@@ -20,6 +20,13 @@ import ./Law5Service.bend as Law5Service
 import ./ContractService.bend as ContractService
 import ./Representation.bend as Representation
 import ./Adapters.bend as Adapters
+import ./ExecutionAdapter.bend as ExecutionAdapter
+import ./GeneratedLiterals.bend as GeneratedLiterals
+import ./GeneratedContext.bend as GeneratedContext
+import ./GeneratedInstance.bend as GeneratedInstance
+import ./PreparedControlDispatch.bend as PreparedControlDispatch
+import ./PreparedInvalidationDispatch.bend as PreparedInvalidationDispatch
+import ./PreparedControlTrace.bend as PreparedControlTrace
 import ./Resources.bend as Resources
 import ./Transport.bend as Transport
 import ./ReceptionLimits.bend as ReceptionLimits
@@ -35,6 +42,8 @@ import ./PreparedWire.bend as PreparedWire
 import ./PreparedExtension.bend as PreparedExtension
 import ./PreparedControls.bend as PreparedControls
 import ./PreparedRegistryHistory.bend as PreparedRegistryHistory
+import ./PreparedServiceHistory.bend as PreparedServiceHistory
+import ./HandleAllocation.bend as HandleAllocation
 import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing
 

@@ -17,6 +17,7 @@ import ../src/Core.bend as N
 import ../src/Prepared.bend as Prepared
 import ./Call.bend as Call
 import ./PreparedPrograms.bend as Programs
+import ./ExecutionAdapter.bend as Adapter
 
 law resolved_matches_worker:
   for raw: P.Request
@@ -78,6 +79,64 @@ def ready_certifies_actual_call(a, artifacts, native, world, time, c, state, inp
         case L.Both{received, L.Both{authenticated, L.Both{fields, L.Both{lookup, L.Both{certificate, intact}}}}}:
           universal_of_certificate(a, c, entry, program,
             mode_certificate_implies_certificate(a, c, entry, program, certificate))(context, arguments)
+
+def execution_evidence(-a: I.Environment, -c: S.Configuration,
+  -entry: G.Entry, -program: S.Program,
+  certificate: H.CertificateValid(a, c, entry, program)) ->
+  L.E<I.ProgramTerminates(c, program), Programs.Universal(c, G.code(entry), program)>:
+  match certificate:
+    case L.Both{L.Both{elaborates, terminates}, L.Both{derived, universal}}:
+      L.Both{terminates, universal}
+
+def admitted_output(~c: S.Configuration, ~program: S.Program,
+  -source: String, +context: D.Context, +arguments: D.Value, +state: D.State,
+  valid: R.Valid(c, state), credential: String,
+  authenticated: {D.authenticate(state, credential) == Some{context} : Maybe<&2, D.Context>},
+  configured: {R.configuration_is_valid(c) == True{} : Bool},
+  evidence: L.E<I.ProgramTerminates(c, program), Programs.Universal(c, source, program)>) ->
+  &n: Nat -> &w: D.State -> &events: List<&2, S.OperationEvent> -> &response: S.Response ->
+    Adapter.Productive(c, program, context, arguments, state, n, w, events, response):
+  match evidence:
+    case L.Both{terminates, universal}:
+      Adapter.certified_terminating_adapter_emits_complete_output(c, program, source, context, arguments,
+        universal(context, arguments), state, valid, credential, authenticated, configured,
+        terminates(state, context, arguments))
+
+# The certificate's Bound field supplies termination; the universal proof is
+# specialized to this current authenticated call. Neither execution completion,
+# output bytes, final validity nor permission to publish is assumed.
+law ready_call_reaches_complete_actual_adapter_output:
+  for ~c: S.Configuration
+  for ~program: S.Program
+  for -a: I.Environment
+  for -artifacts: H.Artifacts
+  for -native: String
+  for -world: Nat
+  for -time: Nat
+  for +state: D.State
+  for -input: X.Reception
+  for -instance: String
+  for -entries: List<&2, G.Entry>
+  for raw: P.Request
+  for +entry: G.Entry
+  for +context: D.Context
+  for ready: H.Ready(a, artifacts, native, world, time, c, state, input, instance, entries, raw, entry, context, program)
+  for valid: R.Valid(c, state)
+  for configured: {R.configuration_is_valid(c) == True{} : Bool}
+  exs n: Nat
+  exs w: D.State
+  exs events: List<&2, S.OperationEvent>
+  exs response: S.Response
+  Adapter.Productive(c, program, context, I.arguments(H.resolved(raw, entry)), state, n, w, events, response)
+def ready_call_reaches_complete_actual_adapter_output(c, program, a, artifacts, native, world, time,
+  state, input, instance, entries, raw, entry, context, ready, valid, configured):
+  match raw:
+    case P.Request{credential, handle, +arguments, unused}:
+      match ready:
+        case L.Both{received, L.Both{authenticated, L.Both{fields, L.Both{lookup, L.Both{certificate, intact}}}}}:
+          admitted_output(c, program, G.code(entry), context, arguments, state, valid, credential,
+            authenticated, configured, execution_evidence(a, c, entry, program,
+              mode_certificate_implies_certificate(a, c, entry, program, certificate)))
 
 law ready_resolution_retains_original_source_and_current_call:
   for raw: P.Request

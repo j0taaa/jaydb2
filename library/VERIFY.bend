@@ -10,6 +10,7 @@ import ./ReceiptLaws.bend as ReceiptLaws
 import ./Value.bend as V
 import ./Int64.bend as I
 import ./ComparisonProofs.bend as Comparison
+import ./Int64Proofs.bend as Int64Proofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

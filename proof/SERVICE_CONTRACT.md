@@ -152,6 +152,42 @@ explicit bridge obligations supported by focused tests and review. Neither the
 normalization proof nor the new model proofs silently extends the legacy
 ordinary-wire eight-law theorem to the full prepared executable.
 
+## Execution, source generation and interleaved history
+
+`ExecutionAdapter` proves finite runs of the actual `Execution.advance` adapter,
+including its preparation branch. Its productive-call theorem derives a complete
+private output packet, faithful preparation and a valid computed conclusion from
+termination, the administrator certificate, initial validity and authentication.
+`PreparedExtension.ready_call_reaches_complete_actual_adapter_output` obtains
+termination and the specialized certificate from `Ready`; a completed execution
+is no longer an input to this new theorem.
+
+`PreparedControlDispatch`, `PreparedInvalidationDispatch` and
+`PreparedControlTrace` construct complete decoded-control outcomes, response
+framing, receipt-before-mutation order, exact registry-event replay and
+delivery-prefix/closure consequences of primitive send returns.
+`PreparedServiceHistory` derives database validity and exact registered
+mode-certificate recovery over one interleaved history from a valid seed and an
+empty registry. Its source facts do not contain the resulting state invariant.
+It does not assert that this history captures every physical host mutation.
+
+`HandleAllocation` proves the concrete entropy-first allocator always returns a
+fresh, literally absent, contract-valid handle. The fallback checks the inclusive
+descending range from registry cardinality to zero. Its cardinality proof uses
+the independently decoded byte/nibble encoder, not random fairness or an assumed
+injective generator. The native host enforces the counter's 64-bit type domain.
+Prepared artifact revalidation retains and compares exact original bytes; it
+does not infer byte equality from SHA256 equality.
+
+`GeneratedLiterals` and `GeneratedContext` prove general escaping, literal and
+context recovery, unchanged trailing source, and composition with actual argument
+reification. `GeneratedInstance` additionally proves actual U32 division by ten,
+decimal printing and exact high/low length-token recovery. Every representable,
+measured value actually generates source; correctness is not vacuous on failure.
+These proofs use an independent parser for the emitted grammar. Agreement with
+the actual JavaScript frontend and compiler remains a distinct obligation. None of these results supplies an actual
+native observer or the whole extended eight-law contract witness.
+
 ## Optional administrator service timing
 
 [`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in

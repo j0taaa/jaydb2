@@ -68,6 +68,25 @@ def success_encoded(q: Maybe<&2, List<&2, U32>>, +resp: List<&2, U32>, +limit: N
             join_measured(bs, resp, O.nat64_representability_closed_for_low(
               B.length(bs), limit, number, measured, fits)))
 
+law success_technical_has_proposal_real:
+  for c: S.Configuration
+  for +state: D.State
+  for -value: D.Value
+  for +resp: List<&2, U32>
+  for configured: {R.configuration_is_valid(c) == True{} : Bool}
+  for structure: {R.structure(c, state) == True{} : Bool}
+  exs bs: List<&2, U32>
+  exs packet: List<&2, U32>
+  L.E<{P.encode(D.state_value(state)) == Some{bs} : Maybe<&2, List<&2, U32>>},
+    L.E<{T.join(bs, resp) == Some{packet} : Maybe<&2, List<&2, U32>>},
+      {E.conclude(N.Conclusion{state, S.Response{S.Success{}, value}, resp}) == E.FinishOutput{Con{1, packet}} : E.Iteration}>>
+def success_technical_has_proposal_real(c, state, value, resp, configured, structure):
+  match c:
+    case S.Configuration{+e, laws, +lim, amb}:
+      success_encoded(P.encode(D.state_value(state)), resp, R.limit_state(lim),
+        state_represented(lim, Q.limits_of_configuration(S.Configuration{e, S.NoneLaw{}, lim, amb}, configured)),
+        F.and_boolean_right(D.structure(e, state), R.fits(R.limit_state(lim), D.state_value(state)), structure))
+
 law success_valid_has_proposal_real:
   for c: S.Configuration
   for +state: D.State
@@ -81,13 +100,8 @@ law success_valid_has_proposal_real:
     L.E<{T.join(bs, resp) == Some{packet} : Maybe<&2, List<&2, U32>>},
       {E.conclude(N.Conclusion{state, S.Response{S.Success{}, value}, resp}) == E.FinishOutput{Con{1, packet}} : E.Iteration}>>
 def success_valid_has_proposal_real(c, state, value, resp, configured, valid):
-  match c:
-    case S.Configuration{+e, laws, +lim, amb}:
-      structure = L.and_left({R.structure(S.Configuration{e, laws, lim, amb}, state) == True{} : Bool},
-        S.Satisfies(S.Configuration{e, laws, lim, amb}, S.Stable{state}), valid)
-      success_encoded(P.encode(D.state_value(state)), resp, R.limit_state(lim),
-        state_represented(lim, Q.limits_of_configuration(S.Configuration{e, S.NoneLaw{}, lim, amb}, configured)),
-        F.and_boolean_right(D.structure(e, state), R.fits(R.limit_state(lim), D.state_value(state)), structure))
+  success_technical_has_proposal_real(c, state, value, resp, configured,
+    L.and_left({R.structure(c, state) == True{} : Bool}, S.Satisfies(c, S.Stable{state}), valid))
 
 law without_success_negative_sends_state:
   for -state: D.State

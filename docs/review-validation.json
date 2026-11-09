@@ -233,5 +233,135 @@
       "Physical ordering, delivery, closure and progress composition remain open.",
       "Whole executable/compiler/OS refinement and all optional functional specifications are not established."
     ]
+  },
+  "proof_resumption_2026_11_09": {
+    "base_main": "9ca1b44",
+    "scope": "Checked proof and repair batch; whole extended-service and actual-code simulation remain unfinished.",
+    "whole_goal_complete": false,
+    "theorems": [
+      "Terminating certified execution reaches full exact Execution.advance output with faithful preparation and a valid computed conclusion.",
+      "Prepared Ready supplies actual termination/certificate specialization instead of assuming completed execution.",
+      "Interleaved pure Core/register/invalidate transitions preserve valid database and genuine registered mode certificates from seed/empty registry.",
+      "Control dispatch computes correct outcomes, framing, receipt-before-mutation and exact replay/delivery consequences.",
+      "Actual literal/context generation and escaped argument reification preserve values and source boundaries.",
+      "Complete signed64 checked-addition correctness, including no representable result on overflow.",
+      "Concrete entropy-first handle allocator returns an absent, valid64-hex key using proved bounded cardinality and a decoded encoder.",
+      "Actual U32 decimal division/show and Generate.instance length tokens preserve argument values and source-token boundaries; representable measured inputs produce source."
+    ],
+    "runtime_repairs": [
+      "Unexpected frontend exceptions fail closed as infrastructure, never false mathematical certificate rejection.",
+      "One entropy read followed by bounded deterministic fallback replaces random freshness retry.",
+      "Prepared snapshots retain and compare exact bytes rather than relying on global hash injectivity."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "source_test_config_inputs": 592,
+      "changed_inputs": [],
+      "core_negative_controls_per_mode": 36
+    },
+    "coverage": {
+      "modules": 236,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 154,
+          "law_declarations": 1270
+        },
+        "library": {
+          "modules": 23,
+          "law_declarations": 120
+        }
+      },
+      "meaning": "Checked import reachability; not a functional specification or actual-code refinement proof."
+    },
+    "native_checks": [
+      {
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.11619257926940918
+      },
+      {
+        "command": [
+          "cargo",
+          "test",
+          "--locked"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 3.5246996879577637
+      },
+      {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 1.6547513008117676
+      },
+      {
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "--release"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.1805572509765625
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "tests.service.test_prepared",
+          "tests.service.test_concurrency",
+          "-v"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 181.67694425582886
+      }
+    ],
+    "admission_verifier_tests": {
+      "tests": 26,
+      "exit_code": 0
+    },
+    "evidence_sha256": {
+      ".build/review/proof-resumption-combined-gate.log": "754c30438207eb1d04692bf80647435a392341d00cb0efc0561c3e1a3feac485",
+      ".build/review/proof-resumption-native-gate.log": "f51f34f4244fef2390dae6920538f627d94c4d1e8dd7b1b72ed6fd112ba36695",
+      ".build/review/proof-resumption-admission-suite.log": "dc11990b157468586e237a3a23d0f78ae4ddb2eae5f9aeaa8449015cb40ecada",
+      ".build/review/proof-resumption-adapter-mutant.log": "2721527e747131f6845c00cb168932eef4cb3742b9c3dc03bf9332f73abc55e7",
+      ".build/review/proof-resumption-history-control.log": "c4cc95357326c5c59972a03bd050b0278957cdc4c02041931665b4f8aaf44f5a",
+      ".build/review/handle-allocator/kernel-gate.log": "0b63fdef0bbb0c6ad707ee9788e23dff4d0e3ddb53592285d1f676b25101b7d0",
+      ".build/review/handle-allocator/kernel-typed-equality.log": "8a76663cd0f4fae06ebb78d0c273ff367d975803fc8f612b31bb6703fed020f6",
+      ".build/review/handle-allocator/kernel-specialized.log": "1a6e3804c39815f500f2b2eec3a1fb1c16fe88673ef04e3aeafd84d5a7c9664c",
+      ".build/review/handle-allocator/kernel-specialized-negatives.log": "a2cd53941a4d4609e12def65b20a52895d13f22c636eab3db67cc83df0b2abe1",
+      ".build/review/proof-resumption-decimal-gate.log": "71eb31cf730c2e4dd1241212d7e01022b8770ea2831e398c0ac121df9b16c4bb",
+      ".build/review/decimal-reification/decimal-validation.json": "10ea6a721ef7594c6b2a5bef50f1d8ad65a8c442a5d7454ab5ba048cd3bf847e",
+      ".build/review/decimal-reification/order-validation.json": "66d74f8490cc00e43a54929867e246bb386ea80af2fb2b86fa425acf9bd18d99"
+    },
+    "kernel_failure_handling": "Initial allocator passed primary but official kernel rejected translated higher-order casts. Failed logs retained; specialize proof to actual counter and named inverse, preserving proposition/algorithm/tools/limits. Combined maintained gate subsequently passes both modes.",
+    "remaining": [
+      "No completed full-service witness or actual Rust/Node/C operational simulation.",
+      "Unified ordinary/prepared specification and ordinary-domain conservativity checked in ignored draft; recovery startup still requires explicit extension.",
+      "Recovery same-config requirement cannot be proved from stored environment hash; needs exact immutable environment descriptor.",
+      "Broader arithmetic/functional specifications remain; decimal source proof is complete in its independent-parser scope.",
+      "Concrete FIFO/read-batch/durable origin/observer refinements and Temporary::new progress still require proofs."
+    ],
+    "post_gate_changes": "This validation metadata only; proof and runtime inputs remain unchanged."
   }
 }

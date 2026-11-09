@@ -385,6 +385,42 @@ fn checked_read_proposal(
     Ok(proposal)
 }
 
+// One entropy candidate retains the ordinary random-handle behavior. After a
+// collision, len + 1 distinct counters contain a key absent from len entries.
+// The host cardinality fits strictly inside the 256-bit handle namespace.
+const _: () = assert!(usize::BITS <= 64);
+
+fn hexadecimal_handle(bytes: [u8; 32]) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let mut handle = String::with_capacity(64);
+    for byte in bytes {
+        handle.push(DIGITS[(byte >> 4) as usize] as char);
+        handle.push(DIGITS[(byte & 15) as usize] as char);
+    }
+    handle
+}
+
+fn counter_handle(counter: usize) -> String {
+    let mut bytes = [0; 32];
+    bytes[24..].copy_from_slice(&(counter as u64).to_be_bytes());
+    hexadecimal_handle(bytes)
+}
+
+fn allocate_prepared_handle<T>(registry: &HashMap<String, T>, random: [u8; 32]) -> String {
+    let candidate = hexadecimal_handle(random);
+    if !registry.contains_key(&candidate) {
+        return candidate;
+    }
+    // Inclusive iteration avoids overflowing len + 1, even at usize::MAX.
+    for counter in (0..=registry.len()).rev() {
+        let candidate = counter_handle(counter);
+        if !registry.contains_key(&candidate) {
+            return candidate;
+        }
+    }
+    unreachable!("len + 1 distinct handles cannot all belong to a registry of len entries")
+}
+
 struct Database {
     directory: Temporary,
     stage: PathBuf,
@@ -409,22 +445,20 @@ struct PreparedProgram {
     original_code: Vec<u8>,
     universal_proof: Vec<u8>,
     read_only: bool,
-    // Host-owned snapshots; checking these bytes does not invoke admission.
-    sealed: Vec<(PathBuf, String)>,
+    // Exact host-owned bytes, not a hash-equality assumption. Rechecking these
+    // snapshots does not invoke admission or change the stored certificate.
+    sealed: Vec<(PathBuf, Vec<u8>)>,
 }
 
 impl PreparedProgram {
-    fn seal(directory: &Path) -> Result<Vec<(PathBuf, String)>> {
+    fn seal(directory: &Path) -> Result<Vec<(PathBuf, Vec<u8>)>> {
         let mut files = Vec::new();
         for entry in fs::read_dir(directory)? {
             let entry = entry?;
             if entry.file_type()?.is_dir() {
                 files.extend(Self::seal(&entry.path())?);
             } else if entry.file_type()?.is_file() {
-                files.push((
-                    entry.path(),
-                    format!("{:x}", Sha256::digest(fs::read(entry.path())?)),
-                ));
+                files.push((entry.path(), fs::read(entry.path())?));
             } else {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
@@ -438,9 +472,7 @@ impl PreparedProgram {
     fn validate(&self) -> Result<()> {
         for (path, expected) in &self.sealed {
             let metadata = fs::symlink_metadata(path)?;
-            if !metadata.file_type().is_file()
-                || format!("{:x}", Sha256::digest(fs::read(path)?)) != *expected
-            {
+            if !metadata.file_type().is_file() || fs::read(path)? != *expected {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
                     "sealed prepared artifact changed",
@@ -774,14 +806,9 @@ impl Database {
                     "preparation read-only admission mismatch",
                 ));
             }
-            let handle = loop {
-                let mut random = [0u8; 32];
-                fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
-                let candidate: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
-                if !self.prepared.contains_key(&candidate) {
-                    break candidate;
-                }
-            };
+            let mut random = [0u8; 32];
+            fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
+            let handle = allocate_prepared_handle(&self.prepared, random);
             let response = self.control_response("prepared", Some(&handle))?;
             let mut sealed = PreparedProgram::seal(&request.path)?;
             sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
@@ -1179,6 +1206,88 @@ fn main() {
 mod tests {
     use super::*;
     use std::io::Cursor;
+
+    #[test]
+    fn prepared_integrity_keeps_and_checks_exact_original_bytes() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-sealed-bytes").unwrap();
+        let path = directory.path.join("artifact");
+        let original = b"original prepared artifact";
+        fs::write(&path, original).unwrap();
+        let sealed = PreparedProgram::seal(&directory.path).unwrap();
+        assert_eq!(sealed.len(), 1);
+        assert_eq!(sealed[0].0, path);
+        assert_eq!(sealed[0].1.as_slice(), original);
+        let prepared = PreparedProgram {
+            directory,
+            program: Program {
+                path: PathBuf::new(),
+                sha256: String::new(),
+            },
+            original_code: Vec::new(),
+            universal_proof: Vec::new(),
+            read_only: false,
+            sealed,
+        };
+        prepared.validate().unwrap();
+        let mut changed = original.to_vec();
+        changed[0] ^= 1;
+        fs::write(&path, &changed).unwrap();
+        assert_eq!(prepared.validate().unwrap_err().code, "PREPARED_INTEGRITY");
+        fs::write(&path, original).unwrap();
+        prepared.validate().unwrap();
+        fs::remove_file(&path).unwrap();
+        let replacement = prepared.directory.path.join("replacement");
+        fs::write(&replacement, original).unwrap();
+        std::os::unix::fs::symlink(&replacement, &path).unwrap();
+        assert_eq!(prepared.validate().unwrap_err().code, "PREPARED_INTEGRITY");
+    }
+
+    #[test]
+    fn prepared_handle_allocation_preserves_fresh_entropy() {
+        let registry: HashMap<String, ()> = HashMap::new();
+        assert_eq!(
+            allocate_prepared_handle(&registry, [0xa5; 32]),
+            "a5".repeat(32)
+        );
+        assert_eq!(
+            allocate_prepared_handle(&registry, [0xff; 32]),
+            "f".repeat(64)
+        );
+    }
+
+    #[test]
+    fn prepared_handle_allocation_progresses_with_repeated_colliding_entropy() {
+        let mut registry = HashMap::new();
+        for expected in 0..=512 {
+            let handle = allocate_prepared_handle(&registry, [0; 32]);
+            assert_eq!(handle, format!("{expected:064x}"));
+            assert_eq!(handle.len(), 64);
+            assert!(
+                handle
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+            );
+            assert_eq!(registry.insert(handle, expected), None);
+        }
+        assert_eq!(registry.len(), 513);
+    }
+
+    #[test]
+    fn prepared_handle_allocation_finds_a_hole_among_arbitrary_registry_keys() {
+        let registry: HashMap<String, ()> = [
+            (format!("{:064x}", 0), ()),
+            (format!("{:064x}", 1), ()),
+            (format!("{:064x}", 3), ()),
+            (format!("{:064x}", 4), ()),
+        ]
+        .into_iter()
+        .collect();
+        assert_eq!(
+            allocate_prepared_handle(&registry, [0; 32]),
+            format!("{:064x}", 2)
+        );
+        assert_eq!(registry.len(), 4);
+    }
 
     struct TestService<F>(F);
 

@@ -17,6 +17,67 @@ test('wrong supplied proof is rejected by the primary checker', async t => {
   await rejected(f.manifest(), ['PRIMARY_CHECK']);
 });
 
+test('malformed source retains the official parse rejection', async t => {
+  const f = fixture(t);
+  f.write('Client.bend', f.read('Client.bend') + '\ndef malformed( -> Unit:\n  Unit{}\n');
+  f.bindCode();
+  await rejected(f.manifest(), ['PARSE']);
+});
+
+test('frontend setup IO failure is infrastructure, not a false certificate', async t => {
+  const f = fixture(t), manifest = f.manifest();
+  await admitSubmission(manifest); // The identical source has a valid derivation.
+  const base = fs.realpathSync(bootstrapInfo().sourceDir + '/bend2/base.bend');
+  const read = fs.readFileSync;
+  const failure = Object.assign(new Error('injected Base read EIO'), { code: 'EIO' });
+  let baseReads = 0;
+  fs.readFileSync = function (file, ...args) {
+    // Bootstrap validates the pinned bytes first; the second read is the
+    // actual admission setup immediately before parsing those same bytes.
+    if (file === base && ++baseReads === 2) throw failure;
+    return read.call(this, file, ...args);
+  };
+  syncBuiltinESMExports();
+  try {
+    await assert.rejects(admitSubmission(manifest), error =>
+      error instanceof AdmissionError && error.code === 'FRONTEND_INFRASTRUCTURE'
+      && error.phase === 'parse' && error.cause === failure
+      && error.message.includes(failure.message));
+    assert.equal(baseReads, 2, 'the fault must reach the real Base parsing boundary');
+  } finally {
+    fs.readFileSync = read;
+    syncBuiltinESMExports();
+  }
+});
+
+test('unexpected primary frontend faults are infrastructure, retaining the cause', async t => {
+  const f = fixture(t), manifest = f.manifest();
+  await admitSubmission(manifest);
+  for (const failure of [new Error('injected primary allocation failure'),
+    Object.assign(new TypeError('injected malformed diagnostic marker'), { $: 'Err' })]) {
+    const set = Map.prototype.set;
+    let injected = 0;
+    Map.prototype.set = function (key, value) {
+      // The pinned book_valid begins by constructing the declaration-order
+      // Map. Inject there without modifying the tool or its checked Book.
+      if (!injected && new Error().stack?.includes('at Module.book_valid (')) {
+        injected++;
+        throw failure;
+      }
+      return set.call(this, key, value);
+    };
+    try {
+      await assert.rejects(admitSubmission(manifest), error =>
+        error instanceof AdmissionError && error.code === 'FRONTEND_INFRASTRUCTURE'
+        && error.phase === 'primary' && error.cause === failure
+        && error.message.includes(failure.message));
+      assert.equal(injected, 1, 'the fault must reach the real primary checker');
+    } finally {
+      Map.prototype.set = set;
+    }
+  }
+});
+
 // Admission scans unused definitions too; purity is independent of reachability.
 test('unused IO, foreign code, unsafe definitions and holes are rejected', async t => {
   for (const [body, code] of [

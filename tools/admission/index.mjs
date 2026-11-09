@@ -244,7 +244,7 @@ async function admit(options, kernelOnly) {
       auditLoopCalls(B, state);
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;
-      if (cause instanceof RangeError) {
+      if (!frontendDiagnostic(cause)) {
         throw new AdmissionError('FRONTEND_INFRASTRUCTURE', 'parse', diagnostic(B, cause), { cause });
       }
       throw new AdmissionError('PARSE', 'parse', diagnostic(B, cause), { cause });
@@ -252,10 +252,10 @@ async function admit(options, kernelOnly) {
     try {
       B.book_valid(state.book);
     } catch (cause) {
-      if (cause instanceof RangeError) {
+      if (!frontendDiagnostic(cause)) {
         const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
         throw new AdmissionError('FRONTEND_INFRASTRUCTURE', 'primary',
-          `Frontend stack/resource failure after ${last ?? '(none)'}: ${diagnostic(B, cause)}`, { cause });
+          `Frontend failure after ${last ?? '(none)'}: ${diagnostic(B, cause)}`, { cause });
       }
       throw new AdmissionError('PRIMARY_CHECK', 'primary', diagnostic(B, cause), { cause });
     }
@@ -306,8 +306,20 @@ async function admit(options, kernelOnly) {
   } catch (e) { removeForeignSnapshot(foreignSnapshot); throw e; }
 }
 
+// Only the pinned frontend's diagnostic record establishes a source rejection.
+// IO errors, internal exceptions and incomplete lookalike markers establish no
+// mathematical verdict. Client source is parsed as data, never executed here.
+function frontendDiagnostic(cause) {
+  return cause !== null && typeof cause === 'object' && cause.$ === 'Err'
+    && ['bok', 'ctx', 'exp', 'obs', 'spn', 'def', 'nte'].every(key => Object.hasOwn(cause, key))
+    && cause.bok !== null && typeof cause.bok === 'object'
+    && Array.isArray(cause.bok.order) && cause.bok.tlds !== null && typeof cause.bok.tlds === 'object'
+    && (cause.ctx?.$ === 'Emp' || cause.ctx?.$ === 'Bin')
+    && (typeof cause.exp === 'string' || (cause.exp !== null && typeof cause.exp === 'object'));
+}
+
 function diagnostic(B, cause) {
-  if (cause?.$ === 'Err') {
+  if (frontendDiagnostic(cause)) {
     try { return B.err_show(cause); }
     catch { return 'The checker rejected the derivation; diagnostic expansion exceeded frontend resources.'; }
   }
