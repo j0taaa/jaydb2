@@ -211,6 +211,12 @@ remainder, including zero divisors and INT64_MIN/-1. Its actual 64-step algorith
 is connected to those properties without output or loop-invariant premises.
 The small `divide_count` extraction preserves the previous algorithm; checked
 branch equations and the exact 64-step delegation accompany the proof.
+General list proofs also establish sum, count, integer mean and count/total
+summary, including complete rejection conditions. Sum retains the documented
+right-fold overflow behavior: representability is required for each right-hand
+suffix, rather than only for the final unbounded sum. Average additionally
+requires nonempty input and representable length; its positive count cannot
+cause division overflow.
 Broader join/group/business functional specifications still require additional
 theorems. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
@@ -227,7 +233,7 @@ entire project."
 | Registered certificates | `PreparedRegistryHistory` induction and lookup recovery | Correspondence of its admitted abstract history with every actual registry mutation; current integrity remains per-call. |
 | Certified concurrent reads | `ReadBatches`, fixed whole-program predicate and wrapper equality | Concrete scheduler, snapshot, barriers and FIFO refinement. |
 | Persistent state | Pure validity/origin results and fault tests | Complete crash/filesystem/OS trace refinement and compiler/runtime assumptions. |
-| Optional algorithms | Equality/order/key results; complete independent-integer `Int64Proofs`, `Int64Subtraction`, `Int64Multiplication` and `Int64DivisionProofs` | Broader collection and business functional specifications; native compiler correspondence. |
+| Optional algorithms | Equality/order/key results; complete independent-integer scalar arithmetic; arbitrary-list sum/count/average and summary | Broader collection and business functional specifications; native compiler correspondence. |
 
 The open rows are required work. They are not discharged by compiling imports,
 counting laws, adding tests, or naming a new contract type.

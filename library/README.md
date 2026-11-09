@@ -283,8 +283,19 @@ and INT64_MIN/-1. Its rejection theorem quantifies over every representable
 quotient/remainder pair. The unsigned loop's input/range conditions are proved
 at the public signed boundary. Both official checkers verify these theorems.
 
-Concrete functional proofs also exercise grouping, joins, aggregate signs and
-overflow, counter prefixes and index maintenance.
+`AggregateSumProofs`, `AggregateCountProofs`, `AggregateAverageProofs` and
+`SummaryProofs` additionally prove arbitrary-list sum, count, integer mean and
+count/total summary. Count rejects exactly unrepresentable natural lengths.
+Sum and summary require every right-hand suffix sum to fit signed64: the
+documented right fold can reject `[INT64_MIN, INT64_MAX, 1]` even though its
+unbounded final sum is zero. Average succeeds exactly for nonempty lists whose
+length and all required suffix sums are representable, and returns the
+mathematical mean truncated toward zero. Division overflow is proved impossible
+for its positive count. These results include success and rejection obligations,
+without output or overflow assumptions.
+
+Concrete functional proofs also exercise grouping, joins, counter prefixes and
+index maintenance; their broader general functional specifications remain open.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

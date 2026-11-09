@@ -744,5 +744,61 @@
       "Broader library/application functional specifications beyond these arithmetic theorems."
     ],
     "post_gate_changes": "Validation metadata only after the frozen gate; arithmetic runtime/proof/test inputs unchanged."
+  },
+  "aggregate_2026_11_09": {
+    "base_main": "a884bd4",
+    "whole_goal_complete": false,
+    "scope": "General mathematical sum, count, average and summary correctness; no runtime changes and no full-service/native claim.",
+    "theorems": [
+      "AggregateSumProofs.checked_sum_is_right_fold_integer_addition(xs): Some equals independent unbounded Nat-difference list sum and all right suffix sums are representable; None refutes that independent suffix-fit property.",
+      "AggregateCountProofs.checked_count_is_exact_representable_length(xs): Some is nonnegative and its unsigned value equals independent Nat list length; None refutes every signed64 representation of the nonnegative natural length.",
+      "AggregateAverageProofs.checked_average_succeeds_exactly_on_admissible_nonempty_lists(xs): Some is the exact independent signed-Euclidean truncating mean; None is exclusively empty input, an unrepresentable required right suffix sum, or an unrepresentable natural length. Both admissibility directions are proved.",
+      "SummaryProofs.checked_summary_is_exact_count_and_right_fold_sum(xs): actual Summary.compute equals packed actual count/sum; Some has exact nonnegative length and independent integer total with all suffixes fitting, while None refutes simultaneous length/suffix representability. Empty summary succeeds with count0 and total0.",
+      "Int64PositiveDivision.every_positive_divisor_has_a_representable_truncating_division constructs full independent Euclidean meaning for every dividend and every nonnegative/nonzero divisor; average division overflow is impossible for its positive count."
+    ],
+    "public_correctness_premises": "Input list only for operation correctness; ordinary domain assumptions only for the separate positive-divisor theorem.",
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "frozen_inputs": 733,
+      "changed_inputs": [],
+      "elapsed_seconds": 402.5754237174988,
+      "core_rejection_controls_per_mode": 105,
+      "pinned_base_sha256": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce"
+    },
+    "coverage": {
+      "transitive_modules": 305,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1363
+        },
+        "library": {
+          "modules": 75,
+          "law_declarations": 403
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 19,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-aggregate-gate.log": "0217f48b5d8f285ff6971ef4a19fbb05d55979edc99ba705df2bd14d686fad88",
+      ".build/review/library-aggregate/validation.json": "29d438a1e753173c8ae9e11f860cbf73a54e775a485e702ed015b5f5315a4dce",
+      ".build/review/library-average/validation.json": "81ebd6ffd176fe70773bb884a2c795b7114fa30d994953dec9fe27cb0ee253ce",
+      ".build/review/library-average/promoted.json": "b890636b61e070909dc77716b70b9993d384ab1192653193844ea6c19df4b8c2",
+      ".build/review/library-api-audit/checklist.md": "501ad0d24018e127e9270e2855d99fae0d009b1a23408812c10395804f9301f0",
+      ".build/review/library-api-audit/examples-validation.json": "f94d8b7d46e44cb822c14eb5d368c55d34b7129219997898f91fba42f9748ee7"
+    },
+    "remaining": [
+      "Full chronological ordinary/prepared service contract composition, progress and recovery startup.",
+      "Native/compiler/OS/storage correspondence and exact closed proof-bundle derivation semantics.",
+      "Integer-order interpretation/extrema and broader sequence/join/key/record/action/receipt functional specifications."
+    ],
+    "post_gate_changes": "Validation metadata only; all checked maintained runtime/proof/test inputs unchanged."
   }
 }
