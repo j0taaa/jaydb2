@@ -46,6 +46,9 @@ try {
   check(await db.update(tasks).set({ completed: true }).where(eq(tasks.id, 't1')).returning(), [{ id: 't1', title, completed: true, owner: 'alice' }]);
   check(await db.update(tasks).set({ title: 'renamed' }).where(eq(tasks.id, 't1')).returning({ done: tasks.completed, title: tasks.title }), [{ done: true, title: 'renamed' }]);
   check(await client.query('select title, title as duplicate from tasks where id=$1', ['t1']), { columns: ['title', 'duplicate'], rows: [['renamed', 'renamed']], rowCount: 1n });
+  const wide = Array.from({ length: 4 }, () => 'id,title,completed,owner').join(',');
+  check((await client.query(`select ${wide} from tasks where id=$1`, ['t1'])).rows,
+    [Array.from({ length: 4 }, () => ['t1', 'renamed', true, 'alice']).flat()]);
   check(await client.query('update tasks set title=$1 where id=$2', ['missing', 'absent']), { columns: [], rows: [], rowCount: 0n });
   check(await client.query('delete from tasks where id=$1', ['absent']), { columns: [], rows: [], rowCount: 0n });
   console.log('Checking duplicate-key refusal and rollback after a provisional write...');

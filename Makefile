@@ -6,7 +6,7 @@ build:
 	cargo build --locked --release
 
 # Optional developer accessories; no engine or protocol changes.
-.PHONY: test-client test-sql test-sql-native test-accessories test-accessories-native smoke check-release
+.PHONY: test-client test-sql test-sql-native test-sql-stress test-accessories test-accessories-native smoke check-release
 test-client:
 	npm --prefix clients/typescript run check
 	npm --prefix clients/typescript test
@@ -20,6 +20,11 @@ test-sql:
 test-sql-native: build
 	python3 -B applications/sql/check.py
 	npm --prefix clients/sql run test:integration
+	npm --prefix clients/sql run test:limits
+
+# Independent SQLite oracle against real native SQL/Drizzle executions.
+test-sql-stress: build
+	npm --prefix clients/sql run test:stress
 
 test-accessories: test-client test-sql
 	clients/typescript/node_modules/.bin/tsc -p applications/tasks/tsconfig.json
@@ -27,7 +32,7 @@ test-accessories: test-client test-sql
 	python3 -B -m unittest discover -s examples/starter -p test_starter.py -v
 
 # Caller holds the shared heavy-work lock, as for the existing native targets.
-test-accessories-native: build test-sql-native
+test-accessories-native: build test-sql-native test-sql-stress
 	npm --prefix clients/typescript run test:integration
 	python3 -B examples/starter/check.py --all
 	python3 -B -m unittest tests.accessories.test_tasks_native -v

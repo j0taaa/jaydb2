@@ -21,6 +21,17 @@ function expressions(statement: Statement): Expression[] {
   }
 }
 
+// The returned AST is inspection metadata. Binding must continue to describe
+// the exact SQL whose source and certificate were emitted, even if a caller
+// attempts to mutate that metadata later.
+function freeze<T>(value: T): T {
+  if (value !== null && typeof value === 'object') {
+    for (const child of Object.values(value)) freeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+
 function value(expr: Expression, params: readonly unknown[], column: Column): Scalar {
   if (expr.kind === 'default') {
     if (column === 'completed') return false;
@@ -38,17 +49,19 @@ function value(expr: Expression, params: readonly unknown[], column: Column): Sc
 
 /** SQL text controls program shape; SQL values cross only the argument boundary. */
 export function compileSql(sql: string): CompiledSql {
-  if (Buffer.byteLength(sql, 'utf8') > 65536) throw new SqlError('SQL text exceeds the frontend 64 KiB limit', '54000');
-  const statement = parseSql(sql);
+  const statement = freeze(parseSql(sql));
   if (statement.kind === 'insert' && statement.rows.length > 2) throw new SqlError('At most 2 rows per INSERT are supported by the pinned proof checker', '54000');
+  const projection = statement.kind === 'select' ? statement.columns : statement.returning;
+  if (projection.length > 16) throw new SqlError('At most 16 result columns are supported', '54000');
   const refs = expressions(statement).flatMap(e => e.kind === 'parameter' ? [e.index] : []);
   const count = refs.length ? Math.max(...refs) + 1 : 0;
   if (new Set(refs).size !== count) throw new SqlError('Parameter numbers must be contiguous starting at $1', '42P02');
   const program = compileBend(statement);
   return {
     statement, ...program,
-    columns: (statement.kind === 'select' ? statement.columns : statement.returning).map(p => p.alias),
+    columns: Object.freeze(projection.map(p => p.alias)),
     bind(params = []) {
+      if (!Array.isArray(params)) throw new TypeError('SQL parameters must be an array');
       if (params.length !== count) throw new SqlError(`Expected ${count} parameters, received ${params.length}`, '08P01');
       switch (statement.kind) {
         case 'select': case 'delete': return [[value(statement.key, params, 'id')]];

@@ -50,7 +50,10 @@ both official modes, proof-negative controls, real native and service tests,
 library applications, storage-fault and lost-response recovery tests, the web
 demo, TypeScript real-service checks, the starter templates, and persistent task
 usage, plus generated SQL certificates and real Drizzle CRUD/rollback/recovery
-(`make test-sql-native`). It requires a Linux session with unlimited hard stack. It can take a
+(`make test-sql-native`) and seeded SQL/Drizzle differential checks against
+SQLite with real native workers (`make test-sql-stress`). The latter runs 600
+randomized operations by default plus rollback, concurrency, authentication
+and recovery controls. It requires a Linux session with unlimited hard stack. It can take a
 substantial amount of time. A passing smoke run alone is insufficient for a
 release.
 

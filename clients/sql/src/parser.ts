@@ -15,7 +15,7 @@ function tokenize(sql: string): Token[] {
   while (at < sql.length) {
     const start = at;
     const ch = sql[at]!;
-    if (/\s/u.test(ch)) { at++; continue; }
+    if (' \t\n\r\f\v'.includes(ch)) { at++; continue; }
     if (sql.startsWith('--', at)) {
       at += 2;
       while (at < sql.length && sql[at] !== '\n' && sql[at] !== '\r') at++;
@@ -44,6 +44,7 @@ function tokenize(sql: string): Token[] {
       }
       if (!closed) fail('Unterminated quoted value', { offset: start }, '42601');
       if (value.includes('\0')) fail('NUL is not valid in SQL text', { offset: start }, '42601');
+      if (ch === '"' && value.length === 0) fail('A quoted identifier cannot be empty', { offset: start }, '42601');
       tokens.push({ kind: ch === "'" ? 'string' : 'identifier', text: value, offset: start });
       continue;
     }
@@ -121,10 +122,11 @@ class Parser {
     if (this.is('.')) fail('Schema-qualified table names are not supported', this.peek());
     return 'tasks';
   }
-  column(): Column {
+  column(qualified = true): Column {
     const token = this.peek();
     let name = this.identifier();
     if (this.accept('.')) {
+      if (!qualified) fail('Target columns cannot be qualified', token, '42601');
       if (name !== 'tasks') fail(`Unknown table qualifier ${JSON.stringify(name)}`, token, '42P01');
       name = this.identifier();
     }
@@ -136,7 +138,8 @@ class Parser {
     do {
       if (this.accept('*')) result.push(...columns.map(column => ({ column, alias: column })));
       else if ((this.peek().kind === 'word' || this.peek().kind === 'identifier') && this.peek().text === 'tasks'
-        && this.#tokens[this.#at + 1]?.text === '.' && this.#tokens[this.#at + 2]?.text === '*') {
+        && this.#tokens[this.#at + 1]?.kind === 'symbol' && this.#tokens[this.#at + 1]?.text === '.'
+        && this.#tokens[this.#at + 2]?.kind === 'symbol' && this.#tokens[this.#at + 2]?.text === '*') {
         this.take(); this.take(); this.take();
         result.push(...columns.map(column => ({ column, alias: column })));
       } else {
@@ -201,7 +204,7 @@ class Parser {
       this.expect('into'); const table = this.table(); this.expect('(');
       const names: Column[] = [];
       do {
-        const token = this.peek(); const name = this.column();
+        const token = this.peek(); const name = this.column(false);
         if (names.includes(name)) fail(`Column ${name} is specified twice`, token, '42701');
         names.push(name);
       } while (this.accept(','));
@@ -222,7 +225,7 @@ class Parser {
       const table = this.table(); this.expect('set');
       const assignments: { column: Column; value: Expression }[] = [];
       do {
-        const token = this.peek(); const column = this.column();
+        const token = this.peek(); const column = this.column(false);
         if (column !== 'title' && column !== 'completed') fail(`Column ${column} cannot be updated`, token);
         if (assignments.some(assignment => assignment.column === column)) fail(`Column ${column} is assigned twice`, token, '42701');
         this.expect('='); assignments.push({ column, value: this.expression() });
@@ -241,5 +244,8 @@ class Parser {
 /** Parse a single supported statement; unsupported behavior is never silently ignored. */
 export function parseSql(sql: string): Statement {
   if (typeof sql !== 'string') throw new TypeError('SQL must be a string');
+  if (Buffer.byteLength(sql, 'utf8') > 65536) throw new SqlError('SQL text exceeds the frontend 64 KiB limit', '54000');
+  if (!sql.isWellFormed()) throw new SqlError('SQL must contain valid Unicode text', '22021');
+  if (sql.includes('\0')) throw new SqlError('NUL is not valid in SQL text', '42601');
   return new Parser(sql).parse();
 }

@@ -23,13 +23,21 @@ def main() -> None:
                for name in ('id', 'title', 'completed', 'owner')]
     cases = {
         'select': {'kind': 'select', 'table': 'tasks', 'columns': columns, 'key': key},
+        'select-wide': {'kind': 'select', 'table': 'tasks', 'columns': columns * 4, 'key': key},
         'insert': {'kind': 'insert', 'table': 'tasks', 'columns': ['id', 'title', 'completed'],
                    'rows': [[key, key, key]], 'returning': columns},
         'insert-two': {'kind': 'insert', 'table': 'tasks', 'columns': ['id', 'title', 'completed'],
                        'rows': [[key, key, key]] * 2, 'returning': columns},
+        'insert-wide': {'kind': 'insert', 'table': 'tasks', 'columns': ['id', 'title', 'completed'],
+                        'rows': [[key, key, key]], 'returning': columns * 4},
+        'insert-two-wide': {'kind': 'insert', 'table': 'tasks', 'columns': ['id', 'title', 'completed'],
+                            'rows': [[key, key, key]] * 2, 'returning': columns * 4},
         'update': {'kind': 'update', 'table': 'tasks', 'assignments': [{'column': 'title', 'value': key}],
                    'key': key, 'returning': columns},
+        'update-wide': {'kind': 'update', 'table': 'tasks', 'assignments': [{'column': 'title', 'value': key}],
+                        'key': key, 'returning': columns * 4},
         'delete': {'kind': 'delete', 'table': 'tasks', 'key': key, 'returning': columns},
+        'delete-wide': {'kind': 'delete', 'table': 'tasks', 'key': key, 'returning': columns * 4},
     }
     script = '''import { compileBend } from './clients/sql/src/bend.ts';
 let input = ''; for await (const chunk of process.stdin) input += chunk;

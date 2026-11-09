@@ -1,0 +1,39 @@
+{
+  "validationDate": "2026-11-06",
+  "broadRegression": {
+    "runtimeRevision": "441f807c24b1bbac32e6f08941b12622ce58d635",
+    "sqlSourceHashes": "source.sha256",
+    "initialCommand": "bash tools/ci/check.sh full",
+    "initialCommandOutcome": "Observed exit 143 during receipt validation; earlier gates passed without assertion failure.",
+    "initialLogSha256": "e80cbc73d7a17a94602868169b8139d4a95fb988abb98a6f8729c93737efd85b",
+    "resumedCommand": "make test-feature-integration test-recovery-integration test-demo-web",
+    "resumedExitCode": 0,
+    "resumedCompletedAtUtc": "2026-11-06T23:51:39Z",
+    "recoveryTests": 9,
+    "demoTests": 7,
+    "resumedLogSha256": "e0fde3fa4c40f0cc2887533435321e98d2c0031ee27fc81583ae1efb32ea4568",
+    "outcome": "All release gates completed across the original and resumed commands. The original full command did not exit zero."
+  },
+  "latestRuntimeSqlRepeat": {
+    "runtimeRevision": "7e4bec4",
+    "sqlSourceHashes": "source.sha256",
+    "environment": "Ubuntu 24.04 container on CentOS VPS; Node 24.14.0; Clang 19; 2 CPUs; 2 GiB RAM",
+    "exitCode": 0,
+    "stageExitCodes": {
+      "types": 0,
+      "frontend": 0,
+      "proofs": 0,
+      "integration": 0,
+      "limits": 0,
+      "stress": 0
+    },
+    "frontendTests": 40,
+    "officialProofChecks": 20,
+    "integrationChecks": 26,
+    "boundaryChecks": 31,
+    "randomizedOperations": 600,
+    "stressResult": "stress-latest-600.json",
+    "logSha256": "6e115380ee4f196505761a0c3db0b51f85f8c0de0ae3cc64d8a1ac7b4c2c3a69"
+  },
+  "rawLogDirectory": "build/sql-validation-20261106/ (local, ignored by git)"
+}
