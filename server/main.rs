@@ -1,11 +1,9 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
 mod capture;
 use capture::capture;
-mod read_batch;
 mod scheduling;
-#[cfg(test)]
 use scheduling::FrameInput;
-use scheduling::{FrameQueue, PollInput, QueueBounds, SerialService};
+use scheduling::{FrameQueue, PollInput, QueueBounds};
 mod storage;
 mod timing;
 use serde_json::Value;
@@ -64,7 +62,6 @@ impl Error {
             "BENDTT_CHECK",
             "TARGET",
             "SOURCE_BINDING",
-            "READ_ONLY",
             "HOST_CAPTURE",
             "KERNEL_CAPTURE",
         ];
@@ -317,24 +314,6 @@ struct Published {
 }
 
 impl Published {
-    // A certified success publishes the same root and a new paired response.
-    // Only the root's disk replacement is redundant. Errors/control receipts
-    // keep the preceding successful pair, exactly like exclusive finish.
-    fn finish_read(last: &mut Vec<u8>, proposal: Result<(Vec<u8>, bool)>) -> Vec<u8> {
-        match proposal {
-            Ok((response, publish)) => {
-                if publish {
-                    *last = response.clone();
-                }
-                response
-            }
-            Err(error) => {
-                diagnostic(format_args!("{}: {}", error.code, error.message));
-                error.response()
-            }
-        }
-    }
-
     fn finish(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Vec<u8> {
         match proposal {
             Ok((response, Some(state))) => {
@@ -371,18 +350,6 @@ fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<V
         return Err(Error::new("HOST_TRANSPORT", "invalid proposed response"));
     }
     Ok((response.to_vec(), state.map(|state| state.to_vec())))
-}
-
-fn checked_read_proposal(
-    output: &[u8],
-    limits: &Limits,
-    snapshot: &[u8],
-) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
-    let proposal = checked_proposal(output, limits)?;
-    if proposal.1.as_ref().is_some_and(|state| state != snapshot) {
-        return Err(Error::new("READ_STATE", "certified read changed state"));
-    }
-    Ok(proposal)
 }
 
 // One entropy candidate retains the ordinary random-handle behavior. After a
@@ -433,7 +400,6 @@ struct Database {
     inspection_sequence: u64,
     prepared: HashMap<String, PreparedProgram>,
     threads: usize,
-    read_workers: usize,
     timing: Option<Arc<Timing>>,
     storage: Option<storage::Storage>,
     environment: String,
@@ -444,7 +410,6 @@ struct PreparedProgram {
     program: Program,
     original_code: Vec<u8>,
     universal_proof: Vec<u8>,
-    read_only: bool,
     // Exact host-owned bytes, not a hash-equality assumption. Rechecking these
     // snapshots does not invoke admission or change the stored certificate.
     sealed: Vec<(PathBuf, Vec<u8>)>,
@@ -591,7 +556,6 @@ impl Database {
             inspection_sequence: 0,
             prepared: HashMap::new(),
             threads: options.threads,
-            read_workers: options.read_workers,
             timing,
             storage,
             environment,
@@ -689,7 +653,7 @@ impl Database {
         // one opcode and an otherwise ordinary, officially decoded request.
         let (operation, body) = if body.first() == Some(&7) {
             match body.get(1) {
-                Some(op @ 0..=3) => (Some(*op), &body[2..]),
+                Some(op @ 0..=2) => (Some(*op), &body[2..]),
                 _ => return Ok((error_frame("input"), None)),
             }
         } else {
@@ -744,11 +708,7 @@ impl Database {
             // authenticates the received credential again on this same state;
             // E.start receives that context and the actual decoded arguments.
             let output = prepared.program.run(&input, self.threads)?;
-            return if prepared.read_only {
-                checked_read_proposal(&output, &self.limits, &self.published.state)
-            } else {
-                checked_proposal(&output, &self.limits)
-            };
+            return checked_proposal(&output, &self.limits);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -773,12 +733,8 @@ impl Database {
         let report = json_helper(
             &self.stage,
             &[
-                if matches!(operation, Some(0 | 3)) {
-                    if operation == Some(3) {
-                        "prepare-read".into()
-                    } else {
-                        "prepare".into()
-                    }
+                if operation == Some(0) {
+                    "prepare".into()
                 } else {
                     "execute".into()
                 },
@@ -796,17 +752,11 @@ impl Database {
             ));
         }
         let program = Program::load(text(&report, "program")?.into())?;
-        if matches!(operation, Some(0 | 3)) {
+        if operation == Some(0) {
             if text(&report, "certificateMode")? != "universal" {
                 return Err(Error::new(
                     "TARGET",
                     "preparation requires a universal certificate",
-                ));
-            }
-            if report.get("readOnly").and_then(Value::as_bool) != Some(operation == Some(3)) {
-                return Err(Error::new(
-                    "TARGET",
-                    "preparation read-only admission mismatch",
                 ));
             }
             let mut random = [0u8; 32];
@@ -824,7 +774,6 @@ impl Database {
                     original_code: code.to_vec(),
                     universal_proof: proof.to_vec(),
                     sealed,
-                    read_only: report.get("readOnly").and_then(Value::as_bool) == Some(true),
                 },
             );
             return Ok(response);
@@ -851,16 +800,12 @@ impl Database {
     }
 
     fn serve(&mut self) -> Result<()> {
-        let mut queue = FrameQueue::start(
+        serve_serial(
             PollInput(io::stdin()),
+            &mut io::stdout().lock(),
             self.limits.message,
-            QueueBounds::for_message_limit(self.limits.message),
-        )?;
-        let result = read_batch::coordinate(&queue, &mut io::stdout().lock(), self);
-        let cleanup = queue.close();
-        result?;
-        cleanup?;
-        Ok(())
+            |body| self.request(body),
+        )
     }
 }
 
@@ -893,25 +838,11 @@ fn inspect_snapshot(
     }
 }
 
-struct ServiceCompletion {
-    proposal: Result<(Vec<u8>, Option<Vec<u8>>)>,
-    attempt: Option<Attempt>,
-}
-
-impl SerialService for Database {
-    type Completion = ServiceCompletion;
-
-    fn execute(&mut self, body: &[u8]) -> Self::Completion {
-        let mut attempt = self.timing.as_ref().map(|timing| timing.selected(false));
+impl Database {
+    // One complete request, including cleanup, durable publication and timing.
+    fn request(&mut self, body: &[u8]) -> Result<Vec<u8>> {
+        let mut attempt = self.timing.as_ref().map(|timing| timing.selected());
         let proposal = self.propose(body, &mut attempt);
-        ServiceCompletion { proposal, attempt }
-    }
-
-    fn publish(&mut self, completion: Self::Completion) -> Result<Vec<u8>> {
-        let ServiceCompletion {
-            proposal,
-            mut attempt,
-        } = completion;
         if self.timing.is_none() {
             return self.publish(proposal);
         }
@@ -930,117 +861,14 @@ impl SerialService for Database {
     }
 }
 
-// All borrows are immutable during a batch; registry mutation is exclusive.
-fn read_proposal(
-    authenticate: &Program,
-    prepared: &HashMap<String, PreparedProgram>,
-    limits: &Limits,
-    state: &[u8],
-    body: &[u8],
-    threads: usize,
-    attempt: &mut Option<Attempt>,
-) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
-    let handle = read_batch::candidate(body)
-        .ok_or_else(|| Error::new("READ_DISPATCH", "invalid read selection"))?;
-    let input = packet(state, &body[2..]);
-    let authenticated = authenticate.run(&input, threads)?;
-    match authenticated.first() {
-        Some(0) => return Ok((authenticated[1..].to_vec(), None)),
-        Some(1) => {}
-        _ => return Err(Error::new("HOST_TRANSPORT", "invalid preprocessing result")),
-    }
-    let (principal, metadata) = split(&authenticated[1..])?;
-    let principal = std::str::from_utf8(principal)
-        .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
-    if let Some(attempt) = attempt {
-        attempt.authenticated(principal);
-    }
-    let (code, rest) = split(metadata)?;
-    let (proof, _) = split(rest)?;
-    if !proof.is_empty() {
-        return Ok((error_frame("input"), None));
-    }
-    if code != handle.as_bytes() {
-        return Err(Error::new("READ_DISPATCH", "handle selection mismatch"));
-    }
-    let program = prepared
-        .get(handle)
-        .filter(|p| p.read_only)
-        .ok_or_else(|| Error::new("READ_DISPATCH", "uncertified read selection"))?;
-    program.validate()?;
-    checked_read_proposal(&program.program.run(&input, threads)?, limits, state)
-}
-
-impl read_batch::Service for Database {
-    fn max_readers(&self) -> usize {
-        self.read_workers
-    }
-    fn is_read(&self, body: &[u8]) -> bool {
-        read_batch::candidate(body)
-            .and_then(|handle| self.prepared.get(handle))
-            .is_some_and(|p| p.read_only)
-    }
-    fn reads(&mut self, bodies: Vec<Vec<u8>>, output: &mut impl Write) -> Result<()> {
-        let state = &self.published.state;
-        let last_response = &mut self.published.response;
-        let registry = &self.prepared;
-        let auth = &self.authenticate;
-        let limits = &self.limits;
-        let inspector = &mut self.inspector;
-        let sequence = &mut self.inspection_sequence;
-        // --threads is the total native CPU-worker budget, split across the
-        // fixed maximum batch size. Every call still starts fresh processes.
-        let threads = self.threads / self.read_workers;
-        let timing = self.timing.as_ref();
-        let jobs = bodies
-            .into_iter()
-            .map(|body| {
-                let attempt = timing.map(|timing| timing.selected(true));
-                (body, attempt)
-            })
-            .collect();
-        read_batch::execute(
-            jobs,
-            |(body, mut attempt)| {
-                let result =
-                    read_proposal(auth, registry, limits, state, &body, threads, &mut attempt);
-                // Drop the returned duplicate state before the completion stamp.
-                let result = result.map(|(response, next)| (response, next.is_some()));
-                if let (Some(timing), Some(attempt)) = (timing, attempt) {
-                    timing.completed(attempt);
-                }
-                result
-            },
-            |result| {
-                let diagnostic = result
-                    .as_ref()
-                    .err()
-                    .map(|e| serde_json::json!({"code":e.code,"message":e.message}));
-                let response = Published::finish_read(last_response, result);
-                advance_inspection_sequence(sequence);
-                inspect_snapshot(
-                    inspector,
-                    *sequence,
-                    state,
-                    serde_json::json!({"event":"completed", "read_batch":true, "diagnostic":diagnostic}),
-                );
-                output.write_all(&response)?;
-                output.flush()?;
-                Ok(())
-            },
-        )
-    }
-}
-
-#[cfg(test)]
 fn serve_serial(
     input: impl FrameInput,
     output: &mut impl Write,
     limit: u64,
-    service: &mut impl SerialService,
+    request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
 ) -> Result<()> {
     let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
-    let result = scheduling::coordinate(&queue, output, service, error_frame);
+    let result = scheduling::coordinate(&queue, output, request, error_frame);
     // This also wakes a reader still waiting on an open stdin or queue capacity.
     let cleanup = queue.close();
     result?;
@@ -1056,7 +884,6 @@ struct Options {
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
     threads: usize,
-    read_workers: usize,
     timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
 }
@@ -1093,7 +920,6 @@ impl Options {
         let mut seed = None;
         let mut inspect_socket = None;
         let mut threads = default_threads();
-        let mut read_workers = 1;
         let mut timing_log = None;
         let mut storage = None;
         let mut storage_mode = None;
@@ -1103,7 +929,7 @@ impl Options {
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--read-workers N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Total native CPU-worker budget, 1 to 128 (default: available CPU parallelism, capped at 128)\n--read-workers N  Concurrent certified prepared reads, 1 to 16 and <= threads (default: 1)"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Native CPU workers per process, 1 to 128 (default: available CPU parallelism, capped at 128)"
                 );
                 return Ok(None);
             }
@@ -1118,15 +944,6 @@ impl Options {
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 Some("--timing-log") => timing_log = Some(PathBuf::from(value)),
                 Some("--threads") => threads = parse_threads(&value)?,
-                Some("--read-workers") => {
-                    read_workers = parse_threads(&value)?;
-                    if read_workers > 16 {
-                        return Err(Error::new(
-                            "ARGUMENT",
-                            "--read-workers must be from 1 to 16",
-                        ));
-                    }
-                }
                 Some("--storage") => storage = Some(PathBuf::from(value)),
                 Some("--storage-mode") => {
                     storage_mode = Some(match value.to_str() {
@@ -1147,12 +964,6 @@ impl Options {
                     ));
                 }
             }
-        }
-        if read_workers > threads {
-            return Err(Error::new(
-                "ARGUMENT",
-                "--read-workers cannot exceed --threads",
-            ));
         }
         let storage = match (storage, storage_mode) {
             (Some(path), Some(mode)) => Some((path, mode)),
@@ -1188,7 +999,6 @@ impl Options {
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
             threads,
-            read_workers,
             timing_log,
             storage,
         }))
@@ -1234,7 +1044,6 @@ mod tests {
             },
             original_code: Vec::new(),
             universal_proof: Vec::new(),
-            read_only: false,
             sealed,
         };
         prepared.validate().unwrap();
@@ -1298,81 +1107,13 @@ mod tests {
         assert_eq!(registry.len(), 4);
     }
 
-    struct TestService<F>(F);
-
-    impl<F: FnMut(&[u8]) -> Result<Vec<u8>>> SerialService for TestService<F> {
-        type Completion = Result<Vec<u8>>;
-        fn execute(&mut self, body: &[u8]) -> Result<Vec<u8>> {
-            (self.0)(body)
-        }
-        fn publish(&mut self, response: Result<Vec<u8>>) -> Result<Vec<u8>> {
-            response
-        }
-    }
-
     fn serve_stream(
         input: impl FrameInput,
         output: &mut impl Write,
         limit: u64,
         request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
     ) -> Result<()> {
-        serve_serial(input, output, limit, &mut TestService(request))
-    }
-
-    #[test]
-    fn certified_success_rejects_changed_state_even_if_transport_is_valid() {
-        let limits = Limits {
-            message: 1000,
-            state: 1000,
-            response: 1000,
-        };
-        let response = error_frame("success");
-        let good = [vec![1], packet(b"pinned", &response)].concat();
-        assert!(
-            checked_read_proposal(&good, &limits, b"pinned")
-                .unwrap()
-                .1
-                .is_some()
-        );
-        let bad = [vec![1], packet(b"changed", &response)].concat();
-        assert_eq!(
-            checked_read_proposal(&bad, &limits, b"pinned")
-                .unwrap_err()
-                .code,
-            "READ_STATE"
-        );
-        let failure = [vec![0], error_frame("failure")].concat();
-        assert!(
-            checked_read_proposal(&failure, &limits, b"pinned")
-                .unwrap()
-                .1
-                .is_none()
-        );
-    }
-
-    #[test]
-    fn read_successes_publish_the_last_success_pair_and_errors_preserve_it() {
-        let mut published = Published {
-            state: b"pinned".to_vec(),
-            response: b"before".to_vec(),
-        };
-        assert_eq!(
-            Published::finish_read(&mut published.response, Ok((b"read-one".to_vec(), true))),
-            b"read-one"
-        );
-        assert_eq!(published.response, b"read-one");
-        Published::finish_read(
-            &mut published.response,
-            Err(Error::new("NATIVE", "injected")),
-        );
-        Published::finish_read(
-            &mut published.response,
-            Ok((error_frame("authentication"), false)),
-        );
-        assert_eq!(published.response, b"read-one");
-        Published::finish_read(&mut published.response, Ok((b"read-two".to_vec(), true)));
-        assert_eq!(published.response, b"read-two");
-        assert_eq!(published.state, b"pinned");
+        serve_serial(input, output, limit, request)
     }
 
     #[test]
@@ -1667,7 +1408,6 @@ mod tests {
             inspection_sequence: u64::MAX,
             prepared: HashMap::new(),
             threads: 1,
-            read_workers: 1,
             timing: None,
             storage: Some(storage),
             environment,

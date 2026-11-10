@@ -72,12 +72,10 @@ ordinary TypeScript type stripping and has no runtime install step.
   response pipe. Do not call `setEncoding` on the response stream. A supplied
   process-completion promise must reject on unsuccessful exit.
 - `request({credential, code, proof, arguments})` sends an ordinary request.
-- `prepare({credential, code, proof, readOnly?})` sends opcode 0, or opcode 3
-  for a separately read-certified program. It returns the actual control
-  response; check `status === 'prepared'` and `typeof value === 'string'` before
+- `prepare({credential, code, proof})` sends opcode 0. It returns the actual
+  control response; check `status === 'prepared'` and `typeof value === 'string'` before
   using the handle. A universal certificate is required; the client does not
-  convert, fabricate or prove it. Read preparation needs the additional actual
-  whole-program read-only certificate.
+  convert, fabricate or prove it.
 - `execute({credential, handle, arguments})` and
   `invalidate({credential, handle})` use the existing handle protocol.
 - `await close()` ends stdin, drains all accepted responses and waits for owned

@@ -19,9 +19,9 @@ function pair(options: { maxResponseBytes?: number; maxPendingRequests?: number 
 test('fragmented and coalesced responses preserve FIFO and canonical failure responses', async () => {
   const { input, output, client } = pair();
   const writes: Buffer[] = []; input.on('data', chunk => writes.push(chunk));
-  const results = [client.request(request(1)), client.prepare({ ...request(), readOnly: true }), client.execute({ credential: 'other', handle: 'h', arguments: 'x' }), client.invalidate({ credential: 'other', handle: 'h' })];
+  const results = [client.request(request(1)), client.prepare(request()), client.execute({ credential: 'other', handle: 'h', arguments: 'x' }), client.invalidate({ credential: 'other', handle: 'h' })];
   assert.deepEqual(unframe(writes[0]!), { ...request(1n) });
-  assert.equal(writes[1]![8], 7); assert.equal(writes[1]![9], 3);
+  assert.equal(writes[1]![8], 7); assert.equal(writes[1]![9], 0);
   assert.equal(writes[2]![9], 1); assert.equal(writes[3]![9], 2);
   const responses = [{ status: 'success', value: 1n }, { status: 'authentication', value: null }, { status: 'refusal', value: 'cancelled' }, { status: 'failure', value: null }];
   const bytes = Buffer.concat(responses.map(frame));

@@ -7,7 +7,7 @@ import type { Value } from './codec.ts';
 export type Status = 'input' | 'authentication' | 'certificate' | 'data' | 'limit' | 'failure' | 'refusal' | 'success' | 'prepared' | 'invalidated';
 export interface Response { status: Status; value: Value }
 export interface Request { credential: string; code: string; proof: string; arguments: Value }
-export interface Preparation { credential: string; code: string; proof: string; readOnly?: boolean }
+export interface Preparation { credential: string; code: string; proof: string }
 export interface Execution { credential: string; handle: string; arguments: Value }
 export interface Invalidation { credential: string; handle: string }
 
@@ -137,7 +137,7 @@ export class Client {
 
   prepare(request: Preparation): Promise<Response> {
     this.#strings(request.credential, request.code, request.proof);
-    return this.#send(preparedFrame(request.readOnly ? 3 : 0, request.code, request.credential, null, request.proof));
+    return this.#send(preparedFrame(0, request.code, request.credential, null, request.proof));
   }
 
   execute(request: Execution): Promise<Response> {

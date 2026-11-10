@@ -44,15 +44,10 @@ receipts have a separate protocol boundary from the ordinary path below.
 8. Delivery follows. A delivery failure preserves the published pair and closes
    the channel without automatic retry or deduplication.
 
-`SerialService::execute` covers selection/service start through complete
-proposal/response preparation and child cleanup. `SerialService::publish`
-owns publication; its successful return marks response-ready. It is fallible
-so a durability adapter can terminate without a response on uncertain commit.
-The default serial coordinator writes and flushes that response before selecting
-more work. Optional [certified read batching](READ_BATCHES.md) selects only a
-fixed contiguous queue-head group and emits its responses in FIFO order before
-dispatching any exclusive work.
-Prepared registry mutations remain inside the same exclusively owned service.
+The serial coordinator completes execution, cleanup, and publication, then
+writes and flushes the response before selecting another request. Uncertain
+publication terminates service without a response. Prepared registry mutations
+remain inside the same exclusively owned service.
 No identity is computed/cached by the framing reader.
 
 Queue reservations include a body currently being read: at most 8 items and
@@ -61,10 +56,7 @@ With serial execution there is one additional active request of at most the mess
 ready/emitting response subject to the existing logical response checks (or a
 fixed canonical error). The published pair, proposal/worker intermediates,
 prepared registry, allocator overhead and OS pipe buffers retain their existing
-costs; this is not a total-process memory ceiling. A read batch retains at most
-`read-workers` additional active request bodies and ready results and borrows
-one immutable published state; native pipelines still hold their own encoded
-inputs/results. All canonical uint64 message
+costs; this is not a total-process memory ceiling. All canonical uint64 message
 limits remain valid; the accounting ceiling is not an upfront allocation. An
 actual unallocatable body under the logical limit terminates as an ordered
 technical transport failure without a false canonical limit response.
@@ -94,7 +86,7 @@ releases its resources. A child failure returns `failure` without publishing, an
 the host can serve the next call. Uncertain ownership ends use of the instance
 without repeating a potentially consumed operation.
 
-The profile is a FIFO Linux CLI with trusted tools and host, serial by default. Its default
+The profile is a serial FIFO Linux CLI with trusted tools and host. Its default
 volatile mode loses RAM data when the host dies. Optional complete-image
 persistence is enabled explicitly:
 
@@ -107,16 +99,12 @@ persistence is enabled explicitly:
 
 Create requires a new directory with an existing parent; open requires the
 authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
-Every successful state proposal on the serial/exclusive path writes and synchronizes a complete temporary
+Every successful state proposal writes and synchronizes a complete temporary
 image, atomically replaces the authoritative image, and synchronizes the
 directory before RAM publication and response delivery. Errors from replacement
 onward stop the instance with no response, since rollback may be false. Missing,
 corrupt or incompatible images stop startup; no seed or older image is used as
-fallback. Users and all tables survive; prepared handles do not. The certified
-batch path enabled by `--read-workers` greater than one checks that successful
-returned state equals the already durable pinned root, discards that copy, and
-does not rewrite the snapshot. Default one-worker reads retain serial
-publication and persistence behavior, even when their state is unchanged.
+fallback. Users and all tables survive; prepared handles do not.
 
 Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable
@@ -129,15 +117,13 @@ change. The stage uses Clang 19 with `--no-default-config`; native programs
 receive the official `--threads N --gpu off` options. CPU workers default to
 the host's available parallelism, capped at 128 (one if detection fails).
 The host's `--threads N` option accepts 1–128 and applies to all native stages,
-including prepared execution. Exclusive requests use the whole budget; each
-concurrent read uses `floor(threads / read-workers)` workers. Publication and
-response delivery remain owned by the coordinator.
+including prepared execution. Each native process uses the selected budget.
+Publication and response delivery remain owned by the coordinator.
 Installation of these tools is part of the trusted environment.
 
 Optional [administrator timing](SERVICE_TIMING.md) records monotonic elapsed
-service time through cleanup and result readiness. Concurrent completions are
-stamped within their workers, before FIFO emission. It changes no client
-responses or admission decisions. This integration has no quota policy.
+service time through cleanup and result readiness, before response delivery.
+It changes no client responses or admission decisions. This integration has no quota policy.
 
 ## Verification
 

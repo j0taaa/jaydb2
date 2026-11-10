@@ -140,8 +140,7 @@ fn checked(
         && error.code == "HOST_PIPE_SETUP"
     {
         // Preserve the fatal thread-startup policy after waiting-thread joins,
-        // with no helper launched. Serial service stops; a read worker panic is
-        // propagated as a fatal batch error, never a recoverable response.
+        // with no helper launched and no later request selected.
         panic!("jaydb2: cannot start helper pipe thread: {}", error.message);
     }
     result

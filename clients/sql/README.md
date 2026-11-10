@@ -159,7 +159,7 @@ unchanged runtime source bytes as well as the same executable.
 
 The stress target executes 600 reproducible randomized operations by default,
 mixing raw SQL and real Drizzle calls against an independent SQLite oracle. It
-also checks duplicate rollback, concurrent invocation order, fresh credentials,
+also checks duplicate rollback, pipelined invocation order, fresh credentials,
 Unicode/control text, named Drizzle preparations, full retained state and
 durable recovery. It executes original SQL in SQLite; it does not interpret
 the frontend AST as its reference. SQLite is an oracle for the common supported

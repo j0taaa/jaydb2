@@ -45,7 +45,7 @@ class TimingTests(unittest.TestCase):
         records = self.receipts(log)
         self.assertEqual([r['sequence'] for r in records], [1, 2, 3, 4, 5])
         self.assertEqual([r['principal'] for r in records], ['alice', None, 'alice', 'alice', None])
-        self.assertTrue(all(int(r['elapsed_ns']) > 0 and not r['read_batch'] for r in records))
+        self.assertTrue(all(int(r['elapsed_ns']) > 0 for r in records))
         self.assertTrue(all('quota' not in r and 'outcome' not in r for r in records))
 
     def test_queued_credential_exchange_uses_fresh_identity(self):
