@@ -1,0 +1,20 @@
+# Deliberately false semantic claim; this must reject at the proof body.
+import Base
+import ../../../library/QuerySelectionModel.bend as Meaning
+import ../../../library/QueryReadPlanProperties.bend as Props
+import ../../../library/QueryReadPlan.bend as Plan
+import ../../../library/ReadProgramProofs.bend as Total
+import ../../../contract/Data.bend as D
+import ../../../contract/Semantics.bend as S
+import ../../../library/ReadProgram.bend as P
+import ../../../src/Termination.bend as T
+
+def schema() -> D.Schema:
+  D.Schema{[D.SchemaTable{"t","id",[D.Column{"a",D.TextValue{},True{}}]}]}
+
+def state(value: D.Value) -> D.State:
+  D.State{[D.Table{"t",[D.Row{"k",[D.Field{"a",value}]}]}],Nil{}}
+
+law false_reject_real_read_continues_after_failure:
+  {T.observe(4n,P.select(D.Application{"t"},"k",["a","z","zz"]),schema(),state(D.VAbsent{}),Nil{}) == S.Final{state(D.VAbsent{}),[S.OperationEvent{D.ReadCell{D.Application{"t"},"k","a"},S.Reading{D.Cell{D.VAbsent{}}}},S.OperationEvent{D.ReadCell{D.Application{"t"},"k","z"},S.ErrorOfData{}},S.OperationEvent{D.ReadCell{D.Application{"t"},"k","zz"},S.ErrorOfData{}}],S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
+def false_reject_real_read_continues_after_failure(): {==}

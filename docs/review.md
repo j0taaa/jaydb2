@@ -220,14 +220,17 @@ cause division overflow.
 Further general proofs now cover independent signed order and extrema,
 exact filtering/pagination, tied-class sort stability, unique complete ordered
 groups, full occurrence-based inner/left joins, and exact key/value/record
-acceptance and lookup domains. Read/action/mutation/index/receipt and broader
-business functional specifications still require additional theorems. These algorithm contracts are distinct from the transaction
+acceptance and lookup domains. Total read/query/selection proofs now cover every input, including exact
+histories and first failure; canonical responses are derived from structured
+source state. General filter-map order/projection follows from local contextual
+visitor contracts, discharged for a real one-cell visitor. Action/mutation/index/
+receipt and broader business functional specifications remain open. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
 
-The latest combined maintained gate passed both official modes and all 198
+The latest combined maintained gate passed both official modes and all 230
 intended core rejections per mode on unchanged recorded inputs. Its import
-inventory reaches 333 modules, including 103 library modules; this inventory
+inventory reaches 352 modules, including 122 library modules; this inventory
 still measures checked reachability, not whole-project correctness.
 
 A real read-batch progress defect was also repaired. A later worker spawn

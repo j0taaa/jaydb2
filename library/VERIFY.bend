@@ -27,6 +27,11 @@ import ./ValueListProofs.bend as ValueListProofs
 import ./RecordCanonicalProofs.bend as RecordCanonicalProofs
 import ./RecordShapeProofs.bend as RecordShapeProofs
 import ./RecordLookupProofs.bend as RecordLookupProofs
+import ./ReadAdapterProofs.bend as ReadAdapterProofs
+import ./QuerySelectionProofs.bend as QuerySelectionProofs
+import ./QueryCellVisitorProofs.bend as QueryCellVisitorProofs
+import ./QueryFilterMapPositions.bend as QueryFilterMapPositions
+import ./QueryReadPlanProperties.bend as QueryReadPlanProperties
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

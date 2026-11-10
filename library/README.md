@@ -310,8 +310,22 @@ and proper-list-shape domains. `RecordCanonicalProofs`, `RecordShapeProofs` and
 `RecordLookupProofs` connect canonical fields, exact reverse-conversion domains,
 unique original indices and lookup payloads. These results include malformed
 inputs; list shape does not imply validity of arbitrary nested elements.
-Broader read/action/mutation/index/receipt and business functional specifications
-still require additional theorems.
+`ReadAdapterProofs` and `ReadProgramTrace` cover exact named operations and every
+return/argument variant. `QueryReadPlanProofs` and `ReadProgramProofs` prove total
+actual-engine read/selection behavior from all inputs, with exact history,
+validation and first-data-failure handling; they assume no observed output or
+completed execution. `QueryReadPlanProperties` derives canonical results from
+structured source state. Owned-prefix proofs leave arbitrary caller actions
+outside the helper's read-only boundary.
+
+`QueryFilterMapProofs` derives operation and projection order from necessary
+per-visitor contextual contracts, one per original key/start index, quantified
+over arbitrary continuation and remaining depth. `QueryCellVisitorProofs`
+discharges them for a real one-cell visitor and every Return.
+`QueryFilterMapPositions` adds exact original positions and prefix ranks.
+Arbitrary visitors can refuse or skip their continuation, so unconditional
+whole-map completion is not claimed. Action/mutation/index/receipt and broader
+business functional specifications still require additional theorems.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

@@ -871,5 +871,57 @@
       "Read/query/action/mutation/index/receipt and application functional obligations beyond the specific checked theorems."
     ],
     "post_gate_changes": "Existing documentation and validation metadata updated after the frozen gate; checked maintained Bend/Rust/test/tool inputs unchanged."
+  },
+  "read_query_2026_11_09": {
+    "base_main": "03ec9d5",
+    "whole_goal_complete": false,
+    "scope": "Exact and total Read/Query/ReadProgram behavior, without runtime/law/tool changes. General filter_map requires only per-original-visitor contextual refinement, not an assumed complete map trace.",
+    "theorems": [
+      "Exact keys/exists/count named Access constructors and every Return decoder, including unexpected-return refusal; ReadProgram all argument and Selection variants.",
+      "Arbitrary-continuation owned prefixes stop before the caller action and preserve exact requested operation order. Arbitrary callbacks can still access/write and are not falsely declared read-only.",
+      "Independent first-non-cell status and ordered field materialization model; supplied RowAbsent/unexpected Return still permits remaining field reads. Actual D.operate failure stops before the callback and retains exactly the preceding observed history.",
+      "Total actual read_fields and public closed ReadProgram.select for every schema/state/collection/key/names/history, driven only by a DATA source plan of actual D.operate. No final result, successful read output or invariant premise. Invalid fields read nothing; empty fields test neither address nor row existence.",
+      "Canonical selected records and complete valid public responses follow from D.structure and validated names. Cell validity is derived from the structured source state, not assumed. Actual named-read plans never fabricate UnexpectedReturn.",
+      "General filter_map concatenates visitor operations in original key order and preserves Some/None projection order and duplicates, under one-use per-original-call contextual certificates quantified over arbitrary continuation and remaining depth. A real one-cell visitor discharges these local contracts for every Return; independent indexed source positions/prefix ranks characterize retained values."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 437.75645661354065,
+      "frozen_inputs": 905,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 230
+    },
+    "coverage": {
+      "transitive_modules": 352,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 122,
+          "law_declarations": 603
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 32,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-read-query-gate.log": "c4835a6c41990f1d41e8dcb12684d873809b5530709fd4a4f1779ceea889920c",
+      ".build/review/read-query-functional/validation.json": "6fe9c30fa95bd1c064635e93faeaaacd1ea105a90a297237d5e85ab9f88278a1",
+      ".build/review/read-query-functional/promotion-proposal.json": "b579f1fc8fdc47db8e524443f5297eea547c16bc201a3f486f623ce07410ab9b",
+      ".build/review/read-query-promoted.json": "58c9a2b44de61736148f61e4a39a86e4ac1910339f5f8cdb59e583b8946cae3c"
+    },
+    "remaining": [
+      "Complete chronological ordinary/prepared eight-law service composition and progress, recovery startup, native/compiler/OS/storage/derivation correspondence.",
+      "Action/Mutation/Index/Summary storage/Receipt and broader business functional specifications."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; maintained checked runtime/Bend/test/tool inputs unchanged."
   }
 }
