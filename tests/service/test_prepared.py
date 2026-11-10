@@ -124,8 +124,11 @@ class PreparedTests(unittest.TestCase):
                     {'status': 'input', 'value': None})
             self.assertEqual(server.prepared(1, handle, 'alice-final', proof='replacement'),
                 {'status': 'input', 'value': None})
-            self.assertEqual(server.exchange((2).to_bytes(8, 'big')+bytes((7, 9))),
-                {'status': 'input', 'value': None})
+            for operation in (3, 9):
+                unknown = bytes((7, operation)) + encode(dict(code=code, proof=proof,
+                    credential='alice-final', arguments=None))
+                self.assertEqual(server.exchange(len(unknown).to_bytes(8, 'big')+unknown),
+                    {'status': 'input', 'value': None})
             self.assertEqual(server.prepared(2, handle, 'alice-final'), {'status': 'invalidated', 'value': None})
             self.assertEqual(server.prepared(1, handle, 'alice-final', 'forgotten'),
                 {'status': 'failure', 'value': None})

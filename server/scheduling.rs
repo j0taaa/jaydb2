@@ -39,30 +39,15 @@ pub enum FrameEvent {
     End(InputEnd),
 }
 
-/// `execute` returns only after the entire proposal/response and worker cleanup
-/// are complete. The service (including handles) stays coordinator-owned.
-/// `publish` owns state publication; successful return is response-ready.
-/// Fatal publication errors cause no response and no subsequent selection.
-pub trait SerialService {
-    type Completion;
-    fn execute(&mut self, body: &[u8]) -> Self::Completion;
-    fn publish(&mut self, completion: Self::Completion) -> crate::Result<Vec<u8>>;
-}
-
-#[cfg(test)]
 pub fn coordinate(
     queue: &FrameQueue,
     output: &mut impl io::Write,
-    service: &mut impl SerialService,
+    mut request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
     loop {
         let (response, terminal) = match queue.select() {
-            FrameEvent::Request(body) => {
-                let completed = service.execute(&body);
-                drop(body);
-                (service.publish(completed)?, false)
-            }
+            FrameEvent::Request(body) => (request(&body)?, false),
             FrameEvent::End(InputEnd::Eof) => return Ok(()),
             FrameEvent::End(InputEnd::Failed(error)) => return Err(error),
             FrameEvent::End(InputEnd::Framing(status)) => (terminal_response(status), true),
@@ -203,37 +188,6 @@ impl FrameQueue {
             }
             state = self.shared.changed.wait(state).unwrap();
         }
-    }
-
-    #[cfg(test)]
-    pub fn wait_for_end(&self) {
-        let (state, timeout) = self
-            .shared
-            .changed
-            .wait_timeout_while(
-                self.shared.state.lock().unwrap(),
-                std::time::Duration::from_secs(5),
-                |state| state.end.is_none(),
-            )
-            .unwrap();
-        assert!(
-            !timeout.timed_out() || state.end.is_some(),
-            "input completion timed out"
-        );
-    }
-
-    /// Select only an already-enqueued qualifying head. Never skip a barrier,
-    /// consume a terminal event, or wait for a batch to fill.
-    pub fn select_if(&self, eligible: impl FnOnce(&[u8]) -> bool) -> Option<Vec<u8>> {
-        let mut state = self.shared.state.lock().unwrap();
-        if !state.frames.front().is_some_and(|body| eligible(body)) {
-            return None;
-        }
-        let body = state.frames.pop_front().expect("checked head");
-        state.items -= 1;
-        state.bytes -= body.len();
-        self.shared.changed.notify_all();
-        Some(body)
     }
 
     /// Cancel blocked reads/capacity waits and join the sole owned reader.
@@ -504,7 +458,13 @@ mod tests {
         wait(&queue, |s| s.end.is_some());
         let mut service = Service::default();
         let mut output = Vec::new();
-        let error = coordinate(&queue, &mut output, &mut service, error_frame).unwrap_err();
+        let error = coordinate(
+            &queue,
+            &mut output,
+            |body| service.request(body),
+            error_frame,
+        )
+        .unwrap_err();
         assert!(error.message.contains("controlled input failure"));
         assert_eq!(service.selected, [b"ok".to_vec()]);
         assert_eq!(output, b"ok");
@@ -516,18 +476,15 @@ mod tests {
         published: usize,
         fatal: bool,
     }
-    impl SerialService for Service {
-        type Completion = Vec<u8>;
-        fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+    impl Service {
+        fn request(&mut self, body: &[u8]) -> Result<Vec<u8>> {
             self.selected.push(body.to_vec());
-            body.to_vec()
-        }
-        fn publish(&mut self, completed: Vec<u8>) -> Result<Vec<u8>> {
+
             self.published += 1;
             if self.fatal {
                 return Err(Error::new("COMMIT_UNCERTAIN", "controlled fatal commit"));
             }
-            Ok(completed)
+            Ok(body.to_vec())
         }
     }
 
@@ -546,9 +503,14 @@ mod tests {
         };
         let mut output = Vec::new();
         assert_eq!(
-            coordinate(&queue, &mut output, &mut service, error_frame)
-                .unwrap_err()
-                .code,
+            coordinate(
+                &queue,
+                &mut output,
+                |body| service.request(body),
+                error_frame
+            )
+            .unwrap_err()
+            .code,
             "COMMIT_UNCERTAIN"
         );
         assert!(output.is_empty());
@@ -599,7 +561,15 @@ mod tests {
                 fail_after,
                 fail_flush,
             };
-            assert!(coordinate(&queue, &mut output, &mut service, error_frame).is_err());
+            assert!(
+                coordinate(
+                    &queue,
+                    &mut output,
+                    |body| service.request(body),
+                    error_frame
+                )
+                .is_err()
+            );
             assert_eq!(output.bytes, expected);
             assert_eq!(service.selected, [b"ok".to_vec()]);
             assert_eq!(service.published, 1);
@@ -751,7 +721,13 @@ mod tests {
             FrameQueue::start(input, u64::MAX, QueueBounds::for_message_limit(u64::MAX)).unwrap();
         let mut service = Service::default();
         let mut output = Vec::new();
-        coordinate(&queue, &mut output, &mut service, error_frame).unwrap();
+        coordinate(
+            &queue,
+            &mut output,
+            |body| service.request(body),
+            error_frame,
+        )
+        .unwrap();
         assert_eq!(
             service.selected,
             [b"small".to_vec(), vec![], b"next".to_vec()]
@@ -769,7 +745,13 @@ mod tests {
             wait(&queue, |s| s.end.is_some());
             let mut service = Service::default();
             let mut output = Vec::new();
-            let error = coordinate(&queue, &mut output, &mut service, error_frame).unwrap_err();
+            let error = coordinate(
+                &queue,
+                &mut output,
+                |body| service.request(body),
+                error_frame,
+            )
+            .unwrap_err();
             assert_eq!(error.code, "HOST_TRANSPORT");
             assert_eq!(output, b"ok");
             assert_eq!(service.selected, [b"ok".to_vec()]);
@@ -783,17 +765,14 @@ mod tests {
             events: Sender<&'static str>,
             execute: Receiver<()>,
         }
-        impl SerialService for ControlledService {
-            type Completion = Vec<u8>;
-            fn execute(&mut self, body: &[u8]) -> Vec<u8> {
+        impl ControlledService {
+            fn request(&mut self, body: &[u8]) -> Result<Vec<u8>> {
                 self.events.send("selected").unwrap();
                 self.execute.recv().unwrap(); // controlled worker completion
                 self.events.send("worker-cleaned").unwrap();
-                body.to_vec()
-            }
-            fn publish(&mut self, body: Vec<u8>) -> Result<Vec<u8>> {
+
                 self.events.send("response-ready").unwrap();
-                Ok(body)
+                Ok(body.to_vec())
             }
         }
         struct ControlledOutput {
@@ -833,7 +812,13 @@ mod tests {
                 emit,
                 bytes: vec![],
             };
-            coordinate(&queue, &mut output, &mut service, error_frame).unwrap();
+            coordinate(
+                &queue,
+                &mut output,
+                |body| service.request(body),
+                error_frame,
+            )
+            .unwrap();
             output.bytes
         });
         let event = || observed.recv_timeout(Duration::from_secs(5)).unwrap();

@@ -22,16 +22,13 @@ return `input`. Ordinary malformed records remain malformed.
 
 | Opcode | Meaning of `code` | `proof` | `arguments` | Result |
 | --- | --- | --- | --- | --- |
-| 3 prepare read | Original source | Universal proof plus whole-program read proof | Public value, ignored | `prepared`, value = handle |
 | 0 prepare | Original source | Universal proof source | Public value, ignored | `prepared`, value = handle |
 | 1 execute | Handle | Empty string | Actual call arguments | Ordinary transaction response |
 | 2 invalidate | Handle | Empty string | Public value, ignored | `invalidated`, value = null |
 
-All four operations authenticate the actual credential against current
+All three operations authenticate the actual credential against current
 published state before admission, semantic handle resolution, or invalidation.
-The read scheduler may inspect a candidate registration before authentication
-to classify a batch; that lookup grants no execution authority. A handle grants
-no actor identity; another authenticated user can execute the program under
+A handle grants no actor identity; another authenticated user can execute the program under
 their own context. Unknown, invalidated, and other-instance handles return
 `failure`; nonempty handle-call proofs and malformed opcodes return `input`.
 These are protocol/control failures, not mathematical proof rejections. An
@@ -167,9 +164,8 @@ The additive contract is defined in `contract/PreparedProtocol.bend`,
 `PreparedProtocol.Received` binds valid actual reception to the exact prefixed
 canonical bytes and full physical message limit. `PreparedLaws.Ready` binds a
 call to fresh authentication, exact original source/proof, universal admission,
-the fixed read certificate for read-marked entries, and current per-call
-artifact validation. `ControlOutcome` specifies exact authorized registry
-deltas and unchanged published pairs, including receipt limits, unknown-handle
+and current per-call artifact validation. `ControlOutcome` specifies exact
+authorized registry deltas and unchanged published pairs, including receipt limits, unknown-handle
 errors and cleanup failure after invalidation. The additional `ControlLaw`
 states obligations over the declared metadata observations. Its observation
 type does not yet express sent prefixes, delivery completion, closure or
@@ -199,6 +195,3 @@ supported by review and tests; hashes alone do not prove them. Official
 fragment/translation and physical failure limitations remain. This extension
 adds no runtime, quota, deadline or persistent prepared handles. Optional
 database-state persistence is provided separately.
-
-The optional [certified read-batch extension](READ_BATCHES.md) adds opcode 3;
-ordinary preparation and execution retain their original certificate requirements.

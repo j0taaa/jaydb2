@@ -117,7 +117,8 @@ For your own TypeScript host application, see the
 [client API and example](clients/typescript/README.md). The package can be built
 and installed locally into a separate TS project; publishing to npm is not
 required. It handles ordinary requests and optional prepared handles, while
-your Bend program and proof remain explicit inputs.
+your Bend program and proof remain explicit inputs. Requests execute one at a
+time; `--threads N` controls the CPU workers within each native process.
 
 ## Troubleshooting
 

@@ -74,13 +74,12 @@ compiler; the host retains the last published state.
   Development databases can be
   recreated after changes; cross-build compatibility and migrations are outside
   scope. Uncertain commit failures stop service rather than promise rollback.
-- **[Certified CPU read batches](tools/service/READ_BATCHES.md):** optional
-  `--threads 4 --read-workers 2`; only separately certified whole-program reads
-  overlap. Writes and prepared controls remain FIFO barriers. One reader is
-  the default. `--threads N` selects a total native-worker budget of 1–128.
 - **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in
   `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
   Queue waiting and response delivery are excluded. Client bytes are unchanged.
+
+Requests are processed serially. `--threads N` selects 1–128 native CPU workers
+per process.
 
 These capabilities do not add GPU execution, a Bend host replacement or quotas.
 The database contract has three canonical size limits: message, state and

@@ -43,7 +43,6 @@ pub struct Attempt {
     started: Duration,
     sequence: u64,
     principal: Option<String>,
-    read_batch: bool,
 }
 impl Attempt {
     pub fn authenticated(&mut self, principal: &str) {
@@ -72,18 +71,17 @@ impl Timing {
         })
     }
 
-    pub fn selected(&self, read_batch: bool) -> Attempt {
+    pub fn selected(&self) -> Attempt {
         Attempt {
             started: self.clock.now(),
             sequence: self.next.fetch_add(1, Ordering::Relaxed),
             principal: None,
-            read_batch,
         }
     }
 
     pub fn completed(&self, attempt: Attempt) {
         // Stamp before serializing or waiting for the log lock, and before any
-        // FIFO response wait. A slow administrator sink adds no service time.
+        // client delivery. A slow administrator sink adds no service time.
         let elapsed = self
             .clock
             .now()
@@ -93,8 +91,7 @@ impl Timing {
             "format": "jaydb-service-timing-v1",
             "sequence": attempt.sequence,
             "principal": attempt.principal,
-            "elapsed_ns": elapsed.as_nanos().to_string(),
-            "read_batch": attempt.read_batch
+            "elapsed_ns": elapsed.as_nanos().to_string()
         }))
         .expect("timing JSON serialization");
         bytes.push(b'\n');
@@ -121,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn reverse_completion_preserves_dispatch_identity_and_excludes_delivery() {
+    fn serial_completion_preserves_dispatch_identity_and_excludes_delivery() {
         let directory =
             super::super::Temporary::new(&std::env::temp_dir(), "jaydb-timing").unwrap();
         let path = directory.path.join("records");
@@ -131,27 +128,27 @@ mod tests {
             next: AtomicU64::new(1),
             sink: Mutex::new(Some(Sink::File(File::create(&path).unwrap()))),
         };
-        let mut first = timing.selected(true);
+        let mut first = timing.selected();
         first.authenticated("alice");
-        clock.store(503, Ordering::SeqCst);
-        let mut second = timing.selected(true);
-        second.authenticated("bob");
-        clock.store(518, Ordering::SeqCst);
-        timing.completed(second);
         clock.store(540, Ordering::SeqCst);
         timing.completed(first);
+        clock.store(550, Ordering::SeqCst);
+        let mut second = timing.selected();
+        second.authenticated("bob");
+        clock.store(565, Ordering::SeqCst);
+        timing.completed(second);
         clock.store(999, Ordering::SeqCst); // Delivery does not alter records.
         let records: Vec<serde_json::Value> = std::fs::read_to_string(path)
             .unwrap()
             .lines()
             .map(|line| serde_json::from_str(line).unwrap())
             .collect();
-        assert_eq!(records[0]["sequence"], 2);
-        assert_eq!(records[0]["elapsed_ns"], "15");
-        assert_eq!(records[0]["principal"], "bob");
-        assert_eq!(records[1]["sequence"], 1);
-        assert_eq!(records[1]["elapsed_ns"], "40");
-        assert_eq!(records[1]["principal"], "alice");
+        assert_eq!(records[0]["sequence"], 1);
+        assert_eq!(records[0]["elapsed_ns"], "40");
+        assert_eq!(records[0]["principal"], "alice");
+        assert_eq!(records[1]["sequence"], 2);
+        assert_eq!(records[1]["elapsed_ns"], "15");
+        assert_eq!(records[1]["principal"], "bob");
     }
 
     #[test]
@@ -160,10 +157,10 @@ mod tests {
             super::super::Temporary::new(&std::env::temp_dir(), "jaydb-timing").unwrap();
         let path = directory.path.join("records");
         let timing = Timing::open(&path).unwrap();
-        let mut authenticated = timing.selected(false);
+        let mut authenticated = timing.selected();
         authenticated.authenticated("");
         timing.completed(authenticated);
-        timing.completed(timing.selected(false));
+        timing.completed(timing.selected());
         let records: Vec<serde_json::Value> = std::fs::read_to_string(path)
             .unwrap()
             .lines()

@@ -18,7 +18,7 @@ from tools.client import encode,frame,prepared_frame
 cases=[None,False,True,0,-1,-(1<<63),(1<<63)-1,'','\\ufeffBOM','é e\\u0301 🫖 \\x00 \\U0010ffff',[],{},[1,'x',False,None],{'z':[2,{'a':'y'}],'a':-42},{'constructor':'safe','prototype':'field'}]
 for value in cases: print(encode(value).hex())
 print(frame({'arguments':[1],'code':'src','credential':'token','proof':'proof'}).hex())
-for op in range(4): print(prepared_frame(op,'src','token',[1],'proof').hex())
+for op in range(3): print(prepared_frame(op,'src','token',[1],'proof').hex())
 `], { cwd: root, encoding: 'utf8' });
   assert.equal(python.status, 0, python.stderr);
   const lines = python.stdout.trim().split('\n');
@@ -28,7 +28,7 @@ for op in range(4): print(prepared_frame(op,'src','token',[1],'proof').hex())
   }
   const request = { arguments: [1n], code: 'src', credential: 'token', proof: 'proof' };
   assert.equal(frame(request).toString('hex'), lines[cases.length]);
-  for (const op of [0, 1, 2, 3] as const) assert.equal(preparedFrame(op, 'src', 'token', [1n], 'proof').toString('hex'), lines[cases.length + 1 + op]);
+  for (const op of [0, 1, 2] as const) assert.equal(preparedFrame(op, 'src', 'token', [1n], 'proof').toString('hex'), lines[cases.length + 1 + op]);
   assert.deepEqual(unframe(frame(request)), request);
   assert.equal(decode(encode(123)), 123n);
 });

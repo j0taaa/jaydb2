@@ -3,7 +3,7 @@
 ```
 mkdir -p build
 ./jaydb2 --configuration examples/access/Configuration.bend \
-  --seed examples/access/Seed.bend --threads 2 --read-workers 2 \
+  --seed examples/access/Seed.bend --threads 2 \
   --timing-log build/service.ndjson
 ```
 
@@ -19,12 +19,11 @@ No logging is enabled by default. Quota enforcement is excluded from integration
 A completed selected request produces a record such as:
 
 ```json
-{"format":"jaydb-service-timing-v1","sequence":2,"principal":"alice","elapsed_ns":"42000000","read_batch":true}
+{"format":"jaydb-service-timing-v1","sequence":2,"principal":"alice","elapsed_ns":"42000000"}
 ```
 
-`sequence` is dispatch order, starting at one per service instance. Concurrent
-records can appear out of order. `principal` is null if authentication did not
-succeed; an authenticated empty ID is the empty string. Nanoseconds are exact
+`sequence` is dispatch order, starting at one per service instance. `principal`
+is null if authentication did not succeed; an authenticated empty ID is the empty string. Nanoseconds are exact
 decimal strings. The log is an observation, not an acknowledgment, result cache,
 rollback assertion, or new protocol response.
 
@@ -32,32 +31,22 @@ rollback assertion, or new protocol response.
 
 The metric is monotonic wall service time, not CPU usage. It starts when a
 complete frame is selected for service, before decoding and authentication.
-For a fixed batch, attempts are selected immediately before worker launches;
-thread-launch scheduling overhead is included. Reception, prior queue waits,
-startup and terminal framing events are excluded.
+Reception, prior queue waits, startup and terminal framing events are excluded.
 
 The interval includes snapshot packet copying, authentication, artifact checks,
 proof admission/compilation where applicable, native execution, child and pipe
-cleanup, proposal validation and publication. Exclusive completion is stamped
+cleanup, proposal validation and publication. Completion is stamped
 at `publish_with_ready`: after any durable snapshot commit and RAM publication,
 before final inspection and client delivery. A fatal commit uncertainty before
 that hook is measured once at the fatal return; service still stops with no
 response or later dispatch. A log cannot determine whether an uncertain commit
 reached storage.
 
-Read batches share an already-published immutable root. Each read stamps its
-own completion inside its worker after checks, cleanup and duplicate returned
-state discard, before waiting for earlier responses. A mutex serializes log
-bytes only; elapsed time is sampled before acquiring it. Completed active reads
-are logged even when a preceding delivery fails and their responses are
-suppressed. A process kill, aborted thread start, panic or request that never
-finishes can leave no completion record. No cancellation or deadline is added.
-
 Intermediate inspection during execution remains part of service time; final
-inspection, log serialization/write/lock waiting, FIFO response waiting and
-client write/flush are excluded. Overlapping requests each accumulate their
-own wall interval. The sequence counter resets on restart, including durable
-reopen. An existing log file is appended to, so separate instances can produce
+inspection, log serialization/write/lock waiting, and client write/flush are
+excluded. A process kill, panic or request that never finishes can leave no
+completion record. No cancellation or deadline is added. The sequence counter
+resets on restart, including durable reopen. An existing log file is appended to, so separate instances can produce
 the same sequence numbers. The counter is process-local and not persistent.
 
 ## Authentication transport and proof scope
@@ -73,13 +62,13 @@ The private native authenticator success format is:
 Rejection remains `0 || ordinary_response_frame`; invalid internal transport
 remains `2`. `Messages.authentication` obtains principal and generated instance
 from the same freshly authenticated `Input.Analysis.Received` context. All
-ordinary, prepared and concurrent consumers parse that exact format. Current
+ordinary and prepared consumers parse that exact format. Current
 credentials and administrator laws still apply; no client identity assertion,
 authority, cached authentication or admission bypass is introduced.
 
 The two Messages principal laws prove this source-level identity binding.
 The Rust/Node/native byte bridge, monotonic clock, completion hooks and OS log
 writes remain trusted host behavior covered by controlled-clock and actual
-worker tests. Existing serial/read-only theorems are not silently extended to
+worker tests. Existing serial theorems are not silently extended to
 prove those effects. All three canonical byte limits and ordinary response
 bytes remain unchanged.

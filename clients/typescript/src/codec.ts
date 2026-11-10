@@ -134,9 +134,9 @@ export function frame(value: Value): Buffer {
   return Buffer.concat([length(body.length), body]);
 }
 
-export function preparedFrame(operation: 0 | 1 | 2 | 3, code: string, credential: string,
+export function preparedFrame(operation: 0 | 1 | 2, code: string, credential: string,
   arguments_: Value = null, proof = ''): Buffer {
-  if (![0, 1, 2, 3].includes(operation)) throw new TypeError('Invalid prepared operation');
+  if (![0, 1, 2].includes(operation)) throw new TypeError('Invalid prepared operation');
   const body = Buffer.concat([Buffer.from([7, operation]), encode({ arguments: arguments_, code, credential, proof })]);
   return Buffer.concat([length(body.length), body]);
 }

@@ -106,8 +106,8 @@ def frame(value):
 
 
 def prepared_frame(operation, code, credential, arguments=None, proof=''):
-    """Prepare source (0), execute a handle (1), invalidate (2), or prepare read-only (3)."""
-    if type(operation) is not int or operation not in (0, 1, 2, 3):
+    """Prepare source (0), execute a handle (1), invalidate (2)."""
+    if type(operation) is not int or operation not in (0, 1, 2):
         raise ValueError('Invalid prepared operation')
     body = bytes((7, operation)) + encode({'arguments': arguments, 'code': code,
                                          'credential': credential, 'proof': proof})
@@ -129,7 +129,6 @@ def main():
     p.add_argument('--arguments', default='null', help='JSON value, without fractional numbers')
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--prepare', action='store_true', help='Prepare source with a universal certificate')
-    mode.add_argument('--prepare-read', action='store_true', help='Prepare with universal administrator and read-only certificates')
     mode.add_argument('--handle', help='Execute an instance-local prepared handle')
     mode.add_argument('--invalidate', help='Invalidate an instance-local prepared handle')
     a = p.parse_args()
@@ -153,8 +152,8 @@ def main():
         value = {'arguments': json.loads(a.arguments),
             'code': a.code.read_bytes().decode('utf-8'), 'credential': a.credential,
             'proof': a.proof.read_bytes().decode('utf-8')}
-        if a.prepare or a.prepare_read:
-            sys.stdout.buffer.write(prepared_frame(3 if a.prepare_read else 0, value['code'], a.credential, value['arguments'], value['proof']))
+        if a.prepare:
+            sys.stdout.buffer.write(prepared_frame(0, value['code'], a.credential, value['arguments'], value['proof']))
         else:
             sys.stdout.buffer.write(frame(value))
 

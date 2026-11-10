@@ -173,18 +173,16 @@ test('shared administrator modules and the canonical configuration alias still s
   }
 });
 
-test('prepared and read-only contract dependencies survive the production public staging closure', t => {
+test('prepared contract dependencies survive the production public staging closure', t => {
   const f = fixture(t);
-  fs.writeFileSync(f.config, 'import ./PreparedLaws.bend as Prepared\n' +
-    'import ./ReadOnlyContract.bend as ReadContract\nimport ./ReadOnly.bend as ReadOnly\n');
+  fs.writeFileSync(f.config, 'import ./PreparedLaws.bend as Prepared\n');
   const original = child.spawnSync;
   let calls = 0;
   child.spawnSync = (_program, args) => {
     calls++;
     const manifest = JSON.parse(fs.readFileSync(args[2], 'utf8'));
     const staged = new Set(manifest.dependencies.map(dependency => dependency.path));
-    for (const name of ['PreparedLaws.bend', 'PreparedProtocol.bend', 'PreparedRegistry.bend',
-      'ReadOnlyContract.bend', 'ReadOnly.bend']) assert.ok(staged.has(name), name);
+    for (const name of ['PreparedLaws.bend', 'PreparedProtocol.bend', 'PreparedRegistry.bend']) assert.ok(staged.has(name), name);
     for (const dependency of manifest.dependencies) {
       const source = fs.readFileSync(path.join(manifest.submissionDir, dependency.path), 'utf8');
       assert.doesNotMatch(source, /^import\s+\.\.\//m, dependency.path);
@@ -262,7 +260,8 @@ test('the frozen recovery descriptor retains exact public, tooling and controlle
 // after restoring the compiler. Broken worker proofs must be host failures.
 test('prepared staging preserves client text and checks the actual worker proofs', async t => {
   const target = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
-  for (const purpose of ['prepare', 'prepare-read']) for (const kind of ['comment', 'literal']) {
+  const purpose = 'prepare';
+  for (const kind of ['comment', 'literal']) {
     const f = fixture(t), submission = submissionFixture(t);
     const originalInstance = submission.read('Instance.bend');
     fs.writeFileSync(f.config, originalInstance.split('\ndef context()')[0]);
@@ -274,8 +273,7 @@ test('prepared staging preserves client text and checks the actual worker proofs
       : '\ndef source_marker() -> String:\n  ' + JSON.stringify(target) + '\n'));
     submission.bindCode();
     submission.write('ClientProof.bend', submission.read('ClientProof.bend').replace(
-      'def B.certificate(s, valid, identity, n):', 'def B.certificate(ctx, args, s, valid, identity, n):') +
-      (purpose === 'prepare-read' ? '\ndef B.read_only(ctx, args):\n  (1n, Unit{})\n' : ''));
+      'def B.certificate(s, valid, identity, n):', 'def B.certificate(ctx, args, s, valid, identity, n):'));
     const code = submission.read('Client.bend'), proof = submission.read('ClientProof.bend');
     const original = child.spawnSync;
     child.spawnSync = () => ({ status: 37 }); syncBuiltinESMExports();
@@ -299,14 +297,13 @@ test('prepared staging preserves client text and checks the actual worker proofs
     assert.equal(admitted.report.primary, true);
     assert.equal(admitted.report.bendtt, true);
     assert.equal(admitted.report.certificateMode, 'universal');
-    assert.equal(admitted.report.readOnly, purpose === 'prepare-read');
     const manifestFile = path.join(output, 'manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
     const worker = await admitSubmission(manifest);
     assert.equal(worker.report.primary, true);
     assert.equal(worker.report.bendtt, true);
     emitC(worker); // Exercise the same checked Book and release its ABI snapshot.
-    if (purpose === 'prepare' && kind === 'literal') {
+    if (kind === 'literal') {
       const mainFile = path.join(output, 'Main.bend'), main = fs.readFileSync(mainFile, 'utf8');
       const mutations = [
         ['Native.Prepare{u => s}', 'Native.Continue{u => s}', 'conversion_preserves_exact_iteration'],

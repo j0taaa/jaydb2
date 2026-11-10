@@ -64,7 +64,7 @@ def session(app, storage, mode, log):
     server = Server(app, threads=2, seed=mode == 'create',
         env=dict(os.environ, TMPDIR=str(BUILD), BENDRTS='--gpu-build --help'),
         arguments=['--storage', str(storage), '--storage-mode', mode,
-                   '--read-workers', '2', '--timing-log', str(log)])
+                   '--timing-log', str(log)])
     try:
         yield server
         server.finish()
@@ -81,7 +81,6 @@ def timing(log, principals):
     assert [record['principal'] for record in records] == principals, records
     for record in records:
         assert record['format'] == 'jaydb-service-timing-v1', record
-        assert record['read_batch'] is False, record  # Write-capable handles stay exclusive.
         assert record['elapsed_ns'].isdigit() and int(record['elapsed_ns']) > 0, record
         assert 'quota' not in record, record
     return records
@@ -91,11 +90,11 @@ def main():
     BUILD.mkdir(parents=True, exist_ok=True)
     binary = ROOT / 'target/release/jaydb2'
     identity = digest(binary)
-    evidence = {'controller_sha256': identity, 'threads': 2, 'read_workers': 2,
+    evidence = {'controller_sha256': identity, 'threads': 2,
                 'scope': 'certified indexed application, durable snapshots and administrator timing',
                 'source_sha256': {name: digest(ROOT / name) for name in
                     ('server/main.rs', 'server/capture.rs', 'server/storage.rs',
-                     'server/timing.rs', 'server/read_batch.rs', 'src/Messages.bend')},
+                     'server/timing.rs', 'src/Messages.bend')},
                 'sessions': []}
     with tempfile.TemporaryDirectory(prefix='indexed-', dir=BUILD) as temporary:
         directory = Path(temporary)

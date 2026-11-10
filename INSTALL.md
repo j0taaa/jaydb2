@@ -101,7 +101,7 @@ example neither writes a database to disk nor starts a network listener.
 
 Native programs use the host's available CPU parallelism by default (at most
 128 workers), while requests are processed serially. Pass `--threads N` to
-`./jaydb2` to select 1–128 workers. `--threads 1` selects single-threaded
+`./jaydb2` to select 1–128 workers per native process. `--threads 1` selects single-threaded
 execution and can reduce overhead for small sequential programs or when
 running many instances. GPU execution is disabled.
 
