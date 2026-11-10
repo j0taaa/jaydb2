@@ -5,6 +5,7 @@ import { admitSubmission, admitKernel, emitC, configurationLimits } from '../adm
 import { sha256 } from '../admission/bootstrap.mjs';
 
 const [manifestFile, outputFile, sourceDir, kernelPath, pureManifestFile] = process.argv.slice(2);
+let pureAccepted = false;
 try {
   const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
   const toolchain = { sourceDir, kernelPath };
@@ -15,6 +16,7 @@ try {
     for (const dependency of pure.dependencies) if (dependency.path !== pure.entry && fullHashes.get(dependency.path) !== dependency.sha256)
       throw new Error('Pure and executable sources differ');
     await (pure.purpose ? admitKernel : admitSubmission)({ ...pure, toolchain });
+    pureAccepted = true;
   }
   const admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
   const c = emitC(admitted);
@@ -23,6 +25,10 @@ try {
     backend: 'official-bend-c', admission: admitted.report,
     limits: configurationLimits(admitted) }), { flag: 'wx', mode: 0o600 });
 } catch (e) {
-  fs.writeFileSync(outputFile + '.error.json', JSON.stringify({ code: e.code ?? 'HOST_COMPILE', phase: e.phase ?? 'host', message: e.message }));
+  // Once the same pure sources have passed, failure of the executable wrapper
+  // does not refute the client's certificate. Preserve the original diagnostic.
+  fs.writeFileSync(outputFile + '.error.json', JSON.stringify({
+    code: pureAccepted ? 'HOST_COMPILE' : e.code ?? 'HOST_COMPILE',
+    phase: e.phase ?? 'host', message: pureAccepted && e.code ? `${e.code}: ${e.message}` : e.message }));
   process.exitCode = 2;
 }

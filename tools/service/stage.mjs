@@ -48,8 +48,7 @@ def main() -> IO(Unit):
     bytes : List<&2, U32> <- Native.read()
     Native.write(M.FUNCTION(E.PARSER(bytes, S.schema(C.config()), S.limits(C.config()))))
 `;
-const EXECUTE = COMMON + `import ./Protocol.bend as P
-import ./Input.bend as Input
+const EXECUTE = COMMON + `import ./Input.bend as Input
 import ./Execution.bend as E
 import ./Client.bend as Client
 import ./ClientProof.bend as ClientProof
@@ -67,22 +66,46 @@ def convert(i: E.Iteration) -> Native.Iteration<(Unit -> E.StateExecution)>:
     case E.Inconsistent{}:
       Native.Inconsistent{}
 
+# Check the actual ABI conversion in this admitted Book. Only the datatype is
+# used in the proof; foreign IO cannot supply a proposition.
+def Converted(actual: Native.Iteration<(Unit -> E.StateExecution)>, expected: E.Iteration) -> Type:
+  match actual expected:
+    case Native.Continue{state} E.Continue{wanted}: {state(Unit{}) == wanted : E.StateExecution}
+    case Native.Prepare{state} E.Prepare{wanted}: {state(Unit{}) == wanted : E.StateExecution}
+    case Native.FinishOutput{bytes} E.FinishOutput{wanted}: {bytes == wanted : List<&2, U32>}
+    case Native.Inconsistent{} E.Inconsistent{}: Unit
+    case _ _: Empty
+
+law conversion_preserves_exact_iteration:
+  for iteration: E.Iteration
+  Converted(convert(iteration), iteration)
+def conversion_preserves_exact_iteration(iteration):
+  match iteration:
+    case E.Continue{state}: {==}
+    case E.Prepare{state}: {==}
+    case E.FinishOutput{bytes}: {==}
+    case E.Inconsistent{}: Unit{}
+
 def step(state: Unit -> E.StateExecution) -> Native.Iteration<(Unit -> E.StateExecution)>:
   convert(E.advance(state(Unit{}), C.config()))
 
-def launch(input: Input.Analysis) -> IO(Unit):
-  match input:
-    case Input.Received{s, r, ctx}:
-      match r:
-        case P.Request{credential, code, arguments, proof}:
-          Native.loop((Unit -> E.StateExecution), step, u => E.start(Client.program(), ctx, arguments, s))
-    case _:
+law step_preserves_exact_execution_advance:
+  for state: Unit -> E.StateExecution
+  Converted(step(state), E.advance(state(Unit{}), C.config()))
+def step_preserves_exact_execution_advance(state):
+  conversion_preserves_exact_iteration(E.advance(state(Unit{}), C.config()))
+
+def launch(ready: Maybe<&1, (Unit -> E.StateExecution)>) -> IO(Unit):
+  match ready:
+    case Some{initial}:
+      Native.loop((Unit -> E.StateExecution), step, initial)
+    case None{}:
       Native.write([2])
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))
+    launch(E.launch(u => Client.program(), Input.analyze(bytes, S.schema(C.config()), S.limits(C.config()))))
 `;
 
 function imports(data) {
@@ -230,8 +253,8 @@ function stage(environment, directory, purpose, metadata) {
     main = ['prepare', 'prepare-read'].includes(purpose)
       ? EXECUTE.replace('import ./Input.bend as Input',
           'import ./Input.bend as Input\nimport ./Prepared.bend as Prepared')
-        .replace('launch(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())))',
-          'launch(Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source()))')
+        .replace('Input.analyze(bytes, S.schema(C.config()), S.limits(C.config()))',
+          'Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source())')
       : EXECUTE;
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = ['execute', 'prepare', 'prepare-read'].includes(purpose);

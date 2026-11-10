@@ -4,6 +4,7 @@ import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
 import ../contract/Semantics.bend as S
 import ./Core.bend as N
+import ./Input.bend as Input
 import ./Transport.bend as T
 
 type StateExecution is Type:
@@ -18,6 +19,14 @@ type Iteration is Type:
 def start(program: S.Program, context: D.Context, arguments: D.Value,
   +initial: D.State) -> StateExecution:
   StateExecution{initial, N.start(program, context, arguments, initial)}
+
+# Own the exact authenticated input until the native loop consumes it. Program
+# construction stays suspended, including when input is rejected.
+def launch(program: Unit -> S.Program, input: Input.Analysis) -> Maybe<&1, (Unit -> StateExecution)>:
+  match input:
+    case Input.Received{state, P.Request{credential, code, arguments, proof}, context}:
+      Some{u => start(program(Unit{}), context, arguments, state)}
+    case _: None{}
 
 def packet_ready(bytes: Maybe<&2, List<&2, U32>>) -> Iteration:
   match bytes:

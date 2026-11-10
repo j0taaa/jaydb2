@@ -167,6 +167,13 @@ ordinary-wire eight-law theorem to the full prepared executable.
 including its preparation branch. Its productive-call theorem derives a complete
 private output packet, faithful preparation and a valid computed conclusion from
 termination, the administrator certificate, initial validity and authentication.
+The generated entry uses `Execution.launch`; `Adapters` proves its exact suspended
+snapshot/context/argument binding and rejection cases. Each generated execution worker
+also proves that its actual ABI conversion preserves the constructor, continuation
+state and output bytes, and that its actual loop step implements `Execution.advance`.
+After pure admission succeeds, an executable recheck failure is a host failure;
+the original checker diagnostic is retained. Native loop effects and compiler
+preservation remain separate bridge obligations.
 `PreparedExtension.ready_call_reaches_complete_actual_adapter_output` obtains
 termination and the specialized certificate from `Ready`; a completed execution
 is no longer an input to this new theorem.

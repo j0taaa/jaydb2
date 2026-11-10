@@ -6,8 +6,9 @@ import { syncBuiltinESMExports } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { initialize, execute } from '../../tools/service/stage.mjs';
-import { fixture as submissionFixture } from './helpers.mjs';
-import { admitSubmission } from '../../tools/admission/index.mjs';
+import { fixture as submissionFixture, repo } from './helpers.mjs';
+import { admitSubmission, emitC, bootstrapInfo } from '../../tools/admission/index.mjs';
+import { sha256 } from '../../tools/admission/bootstrap.mjs';
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jaydb-seed-guard-'));
@@ -188,9 +189,9 @@ test('the frozen recovery descriptor retains exact public, tooling and controlle
 
 
 // Freeze only, deliberately stopping before native compilation. The exact
-// generated pure manifest is then checked by BOTH real official admission
-// tools after the compiler stub is restored; no accepted report is mocked.
-test('prepared target substitution preserves matching client comments and literals', async t => {
+// generated pure and executable Books are then checked by BOTH official tools
+// after restoring the compiler. Broken worker proofs must be host failures.
+test('prepared staging preserves client text and checks the actual worker proofs', async t => {
   const target = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
   for (const purpose of ['prepare', 'prepare-read']) for (const kind of ['comment', 'literal']) {
     const f = fixture(t), submission = submissionFixture(t);
@@ -230,5 +231,37 @@ test('prepared target substitution preserves matching client comments and litera
     assert.equal(admitted.report.bendtt, true);
     assert.equal(admitted.report.certificateMode, 'universal');
     assert.equal(admitted.report.readOnly, purpose === 'prepare-read');
+    const manifestFile = path.join(output, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+    const worker = await admitSubmission(manifest);
+    assert.equal(worker.report.primary, true);
+    assert.equal(worker.report.bendtt, true);
+    emitC(worker); // Exercise the same checked Book and release its ABI snapshot.
+    if (purpose === 'prepare' && kind === 'literal') {
+      const mainFile = path.join(output, 'Main.bend'), main = fs.readFileSync(mainFile, 'utf8');
+      const mutations = [
+        ['Native.Prepare{u => s}', 'Native.Continue{u => s}', 'conversion_preserves_exact_iteration'],
+        ['Native.FinishOutput{bs}', 'Native.FinishOutput{Nil{}}', 'conversion_preserves_exact_iteration'],
+        ['convert(E.advance(state(Unit{}), C.config()))', 'Native.Inconsistent{}', 'step_preserves_exact_execution_advance'],
+      ];
+      const info = bootstrapInfo();
+      for (const [index, [from, to, location]] of mutations.entries()) {
+        assert.equal(main.split(from).length, 2);
+        const changed = main.replace(from, to), target = path.join(output, 'broken-worker-' + index + '.c');
+        fs.writeFileSync(mainFile, changed);
+        fs.writeFileSync(manifestFile, JSON.stringify({ ...manifest, dependencies: manifest.dependencies.map(record =>
+          record.path === 'Main.bend' ? { ...record, sha256: sha256(changed) } : record) }));
+        const run = child.spawnSync(process.execPath, ['--stack_size=65536', path.join(repo, 'tools/service/compile.mjs'),
+          manifestFile, target, info.sourceDir, info.kernelPath, path.join(output, 'check-manifest.json')],
+          { encoding: 'utf8', timeout: 60000 });
+        assert.equal(run.status, 2, run.stdout + run.stderr);
+        const error = JSON.parse(fs.readFileSync(target + '.error.json', 'utf8'));
+        assert.equal(error.code, 'HOST_COMPILE', error.message);
+        assert.equal(error.phase, 'primary', error.message);
+        assert.match(error.message, /PRIMARY_CHECK:/);
+        assert.ok(error.message.includes('Location: ' + location), error.message);
+        assert.equal(fs.existsSync(target), false);
+      }
+    }
   }
 });
