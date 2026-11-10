@@ -21,6 +21,7 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
 | `WorkerBridge` | Finite execution of the actual generated worker adapter emits exactly the `Gate.begin` → advance → `Gate.finish`/`Gate.early` result (and, for prepared requests, after `Resolve.select`), so Ingress/UnifiedCore apply to the Commit/Keep decision and bytes the worker sends to the host. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition` |
+| `ControlTheorem` | Prepare/invalidate authenticate against the current root, require the exact universal admission tuple, check lifetime freshness, prepare exact bounded metadata before the specified registry delta, and preserve the database root/last response; the mixed `ServiceFoldTheorem` preserves validity and accepted-prepare lookup provenance. | `ControlClauses.control_theorem`, `ControlHistory.service_fold_theorem` |
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
 | `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
@@ -29,8 +30,9 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 The supporting proofs cover authentication, interpreter fidelity, finalization,
 publication, codecs, representation and source generation. Optional library,
 queue, preprocessing and persistence transition lemmas have separate scope.
-Prepared wire vocabulary and exact receipt encodings remain checked; the
-prepare/invalidate host controllers are outside the theorem composition.
+Prepared controls use the checked `Control` plan/delta and exact wire receipts.
+The registry fold follows actual control transitions and scoped removal;
+artifact IO and the exact T1 admission-token delivery remain host plumbing.
 
 `Main.checked_oracle` packages the actual oracle with `generated_oracle_sound`.
 `CertifiedWorker.checked_ingress` and `checked_unified` consume that checked
@@ -110,7 +112,11 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
 6. Atomically publish exactly the checked Commit root and paired response;
    otherwise preserve the prior root. Send no reply before this decision.
    Start the next transaction with the resulting root.
-7. Deliver exactly the returned bytes. After a post-commit delivery failure,
+7. Supply controls the exact T1 universal-admission tuple, original body,
+   current root and prior opaque registry; install only the checked registry
+   delta and manage the matching artifact. Preserve allocated history and the
+   root/last-response pair. Receipt delivery never rolls back a control.
+8. Deliver exactly the returned bytes. After a post-commit delivery failure,
    retain the committed root and stop/close as appropriate. EOF or shutdown
    between requests terminates the channel rather than creating a transaction.
 

@@ -43,9 +43,6 @@ impl Error {
     }
 
     fn response(&self) -> Vec<u8> {
-        if self.code == "CONTROL_LIMIT" {
-            return error_frame("limit");
-        }
         let refused = [
             "IMPORT",
             "IMPORT_CYCLE",
@@ -382,25 +379,18 @@ fn hexadecimal_handle(bytes: [u8; 32]) -> String {
     handle
 }
 
-fn counter_handle(counter: usize) -> String {
-    let mut bytes = [0; 32];
-    bytes[24..].copy_from_slice(&(counter as u64).to_be_bytes());
-    hexadecimal_handle(bytes)
-}
-
-fn allocate_prepared_handle<T>(registry: &HashMap<String, T>, random: [u8; 32]) -> String {
-    let candidate = hexadecimal_handle(random);
-    if !registry.contains_key(&candidate) {
-        return candidate;
-    }
-    // Inclusive iteration avoids overflowing len + 1, even at usize::MAX.
-    for counter in (0..=registry.len()).rev() {
-        let candidate = counter_handle(counter);
-        if !registry.contains_key(&candidate) {
-            return candidate;
-        }
-    }
-    unreachable!("len + 1 distinct handles cannot all belong to a registry of len entries")
+enum ControlDecision {
+    Denied(Vec<u8>),
+    Add {
+        handle: String,
+        registry: Vec<u8>,
+        response: Vec<u8>,
+    },
+    Remove {
+        handle: String,
+        registry: Vec<u8>,
+        response: Vec<u8>,
+    },
 }
 
 struct Database {
@@ -409,6 +399,8 @@ struct Database {
     source: PathBuf,
     kernel: PathBuf,
     authenticate: Program,
+    control: Program,
+    registry: Vec<u8>,
     limits: Limits,
     published: Published,
     inspector: Option<UnixStream>,
@@ -515,6 +507,7 @@ impl Database {
             text(programs, if recovering { "recover" } else { "initialize" })?.into(),
         )?;
         let authenticate = Program::load(text(programs, "authenticate")?.into())?;
+        let control = Program::load(text(programs, "control")?.into())?;
         let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1)
             || output.len() as u64 - 1 > limits.state
@@ -562,6 +555,8 @@ impl Database {
             source: options.source,
             kernel: options.kernel,
             authenticate,
+            control,
+            registry: Vec::new(),
             limits,
             published: Published {
                 state,
@@ -684,13 +679,7 @@ impl Database {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
             if operation == 5 {
-                if !self.prepared.contains_key(handle) {
-                    return Err(Error::new("HANDLE", "unknown or invalidated handle"));
-                }
-                let response = self.control_response("invalidated", None)?;
-                let mut prepared = self.prepared.remove(handle).expect("serial handle lookup");
-                prepared.directory.remove()?;
-                return Ok(response);
+                return self.control_operation(body, "", &[], &[]);
             }
             let prepared = self
                 .prepared
@@ -756,16 +745,18 @@ impl Database {
         }
         let program = Program::load(text(&report, "program")?.into())?;
         if operation == 3 {
-            if text(&report, "certificateMode")? != "universal" {
-                return Err(Error::new(
-                    "TARGET",
-                    "preparation requires a universal certificate",
-                ));
-            }
-            let mut random = [0u8; 32];
-            fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
-            let handle = allocate_prepared_handle(&self.prepared, random);
-            let response = self.control_response("prepared", Some(&handle))?;
+            let control = self.run_control(body, text(&report, "certificateMode")?, code, proof)?;
+            let (handle, registry, response) = match control {
+                ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
+                ControlDecision::Add {
+                    handle,
+                    registry,
+                    response,
+                } => (handle, registry, response),
+                ControlDecision::Remove { .. } => {
+                    return Err(Error::new("HOST_TRANSPORT", "unexpected control removal"));
+                }
+            };
             let mut sealed = PreparedProgram::seal(&request.path)?;
             sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
             sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
@@ -779,7 +770,8 @@ impl Database {
                     sealed,
                 },
             );
-            return Ok(response);
+            self.registry = registry;
+            return Ok(Decision::Keep { response });
         }
         let output = program.run(&input, self.threads)?;
         let proposal = parse_decision(&output, &self.limits)?;
@@ -787,15 +779,91 @@ impl Database {
         Ok(proposal)
     }
 
-    fn control_response(&self, status: &str, value: Option<&str>) -> Result<Decision> {
-        let response = response_frame(status, value);
-        if (response.len() - 8) as u64 > self.limits.response {
-            return Err(Error::new(
-                "CONTROL_LIMIT",
-                "prepared response exceeds logical limit",
-            ));
+    fn run_control(
+        &self,
+        body: &[u8],
+        mode: &str,
+        code: &[u8],
+        proof: &[u8],
+    ) -> Result<ControlDecision> {
+        // Entropy is only a candidate. Control checks shape and lifetime freshness.
+        let mut random = [0u8; 32];
+        fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
+        let candidate = hexadecimal_handle(random);
+        let mut metadata = vec![5];
+        metadata.extend_from_slice(&4u64.to_be_bytes());
+        for field in [candidate.as_bytes(), mode.as_bytes(), code, proof] {
+            metadata.push(4);
+            metadata.extend_from_slice(&(field.len() as u64).to_be_bytes());
+            metadata.extend_from_slice(field);
         }
-        Ok(Decision::Keep { response })
+        let input = packet(
+            &metadata,
+            &packet(&self.registry, &packet(&self.published.state, body)),
+        );
+        let output = self.control.run(&input, self.threads)?;
+        match output.first() {
+            Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
+            Some(tag @ (1 | 3)) => {
+                let (handle, rest) = split(&output[1..])?;
+                let handle = std::str::from_utf8(handle)
+                    .map_err(|_| Error::new("HOST_TRANSPORT", "invalid control handle"))?
+                    .to_owned();
+                let (registry, response) = split(rest)?;
+                let registry = registry.to_vec();
+                let response = response.to_vec();
+                if *tag == 1 {
+                    Ok(ControlDecision::Add {
+                        handle,
+                        registry,
+                        response,
+                    })
+                } else {
+                    Ok(ControlDecision::Remove {
+                        handle,
+                        registry,
+                        response,
+                    })
+                }
+            }
+            _ => Err(Error::new(
+                "HOST_TRANSPORT",
+                "invalid checked control result",
+            )),
+        }
+    }
+
+    fn control_operation(
+        &mut self,
+        body: &[u8],
+        mode: &str,
+        code: &[u8],
+        proof: &[u8],
+    ) -> Result<Decision> {
+        match self.run_control(body, mode, code, proof)? {
+            ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
+            ControlDecision::Remove {
+                handle,
+                registry,
+                response,
+            } => {
+                // Install the checked removal before artifact cleanup: a cleanup
+                // failure must never restore execution authority.
+                self.registry = registry;
+                match self.prepared.remove(&handle) {
+                    Some(mut artifact) => {
+                        if let Err(error) = artifact.directory.remove() {
+                            diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
+                        }
+                    }
+                    None => diagnostic(format_args!("invalidated artifact already absent")),
+                }
+                Ok(Decision::Keep { response })
+            }
+            ControlDecision::Add { .. } => {
+                Err(Error::new("HOST_TRANSPORT", "unexpected control addition"))
+            }
+        }
     }
 
     fn serve(&mut self) -> Result<()> {
@@ -1057,53 +1125,6 @@ mod tests {
         fs::write(&replacement, original).unwrap();
         std::os::unix::fs::symlink(&replacement, &path).unwrap();
         assert_eq!(prepared.validate().unwrap_err().code, "PREPARED_INTEGRITY");
-    }
-
-    #[test]
-    fn prepared_handle_allocation_preserves_fresh_entropy() {
-        let registry: HashMap<String, ()> = HashMap::new();
-        assert_eq!(
-            allocate_prepared_handle(&registry, [0xa5; 32]),
-            "a5".repeat(32)
-        );
-        assert_eq!(
-            allocate_prepared_handle(&registry, [0xff; 32]),
-            "f".repeat(64)
-        );
-    }
-
-    #[test]
-    fn prepared_handle_allocation_progresses_with_repeated_colliding_entropy() {
-        let mut registry = HashMap::new();
-        for expected in 0..=512 {
-            let handle = allocate_prepared_handle(&registry, [0; 32]);
-            assert_eq!(handle, format!("{expected:064x}"));
-            assert_eq!(handle.len(), 64);
-            assert!(
-                handle
-                    .bytes()
-                    .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-            );
-            assert_eq!(registry.insert(handle, expected), None);
-        }
-        assert_eq!(registry.len(), 513);
-    }
-
-    #[test]
-    fn prepared_handle_allocation_finds_a_hole_among_arbitrary_registry_keys() {
-        let registry: HashMap<String, ()> = [
-            (format!("{:064x}", 0), ()),
-            (format!("{:064x}", 1), ()),
-            (format!("{:064x}", 3), ()),
-            (format!("{:064x}", 4), ()),
-        ]
-        .into_iter()
-        .collect();
-        assert_eq!(
-            allocate_prepared_handle(&registry, [0; 32]),
-            format!("{:064x}", 2)
-        );
-        assert_eq!(registry.len(), 4);
     }
 
     fn serve_stream(
@@ -1411,6 +1432,11 @@ mod tests {
             inspector: Some(inspector),
             inspection_sequence: u64::MAX,
             prepared: HashMap::new(),
+            control: Program {
+                path: PathBuf::new(),
+                sha256: String::new(),
+            },
+            registry: Vec::new(),
             threads: 1,
             timing: None,
             storage: Some(storage),

@@ -45,3 +45,6 @@ import ./WorkerBridge.bend as WorkerBridge
 import ./CertifiedWorker.bend as CertifiedWorker
 import ./OracleEquality.bend as OracleEquality
 import ./OracleEvidence.bend as OracleEvidence
+import ./ControlClauses.bend as ControlClauses
+import ./ControlHistory.bend as ControlHistory
+import ./ControlTransport.bend as ControlTransport

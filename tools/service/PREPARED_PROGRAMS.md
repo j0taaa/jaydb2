@@ -15,7 +15,7 @@ Ordinary bodies remain canonical encoded records with exactly `arguments`,
 `code`, `credential`, and `proof`. An extended body is `0x07 || opcode || record`,
 where `record` is the same canonical four-field record, without another length
 prefix. The outer frame is `u64be(full_body_byte_length) || full_body`.
-The host checks the full actual prefixed body against the message limit before
+The checked dispatcher/controller checks the full actual prefixed body against the message limit before
 routing it; the extra two bytes count. Tag 7 is reserved for this explicit
 extension and is outside the ordinary Value encoding. Unknown/truncated opcodes
 return `input`. Ordinary malformed records remain malformed.
@@ -36,7 +36,9 @@ invalid credential returns `authentication` before semantic handle
 resolution/proof-field validation. Malformed inner records are rejected before
 authentication. Control failures leave the published state/response pair
 unchanged. Invalidation removes the registration before deleting its directory;
-if that cleanup fails, the host returns `failure` and the handle remains removed.
+if cleanup fails, the handle remains removed and the checked `invalidated`
+receipt is still returned; the cleanup error is diagnostic only. This corrects
+the former `failure`-after-removal behavior, which contradicted denial purity.
 
 `prepared` and `invalidated` are **control metadata receipts**, outside
 `Semantics.Status`. They do not execute a transaction, publish working state,
@@ -48,8 +50,11 @@ the admitted artifacts. If a receipt exceeds the limit,
 `limit` is returned with no registration/invalidation or publication. This
 includes configurations whose fixed errors fit but whose handle receipt does
 not; the rejected preparation need not leave a sealed artifact behind. Handle
-IDs are random 256-bit strings, encoded as 64 lowercase hexadecimal characters,
-in an instance-local in-memory map;
+IDs use host-supplied random 256-bit candidates, encoded as 64 lowercase
+hexadecimal characters. `Control` checks the shape and rejects a candidate
+already live or ever allocated, including an invalidated handle. Entropy is
+not an authority or a fairness assumption; a collision returns `failure`.
+The registry and allocated-handle history are instance-local and in memory;
 they do not survive instance exit. Losing a receipt does not roll back a
 registration or invalidation, and this interface has no deduplication.
 
@@ -58,6 +63,29 @@ The client supports `--prepare --code FILE --proof FILE --credential TOKEN`,
 `--invalidate HANDLE --credential TOKEN`. Python callers can use
 `prepared_frame(opcode, code_or_handle, credential, arguments=None, proof='')`.
 Responses use the normal frame decoder. Keep the same server session open.
+
+## Checked controls
+
+`src/Control.bend` implements prepare/invalidate as a pure plan followed by a
+registry delta. `ControlTheorem` (`proof/ControlClauses.bend`) proves current
+authentication, the exact universal admission tuple, candidate freshness,
+exact bounded receipt preparation, the specified delta, and preservation of
+the database root and last published response pair. Denials keep the registry.
+`ControlHistory.service_fold_theorem` extends finite runs with controls:
+transactions preserve the registry, controls preserve the root, every reached
+root stays valid, and live lookups have accepted-prepare provenance.
+Scoped removal eliminates the named lookup; allocated history prevents revival.
+
+Initialization/recovery compile a separate native control executable through
+the same official checked-Book mechanism as other service programs.
+`ControlBridge.packet` decodes the original body/current root and opaque
+registry, then calls `Control.control` and serializes its typed result. Rust
+supplies the exact source/proof and certificate mode from completed admission
+(T1), plus an entropy candidate. Bend compares that tuple to the decoded
+prepare request and immutable instance. Rust stores the returned registry bytes,
+keeps/deletes the named artifacts and copies the returned receipt (T3).
+No registry/certificate/receipt decision is inferred from public status text.
+Artifact integrity and physical cleanup remain host obligations.
 
 ## Proof target and capture boundary
 
@@ -170,7 +198,9 @@ and arguments. `proof/PreparedWire.bend` checks full-prefixed reception and
 receipt sizes; `PreparedPrograms` retains pure resolution/specialization and
 actual Core preparation/publication lemmas.
 
-Preparation/invalidation controllers, current artifact integrity,
-receipt-before-mutation ordering and physical delivery remain integration
-obligations. The [proof guide](../../proof/README.md) numbers T3 plumbing and
-states T1/T2. Native worker integration of `Gate` is in progress.
+`ControlTheorem` covers prepare/invalidate decisions, exact bounded receipts
+before mutation, lifetime freshness and scoped registry changes. The mixed
+service fold preserves root validity and accepted-admission lookup provenance.
+Current artifact integrity, T1 admission-result delivery, exact opaque-registry
+storage and physical receipt delivery remain integration obligations. The
+[proof guide](../../proof/README.md) lists T1–T3 and the native worker bridge.

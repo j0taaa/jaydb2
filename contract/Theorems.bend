@@ -2,6 +2,9 @@
 # Witnesses: proof/Init (Init), proof/CoreClauses (Core), proof/Ingress
 # (Ingress, UnifiedCore), proof/Iteration (Fold), proof/WireTheorems (wire).
 import Base
+import ../src/Control.bend as Control
+import ../src/Dispatch.bend as Dispatch
+import ./PreparedProtocol.bend as PreparedProtocol
 import ./Logic.bend as L
 import ./Bytes.bend as B
 import ./Data.bend as D
@@ -331,3 +334,148 @@ def FoldTheorem() -> Type:
   @a: Aspect -> @c: S.Configuration -> @seed: D.State -> @v: SeedVerdict<c, seed> ->
     @run: Run<c, seed> -> {init(c, seed, v) == Some{seed} : Maybe<&2, D.State>} ->
       @j: Nat -> FoldAt(a, c, seed, run, j)
+
+# Prepared control commands supplement, and do not weaken, the transaction
+# statements above. Admission tokens are T1's exact universal acceptance tuple.
+
+type ControlClause is Data:
+  ControlPreserved{}
+  ControlDelta{}
+  ControlChecked{}
+  ControlReception{}
+
+def ControlIdentity(-s: D.State, -r: P.Request, -ctx: D.Context) -> Type:
+  {D.authenticate(s, K.credential(r)) == Some{ctx} : Maybe<&2, D.Context>}
+
+def ControlChangeAtBounds(prepare: Bool, invalidate: Bool, -limits: S.Limits, -instance: String, -registry: Control.Registry,
+  -r: P.Request, -a: Control.Admission, -h: String,
+  -change: Control.Change, -receipt: PreparedProtocol.Receipt) -> Type:
+  match prepare invalidate:
+    case True{} _:
+      L.E<{Control.admission_matches(a, instance, r) == True{} : Bool},
+        L.E<{Control.candidate_valid(h) == True{} : Bool},
+          L.E<{Control.member(h, Control.allocated(registry)) == False{} : Bool},
+            L.E<{change == Control.ControlAdd{Registry.Entry{instance, h,
+              K.code(r), Resolve.proof(r), False{}, ""}} : Control.Change},
+              {receipt == PreparedProtocol.PreparedReceipt{h} : PreparedProtocol.Receipt}>>>>
+    case False{} True{}:
+      L.E<{String.eq(Resolve.proof(r), "") == True{} : Bool},
+        L.E<(&entry: Registry.Entry ->
+          {Registry.lookup(instance, K.code(r), Control.entries(registry)) == Some{entry} : Maybe<&2, Registry.Entry>}),
+          L.E<{change == Control.ControlRemove{instance, K.code(r)} : Control.Change},
+            {receipt == PreparedProtocol.InvalidatedReceipt{} : PreparedProtocol.Receipt}>>>
+    case False{} False{}: Empty
+
+def ControlChangeAt(prepare: Bool, invalidate: Bool, -c: S.Configuration, -registry: Control.Registry,
+  -r: P.Request, -a: Control.Admission, -h: String, -change: Control.Change, -receipt: PreparedProtocol.Receipt) -> Type:
+  ControlChangeAtBounds(prepare, invalidate, S.limits(c), S.environment(c), registry, r, a, h, change, receipt)
+
+def ControlChange(+tag: U32, -c: S.Configuration, -registry: Control.Registry,
+  -r: P.Request, -a: Control.Admission, -h: String, -change: Control.Change, -receipt: PreparedProtocol.Receipt) -> Type:
+  ControlChangeAt(U32.is_eq(tag, 3), U32.is_eq(tag, 5), c, registry, r, a, h, change, receipt)
+
+def ControlReceipt(-c: S.Configuration, -receipt: PreparedProtocol.Receipt,
+  -bytes: List<&2, U32>) -> Type:
+  L.E<{PreparedProtocol.frame_receipt(receipt) == Some{bytes} : Maybe<&2, List<&2, U32>>},
+    {R.fits(R.limit_response(S.limits(c)), PreparedProtocol.receipt_value(receipt)) == True{} : Bool}>
+
+def ControlPlanAtBounds(plan: Control.Plan, -limits: S.Limits, -instance: String, -s: D.State, -r: P.Request,
+  -prepare: Bool, -invalidate: Bool, -registry: Control.Registry, -a: Control.Admission, -h: String) -> Type:
+  match plan:
+    case Control.ControlDenied{status}: Unit
+    case Control.ControlReady{ctx, change, receipt, bytes}:
+      L.E<ControlIdentity(s, r, ctx),
+        L.E<ControlChangeAt(prepare, invalidate, S.Configuration{D.Schema{Nil{}}, S.NoneLaw{}, limits, instance}, registry, r, a, h, change, receipt), ControlReceipt(S.Configuration{D.Schema{Nil{}}, S.NoneLaw{}, limits, instance}, receipt, bytes)>>
+
+def ControlPlanAt(plan: Control.Plan, -c: S.Configuration, -s: D.State, -r: P.Request,
+  -prepare: Bool, -invalidate: Bool, -registry: Control.Registry, -a: Control.Admission, -h: String) -> Type:
+  ControlPlanAtBounds(plan, S.limits(c), S.environment(c), s, r, prepare, invalidate, registry, a, h)
+
+def ControlErrors(plan: Control.Plan) -> Type:
+  match plan:
+    case Control.ControlDenied{status}: Unit
+    case _: Empty
+
+def ControlPlanBounds(plan: Control.Plan, routed: Dispatch.Routed, -limits: S.Limits, -instance: String,
+  -registry: Control.Registry, -a: Control.Admission, -h: String) -> Type:
+  match routed:
+    case Dispatch.Routed{tag, Input.InputReady{s, r}}:
+      ControlPlanAt(plan, S.Configuration{D.Schema{Nil{}}, S.NoneLaw{}, limits, instance}, s, r, U32.is_eq(tag, 3), U32.is_eq(tag, 5), registry, a, h)
+    case _: ControlErrors(plan)
+
+def ControlPlan(plan: Control.Plan, routed: Dispatch.Routed, -c: S.Configuration,
+  -registry: Control.Registry, -a: Control.Admission, -h: String) -> Type:
+  ControlPlanBounds(plan, routed, S.limits(c), S.environment(c), registry, a, h)
+
+def ControlRooted(routed: Dispatch.Routed, -root: D.State) -> Type:
+  match routed:
+    case Dispatch.Routed{tag, Input.InputReady{s, r}}: {s == root : D.State}
+    case _: Unit
+
+def ControlMeasuredLimit(plan: Control.Plan, -limit: Nat, -body: List<&2, U32>) -> Type:
+  match plan:
+    case Control.ControlDenied{status}: Unit
+    case _: {Nat.is_le(B.length(body), limit) == True{} : Bool}
+
+def ControlMeasured(plan: Control.Plan, -c: S.Configuration, -body: List<&2, U32>) -> Type:
+  ControlMeasuredLimit(plan, R.limit_message(S.limits(c)), body)
+
+def ControlDeltaFor(plan: Control.Plan, -registry: Control.Registry, -reg: Control.Registry, -outcome: Control.Outcome) -> Type:
+  match plan:
+    case Control.ControlDenied{status}:
+      L.E<{reg == registry : Control.Registry},
+        {outcome == Control.ControlTransaction{S.response_error(status)} : Control.Outcome}>
+    case Control.ControlReady{ctx, change, receipt, bytes}:
+      L.E<{reg == Control.apply(change, registry) : Control.Registry},
+        {outcome == Control.ControlMetadata{receipt, bytes, change} : Control.Outcome}>
+
+def ControlPreservedResult(-root: D.State, -last: List<&2, U32>, result: Control.Transition) -> Type:
+  match result:
+    case Control.ControlResult{next, paired, reg, outcome}:
+      L.E<{next == root : D.State}, {paired == last : List<&2, U32>}>
+
+def ControlDeltaResult(plan: Control.Plan, -registry: Control.Registry, result: Control.Transition) -> Type:
+  match result:
+    case Control.ControlResult{next, paired, reg, outcome}: ControlDeltaFor(plan, registry, reg, outcome)
+
+def ControlResult(k: ControlClause, plan: Control.Plan, c: S.Configuration,
+  root: D.State, last: List<&2, U32>, registry: Control.Registry,
+  body: List<&2, U32>, a: Control.Admission, h: String, result: Control.Transition) -> Type:
+  match k:
+    case ControlPreserved{}: ControlPreservedResult(root, last, result)
+    case ControlDelta{}: ControlDeltaResult(plan, registry, result)
+    case ControlChecked{}: ControlPlan(plan, Dispatch.received(S.limits(c), body, root), c, registry, a, h)
+    case ControlReception{}:
+      L.E<ControlRooted(Dispatch.received(S.limits(c), body, root), root), ControlMeasured(plan, c, body)>
+
+# Control policy uses limits and instance only. Normalize unused schema/law
+# fields in its predicates so affine configuration functions are consumed once.
+# ControlAdmissionSound below retains the ORIGINAL full configuration.
+def ControlAtPlan(+plan: Control.Plan, k: ControlClause, +schema: D.Schema, +limits: S.Limits, +instance: String,
+  +root: D.State, +last: List<&2, U32>, +registry: Control.Registry, +body: List<&2, U32>,
+  +a: Control.Admission, +h: String) -> Type:
+  ControlResult(k, plan, S.Configuration{schema, S.NoneLaw{}, limits, instance}, root, last, registry, body, a, h,
+    Control.finish(plan, root, last, registry))
+
+def ControlAt(c: S.Configuration, k: ControlClause, +root: D.State,
+  +last: List<&2, U32>, +registry: Control.Registry, +body: List<&2, U32>,
+  +a: Control.Admission, +h: String) -> Type:
+  match c:
+    case S.Configuration{+schema, laws, +limits, +instance}:
+      ControlAtPlan(Control.plan(S.Configuration{schema, laws, limits, instance}, root, registry, body, a, h),
+        k, schema, limits, instance, root, last, registry, body, a, h)
+
+# T1's judgment is indexed by the exact admitted source, proof and instance.
+# The proof-source/Book binding is the same external interpretation as Accepted.
+def ControlAdmissionSound(-c: S.Configuration, a: Control.Admission) -> Type:
+  match a:
+    case Control.ControlUnaccepted{}: Unit
+    case Control.ControlUniversal{instance, code, proof}:
+      &program: S.Program ->
+        L.E<(@ctx: D.Context -> @args: D.Value -> R.Certifies(c, code, program, ctx, args)),
+          (@state: D.State -> @ctx: D.Context -> @args: D.Value -> Terminates(program, c, state, ctx, args))>
+
+def ControlTheorem() -> Type:
+  @k: ControlClause -> @c: S.Configuration -> @root: D.State -> @last: List<&2, U32> ->
+    @registry: Control.Registry -> @body: List<&2, U32> -> @a: Control.Admission -> @h: String ->
+      ControlAdmissionSound(c, a) -> ControlAt(c, k, root, last, registry, body, a, h)

@@ -84,6 +84,55 @@ class PreparedTests(unittest.TestCase):
             # fail before running a prepared action or publishing anything.
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
+            # Exercise the checked control executable directly with private
+            # admission metadata, bypassing Rust's operation handling.
+            control = next((private/'control').glob('*.program'))
+            control_root = encode({'tables': [], 'users': [
+                {'credential': 'token', 'id': 'alice', 'kind': 'user'}]})
+            candidate = '1'*64
+            def block(first, rest=b''):
+                return len(first).to_bytes(8, 'big') + first + rest
+            def run_control(registry, opcode, requested, certificate='', mode='universal',
+                            admitted_code=code, admitted_proof=proof, credential='token'):
+                metadata = encode([candidate, mode, admitted_code, admitted_proof])
+                raw = prepared_frame(opcode, requested, credential, proof=certificate)[8:]
+                result = subprocess.run([str(control), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                    input=block(metadata, block(registry, block(control_root, raw))),
+                    capture_output=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
+                return result.stdout
+            def split_control(data):
+                size = int.from_bytes(data[:8], 'big')
+                return data[8:8+size], data[8+size:]
+            for mode, admitted_code, admitted_proof in (
+                    ('concrete', code, proof), ('universal', code+'x', proof),
+                    ('universal', code, proof+'x')):
+                denial = run_control(b'', 0, code, proof, mode, admitted_code, admitted_proof)
+                self.assertEqual(denial[0], 0)
+                self.assertEqual(unframe(denial[1:])['status'], 'certificate')
+            # Inner canonical body fits exactly; the two extension octets
+            # alone put the original body above the configured 32768 limit.
+            base_size = len(prepared_frame(0, '', 'token')) - 8
+            prefix_overflow = 'x'*(32768-base_size+2)
+            denied = run_control(b'', 0, prefix_overflow)
+            self.assertEqual(unframe(denied[1:])['status'], 'limit')
+            added = run_control(b'', 0, code, proof)
+            self.assertEqual(added[0], 1)
+            returned_handle, rest = split_control(added[1:])
+            live_registry, receipt_bytes = split_control(rest)
+            self.assertEqual(returned_handle.decode(), candidate)
+            self.assertEqual(unframe(receipt_bytes), {'status': 'prepared', 'value': candidate})
+            self.assertEqual(unframe(run_control(live_registry, 0, code, proof)[1:])['status'], 'failure')
+            removed = run_control(live_registry, 2, candidate)
+            self.assertEqual(removed[0], 3)
+            _, rest = split_control(removed[1:])
+            dead_registry, receipt_bytes = split_control(rest)
+            self.assertEqual(unframe(receipt_bytes), {'status': 'invalidated', 'value': None})
+            self.assertEqual(unframe(run_control(dead_registry, 0, code, proof)[1:])['status'], 'failure')
+            self.assertEqual(unframe(run_control(dead_registry, 2, candidate)[1:])['status'], 'failure')
+            foreign = encode([[['other-instance', candidate, code, proof, False, '']], []])
+            self.assertEqual(unframe(run_control(foreign, 2, candidate)[1:])['status'], 'failure')
+            self.assertEqual(unframe(run_control(foreign, 0, code, proof)[1:])['status'], 'failure')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
             self.assertIn('Worker.registered_packet(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
@@ -155,6 +204,16 @@ class PreparedTests(unittest.TestCase):
                 {'status': 'failure', 'value': None})
             self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
                 {'status': 'refusal', 'value': 'cancelled'})
+            # Cleanup cannot turn a checked, irrevocable removal into denial.
+            # Rename the artifact to make deletion of its old path fail.
+            bad_directory = next(p for p in private.glob('request-*')
+                if (p/'Client.bend').read_text() == failing)
+            bad_directory.rename(bad_directory.with_name(bad_directory.name+'-moved'))
+            self.assertEqual(server.prepared(2, bad['value'], 'alice-final'),
+                {'status': 'invalidated', 'value': None}, server.diagnostics())
+            self.assertIn('invalidated artifact cleanup', server.diagnostics())
+            self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
+                {'status': 'failure', 'value': None})
             # The inner record alone fits exactly. Its two control bytes must
             # still trigger the host's terminal message-limit response.
             empty = prepared_frame(1, handle, 'alice-final', '')

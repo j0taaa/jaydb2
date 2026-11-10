@@ -14,3 +14,4 @@ import ../proof/WireTheorems.bend as WireWitness
 import ../proof/CoreClauses.bend as CoreWitness
 import ../proof/Ingress.bend as IngressWitness
 import ../proof/Iteration.bend as FoldWitness
+import ../proof/ControlClauses.bend as ControlWitness

@@ -59,9 +59,13 @@ and physically replaces the published root/last-successful-response pair only
 on Commit. It writes the returned response bytes unchanged. Packet framing and
 size checks in Rust are integrity defenses, not a second finalizer.
 
-Prepare/invalidate receipts, registry storage and artifact lifecycle remain
-optional host control operations outside Ingress/UnifiedCore. Unknown artifact
-lookups and external tool/process failures retain their fixed failure responses.
+Prepare/invalidate use the separately checked `Control.control` transition through
+`ControlBridge.packet`, compiled at startup. The native controller checks the
+current identity, full envelope, exact universal admission tuple, lifetime
+freshness and bounded receipt before returning the registry delta. Rust stores
+the opaque registry bytes, manages admitted artifacts and copies receipts.
+`ControlTheorem` and the mixed service fold cover those decisions; physical
+artifact integrity/cleanup and external process failures remain host duties.
 
 The serial coordinator completes execution, cleanup, and publication, then
 writes and flushes the response before selecting another request. Uncertain
@@ -174,9 +178,13 @@ loop. The remaining T3 plumbing obligations are:
    before publication; actual precommit technical failures keep the old root.
 5. Obey Commit/Keep exactly, atomically publish the paired root/response, and
    write the returned bytes; delivery failure cannot undo a committed root.
-6. Preserve FIFO root feeding and timing/inspection noninterference. Optional
-   durable storage and prepare/invalidate controllers need their own physical
-   ordering and recovery obligations; the core bridge does not prove them.
+6. Supply controls the unchanged current root, complete body, exact T1
+   universal-admission tuple and prior opaque registry. Store only the returned
+   delta/registry, retain allocated history, manage the corresponding artifact
+   and write exactly the returned receipt; keep the root/response pair.
+7. Preserve FIFO root feeding and timing/inspection noninterference. Optional
+   durable storage and artifact cleanup retain their physical ordering and
+   recovery obligations; prepared handles remain in memory.
 
 `make test` rebuilds before native/integration tests. `make verify-contract`
 and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/

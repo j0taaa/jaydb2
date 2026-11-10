@@ -369,6 +369,13 @@ def main() -> IO(Unit):
     bytes : List<&2, U32> <- Native.read()
     Native.write(Dispatch.authentication(bytes, S.schema(C.config()), S.limits(C.config())))
 `;
+  else if (purpose === 'control') main = COMMON + `import ./ControlBridge.bend as ControlBridge
+
+def main() -> IO(Unit):
+  do IO<Unit>:
+    bytes : List<&2, U32> <- Native.read()
+    Native.write(ControlBridge.packet(C.config(), bytes))
+`;
   else if (['execute', 'prepare'].includes(purpose)) {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
     if (purpose === 'prepare') {
@@ -471,7 +478,7 @@ export function initialize(workdir, configuration, seed, sourceDir, kernelPath) 
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   const environment = freeze(workdir, configuration, seed), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
   let limits;
-  for (const purpose of ['initialize', 'authenticate']) {
+  for (const purpose of ['initialize', 'authenticate', 'control']) {
     const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
     if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during initialization');
     limits = built.limits; programs[purpose] = built.program;
@@ -482,7 +489,7 @@ export function recover(workdir, configuration, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   const environment = freeze(workdir, configuration, null), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
   let limits;
-  for (const purpose of ['recover', 'authenticate']) {
+  for (const purpose of ['recover', 'authenticate', 'control']) {
     const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
     if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during recovery');
     limits = built.limits; programs[purpose] = built.program;

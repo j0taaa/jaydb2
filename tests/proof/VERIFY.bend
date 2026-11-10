@@ -13,3 +13,4 @@ import ./RefusalWithoutLimit.bend as RefusalWithoutLimit
 import ./Positive.bend as ExecutablePositive
 import ./Refutations.bend as ExecutableRefutations
 import ./Instances.bend as ExecutableInstances
+import ./ControlInstances.bend as ControlInstances
