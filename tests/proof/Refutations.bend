@@ -11,7 +11,7 @@ import ./Controls.bend as X
 import ./WrongSteps.bend as Wrong
 
 law spoofed_step_uninhabited:
-  G.EntryCore(Wrong.spoofed_begin(), X.configuration(), X.seed(), X.request(), X.reject) -> Empty
+  G.EntryCore(G.Admitted{}, Wrong.spoofed_begin(), X.configuration(), X.seed(), X.request(), X.reject) -> Empty
 
 def spoofed_step_uninhabited(core):
   match core:
@@ -21,7 +21,7 @@ def spoofed_step_uninhabited(core):
           D.authenticate(X.seed(), "token"), Some{X.spoof()}, identity))
 
 law uncertified_step_uninhabited:
-  G.EntryCore(Wrong.uncertified_begin(), X.configuration(), X.seed(), X.request(), X.reject) -> Empty
+  G.EntryCore(G.Admitted{}, Wrong.uncertified_begin(), X.configuration(), X.seed(), X.request(), X.reject) -> Empty
 
 def uncertified_step_uninhabited(core):
   match core:
@@ -38,7 +38,7 @@ def refusal_publication_uninhabited(wrong):
     Equal.cong(D.State, Bool, Wrong.has_users, X.changed(), X.seed(), wrong))
 
 law reject_all_controller_uninhabited:
-  G.EntryCore(K.Halted{S.response_error(S.Certificate{})},
+  G.EntryCore(G.Admitted{}, K.Halted{S.response_error(S.Certificate{})},
     X.configuration(), X.seed(), X.request(), Wrong.accept) -> Empty
 
 def reject_all_controller_uninhabited(core):

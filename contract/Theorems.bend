@@ -1,5 +1,6 @@
-# Executable contract statements. Core/ingress/unified witnesses remain open.
-# Init and independent wire witnesses are checked in proof/Init and WireTheorems.
+# Executable contract statements over the actual gate, interpreter and finisher.
+# Witnesses: proof/Init (Init), proof/CoreClauses (Core), proof/Ingress
+# (Ingress, UnifiedCore), proof/Iteration (Fold), proof/WireTheorems (wire).
 import Base
 import ./Logic.bend as L
 import ./Bytes.bend as B
@@ -85,6 +86,11 @@ def Completion(-c: S.Configuration, -s: D.State, -w: D.State,
               L.E<{R.fits(R.limit_response(S.limits(c)), S.response_value(response)) == True{} : Bool},
                 NoFailure(response)>>>>>>
 
+# Every installed law holds at prefix n of the actual machine.
+def Safety(c: S.Configuration, -s: D.State, -r: P.Request, -ctx: D.Context,
+  m: N.Machine, n: Nat) -> Type:
+  R.SafetyTrace(N.traverse(n, m, S.schema(c)), c, s, ctx, K.code(r), K.arguments(r))
+
 def Finals(-c: S.Configuration, -s: D.State, -m: N.Machine) -> Type:
   @n: Nat -> @w: D.State -> @ts: List<&2, S.OperationEvent> -> @proposal: S.Response ->
     {N.traverse(n, m, S.schema(c)) == S.Final{w, ts, proposal} : S.Trace} ->
@@ -110,30 +116,45 @@ def Rejection(-c: S.Configuration, -s: D.State, -r: P.Request, -admit: K.Oracle(
   -response: S.Response) -> Type:
   {K.begin(c, s, r, admit) == K.Halted{response} : K.Entry}
 
+# The four clauses of the core contract. Each clause is proved separately
+# under identical universal premises; CoreTheorem quantifies over all four,
+# so it is exactly their conjunction. Identity/admission pin the machine
+# that the other clauses describe: all four inspect the same computed entry.
+type Clause is Data:
+  Admitted{}
+  Safe{}
+  Completed{}
+  Progressing{}
+
 # Entry is the ACTUAL result of begin, never a free event relation.
-def EntryCore(entry: K.Entry, -c: S.Configuration, -s: D.State,
+def EntryCore(k: Clause, entry: K.Entry, -c: S.Configuration, -s: D.State,
   -r: P.Request, -admit: K.Oracle()) -> Type:
-  match entry:
-    case K.Halted{response}:
+  match k entry:
+    case Admitted{} K.Halted{response}:
       L.E<Rejection(c, s, r, admit, response), Early(c, s, response)>
-    case K.Started{ctx, machine}:
+    case Admitted{} K.Started{ctx, machine}:
       L.E<Identity(s, r, ctx),
         &p: S.Program -> L.E<Admission(c, r, admit, ctx, p),
-          L.E<{machine == N.start(p, ctx, K.arguments(r), s) : N.Machine},
-            L.E<Accepted(c, r, ctx, p),
-              L.E<(@n: Nat -> R.SafetyTrace(N.traverse(n, machine, S.schema(c)),
-                c, s, ctx, K.code(r), K.arguments(r))),
-                L.E<Finals(c, s, machine), Progress(c, s, machine)>>>>>>
+          {machine == N.start(p, ctx, K.arguments(r), s) : N.Machine}>>
+    case Safe{} K.Halted{response}: Unit
+    case Safe{} K.Started{ctx, machine}: @n: Nat -> Safety(c, s, r, ctx, machine, n)
+    case Completed{} K.Halted{response}: Unit
+    case Completed{} K.Started{ctx, machine}: Finals(c, s, machine)
+    case Progressing{} K.Halted{response}: Unit
+    case Progressing{} K.Started{ctx, machine}: Progress(c, s, machine)
 
-def Core(c: S.Configuration, s: D.State, r: P.Request,
+def Core(k: Clause, c: S.Configuration, s: D.State, r: P.Request,
   admit: K.Oracle()) -> Type:
-  EntryCore(K.begin(c, s, r, admit), c, s, r, admit)
+  EntryCore(k, K.begin(c, s, r, admit), c, s, r, admit)
 
-def CoreTheorem() -> Type:
+def CoreClauseTheorem(k: Clause) -> Type:
   @c: S.Configuration -> @s: D.State -> @r: P.Request ->
     @admit: (K.Oracle()) ->
       {R.configuration_is_valid(c) == True{} : Bool} -> R.Valid(c, s) ->
-        OracleSoundness(c, r, admit) -> Core(c, s, r, admit)
+        OracleSoundness(c, r, admit) -> Core(k, c, s, r, admit)
+
+def CoreTheorem() -> Type:
+  @k: Clause -> CoreClauseTheorem(k)
 
 # Init is typed admission of a seed proof, not a Boolean runtime law test.
 type SeedVerdict<-c: S.Configuration, -seed: D.State> is Type:
@@ -187,19 +208,26 @@ def FramingRoundtrip() -> Type:
     {T.join(first, second) == Some{packet} : Maybe<&2, List<&2, U32>>} ->
     {T.separate(packet) == Some{T.Parts{first, second}} : Maybe<&2, T.Parts>}
 
+# Fixed denial before execution. Its bounded response belongs to the
+# admission clause, matching a halted gate in EntryCore.
+def Denial(k: Clause, -c: S.Configuration, -s: D.State, -response: S.Response) -> Type:
+  match k:
+    case Admitted{}: Early(c, s, response)
+    case _: Unit
+
 # The execution invariant is shared after checked prepared normalization.
 # The concrete select function is in Resolve.bend; no free lookup predicate.
-def SelectedCore(selection: Resolve.Selection, c: S.Configuration, s: D.State,
+def SelectedCore(k: Clause, selection: Resolve.Selection, c: S.Configuration, s: D.State,
   admit: K.Oracle()) -> Type:
   match selection:
-    case Resolve.Denied{status}: Early(c, s, S.response_error(status))
-    case Resolve.Selected{r}: Core(c, s, r, admit)
+    case Resolve.Denied{status}: Denial(k, c, s, S.response_error(status))
+    case Resolve.Selected{r}: Core(k, c, s, r, admit)
 
-def UnifiedCore(c: S.Configuration, +s: D.State,
+def UnifiedCore(k: Clause, c: S.Configuration, +s: D.State,
   entries: List<&2, Registry.Entry>, input: Resolve.Input, admit: K.Oracle()) -> Type:
   match c:
     case S.Configuration{schema, laws, limits, +environment}:
-      SelectedCore(Resolve.select(environment, s, entries, input),
+      SelectedCore(k, Resolve.select(environment, s, entries, input),
         S.Configuration{schema, laws, limits, environment}, s, admit)
 
 def SelectedOracleSoundness(selection: Resolve.Selection, -c: S.Configuration,
@@ -213,25 +241,25 @@ def ResolvedOracleSoundness(c: S.Configuration, s: D.State,
   SelectedOracleSoundness(Resolve.select(S.environment(c), s, entries, input), c, admit)
 
 def UnifiedCoreTheorem() -> Type:
-  @c: S.Configuration -> @s: D.State -> @entries: List<&2, Registry.Entry> ->
+  @k: Clause -> @c: S.Configuration -> @s: D.State -> @entries: List<&2, Registry.Entry> ->
     @input: Resolve.Input -> @admit: K.Oracle() ->
       {R.configuration_is_valid(c) == True{} : Bool} -> R.Valid(c, s) ->
         ResolvedOracleSoundness(c, s, entries, input, admit) ->
-          UnifiedCore(c, s, entries, input, admit)
+          UnifiedCore(k, c, s, entries, input, admit)
 
 # Ordinary complete-body ingress. Header receipt policy is a separate adapter.
-def DecodedCore(input: Input.PreAuthentication, c: S.Configuration,
+def DecodedCore(k: Clause, input: Input.PreAuthentication, c: S.Configuration,
   s: D.State, admit: K.Oracle()) -> Type:
   match input:
-    case Input.ErrorMessage{status}: Early(c, s, S.response_error(status))
+    case Input.ErrorMessage{status}: Denial(k, c, s, S.response_error(status))
     case Input.ErrorTransport{}: Empty
-    case Input.InputReady{state, r}: L.E<{state == s : D.State}, Core(c, s, r, admit)>
+    case Input.InputReady{state, r}: L.E<{state == s : D.State}, Core(k, c, s, r, admit)>
 
-def IngressCore(c: S.Configuration, +s: D.State,
+def IngressCore(k: Clause, c: S.Configuration, +s: D.State,
   body: List<&2, U32>, admit: K.Oracle()) -> Type:
   match c:
     case S.Configuration{schema, laws, +limits, environment}:
-      DecodedCore(Input.read_message(B.nat64(R.limit_message(limits)), body, s),
+      DecodedCore(k, Input.read_message(B.nat64(R.limit_message(limits)), body, s),
         S.Configuration{schema, laws, limits, environment}, s, admit)
 
 def DecodedOracleSoundness(input: Input.PreAuthentication, -c: S.Configuration,
@@ -245,6 +273,61 @@ def IngressOracleSoundness(c: S.Configuration, s: D.State,
   DecodedOracleSoundness(Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), c, admit)
 
 def IngressTheorem() -> Type:
-  @c: S.Configuration -> @s: D.State -> @body: List<&2, U32> -> @admit: K.Oracle() ->
+  @k: Clause -> @c: S.Configuration -> @s: D.State -> @body: List<&2, U32> -> @admit: K.Oracle() ->
     {R.configuration_is_valid(c) == True{} : Bool} -> R.Valid(c, s) ->
-      IngressOracleSoundness(c, s, body, admit) -> IngressCore(c, s, body, admit)
+      IngressOracleSoundness(c, s, body, admit) -> IngressCore(k, c, s, body, admit)
+
+# Finite serial runs. Each step is the computed result of the actual gate,
+# interpreter and finisher, and the host feeds exactly the returned root into
+# the next step (Gate.accepted_begin turns StepRan's two equations into begin's
+# Started result). No validity of any reached state is assumed.
+type Step<-c: S.Configuration, -s: D.State, -r: P.Request, -admit: K.Oracle(), -next: D.State> is Type:
+  StepHalted{response: S.Response, bytes: List<&2, U32>,
+    halted: {K.begin(c, s, r, admit) == K.Halted{response} : K.Entry},
+    published: {K.early(response, s) == Some{N.Conclusion{next, response, bytes}} : Maybe<&2, N.Conclusion>}}
+  StepRan{context: D.Context, program: S.Program, n: Nat, w: D.State,
+    ts: List<&2, S.OperationEvent>, proposal: S.Response, response: S.Response, bytes: List<&2, U32>,
+    authenticated: {D.authenticate(s, K.credential(r)) == Some{context} : Maybe<&2, D.Context>},
+    admitted: {admit(c, r, context) == K.Accept{program} : K.Verdict},
+    finished: {N.traverse(n, N.start(program, context, K.arguments(r), s), S.schema(c)) ==
+      S.Final{w, ts, proposal} : S.Trace},
+    published: {K.finish(S.Final{w, ts, proposal}, c, s) ==
+      Some{N.Conclusion{next, response, bytes}} : Maybe<&2, N.Conclusion>}}
+
+# A finite input sequence from root s, each step with a sound oracle.
+type Run<-c: S.Configuration, -s: D.State> is Type:
+  RunEnd{}
+  RunStep{request: P.Request, admit: K.Oracle(), next: D.State,
+    sound: OracleSoundness(c, request, admit),
+    step: Step<c, s, request, admit, next>,
+    rest: Run<c, next>}
+
+# Core clause k at step j of the run (nothing past its end).
+def CoreAt(j: Nat, k: Clause, c: S.Configuration, s: D.State, run: Run<c, s>) -> Type:
+  match j run:
+    case _ RunEnd{}: Unit
+    case 0n RunStep{r, admit, next, sound, step, rest}: Core(k, c, s, r, admit)
+    case 1n+i RunStep{r, admit, next, sound, step, rest}: CoreAt(i, k, c, next, rest)
+
+# Validity of the root before step j, or of the final root past the end.
+def ValidAt(j: Nat, -c: S.Configuration, -s: D.State, run: Run<c, s>) -> Type:
+  match j run:
+    case _ RunEnd{}: R.Valid(c, s)
+    case 0n RunStep{r, admit, next, sound, step, rest}: R.Valid(c, s)
+    case 1n+i RunStep{r, admit, next, sound, step, rest}: ValidAt(i, c, next, rest)
+
+# FoldTheorem quantifies over every step index j and every aspect: each Core
+# clause at step j, and validity of every reached root.
+type Aspect is Data:
+  StepCore{clause: Clause}
+  Reached{}
+
+def FoldAt(a: Aspect, c: S.Configuration, s: D.State, run: Run<c, s>, j: Nat) -> Type:
+  match a:
+    case StepCore{k}: CoreAt(j, k, c, s, run)
+    case Reached{}: ValidAt(j, c, s, run)
+
+def FoldTheorem() -> Type:
+  @a: Aspect -> @c: S.Configuration -> @seed: D.State -> @v: SeedVerdict<c, seed> ->
+    @run: Run<c, seed> -> {init(c, seed, v) == Some{seed} : Maybe<&2, D.State>} ->
+      @j: Nat -> FoldAt(a, c, seed, run, j)

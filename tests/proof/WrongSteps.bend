@@ -37,3 +37,10 @@ def is_halted(entry: K.Entry) -> Bool:
   match entry:
     case K.Halted{response}: True{}
     case K.Started{context, machine}: False{}
+
+# A machine that stopped with the generic failure status.
+def failed_machine() -> N.Machine:
+  N.Stopped{X.seed(), Nil{}, S.response_error(S.Failure{})}
+
+def failure_bytes() -> List<&2, U32>:
+  Maybe.default(&2, List<&2, U32>, P.frame(S.response_value(S.response_error(S.Failure{}))), Nil{})

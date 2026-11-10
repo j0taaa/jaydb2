@@ -59,3 +59,4 @@ import ./ReadBatches.bend as ReadBatches
 import ./Init.bend as ExecutableInit
 import ./Gate.bend as ExecutableGate
 import ./WireTheorems.bend as ExecutableWire
+import ./CoreClauses.bend as ExecutableCore

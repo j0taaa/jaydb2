@@ -13,3 +13,4 @@ import ./AllocationLengths.bend as AllocationLengths
 import ./RefusalWithoutLimit.bend as RefusalWithoutLimit
 import ./Positive.bend as ExecutablePositive
 import ./Refutations.bend as ExecutableRefutations
+import ./Instances.bend as ExecutableInstances

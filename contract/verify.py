@@ -44,10 +44,10 @@ def main() -> int:
         "secondary_kernel_requested": args.verdict,
         "native_implementation_included": False,
         "native_contract_proved": False,
-        "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init and independent wire theorems. Universal Core remains open.",
-        "executable_witnesses": ["Init.init_theorem", "WireTheorems.codec_roundtrip",
+        "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init, all four Core clauses and independent wire theorems.",
+        "executable_witnesses": ["Init.init_theorem", "CoreClauses.core_theorem", "WireTheorems.codec_roundtrip",
                                  "WireTheorems.codec_canonical", "WireTheorems.framing_roundtrip"],
-        "pending_theorems": ["CoreTheorem", "IngressTheorem", "UnifiedCoreTheorem", "finite-run fold"],
+        "pending_theorems": ["IngressTheorem", "UnifiedCoreTheorem", "finite-run fold"],
         "sources": [{"file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
                      "lines": len(p.read_text().splitlines())} for p in sources],
     }
