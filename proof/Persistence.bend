@@ -13,7 +13,7 @@ import ../src/Input.bend as Input
 import ../src/State.bend as State
 import ./CodecComplete.bend as Codec
 import ./Representation.bend as Representation
-import ./HistoryService.bend as History
+import ./History.bend as History
 
 # Includes a commit followed by process loss before publication/acknowledgment:
 # the candidate is the certified N.conclude state, independent of delivery.

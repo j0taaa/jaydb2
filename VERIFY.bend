@@ -1,7 +1,6 @@
-# Implemented pure components. The composition of the eight laws is checked
-# in proof/VERIFY.bend, included in the make verify test aggregate.
+# Executable components and the inhabited contract theorems.
 import Base
-import ./contract/VERIFY.bend as ContractOriginal
+import ./contract/VERIFY.bend as Contract
 import ./src/Core.bend as Core
 import ./src/Input.bend as Input
 import ./src/Execution.bend as Execution

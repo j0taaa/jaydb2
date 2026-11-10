@@ -42,6 +42,6 @@ checkers, source binding, purity policy and checked-Book compilation.
 
 `admitKernel` admits trusted JayDB wrappers. Only their registered foreign declarations receive integration permission; clients do not receive that capability. Initialization requires a seed-validity proof for the actual configuration. The host compiles official C without rewriting it and runs each call in a child process, retaining publication in the host.
 
-Use the commands in the root README. There is no derived verifier installation, stack addon, physical budget, or per-request deadline. The official tools' own limitations remain unchanged. The gate does not claim general semantic preservation or the complete executable's `Contract`.
+Use the commands in the root README. There is no derived verifier installation, stack addon, physical budget, or per-request deadline. The official tools' own limitations remain unchanged. Admission soundness and exact source/Book binding form T1; compiler/runtime preservation and numbered host plumbing are T2/T3 in the [proof guide](../../proof/README.md).
 
 The launcher uses the public `node --stack_size=65536` option for official Safe. The profile requires an unlimited Linux hard stack limit and raises the soft limit to unlimited before executing Node. This is a helper execution setting; Bend and V8 sources are unchanged.

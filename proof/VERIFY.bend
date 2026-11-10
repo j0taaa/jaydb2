@@ -1,6 +1,5 @@
-# General proofs and joint composition of eight serial protocol laws.
+# Executable gate theorems, pure implementation and optional adapter proofs.
 import Base
-import ../contract/LAWS.bend as EightLawsReviewed
 import ./Foundations.bend as Foundations
 import ./Orders.bend as Orders
 import ./Authentication.bend as Authentication
@@ -10,14 +9,6 @@ import ./Preparation.bend as Preparation
 import ./Publication.bend as Publication
 import ./Call.bend as Call
 import ./Proposal.bend as Proposal
-import ./HistoryService.bend as HistoryService
-import ./ScenariosService.bend as ScenariosService
-import ./InputService.bend as InputService
-import ./Law1Service.bend as Law1Service
-import ./Law2Service.bend as Law2Service
-import ./Law34Service.bend as Law34Service
-import ./Law5Service.bend as Law5Service
-import ./ContractService.bend as ContractService
 import ./Representation.bend as Representation
 import ./Adapters.bend as Adapters
 import ./ExecutionAdapter.bend as ExecutionAdapter
@@ -27,10 +18,6 @@ import ./GeneratedInstance.bend as GeneratedInstance
 import ./GeneratedModule.bend as GeneratedModule
 import ./EnvironmentBinding.bend as EnvironmentBinding
 import ./DurableCommit.bend as DurableCommit
-import ./PreparedControlDispatch.bend as PreparedControlDispatch
-import ./PreparedInvalidationDispatch.bend as PreparedInvalidationDispatch
-import ./PreparedControlTrace.bend as PreparedControlTrace
-import ./Resources.bend as Resources
 import ./Transport.bend as Transport
 import ./ReceptionLimits.bend as ReceptionLimits
 import ./CodecVerify.bend as Codec
@@ -42,23 +29,15 @@ import ./ErrorLimitFixed.bend as ErrorLimitFixed
 import ./ErrorsFixed.bend as ErrorsFixed
 import ./PreparedPrograms.bend as PreparedPrograms
 import ./PreparedWire.bend as PreparedWire
-import ./PreparedExtension.bend as PreparedExtension
-import ./PreparedControls.bend as PreparedControls
-import ./PreparedRegistryHistory.bend as PreparedRegistryHistory
-import ./PreparedServiceHistory.bend as PreparedServiceHistory
-import ./HostHistory.bend as HostHistory
-import ./HostInvalidation.bend as HostInvalidation
-import ./PreparedAuthority.bend as PreparedAuthority
-import ./PreparedRejects.bend as PreparedRejects
-import ./SchedulingRefinement.bend as SchedulingRefinement
 import ./HandleAllocation.bend as HandleAllocation
 import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing
 
-import ./ReadBatches.bend as ReadBatches
 import ./Init.bend as ExecutableInit
 import ./Gate.bend as ExecutableGate
 import ./WireTheorems.bend as ExecutableWire
 import ./CoreClauses.bend as ExecutableCore
 import ./Ingress.bend as ExecutableIngress
 import ./Iteration.bend as ExecutableFold
+import ./FrameQueueHistory.bend as FrameQueueHistory
+import ./FrameQueueProgress.bend as FrameQueueProgress

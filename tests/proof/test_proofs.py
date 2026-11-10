@@ -11,25 +11,25 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.bend import environment, executable
 sys.path.insert(0, str(ROOT / "tools"))
-from check import check_coverage
+from check import COVERAGE_AREAS, check_coverage
 
 
 def coverage_controls():
     """An orphaned module or missing import must fail before proof checking."""
     with tempfile.TemporaryDirectory(prefix="jaydb-coverage-") as temporary:
         root = Path(temporary)
-        for area in ("src", "proof", "library"):
+        for area in COVERAGE_AREAS:
             (root / area).mkdir()
             (root / area / "Included.bend").write_text("import Base\n")
         (root / "src/Included.bend").write_text("import Base # pinned\nimport ../library/Included.bend as Library\n")
         (root / "proof/Included.bend").write_text("import ../src/Included.bend as Source\n")
         entry = root / "VERIFY.bend"
-        imports = "import ./proof/Included.bend as Proof\n"
+        imports = "import ./proof/Included.bend as Proof\nimport ./contract/Included.bend as Contract\n"
         entry.write_text("# header comment\n\n" + imports + "def body() -> Unit:\n  Unit{}\n")
         report = check_coverage([entry], root)
         assert all(count["modules"] == 1 for count in report["areas"].values())
-        assert len(report["modules"]) == 4
-        for area in ("src", "proof", "library"):
+        assert len(report["modules"]) == len(COVERAGE_AREAS) + 1
+        for area in COVERAGE_AREAS:
             orphan = root / area / "Orphan.bend"
             orphan.write_text("import Base\n")
             try:

@@ -1,14 +1,11 @@
-# Inverts ACTUAL Input composition, linked to original Interface.
-# Errors carry Unit; no conclusion about InputReady is assumed.
-# Does not instantiate Environment, Happens, Processable or Contract.
+# Inverts actual Input composition into exact blocks, ceilings and values.
+# Envelope rejection excludes canonical requests for the same bytes.
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
 import ../contract/Semantics.bend as S
 import ../contract/Requirements.bend as R
-import ../contract/Resources.bend as X
-import ../contract/Interface.bend as I
 import ../contract/Logic.bend as L
 import ../src/Input.bend as E
 import ../src/State.bend as State
@@ -279,41 +276,6 @@ def ready_reconstructs_blocks_ceilings_state_and_request(bs, e, l, s, r, ready):
   %ready : ReadyRelated(_, bs, e, l)
   decode_reconstructs_stages_real(bs, e, l)
 
-# The body is extracted by inversion, before receiving reception equality.
-# The final function receives ONLY the actual ProcessBody{br} decision.
-def BodyForInterface(-bs: List<&2, U32>, -r: P.Request,
-  -world: Nat, -c: S.Configuration, -s: D.State, -input: X.Reception) -> Type:
-  &be: List<&2, U32> -> &br: List<&2, U32> ->
-    L.E<{T.separate(bs) == Some{T.Parts{be, br}} : Maybe<&2, T.Parts>},
-      L.E<P.Encoding(P.request_value(r), br),
-        ({X.decide_reception(c, input) == X.ProcessBody{br} : X.Disposition} ->
-          I.RequestReceived(I.Serve{world, c, s, input}, r))>>
-
-def link_inversion_to_interface(-bs: List<&2, U32>, -e: D.Schema, -l: S.Limits,
-  -s: D.State, +r: P.Request, -world: Nat, -c: S.Configuration, -input: X.Reception,
-  inversion: InversionReady(bs, e, l, s, r)) -> BodyForInterface(bs, r, world, c, s, input):
-  match inversion:
-    case (+be, +br, te, tr, L.Both{separate, L.Both{transport,
-      L.Both{ceiling_and, L.Both{ceiling_r, L.Both{state, L.Both{codec, L.Both{canonical, valid}}}}}}}):
-      +encoding = {canonical : {P.encode(P.request_value(r)) == Some{br} : Maybe<&2, List<&2, U32>>}}
-      (be, br, L.Both{separate, L.Both{encoding,
-        reception => (br, L.Both{reception, encoding})}})
-
-law ready_provides_body_and_linkage_to_interface_original:
-  for +bs: List<&2, U32>
-  for +e: D.Schema
-  for +l: S.Limits
-  for +s: D.State
-  for +r: P.Request
-  for -world: Nat
-  for -c: S.Configuration
-  for +input: X.Reception
-  for ready: {E.decode(bs, e, l) == E.InputReady{s, r} : E.PreAuthentication}
-  BodyForInterface(bs, r, world, c, s, input)
-def ready_provides_body_and_linkage_to_interface_original(bs, e, l, s, r, world, c, input, ready):
-  link_inversion_to_interface(bs, e, l, s, r, world, c, input,
-    ready_reconstructs_blocks_ceilings_state_and_request(bs, e, l, s, r, ready))
-
 # Envelope rejection: completeness prevents the SAME bytes from encoding
 # any request. Measure and ceiling are the actual body's.
 def extraction_of_result(result: C.Outcome) -> Maybe<&2, P.Request>:
@@ -362,26 +324,3 @@ law codec_accepted_combined_envelope_invalid_excludes_request_canonical:
   WithoutRequestEncoded(br)
 def codec_accepted_combined_envelope_invalid_excludes_request_canonical(br, body, tr, v, measured, fits, accepted, refused):
   r => encoded => exclude_request_alternative(br, body, tr, v, measured, fits, accepted, refused, r, encoded)
-
-# Disposition equality is the only reception premise; no InputInvalid,
-# Happens or private fact relation is supplied.
-law envelope_invalid_of_body_real_implies_input_invalid_original:
-  for -world: Nat
-  for -c: S.Configuration
-  for -s: D.State
-  for -input: X.Reception
-  for +br: List<&2, U32>
-  for +body: B.Number64
-  for +tr: B.Number64
-  for +v: D.Value
-  for reception: {X.decide_reception(c, input) == X.ProcessBody{br} : X.Disposition}
-  for +ceiling: {B.nat64(R.limit_message(S.limits(c))) == Some{tr} : Maybe<&2, B.Number64>}
-  for +measured: {B.nat64(B.length(br)) == Some{body} : Maybe<&2, B.Number64>}
-  for +fits: {C.less_equal64(body, tr) == True{} : Bool}
-  for +accepted: {C.decode(br, tr) == C.Decoded{v} : C.Outcome}
-  for +refused: {Q.extract(v) == None{} : Maybe<&2, P.Request>}
-  I.InputInvalid(I.Serve{world, c, s, input})
-def envelope_invalid_of_body_real_implies_input_invalid_original(world, c, s, input,
-  br, body, tr, v, reception, ceiling, measured, fits, accepted, refused):
-  L.Right{(br, L.Both{reception,
-    codec_accepted_combined_envelope_invalid_excludes_request_canonical(br, body, tr, v, measured, fits, accepted, refused)})}

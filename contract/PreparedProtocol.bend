@@ -13,14 +13,12 @@ type Operation is Data:
   Prepare{}
   Execute{}
   Invalidate{}
-  PrepareRead{}
 
 def opcode(operation: Operation) -> U32:
   match operation:
     case Prepare{}: 0
     case Execute{}: 1
     case Invalidate{}: 2
-    case PrepareRead{}: 3
 
 type WireRequest is Data:
   Ordinary{request: P.Request}
@@ -68,20 +66,19 @@ type Dispatch is Data:
   ExtensionBody{operation: Operation, bytes: List<&2, U32>}
   InvalidExtension{}
 
-def dispatch_opcode(zero: Bool, one: Bool, two: Bool, three: Bool, bytes: List<&2, U32>) -> Dispatch:
-  match zero one two three:
-    case True{} _ _ _: ExtensionBody{Prepare{}, bytes}
-    case False{} True{} _ _: ExtensionBody{Execute{}, bytes}
-    case False{} False{} True{} _: ExtensionBody{Invalidate{}, bytes}
-    case False{} False{} False{} True{}: ExtensionBody{PrepareRead{}, bytes}
-    case False{} False{} False{} False{}: InvalidExtension{}
+def dispatch_opcode(zero: Bool, one: Bool, two: Bool, bytes: List<&2, U32>) -> Dispatch:
+  match zero one two:
+    case True{} _ _: ExtensionBody{Prepare{}, bytes}
+    case False{} True{} _: ExtensionBody{Execute{}, bytes}
+    case False{} False{} True{}: ExtensionBody{Invalidate{}, bytes}
+    case False{} False{} False{}: InvalidExtension{}
 
 def strip_extension(bytes: List<&2, U32>) -> Dispatch:
   match bytes:
     case Nil{}: InvalidExtension{}
     case Con{+operation, body}:
       dispatch_opcode(U32.is_eq(operation, 0), U32.is_eq(operation, 1),
-        U32.is_eq(operation, 2), U32.is_eq(operation, 3), body)
+        U32.is_eq(operation, 2), body)
 
 def dispatch_tag(extension: Bool, tag: U32, rest: List<&2, U32>) -> Dispatch:
   match extension:
@@ -148,7 +145,6 @@ def known_opcode_dispatch(operation, bytes):
     case Prepare{}: {==}
     case Execute{}: {==}
     case Invalidate{}: {==}
-    case PrepareRead{}: {==}
 
 law truncated_opcode_rejected:
   {route_dispatch([7]) == InvalidExtension{} : Dispatch}

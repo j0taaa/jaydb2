@@ -150,13 +150,13 @@ model; RQ2 concerns representative policy constructions and their executable
 counterparts; RQ3 concerns measured behavior. Passing an execution test is not
 used as a premise establishing a universal theorem.
 
-The ordinary contract in \code{contract/LAWS.bend} is the fixed criterion for
-RQ1. Proof terms construct its actual conjunction, rather than a smaller
-surrogate. Verification checks the general, contract, library and receipt roots
-with both official \code{--check-only} and \code{--verdict} modes. These are
-two modes of the same pinned toolchain, not independent proof assistants.
-Acceptance supports a source result conditional on that toolchain. The concrete
-Rust/Node/C implementation must separately correspond to the modeled operations.
+The executable statements in \code{contract/Theorems.bend} are the criterion
+for RQ1. Inhabited Init, Core, Ingress, UnifiedCore, Fold and wire theorems
+concern the actual gate, interpreter and finisher. Both official
+\code{--check-only} and \code{--verdict} modes check their witnesses. T1 binds
+admission to exact source and checked Book; T2 assumes compiler/runtime
+preservation; T3 specifies physical host plumbing. Native Gate integration is
+in progress. Historical benchmark records identify their earlier artifact.
 
 For RQ2, positive application certificates are checked against the installed
 policy and actual interpreter. Negative variants omit a required invariant or
@@ -297,51 +297,34 @@ unsuccessful or incomplete worker cannot supply a complete accepted proposal.
 \label{tab:laws}
 \begin{tabular}{>{\raggedright\arraybackslash}p{0.07\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}>{\raggedright\arraybackslash}p{0.41\linewidth}}\toprule
 Law & Required behavior & Representative source proof \\\midrule
-1 & Valid startup and fixed configuration & \code{Law1Service}, \code{HistoryService} \\
-2 & Exact bytes, operations and length checks & \code{CodecLaw2}, \code{Law2Service} \\
-3 & Current authenticated identity & \code{Law34Service} \\
-4 & Correct certificate bound to the program & \code{Law34Service} \\
-5 & Faithful ordered execution and observations & \code{Law5Service}, \code{Machine} \\
-6 & Unique valid publication and rollback & \code{Law6Service}, \code{Publication} \\
-7 & Exact responses, failures and channel behavior & \code{Law7Service}, \code{ChannelService} \\
-8 & Progress under external operating conditions & \code{Law8Service} \\\bottomrule
+1 & Valid startup and fixed configuration & \code{Init}, \code{Iteration} \\
+2 & Canonical bytes and exact operations & \code{WireTheorems}, \code{Machine} \\
+3 & Current authenticated identity & \code{CoreClauses}, \code{Gate} \\
+4 & Exact admitted machine start & \code{CoreClauses}, T1 binding \\
+5 & Every-prefix law safety and fidelity & \code{CoreClauses}, \code{Machine} \\
+6 & Valid publication and serial fold & \code{CoreClauses}, \code{Iteration} \\
+7 & Exact finalized responses and bytes & \code{CoreClauses}, \code{Ingress} \\
+8 & Accepted execution progress & \code{CoreClauses} \\
+\bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Meaning of the checked result}
-The term \code{contract\_of\_service} in module \code{ContractService}
-constructs exactly the conjunction
-\code{LAWS.Contract(a,k)}. Five premise groups specify the boundary:
-\code{Initial} supplies the judgment of the actual closed seed-validity
-declaration; \code{Observations} supplies codec, copying and framing results
-for the actual bytes; \code{SourcesExecution} connects checked source
-judgments, authentication and execution equations to the same history;
-\code{Communication} supplies byte origin, real errors and written prefixes;
-and \code{AvailabilityOfModel} requires primitive returns under the external
-operating conditions. These premises describe primitive behavior rather than
-assume the eight law conclusions. Current-state validity is derived from the
-initial proof and successive certified publications.
+\code{CoreClauses.core\_theorem} inhabits \code{CoreTheorem}, indexed by
+Admitted, Safe, Completed and Progressing. All clauses require valid
+configuration, valid starting state and sound admission for the exact request.
+They establish actual authentication/admission/start, law safety at every
+prefix, exact valid finalization/publication/bytes, and accepted execution
+termination. Success/refusal additionally requires \code{WithinLimits} of the
+computed final trace; data errors remain possible.
 
-\begin{proposition}[Conditional service correctness]
-For the ordinary serial service model, the explicit source/tool/communication premises of
-\code{ContractService} entail the eight-law contract for the associated
-environment and artifact.
-\end{proposition}
-\begin{proof}[Proof structure]
-The checked construction derives the startup obligation, representation
-correctness, authentication and admission obligations, faithful execution,
-publication, response/channel obligations and progress. It combines these
-terms with the conjunction constructors required by the unchanged contract.
-History induction links each call to the preceding publication. The executable
-interpretation additionally requires the stated correspondence of concrete
-host blocks to this model. The proof terms, rather than this prose sketch,
-supply the machine-checked source result.
-\end{proof}
-
-The progress law uses the original external \code{Processable} predicate.
-Defining processable to mean that this implementation happened to finish would
-make progress circular. The source model avoids that substitution. It also
-does not promise a maximum elapsed time or physical memory consumption.
+\code{Ingress} composes complete ordinary bodies and exact direct/registered
+selection with Core. \code{Iteration.fold\_theorem} derives every reached
+root's validity from an Init-accepted seed and computed finite-run steps.
+The numbered host obligations and T1--T3 trusted base are recorded in
+\code{proof/README.md}. Native worker integration of Gate is in progress.
+Checker adequacy, OS progress and physical availability are external to these
+source theorems. Logical progress is proved after acceptance.
 
 \subsection{Limits and failures}
 The contract has exactly three canonical sizes: message, state and response.
@@ -369,23 +352,17 @@ must still match the registration at the actual call.
 
 This extension has a distinct raw protocol. Prepared bodies begin with tag~7,
 whereas an ordinary request is a canonical record encoded with tag~6. Checked
-\code{PreparedPrograms} exclusion theorems establish that the same prepared raw
-body cannot have an ordinary \code{RequestReceived} witness. Consequently,
-normalizing a handle to a logical source request does not prove compliance of
-those physical bytes with the original ordinary-wire contract.
+\code{PreparedPrograms} exclusion lemmas prove canonical ordinary encodings
+cannot start with tag~7.
 
-The additive \code{PreparedProtocol}, \code{PreparedRegistry} and
-\code{PreparedLaws} specifications retain the eight ordinary laws and separately
-state physical reception, instance-scoped registration, fresh authentication,
-current artifact identity and authorized control outcomes. Model proofs connect
-prepared readiness to the actual resolver and \code{Core} conclusion, and
-construct bounded registration/invalidation outcomes. They do not establish
-\code{PreparedLaws.ControlLaw} for every actual host observation. Its metadata
-observer does not compose sent prefixes, closure, progress and prepared program
-execution into a complete extended-service contract. That composition and the
-complete compiler/host/OS refinement remain open. The prepared-read
-measurements below therefore provide operational evidence for an extension
-whose full executable contract is not proved.
+The unified selection theorem, \code{UnifiedCoreTheorem}, applies Core to the
+exact request returned by executable scoped selection, which authenticates first
+and preserves credential and arguments. Cached universal admission specialized
+at current context/arguments belongs to T1's exact program/artifact binding.
+\code{PreparedProtocol} and \code{PreparedWire} retain physical envelope and
+receipt encoding facts. Prepare/invalidate host controllers and physical
+receipt-before-mutation ordering remain integration obligations. Historical
+prepared-read measurements below describe their recorded executable.
 
 \subsection{Persistence and concurrent reads}
 Optional persistence stores complete committed images and requires the exact
@@ -568,14 +545,12 @@ begins \code{fbce76fdafe3}; the derived analysis input begins
 measurement of the current optional interfaces.
 
 \section{Discussion and Threats to Validity}
-RQ1 is answered by the conditional composition: certificates over actual
-prefixes and finalization feed a publication result, and history induction
-connects successive calls to the eight-law ordinary model. The theorem exposes
-source judgments, byte/operation correspondence, communication and primitive
-progress as premises. It is useful as a precise interface for future refinement,
-but does not establish an unconditional property of every Rust/Node/C execution.
-Prepared raw messages, read-batch scheduling and persistent publication have
-additional concrete obligations beyond this theorem.
+RQ1 is answered by the inhabited executable gate theorems. Certificates over
+actual prefixes and finalization yield valid publication; the finite-run fold
+derives validity from the accepted seed through successive computed steps.
+Source/Book binding, compiler/runtime preservation and physical plumbing are
+T1--T3. Prepared controls and persistent publication require additional host
+obligations. Native Gate integration is in progress.
 
 For RQ2, the indexed case demonstrates separate access and consistency
 properties; its negative controls show why permission alone is insufficient for
@@ -635,8 +610,8 @@ the actual optional interfaces rather than merely extending test coverage.
 \section{Conclusion}
 \jay{} implements proof-carrying transactions whose certificates constrain
 administrator-defined situations throughout execution and at publication. The
-principal formal result is the checked composition of the eight-law ordinary
-serial service model under explicit toolchain and integration premises.
+principal formal result is the inhabited executable Init/Core/Ingress/UnifiedCore/
+Fold and wire theorems under the explicit T1--T3 trusted base.
 Ownership/index and voucher/receipt applications demonstrate selected policies,
 with controls and fault cases exercising their executable boundaries.
 

@@ -273,7 +273,7 @@ function stage(environment, directory, purpose, metadata) {
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = ['execute', 'prepare'].includes(purpose);
   available.set('Main.bend', Buffer.from(main));
-  const entries = executing ? ['Main.bend', 'Interface.bend'] : ['Main.bend'];
+  const entries = executing ? ['Main.bend', 'RequestFacts.bend'] : ['Main.bend'];
   const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
   const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [] };
   for (const [name, original] of selected) {
@@ -306,7 +306,7 @@ function stage(environment, directory, purpose, metadata) {
   if (purpose === 'initialize' || executing) {
     const check = purpose === 'initialize'
       ? 'import Base\nimport ./Configuration.bend as C\nimport ./Seed.bend as Seed\nimport ./Requirements.bend as R\n'
-      : 'import Base\nimport ./Bindings.bend as Bindings\nimport ./ClientProof.bend as ClientProof\nimport ./Interface.bend as I\n';
+      : 'import Base\nimport ./Bindings.bend as Bindings\nimport ./ClientProof.bend as ClientProof\nimport ./RequestFacts.bend as I\n';
     write(path.join(directory, 'Check.bend'), check);
     const names = sourceClosure(available, imports(Buffer.from(check)), 'Unadmitted pure dependency: ', false);
     if (names.has('Native.bend')) fail('KERNEL_CAPTURE', 'The pure module set reaches Native');

@@ -30,7 +30,7 @@ def proof_root(directory=None, code=None, proof=None, permissions=None):
     (d/'Instance.bend').write_text('import Base\nimport ./Data.bend as D\nimport ./Semantics.bend as S\nimport ./Configuration.bend as C\ndef config() -> S.Configuration: C.config()\ndef context() -> D.Context: D.Context{"alice","user"}\ndef arguments() -> D.Value: D.VList{D.VText{"set"},D.VList{D.VBool{True{}},D.VListEmpty{}}}\n')
     code=(d/'Client.bend').read_text()
     literal='"'+''.join('\\"' if c=='"' else '\\\\' if c=='\\' else f'\\u{{{ord(c):02x}}}' if ord(c)<32 else c for c in code)+'"'
-    (d/'Bindings.bend').write_text('import Base\nimport ./Data.bend as D\nimport ./Semantics.bend as S\nimport ./Requirements.bend as R\nimport ./Interface.bend as F\nimport ./Client.bend as Client\nimport ./Instance.bend as I\ndef code() -> String: '+literal+'\nlaw certificate: R.Certifies(I.config(),code(),Client.program(),I.context(),I.arguments())\nlaw terminates: F.ProgramTerminates(I.config(),Client.program())\n')
+    (d/'Bindings.bend').write_text('import Base\nimport ./Data.bend as D\nimport ./Semantics.bend as S\nimport ./Requirements.bend as R\nimport ./RequestFacts.bend as F\nimport ./Client.bend as Client\nimport ./Instance.bend as I\ndef code() -> String: '+literal+'\nlaw certificate: R.Certifies(I.config(),code(),Client.program(),I.context(),I.arguments())\nlaw terminates: F.ProgramTerminates(I.config(),Client.program())\n')
     (d/'Check.bend').write_text('import ./Model.bend as M\nimport ./CheckedActions.bend as H\nimport ./Completion.bend as Completion\nimport ./Configuration.bend as C\nimport ./'+('PermissionProof' if permissions is not None else 'ClientProof')+'.bend as Proof\nimport ./Seed.bend as Seed\n')
     return d/'Check.bend'
 

@@ -77,7 +77,7 @@ function assertBindings(B, book, plan, mustBeOpen) {
   const client = plan.records.get(canonical.client).ns;
   const expected = {
     [bind + ':certificate']: app(canonical.contractPrefix + 'Requirements:Certifies', inst + ':config', bind + ':code', client + ':program', inst + ':context', inst + ':arguments'),
-    [bind + ':terminates']: app(canonical.contractPrefix + 'Interface:ProgramTerminates', inst + ':config', client + ':program'),
+    [bind + ':terminates']: app(canonical.contractPrefix + 'RequestFacts:ProgramTerminates', inst + ':config', client + ':program'),
   };
   if (plan.certificateMode === 'universal') {
     const apply = (k, ...xs) => xs.reduce((f, x) => B.App(f, x), B.Ref(k));

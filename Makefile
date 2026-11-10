@@ -47,10 +47,10 @@ verify-contract:
 	python3 -B tools/check.py
 
 verify:
-	python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend proof/service/specification/ServiceLaws.bend
+	python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
 	python3 -B tests/proof/test_proofs.py
 
-test: test-admission test-native test-host test-integration
+test: build test-admission test-native test-host test-integration
 
 test-host:
 	cargo test --locked
@@ -64,10 +64,10 @@ test-persistence:
 test-admission:
 	node --test --test-concurrency=1 tests/admission/*.test.mjs tests/verifier/*.test.mjs
 
-test-native:
+test-native: build
 	python3 -B tests/native/test_simple_runtime.py
 
-test-integration:
+test-integration: build
 	python3 -B -m unittest tests.service.test_end_to_end tests.service.test_prepared tests.service.test_preprocessing tests.service.test_scheduling tests.service.test_timing tests.service.test_observers -v
 
 test-library: build

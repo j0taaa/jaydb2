@@ -1,6 +1,5 @@
 import Base
 import ./Transport.bend as Transport
-import ./ReceptionLimits.bend as ReceptionLimits
 import ./Codec.bend as Codec
 import ./Reification.bend as Reification
 import ./InputVerify.bend as Input

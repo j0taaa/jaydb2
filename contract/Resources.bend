@@ -1,17 +1,10 @@
 # Framing, logical limits and channel continuity.
-# Stages identify actual failures; they do not establish execution budgets.
+# Reception checks physical framing against canonical logical sizes.
 import Base
 import ./Semantics.bend as S
 import ./Requirements.bend as R
 import ./Protocol.bend as P
 import ./Bytes.bend as B
-
-type Stage is Data:
-  Frame{}
-  Authenticate{}
-  Verify{}
-  Execute{}
-  Prepare{}
 
 # Compare a declared uint64 with Nat without constructing 2^64 in Peano form.
 # If Nat does not fit uint64, no uint64 declaration exceeds it.
@@ -36,7 +29,7 @@ def declared_equal(high: U32, low: U32, n: Nat) -> Bool:
   declared_equal_cases(high, low, B.nat64(n))
 
 # Reception describes bytes actually received, before value
-# decoding. The environment must prove ReceptionValid for this account.
+# decoding. The host supplies the exact bytes described by ReceptionValid.
 type Reception is Data:
   EOFBetweenMessages{}
   # Operator signal between calls; it cannot be forged in client bytes.
@@ -101,19 +94,6 @@ def decide_reception(c: S.Configuration, r: Reception) -> Disposition:
 # message. This result only holds after ProcessBody.
 def body_invalid() -> Disposition:
   RefuseContinue{S.Input{}}
-
-# Delivery may fail after publication. The published state remains unchanged
-# during delivery; no new rollback status is produced.
-type Delivery is Data:
-  Delivered{}
-  DeliveryInterrupted{}
-
-def channel_later_delivery(e: Delivery) -> Bool:
-  match e:
-    case Delivered{}:
-      True{}
-    case DeliveryInterrupted{}:
-      False{}
 
 law eof_between_messages_closes:
   for l: S.Limits

@@ -169,7 +169,7 @@ proof must be rejected.
 is a local test and not part of server execution.
 
 The scope of the eight laws and integration assumptions remain those in
-[SERVICE_CONTRACT.md](../../proof/SERVICE_CONTRACT.md). This application adds no
+[proof guide](../../proof/README.md). This application adds no
 compiler, verifier, runtime, physical quota, or database parser.
 
 ### Original delivery result

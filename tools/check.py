@@ -21,6 +21,9 @@ def check_active() -> None:
             raise RuntimeError(f"Active contract differs from its manifest: {relative}")
 
 
+COVERAGE_AREAS = ("contract", "src", "proof", "library")
+
+
 def check_coverage(files: list[Path], root: Path = ROOT) -> dict:
     """Check maintained import coverage, not the semantic content of proofs.
 
@@ -62,7 +65,7 @@ def check_coverage(files: list[Path], root: Path = ROOT) -> dict:
     for file in files:
         visit(file)
     areas = {}
-    for area in ("src", "proof", "library"):
+    for area in COVERAGE_AREAS:
         expected = {file.resolve() for file in (root / area).rglob("*.bend")}
         missing = sorted(str(file.relative_to(root)) for file in expected - seen.keys())
         if missing:
@@ -80,7 +83,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=600,
                         help="Seconds per checker for development verification")
     parser.add_argument("--coverage", action="store_true",
-                        help="Require the selected roots to import every src/proof/library Bend module")
+                        help="Require the selected roots to import every contract/src/proof/library Bend module")
     parser.add_argument("files", type=Path, nargs="*")
     args = parser.parse_args()
     if args.timeout <= 0:

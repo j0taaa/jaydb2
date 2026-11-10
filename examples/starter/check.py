@@ -40,7 +40,7 @@ def stage(project: Path, directory: Path, code: str | None = None) -> None:
 import ./Data.bend as D
 import ./Semantics.bend as S
 import ./Requirements.bend as R
-import ./Interface.bend as F
+import ./RequestFacts.bend as F
 import ./Instance.bend as I
 import ./Client.bend as Client
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the package without running a server or claiming a core proof."""
+"""Check executable contract witnesses with the pinned official tools."""
 import argparse
 import hashlib
 import json
@@ -16,7 +16,7 @@ from bend import environment, executable, verify_version
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bend", help="Pinned official Bend 2.0.39 executable")
-    parser.add_argument("--verdict", action="store_true", help="Request also o kernel BendTT")
+    parser.add_argument("--verdict", action="store_true", help="Also run the official BendTT verdict")
     parser.add_argument("--report", default="VERIFICATION.json")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
@@ -54,7 +54,7 @@ def main() -> int:
     (root / args.report).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
-    print("Scope: specification and lemmas; a proof of Contract(a,k) for a native core is not included.")
+    print("Scope: inhabited executable Init/Core/Ingress/UnifiedCore/Fold/wire theorems; native Gate integration is in progress.")
     return exit_code
 
 

@@ -175,14 +175,14 @@ test('shared administrator modules and the canonical configuration alias still s
 
 test('prepared contract dependencies survive the production public staging closure', t => {
   const f = fixture(t);
-  fs.writeFileSync(f.config, 'import ./PreparedLaws.bend as Prepared\n');
+  fs.writeFileSync(f.config, 'import ./PreparedProtocol.bend as Prepared\nimport ./PreparedRegistry.bend as Registry\n');
   const original = child.spawnSync;
   let calls = 0;
   child.spawnSync = (_program, args) => {
     calls++;
     const manifest = JSON.parse(fs.readFileSync(args[2], 'utf8'));
     const staged = new Set(manifest.dependencies.map(dependency => dependency.path));
-    for (const name of ['PreparedLaws.bend', 'PreparedProtocol.bend', 'PreparedRegistry.bend']) assert.ok(staged.has(name), name);
+    for (const name of ['PreparedProtocol.bend', 'PreparedRegistry.bend']) assert.ok(staged.has(name), name);
     for (const dependency of manifest.dependencies) {
       const source = fs.readFileSync(path.join(manifest.submissionDir, dependency.path), 'utf8');
       assert.doesNotMatch(source, /^import\s+\.\.\//m, dependency.path);

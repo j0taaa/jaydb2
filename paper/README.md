@@ -52,9 +52,9 @@ The presentation is a Beamer PDF with editable LaTeX source. Text, tables,
 chart values and speaker notes remain in `slides.tex`; the chart values come
 from the retained evidence through `evidence.py`. The article remains English.
 
-The manuscript distinguishes source theorems, conditional service composition,
+The manuscript distinguishes executable gate theorems, T1–T3 integration premises,
 finite tests, and trusted operational assumptions. Neither it nor the slides
 assert an unconditional proof of the entire executable or a performance win
-against PostgreSQL/SQLite. The complete prepared-service composition, full functional proofs and host
-refinement obligations remain unfinished. Component predicates and import
+against PostgreSQL/SQLite. Native Gate integration, prepared host controllers and additional functional
+proofs remain in progress. Component predicates and import
 counts do not establish those results.

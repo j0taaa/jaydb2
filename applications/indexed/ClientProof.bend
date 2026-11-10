@@ -4,7 +4,7 @@ import ./Semantics.bend as S
 import ./Logic.bend as L
 import ./Requirements.bend as R
 import ./Termination.bend as T
-import ./Interface.bend as F
+import ./RequestFacts.bend as F
 import ./Model.bend as M
 import ./Policy.bend as P
 import ./CheckedActions.bend as H

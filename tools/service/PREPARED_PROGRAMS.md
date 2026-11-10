@@ -159,39 +159,18 @@ certificate, and faithful preparation/valid publication using the actual Core
 functions. Its premises include the current state and actual execution result;
 they do not assume final-state validity or publication permission.
 
-The additive contract is defined in `contract/PreparedProtocol.bend`,
-`contract/PreparedRegistry.bend` and `contract/PreparedLaws.bend`.
-`PreparedProtocol.Received` binds valid actual reception to the exact prefixed
-canonical bytes and full physical message limit. `PreparedLaws.Ready` binds a
-call to fresh authentication, exact original source/proof, universal admission,
-and current per-call artifact validation. `ControlOutcome` specifies exact
-authorized registry deltas and unchanged published pairs, including receipt limits, unknown-handle
-errors and cleanup failure after invalidation. The additional `ControlLaw`
-states obligations over the declared metadata observations. Its observation
-type does not yet express sent prefixes, delivery completion, closure or
-progress; the separate `Delivery` predicate is not composed into it. A complete
-extended trace relation and proof must account for those facts as well as
-every actual result and registry mutation.
+`contract/PreparedProtocol.bend` specifies prepared prefixes, valid physical
+reception and exact receipt encodings. `contract/PreparedRegistry.bend` retains
+the scoped lookup used by `src/Resolve.bend`. `UnifiedCoreTheorem` applies the
+four Core clauses to the exact selected request or gives a bounded denial.
+Registered selection authenticates against current state before lookup and
+requires empty raw proof. T1 binds cached universal certification/termination
+to the exact loaded program/artifact and specializes it at current context
+and arguments. `proof/PreparedWire.bend` checks full-prefixed reception and
+receipt sizes; `PreparedPrograms` retains pure resolution/specialization and
+actual Core preparation/publication lemmas.
 
-`proof/PreparedWire.bend`, `proof/PreparedExtension.bend` and
-`proof/PreparedControls.bend` add general/model proofs of the wire relations,
-resolver/admission connection and control transitions. They cover exact receipt
-encoding, fresh registration, invalidation, receipt overflow and authorized
-outcomes without supplying the outcome as a premise. The existing
-`PreparedPrograms` adapter continues to cover the logical transaction through
-the actual Core functions.
-
-`PreparedRegistryHistory.bend` separately derives registered mode certificates
-through an admitted abstract insertion/invalidation history. It does not prove
-that every real host mutation follows that history or establish current seals.
-
-The ordinary eight-law composition remains ordinary-wire only: tag 7 was
-previously malformed and control receipts are outside `S.Status`.
-`Interface.RequestReceived` must not be applied directly to a raw handle body
-as if it contained source text. General/model proofs do not establish the
-complete actual `ControlLaw`, physical receipt-before-mutation ordering, or
-the Rust/Node/C, compiler and OS bridge. These remain explicit obligations
-supported by review and tests; hashes alone do not prove them. Official
-fragment/translation and physical failure limitations remain. This extension
-adds no runtime, quota, deadline or persistent prepared handles. Optional
-database-state persistence is provided separately.
+Preparation/invalidation controllers, current artifact integrity,
+receipt-before-mutation ordering and physical delivery remain integration
+obligations. The [proof guide](../../proof/README.md) numbers T3 plumbing and
+states T1/T2. Native worker integration of `Gate` is in progress.

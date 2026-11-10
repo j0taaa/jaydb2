@@ -1,83 +1,111 @@
-# General proofs
+# Executable contract proofs
 
-The executable replacement is partial; [implementation status](IMPLEMENTATION_STATUS.md)
-lists the checked Init/gate/codec witnesses and the open universal Core proof.
+`contract/Theorems.bend` states the contract over the functions in
+`src/Gate.bend`, `src/Resolve.bend` and the actual interpreter and finisher.
+All public theorem types below have witnesses checked by official Bend 2.0.39
+and BendTT. The four Core clauses share the same universal premises: valid
+configuration, valid starting state, and sound admission for the exact request.
 
-`proof/VERIFY.bend` aggregates the pure implementation proofs and
-`ContractService.contract_of_service`, whose target is exactly
-`LAWS.Contract(a,k)`. `tests/proof/VERIFY.bend` reapplies their public
-interfaces in quantified laws. The server conclusion is conditional on the
-explicit tool and Rust/Node/C integration contracts; their bodies have not
-been mechanized in Bend.
+Native worker integration of `Gate` is in progress.
 
-- `Foundations`, `Orders`, `Authentication`: structure and authenticated identity.
-- `Machine`, `Safety`, `Preparation`, `Publication`: incremental execution,
-  administrator laws, and proposal preparation.
-- `Call`: existence of actual preparation after finalization, and composition
-  of authenticated/certified execution with faithful preparation, valid
-  completion, and rollback. It uses actual `Core` functions without assuming
-  fidelity or conclusion validity.
-- `Representation`, `Transport`, `ReceptionLimits`, `Reification`: bytes, framing,
-  and actual arguments.
-- `CodecVerify`: 692 laws about the original Codec. `CodecLaw2` proves that
-  acceptance reconstructs the exact original encoding, every representable
-  encoding within the ceiling is accepted, and the result satisfies
-  `Interface.DecodingCorrect`, including rejections.
-- `InputVerify`, `Configuration`: composition of actual input,
-  authentication, errors, and configuration.
-- `Resources`, `AllocationLengths`, `ErrorsFixed`: the three logical sizes and
-  length checking before construction. They do not model physical memory or
-  deadlines.
+## Theorems and witnesses
 
-## Checking
+| Bend name | What it proves | Witness |
+| --- | --- | --- |
+| `InitTheorem` | A started instance has exactly the supplied valid seed and valid configuration; accepted valid initialization starts, and rejected initialization does not. | `Init.init_theorem`, `Init.bend` |
+| `CoreTheorem` — `Admitted` | A started machine has the current authenticated context, exact oracle acceptance and exact `Core.start` state/arguments. A halted gate has the computed rejection and bounded, correctly framed response preserving the root. | `CoreClauses.core_theorem`, `CoreClauses.bend`; gate equations in `Gate.bend` |
+| `CoreTheorem` — `Safe` | Every prefix of the actual machine satisfies all installed laws, including failure closures. | `CoreClauses.core_theorem`, `CoreClauses.bend` |
+| `CoreTheorem` — `Completed` | Every final trace has an actual finisher result: exact `Requirements.finalize`, exact `Semantics.publish`, a valid next root, exact framed bytes and a bounded response, without a generic `failure`. | `CoreClauses.core_theorem`, `CoreClauses.bend` |
+| `CoreTheorem` — `Progressing` | An accepted machine reaches a final trace and completes. If that trace has a success/refusal proposal preserved by finalization (`WithinLimits`), the response is success/refusal. Data errors remain possible. | `CoreClauses.core_theorem`, `CoreClauses.bend` |
+| `IngressTheorem` | Complete ordinary body decoding keeps the exact root and applies Core to the decoded request, or produces a bounded framed denial; it cannot produce a private transport error. | `Ingress.ingress_theorem`, `Ingress.bend` |
+| `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
+| `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
+| `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
+| `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
+| `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
+
+`RequestFacts` contains shared pure request/termination predicates.
+The supporting proofs cover authentication, interpreter fidelity, finalization,
+publication, codecs, representation and source generation. Optional library,
+queue, preprocessing and persistence transition lemmas have separate scope.
+Prepared wire vocabulary and exact receipt encodings remain checked; the
+prepare/invalidate host controllers are outside the theorem composition.
+
+## Non-vacuity and checking
+
+`tests/proof/Positive.bend` uses the real tasks policy, program, client proof
+and valid seed. It proves current authentication, the exact oracle premise,
+the exact accepted machine start, changed-root success and valid saved state.
+The driver verifies that relocated application bodies and source literals
+match the application's checked sources. `Instances.bend` instantiates Core,
+unified ingress and the finite-run fold with real oracle evidence.
+
+`Refutations.bend` proves that spoofed identity, uncertified starts, publication
+on refusal and rejecting an accepted program cannot satisfy the relevant
+clauses. `Controls.bend` and `WrongSteps.bend` provide concrete inputs and
+mutations. Every remaining `rejected/*.bend` fixture must fail at its named
+`false` proof with expected/observed diagnostics in **both** official modes;
+missing names and unfinished proofs fail the test driver.
 
 ```sh
+make verify-contract
 make verify
 ```
 
-Before invoking either checker, `make verify` requires its selected roots to
-import every Bend module under `src/`, `proof/`, and `library/`. This catches a
-new module accidentally left outside the aggregates, including receipt helpers.
-The coverage gate accepts the maintained local-import header syntax and fails
-on an unknown or missing dependency. Its negative controls include an omitted
-module in each of those three directories.
+`make verify` checks import coverage of every maintained module in `contract/`,
+`src/`, `proof/` and `library/`, checks the positive roots separately in both
+modes, and runs the causal negative controls. Import coverage is inventory
+hygiene; the theorem statements above determine the guarantees.
 
-Import coverage establishes which declarations reach the checkers. It does not
-establish a functional specification for each algorithm or discharge the host
-refinement assumptions. Applications, examples, native wrappers and historical
-experiments have their own generated roots and checks; they are outside the
-three-directory inventory.
+## Trusted base
 
-This checks hashes of the 18 translated historical files and 14 active
-contract modules, checks positive aggregates with separate `--check-only` and
-`--verdict` runs, and executes nine negative controls in both modes covering identity, bytes,
-administrator law, publication, length, reification, preprocessing order and
-whole-continuation read-only certification, and forged ordinary encoding of a
-prepared body. The runner's timeout only stops
-stalled development checks.
+**T1 — official admission soundness and source/Book binding.** Accepted
+initialization proves validity of the exact seed under immutable configuration.
+Program acceptance by the pinned official checker and BendTT establishes the
+exact `Requirements.Certifies` and termination targets for the elaborated
+program, configuration, source/dependencies, authenticated context and arguments.
+The source/target/purity audit and binding of that checked Book to the very Book
+compiled for execution belong to T1. Client code cannot import host ABI effects.
+A scoped cached universal prepared admission binds the exact loaded program
+and artifact to immutable configuration/source/dependency bytes, universal
+certification and termination; lookup specializes it at current context and
+arguments. Handles and hashes identify artifacts but do not establish those
+logical bindings by themselves.
 
-Old closed examples and prior-run reports were removed from the current
-suite; their versions remain in Git. General proofs were not removed to
-reduce line counts. The original Portuguese contract remains in Git history;
-the on-disk historical archive is an English translation.
+**T2 — Bend-to-C compiler/runtime preservation.** Compilation of that exact
+Book, native ABI and runtime preserve the proved pure transitions, values,
+integer/Unicode behavior and observation ordering. The process boundary and
+executable provenance are part of this bridge. Compiler preservation is trusted.
 
-## Eight laws and trusted boundary
+**T3 — host plumbing for the serial in-memory service.**
 
-The [eight-law map](SERVICE_CONTRACT.md) identifies the eight proof terms used
-in composition, the actual functions they concern, and five premise groups.
-Published-state validity, authenticated identity, and correct publication are
-conclusions; none of the eight laws is received as a premise. `Processable`
-remains external and is not redefined by the candidate's success.
+1. Pin configuration, source and tool bytes after initialization; use exactly
+   the checked seed root. Keep private state separate from client inputs.
+2. Read one bounded outer u64 frame with the specified EOF behavior. Supply
+   the complete original body and one current-root snapshot to the checked
+   decoder/controller; count prepared opcode bytes in the input limit.
+3. Admit only the tuple selected by checked authentication/dispatch. Compile
+   and load its exact checked program and gate with immutable dependencies;
+   preserve context, arguments and proof between checking and launch.
+4. Run a fresh private worker through the checked gate/advance/finalizer using
+   the trusted native loop. Give it no publication capability. Preserve the
+   logical observation trace on interruption.
+5. Collect the complete result/response and finish rollback-capable cleanup
+   before publication. An actual pre-commit tool/process/transport failure keeps
+   the prior root and emits the fixed failure frame when possible; fatal loss
+   may stop the process without a reply.
+6. Atomically publish exactly the checked Commit root and paired response;
+   otherwise preserve the prior root. Send no reply before this decision.
+   Start the next transaction with the resulting root.
+7. Deliver exactly the returned bytes. After a post-commit delivery failure,
+   retain the committed root and stop/close as appropriate. EOF or shutdown
+   between requests terminates the channel rather than creating a transaction.
 
-Composition establishes the kernel and serial protocol. Applying it to the
-executable assumes official-tool correctness and refinement of concrete
-source, process, pipe, store, and delivery blocks described in the map. Review
-and tests support that operational bridge; they are not a mechanized proof of
-Rust/Node/C or the complete compiler. Traces omitting real observations and
-premises of post-publication validity are not allowed.
+## Scope
 
-`PreparedPrograms` also proves that canonical record/request encodings cannot
-start with tag 7. If reception processes that same raw prepared body, it has
-neither an ordinary `RequestReceived` witness nor an ordinary authentication
-response justification. This formalizes the wire-contract boundary; it does not
-extend the original contract to prepared frames or alter any law.
+Durability of persistence, OS failures and physical resource availability,
+and checker completeness/adequacy are outside the proved theorems. Accepted
+logical termination is conditional on T1; acceptance of every mathematical
+proof requires a separate adequacy assumption. Syscall progress and scheduling
+require host/runtime assumptions. The pure persistence lemmas concern supplied
+transitions and recovered bytes, not device durability.

@@ -113,7 +113,7 @@ A prova cobre os acessos intermediários e a consistência final.
 \textbf{Acessos previstos} & Cada leitura e alteração segue a semântica. \\[5mm]
 \textbf{Publicação válida} & Um resultado completo, sem publicação parcial. \\
 \end{tabular}
-\source{Oito obrigações gerais em contract/LAWS.bend}
+\source{Oito obrigações gerais em contract/Theorems.bend}
 \note{As oito leis do núcleo tratam de inicialização, representação, identidade, certificado, execução, publicação, respostas e progresso condicionado. As quatro linhas resumem o mecanismo para a defesa; a lista completa fica no apêndice. Um certificado da aplicação inclui as leis do administrador, inclusive sobre observações realizadas antes de uma recusa. A prova não protege contra um compilador incorreto ou um sistema operacional hostil.}
 \end{frame}
 
@@ -133,7 +133,7 @@ Verificar uma prova universal e compilar o programa.\par\gap
 \textbf{Em cada chamada}\par
 Autenticar a credencial atual e usar os argumentos recebidos.\par\gap
 {\color{accent}A preparação não congela a identidade do usuário.}
-\note{A prova universal quantifica sobre contexto e argumentos. Cada execução autentica a credencial no estado atual antes da resolução autorizadora do identificador. Depois, resolve o código e a prova originais e verifica os artefatos. Os identificadores pertencem à instância e não sobrevivem ao reinício. Esse caminho usa uma extensão física do protocolo; a prova ordinária das oito leis não cobre automaticamente esses bytes. Os módulos adicionais definem obrigações e provam componentes, mas a composição completa do serviço preparado ainda permanece aberta. Fonte: tools/service/PREPARED_PROGRAMS.md e proof/SERVICE_CONTRACT.md.}
+\note{A prova universal quantifica sobre contexto e argumentos. Cada execução autentica a credencial no estado atual antes da resolução autorizadora do identificador. Depois, resolve o código e a prova originais e verifica os artefatos. Os identificadores pertencem à instância e não sobrevivem ao reinício. Esse caminho usa uma extensão física do protocolo; a prova ordinária das oito leis não cobre automaticamente esses bytes. Os módulos adicionais definem obrigações e provam componentes, mas a composição completa do serviço preparado ainda permanece aberta. Fonte: tools/service/PREPARED_PROGRAMS.md e proof/README.md.}
 \end{frame}
 
 \begin{frame}{Experimento: um ou dois leitores}
@@ -200,13 +200,13 @@ A maior vazão observada não demonstra superioridade geral.
 
 \begin{frame}{Alcance da demonstração}
 \begin{tabular}{@{}L{.27\linewidth}L{.66\linewidth}@{}}
-\textbf{Demonstrado} & Modelo puro e serviço serial ordinário, sob premissas explícitas. \\[5mm]
+\textbf{Demonstrado} & Teoremas sobre Gate, execução e publicação, sob T1--T3. \\[5mm]
 \textbf{Testado} & Admissão, execução nativa, aplicações e falhas selecionadas. \\[5mm]
-\textbf{Em aberto} & Composição do serviço preparado completo e sua ligação com o executável. \\
+\textbf{Em aberto} & Integração nativa de Gate e controladores preparados. \\
 \end{tabular}
 \gap
 {\color{accent}Base de confiança: verificador, compilador, integração, SO e hardware.}
-\note{ContractService.contract_of_service produz exatamente LAWS.Contract para o modelo serial ordinário, condicionado às premissas de origem, execução, comunicação e disponibilidade declaradas. A prova não estabelece a correção incondicional de Rust, Node, C, compilador, sistema operacional ou hardware. O protocolo preparado tem resultados de componentes e um alvo ControlLaw ainda sem prova completa do serviço. Verificação de importações ou contagem de declarações não mede completude semântica. Também permanecem abertos teoremas funcionais gerais de partes da aritmética e de aplicações.}
+\note{CoreClauses.core\_theorem prova os quatro aspectos do Core: admissão e início exatos, segurança em cada prefixo, finalização e publicação válidas, e término após aceitação. Ingress compõe a entrada ordinária e a seleção direta ou registrada. Iteration deriva validade desde a semente aceita. T1 liga admissão ao fonte e Book exatos; T2 preserva compilação e runtime; T3 especifica a integração física. A integração nativa de Gate está em andamento. Preparação e invalidação no host, durabilidade, falhas do SO e completude do verificador têm escopo separado. Ver proof/README.md.}
 \end{frame}
 
 \begin{frame}{Contribuição e aplicações possíveis}
@@ -259,7 +259,7 @@ Integrar ao serviço atual exige validação conjunta.
 7. Respostas e falhas corretas\gap
 8. Progresso condicionado
 \end{columns}
-\source{Definições normativas: contract/LAWS.bend}
-\note{Progresso depende das condições externas Processable declaradas. O núcleo não promete prazo físico de execução nem limite físico da memória do processo. Os limites canônicos são de mensagem, estado e resposta. As leis do administrador são adicionais e participam da conjunção integral exigida do programa. Este apêndice serve para perguntas da banca; a fala principal resume os mecanismos na seção de segurança.}
+\source{Definições normativas: contract/Theorems.bend}
+\note{Progresso lógico segue da admissão e da terminação no aspecto Progressing do Core. A adequação do verificador e o progresso físico são hipóteses externas. O núcleo não promete prazo físico de execução nem limite físico da memória do processo. Os limites canônicos são de mensagem, estado e resposta. As leis do administrador são adicionais e participam da conjunção integral exigida do programa. Este apêndice serve para perguntas da banca; a fala principal resume os mecanismos na seção de segurança.}
 \end{frame}
 \end{document}

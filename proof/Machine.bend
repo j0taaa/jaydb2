@@ -3,7 +3,7 @@ import Base
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
 import ../contract/RequestFacts.bend as I
-import ../contract/Links.bend as V
+import ../contract/RequestFacts.bend as V
 import ../contract/Logic.bend as L
 import ../src/Core.bend as N
 import ./Foundations.bend as F

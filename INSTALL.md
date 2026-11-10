@@ -136,4 +136,4 @@ These commands are separate from the build. `make verify` requires composition
 of the eight laws in both official checkers; `make test` exercises the real
 integration. Known official runtime limitations are documented in
 [SIMPLE_RUNTIME.md](native/SIMPLE_RUNTIME.md). The proof scope and integration
-contracts are described in [SERVICE_CONTRACT.md](proof/SERVICE_CONTRACT.md).
+contracts are described in [proof guide](proof/README.md).

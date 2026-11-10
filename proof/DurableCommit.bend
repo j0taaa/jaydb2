@@ -8,7 +8,7 @@ import ../contract/Data.bend as D
 import ../contract/Logic.bend as L
 import ../contract/Semantics.bend as S
 import ../contract/Requirements.bend as R
-import ./HistoryService.bend as History
+import ./History.bend as History
 
 type Phase is Data:
   Old{}

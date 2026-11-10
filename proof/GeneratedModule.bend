@@ -98,7 +98,7 @@ def actual_instance_module_recovers_context_and_arguments_together(id, kind, val
 # certificate and termination declarations following the client code literal.
 def links_header() -> String:
   "import Base\n" ++ "import ./Data.bend as D\n" ++ "import ./Semantics.bend as S\n" ++
-  "import ./Requirements.bend as R\n" ++ "import ./Interface.bend as F\n" ++
+  "import ./Requirements.bend as R\n" ++ "import ./RequestFacts.bend as F\n" ++
   "import ./Instance.bend as I\n" ++ "import ./Client.bend as Client\n\n" ++
   "def code() -> String:\n  "
 

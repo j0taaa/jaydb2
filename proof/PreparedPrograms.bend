@@ -4,12 +4,11 @@
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 import ../contract/Logic.bend as L
 import ../contract/Protocol.bend as P
 import ../contract/Requirements.bend as R
 import ../contract/Semantics.bend as S
-import ../contract/Resources.bend as X
 import ../src/Core.bend as N
 import ../src/Input.bend as E
 import ../src/Prepared.bend as Prepared
@@ -164,48 +163,3 @@ def ordinary_request_encoding_excludes_prepared_tag(request, tail, encoded):
       record_encoding_excludes_prepared_tag("arguments", arguments,
         D.VRecord{"code", D.VText{code}, D.VRecord{"credential", D.VText{credential},
           D.VRecord{"proof", D.VText{proof}, D.VRecordEmpty{}}}}, tail, encoded)
-
-def process_body(disposition: X.Disposition) -> List<&2, U32>:
-  match disposition:
-    case X.ProcessBody{bytes}: bytes
-    case _: Nil{}
-
-# If actual reception exposes the raw tag7 body, no ordinary RequestReceived
-# witness exists for the same scenario, even with valid framing and limits.
-law prepared_raw_body_has_no_ordinary_request_received:
-  for -world: Nat
-  for -configuration: S.Configuration
-  for -state: D.State
-  for -input: X.Reception
-  for +request: P.Request
-  for +tail: List<&2, U32>
-  for processing: {X.decide_reception(configuration, input) == X.ProcessBody{Con{7, tail}} : X.Disposition}
-  I.RequestReceived(I.Serve{world, configuration, state, input}, request) -> Empty
-def prepared_raw_body_has_no_ordinary_request_received(world, configuration, state, input, request, tail, processing, received):
-  match received:
-    case (+bytes, L.Both{disposition, encoded}):
-      ordinary_request_encoding_excludes_prepared_tag(request, tail,
-        Equal.trans(Maybe<&2, List<&2, U32>>, P.encode(P.request_value(request)), Some{bytes}, Some{Con{7, tail}},
-          encoded,
-          Equal.cong(List<&2, U32>, Maybe<&2, List<&2, U32>>, bs => Some{bs}, bytes, Con{7, tail},
-            Equal.cong(X.Disposition, List<&2, U32>, process_body, X.ProcessBody{bytes}, X.ProcessBody{Con{7, tail}},
-              Equal.trans(X.Disposition, X.ProcessBody{bytes}, X.decide_reception(configuration, input), X.ProcessBody{Con{7, tail}},
-                Equal.sym(X.Disposition, X.decide_reception(configuration, input), X.ProcessBody{bytes}, disposition), processing)))))
-
-# Law7's ordinary authentication response cannot justify this raw scenario.
-law prepared_raw_authentication_has_no_ordinary_justification:
-  for -environment: I.Environment
-  for -native: String
-  for -world: Nat
-  for -configuration: S.Configuration
-  for -state: D.State
-  for -input: X.Reception
-  for -time: Nat
-  for +tail: List<&2, U32>
-  for processing: {X.decide_reception(configuration, input) == X.ProcessBody{Con{7, tail}} : X.Disposition}
-  I.ResponseJustified(S.response_error(S.Authentication{}), environment, native,
-    I.Serve{world, configuration, state, input}, time) -> Empty
-def prepared_raw_authentication_has_no_ordinary_justification(environment, native, world, configuration, state, input, time, tail, processing, justified):
-  match justified:
-    case (+request, L.Both{authenticated, received}):
-      prepared_raw_body_has_no_ordinary_request_received(world, configuration, state, input, request, tail, processing, received)

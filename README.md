@@ -119,17 +119,23 @@ verified evidence and identify its trusted boundaries.
 
 ## Guarantees and assumptions
 
-The [specification](SPECIFICATION.md), [Bend contract](contract/README.md),
-[service](tools/service/SIMPLE_SERVICE.md), and [runtime](native/SIMPLE_RUNTIME.md)
-define behavior and official-tool limitations. The source proofs cover the
-kernel and declared service models under the explicit
-[integration contracts](proof/SERVICE_CONTRACT.md). Rust/Node/C, Clang, the OS,
-storage assumptions and official translations remain trusted boundaries;
-review and tests do not constitute a mechanized proof of those components.
+The [executable contract](contract/README.md) has checked witnesses for
+initialization, authenticated admission, every-prefix law safety, exact
+finalization/publication, accepted execution progress, direct/registered
+ingress, finite serial runs and canonical wire encodings. The
+[proof guide](proof/README.md) gives precise premises, non-vacuity evidence and
+the trusted base: T1 admission soundness and exact source/Book binding,
+T2 compiler/runtime preservation, and T3 numbered host plumbing obligations.
 
-JayDB2 does not modify the official frontend, checker, compiler, runtime, or
-emitted C. Source and executable hashes are pinned in
-[toolchain.lock.json](tools/admission/toolchain.lock.json). Authentication uses
-current published state; configuration and dependencies are public and immutable,
-while seed/current state remain private. Public names and protocol fields are
-English-only, with no legacy aliases.
+Native worker integration of `Gate` is in progress.
+
+Authentication uses current published state; configuration and dependencies
+remain immutable. Scoped cached universal prepared admission specializes at
+lookup for the current context and arguments under T1. Durability of
+persistence, OS failures, resource availability and checker completeness or
+adequacy are outside the proved guarantees. Rust/Node/C and physical IO remain
+trusted integration components supported by tests.
+
+Official Bend/BendTT tool sources and executable hashes are pinned in
+[toolchain.lock.json](tools/admission/toolchain.lock.json). JayDB2 uses the
+official frontend, checker, compiler, runtime and emitted C unchanged.

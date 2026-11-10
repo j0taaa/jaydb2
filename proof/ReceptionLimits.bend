@@ -1,11 +1,6 @@
 # Limits of every confirmed read; fabricates no events or POSIX result.
 import Base
-import ../contract/LAWS.bend as Laws
-import ../contract/Interface.bend as I
 import ../contract/Resources.bend as X
-import ../contract/Semantics.bend as S
-import ../contract/Requirements.bend as R
-import ../contract/Data.bend as D
 import ../contract/Bytes.bend as B
 import ./Orders.bend as O
 import ../contract/Logic.bend as L
@@ -91,29 +86,3 @@ def header_measured_establishes_declaration_original(high,low,declared,measured)
   F.and_boolean_intro(U32.is_eq(high,high),U32.is_eq(low,low),
     Equal.cong(Cmp,Bool,c => Cmp.is_eq(c),U32.cmp(high,high),EQ{},O.u32_refl(high)),
     Equal.cong(Cmp,Bool,c => Cmp.is_eq(c),U32.cmp(low,low),EQ{},O.u32_refl(low)))
-
-law consumption_real_bounded_establishes_rule2_original:
-  for -a: I.Environment
-  for -k: String
-  for -t: Nat
-  for -world: Nat
-  for c: S.Configuration
-  for -s: D.State
-  for -input: X.Reception
-  for +declared: Nat
-  for +before: Nat
-  for +cap: Nat
-  for +received: Nat
-  for declaration: Laws.LengthDeclared(input,declared)
-  for existing: {Nat.is_le(before,declared) == True{} : Bool}
-  for real: {Nat.is_le(received,Nat.min(cap,Nat.sub(declared,before))) == True{} : Bool}
-  for admitted: {Nat.is_le(declared,R.limit_message(S.limits(c))) == True{} : Bool}
-  Laws.Rule2(I.ReadBody{before,received,declared},a,k,I.Serve{world,c,s,input},t)
-def consumption_real_bounded_establishes_rule2_original(a,k,t,world,c,s,input,declared,before,cap,received,declaration,existing,real,admitted):
-  F.combined_pair(
-    Laws.Rule2(I.ReadBody{before,received,declared},a,k,I.Serve{world,c,s,input},t),
-    {Nat.is_le(Nat.add(before,received),declared) == True{} : Bool},
-    {Nat.is_le(Nat.add(before,received),R.limit_message(S.limits(c))) == True{} : Bool},
-    consumption_confirmed_respects_declared_and_limit(declared,before,cap,received,
-      R.limit_message(S.limits(c)),existing,real,admitted),
-    declared_fits => limit_fits => L.Both{declaration,L.Both{declared_fits,limit_fits}})

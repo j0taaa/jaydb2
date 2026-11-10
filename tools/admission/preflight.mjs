@@ -94,7 +94,7 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
       const data = snapshot(root, dep.path, dep.sha256);
       records.set(dep.path, { ...dep, exports: new Set(dep.exports ?? []), ...data, ...header(data.text, dep.path), ns: dep.path === entry ? '' : dep.path.slice(0, -5) });
     }
-    for (const file of kernelOnly ? [] : ['Requirements.bend', 'Interface.bend']) {
+    for (const file of kernelOnly ? [] : ['Requirements.bend', 'RequestFacts.bend']) {
       if (!records.has(canonical.contractPrefix + file)) fail('CONTRACT', `Required module missing: ${canonical.contractPrefix + file}`);
     }
     for (const file of kernelOnly ? [] : [canonical.bindings, canonical.instance]) {

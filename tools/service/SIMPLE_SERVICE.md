@@ -145,13 +145,11 @@ toolchain limits. `make test-integration` admits, compiles, and executes real
 Bend transactions. Hashes and tests identify artifacts and support the cases
 executed; they do not replace a proof of the complete executable's eight laws.
 
-`make build`, `make verify-contract`, `make verify`, and `make test` are separate
-steps: building or passing tests does not imply that both checkers ran on the
-proof aggregates. `proof/ContractService.bend`, included by `make verify`,
-composes exactly `Contract(a,k)` for the kernel and serial protocol under the
-explicit tool and integration contracts. The [law map](../../proof/SERVICE_CONTRACT.md)
-identifies assumptions; the Rust/Node/C bridge remains trusted and supported
-by review/tests rather than a mechanized proof of those components.
+`make test` rebuilds before native/integration tests. `make verify-contract`
+and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/
+Fold and wire theorems with both official tools. The
+[proof guide](../../proof/README.md) maps their premises and numbered T1–T3
+integration obligations. Native worker integration of `Gate` is in progress.
 
 ## Rust helper pipe startup
 

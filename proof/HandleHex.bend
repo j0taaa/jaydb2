@@ -2,7 +2,7 @@
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Logic.bend as L
-import ../contract/PreparedLaws.bend as H
+import ../contract/PreparedHandles.bend as H
 import ./CodecWordsWord.bend as W
 import ./CodecSums64.bend as C64
 import ./CodecCounters.bend as Counts

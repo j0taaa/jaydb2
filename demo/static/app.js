@@ -268,7 +268,7 @@ function renderSources() {
   $('#credential-law-source').textContent = definition('Data.bend', 'credentials_valid_cases');
   $('#valid-source').textContent = definition('Requirements.bend', 'Valid');
   $('#certificate-source').textContent = definition('Requirements.bend', 'Certifies');
-  $('#termination-source').textContent = definition('Interface.bend', 'ProgramTerminates');
+  $('#termination-source').textContent = definition('RequestFacts.bend', 'ProgramTerminates');
   $('#source-file').replaceChildren();
   for (const name of Object.keys(sourceFiles()).sort()) $('#source-file').add(new Option(name, name));
   $('#source-file').value = 'Configuration.bend';

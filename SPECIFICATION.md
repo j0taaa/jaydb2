@@ -1,19 +1,17 @@
 JayDB is an in-memory database that executes Bend programs accompanied by proofs. It provides typed data, authentication, and atomic publication of changes. The administrator defines the application's meaning and permissions through laws.
 
-This contract contains the kernel definitions and eight general laws. The laws are written as readable mathematical obligations; their Bend translation and mechanically checked proofs belong to the implementation. The definitions below are as much part of the contract as the law statements.
+This contract contains the data model and eight English laws mapped to inhabited executable theorems in `contract/Theorems.bend`. The definitions below are part of the contract. The [proof guide](proof/README.md) identifies the witnesses and trusted base T1–T3.
 
 Revision authorized on 2026-10-29: physical memory and time budgets were removed. The earlier contract remains in Git history. The active contract in `contract/` retains the three canonical size limits and the authentication, proof, access, and publication guarantees. Historical files are English translations; their original Portuguese versions remain in Git history.
 
-Prepared-protocol extension authorized on 2026-11-06: the eight ordinary
-transaction laws retain their existing statements. The additive formal modules
-`contract/PreparedProtocol.bend`, `PreparedRegistry.bend`, and `PreparedLaws.bend`
-specify physical prepared envelopes, instance-local registration and authorized
-control results. Prepared execution requires fresh authentication, the genuine
-universal certificate for the exact original source, and current artifact
-validation. Metadata controls preserve the published state/response pair;
-receipt limits precede registry mutation. This extension does not turn the
-ordinary serial theorem into a proof of the complete extended executable.
+Prepared execution uses the wire vocabulary in `contract/PreparedProtocol.bend`
+and scoped lookup in `contract/PreparedRegistry.bend`. `UnifiedCoreTheorem`
+covers the exact request selected by `src/Resolve.bend`, with fresh
+authentication and sound admission for that request. Cached universal admission
+specialized at lookup is part of T1's source/program/artifact binding.
+Preparation and invalidation host controllers remain integration obligations.
 
+Native worker integration of `Gate` is in progress.
 
 # Database concept
 
@@ -150,101 +148,97 @@ There is no arbitrary private premise the client may simply declare true. Condit
 
 # The eight kernel laws
 
-Every law below is universal: it applies to any valid configuration, state, identity, input, program, and execution path within the defined domain.
+Theorems concern the actual executable functions. Core's four clauses quantify
+over valid configuration, valid starting state and a sound admission oracle
+for the exact request. T1 supplies admission soundness and source/Book binding;
+T2 supplies compiler/runtime preservation; T3 specifies the host's faithful
+execution of the numbered plumbing obligations in [the proof guide](proof/README.md).
 
 ## Law 1 Faithful initialization and fixed contract
 
-> The instance starts serving only after validating configuration and checking the initial-state validity proof. It starts with exactly that state and preserves configuration meaning throughout its lifetime.
-
-```text
-Started(C, S₀) ⇒ ValidConfiguration(C) ∧ Valid(S₀)
-Throughout the instance: configuration = C
-```
-
-**How it works:** rejected initialization never leaves a partially usable database. Schema, laws, definitions, and dependencies do not change through requests. Users remain mutable because they are data. Initial invariants are established by proof and preserved by subsequent publications, not presumed anew on every call.
+`InitTheorem` proves that initialization returns exactly the supplied seed,
+its validity and valid configuration; accepted valid initialization starts,
+and rejection returns no state. `FoldTheorem` uses the same configuration
+through a finite run and derives validity of every reached root from that
+accepted seed. T1 binds initial validity evidence to actual seed/configuration
+sources; T3 pins those bytes and installs exactly that root.
 
 ## Law 2 Representation without changing meaning
 
-> What is received, stored, and returned represents exactly the values defined by the contract. No representation introduces ambiguity, information loss, conversion, or extra behavior.
-
-```text
-representable x ⇒ decode(encode(x)) = x
-decode(b) = x ⇒ encode(x) = b
-abstract(store(S)) = S
-```
-
-**How it works:** canonical encoding is defined below. Invalid inputs are rejected in full. Physical record order, field layout, and optimizations do not change values or results. An out-of-domain integer never silently becomes another integer; a missing field never becomes a default. Data operations have exactly the effects specified in the preceding table.
+`CodecRoundtrip` proves decoding of successful canonical encodings when body
+length fits uint64 and the decoder ceiling. `CodecCanonical` proves that every
+accepted value re-encodes to the exact original bytes. `FramingRoundtrip`
+proves inversion of successful private two-block joins for valid octets.
+State representation lemmas in `proof/Representation.bend` connect the actual
+state decoder to the canonical state value. `Data.operate` defines the data
+operations used by the interpreter. T2 preserves these computations; T3 binds
+physical root bytes, public u64 framing, bounds and EOF to those values.
 
 ## Law 3 Authentic identity
 
-> Execution uses exactly the context obtained from the presented credential and state published at call start. No client-supplied content may replace that fact.
-
-```text
-Executed(r, S₀, c) ⇒ Authenticate(S₀, r.credential) = c
-```
-
-**How it works:** a missing or invalid credential does not start the program. User registration, deletion, and credential changes published by one call affect later authentications. If laws allow changing one's type or deleting one's account, that does not change who started the call. This law does not choose which state or attribute the administrator uses to authorize an operation.
+`CoreTheorem`'s `Admitted` clause proves current-state authentication and an
+exact machine start with that context and the request's arguments. `Gate`
+authenticates before invoking admission. `UnifiedCoreTheorem` uses the actual
+registered resolver, which authenticates before scoped lookup and preserves
+credential and arguments. T3 supplies one current snapshot and passes the
+selected tuple unchanged; T2 preserves the computed result.
 
 ## Law 4 Proof bound to complete behavior
 
-> A request's program starts executing on instance data only after the verifier accepts a proof of the obligations above for that code, its dependencies, authenticated context, and arguments under the actual configuration.
-
-```text
-Started(r) ⇒ Verify(C, r.p, c, r.a, r.π) = Accepts
-Accepts ⇒ the certificate establishes all required obligations
-```
-
-**How it works:** proving a different function, using different laws, or adding an unsupported hypothesis does not enable execution. Administrator laws are obligations to prove, not axioms granted to the client. Definitions, imports, and proof helpers are covered too. A rejected proof and an actual verifier failure are distinct outcomes; neither permits program execution. There is no mandatory physical budget for checking or compilation.
+The `Admitted` clause proves that every started machine corresponds to the
+exact oracle `Accept` and exact `Core.start`. `OracleSoundness` makes acceptance
+establish `Requirements.Certifies` and termination for the actual program,
+configuration, context and arguments. T1 binds those targets to exact source,
+dependencies and the immutable checked Book compiled for execution, including
+purity and host-effect exclusion. Gate rejection and tool failure have distinct
+computed outcomes and never start the program. Soundness does not imply that
+every valid certificate is accepted.
 
 ## Law 5 Faithful execution and complete observations
 
-> Actual behavior is the certified program's behavior in the defined semantics, including every observation, provisional change, and outcome. There is no additional path for data access or effects.
-
-```text
-actual behavior ∈ admitted executions(C, p, c, a, S₀)
-actual observations = observations of the corresponding execution
-```
-
-**How it works:** code receives the correct arguments, starts in the correct state, and its operations see the correct working state. Helpers, comparisons, destructuring, and output follow the same read definition. A forbidden access does not become acceptable because the program later returns an error. Different implementations are allowed provided they preserve certified meaning and logical accesses.
+`CoreTheorem`'s `Safe` clause proves `Requirements.SafetyTrace` at every prefix
+of the actual machine. Interpreter fidelity relates those prefixes to
+`Semantics.execute`, including reads and provisional writes before refusal or
+error. The certificate's prefix/failure/final obligations cover every installed
+law. T2 preserves the closed Action interface and observation order in native
+execution; T3 runs that checked machine with the exact state and arguments.
 
 ## Law 6 Valid atomic and serial publication
 
-> A successful call publishes exactly its valid final state all at once. No provisional change is published before that point. The next call starts with the state left by its predecessor.
-
-```text
-Published(W) ⇒ Valid(W) ∧ next state = W
-Completed without publication ⇒ next state = S₀
-```
-
-**How it works:** multi-table data and user changes are published together. Refusal or failure before publication preserves the entire initial state. A call's reads see its provisional changes; other calls do not. Success may preserve state, as with a query. There are no implicit changes, triggers, or external effects.
+The `Completed` clause proves the exact finisher, `Requirements.finalize`,
+`Semantics.publish` and validity of the next root. Success selects the whole
+working root; every other status preserves the initial root. `FoldTheorem`
+derives validity throughout finite serial runs whose steps carry the actual
+gate, final-trace and publication equations. T3 performs atomic root/response
+replacement only after preparation and cleanup, and feeds exactly that root
+to the next request. Physical atomicity and serial dispatch are host obligations.
 
 ## Law 7 Exact results and interruptions
 
-> The response matches the call's defined outcome. Limits and failures use only the specified categories without exposing extra internal data. Complete response preparation and publication conditions are checked before publication.
+The `Completed` clause proves exact final response, exact framed bytes, response
+size bound and absence of a generic post-admission `failure`. `Admitted` also
+proves bounded framed early responses preserving the initial root.
+`IngressTheorem` classifies complete ordinary-body decoding into exact-root
+execution or a bounded denial. `Requirements.finalize` determines logical
+size/data outcomes. Safety retains observations on failure paths. T3 binds
+actual pre-commit failures, cleanup and channel behavior to these results;
+a delivery failure after commit retains the committed root and does not turn
+success into rollback. OS failure occurrence is outside the pure theorem.
 
-```text
-Final outcome Success(v) ⇒ publish W and prepare response (success, v)
-Final outcome Refusal(v) ⇒ preserve S₀ and prepare response (refusal, v)
-Error before publication ⇒ preserve S₀ and prepare a fixed error
-```
+## Law 8 Positive operation
 
-**How it works:** the program response, including refusal, remains subject to the laws. An output limit produces neither a partial response nor partial publication. Interruption does not erase prior observations. If response delivery fails after publication, the change remains; delivery or the channel ends without replacing success with an aborted-operation message. Resending a request starts a new execution.
+The `Progressing` clause proves that an accepted machine reaches a final trace
+and completes. If `WithinLimits` holds for that computed trace (a success or
+refusal proposal preserved by finalization), the final response is success or
+refusal. Safe terminating programs may still encounter data errors.
+`InitTheorem` supplies accepted-start progress. The real tasks positive fixture
+shows valid admission and changed-root success; refutations exclude a
+reject-all gate when its oracle returns `Accept`.
 
-## Law 8 Positive operation without hidden conditions
-
-Acceptance of every valid certificate in the pinned official tools' supported
-format, fragment and logical system is an explicit **adequacy assumption**.
-Admission soundness alone does not establish this acceptance property. The
-obligation is to check the supplied certificate, without inventing permissions,
-filtering the program or changing installed laws.
-
-The replacement contract states accepted-execution termination and finalization
-in `Theorems.Progress`. Its universal Core witness is still open; see
-[implementation status](proof/IMPLEMENTATION_STATUS.md). The checked
-`tests/proof/Positive.bend` fixture demonstrates a real tasks certificate,
-authenticated execution, changed-root success and valid publication. Physical
-resource availability, syscall progress and scheduling remain external
-obligations, distinct from logical termination and tool adequacy.
+T1 soundness is a premise; acceptance of every valid mathematical certificate
+requires a separate checker adequacy assumption. Physical resource
+availability, scheduling fairness and syscall progress are host/runtime
+assumptions. The theorems establish logical termination after acceptance.
 
 # Inputs, outputs, and completion
 
@@ -310,14 +304,14 @@ failure before execution; it does not establish that a valid proof is false.
 
 The canonical Request in the pure transaction model denotes this resolved
 logical call. Its ordinary byte-origin theorem is not a theorem equating a raw
-handle envelope with source bytes. The extension adds checked normalization
-and specialization proofs; physical prefix dispatch, registry integrity and
-control receipts belong to the explicit Rust/Node integration boundary.
+handle envelope with source bytes. `UnifiedCoreTheorem` applies Core to the exact result of executable selection.
+Physical prefix dispatch, registry/artifact integrity and control receipts
+belong to the T1/T3 integration boundary.
 
 # Implementation obligation
 
-A correct implementation must establish the eight laws jointly for the complete kernel that transforms inputs into executions, states, and responses, including initialization, authentication, admission, operations, encoding, and publication. There may be many helper lemmas; they add no requirements to the public contract.
+The inhabited theorems establish the executable claims mapped above. A delivered native service must also satisfy T1–T3 for its exact admitted/compiled artifacts and physical inputs, root replacement and responses. The [proof guide](proof/README.md) records the integration status and numbered host obligations.
 
-The proof is relative to the logical system and declared compiler, verifier, runtime, and environment contracts. Physical timing and resource-consumption channels are outside this scope's confidentiality guarantee.
+The proof is relative to the pinned logical system and T1–T3. Durability of persistence, OS failures and checker completeness/adequacy are outside the proved scope. Physical timing and resource-consumption channels are outside the confidentiality guarantee.
 
 A concrete database's rules still come from its administrator. JayDB guarantees their application to admitted programs; it does not invent what owning a car means, which data is private, or what business operations should exist.

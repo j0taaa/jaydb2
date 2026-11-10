@@ -1,4 +1,4 @@
-# One concrete operation flow plus small boundary equations.
+# Public library proofs, including the retained whole-program read helpers.
 import Base
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S

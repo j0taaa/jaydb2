@@ -28,19 +28,18 @@
   "secondary_kernel_requested": true,
   "native_implementation_included": false,
   "native_contract_proved": false,
-  "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init and independent wire theorems. Universal Core remains open.",
+  "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init, all four Core clauses, ordinary/prepared ingress, the finite-run fold and independent wire theorems.",
   "executable_witnesses": [
     "Init.init_theorem",
+    "CoreClauses.core_theorem",
+    "Ingress.ingress_theorem",
+    "Ingress.unified_core_theorem",
+    "Iteration.fold_theorem",
     "WireTheorems.codec_roundtrip",
     "WireTheorems.codec_canonical",
     "WireTheorems.framing_roundtrip"
   ],
-  "pending_theorems": [
-    "CoreTheorem",
-    "IngressTheorem",
-    "UnifiedCoreTheorem",
-    "finite-run fold"
-  ],
+  "pending_theorems": [],
   "sources": [
     {
       "file": "Bytes.bend",
@@ -58,44 +57,24 @@
       "lines": 52
     },
     {
-      "file": "Interface.bend",
-      "sha256": "f5bc0b0889bad91b05efb8fb3674905bccaa5f8a0a06d9ef47bad754dc99aacd",
-      "lines": 253
-    },
-    {
-      "file": "LAWS.bend",
-      "sha256": "2abb8e969e6c4324032370b4ce8f6f71211da84f114f305e8ca2fec47d7b28be",
-      "lines": 339
-    },
-    {
-      "file": "LEMMAS.bend",
-      "sha256": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
-      "lines": 80
-    },
-    {
-      "file": "Links.bend",
-      "sha256": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
-      "lines": 77
-    },
-    {
       "file": "Logic.bend",
       "sha256": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
       "lines": 232
     },
     {
-      "file": "PreparedLaws.bend",
-      "sha256": "a2bfe05c593a5169c178fbd61e0430f8f844c44fb9336a12772d477626fe785c",
-      "lines": 503
+      "file": "PreparedHandles.bend",
+      "sha256": "1e7ff42d3b59d080589de7a404a7a2da77e4fcea149dfd3a4878ec9e71af1438",
+      "lines": 15
     },
     {
       "file": "PreparedProtocol.bend",
-      "sha256": "48e631dd58f88981b246405c501dd7b84c8313ecece57803d86e2f273f4bad5a",
-      "lines": 163
+      "sha256": "4a43c81f8defa890d562e9688ac28218891f7ea9ddf5c27f30c35bc3c051cb2c",
+      "lines": 159
     },
     {
       "file": "PreparedRegistry.bend",
-      "sha256": "da19c6cb2f4db579762b432eca9d874f7f96bb1726d867830d1ec3f5a2312a95",
-      "lines": 369
+      "sha256": "eca4c3eec3d83671b9b6b3ea139abbd936e6793a18355a3810305f756ac0f445",
+      "lines": 24
     },
     {
       "file": "Protocol.bend",
@@ -124,8 +103,8 @@
     },
     {
       "file": "Resources.bend",
-      "sha256": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
-      "lines": 137
+      "sha256": "7d181b531358b32b846e074a01c174851aab61be8d4853ce3de6582353e64e26",
+      "lines": 117
     },
     {
       "file": "Semantics.bend",
@@ -134,13 +113,13 @@
     },
     {
       "file": "Theorems.bend",
-      "sha256": "71e2b6e105d9268022e76678e42c07dbf8c0aeccdc8d041352f55aad0668b53a",
-      "lines": 250
+      "sha256": "10cd7fdca351f2538f2659a1ab09a9b6dd09c5e98805cdd5bf8f2c5e6d49d781",
+      "lines": 333
     },
     {
       "file": "VERIFY.bend",
-      "sha256": "d17b7edce8018e78402abe9641e5b7a55c79c8fdf544c7f4446da1bbb9ea6c11",
-      "lines": 17
+      "sha256": "f4d5c3049f45cf40368ee58db14d1ae31bd223b0fbd0e4c60fccdef4ca2d9cbb",
+      "lines": 16
     }
   ]
 }

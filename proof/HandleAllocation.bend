@@ -4,7 +4,7 @@
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Logic.bend as L
-import ../contract/PreparedLaws.bend as Contract
+import ../contract/PreparedHandles.bend as Contract
 import ./Foundations.bend as Foundations
 import ./CodecSums64.bend as C64
 import ./HandleCardinality.bend as F
