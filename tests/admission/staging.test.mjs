@@ -258,10 +258,9 @@ test('the frozen recovery descriptor retains exact public, tooling and controlle
 // Freeze only, deliberately stopping before native compilation. The exact
 // generated pure and executable Books are then checked by BOTH official tools
 // after restoring the compiler. Broken worker proofs must be host failures.
-test('prepared staging preserves client text and checks the actual worker proofs', async t => {
+test('concrete and prepared staging check the actual worker oracle and bridge proofs', async t => {
   const target = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
-  const purpose = 'prepare';
-  for (const kind of ['comment', 'literal']) {
+  for (const purpose of ['prepare', 'execute']) for (const kind of ['comment', 'literal']) {
     const f = fixture(t), submission = submissionFixture(t);
     const originalInstance = submission.read('Instance.bend');
     fs.writeFileSync(f.config, originalInstance.split('\ndef context()')[0]);
@@ -272,7 +271,7 @@ test('prepared staging preserves client text and checks the actual worker proofs
       ? '\n# harmless source text: ' + target + '\n'
       : '\ndef source_marker() -> String:\n  ' + JSON.stringify(target) + '\n'));
     submission.bindCode();
-    submission.write('ClientProof.bend', submission.read('ClientProof.bend').replace(
+    if (purpose === 'prepare') submission.write('ClientProof.bend', submission.read('ClientProof.bend').replace(
       'def B.certificate(s, valid, identity, n):', 'def B.certificate(ctx, args, s, valid, identity, n):'));
     const code = submission.read('Client.bend'), proof = submission.read('ClientProof.bend');
     const original = child.spawnSync;
@@ -296,7 +295,7 @@ test('prepared staging preserves client text and checks the actual worker proofs
     const admitted = await admitSubmission(pureManifest);
     assert.equal(admitted.report.primary, true);
     assert.equal(admitted.report.bendtt, true);
-    assert.equal(admitted.report.certificateMode, 'universal');
+    assert.equal(admitted.report.certificateMode, purpose === 'prepare' ? 'universal' : 'concrete');
     const manifestFile = path.join(output, 'manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
     const worker = await admitSubmission(manifest);
@@ -306,6 +305,8 @@ test('prepared staging preserves client text and checks the actual worker proofs
     if (kind === 'literal') {
       const mainFile = path.join(output, 'Main.bend'), main = fs.readFileSync(mainFile, 'utf8');
       const mutations = [
+        ['String.eq(Gate.code(r), Bindings.code()) &&\n    String.eq(request_proof(r)', 'True{} &&\n    String.eq(request_proof(r)', 'matched_certificate'],
+        ['case True{}: Gate.Accept{Client.program()}', 'case True{}: Gate.Accept{S.Program{ctx => args => S.Finish{D.VAbsent{}}}}', 'verdict_sound'],
         ['Native.Prepare{u => s}', 'Native.Continue{u => s}', 'conversion_preserves_exact_iteration'],
         ['Native.FinishOutput{bs}', 'Native.FinishOutput{Nil{}}', 'conversion_preserves_exact_iteration'],
         ['convert(E.advance(state(Unit{}), C.config()))', 'Native.Inconsistent{}', 'step_preserves_exact_execution_advance'],
@@ -328,6 +329,24 @@ test('prepared staging preserves client text and checks the actual worker proofs
         assert.equal(error.phase, 'primary', error.message);
         assert.match(error.message, /PRIMARY_CHECK:/);
         assert.ok(error.message.includes('Location: ' + location), error.message);
+        assert.equal(fs.existsSync(target), false);
+      }
+      // Successful full Books may replace the duplicate pure run only when
+      // the pure root adds no declarations and preserves every source role.
+      fs.writeFileSync(mainFile, main);
+      fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+      const checkFile = path.join(output, 'Check.bend'), check = fs.readFileSync(checkFile, 'utf8');
+      const pureFile = path.join(output, 'check-manifest.json');
+      for (const extra of ['law unchecked: Unit\ndef unchecked(): Unit{}\n',
+        'law unchecked: {False{} == True{} : Bool}\ndef unchecked(): {==}\n']) {
+        fs.writeFileSync(checkFile, check + extra);
+        fs.writeFileSync(pureFile, JSON.stringify({ ...pureManifest, dependencies: pureManifest.dependencies.map(record =>
+          record.path === 'Check.bend' ? { ...record, sha256: sha256(check + extra) } : record) }));
+        const target = path.join(output, 'extra-pure-' + extra.length + '.c');
+        const run = child.spawnSync(process.execPath, ['--stack_size=65536', path.join(repo, 'tools/service/compile.mjs'),
+          manifestFile, target, info.sourceDir, info.kernelPath, pureFile], { encoding: 'utf8', timeout: 60000 });
+        assert.equal(run.status, 2, run.stdout + run.stderr);
+        assert.match(JSON.parse(fs.readFileSync(target + '.error.json', 'utf8')).message, /import-only pure root/);
         assert.equal(fs.existsSync(target), false);
       }
     }

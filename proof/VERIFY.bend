@@ -42,3 +42,6 @@ import ./Iteration.bend as ExecutableFold
 import ./FrameQueueHistory.bend as FrameQueueHistory
 import ./FrameQueueProgress.bend as FrameQueueProgress
 import ./WorkerBridge.bend as WorkerBridge
+import ./CertifiedWorker.bend as CertifiedWorker
+import ./OracleEquality.bend as OracleEquality
+import ./OracleEvidence.bend as OracleEvidence

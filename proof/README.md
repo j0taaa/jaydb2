@@ -32,6 +32,18 @@ queue, preprocessing and persistence transition lemmas have separate scope.
 Prepared wire vocabulary and exact receipt encodings remain checked; the
 prepare/invalidate host controllers are outside the theorem composition.
 
+`Main.checked_oracle` packages the actual oracle with `generated_oracle_sound`.
+`CertifiedWorker.checked_ingress` and `checked_unified` consume that checked
+package and prove both the corresponding Ingress/UnifiedCore clause and the
+exact finite worker result, with no separate oracle premise.
+`checked_ingress_core` and `checked_unified_core` give the contract clauses
+from configuration/root validity alone, without a completion index. Their finite
+completion index is the existing bridge index; Core's Progressing clause
+supplies completion for accepted starts. These generic corollaries are checked
+with the repository proofs, rather than imported into every admission Book:
+inlining the full bridge graph into a generated Book exhausts the pinned
+BendTT default fuel in `worker_body_equals_ingress_composition.qv_1`.
+
 ## Non-vacuity and checking
 
 `tests/proof/Positive.bend` uses the real tasks policy, program, client proof
@@ -60,18 +72,18 @@ hygiene; the theorem statements above determine the guarantees.
 
 ## Trusted base
 
-**T1 — official admission soundness and source/Book binding.** Accepted
-initialization proves validity of the exact seed under immutable configuration.
-Program acceptance by the pinned official checker and BendTT establishes the
-exact `Requirements.Certifies` and termination targets for the elaborated
-program, configuration, source/dependencies, authenticated context and arguments.
-The source/target/purity audit and binding of that checked Book to the very Book
-compiled for execution belong to T1. Client code cannot import host ABI effects.
-A scoped cached universal prepared admission binds the exact loaded program
-and artifact to immutable configuration/source/dependency bytes, universal
-certification and termination; lookup specializes it at current context and
-arguments. Handles and hashes identify artifacts but do not establish those
-logical bindings by themselves.
+**T1 — official checker soundness, exact Book binding and source/purity audit.**
+The generated Book proves `generated_oracle_sound`: for every request, its
+actual `admit` satisfies the exact `Theorems.OracleSoundness(C.config(), r, admit)`
+premise, using the checked client certificate and termination proof. Concrete
+matching uses proved String/context/structural-value equality; universal
+certificates specialize at the current context and arguments. T1 still trusts
+the soundness of both pinned official checkers, the source/target/purity audit
+(including isolation from host effects), and that the very checked Book is the
+Book passed to C compilation and bound to the loaded artifact. Initialization
+validity uses those same checkers; handles and hashes identify artifacts but do
+not supply proofs. Oracle guard soundness and certificate specialization are
+now checked propositions, rather than additional admission assumptions.
 
 **T2 — Bend-to-C compiler/runtime preservation.** Compilation of that exact
 Book, native ABI and runtime preserve the proved pure transitions, values,

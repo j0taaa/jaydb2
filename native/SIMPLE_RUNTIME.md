@@ -28,10 +28,11 @@ live registration supplied separately from the original request. Both enter
 and rejection leaves client program construction suspended.
 
 The oracle binds the frozen source/proof and configuration; concrete execution
-also binds the admitted context and canonical arguments, while a universal
+also binds the admitted context and structural arguments, while a universal
 prepared certificate specializes to the current values. Its only Accept branch
-constructs that checked `Client.program()`. Exact source/elaboration/certificate
-binding remains T1; the environment guard does not purport to compare arbitrary
+constructs that checked `Client.program()`. The checked Book proves `generated_oracle_sound` for this exact oracle.
+Checker soundness, source/purity audit and exact source/Book/artifact binding
+remain T1; the environment guard does not purport to compare arbitrary
 function-valued configurations.
 
 The loop still consumes one `Execution.advance` step at a time, using
@@ -117,3 +118,9 @@ exercised with actual official C.
 
 These checks do not establish general compiler correspondence or discharge
 T1–T3. JayDB does not modify Bend to claim either result.
+
+Ordinary request compilation uses Clang `-O0` to reduce its per-call compilation
+latency. Initialization, authentication and reusable prepared workers retain
+`-O2`; prepared execution amortizes that optimization cost. Both paths compile
+the literal official C with the same runtime and checker modes. Programs with
+substantial computation should use prepared execution to retain optimized C.
