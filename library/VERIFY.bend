@@ -32,6 +32,12 @@ import ./QuerySelectionProofs.bend as QuerySelectionProofs
 import ./QueryCellVisitorProofs.bend as QueryCellVisitorProofs
 import ./QueryFilterMapPositions.bend as QueryFilterMapPositions
 import ./QueryReadPlanProperties.bend as QueryReadPlanProperties
+import ./MutationOrderedProofs.bend as MutationOrderedProofs
+import ./MutationWriteOnly.bend as MutationWriteOnly
+import ./MutationPrefixProofs.bend as MutationPrefixProofs
+import ./MutationPublicationProofs.bend as MutationPublicationProofs
+import ./MutationBooleanProofs.bend as MutationBooleanProofs
+import ./MutationCounterProofs.bend as MutationCounterProofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

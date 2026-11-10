@@ -923,5 +923,68 @@
       "Action/Mutation/Index/Summary storage/Receipt and broader business functional specifications."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; maintained checked runtime/Bend/test/tool inputs unchanged."
+  },
+  "action_mutation_2026_11_09": {
+    "base_main": "6759498",
+    "whole_goal_complete": false,
+    "scope": "Total input-driven Action/Mutation functional behavior and Core rollback, no runtime/law/tool changes.",
+    "theorems": [
+      "Exact ordered define_rows/remove_rows/columns bindings, all Return variants, and total actual engine state/history/continuation from a DATA plan applying D.operate on EACH evolving working state. First failure or malformed write return short-circuits; earlier successful writes remain in the private working state and observed path.",
+      "Total insert_if_absent/replace_if/compare_exchange behavior with arbitrary continuations. Local decoder contracts are discharged for every Return at public boundaries; no public result or whole trace premise. CAS uses independent literal source-value equality, not the implementation comparator as its specification.",
+      "Exact counter_add/next reads, rejection and writes with independent Nat-difference integer sum and all-candidate overflow exclusion. Missing/noninteger counters refuse and are not implicitly initialized.",
+      "Actual named writes yield Changed or FailureData. Exact successful state equations additionally use original schema/collection/Unicode/row or compatible-column INPUT domains, without assuming primitive success. Compatible DefineColumn on a missing row may succeed unchanged; replace_if may insert when its predicate accepts RowAbsent.",
+      "Existing all-status Core publication and finalized refusal/data-error rollback retain the initial published state; no arbitrary callback read-only or administrator/business invariant claim."
+    ],
+    "domains_and_limits": [
+      "All total engine heads receive input DATA only; no actual read/write output, invariant, callback result, final trace, carry, or overflow conclusion is assumed.",
+      "Exact named primitive SUCCESS state equations additionally require existing schema/row collection lookups, Unicode address, and valid new row or schema-compatible column. These are input-domain conditions and do not assume primitive success.",
+      "Arbitrary terminal Action/CPS callbacks can read/write/refuse; owned prefix proofs cut before them. Total trace proofs observe the callback in the actual evolved working state.",
+      "Generic one-read decision helper takes a one-use LOCAL decoder equality quantified over every Return; every public insert/replace/CAS/counter theorem DISCHARGES it for all Return variants. No public helper assumes it or a whole action outcome.",
+      "D.operate failure stops before a callback; real named writes produce Changed or FailureData, never a Datum. Malformed supplied Datum instead causes A.written refusal.",
+      "Prior successful writes remain in the working state and event path on later failure/refusal. Existing Core.conclude/S.publish rolls back publication for every nonsuccess status; actual Refusal finalization may normalize to DataError/Limit and still cannot publish working writes.",
+      "replace_if may insert a missing row when accept(RowAbsent) is True. compare_exchange returns False on missing rows and compares present VAbsent as data. It replaces the complete provided row, under serial transaction semantics.",
+      "Schema-compatible DefineColumn at a missing row may return Changed with unchanged state; no row-existence postcondition is claimed. counter_add reads first and refuses missing/noninteger cells, so it never implicitly initializes missing counters.",
+      "Counter arithmetic meaning is independent Nat-difference signed integer addition; overflow refusal excludes every representable signed64 candidate. next uses a separately proved integer-one delta.",
+      "Authorization/admin-law admission is orthogonal and remains governed by existing permission and certification proofs. No unconditional admission, whole-action read-only, or arbitrary administrator/business invariant preservation claim is made."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 509.3752021789551,
+      "frozen_inputs": 958,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 269
+    },
+    "coverage": {
+      "transitive_modules": 366,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 136,
+          "law_declarations": 644
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 39,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-action-mutation-gate.log": "3ec90b14747aeb2527e86a1ec47d1991c230089498faa50476f16ec0ae1b091e",
+      ".build/review/action-mutation-functional/validation.json": "448f46d77e523dec34dd0b89a6a86588ca4f5162ff5e423544af581aa836c556",
+      ".build/review/action-mutation-functional/promotion-proposal.json": "c2fce03b1690474d599a16b202d77f2e44c954ba0b25a4a35ff88bd38cfeec67",
+      ".build/review/action-mutation-promoted.json": "ca301b5c15aa4d822251fb30cb56662cc7f0de2dc6e4e55b1e2eeaa2c494f97c"
+    },
+    "remaining": [
+      "Complete chronological ordinary/prepared service composition, progress, recovery and native/compiler/OS/storage/derivation correspondence.",
+      "Summary.store, Index, Receipt and broader application functional obligations."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
   }
 }

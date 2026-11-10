@@ -223,14 +223,17 @@ groups, full occurrence-based inner/left joins, and exact key/value/record
 acceptance and lookup domains. Total read/query/selection proofs now cover every input, including exact
 histories and first failure; canonical responses are derived from structured
 source state. General filter-map order/projection follows from local contextual
-visitor contracts, discharged for a real one-cell visitor. Action/mutation/index/
-receipt and broader business functional specifications remain open. These algorithm contracts are distinct from the transaction
+visitor contracts, discharged for a real one-cell visitor. Total action/mutation proofs now cover ordered writes, evolving working state,
+conditional insert/replace/CAS, checked counters and finalized Core rollback.
+Original schema/address/value conditions are explicit, and arbitrary callbacks
+are not falsely treated as read-only. Summary storage, index, receipt and broader
+business functional specifications remain open. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
 
-The latest combined maintained gate passed both official modes and all 230
+The latest combined maintained gate passed both official modes and all 269
 intended core rejections per mode on unchanged recorded inputs. Its import
-inventory reaches 352 modules, including 122 library modules; this inventory
+inventory reaches 366 modules, including 136 library modules; this inventory
 still measures checked reachability, not whole-project correctness.
 
 A real read-batch progress defect was also repaired. A later worker spawn

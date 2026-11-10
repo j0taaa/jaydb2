@@ -324,8 +324,23 @@ over arbitrary continuation and remaining depth. `QueryCellVisitorProofs`
 discharges them for a real one-cell visitor and every Return.
 `QueryFilterMapPositions` adds exact original positions and prefix ranks.
 Arbitrary visitors can refuse or skip their continuation, so unconditional
-whole-map completion is not claimed. Action/mutation/index/receipt and broader
-business functional specifications still require additional theorems.
+whole-map completion is not claimed. `MutationOrderedProofs`, `MutationWriteOnly` and `MutationPrefixProofs` prove
+exact ordered write bindings, actual input-driven working-state/event traces,
+every supplied return and first-failure handoff. `MutationBooleanProofs` covers
+insert/replace/CAS, including literal equality for compare-exchange.
+`MutationCounterProofs` adds exact checked counter traces and independent integer
+meaning, including overflow refusal. Public helpers discharge their local
+decoder contracts for every Return. Arbitrary callbacks may still access/write.
+`MutationPublicationProofs` connects nonsuccess statuses and actual finalized
+refusal/data-error to Core rollback of the published state.
+
+Successful named-write state equations state their schema/address/value input
+domains explicitly. A compatible `DefineColumn` can succeed unchanged when the
+row is missing; `counter_add` refuses missing/noninteger counters. `replace_if`
+can insert a missing row when its predicate accepts `RowAbsent`. These results
+do not certify an administrator's chosen business invariant or bypass access
+permissions. Summary storage, index, receipt and broader business functional
+specifications remain to be proved.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.
