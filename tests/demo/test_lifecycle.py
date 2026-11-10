@@ -32,7 +32,8 @@ class DemoLifecycleTests(unittest.TestCase):
             # An orphan may briefly remain a zombie under the host's init;
             # it has released its descriptors and cannot do more work.
             return Path(f'/proc/{pid}/stat').read_text().rpartition(') ')[2].split()[0] != 'Z'
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
+            # procfs may report ESRCH when the process exits during read().
             return False
 
     def descendant(self, session):
