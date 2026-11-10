@@ -273,6 +273,16 @@ publication cofact, without assuming a history free of publications. This
 establishes boot identity and ordering; the initial certificate and native
 initialization correspondence are separate obligations.
 
+`ReceiptFrames` now proves the complete supplemental Rule7 for every observed
+metadata prepared receipt in that same source: its literal encoding and
+configured response bound. Both receipt kinds, pending seals and failed cleanup
+are covered. The theorem takes only the actual observation, with no native,
+physical-input, completed-outcome, certificate or output-fit premise. Three
+phase fixtures and four causal controls check the nonempty source paths and
+reject altered bytes/bounds or erasure of a frame by a later stop/failure.
+This does not establish metadata authorization, every response clause or the
+unchanged `PreparedLaws.ControlLaw`.
+
 The source is a finite prefix. Its delivery renderer does not yet represent
 the native transition to a selected subsequent call as `NextCall`; complete
 coverage of native observations remains an open correspondence obligation.

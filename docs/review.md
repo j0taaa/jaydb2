@@ -327,3 +327,11 @@ and changed boot time/data. The canonical laws and toolchain remain unchanged.
 This foundation is not the complete extended eight-law witness or a proof of
 progress, concurrency, recovery or native correspondence. Exact fresh checker
 records and scope appear in `review-validation.json`.
+
+The maintained metadata receipt-frame head now establishes its entire
+supplemental Rule7 clause from any actual observation alone, for both receipt
+kinds and all later sealing/cleanup outcomes. Both pinned modes passed the
+updated root and four causal controls on 184 unchanged inputs. The promotion
+removed one unused import and avoided eight unrelated modules (1959 lines),
+with no runtime or canonical-law change. This establishes frame content and
+bounds, not the full extended contract or native correspondence.

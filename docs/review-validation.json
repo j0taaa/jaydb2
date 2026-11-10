@@ -1332,5 +1332,51 @@
       ".build/review/initial-boot-promoted.json": "15a739a86a17551ee13841aca4d62b2fbae7a18b0952cc544a9e576b3528600f"
     },
     "validation_limit": "The historical full release is not relabeled as rerun. This change adds proof/verification modules only; existing runtime and canonical Bend modules are unchanged. The final root checks every added positive module, and all nine added controls were freshly checked in both modes after import/formatting changes."
+  },
+  "metadata_receipt_frame_rule7": {
+    "scope": "Complete supplemental Rule7 for ANY actual observed metadata ReceiptPrepared, either receipt kind, in the same unfiltered complete serial source. Literal receipt encoding and configured response bound are derived from actual code paths, including pending sealing and failed cleanup. No native, physical-input, Current, completed outcome, certificate, output-fit or trace-truth premise. This is one clause, not all of Law7/Contract or native correspondence.",
+    "head": "proof/service/laws/serial/framed-receipts/Observed.bend",
+    "theorem": "every_actual_observed_metadata_prepared_receipt_follows_complete_rule7_without_any_native_or_output_premise",
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "new_proof_modules": 14,
+    "positive_test_fixtures": 3,
+    "negative_controls_added_per_mode": 4,
+    "checker_records": 10,
+    "unchanged_inputs": 184,
+    "changed_inputs": [],
+    "proof_root": "proof/service/VERIFY.bend",
+    "positive_elapsed_seconds": {
+      "--check-only": 9.835,
+      "--verdict": 92.177
+    },
+    "import_coverage": {
+      "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
+      "transitive_modules": 448,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 211,
+          "law_declarations": 1481
+        },
+        "library": {
+          "modules": 175,
+          "law_declarations": 799
+        }
+      }
+    },
+    "dependency_simplification": "Removed a genuinely unused Prelude import before promotion; avoided adding eight unrelated modules/1959 lines to this clause dependency graph. Source proof bodies otherwise unchanged except trailing whitespace normalization. No ignored frozen source modified.",
+    "canonical_law_toolchain_and_mathematical_budget_changes": false,
+    "invalid_validation_attempt": "The first list mistakenly expected three positive fixtures to fail. That batch failed correctly and is preserved under .build/review/receipt-frames-invalid-fixture-list. It is not the final proof basis; the corrected rejected-only list was rerun in both modes.",
+    "evidence_sha256": {
+      ".build/review/receipt-frames-maintained-validation.json": "dc5bc742847f0abfb038b0edcdb54eeacf94c89e93c9caa15bff255d05270f8a",
+      ".build/review/receipt-frames-promoted.json": "9047dc9b9bec9c6600aa8939aee2d5c79b6dbfa896315e0e3b792ff055ac4911"
+    },
+    "validation_limit": "Existing runtime and canonical Bend modules unchanged. The historical full release is not relabeled as rerun; this is a proof/verification-only addition. The current positive root and all four added causal controls were checked in both official modes."
   }
 }

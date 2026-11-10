@@ -5,3 +5,5 @@ import ./phases/PrepareOrder.bend as PrepareOrder
 import ./phases/PhaseFixtures.bend as PreparationExamples
 import ./phases/InvalidationFixtures.bend as InvalidationExamples
 import ./model/InitialBoot.bend as InitialBoot
+import ./laws/serial/framed-receipts/Observed.bend as ReceiptFrames
+import ../../tests/proof/service-fixtures/ReceiptFrames.bend as ReceiptFrameExamples
