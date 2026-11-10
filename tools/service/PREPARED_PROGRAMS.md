@@ -77,7 +77,7 @@ Scoped removal eliminates the named lookup; allocated history prevents revival.
 Initialization/recovery compile a separate native control executable through
 the same official checked-Book mechanism as other service programs.
 `ControlBridge.packet` decodes the original body/current root and opaque
-registry, then calls `Control.plan` and applies only its ready delta. Rust
+registry, then calls `Control.control` and serializes its typed result. Rust
 supplies the exact source/proof and certificate mode from completed admission
 (T1), plus an entropy candidate. Bend compares that tuple to the decoded
 prepare request and immutable instance. Rust stores the returned registry bytes,

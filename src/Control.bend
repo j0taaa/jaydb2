@@ -33,7 +33,7 @@ type Plan is Data:
 # published root/response pair, including on successful invalidation.
 type Outcome is Data:
   ControlTransaction{response: S.Response}
-  ControlMetadata{receipt: W.Receipt, bytes: List<&2, U32>}
+  ControlMetadata{receipt: W.Receipt, bytes: List<&2, U32>, change: Change}
 
 type Transition is Data:
   ControlResult{root: D.State, last: List<&2, U32>, registry: Registry, outcome: Outcome}
@@ -164,7 +164,7 @@ def plan(c: S.Configuration, s: D.State, registry: Registry,
 def finish(plan: Plan, root: D.State, last: List<&2, U32>, registry: Registry) -> Transition:
   match plan:
     case ControlDenied{status}: ControlResult{root, last, registry, ControlTransaction{S.response_error(status)}}
-    case ControlReady{ctx, change, receipt, bytes}: ControlResult{root, last, apply(change, registry), ControlMetadata{receipt, bytes}}
+    case ControlReady{ctx, +change, receipt, bytes}: ControlResult{root, last, apply(change, registry), ControlMetadata{receipt, bytes, change}}
 
 def control(c: S.Configuration, +root: D.State, last: List<&2, U32>, +registry: Registry,
   body: List<&2, U32>, a: Admission, h: String) -> Transition:

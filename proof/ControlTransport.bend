@@ -2,6 +2,7 @@
 import Base
 import ../contract/Data.bend as D
 import ../contract/PreparedRegistry.bend as G
+import ../contract/PreparedProtocol.bend as W
 import ../src/Control.bend as C
 import ../src/ControlBridge.bend as Wire
 
@@ -37,3 +38,15 @@ def registry_roundtrip(reg):
       Equal.cong(Maybe<&2, List<&2, String>>, Maybe<&2, C.Registry>,
         used => Wire.read_registry_parts(Some{es}, used),
         Wire.read_strings(Wire.strings(history)), Some{history}, strings_roundtrip(history))
+
+# Native emission copies the checked transition's registry and metadata bytes.
+law metadata_serializes_the_checked_result:
+  for root: D.State
+  for last: List<&2, U32>
+  for registry: C.Registry
+  for receipt: W.Receipt
+  for bytes: List<&2, U32>
+  for change: C.Change
+  {Wire.output(C.ControlResult{root, last, registry, C.ControlMetadata{receipt, bytes, change}}) ==
+    Wire.output_ready(change, registry, bytes) : List<&2, U32>}
+def metadata_serializes_the_checked_result(root, last, registry, receipt, bytes, change): {==}

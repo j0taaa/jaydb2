@@ -59,7 +59,7 @@ and physically replaces the published root/last-successful-response pair only
 on Commit. It writes the returned response bytes unchanged. Packet framing and
 size checks in Rust are integrity defenses, not a second finalizer.
 
-Prepare/invalidate use the separately checked `Control.plan` transition through
+Prepare/invalidate use the separately checked `Control.control` transition through
 `ControlBridge.packet`, compiled at startup. The native controller checks the
 current identity, full envelope, exact universal admission tuple, lifetime
 freshness and bounded receipt before returning the registry delta. Rust stores

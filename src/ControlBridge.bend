@@ -93,11 +93,12 @@ def output_ready(+change: C.Change, next: C.Registry, bytes: List<&2, U32>) -> L
     case C.ControlAdd{e}: ready(1, delta(C.ControlAdd{e}), next, bytes)
     case C.ControlRemove{i, h}: ready(3, B.utf8(h), next, bytes)
 
-def output(plan: C.Plan, registry: C.Registry) -> List<&2, U32>:
-  match plan:
-    case C.ControlDenied{status}: M.error(status)
-    case C.ControlReady{ctx, +change, receipt, bytes}:
-      output_ready(change, C.apply(change, registry), bytes)
+def output(result: C.Transition) -> List<&2, U32>:
+  match result:
+    case C.ControlResult{root, last, registry, C.ControlTransaction{response}}:
+      M.prefix(0, P.frame(S.response_value(response)))
+    case C.ControlResult{root, last, registry, C.ControlMetadata{receipt, bytes, change}}:
+      output_ready(change, registry, bytes)
 
 def decoded_registry(value: Codec.Outcome) -> Maybe<&2, C.Registry>:
   match value:
@@ -113,7 +114,7 @@ def run(~c: S.Configuration, root: Maybe<&2, D.State>, registry: Maybe<&2, C.Reg
   metadata: Codec.Outcome, body: List<&2, U32>) -> List<&2, U32>:
   match root registry metadata:
     case Some{s} Some{+reg} Codec.Decoded{D.VList{D.VText{h}, D.VList{D.VText{mode}, D.VList{D.VText{code}, D.VList{D.VText{proof}, D.VListEmpty{}}}}}}:
-      output(C.plan(c, s, reg, body, admission(String.eq(mode, "universal"), S.environment(c), code, proof), h), reg)
+      output(C.control(c, s, Nil{}, reg, body, admission(String.eq(mode, "universal"), S.environment(c), code, proof), h))
     case _ _ _: [2]
 
 def root_value(~c: S.Configuration, decoded: Codec.Outcome, registry: Maybe<&2, C.Registry>,

@@ -427,7 +427,7 @@ def ControlDeltaFor(plan: Control.Plan, -registry: Control.Registry, -reg: Contr
         {outcome == Control.ControlTransaction{S.response_error(status)} : Control.Outcome}>
     case Control.ControlReady{ctx, change, receipt, bytes}:
       L.E<{reg == Control.apply(change, registry) : Control.Registry},
-        {outcome == Control.ControlMetadata{receipt, bytes} : Control.Outcome}>
+        {outcome == Control.ControlMetadata{receipt, bytes, change} : Control.Outcome}>
 
 def ControlPreservedResult(-root: D.State, -last: List<&2, U32>, result: Control.Transition) -> Type:
   match result:
