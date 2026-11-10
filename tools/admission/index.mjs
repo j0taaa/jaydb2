@@ -45,6 +45,30 @@ function sameTerm(B, a, b) {
   return B.term_key(B.term_lower(a)) === B.term_key(B.term_lower(b));
 }
 
+// Seal semantic trees, including checked runtime bodies. Object identity alone
+// misses edits below an existing node. Source spans do not affect execution.
+function bookSeal(B, book) {
+  const key = t => {
+    const lowered = term => B.term_key(B.term_lower(term));
+    const record = { ...t, T: lowered(t.T) };
+    if (t.$ === 'Def') {
+      record.v = t.v === null ? null : lowered(t.v);
+      record.e = t.e === undefined ? undefined : B.term_key(t.e);
+    } else if (t.$ === 'ADT') record.c = t.c.map(key);
+    return JSON.stringify(record);
+  };
+  const tables = ['tlds', 'ctrs'].map(table => [table,
+    Object.entries(book[table]).map(([name, term]) => [name, term, key(term)])]);
+  const order = [...book.order];
+  // The official translator may append its symbolic template constants.
+  return () => {
+    if (!order.every((name, index) => book.order[index] === name)) return 'declaration order';
+    for (const [table, entries] of tables) for (const [name, term, saved] of entries)
+      if (book[table][name] !== term || key(term) !== saved) return table + ':' + name;
+    return null;
+  };
+}
+
 function assertBindings(B, book, plan, mustBeOpen) {
   const app = (k, ...xs) => xs.reduce((f, x) => B.App(f, B.Ref(x)), B.Ref(k));
   const canonical = plan.canonicalRefs;
@@ -267,7 +291,7 @@ async function admit(options, kernelOnly) {
     auditLoopCalls(B, state);
     if (!kernelOnly) assertBindings(B, state.book, plan, false);
     assertInitialization(B, state.book, plan);
-    const checkedDefinitions = Object.entries(state.book.tlds).map(([k, t]) => [k, t, t.T, t.v, t.e, t.n, t.x, t.b]);
+    const changedDefinition = bookSeal(B, state.book);
     try {
       state.verifier = checkBook(S, state.book, tc.info.verifier);
       // The source Book has already passed the primary checker. A negative
@@ -277,9 +301,9 @@ async function admit(options, kernelOnly) {
         'Primary checker accepted but the official kernel rejected the translated Book:\n' + state.verifier.why);
       // Official Safe may add symbolic template constants. Preserve those,
       // while the existing checked definitions remain the ones sent to C.
-      if (checkedDefinitions.some(([k, t, T, v, e, n, x, b]) =>
-        state.book.tlds[k] !== t || t.T !== T || t.v !== v || t.e !== e || t.n !== n || t.x !== x || t.b !== b)) {
-        throw new Error('Official Safe changed a checked definition');
+      const changed = changedDefinition();
+      if (changed !== null) {
+        throw new Error('Official Safe changed a checked definition: ' + changed);
       }
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;

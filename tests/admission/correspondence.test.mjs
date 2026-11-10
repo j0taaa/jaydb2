@@ -53,6 +53,40 @@ test('official tools preserve checked source and emitted behavior', async t => {
   assert.equal(runC(f.root, c, 'checked'), 'Data.VInt{0, 6}');
 });
 
+test('in-place changes to a checked runtime tree cannot survive translation', async t => {
+  const f = fixture(t), { info } = await loadToolchain();
+  const entries = Object.entries, spawn = child.spawnSync;
+  let definitions, changed = false, admitted, failure;
+  Object.entries = function (value) {
+    if (!definitions && value?.['Client:program']?.e) definitions = value;
+    return entries(value);
+  };
+  child.spawnSync = function (bin, args, options) {
+    if (bin === info.kernelPath && !changed) {
+      assert.ok(definitions, 'capture the actual private checked Book');
+      const pending = [definitions['Client:program'].e], seen = new Set();
+      while (pending.length && !changed) {
+        const term = pending.pop();
+        if (!term || typeof term !== 'object' || seen.has(term)) continue;
+        seen.add(term);
+        if (term.$ === 'Lit' && term.k === 'U32' && term.v === 3) {
+          term.v = 4; changed = true;
+        } else for (const [key, child] of entries(term)) if (key !== 's') pending.push(child);
+      }
+      assert.equal(changed, true, 'change the executable literal after the kernel payload is fixed');
+    }
+    return spawn(bin, args, options);
+  };
+  syncBuiltinESMExports();
+  try { admitted = await admitSubmission(f.manifest()); }
+  catch (error) { failure = error; }
+  finally { Object.entries = entries; child.spawnSync = spawn; syncBuiltinESMExports(); }
+  if (admitted) assert.fail('Accepted altered behavior: ' + runC(f.root, emitC(admitted), 'changed-tree'));
+  assert.equal(changed, true);
+  assert.equal(failure?.code, 'BENDTT_INFRASTRUCTURE', failure?.message);
+  assert.match(failure.message, /changed a checked definition/);
+});
+
 // Historical R4 came from the removed interning adapter. The official
 // frontend already handles this nested specialization and C must return 1.
 test('official nested template preserves the checked result in C', async t => {
