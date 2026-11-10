@@ -1378,5 +1378,79 @@
       ".build/review/receipt-frames-promoted.json": "9047dc9b9bec9c6600aa8939aee2d5c79b6dbfa896315e0e3b792ff055ac4911"
     },
     "validation_limit": "Existing runtime and canonical Bend modules unchanged. The historical full release is not relabeled as rerun; this is a proof/verification-only addition. The current positive root and all four added causal controls were checked in both official modes."
+  },
+  "transaction_conclusions_and_metadata_authorization": {
+    "scope": "Maintained full Rule7 for ANY observed prepared transaction Concluded, with ZERO native/Current/outcome/trace/publication/uniqueness premises; full Rule4 for ANY observed metadata ReceiptPrepared, requiring Unit for PreparedReceipt and only actual retained physical input validity for InvalidatedReceipt. Same complete serial source and full publication cofacts retained. Not full Law7/all-eight-law/native witness.",
+    "heads": {
+      "transaction_conclusions": {
+        "file": "proof/service/laws/serial/core-conclusions/Observed.bend",
+        "theorem": "every_actual_observed_prepared_transaction_conclusion_obeys_complete_rule7_without_native_or_outcome_assumptions",
+        "boundary": "Only the actual observation"
+      },
+      "receipt_authorization": {
+        "file": "proof/service/laws/serial/receipt-authorization/Observed.bend",
+        "theorem": "every_actual_observed_metadata_prepared_receipt_obeys_complete_authorization_rule4_before_any_later_completion",
+        "boundary": "PreparedReceipt: Unit, separate zero-native head; InvalidatedReceipt: retained physical reception validity only"
+      }
+    },
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "new_proof_modules": 108,
+    "new_test_fixture_modules": 2,
+    "negative_controls_added_per_mode": 22,
+    "checker_records": 50,
+    "unchanged_inputs": 333,
+    "changed_inputs": [],
+    "positive_roots": [
+      "proof/service/VERIFY.bend",
+      "proof/service/laws/serial/core-conclusions/Observed.bend",
+      "proof/service/laws/serial/receipt-authorization/Observed.bend"
+    ],
+    "positive_elapsed_seconds": {
+      "proof/service/VERIFY.bend": {
+        "--check-only": 23.48,
+        "--verdict": 142.835
+      },
+      "proof/service/laws/serial/core-conclusions/Observed.bend": {
+        "--check-only": 22.558,
+        "--verdict": 198.584
+      },
+      "proof/service/laws/serial/receipt-authorization/Observed.bend": {
+        "--check-only": 14.168,
+        "--verdict": 269.55
+      }
+    },
+    "import_coverage": {
+      "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
+      "transitive_modules": 558,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 319,
+          "law_declarations": 1597
+        },
+        "library": {
+          "modules": 175,
+          "law_declarations": 799
+        }
+      }
+    },
+    "core_negative_controls_total_per_mode": 387,
+    "dependency_simplification": "Removed63 statically unused imports from new proof modules before import remapping. Every nonimport proof body preserved, with trailing whitespace normalized; original ignored frozen sources unchanged.",
+    "canonical_law_toolchain_and_mathematical_budget_changes": false,
+    "preflight_correction": "Initial driver stopped BEFORE ANY CHECKER INVOCATION because a genuine def false_ fixture was excluded by its law-only declaration guard. That is not a proof rejection/pass. Corrected guard accepts law/def false; all50 intended results are from a fresh BOTH-mode rerun.",
+    "evidence_sha256": {
+      ".build/review/conclusion-authorization-maintained-validation.json": "18d5a9a2bf962d1c243aba337fcecac62d1ef2b0ab7845f6bf8807a5292699fa",
+      ".build/review/conclusion-authorization-promoted.json": "7cee3ae022de2ed11b88ef4c5c3f8050e7fa064157428639c4069fca47efcd1b",
+      ".build/review/conclusion-authorization-coverage.json": "6f820ce9e0975bc56ee2b25ae90cb44ecd147f20cf1adb7a58969c01525dabe7",
+      ".build/review/conclusion-authorization-preflight-failure.json": "1a71ad212d14fe9e7a96f7c9cb590c75b4a3a56cbd2123e58df1d47e970420a3"
+    },
+    "validation_limit": "No runtime, tool, law or mathematical budget change. The historical full native release is not relabeled as rerun. No complete eight-law source/native/concurrency/progress/recovery witness. Earlier accepted/chosen chronology in receipt authorization does not establish original certificate/allocator truth; those event clauses remain separate.",
+    "post_gate_changes": "Existing documentation and validation metadata only; all checked proof/test/tool/Makefile/promotion inputs unchanged."
   }
 }

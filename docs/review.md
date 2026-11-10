@@ -276,6 +276,25 @@ independently pass both official admission tools. This native follow-up does
 not relabel the preceding proof-only gate. The existing exact runtime binding
 still applies to persistent stores; no migration or binding relaxation is added.
 
+The maintained chronological source now also proves two complete observed
+clauses. Every prepared transaction conclusion has its actual earlier matching
+frame and shared transaction/metadata conclusion uniqueness, with no native
+premise. Every metadata prepared receipt has Rule4 authorization: preparation
+uses its real earlier acceptance and handle choice; invalidation uses actual
+physical reception validity and derives current state, authentication and
+scoped lookup before removal. Sealing/cleanup need not complete. These facts
+do not establish original checker or allocator truth, native IO correspondence
+or the complete eight-law witness.
+
+After import remapping and removal of 63 unused imports, the three positive
+roots (including all nonempty fixtures) and 22 causal controls passed fresh
+checks in both official modes: 50 intended results, no changed recorded input.
+The import inventory reaches 558 modules (319 proof, 175 library, 16 runtime
+Bend modules); reachability still measures coverage, not whole-project
+correctness. The earlier full native release is not relabeled as rerun. Exact
+roots, boundaries, input count and evidence digests are recorded in
+[review-validation.json](review-validation.json).
+
 ## Proof obligations by scope
 
 | Scope | Checked witness or evidence | Remaining obligation |

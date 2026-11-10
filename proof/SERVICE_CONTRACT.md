@@ -280,8 +280,36 @@ are covered. The theorem takes only the actual observation, with no native,
 physical-input, completed-outcome, certificate or output-fit premise. Three
 phase fixtures and four causal controls check the nonempty source paths and
 reject altered bytes/bounds or erasure of a frame by a later stop/failure.
-This does not establish metadata authorization, every response clause or the
+The frame theorem alone does not establish the other response clauses or the
 unchanged `PreparedLaws.ControlLaw`.
+
+[`core-conclusions/Observed`](service/laws/serial/core-conclusions/Observed.bend)
+now proves the complete supplemental Rule7 for every observed prepared
+transaction conclusion. The only premise is its actual full-history
+observation. The proof derives a real earlier matching prepared response,
+allowed closure and the shared uniqueness condition across both transaction
+and metadata conclusions. It retains both preparations when nonfatal cleanup
+replaces a previously prepared result with failure. It assumes no native IO,
+Current, completed outcome, publication, checker truth or uniqueness. These
+source conclusions have `closes=False`; this does not prove genuine eventual
+progress or native closing behavior.
+
+[`receipt-authorization/Observed`](service/laws/serial/receipt-authorization/Observed.bend)
+proves the complete metadata prepared-receipt Rule4 before later sealing,
+registration or cleanup completes. A preparation receipt derives its actual
+earlier acceptance and handle-choice observations without native premises.
+An invalidation receipt additionally uses physical reception validity for the
+owning call, deriving current history, authentication and scoped lookup before
+removal. Pending sealing and all cleanup outcomes remain represented. Earlier
+acceptance/choice observations do not supply original typing, certificate or
+allocator truth; their own clauses remain separate obligations.
+
+`make verify` checks these two observed heads as separate positive roots under
+the same existing timeout. The maintained roots, nonempty fixtures and all 22
+new causal controls passed both official modes on unchanged inputs after
+import remapping and removal of 63 unused imports. The detailed record is in
+[`review-validation.json`](../docs/review-validation.json). These checked
+clauses do not complete all eight laws or their native correspondence.
 
 The source is a finite prefix. Its delivery renderer does not yet represent
 the native transition to a selected subsequent call as `NextCall`; complete
