@@ -1273,51 +1273,64 @@
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; all checked maintained implementation/proof/test/tool inputs unchanged."
   },
-  "service_chronological_foundation": {
-    "scope": "Maintained complete chronological source foundation, phase ordering and full observed Boot Rule1. This remains a supplemental specification/model and is not a full ordinary/prepared Contract or a native/Rust/IO/concurrency/progress/recovery witness.",
-    "modes": [
-      "--check-only",
-      "--verdict"
-    ],
-    "proof_modules_excluding_root": 25,
-    "negative_controls_added_per_mode": 9,
-    "existing_phase_controls_per_mode": 7,
-    "boot_controls_per_mode": 2,
-    "foundation_gate": {
-      "positive_roots": [
-        "proof/service/VERIFY.bend"
+  "proof_architecture_consolidation": {
+    "scope": "Retirement of an incompatible duplicate proposal, not completion or narrowing of the executable contract.",
+    "retired_source_commit": "6352df5",
+    "counterexample": {
+      "configuration": "Configuration{Schema{[]}, NoneLaw{}, Limits{0n,0n,0n}, \"\"}",
+      "actual_initialize_packet": [
+        2
       ],
-      "checks": 16,
-      "unchanged_inputs": 167
-    },
-    "final_boot_and_foundation_gate": {
-      "positive_roots": [
-        "proof/service/VERIFY.bend"
+      "proposal_observation": "Ordinary{ProofInitialAccepts{}} at time 0",
+      "contradiction": "The original Rule1 for this observed fact implies False == True and therefore Empty.",
+      "checked_modes": [
+        "--check-only",
+        "--verdict"
       ],
-      "checks": 20,
-      "unchanged_inputs": 171,
-      "changed_inputs": []
+      "method": "Temporary counterexample checked against unchanged sources, then removed."
     },
-    "prior_foundation_input_changes_covered_by_final_gate": [
-      ".build/review/service-foundation-promoted.json",
-      "proof/service/VERIFY.bend",
-      "proof/service/model/EventObserver.bend",
-      "proof/service/model/TimeEmbedding.bend",
-      "proof/service/specification/ServiceLaws.bend"
+    "removed": {
+      "proposal_modules": 147,
+      "positive_fixtures": 5,
+      "causal_controls": 34,
+      "bend_lines": 20852
+    },
+    "removed_model_claims": [
+      "Artificial Boot identity/order/uniqueness",
+      "Metadata receipt framing and authorization chronology",
+      "Prepared conclusion framing/linkage/closing/uniqueness",
+      "Computed serial dispatch provenance and phase ordering"
     ],
-    "canonical_law_and_toolchain_changes": false,
-    "mathematical_budget_changes": false,
+    "preserved": [
+      "Canonical ordinary and prepared laws",
+      "Exact conditional ContractService target and all 199 modules in the general proof closure",
+      "Actual startup/execution adapter proofs and native worker proof checks",
+      "Independent prepared wire, registry, control and execution proofs",
+      "Unchanged standalone full-service ServiceLaws specification; no witness claimed"
+    ],
+    "integration_path": [
+      "SourceService.construct_initial",
+      "RoutesService.generate_result_initial",
+      "Law1Service",
+      "ContractService.Initial"
+    ],
     "import_coverage": {
       "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
-      "transitive_modules": 431,
+      "roots": [
+        "VERIFY.bend",
+        "tests/proof/VERIFY.bend",
+        "library/VERIFY.bend",
+        "proof/service/specification/ServiceLaws.bend"
+      ],
+      "transitive_modules": 406,
       "areas": {
         "src": {
           "modules": 16,
           "law_declarations": 26
         },
         "proof": {
-          "modules": 197,
-          "law_declarations": 1458
+          "modules": 172,
+          "law_declarations": 1373
         },
         "library": {
           "modules": 175,
@@ -1325,132 +1338,42 @@
         }
       }
     },
-    "evidence_sha256": {
-      ".build/review/service-foundation-validation.json": "02df32dd284e63637ece5adc52aea87f5da8ac6d0b2b579c6d1d037466be264f",
-      ".build/review/service-foundation-final-validation.json": "5e09be6bbaf6c57dd892692f678ea7995da4c7afd94295fc4db178bf782319b6",
-      ".build/review/service-foundation-promoted.json": "4dd07517adef6dd95a2b46f3c743a8a521aa5d7d3cae94b62ddf5d4d96dba051",
-      ".build/review/initial-boot-promoted.json": "15a739a86a17551ee13841aca4d62b2fbae7a18b0952cc544a9e576b3528600f"
-    },
-    "validation_limit": "The historical full release is not relabeled as rerun. This change adds proof/verification modules only; existing runtime and canonical Bend modules are unchanged. The final root checks every added positive module, and all nine added controls were freshly checked in both modes after import/formatting changes."
-  },
-  "metadata_receipt_frame_rule7": {
-    "scope": "Complete supplemental Rule7 for ANY actual observed metadata ReceiptPrepared, either receipt kind, in the same unfiltered complete serial source. Literal receipt encoding and configured response bound are derived from actual code paths, including pending sealing and failed cleanup. No native, physical-input, Current, completed outcome, certificate, output-fit or trace-truth premise. This is one clause, not all of Law7/Contract or native correspondence.",
-    "head": "proof/service/laws/serial/framed-receipts/Observed.bend",
-    "theorem": "every_actual_observed_metadata_prepared_receipt_follows_complete_rule7_without_any_native_or_output_premise",
-    "modes": [
-      "--check-only",
-      "--verdict"
-    ],
-    "new_proof_modules": 14,
-    "positive_test_fixtures": 3,
-    "negative_controls_added_per_mode": 4,
-    "checker_records": 10,
-    "unchanged_inputs": 184,
-    "changed_inputs": [],
-    "proof_root": "proof/service/VERIFY.bend",
-    "positive_elapsed_seconds": {
-      "--check-only": 9.835,
-      "--verdict": 92.177
-    },
-    "import_coverage": {
-      "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
-      "transitive_modules": 448,
-      "areas": {
-        "src": {
-          "modules": 16,
-          "law_declarations": 26
+    "remaining_causal_controls_per_mode": 353,
+    "verification": {
+      "status": "passed",
+      "commands": [
+        {
+          "command": "make verify",
+          "positive_roots_at_run": [
+            "VERIFY.bend",
+            "tests/proof/VERIFY.bend",
+            "library/VERIFY.bend"
+          ],
+          "exit_code": 0
         },
-        "proof": {
-          "modules": 211,
-          "law_declarations": 1481
-        },
-        "library": {
-          "modules": 175,
-          "law_declarations": 799
+        {
+          "command": "python3 -B tools/check.py proof/service/specification/ServiceLaws.bend",
+          "exit_code": 0
         }
-      }
+      ],
+      "modes": [
+        "--check-only",
+        "--verdict"
+      ],
+      "positive_roots_checked": [
+        "VERIFY.bend",
+        "tests/proof/VERIFY.bend",
+        "library/VERIFY.bend",
+        "proof/service/specification/ServiceLaws.bend"
+      ],
+      "causal_controls_checked_per_mode": 353,
+      "causal_checker_results": 706,
+      "final_recipe_scope": "The retained specification was checked separately after the three existing roots and all controls passed; its addition to make verify changes none of those checked module closures.",
+      "protected_general_closure_modules": 199,
+      "protected_general_closure_byte_changes": 0,
+      "canonical_and_full_service_law_changes": false,
+      "runtime_implementation_changes": false
     },
-    "dependency_simplification": "Removed a genuinely unused Prelude import before promotion; avoided adding eight unrelated modules/1959 lines to this clause dependency graph. Source proof bodies otherwise unchanged except trailing whitespace normalization. No ignored frozen source modified.",
-    "canonical_law_toolchain_and_mathematical_budget_changes": false,
-    "invalid_validation_attempt": "The first list mistakenly expected three positive fixtures to fail. That batch failed correctly and is preserved under .build/review/receipt-frames-invalid-fixture-list. It is not the final proof basis; the corrected rejected-only list was rerun in both modes.",
-    "evidence_sha256": {
-      ".build/review/receipt-frames-maintained-validation.json": "dc5bc742847f0abfb038b0edcdb54eeacf94c89e93c9caa15bff255d05270f8a",
-      ".build/review/receipt-frames-promoted.json": "9047dc9b9bec9c6600aa8939aee2d5c79b6dbfa896315e0e3b792ff055ac4911"
-    },
-    "validation_limit": "Existing runtime and canonical Bend modules unchanged. The historical full release is not relabeled as rerun; this is a proof/verification-only addition. The current positive root and all four added causal controls were checked in both official modes."
-  },
-  "transaction_conclusions_and_metadata_authorization": {
-    "scope": "Maintained full Rule7 for ANY observed prepared transaction Concluded, with ZERO native/Current/outcome/trace/publication/uniqueness premises; full Rule4 for ANY observed metadata ReceiptPrepared, requiring Unit for PreparedReceipt and only actual retained physical input validity for InvalidatedReceipt. Same complete serial source and full publication cofacts retained. Not full Law7/all-eight-law/native witness.",
-    "heads": {
-      "transaction_conclusions": {
-        "file": "proof/service/laws/serial/core-conclusions/Observed.bend",
-        "theorem": "every_actual_observed_prepared_transaction_conclusion_obeys_complete_rule7_without_native_or_outcome_assumptions",
-        "boundary": "Only the actual observation"
-      },
-      "receipt_authorization": {
-        "file": "proof/service/laws/serial/receipt-authorization/Observed.bend",
-        "theorem": "every_actual_observed_metadata_prepared_receipt_obeys_complete_authorization_rule4_before_any_later_completion",
-        "boundary": "PreparedReceipt: Unit, separate zero-native head; InvalidatedReceipt: retained physical reception validity only"
-      }
-    },
-    "modes": [
-      "--check-only",
-      "--verdict"
-    ],
-    "new_proof_modules": 108,
-    "new_test_fixture_modules": 2,
-    "negative_controls_added_per_mode": 22,
-    "checker_records": 50,
-    "unchanged_inputs": 333,
-    "changed_inputs": [],
-    "positive_roots": [
-      "proof/service/VERIFY.bend",
-      "proof/service/laws/serial/core-conclusions/Observed.bend",
-      "proof/service/laws/serial/receipt-authorization/Observed.bend"
-    ],
-    "positive_elapsed_seconds": {
-      "proof/service/VERIFY.bend": {
-        "--check-only": 23.48,
-        "--verdict": 142.835
-      },
-      "proof/service/laws/serial/core-conclusions/Observed.bend": {
-        "--check-only": 22.558,
-        "--verdict": 198.584
-      },
-      "proof/service/laws/serial/receipt-authorization/Observed.bend": {
-        "--check-only": 14.168,
-        "--verdict": 269.55
-      }
-    },
-    "import_coverage": {
-      "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
-      "transitive_modules": 558,
-      "areas": {
-        "src": {
-          "modules": 16,
-          "law_declarations": 26
-        },
-        "proof": {
-          "modules": 319,
-          "law_declarations": 1597
-        },
-        "library": {
-          "modules": 175,
-          "law_declarations": 799
-        }
-      }
-    },
-    "core_negative_controls_total_per_mode": 387,
-    "dependency_simplification": "Removed63 statically unused imports from new proof modules before import remapping. Every nonimport proof body preserved, with trailing whitespace normalized; original ignored frozen sources unchanged.",
-    "canonical_law_toolchain_and_mathematical_budget_changes": false,
-    "preflight_correction": "Initial driver stopped BEFORE ANY CHECKER INVOCATION because a genuine def false_ fixture was excluded by its law-only declaration guard. That is not a proof rejection/pass. Corrected guard accepts law/def false; all50 intended results are from a fresh BOTH-mode rerun.",
-    "evidence_sha256": {
-      ".build/review/conclusion-authorization-maintained-validation.json": "18d5a9a2bf962d1c243aba337fcecac62d1ef2b0ab7845f6bf8807a5292699fa",
-      ".build/review/conclusion-authorization-promoted.json": "7cee3ae022de2ed11b88ef4c5c3f8050e7fa064157428639c4069fca47efcd1b",
-      ".build/review/conclusion-authorization-coverage.json": "6f820ce9e0975bc56ee2b25ae90cb44ecd147f20cf1adb7a58969c01525dabe7",
-      ".build/review/conclusion-authorization-preflight-failure.json": "1a71ad212d14fe9e7a96f7c9cb590c75b4a3a56cbd2123e58df1d47e970420a3"
-    },
-    "validation_limit": "No runtime, tool, law or mathematical budget change. The historical full native release is not relabeled as rerun. No complete eight-law source/native/concurrency/progress/recovery witness. Earlier accepted/chosen chronology in receipt authorization does not establish original certificate/allocator truth; those event clauses remain separate.",
-    "post_gate_changes": "Existing documentation and validation metadata only; all checked proof/test/tool/Makefile/promotion inputs unchanged."
+    "whole_service_witness": "Not established. Admission origin, complete actual observations, IO, progress, concurrency, recovery and compiler/native preservation remain open."
   }
 }

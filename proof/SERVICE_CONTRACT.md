@@ -265,78 +265,30 @@ predicates must also refer to the same actual global event times. Actual Rust at
 representation, classifier correspondence and OS/IO progress remain separate
 bridges; finite individual EINTR returns alone do not establish termination.
 
-## Complete chronological source
+## Proof architecture
 
-[`service/VERIFY.bend`](service/VERIFY.bend) checks the operational source
-separately from the ordinary conditional composition above, under the same
-pinned checkers and existing verification timeout. Its supplemental
-[`ServiceLaws`](service/specification/ServiceLaws.bend) is an obligation for one
-ordinary/prepared observer, not an inhabitant of that contract. The canonical
-laws and their manifests are unchanged.
+The maintained integration path is `SourceService.construct_initial` →
+`RoutesService.generate_result_initial` → `Law1Service` → `ContractService.Initial`.
+It represents accepted, refused, failed and pending initialization. The remaining
+startup obligation is the actual seed-admission origin (`Source.JudgmentInitialReal`),
+including its fixed-system derivation and seed validity.
 
-`Engine.run` computes each retained block from the same indexed request and
-primitive returns through the real decode, dispatch, preparation, invalidation
-and pure Core functions. It retains prior calls, pending phases, failures and
-the exact database/response/registry snapshots. A real publication has both
-its mutation fact and its core publication fact at the same instant.
-`GeneratedBlocks` proves the connection to the same script job; a caller does
-not supply a completed trace or choose the observed outcome.
+The separate operational model under `proof/service` was retired after a
+counterexample passed both official checkers: with zero message/state/response limits, the actual
+initializer returns its refusal marker, but the proposal unconditionally observed
+initial proof acceptance. Its original Rule1 would then imply `False == True`.
+The startup prefix therefore could not serve as an unrestricted service observer.
+The model and its dedicated fixtures remain available in Git at `6352df5`.
+The unchanged [full-service specification](service/specification/ServiceLaws.bend)
+is retained as an obligation; no implementation witness for it is claimed.
 
-`InitialBoot` proves the complete boot clause of Rule1 for any full event
-history: the exact initial snapshot, the preceding instance-start event and
-unique boot time/scenario. Its proof also excludes a forged boot through a
-publication cofact, without assuming a history free of publications. This
-establishes boot identity and ordering; the initial certificate and native
-initialization correspondence are separate obligations.
-
-`ReceiptFrames` now proves the complete supplemental Rule7 for every observed
-metadata prepared receipt in that same source: its literal encoding and
-configured response bound. Both receipt kinds, pending seals and failed cleanup
-are covered. The theorem takes only the actual observation, with no native,
-physical-input, completed-outcome, certificate or output-fit premise. Three
-phase fixtures and four causal controls check the nonempty source paths and
-reject altered bytes/bounds or erasure of a frame by a later stop/failure.
-The frame theorem alone does not establish the other response clauses or the
-unchanged `PreparedLaws.ControlLaw`.
-
-[`core-conclusions/Observed`](service/laws/serial/core-conclusions/Observed.bend)
-now proves the complete supplemental Rule7 for every observed prepared
-transaction conclusion. The only premise is its actual full-history
-observation. The proof derives a real earlier matching prepared response,
-allowed closure and the shared uniqueness condition across both transaction
-and metadata conclusions. It retains both preparations when nonfatal cleanup
-replaces a previously prepared result with failure. It assumes no native IO,
-Current, completed outcome, publication, checker truth or uniqueness. These
-source conclusions have `closes=False`; this does not prove genuine eventual
-progress or native closing behavior.
-
-[`receipt-authorization/Observed`](service/laws/serial/receipt-authorization/Observed.bend)
-proves the complete metadata prepared-receipt Rule4 before later sealing,
-registration or cleanup completes. A preparation receipt derives its actual
-earlier acceptance and handle-choice observations without native premises.
-An invalidation receipt additionally uses physical reception validity for the
-owning call, deriving current history, authentication and scoped lookup before
-removal. Pending sealing and all cleanup outcomes remain represented. Earlier
-acceptance/choice observations do not supply original typing, certificate or
-allocator truth; their own clauses remain separate obligations.
-
-`make verify` checks these two observed heads as separate positive roots under
-the same existing timeout. The maintained roots, nonempty fixtures and all 22
-new causal controls passed both official modes on unchanged inputs after
-import remapping and removal of 63 unused imports. The detailed record is in
-[`review-validation.json`](../docs/review-validation.json). These checked
-clauses do not complete all eight laws or their native correspondence.
-
-The source is a finite prefix. Its delivery renderer does not yet represent
-the native transition to a selected subsequent call as `NextCall`; complete
-coverage of native observations remains an open correspondence obligation.
-Prefix exhaustion does not establish progress.
-
-The phase controls reject registration before receipt preparation, mutation
-rollback after delivery or cleanup failure, erasure of an invalidation during
-pending cleanup, and events after closure. Boot controls reject changed time
-and response data. These checks do not complete the extended eight-law
-witness, genuine progress, concurrent scheduling or recovery refinement.
+This removes an unused integration path, not an executable obligation. Its checked
+phase-order, framing, conclusion and authorization results concerned that model;
+none supplied a premise to `ContractService`. The ordinary eight-law composition,
+prepared protocol/registry/control proofs, actual worker proofs and canonical laws
+remain maintained. Native observation coverage, actual admission origin, delivery,
+progress, concurrency and recovery still require the executable bridge described
+above. No complete whole-service witness is claimed.
 
 ## Optional administrator service timing
 

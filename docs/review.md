@@ -276,24 +276,21 @@ independently pass both official admission tools. This native follow-up does
 not relabel the preceding proof-only gate. The existing exact runtime binding
 still applies to persistent stores; no migration or binding relaxation is added.
 
-The maintained chronological source now also proves two complete observed
-clauses. Every prepared transaction conclusion has its actual earlier matching
-frame and shared transaction/metadata conclusion uniqueness, with no native
-premise. Every metadata prepared receipt has Rule4 authorization: preparation
-uses its real earlier acceptance and handle choice; invalidation uses actual
-physical reception validity and derives current state, authentication and
-scoped lookup before removal. Sealing/cleanup need not complete. These facts
-do not establish original checker or allocator truth, native IO correspondence
-or the complete eight-law witness.
+The duplicate chronological proposal has been retired. A counterexample checked
+by both official modes showed that its unconditional startup observations can
+contradict the actual initializer and original Rule1 for a zero-limit configuration.
+It was outside the dependency closure of the top-level eight-law composition.
+Removing that model and its dedicated fixtures eliminates 20,852 Bend lines;
+its checked model results remain in Git history at `6352df5`.
+The full-service specification itself is retained unchanged as an obligation.
 
-After import remapping and removal of 63 unused imports, the three positive
-roots (including all nonempty fixtures) and 22 causal controls passed fresh
-checks in both official modes: 50 intended results, no changed recorded input.
-The import inventory reaches 558 modules (319 proof, 175 library, 16 runtime
-Bend modules); reachability still measures coverage, not whole-project
-correctness. The earlier full native release is not relabeled as rerun. Exact
-roots, boundaries, input count and evidence digests are recorded in
-[review-validation.json](review-validation.json).
+The maintained initialization path is `SourceService` → `RoutesService` →
+`Law1Service` → `ContractService`. Its accepted/refused/failed/pending branches,
+the exact ordinary contract target, and the separate prepared protocol proofs
+remain. The missing admission and native correspondence premises remain open;
+removing the duplicate model does not prove them. `make verify` checks the three
+existing positive roots, the retained specification, and the causal controls.
+Coverage is an import inventory, not a claim of whole-project correctness.
 
 ## Proof obligations by scope
 
@@ -333,24 +330,3 @@ PDFs are generated under `.build/tcc/output/`; only the small editable source
 set is tracked. Rendered pages and an independent factual review were checked.
 The specific course template, advisor and defense metadata remain for local
 confirmation before submission.
-
-The maintained chronological source foundation now lives under
-`proof/service`, checked separately by `make verify` in both pinned official
-modes under the existing development timeout. It computes full serial blocks
-from the same script jobs, retains pending/error paths and both same-slot
-publication facts, and proves phase order plus complete observed Boot Rule1.
-The boot proof derives identity, prior start and uniqueness over arbitrary
-mixed histories without a native or validity premise; it does not establish
-the initial certificate. Nine added controls reject incorrect phase effects
-and changed boot time/data. The canonical laws and toolchain remain unchanged.
-This foundation is not the complete extended eight-law witness or a proof of
-progress, concurrency, recovery or native correspondence. Exact fresh checker
-records and scope appear in `review-validation.json`.
-
-The maintained metadata receipt-frame head now establishes its entire
-supplemental Rule7 clause from any actual observation alone, for both receipt
-kinds and all later sealing/cleanup outcomes. Both pinned modes passed the
-updated root and four causal controls on 184 unchanged inputs. The promotion
-removed one unused import and avoided eight unrelated modules (1959 lines),
-with no runtime or canonical-law change. This establishes frame content and
-bounds, not the full extended contract or native correspondence.
