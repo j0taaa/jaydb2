@@ -42,3 +42,6 @@ import ./Iteration.bend as ExecutableFold
 import ./FrameQueueHistory.bend as FrameQueueHistory
 import ./FrameQueueProgress.bend as FrameQueueProgress
 import ./WorkerBridge.bend as WorkerBridge
+import ./ControlClauses.bend as ControlClauses
+import ./ControlHistory.bend as ControlHistory
+import ./ControlTransport.bend as ControlTransport
