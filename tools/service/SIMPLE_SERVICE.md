@@ -3,6 +3,11 @@
 Administrator configuration and dependencies are public. The chosen seed file
 is private and participates only in initialization; public configuration may
 not import it, including through another name or path to the same file.
+Each custom administrator module name has one frozen source and dependency
+graph. A seed helper or file alias that would reuse that name with a different
+graph is rejected, even when its own text matches. `Configuration.bend` remains
+the host-provided alias for the selected configuration file. A seed can use a
+frozen public helper without keeping another local copy.
 
 The active entry is `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs`.
 The host is Rust, admission and compilation are coordinated by Node, and each

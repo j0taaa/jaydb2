@@ -104,6 +104,75 @@ test('shared diamonds and finite hardlink chains still reach compilation', t => 
   }
 });
 
+test('administrator modules cannot silently acquire another dependency context', t => {
+  for (const kind of ['seed-shadow', 'seed-identical-helper', 'public-symlink-context']) {
+    const f = fixture(t), nested = path.join(f.root, 'nested');
+    fs.mkdirSync(nested);
+    const shared = 'import ./Leaf.bend as Leaf\ndef value() -> Nat: Leaf.value()\n';
+    fs.writeFileSync(path.join(f.root, 'Helper.bend'), shared);
+    fs.writeFileSync(path.join(f.root, 'Leaf.bend'), 'import Base\ndef value() -> Nat: 1n\n');
+    fs.writeFileSync(path.join(nested, 'Helper.bend'), kind === 'seed-shadow'
+      ? 'import Base\ndef value() -> Nat: 2n\n' : shared);
+    fs.writeFileSync(path.join(nested, 'Leaf.bend'), 'import Base\ndef value() -> Nat: 2n\n');
+    let seed = f.seed;
+    if (kind === 'public-symlink-context') {
+      fs.writeFileSync(path.join(nested, 'Alias.bend'), 'import ./Helper.bend as Helper\n');
+      fs.symlinkSync(path.join(nested, 'Alias.bend'), path.join(f.root, 'Alias.bend'));
+      fs.writeFileSync(f.config, 'import ./Helper.bend as Helper\nimport ./Alias.bend as Alias\n');
+    } else {
+      fs.writeFileSync(f.config, 'import ./Helper.bend as Helper\n');
+      seed = path.join(nested, 'Initial.bend');
+      fs.writeFileSync(seed, 'import ./Helper.bend as Helper\n');
+    }
+    const original = child.spawnSync;
+    let calls = 0;
+    child.spawnSync = () => { calls++; return { status: 37 }; };
+    syncBuiltinESMExports();
+    try {
+      assert.throws(() => initialize(f.work, f.config, seed, '/unused-bend', '/unused-kernel'),
+        error => error.code === 'DEPENDENCY' && error.message.includes('collision'), kind);
+      assert.equal(calls, 0, kind);
+      assert.equal(fs.existsSync(path.join(f.work, 'public')), false, kind);
+    } finally { child.spawnSync = original; syncBuiltinESMExports(); }
+  }
+});
+
+test('shared administrator modules and the canonical configuration alias still stage', t => {
+  for (const kind of ['same-source', 'same-closed-graph', 'provided-graph']) {
+    const f = fixture(t), configuration = path.join(f.root, 'Chosen.bend');
+    const helper = 'import ./Leaf.bend as Leaf\ndef value() -> Nat: Leaf.value()\n';
+    const leaf = 'import Base\ndef value() -> Nat: 1n\n';
+    const seed = 'import ./Configuration.bend as C\nimport ./Helper.bend as Helper\n';
+    fs.writeFileSync(configuration, 'import ./Helper.bend as Helper\n');
+    fs.writeFileSync(path.join(f.root, 'Helper.bend'), helper);
+    fs.writeFileSync(path.join(f.root, 'Leaf.bend'), leaf);
+    let seedFile = f.seed;
+    if (kind !== 'same-source') {
+      const nested = path.join(f.root, 'nested'); fs.mkdirSync(nested);
+      if (kind === 'same-closed-graph') {
+        fs.writeFileSync(path.join(nested, 'Helper.bend'), helper);
+        fs.writeFileSync(path.join(nested, 'Leaf.bend'), leaf);
+      }
+      seedFile = path.join(nested, 'Initial.bend');
+    }
+    fs.writeFileSync(seedFile, seed);
+    assert.equal(fs.existsSync(f.config), false, 'Configuration.bend is the staged host alias');
+    const original = child.spawnSync;
+    let calls = 0;
+    child.spawnSync = () => { calls++; return { status: 37 }; };
+    syncBuiltinESMExports();
+    try {
+      assert.throws(() => initialize(f.work, configuration, seedFile, '/unused-bend', '/unused-kernel'),
+        error => error.code === 'HELPER', kind);
+      assert.equal(calls, 1, kind);
+      assert.equal(fs.readFileSync(path.join(f.work, 'public/Helper.bend'), 'utf8'), helper);
+      assert.equal(fs.readFileSync(path.join(f.work, 'initialize/Helper.bend'), 'utf8'), helper);
+      assert.equal(fs.readFileSync(path.join(f.work, 'initialize/Seed.bend'), 'utf8'), seed);
+      assert.equal(fs.existsSync(path.join(f.work, 'public/Seed.bend')), false);
+    } finally { child.spawnSync = original; syncBuiltinESMExports(); }
+  }
+});
+
 test('prepared and read-only contract dependencies survive the production public staging closure', t => {
   const f = fixture(t);
   fs.writeFileSync(f.config, 'import ./PreparedLaws.bend as Prepared\n' +

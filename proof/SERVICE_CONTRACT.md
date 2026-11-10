@@ -63,6 +63,9 @@ exact encoded state, and that valid configuration permits seed-free recovery.
 Encoding success is derived from seed validity. Admission of the seed proof,
 startup observation order, and compiler/IO correspondence remain obligations
 of `Initial` and the executable bridge.
+Staging preserves one frozen source/dependency graph for each custom administrator
+module, including public modules shared with the private seed. Alternate paths
+must agree on the full graph; matching one module's text alone is insufficient.
 
 `Processable` is the original external predicate, preserved by the model. It
 is not “what the server accepted” or “what finished.” The official tool's

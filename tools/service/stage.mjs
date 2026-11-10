@@ -137,6 +137,7 @@ function sourceClosure(available, entries, missing, reverseImports = true) {
 function loadAdministrator(configuration, seed, sources) {
   const root = path.dirname(fs.realpathSync(configuration));
   const privateSeed = seed === null ? null : fs.statSync(seed, { bigint: true });
+  const snapshots = new Map(), contexts = new Set();
   const reserved = new Set([...sources.keys(), 'Environment.bend', 'Seed.bend', 'Main.bend',
     'Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend', 'Check.bend']);
   const load = (entry, name, initializing = false) => {
@@ -155,17 +156,32 @@ function loadAdministrator(configuration, seed, sources) {
       // branch-local realpaths still allow diamonds and finite hardlink chains.
       for (let parent = ancestors; parent !== null; parent = parent.parent)
         if (parent.file === file) fail('IMPORT_CYCLE', 'Administrator import cycle: ' + target);
+      const context = target + '\0' + file;
+      if (contexts.has(context)) continue;
       const data = read(file);
-      if (result.has(target)) {
-        if (!result.get(target).equals(data)) fail('DEPENDENCY', 'Administrator dependency collision');
-        continue;
+      if (snapshots.has(target)) {
+        if (!snapshots.get(target).equals(data)) fail('DEPENDENCY', 'Administrator dependency collision: ' + target);
+      } else {
+        if (reserved.has(target) && !(initializing && target === 'Seed.bend')) fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
+        snapshots.set(target, data);
+        result.set(target, data);
       }
-      if (reserved.has(target) && !(initializing && target === 'Seed.bend')) fail('DEPENDENCY', 'Administrator replaced a reserved module: ' + target);
-      result.set(target, data);
+      contexts.add(context);
       const children = [], trail = { file, parent: ancestors };
       for (const imp of imports(data)) {
         const name = path.posix.normalize(path.posix.join(path.posix.dirname(target), imp));
-        if (!sources.has(name) && name !== 'Environment.bend') children.push([path.resolve(path.dirname(file), imp), name, trail]);
+        const input = path.resolve(path.dirname(file), imp);
+        if (!sources.has(name) && name !== 'Environment.bend') children.push([input, name, trail]);
+        // Equal module text can import different children in another directory.
+        // Validate that context too; Configuration remains the host alias.
+        else if (name !== 'Configuration.bend' && snapshots.has(name)) {
+          try { fs.lstatSync(input); }
+          catch (error) {
+            if (error.code === 'ENOENT') continue; // The frozen public binding supplies this import.
+            throw error;
+          }
+          children.push([input, name, trail]);
+        }
       }
       pending.push(...children.reverse());
     }
