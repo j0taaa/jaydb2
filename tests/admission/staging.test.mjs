@@ -5,7 +5,9 @@ import child from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
-import { initialize } from '../../tools/service/stage.mjs';
+import { initialize, execute } from '../../tools/service/stage.mjs';
+import { fixture as submissionFixture } from './helpers.mjs';
+import { admitSubmission } from '../../tools/admission/index.mjs';
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jaydb-seed-guard-'));
@@ -181,5 +183,52 @@ test('the frozen recovery descriptor retains exact public, tooling and controlle
   } finally {
     child.spawnSync = original;
     syncBuiltinESMExports();
+  }
+});
+
+
+// Freeze only, deliberately stopping before native compilation. The exact
+// generated pure manifest is then checked by BOTH real official admission
+// tools after the compiler stub is restored; no accepted report is mocked.
+test('prepared target substitution preserves matching client comments and literals', async t => {
+  const target = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
+  for (const purpose of ['prepare', 'prepare-read']) for (const kind of ['comment', 'literal']) {
+    const f = fixture(t), submission = submissionFixture(t);
+    const originalInstance = submission.read('Instance.bend');
+    fs.writeFileSync(f.config, originalInstance.split('\ndef context()')[0]);
+    submission.write('Instance.bend', 'import ./Configuration.bend as C\n' +
+      originalInstance.slice(0, originalInstance.indexOf('def NotObserves')) +
+      'def config() -> S.Configuration:\n  C.config()\n' + originalInstance.slice(originalInstance.indexOf('\ndef context()')));
+    submission.write('Client.bend', submission.read('Client.bend') + (kind === 'comment'
+      ? '\n# harmless source text: ' + target + '\n'
+      : '\ndef source_marker() -> String:\n  ' + JSON.stringify(target) + '\n'));
+    submission.bindCode();
+    submission.write('ClientProof.bend', submission.read('ClientProof.bend').replace(
+      'def B.certificate(s, valid, identity, n):', 'def B.certificate(ctx, args, s, valid, identity, n):') +
+      (purpose === 'prepare-read' ? '\ndef B.read_only(ctx, args):\n  (1n, Unit{})\n' : ''));
+    const code = submission.read('Client.bend'), proof = submission.read('ClientProof.bend');
+    const original = child.spawnSync;
+    child.spawnSync = () => ({ status: 37 }); syncBuiltinESMExports();
+    try {
+      assert.throws(() => initialize(f.work, f.config, f.seed, '/unused-bend', '/unused-kernel'), e => e.code === 'HELPER');
+    } finally { child.spawnSync = original; syncBuiltinESMExports(); }
+    const output = path.join(f.root, 'prepared');
+    let reachedCompiler = 0, pureManifest;
+    child.spawnSync = (_program, args) => {
+      reachedCompiler++; pureManifest = JSON.parse(fs.readFileSync(args.at(-1), 'utf8'));
+      return { status: 37 };
+    };
+    syncBuiltinESMExports();
+    try {
+      assert.throws(() => execute(f.work, output, submission.root, '/unused-bend', '/unused-kernel', purpose), e => e.code === 'HELPER', purpose + ':' + kind);
+      assert.equal(reachedCompiler, 1, purpose + ':' + kind);
+    } finally { child.spawnSync = original; syncBuiltinESMExports(); }
+    assert.equal(fs.readFileSync(path.join(output, 'Client.bend'), 'utf8'), code);
+    assert.equal(fs.readFileSync(path.join(output, 'ClientProof.bend'), 'utf8'), proof);
+    const admitted = await admitSubmission(pureManifest);
+    assert.equal(admitted.report.primary, true);
+    assert.equal(admitted.report.bendtt, true);
+    assert.equal(admitted.report.certificateMode, 'universal');
+    assert.equal(admitted.report.readOnly, purpose === 'prepare-read');
   }
 });

@@ -238,11 +238,12 @@ function stage(environment, directory, purpose, metadata) {
   else if (['execute', 'prepare', 'prepare-read'].includes(purpose)) {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
     if (['prepare', 'prepare-read'].includes(purpose)) {
-      const concrete = 'R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())';
+      // Match the generated declaration, whose text may also occur inside code().
+      const concrete = '\nlaw certificate:\n  R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())\n';
       const links = utf8(available.get('Bindings.bend'));
       if (links.split(concrete).length !== 2) fail('TARGET', 'Expected the generated concrete certificate target');
       available.set('Bindings.bend', Buffer.from(links.replace(concrete,
-        '@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)') +
+        '\nlaw certificate:\n  @ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)\n') +
         '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
     }
     if (purpose === 'prepare-read') available.set('Bindings.bend', Buffer.from('import ./ReadOnly.bend as ReadOnly\n' + utf8(available.get('Bindings.bend')) +

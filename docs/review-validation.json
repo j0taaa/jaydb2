@@ -986,5 +986,70 @@
       "Summary.store, Index, Receipt and broader application functional obligations."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
+  },
+  "prepared_target_span_2026_11_09": {
+    "base_main": "89640c6",
+    "whole_goal_complete": false,
+    "runtime_changed": [
+      "tools/service/stage.mjs"
+    ],
+    "problem": "Preparation counted/replaced an unframed certificate-target substring across generated Bindings. Valid client comments/literals containing it made staging reject TARGET before admission.",
+    "repair": "Require and replace the exact generated newline-framed law certificate declaration, preserving arbitrary quoted Client code and original ClientProof bytes. Both prepare modes retain their original universal/read-only targets.",
+    "causal_before": "Preserved old stage fails the focused regression at TARGET. Actual direct CLI controls and collision programs independently admit with BOTH official tools; only old-stage collision rejects TARGET.",
+    "validation": {
+      "frozen_inputs": 88,
+      "changed_inputs": [],
+      "focused_cases": 4,
+      "complete_admission_staging_verifier_tests": 28,
+      "real_ordinary_prepared_service_tests": 6,
+      "commands": [
+        {
+          "command": [
+            "node",
+            "--test",
+            "--test-name-pattern",
+            "prepared target substitution",
+            "tests/admission/staging.test.mjs"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 2.3806192874908447
+        },
+        {
+          "command": [
+            "make",
+            "test-admission"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 9.557806491851807
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "tests.service.test_end_to_end",
+            "tests.service.test_prepared",
+            "-v"
+          ],
+          "exit_code": 0,
+          "elapsed_seconds": 145.176096200943
+        }
+      ]
+    },
+    "laws_and_tool_pins_changed": false,
+    "storage_format_changed": false,
+    "environment_binding_effect": "stage.mjs is part of the exact frozen runtime descriptor. As for other bound-runtime changes, existing stores require their original matching runtime; no migration or environment-binding relaxation is introduced.",
+    "scope": "Staging target availability repair and real admissions/service validation, not a full native/progress or whole-project proof.",
+    "evidence_sha256": {
+      ".build/review/staging-target-fix/validation.json": "fc0ae650b2ae31a287bd82ced154e7a8bc9217167a37974680b254d3284e7b0c",
+      ".build/review/staging-target-fix/staging-before.log": "83aaa170fafd37d53839e1d2dbf8729efd02409ea672bf050bf6419e6f12fc98",
+      ".build/review/staging-target-fix/focused.log": "f02852a1886b3582cad0b4904d41152cb964f937f5d929582327340ee2a67243",
+      ".build/review/staging-target-fix/admission.log": "b620b570d4127e8047956687a5118eb07f8dddc347cb43deb9ef4d3af4c12c21",
+      ".build/review/staging-target-fix/ordinary-prepared.log": "0564cd1e84bd9929d441e2af2ad0bbcbde3b08e6264cba38542e680ce32238e7",
+      ".build/review/service-operational/serial/staging-target-collision.json": "89463b09c1a325b70fb11c00ef8a1b19a9a743f021ac02edd4c6bd5aba8dd3ad",
+      ".build/review/service-operational/serial/staging-target-collision.log": "c609f1d8a950a643bd6c09a4fd9b3e301a6bb82b750e78af960a662ba5ce9736"
+    },
+    "post_gate_changes": "Existing review documentation/metadata only after the unchanged-input native gate."
   }
 }

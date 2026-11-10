@@ -246,6 +246,18 @@ debug/release builds and six real concurrency/scheduling/timing tests pass.
 Preserving this prefix does not establish complete per-call Law 8 under every
 shared failure; that broader obligation remains open.
 
+Preparation also rejected valid clients when a comment or string contained
+the concrete certificate-target text: a whole-file substring count found the
+text inside `Bindings.code()` as well as the declaration. Staging now matches
+the exact generated declaration span. Four prepare/read × comment/literal
+regressions preserve the actual client/proof bytes and admit the staged
+manifests with both real tools. The complete 28 admission/staging/verifier tests
+and six real ordinary/prepared service tests passed on 88 unchanged recorded
+inputs. The preserved old stage fails at `TARGET`; those same source programs
+independently pass both official admission tools. This native follow-up does
+not relabel the preceding proof-only gate. The existing exact runtime binding
+still applies to persistent stores; no migration or binding relaxation is added.
+
 ## Proof obligations by scope
 
 | Scope | Checked witness or evidence | Remaining obligation |
