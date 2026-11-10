@@ -36,7 +36,9 @@ invalid credential returns `authentication` before semantic handle
 resolution/proof-field validation. Malformed inner records are rejected before
 authentication. Control failures leave the published state/response pair
 unchanged. Invalidation removes the registration before deleting its directory;
-if that cleanup fails, the host returns `failure` and the handle remains removed.
+if cleanup fails, the handle remains removed and the checked `invalidated`
+receipt is still returned; the cleanup error is diagnostic only. This corrects
+the former `failure`-after-removal behavior, which contradicted denial purity.
 
 `prepared` and `invalidated` are **control metadata receipts**, outside
 `Semantics.Status`. They do not execute a transaction, publish working state,

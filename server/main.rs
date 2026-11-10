@@ -850,11 +850,14 @@ impl Database {
                 // Install the checked removal before artifact cleanup: a cleanup
                 // failure must never restore execution authority.
                 self.registry = registry;
-                let mut artifact = self
-                    .prepared
-                    .remove(&handle)
-                    .ok_or_else(|| Error::new("HOST_TRANSPORT", "missing removed artifact"))?;
-                artifact.directory.remove()?;
+                match self.prepared.remove(&handle) {
+                    Some(mut artifact) => {
+                        if let Err(error) = artifact.directory.remove() {
+                            diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
+                        }
+                    }
+                    None => diagnostic(format_args!("invalidated artifact already absent")),
+                }
                 Ok(Decision::Keep { response })
             }
             ControlDecision::Add { .. } => {

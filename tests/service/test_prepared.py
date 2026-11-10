@@ -204,6 +204,16 @@ class PreparedTests(unittest.TestCase):
                 {'status': 'failure', 'value': None})
             self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
                 {'status': 'refusal', 'value': 'cancelled'})
+            # Cleanup cannot turn a checked, irrevocable removal into denial.
+            # Rename the artifact to make deletion of its old path fail.
+            bad_directory = next(p for p in private.glob('request-*')
+                if (p/'Client.bend').read_text() == failing)
+            bad_directory.rename(bad_directory.with_name(bad_directory.name+'-moved'))
+            self.assertEqual(server.prepared(2, bad['value'], 'alice-final'),
+                {'status': 'invalidated', 'value': None}, server.diagnostics())
+            self.assertIn('invalidated artifact cleanup', server.diagnostics())
+            self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
+                {'status': 'failure', 'value': None})
             # The inner record alone fits exactly. Its two control bytes must
             # still trigger the host's terminal message-limit response.
             empty = prepared_frame(1, handle, 'alice-final', '')

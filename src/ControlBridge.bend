@@ -149,4 +149,3 @@ def parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>) -> List<&2, U32>:
 
 def packet(~c: S.Configuration, bytes: List<&2, U32>) -> List<&2, U32>:
   parts(c, T.separate(bytes))
-
