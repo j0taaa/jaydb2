@@ -10,9 +10,10 @@ import ./PreparedProtocol.bend as PreparedProtocol
 import ./PreparedRegistry.bend as PreparedRegistry
 import ./PreparedLaws.bend as PreparedLaws
 import ./ReadOnlyContract.bend as ReadOnlyContract
-# Verified replacement milestones: Init, Core clauses and wire theorems.
+# Verified replacement milestones: Init, Core clauses, ingress and wire theorems.
 import ./Theorems.bend as ExecutableStatements
 import ../proof/Init.bend as InitWitness
 import ../proof/Gate.bend as GateWitness
 import ../proof/WireTheorems.bend as WireWitness
 import ../proof/CoreClauses.bend as CoreWitness
+import ../proof/Ingress.bend as IngressWitness

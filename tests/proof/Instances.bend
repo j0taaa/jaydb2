@@ -1,4 +1,4 @@
-# The universal Core theorem applied to a concrete valid step: the
+# The universal Core and unified theorems applied to a concrete valid step: the
 # premises are satisfiable, so the theorems are not vacuous. The tasks
 # configuration's limits exceed the BendTT kernel's evaluation fuel, so the
 # instance uses the small control configuration with a real oracle proof.
@@ -9,6 +9,8 @@ import ../../contract/Requirements.bend as R
 import ../../contract/Logic.bend as L
 import ../../contract/Theorems.bend as G
 import ../../proof/CoreClauses.bend as Core
+import ../../proof/Ingress.bend as Ingress
+import ../../src/Resolve.bend as Resolve
 import ./Controls.bend as X
 import ./WrongSteps.bend as Wrong
 
@@ -38,4 +40,13 @@ law controls_core:
 def controls_core(k):
   Core.core_theorem()(k, X.configuration(), X.seed(), X.request(), Wrong.accept,
     controls_configured(), X.seed_valid(), controls_oracle_sound)
+
+
+# A direct request reaches Core unchanged after the actual selection.
+law controls_unified:
+  for k: G.Clause
+  G.UnifiedCore(k, X.configuration(), X.seed(), Nil{}, Resolve.Direct{X.request()}, Wrong.accept)
+def controls_unified(k):
+  Ingress.unified_core_theorem()(k, X.configuration(), X.seed(), Nil{}, Resolve.Direct{X.request()},
+    Wrong.accept, controls_configured(), X.seed_valid(), controls_oracle_sound)
 
