@@ -1,0 +1,17 @@
+import Base
+import ../../../contract/Data.bend as D
+import ../../../contract/Logic.bend as L
+import ../../../library/Relation.bend as Relation
+import ../../../library/RelationRows.bend as Rows
+import ../../../library/RelationModel.bend as Model
+
+def item(key: String,name: String) -> D.Value:
+  D.VRecord{"key",D.VText{key},D.VRecord{"id",D.VText{name},D.VRecordEmpty{}}}
+def key(value: D.Value) -> String:
+  match value:
+    case D.VRecord{"key",D.VText{name},tail}: name
+    case _: ""
+
+law false_negative_left_join_can_deduplicate_unmatched_left_occurrences:
+  {Relation.left_join(~key,~key,[item("b","M"),item("b","M")],[]) == [Rows.pair(item("b","M"),D.VAbsent{})] : List<&2,D.Value>}
+def false_negative_left_join_can_deduplicate_unmatched_left_occurrences(): {==}

@@ -1,5 +1,6 @@
 # Fixed-batch native algorithm: start a prefix, join every started handle,
-# emit in start order, suppress all later emits after the first failure.
+# emit in start order. A later spawn failure preserves the started prefix;
+# a join/delivery failure suppresses later emits while all handles are joined.
 # Primitive returns below are data; actual OS/worker/IO correspondence remains
 # a fixed technical source contract, not an assumed FIFO conclusion.
 import Base
@@ -80,10 +81,21 @@ def drain(~join: Q.Frame -> JoinReturn, ~emit: Q.Frame -> List<&2, U32> -> SendR
     case Nil{}: Outcome{Nil{}, Nil{}, failure}
     case Con{+job, rest}: after_join(emit, failure, job, join(job), next => drain(join, emit, rest, next))
 
+# The drain's failure controls output only after a join/delivery obstruction.
+# A saved later spawn error is returned without preventing earlier replies.
+def first_failure(saved: Maybe<&2, Failure>, later: Maybe<&2, Failure>) -> Maybe<&2, Failure>:
+  match saved:
+    case None{}: later
+    case Some{earlier}: Some{earlier}
+
+def retain_spawn_failure(saved: Maybe<&2, Failure>, outcome: Outcome) -> Outcome:
+  Outcome{joined, attempted, later} = outcome
+  Outcome{joined, attempted, first_failure(saved, later)}
+
 def execute_started(~join: Q.Frame -> JoinReturn, ~emit: Q.Frame -> List<&2, U32> -> SendReturn,
   started: Start) -> Outcome:
   Start{handles, failure} = started
-  drain(join, emit, handles, failure)
+  retain_spawn_failure(failure, drain(join, emit, handles, None{}))
 
 def execute(~spawn: Q.Frame -> SpawnReturn, ~join: Q.Frame -> JoinReturn,
   ~emit: Q.Frame -> List<&2, U32> -> SendReturn, jobs: List<&2, Q.Frame>) -> Outcome:
@@ -383,20 +395,22 @@ def compose_started_execution(~spawn: Q.Frame -> SpawnReturn, ~join: Q.Frame -> 
   +actual_start: {start(spawn, jobs) == Start{handles, failure} : Start},
   start_prefix: L.Prefix(Q.Frame, handles, jobs),
   all_started: AllStarted(spawn, handles), stop_position: StopPosition(spawn, jobs, Start{handles, failure}),
-  drained: Drained(join, emit, handles, failure)) -> Executed(spawn, join, emit, jobs):
+  drained: Drained(join, emit, handles, None{})) -> Executed(spawn, join, emit, jobs):
   match drained:
-    case (+outcome, L.Both{actual_drain, L.Both{+complete, L.Both{attempt_prefix, already_failed}}}):
-      (Start{handles, failure}, outcome, L.Both{actual_start, L.Both{
+    case (Outcome{+joined, +attempted, +later}, L.Both{actual_drain, L.Both{+complete, L.Both{attempt_prefix, already_failed}}}):
+      (Start{handles, failure}, retain_spawn_failure(failure, Outcome{joined, attempted, later}), L.Both{actual_start, L.Both{
         (%Equal.sym(Start, start(spawn, jobs), Start{handles, failure}, actual_start) :
-          {execute_started(join, emit, _) == outcome : Outcome} actual_drain),
+          {execute_started(join, emit, _) == retain_spawn_failure(failure, Outcome{joined, attempted, later}) : Outcome}
+          Equal.cong(Outcome, Outcome, outcome => retain_spawn_failure(failure, outcome),
+            drain(join, emit, handles, None{}), Outcome{joined, attempted, later}, actual_drain)),
         L.Both{all_started, L.Both{stop_position, L.Both{complete,
-          L.Both{(%Equal.sym(List<&2, Q.Frame>, joined_jobs(joins(outcome)), handles, complete) : L.Prefix(Q.Frame, _, jobs) start_prefix),
-            (%Equal.sym(List<&2, Q.Frame>, joined_jobs(joins(outcome)), handles, complete) : L.Prefix(Q.Frame, attempted_jobs(attempts(outcome)), _) attempt_prefix)}}}}}})
+          L.Both{(%Equal.sym(List<&2, Q.Frame>, joined_jobs(joined), handles, complete) : L.Prefix(Q.Frame, _, jobs) start_prefix),
+            (%Equal.sym(List<&2, Q.Frame>, joined_jobs(joined), handles, complete) : L.Prefix(Q.Frame, attempted_jobs(attempted), _) attempt_prefix)}}}}}})
 
 def compose_execution(~spawn: Q.Frame -> SpawnReturn, ~join: Q.Frame -> JoinReturn,
   ~emit: Q.Frame -> List<&2, U32> -> SendReturn, +jobs: List<&2, Q.Frame>,
   prepared: StartedCorrect(spawn, jobs),
-  drained: @started: Start -> Drained(join, emit, handles(started), start_failure(started))) ->
+  drained: @started: Start -> Drained(join, emit, handles(started), None{})) ->
   Executed(spawn, join, emit, jobs):
   match prepared:
     case (Start{+handles, +failure}, L.Both{actual_start, L.Both{start_prefix, L.Both{all_started, stop_position}}}):
@@ -411,4 +425,94 @@ law actual_fixed_batch_starts_a_prefix_joins_every_handle_and_attempts_fifo:
   Executed(spawn, join, emit, jobs)
 def actual_fixed_batch_starts_a_prefix_joins_every_handle_and_attempts_fifo(spawn, join, emit, jobs):
   compose_execution(spawn, join, emit, jobs, actual_spawn_starts_exactly_the_successful_prefix(spawn, jobs),
-    +started => every_started_handle_is_joined_and_attempts_are_fifo(join, emit, handles(started), start_failure(started)))
+    +started => every_started_handle_is_joined_and_attempts_are_fifo(join, emit, handles(started), None{}))
+
+# Saving the later spawn error changes only the eventual return value. It must
+# not veto earlier successful responses or discard any actual join receipt.
+law saved_spawn_failure_preserves_the_complete_join_and_emission_trace:
+  for +saved: Maybe<&2, Failure>
+  for outcome: Outcome
+  L.E<{joins(retain_spawn_failure(saved, outcome)) == joins(outcome) : List<&2, JoinEvent>},
+    {attempts(retain_spawn_failure(saved, outcome)) == attempts(outcome) : List<&2, Attempt>}>
+def saved_spawn_failure_preserves_the_complete_join_and_emission_trace(saved, outcome):
+  match outcome:
+    case Outcome{joined, attempted, failure}: L.Both{{==}, {==}}
+
+# These are classified primitive-return conditions, not final protocol events.
+# Actual source/IO correspondence must derive them from the same receipts.
+def JoinedAndSent(~join: Q.Frame -> JoinReturn, ~emit: Q.Frame -> List<&2, U32> -> SendReturn,
+  -job: Q.Frame) -> Type:
+  &response: List<&2, U32> -> L.E<{join(job) == Joined{response} : JoinReturn},
+    {emit(job, response) == Sent{} : SendReturn}>
+
+def EveryStartedReplyAvailable(~join: Q.Frame -> JoinReturn, ~emit: Q.Frame -> List<&2, U32> -> SendReturn,
+  handles: List<&2, Q.Frame>) -> Type:
+  match handles:
+    case Nil{}: Unit
+    case Con{job, rest}: L.E<JoinedAndSent(join, emit, job), EveryStartedReplyAvailable(join, emit, rest)>
+
+def EntirePrefix(-outcome: Outcome, -handles: List<&2, Q.Frame>) -> Type:
+  L.E<{attempted_jobs(attempts(outcome)) == handles : List<&2, Q.Frame>},
+    {failure(outcome) == None{} : Maybe<&2, Failure>}>
+
+def sent_prefix_head(+job: Q.Frame, +response: List<&2, U32>, later: Outcome,
+  -rest: List<&2, Q.Frame>, facts: EntirePrefix(later, rest)) ->
+  EntirePrefix(record_join(job, Joined{response}, record_attempt(job, response, Sent{}, later)), Con{job, rest}):
+  match later facts:
+    case Outcome{joined, attempted, failed} L.Both{all_attempted, no_failure}:
+      L.Both{Equal.cong(List<&2, Q.Frame>, List<&2, Q.Frame>, jobs => Con{job, jobs},
+        attempted_jobs(attempted), rest, all_attempted), no_failure}
+
+def available_prefix_head(~join: Q.Frame -> JoinReturn, ~emit: Q.Frame -> List<&2, U32> -> SendReturn,
+  +job: Q.Frame, +rest: List<&2, Q.Frame>, +response: List<&2, U32>,
+  joined: {join(job) == Joined{response} : JoinReturn}, sent: {emit(job, response) == Sent{} : SendReturn},
+  later: EntirePrefix(drain(join, emit, rest, None{}), rest)) ->
+  EntirePrefix(drain(join, emit, Con{job, rest}, None{}), Con{job, rest}):
+  %Equal.sym(JoinReturn, join(job), Joined{response}, joined) :
+    EntirePrefix(after_join(emit, None{}, job, _, next => drain(join, emit, rest, next)), Con{job, rest})
+  %Equal.sym(SendReturn, emit(job, response), Sent{}, sent) :
+    EntirePrefix(record_join(job, Joined{response}, after_send(_, job, response,
+      next => drain(join, emit, rest, next))), Con{job, rest})
+  sent_prefix_head(job, response, drain(join, emit, rest, None{}), rest, later)
+
+law every_available_started_reply_is_attempted_without_an_output_failure:
+  for ~join: Q.Frame -> JoinReturn
+  for ~emit: Q.Frame -> List<&2, U32> -> SendReturn
+  for handles: List<&2, Q.Frame>
+  for available: EveryStartedReplyAvailable(join, emit, handles)
+  EntirePrefix(drain(join, emit, handles, None{}), handles)
+def every_available_started_reply_is_attempted_without_an_output_failure(join, emit, handles, available):
+  match handles available:
+    case Nil{} available: L.Both{{==}, {==}}
+    case Con{+job, +rest} L.Both{(response, L.Both{joined, sent}), later}:
+      available_prefix_head(join, emit, job, rest, response, joined, sent,
+        every_available_started_reply_is_attempted_without_an_output_failure(join, emit, rest, later))
+
+def first_failure_with_no_later_error(saved: Maybe<&2, Failure>) ->
+  {first_failure(saved, None{}) == saved : Maybe<&2, Failure>}:
+  match saved:
+    case None{}: {==}
+    case Some{error}: {==}
+
+def retain_entire_prefix(+saved: Maybe<&2, Failure>, outcome: Outcome,
+  -handles: List<&2, Q.Frame>, prefix: EntirePrefix(outcome, handles)) ->
+  L.E<{attempted_jobs(attempts(retain_spawn_failure(saved, outcome))) == handles : List<&2, Q.Frame>},
+    {failure(retain_spawn_failure(saved, outcome)) == saved : Maybe<&2, Failure>}>:
+  match outcome prefix:
+    case Outcome{joined, attempted, failed} L.Both{all_attempted, no_failure}:
+      L.Both{all_attempted,
+        (%Equal.sym(Maybe<&2, Failure>, failed, None{}, no_failure) : {first_failure(saved, _) == saved : Maybe<&2, Failure>}
+          first_failure_with_no_later_error(saved))}
+
+
+law later_spawn_error_preserves_every_primitive_available_started_reply:
+  for ~join: Q.Frame -> JoinReturn
+  for ~emit: Q.Frame -> List<&2, U32> -> SendReturn
+  for +handles: List<&2, Q.Frame>
+  for saved: Maybe<&2, Failure>
+  for available: EveryStartedReplyAvailable(join, emit, handles)
+  L.E<{attempted_jobs(attempts(execute_started(join, emit, Start{handles, saved}))) == handles : List<&2, Q.Frame>},
+    {failure(execute_started(join, emit, Start{handles, saved})) == saved : Maybe<&2, Failure>}>
+def later_spawn_error_preserves_every_primitive_available_started_reply(join, emit, handles, saved, available):
+  retain_entire_prefix(saved, drain(join, emit, handles, None{}), handles,
+    every_available_started_reply_is_attempted_without_an_output_failure(join, emit, handles, available))

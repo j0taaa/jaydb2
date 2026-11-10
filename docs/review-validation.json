@@ -60,8 +60,8 @@
     ".build/review/proof-coverage.json": "7cc0873c4d06f2e60ff5834908e51594eb2b16dbc3f7107ed564e57d1dae554f"
   },
   "unresolved": [
-    "Complete actual ControlLaw and whole executable/compiler/OS refinement are not established.",
-    "Full mathematical integer arithmetic and broader functional application proofs remain open."
+    "Complete actual ControlLaw, chronological ordinary/prepared eight-law composition, recovery startup and native/compiler/OS/storage refinement are not established.",
+    "Functional specifications for remaining stateful helpers and applications remain open; the specific arithmetic and pure collection theorems are recorded separately."
   ],
   "authorized_prepared_extension": {
     "authorization_date": "2026-11-06",
@@ -800,5 +800,76 @@
       "Integer-order interpretation/extrema and broader sequence/join/key/record/action/receipt functional specifications."
     ],
     "post_gate_changes": "Validation metadata only; all checked maintained runtime/proof/test inputs unchanged."
+  },
+  "functional_and_started_prefix_2026_11_09": {
+    "base_main": "a54274b",
+    "whole_goal_complete": false,
+    "scope": "Independent functional correctness for integer order/extrema, sequence filtering/pagination/stability/grouping, joins and key/value/record decoding; actual started-prefix preservation repair after read worker spawn failure. Full service contract remains open.",
+    "library_theorems": [
+      "Actual signed comparison equals strict independent Nat-difference integer order. Seeded and unseeded extrema prove membership and a mathematical bound against every input; unseeded None is exactly empty input.",
+      "Pagination has exact source indices, saturated lengths and take/drop reconstruction. Filtering preserves every matching occurrence at its precise matching-prefix rank, with exact origins, multiplicity and source order.",
+      "Stable sort preserves the entire ordered projection of every tied class under explicit legitimate comparator conditions. The completed/incomplete task comparator discharges those conditions.",
+      "Grouping has unique nonempty complete key classes, exact original ordered member occurrences and ranks, and strict descending order of each key's last original occurrence.",
+      "Inner and left joins enumerate all matching source-index pairs in left-major/right-major order with exact payloads, counts and multiplicity. Each unmatched left occurrence has exactly one absent-right placeholder; a matched VAbsent remains distinguished by its real source index.",
+      "Key.decode accepts exactly entire composite encodings and rejects every other input. Typed scalars have exact tag domains, text additionally requires valid Unicode, and list decoding proves proper tail shape without pretending to validate arbitrary nested heads.",
+      "Record.make accepts exactly contract-valid canonical field lists. Raw reverse conversion has the exact proper-tail domain; validated lookup has exact source indices/payloads and complete rejection, including present VAbsent versus missing fields."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 427.7581617832184,
+      "frozen_inputs": 854,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 198
+    },
+    "coverage": {
+      "transitive_modules": 333,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 103,
+          "law_declarations": 551
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_library_controls": 93,
+    "native_repair": {
+      "file": "server/read_batch.rs",
+      "behavior": "A later spawn error preserves replies from already started workers; join or emission failure closes further output; every started worker is joined and the first error is retained. No further batch is selected after failure.",
+      "rust_tests": 52,
+      "real_concurrency_scheduling_timing_tests": 6,
+      "fmt_clippy_debug_release": "All passed against recorded unchanged native inputs.",
+      "causal_harness": "Exact old and fixed execute functions: the first worker actually returns before a second injected spawn fails; old emits [], fixed emits [0]. Three harness assertions pass for each version; the old behavior is explicitly the reproduced defect.",
+      "remaining": "Does not establish per-call Law8 after all shared failures, native source refinement or compiler/OS semantics."
+    },
+    "evidence_sha256": {
+      ".build/review/proof-resumption-functional-gate.log": "ff50afd389a65e5ab9e53f991c0b286abeafa6c5afcb3758015cdc14f39a51e5",
+      ".build/review/library-functional-promoted.json": "14cf62aca3cd7a4bef37894de8da93758c76f94a81a5cd79ea0c070ca4796834",
+      ".build/review/integer-order/validation.json": "a31ffbcc0e154ee39c46504f7eca29301c28e1b27983ae938737b434fd17977f",
+      ".build/review/sequence-functional/validation.json": "c4160286a6ac59d26aa92fd24c378e2922aef1f4780b7486eead58afad591e0d",
+      ".build/review/sequence-functional/stability/validation.json": "1cd270ef037da8626cdbdca243f7d803775ad899a6e4cd1672c59ea759380124",
+      ".build/review/sequence-functional/group/validation.json": "c93dbfd5f95b2477747ffcd3e1bf3984b9103e836850194679616d2219440404",
+      ".build/review/sequence-functional/last-order/validation.json": "42933115c87c10b63a9c53bc5460559f4b5e88c332a6952307871c684c6744bc",
+      ".build/review/relation-functional/validation.json": "70f7c4b4b83a1d339b912ddc606c346e3f44f32e31dc18927ab2edf162a11eba",
+      ".build/review/value-record-functional/validation.json": "402095f41702d856933ecfd375efc004b8bb691f418452abc9d4893491a8e211",
+      ".build/review/read-batch-progress/native-validation.json": "50a16006bca6ed914e3d4e3ac12425950f986d1c4fd67b03f73663a072e0e33a",
+      ".build/review/read-batch-progress/followup-native-validation.json": "65ffd4e17f61af5d89039b88f968895a6940e77dc1650636ee2021f717cc15e8",
+      ".build/review/read-batch-progress/proof-validation.json": "e21d4fc8d30cdefc330a364c7fcd6a48cb073d9b653c1850148111ec1a307b34",
+      ".build/review/relation-functional/whole-validation.json": "89cb8d036d28483fef31e50c54c4b595c95bcfb9cafd207e78358dee7233a426"
+    },
+    "remaining": [
+      "Full chronological ordinary/prepared service contract over actual native events, including delivery, closure and progress.",
+      "Recovery startup, exact closed derivation/binding semantics, and native/compiler/OS/storage correspondence.",
+      "Read/query/action/mutation/index/receipt and application functional obligations beyond the specific checked theorems."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata updated after the frozen gate; checked maintained Bend/Rust/test/tool inputs unchanged."
   }
 }

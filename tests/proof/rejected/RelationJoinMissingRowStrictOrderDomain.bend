@@ -1,0 +1,17 @@
+import Base
+import ../../../contract/Data.bend as D
+import ../../../contract/Logic.bend as L
+import ../../../library/Relation.bend as Relation
+import ../../../library/RelationRows.bend as Rows
+import ../../../library/RelationModel.bend as Model
+
+def item(key: String,name: String) -> D.Value:
+  D.VRecord{"key",D.VText{key},D.VRecord{"id",D.VText{name},D.VRecordEmpty{}}}
+def key(value: D.Value) -> String:
+  match value:
+    case D.VRecord{"key",D.VText{name},tail}: name
+    case _: ""
+
+law false_negative_inner_order_is_strict_even_for_a_nonemitted_row:
+  {Nat.is_lt(Model.before_left(~key,~key,False{},[item("b","M"),item("a","L1")],[item("a","R1")],0n),Model.before_left(~key,~key,False{},[item("b","M"),item("a","L1")],[item("a","R1")],1n)) == True{} : Bool}
+def false_negative_inner_order_is_strict_even_for_a_nonemitted_row(): {==}

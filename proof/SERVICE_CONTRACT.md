@@ -232,7 +232,20 @@ conditional head selection, producer interleavings during read collection,
 fixed worker batches, complete joining after failures, and constructive finite
 queue progress. Collected frames form a bounded classified reception prefix,
 including arrivals during collection. These models prove their outcomes from
-transitions and primitive returns. Actual Rust atomic effects, integer
+transitions and primitive returns. A later worker-spawn failure preserves the
+already-started FIFO response prefix and is returned after all owned handles
+are joined. A join or delivery failure stops later output while remaining
+workers are still joined; the first recorded error is preserved. Primitive
+successful join and send receipts derive completion of the entire started
+prefix even when a later spawn failed. These receipts must be connected to the
+same actual calls and output bytes by the source/IO bridge.
+
+This finite cleanup and prefix result does not establish per-call Law8 for
+every selected request after shared batch failures. The concrete external
+`Processable` predicate and artifact-independent availability interpretation
+must justify which calls a real shared failure impedes; the owner's failed
+flag cannot define that condition. Semantic observations and both real-failure
+predicates must also refer to the same actual global event times. Actual Rust atomic effects, integer
 representation, classifier correspondence and OS/IO progress remain separate
 bridges; finite individual EINTR returns alone do not establish termination.
 

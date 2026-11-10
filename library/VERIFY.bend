@@ -16,6 +16,17 @@ import ./Int64Multiplication.bend as Int64Multiplication
 import ./Int64DivisionProofs.bend as Int64DivisionProofs
 import ./AggregateAverageProofs.bend as AggregateAverageProofs
 import ./SummaryProofs.bend as SummaryProofs
+import ./AggregateExtremaProofs.bend as AggregateExtremaProofs
+import ./SequencePaginationProofs.bend as SequencePaginationProofs
+import ./SequenceStabilityProofs.bend as SequenceStabilityProofs
+import ./SequenceGroupOrder.bend as SequenceGroupOrder
+import ./RelationProofs.bend as RelationProofs
+import ./KeyDecodeProofs.bend as KeyDecodeProofs
+import ./ValueScalarProofs.bend as ValueScalarProofs
+import ./ValueListProofs.bend as ValueListProofs
+import ./RecordCanonicalProofs.bend as RecordCanonicalProofs
+import ./RecordShapeProofs.bend as RecordShapeProofs
+import ./RecordLookupProofs.bend as RecordLookupProofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

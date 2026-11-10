@@ -102,12 +102,13 @@ mod tests {
     }
 }
 
-/// Start one fixed batch and emit in input order. No refill. If emission fails,
-/// scope exit still joins every already-started worker before returning failure.
+/// Start one fixed batch and emit in input order. No refill. A later spawn
+/// failure preserves replies from the started prefix. Every started worker is
+/// explicitly joined, including after a join or emission failure.
 pub(super) fn execute<T: Send, R: Send>(
     jobs: Vec<T>,
     worker: impl Fn(T) -> R + Sync,
-    mut emit: impl FnMut(R) -> super::Result<()>,
+    emit: impl FnMut(R) -> super::Result<()>,
 ) -> super::Result<()> {
     std::thread::scope(|scope| {
         let worker = &worker;
@@ -125,25 +126,37 @@ pub(super) fn execute<T: Send, R: Send>(
                 }
             }
         }
-        for handle in handles {
-            // Always explicitly join, including after failure, so a later panic
-            // cannot mask the original channel error during implicit scope join.
-            let result = handle
-                .join()
-                .map_err(|_| super::Error::new("READ_WORKER", "read worker panicked"));
-            if failure.is_none()
-                && let Err(error) = result.and_then(&mut emit)
-            {
+        emit_started(
+            handles.into_iter().map(|handle| handle.join()),
+            failure,
+            emit,
+        )
+    })
+}
+
+fn emit_started<R>(
+    joined: impl IntoIterator<Item = std::thread::Result<R>>,
+    mut failure: Option<super::Error>,
+    mut emit: impl FnMut(R) -> super::Result<()>,
+) -> super::Result<()> {
+    let mut output_open = true;
+    for returned in joined {
+        // Consume every join even when output has stopped. A later panic must
+        // not escape through the scope or replace the first recorded error.
+        let result = returned.map_err(|_| super::Error::new("READ_WORKER", "read worker panicked"));
+        if output_open && let Err(error) = result.and_then(&mut emit) {
+            output_open = false;
+            if failure.is_none() {
                 failure = Some(error);
             }
         }
-        failure.map_or(Ok(()), Err)
-    })
+    }
+    failure.map_or(Ok(()), Err)
 }
 
 #[cfg(test)]
 mod execution_tests {
-    use super::execute;
+    use super::{emit_started, execute};
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::{Barrier, Mutex, mpsc};
 
@@ -171,6 +184,81 @@ mod execution_tests {
         )
         .unwrap();
         assert_eq!(emitted, [0, 1]);
+    }
+
+    #[test]
+    fn later_spawn_failure_preserves_the_completed_started_prefix() {
+        let (completed, returned) = mpsc::channel();
+        let mut emitted = Vec::new();
+        let result = std::thread::scope(|scope| {
+            let handle = scope.spawn(|| {
+                completed.send(()).unwrap();
+                0
+            });
+            returned.recv().unwrap();
+            // The next spawn failed after the earlier real worker completed.
+            let error = super::super::Error::new("TEST_SPAWN", "injected later spawn error");
+            emit_started([handle.join()], Some(error), |value| {
+                emitted.push(value);
+                Ok(())
+            })
+        });
+        assert_eq!(emitted, [0]);
+        assert_eq!(result.unwrap_err().code, "TEST_SPAWN");
+    }
+
+    #[test]
+    fn pending_spawn_error_still_stops_output_on_delivery_failure_and_joins_all() {
+        let (release, waiting) = mpsc::channel();
+        let active = AtomicUsize::new(0);
+        let mut emitted = Vec::new();
+        let result = std::thread::scope(|scope| {
+            let first = scope.spawn(|| 0);
+            let active = &active;
+            let second = scope.spawn(move || {
+                active.store(1, Ordering::SeqCst);
+                waiting.recv().unwrap();
+                active.store(0, Ordering::SeqCst);
+                1
+            });
+            let error = super::super::Error::new("TEST_SPAWN", "injected later spawn error");
+            emit_started(
+                [first, second].into_iter().map(|handle| handle.join()),
+                Some(error),
+                |value| {
+                    emitted.push(value);
+                    release.send(()).unwrap();
+                    Err(super::super::Error::new(
+                        "TEST_DELIVERY",
+                        "injected write failure",
+                    ))
+                },
+            )
+        });
+        assert_eq!(emitted, [0]);
+        assert_eq!(active.load(Ordering::SeqCst), 0);
+        assert_eq!(result.unwrap_err().code, "TEST_SPAWN");
+    }
+
+    #[test]
+    fn join_panic_preserves_the_emitted_prefix_and_drains_later_workers() {
+        let joined = AtomicUsize::new(0);
+        let mut emitted = Vec::new();
+        let result = execute(
+            vec![0, 1, 2],
+            |index| {
+                joined.fetch_add(1, Ordering::SeqCst);
+                assert_ne!(index, 1, "injected middle worker panic");
+                index
+            },
+            |value| {
+                emitted.push(value);
+                Ok(())
+            },
+        );
+        assert_eq!(emitted, [0]);
+        assert_eq!(joined.load(Ordering::SeqCst), 3);
+        assert_eq!(result.unwrap_err().code, "READ_WORKER");
     }
 
     #[test]

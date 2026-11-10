@@ -217,10 +217,28 @@ right-fold overflow behavior: representability is required for each right-hand
 suffix, rather than only for the final unbounded sum. Average additionally
 requires nonempty input and representable length; its positive count cannot
 cause division overflow.
-Broader join/group/business functional specifications still require additional
-theorems. These algorithm contracts are distinct from the transaction
+Further general proofs now cover independent signed order and extrema,
+exact filtering/pagination, tied-class sort stability, unique complete ordered
+groups, full occurrence-based inner/left joins, and exact key/value/record
+acceptance and lookup domains. Read/action/mutation/index/receipt and broader
+business functional specifications still require additional theorems. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
+
+The latest combined maintained gate passed both official modes and all 198
+intended core rejections per mode on unchanged recorded inputs. Its import
+inventory reaches 333 modules, including 103 library modules; this inventory
+still measures checked reachability, not whole-project correctness.
+
+A real read-batch progress defect was also repaired. A later worker spawn
+failure previously discarded replies from the already started prefix. The
+executor now emits that prefix until an actual join/delivery obstruction,
+joins every started worker and retains the first error. A causal harness runs
+the exact original and repaired executor with the earlier worker returning
+before the injected spawn error. All 52 Rust tests, strict Clippy, formatting,
+debug/release builds and six real concurrency/scheduling/timing tests pass.
+Preserving this prefix does not establish complete per-call Law 8 under every
+shared failure; that broader obligation remains open.
 
 ## Proof obligations by scope
 
@@ -233,7 +251,7 @@ entire project."
 | Registered certificates | `PreparedRegistryHistory` induction and lookup recovery | Correspondence of its admitted abstract history with every actual registry mutation; current integrity remains per-call. |
 | Certified concurrent reads | `ReadBatches`, fixed whole-program predicate and wrapper equality | Concrete scheduler, snapshot, barriers and FIFO refinement. |
 | Persistent state | Pure validity/origin results and fault tests | Complete crash/filesystem/OS trace refinement and compiler/runtime assumptions. |
-| Optional algorithms | Equality/order/key results; complete independent-integer scalar arithmetic; arbitrary-list sum/count/average and summary | Broader collection and business functional specifications; native compiler correspondence. |
+| Optional algorithms | Independent-integer scalar arithmetic/order/extrema; arbitrary-list sum/count/mean/summary; exact sequence/group/join occurrences and key/value/record domains | Stateful helper/application functional specifications; native compiler correspondence. |
 
 The open rows are required work. They are not discharged by compiling imports,
 counting laws, adding tests, or naming a new contract type.

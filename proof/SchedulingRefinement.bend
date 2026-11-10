@@ -1,5 +1,6 @@
 # Aggregate: native bounded FIFO accounting, selected read prefix,
-# fixed-batch worker lifecycle, and constructive queue enabled-step progress.
+# fixed-batch worker lifecycle with replies preserved before a later spawn
+# failure, and constructive queue enabled-step progress.
 import ./FrameQueueHistory.bend as F
 import ./ReadBatchSelection.bend as S
 import ./ReadBatchExecution.bend as E

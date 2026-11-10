@@ -294,8 +294,24 @@ mathematical mean truncated toward zero. Division overflow is proved impossible
 for its positive count. These results include success and rejection obligations,
 without output or overflow assumptions.
 
-Concrete functional proofs also exercise grouping, joins, counter prefixes and
-index maintenance; their broader general functional specifications remain open.
+`Int64OrderProofs` connects the actual comparison to the independent integer
+interpretation. `AggregateExtremaProofs` proves membership and mathematical
+bounds against every input for seeded and empty-aware extrema. Sequence proofs
+cover exact pagination indices/lengths, complete ordered filter occurrences,
+ordered tied-class stability, and unique complete groups with strict descending
+last-occurrence key order. `RelationProofs` proves full inner/left join source
+origins, completeness, multiplicity and left-major/right-major order, including
+one placeholder per unmatched left occurrence. Equal payloads retain distinct
+source occurrences.
+
+`KeyDecodeProofs` proves that decoding accepts exactly complete composite-key
+encodings. `ValueScalarProofs` and `ValueListProofs` specify the actual scalar
+and proper-list-shape domains. `RecordCanonicalProofs`, `RecordShapeProofs` and
+`RecordLookupProofs` connect canonical fields, exact reverse-conversion domains,
+unique original indices and lookup payloads. These results include malformed
+inputs; list shape does not imply validity of arbitrary nested elements.
+Broader read/action/mutation/index/receipt and business functional specifications
+still require additional theorems.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.
