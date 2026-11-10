@@ -228,14 +228,18 @@ conditional insert/replace/CAS, checked counters and finalized Core rollback.
 Original schema/address/value conditions are explicit, and arbitrary callbacks
 are not falsely treated as read-only. Summary storage and total index execution
 are now proved, including complete independent source-scan origins, payloads,
-ranks, multiplicity and order. Complete index state-maintenance invariants,
-receipt helpers and broader business functional specifications remain open. These algorithm contracts are distinct from the transaction
+ranks, multiplicity and order. Independent collection frames and exact removal/
+upsert algebra now establish complete rebuild and partial maintenance state.
+Closed rebuild proves the unchanged `ExactIndex` from a pure input build equation;
+maintenance plus one concrete business upsert proves it from a pure input delta.
+No arbitrary callback preservation or administrator-chosen invariant is assumed.
+Receipt helpers and broader business functional specifications remain open. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
 
-The latest combined maintained gate passed both official modes and all 307
+The latest combined maintained gate passed both official modes and all 322
 intended core rejections per mode on unchanged recorded inputs. Its import
-inventory reaches 381 modules, including 151 library modules; this inventory
+inventory reaches 391 modules, including 161 library modules; this inventory
 still measures checked reachability, not whole-project correctness.
 
 A real read-batch progress defect was also repaired. A later worker spawn

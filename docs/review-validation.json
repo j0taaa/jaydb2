@@ -1101,5 +1101,55 @@
       "Complete chronological ordinary/prepared service composition, progress, recovery and native/compiler/OS/storage/derivation correspondence."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
+  },
+  "index_state_2026_11_10": {
+    "base_main": "45a55a4",
+    "whole_goal_complete": false,
+    "scope": "THIRD family8 batch: input-derived complete rebuild replacement and partial maintenance plus separate collection frames; unchanged ExactIndex established from pure input build/delta equations. Maintenance final-invariant result covers one concrete actual base-row upsert; arbitrary business callbacks receive only exact handoff behavior, with no general preservation claim. No runtime/law/tool/pin/limit changes.",
+    "theorems": [
+      "Actual collection replacement preserves every separate collection view and models same-collection duplicate tables accurately; removal and upsert composition have independent exact row meaning.",
+      "All original enumerated keys erase every original row occurrence; valid canonical replacement upserts produce exactly the supplied complete row list, including original order. Real Changed steps and complete plan history are derived from schema/row/Unicode INPUT validators and views.",
+      "Actual Index.rebuild derives complete exact replacement and arbitrary caller handoff. With closed Finish, a separate base view and PURE INPUT replacement==build(baseRows), it establishes the unchanged TableLaws.ExactIndex. It does not assume the final invariant, an already successful loop or output trace.",
+      "Actual Index.maintain derives exact partial input delta, ordered events and arbitrary business handoff. A concrete actual one-row business upsert establishes the unchanged ExactIndex from its independent PURE INPUT delta equation and separate valid base/index collections. Arbitrary business callback invariant preservation is not asserted."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 487.1746242046356,
+      "frozen_inputs": 1036,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 322
+    },
+    "coverage": {
+      "transitive_modules": 391,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 161,
+          "law_declarations": 756
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 15,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-index-state-gate.log": "eba734c724b97e7cda688ee592581eb0e00c200d1f54f034e2f454901a8cda3a",
+      ".build/review/index-storage-functional/state/validation.json": "f6b9d6468d36fc51ebeed1ba4f5ce0e28bb112dc7c8281de9148fe306901b285",
+      ".build/review/index-storage-functional/state/promotion-state.json": "ec405f4f6a972a1c77c20df7941b92dad7e7280bd9399f62f478ad9ad67692ff",
+      ".build/review/index-state-promoted.json": "028317e4d387034cb8da0ae3b778fb08c3ae4d4aa290b66b599cd308302c7ce8"
+    },
+    "remaining": [
+      "Direct claim/lookup input-content corollaries, Receipt helpers and broader application functional specifications.",
+      "Complete chronological ordinary/prepared service composition, progress, recovery and native/compiler/OS/storage/derivation correspondence."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
   }
 }

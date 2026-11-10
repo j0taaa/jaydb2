@@ -355,8 +355,19 @@ position, payload, prefix rank, duplicate occurrence and output order is retaine
 The domain covers the entire descriptor/table, unique keys and valid Unicode;
 one successful cell lookup cannot establish global consistency.
 
-Complete independent frame/remove/upsert/rebuild/maintenance state invariants,
-receipt helpers and broader business functional specifications remain open.
+`CollectionFrameProofs`, `RowRemovalProofs` and `RowInsertionProofs` prove
+independent collection frames and exact removal/upsert algebra.
+`IndexRebuildProofs` derives complete replacement from valid canonical input
+rows, preserving every separate base view. With a closed finish and the pure
+input equation `replacement == build(baseRows)`, actual rebuild establishes the
+unchanged `TableLaws.ExactIndex`; it can replace any valid old index contents.
+
+`IndexMaintenanceProofs` derives exact partial deltas and arbitrary business
+handoff. Its final `ExactIndex` result covers one concrete actual business-row
+upsert with a pure input delta equation. Arbitrary callbacks still require their
+own application certificate. Empty batches and duplicated physical tables retain
+the real operation semantics; no implicit whole-table replacement is invented.
+Receipt helpers and broader business functional specifications remain open.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.
