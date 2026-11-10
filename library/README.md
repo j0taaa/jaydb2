@@ -367,7 +367,19 @@ handoff. Its final `ExactIndex` result covers one concrete actual business-row
 upsert with a pure input delta equation. Arbitrary callbacks still require their
 own application certificate. Empty batches and duplicated physical tables retain
 the real operation semantics; no implicit whole-table replacement is invented.
-Receipt helpers and broader business functional specifications remain open.
+`IndexClaimProofs` and `IndexLookupProofs` add independent source-content
+meanings for occupied/absent keys and exact target payloads. Occupied claims
+return false without inspecting unused new target validity; absent valid entries
+write the complete row. All read/write histories and callback handoffs are exact.
+
+`ReceiptAdapterProofs`, `ReceiptReadProofs` and `ReceiptLookupProofs` establish
+total receipt binding and exact source-input hit/miss/conflict results. Literal
+input or operation conflicts stop before reading later fields; missing keys
+hand off after the first read. `ReceiptWriteProofs` covers the full-row write,
+actual data errors and precise continuation/state/history. Callbacks remain
+arbitrary. These helper contracts alone do not prove application idempotency or
+a receipt's whole lifetime; the Voucher pair/retirement/dispatch/replay invariant
+and broader business functional specifications remain separate obligations.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

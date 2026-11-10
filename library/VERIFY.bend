@@ -47,6 +47,10 @@ import ./IndexScanProofs.bend as IndexScanProofs
 import ./IndexSourceProofs.bend as IndexSourceProofs
 import ./IndexRebuildProofs.bend as IndexRebuildProofs
 import ./IndexMaintenanceProofs.bend as IndexMaintenanceProofs
+import ./IndexClaimProofs.bend as IndexClaimProofs
+import ./IndexLookupProofs.bend as IndexLookupProofs
+import ./ReceiptLookupProofs.bend as ReceiptLookupProofs
+import ./ReceiptWriteProofs.bend as ReceiptWriteProofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

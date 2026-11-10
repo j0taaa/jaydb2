@@ -1151,5 +1151,55 @@
       "Complete chronological ordinary/prepared service composition, progress, recovery and native/compiler/OS/storage/derivation correspondence."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
+  },
+  "index_claims_receipts_2026_11_10": {
+    "base_main": "be18eb5",
+    "whole_goal_complete": false,
+    "scope": "Independent source-input claim/lookup content meanings and total reusable receipt helpers. Reference Voucher pair/idempotency/lifetime remains separate. Runtime/law/tool/pin/budget unchanged.",
+    "theorems": [
+      "Independent source-index occupancy and all-original-row exclusion derive exact claim/lookup state, complete histories and callbacks. Occupied claim performs one existence read and returns False without validating an unused new target; globally absent valid entry performs one exact full-row write and returns True. Lookup performs one target read and returns the exact indexed original payload or missing.",
+      "Receipt decoder success/error domains use literal return meaning and independent string equality. Total Receipts.bound source plan derives real primitive operations, read order, every Return/error/first-stop and arbitrary callback handoff from the actual input state.",
+      "Public source-content heads derive exact stored result after three reads, missing handoff after one read, input conflict before operation read, and operation conflict before result read. Fields never reached by a short-circuit are not incorrectly required valid.",
+      "Receipts.put emits exactly the full source key/input/operation/result row, with actual first data failure or unexpected-return refusal and precise continuation/state/history. No public output, finished trace/outcome or assumed whole invariant is a premise. Five nonempty receipt input-domain witnesses and separate claim-domain witnesses are checked."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 517.2899250984192,
+      "frozen_inputs": 1075,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 352
+    },
+    "coverage": {
+      "transitive_modules": 400,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 170,
+          "law_declarations": 790
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 30,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-claims-receipts-gate.log": "f76660beefa43402784d7cc658ba9c7dbdca19dda534a239c6450170085e5b31",
+      ".build/review/index-storage-functional/claims/validation.json": "18c989b8365085659497c18579e64e281fdfb98ae30fc6ff4932a70baa9b72d2",
+      ".build/review/receipt-functional/validation.json": "a95c7c4b87f8f73f513fc5954a30d26e8a5671700631272e6ee40e9f46120618",
+      ".build/review/claims-receipts-promoted.json": "63816bc8697a3f5cddb810f98af439af3465347fa6a2174c6c8dd3d1ba899278"
+    },
+    "remaining": [
+      "Reference Voucher pair/idempotency/lifetime, retirement/permission/dispatch/replay closure and broader application functional specifications.",
+      "Complete chronological ordinary/prepared service composition, concurrent scheduling, progress, recovery and native/compiler/OS/storage/derivation correspondence."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
   }
 }
