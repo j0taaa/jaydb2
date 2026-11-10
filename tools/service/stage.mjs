@@ -23,41 +23,20 @@ import ./Data.bend as D
 import ./Semantics.bend as S
 import ./Configuration.bend as C
 `;
-const INITIALIZE = COMMON + `import ./Protocol.bend as P
-import ./Requirements.bend as R
-import ./Seed.bend as Seed
+const INITIALIZE = COMMON + `import ./Seed.bend as Seed
 import ./ConfigurationCheck.bend as CheckedConfiguration
 import ./Environment.bend as Environment
 
-def result(bytes: Maybe<&2, List<&2, U32>>) -> List<&2, U32>:
-  match bytes:
-    case None{}:
-      [2]
-    case Some{bs}:
-      Con{1, bs}
-
-def initial(ok: Bool) -> List<&2, U32>:
-  match ok:
-    case False{}:
-      [2]
-    case True{}:
-      result(P.encode(D.state_value(Seed.state())))
-
 def main() -> IO(Unit):
-  Native.write(initial(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
+  Native.write(CheckedConfiguration.initialize(C.config(), Environment.identity(), u => Seed.state()))
 `;
 // Recovery validates the frozen configuration but never evaluates a seed or
 // claims to execute arbitrary administrator invariant predicates at runtime.
 const RECOVER = COMMON + `import ./ConfigurationCheck.bend as CheckedConfiguration
 import ./Environment.bend as Environment
 
-def result(ok: Bool) -> List<&2, U32>:
-  match ok:
-    case True{}: [1]
-    case False{}: [2]
-
 def main() -> IO(Unit):
-  Native.write(result(CheckedConfiguration.is_valid(C.config(), Environment.identity())))
+  Native.write(CheckedConfiguration.recover(C.config(), Environment.identity()))
 `;
 // Messages.authentication private success: 1 || frame(exact Context.id UTF-8)
 // || frame(code) || frame(proof) || frame(instance) || links remainder.

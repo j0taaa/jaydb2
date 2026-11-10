@@ -55,6 +55,15 @@ obligations rather than hiding them in a callback that asserts a law:
 its type with `Premises` is required. It allows proof reuse without copying
 affine values or introducing axioms.
 
+The generated startup and recovery entry points call
+`src/ConfigurationCheck.bend` directly. `Configuration.bend` proves that
+configuration rejection returns the private refusal marker, that the original
+configuration and seed-validity conditions yield a success marker with the
+exact encoded state, and that valid configuration permits seed-free recovery.
+Encoding success is derived from seed validity. Admission of the seed proof,
+startup observation order, and compiler/IO correspondence remain obligations
+of `Initial` and the executable bridge.
+
 `Processable` is the original external predicate, preserved by the model. It
 is not “what the server accepted” or “what finished.” The official tool's
 fragment and ordinary limits remain declared. There is no promise of a
