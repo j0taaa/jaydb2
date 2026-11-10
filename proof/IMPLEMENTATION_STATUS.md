@@ -1,10 +1,13 @@
-# Replacement contract: partial implementation
+# Replacement contract: implementation status
 
 Implemented statements live in `contract/Theorems.bend` (the name avoids the
 flat staging collision with `src/Core.bend`). `Init.init_theorem` inhabits
 `InitTheorem`. `Gate` proves authentication before admission, exact Reject and
 ToolFailure results, and exact accepted starts. `WireTheorems` inhabits
 `CodecRoundtrip`, `CodecCanonical` and `FramingRoundtrip` using existing proofs.
+`CoreClauses.core_theorem` inhabits `CoreTheorem`, `Ingress.ingress_theorem` and
+`Ingress.unified_core_theorem` inhabit `IngressTheorem` and `UnifiedCoreTheorem`,
+and `Iteration.fold_theorem` inhabits `FoldTheorem`, all in both official modes.
 
 `src/Gate.bend` and `src/Resolve.bend` are the normative executable prototypes
 moved to tracked source. Registered requests authenticate against current state,
@@ -38,27 +41,22 @@ validity obligation is removed. Init's full original conclusion is proved.
 `InitAt` only factors its computed configuration Boolean. The unused
 `CertifiedVerdict` alternative is omitted, as authorized.
 
-## Blocker and open work
+## Core split and the affine-reuse resolution
 
-`CoreTheorem`, `IngressTheorem` and `UnifiedCoreTheorem` remain statement types,
-without inhabitants. M2/M3, composed M4, pure M7, old-model deletion and final
-trust-base/specification rewriting remain unfinished. English Law 8 already
-states tool adequacy as an assumption, independently of the missing Core proof. The old model and its
-roots are retained until the replacement composition can be checked.
+`CoreTheorem` is `@k: Clause -> CoreClauseTheorem(k)` over four clauses
+(`Admitted`, `Safe`, `Completed`, `Progressing`) with identical universal
+premises: exactly the conjunction of four separately proved theorems. Each
+clause consumes its own copy of the oracle-soundness and validity premises, so
+the single affine certificate is never reused. The redundant `Accepted` field
+is dropped; it follows from `Admission` and `OracleSoundness`. Ingress,
+UnifiedCore and the fold are indexed the same way; the fold additionally has a
+`Reached` aspect (validity of the root before step j) and quantifies over every
+step index j. The configuration is opened once per proof; its law list is used
+live only by the oracle call. One pass over the actual program yields both
+reference fidelity and absence of generic failure, consuming the program once.
 
-The attempted Core construction reused a `Type` certificate/Accepted proof for
-its retained Accepted field, all-prefix safety, Finals and Progress. Official
-Bend rejects copying that affine value. Closed template declarations can reopen
-proofs, but they cannot accept the universally quantified local configuration,
-program and soundness arguments required by CoreTheorem. An erased Evidence
-wrapper experiment also failed: matching inside the ghost constructor is not a
-permitted match position; matching an erased argument in a normal helper is
-rejected as a live scrutinee, including an attempted `Kind(&0)` wrapper. No weaker Core statement, new premise or axiom was
-substituted. Failed source attempts and diagnostics are under the gitignored
-`.build/implementation-blocked/` directory for review, outside verify roots.
+## Open work
 
-This records an implementation blocker, not a proof that CoreTheorem is
-uninhabitable or a semantic counterexample. In particular, no counterexample to
-NoFailure was established. The next phase needs a quantity-correct universal
-proof composition before replacing the old model or claiming the eight laws
-for the new executable boundary.
+Old-model deletion and final trust-base/specification rewriting remain. The
+old model and its roots are retained until then. Native Gate integration and
+the prepare/invalidate controller are later phases.

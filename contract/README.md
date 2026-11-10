@@ -1,8 +1,9 @@
 # JayDB — specification and laws in Bend
 
 The executable replacement is in progress; see [implementation status](../proof/IMPLEMENTATION_STATUS.md).
-Gate/initialization and independent codec witnesses are checked. The universal
-Core composition remains open, so the old contract files remain available.
+Init, all four Core clauses, ordinary/prepared ingress, the finite-run fold and
+the independent codec witnesses are checked. The old contract files remain
+available until their scheduled deletion.
 
 This is the revised JayDB2 contract, authorized on 2026-10-29 to remove physical memory and time budgets. It contains **eight kernel obligations**, reference semantics, and helper lemmas. Laws 2, 7, and 8 were revised within that scope; the guarantees of Laws 1, 3, 4, 5, and 6 were preserved. The earlier contract and its original Portuguese sources remain in Git history.
 

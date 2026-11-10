@@ -61,3 +61,4 @@ import ./Gate.bend as ExecutableGate
 import ./WireTheorems.bend as ExecutableWire
 import ./CoreClauses.bend as ExecutableCore
 import ./Ingress.bend as ExecutableIngress
+import ./Iteration.bend as ExecutableFold
