@@ -314,3 +314,16 @@ PDFs are generated under `.build/tcc/output/`; only the small editable source
 set is tracked. Rendered pages and an independent factual review were checked.
 The specific course template, advisor and defense metadata remain for local
 confirmation before submission.
+
+The maintained chronological source foundation now lives under
+`proof/service`, checked separately by `make verify` in both pinned official
+modes under the existing development timeout. It computes full serial blocks
+from the same script jobs, retains pending/error paths and both same-slot
+publication facts, and proves phase order plus complete observed Boot Rule1.
+The boot proof derives identity, prior start and uniqueness over arbitrary
+mixed histories without a native or validity premise; it does not establish
+the initial certificate. Nine added controls reject incorrect phase effects
+and changed boot time/data. The canonical laws and toolchain remain unchanged.
+This foundation is not the complete extended eight-law witness or a proof of
+progress, concurrency, recovery or native correspondence. Exact fresh checker
+records and scope appear in `review-validation.json`.

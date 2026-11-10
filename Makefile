@@ -47,7 +47,7 @@ verify-contract:
 	python3 -B tools/check.py
 
 verify:
-	python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
+	python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend proof/service/VERIFY.bend
 	python3 -B tests/proof/test_proofs.py
 
 test: test-admission test-native test-host test-integration

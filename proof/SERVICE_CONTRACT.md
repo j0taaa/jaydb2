@@ -249,6 +249,41 @@ predicates must also refer to the same actual global event times. Actual Rust at
 representation, classifier correspondence and OS/IO progress remain separate
 bridges; finite individual EINTR returns alone do not establish termination.
 
+## Complete chronological source
+
+[`service/VERIFY.bend`](service/VERIFY.bend) checks the operational source
+separately from the ordinary conditional composition above, under the same
+pinned checkers and existing verification timeout. Its supplemental
+[`ServiceLaws`](service/specification/ServiceLaws.bend) is an obligation for one
+ordinary/prepared observer, not an inhabitant of that contract. The canonical
+laws and their manifests are unchanged.
+
+`Engine.run` computes each retained block from the same indexed request and
+primitive returns through the real decode, dispatch, preparation, invalidation
+and pure Core functions. It retains prior calls, pending phases, failures and
+the exact database/response/registry snapshots. A real publication has both
+its mutation fact and its core publication fact at the same instant.
+`GeneratedBlocks` proves the connection to the same script job; a caller does
+not supply a completed trace or choose the observed outcome.
+
+`InitialBoot` proves the complete boot clause of Rule1 for any full event
+history: the exact initial snapshot, the preceding instance-start event and
+unique boot time/scenario. Its proof also excludes a forged boot through a
+publication cofact, without assuming a history free of publications. This
+establishes boot identity and ordering; the initial certificate and native
+initialization correspondence are separate obligations.
+
+The source is a finite prefix. Its delivery renderer does not yet represent
+the native transition to a selected subsequent call as `NextCall`; complete
+coverage of native observations remains an open correspondence obligation.
+Prefix exhaustion does not establish progress.
+
+The phase controls reject registration before receipt preparation, mutation
+rollback after delivery or cleanup failure, erasure of an invalidation during
+pending cleanup, and events after closure. Boot controls reject changed time
+and response data. These checks do not complete the extended eight-law
+witness, genuine progress, concurrent scheduling or recovery refinement.
+
 ## Optional administrator service timing
 
 [`SERVICE_TIMING.md`](../tools/service/SERVICE_TIMING.md) specifies the opt-in

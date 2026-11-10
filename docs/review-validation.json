@@ -1272,5 +1272,65 @@
       "Complete ordinary/prepared law composition and whole-service witness, concurrent execution, progress, recovery and native/compiler/OS/storage/derivation correspondence."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; all checked maintained implementation/proof/test/tool inputs unchanged."
+  },
+  "service_chronological_foundation": {
+    "scope": "Maintained complete chronological source foundation, phase ordering and full observed Boot Rule1. This remains a supplemental specification/model and is not a full ordinary/prepared Contract or a native/Rust/IO/concurrency/progress/recovery witness.",
+    "modes": [
+      "--check-only",
+      "--verdict"
+    ],
+    "proof_modules_excluding_root": 25,
+    "negative_controls_added_per_mode": 9,
+    "existing_phase_controls_per_mode": 7,
+    "boot_controls_per_mode": 2,
+    "foundation_gate": {
+      "positive_roots": [
+        "proof/service/VERIFY.bend"
+      ],
+      "checks": 16,
+      "unchanged_inputs": 167
+    },
+    "final_boot_and_foundation_gate": {
+      "positive_roots": [
+        "proof/service/VERIFY.bend"
+      ],
+      "checks": 20,
+      "unchanged_inputs": 171,
+      "changed_inputs": []
+    },
+    "prior_foundation_input_changes_covered_by_final_gate": [
+      ".build/review/service-foundation-promoted.json",
+      "proof/service/VERIFY.bend",
+      "proof/service/model/EventObserver.bend",
+      "proof/service/model/TimeEmbedding.bend",
+      "proof/service/specification/ServiceLaws.bend"
+    ],
+    "canonical_law_and_toolchain_changes": false,
+    "mathematical_budget_changes": false,
+    "import_coverage": {
+      "scope": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement.",
+      "transitive_modules": 431,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 197,
+          "law_declarations": 1458
+        },
+        "library": {
+          "modules": 175,
+          "law_declarations": 799
+        }
+      }
+    },
+    "evidence_sha256": {
+      ".build/review/service-foundation-validation.json": "02df32dd284e63637ece5adc52aea87f5da8ac6d0b2b579c6d1d037466be264f",
+      ".build/review/service-foundation-final-validation.json": "5e09be6bbaf6c57dd892692f678ea7995da4c7afd94295fc4db178bf782319b6",
+      ".build/review/service-foundation-promoted.json": "4dd07517adef6dd95a2b46f3c743a8a521aa5d7d3cae94b62ddf5d4d96dba051",
+      ".build/review/initial-boot-promoted.json": "15a739a86a17551ee13841aca4d62b2fbae7a18b0952cc544a9e576b3528600f"
+    },
+    "validation_limit": "The historical full release is not relabeled as rerun. This change adds proof/verification modules only; existing runtime and canonical Bend modules are unchanged. The final root checks every added positive module, and all nine added controls were freshly checked in both modes after import/formatting changes."
   }
 }
