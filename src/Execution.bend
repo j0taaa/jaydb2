@@ -6,6 +6,7 @@ import ../contract/Semantics.bend as S
 import ./Core.bend as N
 import ./Input.bend as Input
 import ./Transport.bend as T
+import ./Gate.bend as Gate
 
 type StateExecution is Type:
   StateExecution{initial: D.State, machine: N.Machine}
@@ -20,8 +21,8 @@ def start(program: S.Program, context: D.Context, arguments: D.Value,
   +initial: D.State) -> StateExecution:
   StateExecution{initial, N.start(program, context, arguments, initial)}
 
-# Own the exact authenticated input until the native loop consumes it. Program
-# construction stays suspended, including when input is rejected.
+# Auxiliary pure adapter for authenticated inputs, retained for its proofs.
+# The native entry uses Worker/Gate to obtain the context by authentication.
 def launch(program: Unit -> S.Program, input: Input.Analysis) -> Maybe<&1, (Unit -> StateExecution)>:
   match input:
     case Input.Received{state, P.Request{credential, code, arguments, proof}, context}:
@@ -43,19 +44,34 @@ def state_encoded(state: Maybe<&2, List<&2, U32>>,
     case Some{bs}:
       packet_ready(T.join(bs, response))
 
-def conclude(conclusion: N.Conclusion) -> Iteration:
+# The host obeys this sum; response status is inspected only here in Bend.
+type Decision is Data:
+  Commit{root: D.State, bytes: List<&2, U32>}
+  Keep{bytes: List<&2, U32>}
+
+def decision(conclusion: N.Conclusion) -> Decision:
   match conclusion:
     case N.Conclusion{state, S.Response{S.Success{}, value}, bytes}:
-      state_encoded(P.encode(D.state_value(state)), bytes)
+      Commit{state, bytes}
     case N.Conclusion{state, S.Response{status, value}, bytes}:
-      FinishOutput{Con{0, bytes}}
+      Keep{bytes}
+
+# Private ABI: 1 || frame(root) || response, or 0 || response.
+def encode_decision(d: Decision) -> Iteration:
+  match d:
+    case Commit{state, bytes}: state_encoded(P.encode(D.state_value(state)), bytes)
+    case Keep{bytes}: FinishOutput{Con{0, bytes}}
+
+def conclude(conclusion: N.Conclusion) -> Iteration:
+  encode_decision(decision(conclusion))
+
+def result(conclusion: Maybe<&2, N.Conclusion>) -> Iteration:
+  match conclusion:
+    case None{}: Inconsistent{}
+    case Some{c}: conclude(c)
 
 def prepared(prepared: Maybe<&2, N.Prepared>, initial: D.State) -> Iteration:
-  match prepared:
-    case None{}:
-      Inconsistent{}
-    case Some{p}:
-      conclude(N.conclude(p, initial))
+  result(Gate.conclude(prepared, initial))
 
 def after_step(machine: N.Machine, initial: D.State) -> Iteration:
   match machine:
@@ -69,7 +85,7 @@ def advance(state: StateExecution, configuration: S.Configuration) -> Iteration:
     case StateExecution{initial, N.Running{w, action, events}}:
       after_step(N.advance(N.Running{w, action, events}, S.schema(configuration)), initial)
     case StateExecution{initial, N.Stopped{w, events, response}}:
-      prepared(N.prepare(N.Stopped{w, events, response}, configuration), initial)
+      result(Gate.finish(S.Final{w, events, response}, configuration, initial))
 
 law refusal_negative_emits_state_for_publication:
   for -state: D.State

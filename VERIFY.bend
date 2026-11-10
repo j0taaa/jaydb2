@@ -12,3 +12,4 @@ import ./src/Messages.bend as Messages
 import ./src/Free.bend as Free
 import ./src/Termination.bend as Termination
 import ./src/Prepared.bend as Prepared
+import ./src/Worker.bend as Worker

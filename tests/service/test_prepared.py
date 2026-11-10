@@ -2,11 +2,12 @@
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
-from tools.client import encode, prepared_frame
+from tools.client import encode, prepared_frame, unframe
 
 
 def universal_access_proof(proof):
@@ -84,8 +85,28 @@ class PreparedTests(unittest.TestCase):
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
-            self.assertIn('Prepared.resolve_analysis(', (prepared/'Main.bend').read_text())
+            self.assertIn('Worker.registered_packet(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
+            # Exercise Resolve/Gate in the compiled worker directly, bypassing
+            # the Rust handle/proof checks. A private live-registration binding
+            # must not be synthesized from the requested handle.
+            root = encode({'tables': [], 'users': [
+                {'credential': 'alice-token', 'id': 'alice', 'kind': 'user'}]})
+            def private_packet(first, rest):
+                return len(first).to_bytes(8, 'big') + first + rest
+            executable = next(prepared.glob('*.program'))
+            for requested, credential, supplied_proof, status in (
+                    (handle, 'alice-token', '', 'refusal'),
+                    ('missing-handle', 'alice-token', '', 'failure'),
+                    (handle, 'alice-token', 'not-empty', 'input'),
+                    ('missing-handle', 'invalid', 'not-empty', 'authentication')):
+                raw = prepared_frame(1, requested, credential, proof=supplied_proof)[8:]
+                worker = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                    input=private_packet(handle.encode(), private_packet(root, raw)),
+                    capture_output=True, timeout=30)
+                self.assertEqual(worker.returncode, 0, worker.stderr.decode())
+                self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
+                self.assertEqual(unframe(worker.stdout[1:])['status'], status)
             for source in prepared.rglob('*.bend'):
                 self.assertNotIn('alice-token', source.read_text())
                 self.assertNotIn('bob-token', source.read_text())
