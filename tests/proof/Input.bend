@@ -5,7 +5,7 @@ import ../../contract/Data.bend as D
 import ../../contract/Protocol.bend as P
 import ../../contract/Semantics.bend as S
 import ../../contract/Requirements.bend as R
-import ../../contract/Interface.bend as I
+import ../../contract/RequestFacts.bend as I
 import ../../contract/Logic.bend as L
 import ../../src/Codec.bend as C
 import ../../src/Input.bend as E

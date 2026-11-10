@@ -11,3 +11,5 @@ import ./Preparation.bend as Preparation
 import ./ResourcesLogical.bend as ResourcesLogical
 import ./AllocationLengths.bend as AllocationLengths
 import ./RefusalWithoutLimit.bend as RefusalWithoutLimit
+import ./Positive.bend as ExecutablePositive
+import ./Refutations.bend as ExecutableRefutations

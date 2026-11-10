@@ -6,7 +6,7 @@ import { sha256 } from '../../tools/admission/bootstrap.mjs';
 
 export const repo = fileURLToPath(new URL('../../', import.meta.url));
 const fixtureDir = fileURLToPath(new URL('./fixtures/', import.meta.url));
-const contractFiles = ['Data', 'Semantics', 'Logic', 'Bytes', 'Protocol', 'Requirements', 'Interface', 'Resources'];
+const contractFiles = ['Data', 'Semantics', 'Logic', 'Bytes', 'Protocol', 'Requirements', 'Interface', 'RequestFacts', 'Resources'];
 
 export function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jaydb-admission-test-'));

@@ -1,5 +1,9 @@
 # JayDB — specification and laws in Bend
 
+The executable replacement is in progress; see [implementation status](../proof/IMPLEMENTATION_STATUS.md).
+Gate/initialization and independent codec witnesses are checked. The universal
+Core composition remains open, so the old contract files remain available.
+
 This is the revised JayDB2 contract, authorized on 2026-10-29 to remove physical memory and time budgets. It contains **eight kernel obligations**, reference semantics, and helper lemmas. Laws 2, 7, and 8 were revised within that scope; the guarantees of Laws 1, 3, 4, 5, and 6 were preserved. The earlier contract and its original Portuguese sources remain in Git history.
 
 On 2026-11-06 the user authorized an additive prepared-program contract. It adds explicit wire, registry, admission and control obligations in `PreparedProtocol.bend`, `PreparedRegistry.bend` and `PreparedLaws.bend`. The existing eight laws, ordinary request encoding and transaction statuses are unchanged; their ordinary-wire composition does not automatically cover the extension.

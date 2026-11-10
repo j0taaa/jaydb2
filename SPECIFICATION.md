@@ -232,14 +232,19 @@ Error before publication ⇒ preserve S₀ and prepare a fixed error
 
 ## Law 8 Positive operation without hidden conditions
 
-> Valid configuration and an initial validity proof start the instance when processable within the three logical limits and without technical failure. Certificates that are valid derivations of the required obligations in the fixed format, fragment, and logical system must be accepted under the same conditions. Admitted requests must run and produce the corresponding outcome.
+Acceptance of every valid certificate in the pinned official tools' supported
+format, fragment and logical system is an explicit **adequacy assumption**.
+Admission soundness alone does not establish this acceptance property. The
+obligation is to check the supplied certificate, without inventing permissions,
+filtering the program or changing installed laws.
 
-```text
-Conditions satisfied ∧ no specified impediment
-⇒ corresponding execution and completion
-```
-
-**How it works:** rejecting everything is not a correct implementation. The kernel invents no extra permission, does not ignore laws, and does not replace programs with filtered versions. A technical failure must correspond to a specified actual failure, not an unrestricted excuse to reject. The obligation is to check the supplied certificate, not discover proofs or accept programs without them.
+The replacement contract states accepted-execution termination and finalization
+in `Theorems.Progress`. Its universal Core witness is still open; see
+[implementation status](proof/IMPLEMENTATION_STATUS.md). The checked
+`tests/proof/Positive.bend` fixture demonstrates a real tasks certificate,
+authenticated execution, changed-root success and valid publication. Physical
+resource availability, syscall progress and scheduling remain external
+obligations, distinct from logical termination and tool adequacy.
 
 # Inputs, outputs, and completion
 

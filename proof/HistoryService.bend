@@ -2,7 +2,7 @@
 # Includes stores followed by process loss, without requiring delivered response.
 import Base
 import ../contract/Data.bend as D
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 import ../contract/Logic.bend as L
 import ../contract/Protocol.bend as P
 import ../contract/Requirements.bend as R

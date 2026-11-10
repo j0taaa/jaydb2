@@ -9,7 +9,7 @@ import ../contract/Requirements.bend as R
 import ../contract/Semantics.bend as S
 import ../contract/PreparedRegistry.bend as G
 import ../contract/PreparedLaws.bend as Prepared
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 import ./HostTransitions.bend as H
 
 type Edge is Data:

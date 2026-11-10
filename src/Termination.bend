@@ -3,7 +3,7 @@
 import Base
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 
 def Finite(n: Nat, a: S.Action) -> Type:
   match n:

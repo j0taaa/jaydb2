@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Causal negative controls; `make verify` checks the positive aggregates."""
 from pathlib import Path
+import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -50,11 +52,31 @@ def coverage_controls():
     print("OK import-coverage positive and negative controls", flush=True)
 
 
+def positive_bindings():
+    """Keep the checked fixture bound to the real application's exact bodies."""
+    package = ROOT / 'tests/proof/tasks'
+    relocations = {'Data': 'contract', 'Semantics': 'contract', 'Logic': 'contract',
+                   'Requirements': 'contract', 'Termination': 'src', 'ValidationFinal': 'src',
+                   'Laws': 'library', 'Orders': 'proof'}
+    for name in ('Configuration', 'Seed', 'Client', 'ClientProof', 'Policy', 'Proofs', 'Ownership'):
+        expected = (ROOT / 'applications/tasks' / (name + '.bend')).read_text()
+        for module, area in relocations.items():
+            expected = expected.replace(f'import ./{module}.bend as ', f'import ../../../{area}/{module}.bend as ')
+        assert (package / (name + '.bend')).read_text() == expected, f'Tasks fixture drift: {name}'
+    bindings = (package / 'Bindings.bend').read_text()
+    for function, module in (('code', 'Client'), ('proof_source', 'ClientProof')):
+        literal = re.search(r'def ' + function + r'\(\) -> String:\n  ("(?:[^"\\]|\\.)*")', bindings)
+        assert literal and json.loads(literal[1]) == (package / (module + '.bend')).read_text(), function
+    print('OK tasks source/proof literal bindings', flush=True)
+
+
 def main():
     coverage_controls()
+    positive_bindings()
     # Each mutation removes a different premise: bytes, administrative law,
     # publishable state, authentication, construction guard, or reification.
     compiler = executable()
+    count = 0
     for path in sorted(Path(__file__).with_name('rejected').glob('*.bend')):
         for mode in ('--check-only', '--verdict'):
             run = subprocess.run([str(compiler), str(path), mode],
@@ -66,6 +88,8 @@ def main():
                     and 'a filled definition' not in output):
                 raise AssertionError(f'Expected a false proof, not a broken fixture: {path} {mode}\n{output}')
             print(f'OK rejected {mode}: {path.relative_to(ROOT)}', flush=True)
+        count += 1
+    print(f'OK negative controls: {count} fixtures, {count * 2} official-mode rejections', flush=True)
 
 
 if __name__ == '__main__':

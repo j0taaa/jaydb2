@@ -10,3 +10,8 @@ import ./PreparedProtocol.bend as PreparedProtocol
 import ./PreparedRegistry.bend as PreparedRegistry
 import ./PreparedLaws.bend as PreparedLaws
 import ./ReadOnlyContract.bend as ReadOnlyContract
+# Verified replacement milestones; the universal Core witness is still open.
+import ./Theorems.bend as ExecutableStatements
+import ../proof/Init.bend as InitWitness
+import ../proof/Gate.bend as GateWitness
+import ../proof/WireTheorems.bend as WireWitness

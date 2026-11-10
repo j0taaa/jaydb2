@@ -9,7 +9,7 @@ import ../contract/Resources.bend as X
 import ../contract/Logic.bend as L
 import ../src/Core.bend as N
 import ../src/Input.bend as E
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 import ../src/Transport.bend as T
 import ../src/ConfigurationCheck.bend as C
 

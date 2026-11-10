@@ -3,47 +3,59 @@
 import argparse
 import hashlib
 import json
-import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+from bend import environment, executable, verify_version
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bend", default="bend", help="Bend 2.0.39 executable")
+    parser.add_argument("--bend", help="Pinned official Bend 2.0.39 executable")
     parser.add_argument("--verdict", action="store_true", help="Request also o kernel BendTT")
     parser.add_argument("--report", default="VERIFICATION.json")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
-    env = os.environ.copy()
-    env["BEND_NO_TELEMETRY"] = "1"
-    version = subprocess.run([args.bend, "version"], cwd=root, env=env,
+    compiler = verify_version(Path(shutil.which(args.bend) or args.bend).resolve()) if args.bend else executable()
+    env = environment()
+    version = subprocess.run([str(compiler), "version"], cwd=root, env=env,
                              capture_output=True, text=True, check=False)
-    command = [args.bend, str(root / "VERIFY.bend"), "--check-only"]
-    if args.verdict:
-        command.append("--verdict")
-    checked = subprocess.run(command, cwd=root, env=env, capture_output=True,
-                             text=True, check=False)
+    checks = []
+    for mode in ["--check-only"] + (["--verdict"] if args.verdict else []):
+        result = subprocess.run([str(compiler), str(root / "VERIFY.bend"), mode],
+                                cwd=root, env=env, capture_output=True, text=True, check=False)
+        checks.append({"command": ["bend", "VERIFY.bend", mode], "exit_code": result.returncode,
+                       "stdout": result.stdout, "stderr": result.stderr})
+    exit_code = next((c["exit_code"] or 1 for c in checks
+                      if c["exit_code"] or "ALL PROOFS CHECK" not in c["stdout"]), 0)
+    stdout = "".join(c["stdout"] for c in checks)
+    stderr = "".join(c["stderr"] for c in checks)
     sources = sorted(root.glob("*.bend"))
     report = {
         "bend_version": version.stdout.strip(),
-        "command": ["bend", "VERIFY.bend", "--check-only"] + (["--verdict"] if args.verdict else []),
-        "exit_code": checked.returncode,
-        "stdout": checked.stdout,
-        "stderr": checked.stderr,
+        "checks": checks,
+        "exit_code": exit_code,
+        "stdout": stdout,
+        "stderr": stderr,
         "secondary_kernel_requested": args.verdict,
         "native_implementation_included": False,
         "native_contract_proved": False,
-        "scope": "Statement/definition types; proofs of included lemmas; closed examples.",
+        "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init and independent wire theorems. Universal Core remains open.",
+        "executable_witnesses": ["Init.init_theorem", "WireTheorems.codec_roundtrip",
+                                 "WireTheorems.codec_canonical", "WireTheorems.framing_roundtrip"],
+        "pending_theorems": ["CoreTheorem", "IngressTheorem", "UnifiedCoreTheorem", "finite-run fold"],
         "sources": [{"file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
                      "lines": len(p.read_text().splitlines())} for p in sources],
     }
     (root / args.report).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
-    sys.stdout.write(checked.stdout)
-    sys.stderr.write(checked.stderr)
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
     print("Scope: specification and lemmas; a proof of Contract(a,k) for a native core is not included.")
-    return checked.returncode
+    return exit_code
 
 
 if __name__ == "__main__":

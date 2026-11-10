@@ -1,5 +1,8 @@
 # General proofs
 
+The executable replacement is partial; [implementation status](IMPLEMENTATION_STATUS.md)
+lists the checked Init/gate/codec witnesses and the open universal Core proof.
+
 `proof/VERIFY.bend` aggregates the pure implementation proofs and
 `ContractService.contract_of_service`, whose target is exactly
 `LAWS.Contract(a,k)`. `tests/proof/VERIFY.bend` reapplies their public

@@ -2,7 +2,7 @@
 # invalid Unicode, false counts, unordered names and extra suffixes.
 import Base
 import ../../contract/Bytes.bend as B
-import ../../contract/Interface.bend as I
+import ../../contract/RequestFacts.bend as I
 import ../../src/Codec.bend as C
 import ../../proof/CodecLaw2.bend as G
 import ../../proof/CodecRefusals.bend as R

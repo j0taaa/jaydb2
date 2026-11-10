@@ -12,6 +12,7 @@
 # `native`/`k` identifies the COMPLETE artifact interpreted by this environment,
 # with its pinned dependencies. A name/hash without this binding is insufficient.
 import Base
+import ./RequestFacts.bend as Pure
 import ./Data.bend as D
 import ./Semantics.bend as S
 import ./Requirements.bend as R
@@ -40,20 +41,16 @@ def initial(x: Scenario) -> D.State:
       s
 
 def credential(r: P.Request) -> String:
-  P.Request{cred, cod, arg, pi} = r
-  cred
+  Pure.credential(r)
 
 def code(r: P.Request) -> String:
-  P.Request{cred, cod, arg, pi} = r
-  cod
+  Pure.code(r)
 
 def arguments(r: P.Request) -> D.Value:
-  P.Request{cred, cod, arg, pi} = r
-  arg
+  Pure.arguments(r)
 
 def proof(r: P.Request) -> String:
-  P.Request{cred, cod, arg, pi} = r
-  pi
+  Pure.proof(r)
 
 type Fact is Type:
   ConfigurationInUse{configuration: S.Configuration}
@@ -151,12 +148,10 @@ def ConfigurationValid(-a: Environment, -c: S.Configuration) -> Type:
 
 def Terminates(-p: S.Program, -e: D.Schema, -s: D.State,
   -ctx: D.Context, -args: D.Value) -> Type:
-  &n: Nat -> &w: D.State -> &ts: List<&2, S.OperationEvent> -> &r: S.Response ->
-    {S.execute(n, p, e, s, ctx, args) == S.Final{w, ts, r} : S.Trace}
+  Pure.Terminates(p, e, s, ctx, args)
 
 def ProgramTerminates(-c: S.Configuration, -p: S.Program) -> Type:
-  @s: D.State -> @ctx: D.Context -> @args: D.Value ->
-    Terminates(p, S.schema(c), s, ctx, args)
+  Pure.ProgramTerminates(c, p)
 
 def Bound(-a: Environment, -c: S.Configuration, -source: String, -p: S.Program) -> Type:
   L.E<Elaborates(a, c, source, p), ProgramTerminates(c, p)>
@@ -177,11 +172,7 @@ def RequestReceived(x: Scenario, -r: P.Request) -> Type:
           P.Encoding(P.request_value(r), bs)>
 
 def DecodingCorrect(bs: List<&2, U32>, result: Maybe<&2, D.Value>) -> Type:
-  match result:
-    case Some{v}:
-      P.Decoding(bs, v)
-    case None{}:
-      @v: D.Value -> P.Decoding(bs, v) -> Empty
+  Pure.DecodingCorrect(bs, result)
 
 def ExecutionCorrect(-c: S.Configuration, -s: D.State, -r: P.Request,
   -ctx: D.Context, -p: S.Program, -execution_trace: S.Trace) -> Type:
@@ -196,13 +187,7 @@ def ResponseOfProgram(-a: Environment, -native: String, -x: Scenario,
         {R.finalize(proposal, configuration(x), working) == response : S.Response}>
 
 def ErrorFixed(r: S.Response) -> Type:
-  match r:
-    case S.Response{S.Success{}, v}:
-      {D.value_valid(v) == True{} : Bool}
-    case S.Response{S.Refusal{}, v}:
-      {D.value_valid(v) == True{} : Bool}
-    case S.Response{s, v}:
-      {v == D.VAbsent{} : D.Value}
+  Pure.ErrorFixed(r)
 
 def WithoutCertificate(-a: Environment, -c: S.Configuration, -r: P.Request,
   -ctx: D.Context) -> Type:

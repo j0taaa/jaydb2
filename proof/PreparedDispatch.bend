@@ -3,7 +3,7 @@
 # checked declarations. Native/artifact/IO simulation is not asserted here.
 import Base
 import ../contract/Data.bend as D
-import ../contract/Interface.bend as I
+import ../contract/RequestFacts.bend as I
 import ../contract/Logic.bend as L
 import ../contract/PreparedLaws.bend as H
 import ../contract/PreparedProtocol.bend as W

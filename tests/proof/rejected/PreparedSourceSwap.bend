@@ -1,7 +1,7 @@
 # The wire handle cannot replace the source identity used by administrator laws.
 import Base
 import ../../../contract/Data.bend as D
-import ../../../contract/Interface.bend as I
+import ../../../contract/RequestFacts.bend as I
 import ../../../contract/PreparedLaws.bend as H
 import ../../../contract/PreparedRegistry.bend as G
 import ../../../contract/Protocol.bend as P

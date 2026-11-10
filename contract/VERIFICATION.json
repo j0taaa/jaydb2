@@ -1,88 +1,146 @@
 {
   "bend_version": "bend 2.0.39",
-  "command": [
-    "bend",
-    "VERIFY.bend",
-    "--check-only"
+  "checks": [
+    {
+      "command": [
+        "bend",
+        "VERIFY.bend",
+        "--check-only"
+      ],
+      "exit_code": 0,
+      "stdout": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "bend",
+        "VERIFY.bend",
+        "--verdict"
+      ],
+      "exit_code": 0,
+      "stdout": "ALL PROOFS CHECK\n",
+      "stderr": ""
+    }
   ],
   "exit_code": 0,
-  "stdout": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\n",
+  "stdout": "ALL PROOFS CHECK\nUse --verdict for mathematical validity.\nALL PROOFS CHECK\n",
   "stderr": "",
-  "secondary_kernel_requested": false,
+  "secondary_kernel_requested": true,
   "native_implementation_included": false,
   "native_contract_proved": false,
-  "scope": "Statement/definition types; proofs of included lemmas; closed examples.",
+  "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init and independent wire theorems. Universal Core remains open.",
+  "executable_witnesses": [
+    "Init.init_theorem",
+    "WireTheorems.codec_roundtrip",
+    "WireTheorems.codec_canonical",
+    "WireTheorems.framing_roundtrip"
+  ],
+  "pending_theorems": [
+    "CoreTheorem",
+    "IngressTheorem",
+    "UnifiedCoreTheorem",
+    "finite-run fold"
+  ],
   "sources": [
     {
       "file": "Bytes.bend",
-      "sha256": "5d287f5c7924d7f7e360a93b3e82ac952e339c7154124657b35bd070c6a2ff4f",
+      "sha256": "2c2239a4ba5dc28207e5b8da77390ba9305bdf47b38603aad23736e0df64a5f2",
       "lines": 202
     },
     {
       "file": "Data.bend",
-      "sha256": "7282143621acb961aadfac24ab901634bf66a957760c7e5d6aab7a4b0230ea81",
+      "sha256": "02dc74c69f9afef0094995a365074ef8e1f569d6786e8d4f60cb2327f4d455ba",
       "lines": 608
     },
     {
       "file": "DataExamples.bend",
-      "sha256": "53fc23b1276c295f42b2b7a9b400194aa09852391e55a5615640f2aaa61c67db",
+      "sha256": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
       "lines": 52
     },
     {
       "file": "Interface.bend",
-      "sha256": "d34b25715a65265e57651dbce10f4367bda8d1914c6f6ab89961d3d0eeb50c0a",
-      "lines": 285
+      "sha256": "f5bc0b0889bad91b05efb8fb3674905bccaa5f8a0a06d9ef47bad754dc99aacd",
+      "lines": 253
     },
     {
       "file": "LAWS.bend",
-      "sha256": "3fb833177efb4863211a1a7848c6b377772aa0ec7d786a83e52751399fa01ffd",
-      "lines": 340
+      "sha256": "2abb8e969e6c4324032370b4ce8f6f71211da84f114f305e8ca2fec47d7b28be",
+      "lines": 339
     },
     {
       "file": "LEMMAS.bend",
-      "sha256": "4e5cbb529ba7380b5c4026419fcab215a8b86afec56d04a3f54a8ab9c3567164",
+      "sha256": "36b6efc46da21b11fcc530006324f93150a4c213977cb88b0e771221eee308ee",
       "lines": 80
     },
     {
+      "file": "Links.bend",
+      "sha256": "6d5320f3fa5dea2e8c8e1e19bb60dd99ce78034cfbc74d8b20f9bde709428e74",
+      "lines": 77
+    },
+    {
       "file": "Logic.bend",
-      "sha256": "0a1ea82cde7cb3d76c0332fa779821c25e068e8165a55d41be66a347dc43edc4",
+      "sha256": "07a193b54b2f709c37946404f8e6f895a89ab10e735022fefbbb5c99b844332d",
       "lines": 232
     },
     {
+      "file": "PreparedLaws.bend",
+      "sha256": "a2bfe05c593a5169c178fbd61e0430f8f844c44fb9336a12772d477626fe785c",
+      "lines": 503
+    },
+    {
+      "file": "PreparedProtocol.bend",
+      "sha256": "48e631dd58f88981b246405c501dd7b84c8313ecece57803d86e2f273f4bad5a",
+      "lines": 163
+    },
+    {
+      "file": "PreparedRegistry.bend",
+      "sha256": "da19c6cb2f4db579762b432eca9d874f7f96bb1726d867830d1ec3f5a2312a95",
+      "lines": 369
+    },
+    {
       "file": "Protocol.bend",
-      "sha256": "cf6da67b8e90f2dabf12e60fc6c2b41d1c844385905c5241a46580fc25f2d976",
+      "sha256": "4197ac5ff56655a01664c6033d2828e14a1c7b710468c5f3f46188c5d5b037b8",
       "lines": 216
     },
     {
-      "file": "Resources.bend",
-      "sha256": "5305c0967559937e35430d92c0e4bca1fed1f747d198e8fce9a4d15615293a0a",
-      "lines": 220
-    },
-    {
-      "file": "Requirements.bend",
-      "sha256": "5e7ec8249854deb374adb1d9d06920309cf1b2a0688762dee21a818c00bc0946",
-      "lines": 159
-    },
-    {
-      "file": "Semantics.bend",
-      "sha256": "17d27dc6e381bcc19809014d83940dbdd4b28d134cdd8e6b8b8dfd52965305cb",
-      "lines": 258
-    },
-    {
       "file": "ProtocolTests.bend",
-      "sha256": "8eefce74d012c79a99467899856a74833993cd8b1bb7fe2dc8daa6696450355c",
+      "sha256": "772bc6db2d694c0ccfc0426b668b0fdab6a15b13b5dedcef7b0ce267b083d782",
       "lines": 92
     },
     {
-      "file": "VERIFY.bend",
-      "sha256": "1446abc8951a905c497ba9c6c3a8b8449415a09df7cb6cafb65bee893bb73876",
-      "lines": 8
+      "file": "ReadOnlyContract.bend",
+      "sha256": "bc885e52b5c63233fccae01410e5a831eb5d0f2e9387f016117b29e7f7bb653f",
+      "lines": 38
     },
     {
-      "file": "Links.bend",
-      "sha256": "2ec340b8b81f6f2bff3d51355f9fe1780b928baae4c1bcd0b3061442d2ec10b0",
-      "lines": 77
+      "file": "RequestFacts.bend",
+      "sha256": "134c066fc04f305aba5573a9179fc26f3de6d3b8ca6178b168fe27dfb370fe01",
+      "lines": 65
+    },
+    {
+      "file": "Requirements.bend",
+      "sha256": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
+      "lines": 153
+    },
+    {
+      "file": "Resources.bend",
+      "sha256": "76be87b11b5eed5a6f4a4887b04dfcfdf41a3522e14e0e92edb083380b784456",
+      "lines": 137
+    },
+    {
+      "file": "Semantics.bend",
+      "sha256": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
+      "lines": 256
+    },
+    {
+      "file": "Theorems.bend",
+      "sha256": "71e2b6e105d9268022e76678e42c07dbf8c0aeccdc8d041352f55aad0668b53a",
+      "lines": 250
+    },
+    {
+      "file": "VERIFY.bend",
+      "sha256": "d17b7edce8018e78402abe9641e5b7a55c79c8fdf544c7f4446da1bbb9ea6c11",
+      "lines": 17
     }
-  ],
-  "translation_note": "English translation of a historical report. The recorded result and source hashes refer to the pre-translation files, not a new verification run."
+  ]
 }

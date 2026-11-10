@@ -56,3 +56,6 @@ import ./Persistence.bend as Persistence
 import ./Preprocessing.bend as Preprocessing
 
 import ./ReadBatches.bend as ReadBatches
+import ./Init.bend as ExecutableInit
+import ./Gate.bend as ExecutableGate
+import ./WireTheorems.bend as ExecutableWire
