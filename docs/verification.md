@@ -12,9 +12,8 @@ bash tools/ci/check.sh smoke
 ```
 
 This runs the TypeScript client's type checks and codec/transport tests, accessory
-unit tests, all Rust host tests, strict Clippy, formatting, and benchmark-harness
-oracles. It needs Node 24, Rust/Cargo, Python 3.12 and the installed pinned Bend
-tools: an existing host options test canonicalizes those installed paths. Clang
+unit tests, all Rust host tests, strict Clippy and formatting. It needs Node 24, Rust/Cargo,
+Python 3.12 and the installed pinned Bend tools: an existing host options test canonicalizes those installed paths. Clang
 is not needed. Smoke does **not** execute the proof/native/recovery gates and
 does not attest admission, durability or the application certificates. Standalone
 client checks (`make test-client`) and SQL/Drizzle frontend checks
@@ -72,7 +71,6 @@ to the terminal and can be captured with normal shell redirection.
 Workflow files being present does not establish that GitHub-hosted jobs have
 run. Local validation and hosted results are separate evidence.
 
-The [accessory validation record](accessory-validation.md) lists the completed
-local and hosted checks and their exact scope. Run checks from a frozen checkout;
+Run checks from a frozen checkout;
 editing a running shell script can invalidate the wrapper result even after its
 child test command completes successfully.

@@ -157,13 +157,6 @@ These checks are included in smoke/full validation respectively.
 source snapshot when other work is editing this checkout. Recovery requires
 unchanged runtime source bytes as well as the same executable.
 
-Validation on 2026-11-06 includes 40 frontend tests on three Node 24 versions,
-20 generated-certificate checks, 26 targeted native checks, 31 boundary checks,
-and 2,200 seeded SQL/Drizzle operations compared against SQLite.
-See [the validation report](VALIDATION.md)
-for fixes, exact counts, machine/runtime details, raw stress results, broader
-regression gates and remaining assumptions.
-
 The stress target executes 600 reproducible randomized operations by default,
 mixing raw SQL and real Drizzle calls against an independent SQLite oracle. It
 also checks duplicate rollback, concurrent invocation order, fresh credentials,

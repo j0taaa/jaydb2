@@ -74,7 +74,7 @@ def comparison_statistics(data, raw, audit, raw_digest):
 
 
 def write_comparison():
-    directory = ROOT / "experiments/database-comparison/evidence"
+    directory = ROOT / "paper/evidence"
     payloads = {name: (directory / name).read_bytes() for name in COMPARISON_DIGESTS}
     for name, payload in payloads.items():
         if hashlib.sha256(payload).hexdigest() != COMPARISON_DIGESTS[name]:
@@ -99,7 +99,7 @@ def write_comparison():
 
 
 def main():
-    source = ROOT / "experiments/integration/evidence/main-review/benchmark.json"
+    source = ROOT / "paper/evidence/benchmark.json"
     data = json.loads(source.read_text())
     records = data["records"]
     if sum(r["checked_responses"] for r in records) != data["checked_responses"]:

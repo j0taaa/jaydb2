@@ -1,1 +1,0 @@
-import {spawn} from 'node:child_process';import fs from 'node:fs';const c=spawn('/bin/sleep',['20'],{stdio:['ignore',2,2]});fs.writeFileSync(process.argv[2],String(c.pid));setInterval(()=>{},1000);

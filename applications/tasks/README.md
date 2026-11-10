@@ -212,8 +212,3 @@ checked. The lightweight `tests.accessories.test_tasks` tests need no Bend tools
 `npm ci --prefix clients/typescript`, typecheck the actual TS consumer with
 `clients/typescript/node_modules/.bin/tsc -p applications/tasks/tsconfig.json`.
 These accessories do not change the application's Bend sources or its laws.
-
-Usability notes and the exact locally exercised workflow are recorded in
-[APPLICATION_NOTES.md](APPLICATION_NOTES.md). This check demonstrates actual
-sessions and restart behavior; it does not claim sustained use by an external
-user.

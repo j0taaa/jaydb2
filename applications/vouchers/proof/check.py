@@ -74,7 +74,7 @@ def check(runtime_directory):
         entry.write_text('import Base\n' + ''.join(
             f'import ./{name} as Checked{index}\n' for index, name in enumerate(imports)))
         subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(entry),
-                        str(ROOT / 'experiments/idempotency/VERIFY.bend')], check=True,
+                        str(ROOT / 'tests/service/ReceiptHelpers.bend')], check=True,
                        env={**os.environ, 'TMPDIR': str(directory.parent.resolve())})
         compiler = executable()
         for original, name in rejected:

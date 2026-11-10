@@ -19,13 +19,15 @@ under `.build/tcc/`; the deliverables are:
 `evidence.py` verifies the retained raw burst counts, medians and paired ratios
 and derives the article's quantitative table. It does not run a benchmark or
 claim that historical measurements describe a new executable. Full raw
-provenance remains at `experiments/integration/evidence/main-review/benchmark.json`.
+provenance remains at `paper/evidence/benchmark.json`.
 The GPU appendix identifies its historical branch and does not present a fresh
 measurement. The external point-operation table uses the existing immutable
 `results.json`, `raw-result.json` and `provenance-audit.json` under
-`experiments/database-comparison/evidence/`. The builder checks their digests,
+`paper/evidence/`. The builder checks their digests,
 raw/audited correspondence, measured outputs, sample identities and medians.
 It preserves the original inventory-guard failure and its subsequent audit.
+Historical paths inside these immutable records identify the original checkout;
+the referenced reports and source inventories remain in Git history.
 These flows have different policy and deployment semantics; the table is not
 an equivalent-policy engine ranking.
 

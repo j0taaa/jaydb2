@@ -1,6 +1,6 @@
 # JayDB — specification and laws in Bend
 
-This is the revised JayDB2 contract, authorized on 2026-10-29 to remove physical memory and time budgets. It contains **eight kernel obligations**, reference semantics, and helper lemmas. Laws 2, 7, and 8 were revised within that scope; the guarantees of Laws 1, 3, 4, 5, and 6 were preserved. English translations of the earlier version's 18 files are in [history/contract-v1](../history/contract-v1/); the original Portuguese versions remain in Git history.
+This is the revised JayDB2 contract, authorized on 2026-10-29 to remove physical memory and time budgets. It contains **eight kernel obligations**, reference semantics, and helper lemmas. Laws 2, 7, and 8 were revised within that scope; the guarantees of Laws 1, 3, 4, 5, and 6 were preserved. The earlier contract and its original Portuguese sources remain in Git history.
 
 On 2026-11-06 the user authorized an additive prepared-program contract. It adds explicit wire, registry, admission and control obligations in `PreparedProtocol.bend`, `PreparedRegistry.bend` and `PreparedLaws.bend`. The existing eight laws, ordinary request encoding and transaction statuses are unchanged; their ordinary-wire composition does not automatically cover the extension.
 
@@ -168,7 +168,7 @@ make verify-contract
 make verify
 ```
 
-The first command checks this contract in both official modes. The second checks the general aggregates and causal mutations. Runners do not create a term of `Contract(a,k)` for the complete executable. Development timeouts are not database budgets. Earlier reports and implementations remain in Git history; translated historical copies are in `history/contract-v1/`, while the original Portuguese files remain in Git history.
+The first command checks this contract in both official modes. The second checks the general aggregates and causal mutations. Runners do not create a term of `Contract(a,k)` for the complete executable. Development timeouts are not database budgets. Earlier reports, implementations and the original Portuguese contract remain in Git history.
 
 ## 8. Optional prepared-program interface
 

@@ -24,7 +24,7 @@ S.Return continuation, and has no inhabitant at depth zero. `Program` requires
 such a finite witness for all contexts and arguments. The witness does not
 depend on database observations. Programs without this certificate, including
 read traversals needing state-dependent depth bounds, retain ordinary exclusive
-execution. `experiments/concurrency/Read{,Proof}.bend` is a complete example
+execution. `tests/service/fixtures/Read{,Proof}.bend` is a complete example
 against `examples/credential-exchange`.
 
 The coordinator selects a fixed group of currently queued consecutive certified

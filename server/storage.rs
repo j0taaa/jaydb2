@@ -1,5 +1,5 @@
 //! One authoritative complete image, with a single directory owner.
-//! Storage bytes are not a validity proof. See experiments/persistence/REPORT.md.
+//! Storage bytes are not a validity proof.
 use crate::{Error, Limits, Result};
 use sha2::{Digest, Sha256};
 use std::fs::{self, DirBuilder, File, OpenOptions};

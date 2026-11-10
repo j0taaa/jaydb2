@@ -56,7 +56,7 @@ import ./RowRemovalLookupProofs.bend as RowRemovalLookupProofs
 import ./MutationStateShapeProofs.bend as MutationStateShapeProofs
 import ./MutationValidatorProofs.bend as MutationValidatorProofs
 import ./CollectionChangeCompositionProofs.bend as CollectionChangeCompositionProofs
-import ../experiments/library/VERIFY.bend as Extensions
+import ../tests/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:
   D.Schema{[D.SchemaTable{"tasks", "id", [

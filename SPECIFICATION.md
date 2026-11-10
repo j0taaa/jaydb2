@@ -2,7 +2,7 @@ JayDB is an in-memory database that executes Bend programs accompanied by proofs
 
 This contract contains the kernel definitions and eight general laws. The laws are written as readable mathematical obligations; their Bend translation and mechanically checked proofs belong to the implementation. The definitions below are as much part of the contract as the law statements.
 
-Revision authorized on 2026-10-29: physical memory and time budgets were removed. The earlier contract remains in `history/contract-v1/`. The active contract in `contract/` retains the three canonical size limits and the authentication, proof, access, and publication guarantees. Historical files are English translations; their original Portuguese versions remain in Git history.
+Revision authorized on 2026-10-29: physical memory and time budgets were removed. The earlier contract remains in Git history. The active contract in `contract/` retains the three canonical size limits and the authentication, proof, access, and publication guarantees. Historical files are English translations; their original Portuguese versions remain in Git history.
 
 Prepared-protocol extension authorized on 2026-11-06: the eight ordinary
 transaction laws retain their existing statements. The additive formal modules

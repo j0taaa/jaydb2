@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the historical snapshot, active contract and both Bend checkers."""
+"""Check the active contract and both Bend checkers."""
 from __future__ import annotations
 
 import argparse
@@ -11,14 +11,6 @@ import subprocess
 import sys
 
 from bend import ROOT, environment, executable
-
-
-def check_originals() -> None:
-    manifest = json.loads((ROOT / "contract-original.sha256.json").read_text())
-    for relative, expected in manifest.items():
-        path = ROOT / "history" / "contract-v1" / relative
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise RuntimeError(f"Historical contract snapshot changed: {relative}")
 
 
 def check_active() -> None:
@@ -93,7 +85,6 @@ def main() -> int:
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
-    check_originals()
     check_active()
     files = args.files or [ROOT / "contract" / "VERIFY.bend"]
     if args.coverage:

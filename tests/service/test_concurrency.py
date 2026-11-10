@@ -10,8 +10,8 @@ from tests.service.test_end_to_end import ROOT, Server
 from tests.service.test_prepared import universal_access_proof
 from tools.client import prepared_frame, unframe
 
-CODE = (ROOT/'experiments/concurrency/Read.bend').read_text()
-PROOF = (ROOT/'experiments/concurrency/ReadProof.bend').read_text()
+CODE = (ROOT/'tests/service/fixtures/Read.bend').read_text()
+PROOF = (ROOT/'tests/service/fixtures/ReadProof.bend').read_text()
 
 
 class ReadBatchTests(unittest.TestCase):

@@ -401,8 +401,7 @@ missing rows, so use the ordinary observation API if that distinction matters.
 whole-continuation restriction, including every `Semantics.Return` variant.
 `fields_readonly` requires the same restriction on the entire supplied
 continuation. There is no recursive higher-order syntax to lower and no general
-bind. An unreachable continuation containing a write is rejected by the negative
-fixture `HiddenWrite.bend`. The ordinary administrator certificate is still
+bind. The ordinary administrator certificate is still
 mandatory: the real restricted task test rejects an attempted Bob-table read
 using this helper. Programs without this extra proof retain ordinary behavior;
 this branch does not implement or claim host batching or prepared opcode 3.
@@ -413,14 +412,6 @@ The predicate file alone was imported from accepted concurrency commit
 
 
 ### Audited sorting and certified index example
-
-The additional focused native fixture `experiments/library/CollectionRuntime.bend`
-accepts variable-length records with original identity payloads.
-`test_collections.py` compares actual output contents against independent Python
-references: stable sorting (numeric keys and completed-task keys), complete inner
-and left join pairs, and every group key/member in order. Cases include empty,
-singleton, reverse-sorted, mixed duplicates, forty equal keys, and random lengths
-through 80. It does not use lengths/cardinalities as the functional oracle.
 
 The [indexed availability application](../applications/indexed/README.md) is an
 actual certified restricted-user business/index flow. Its administrator installs
@@ -443,11 +434,8 @@ Focused commands (run under the shared experiment lock):
 
 ```sh
 python3 -B tools/check.py library/SortProof.bend
-python3 -B experiments/library/test_collections.py
 python3 -B applications/indexed/run_check.py
 ```
-
-The report records the exact frozen source hashes, completed commands and logs.
 
 ## Index performance decision
 
@@ -464,15 +452,11 @@ to demonstrate permissions and exact projection maintenance. A keyed
 value-to-targets design is deferred; no new storage primitive or automatic
 maintenance is added.
 
-[Reproducible benchmark and measured evidence](../experiments/library/index_benchmark/README.md)
-cover complete prepared requests, hits/misses, maintained updates, narrow/wide
-rows, and batched unique checks. Historical measurements retain their original
-revision and API spelling; they are not relabelled as new-source measurements.
 ## Optional receipt protocol
 
 `Receipts.bend` provides exact canonical-input/operation-bound ordinary-table
 lookup and small scalar writes. `ReceiptLaws.bend` provides prefix, completed
 success and stable provenance law templates. They add no kernel privilege or
 host retry machinery. See the [certified voucher flow](../applications/vouchers/README.md)
-and [experiment report](../experiments/idempotency/REPORT.md) for contracts,
+for contracts,
 retirement semantics, proof scope and validation.

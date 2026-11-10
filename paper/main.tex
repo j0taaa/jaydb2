@@ -184,10 +184,10 @@ Evidence provenance is part of the protocol. The retained main-review directory
 \citep{artifact} identifies source revision
 \code{00d973e58217dbb589e4fdd0a48815a623faae9a}, exact controller and toolchain
 identities, commands, application/test outcomes, and raw benchmark records.
-Its \code{validation.json} distinguishes the aggregate proof run from the final
+The directory remains in Git history. Its validation record distinguishes the aggregate proof run from the final
 JavaScript-only guard change and repeated runtime gates; the Bend inputs were
 unchanged between them. Later model-proof and prepared-extension checks are
-summarized separately in \code{docs/review-validation.json}; they are not new
+summarized separately in review records in Git history; they are not new
 timing measurements. This article reuses and reanalyzes the retained dataset.
 The accompanying \code{paper/evidence.py} checks unique burst identities,
 response counts and elapsed-time throughput. It recomputes the quantitative
@@ -562,7 +562,7 @@ failed after new contract modules appeared. A separate retained audit reconstruc
 all ten frozen environment identities and preserves the original failed status
 and unchanged measurements. The three linked files are
 \code{raw-result.json}, \code{provenance-audit.json} and \code{results.json}
-under \code{experiments/database-comparison/evidence/}. The raw manifest SHA-256
+under \code{paper/evidence/}. The raw manifest SHA-256
 begins \code{fbce76fdafe3}; the derived analysis input begins
 \code{355fd9b197d9}. This auditable historical scope does not make the run a
 measurement of the current optional interfaces.
@@ -697,8 +697,8 @@ version 2.0.39, pinned by the JayDB2 admission manifest.
 LIZARDO, G. J. \textbf{JayDB2: source, specification and experimental evidence}.
 2026. \url{https://github.com/j0taaa/jaydb2}.
 Retained source and measurements: revision \code{00d973e}.
-Evidence: \path{experiments/integration/evidence/main-review/}.
-Later proof scope: \code{docs/review-validation.json}.
+Retained measurements: \path{paper/evidence/benchmark.json}.
+Later proof scope: review records in Git history.
 
 \end{thebibliography}
 \end{document}

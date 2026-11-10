@@ -41,7 +41,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
         (folder/'Environment.bend').write_text('import Base\ndef identity() -> String: "receipt-trace-test"\n')
         shutil.copyfile(ROOT/'native/effects.bend', folder/'Native.bend')
         shutil.copyfile(ROOT/'native/effects.c', folder/'effects.c')
-        shutil.copyfile(ROOT/'experiments/idempotency/ReceiptTrace.bend', folder/'Trace.bend')
+        shutil.copyfile(ROOT/'tests/service/ReceiptTrace.bend', folder/'Trace.bend')
         source, binary = folder/'trace.c', folder/'trace'
         subprocess.run(['node', '--stack_size=65536', str(ROOT/'tests/native/emit_fixture.mjs'),
             str(ROOT/'.tools/bend-source-2.0.39/bend2'), str(folder/'Trace.bend'), str(source)],

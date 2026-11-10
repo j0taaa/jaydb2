@@ -68,7 +68,7 @@ compiler; the host retains the last published state.
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
   a universally certified program once, then execute its instance-local handle
   with fresh credentials and arguments. Restart loses handles.
-- **[Complete-image persistence](experiments/persistence/REPORT.md):** opt-in
+- **[Complete-image persistence](tools/service/SIMPLE_SERVICE.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
   compares an immutable descriptor of the exact executable/environment bytes.
   Development databases can be
@@ -89,8 +89,8 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 
 ## Branches
 
-`main` contains the accepted CPU capabilities, optional SQL/Drizzle frontend,
-database comparison suite and TCC sources. SQL/Drizzle is an application layer;
+`main` contains the accepted CPU capabilities, optional SQL/Drizzle frontend
+and TCC sources. SQL/Drizzle is an application layer;
 it does not replace the engine or change its core laws.
 
 [`experiment-integration`](https://github.com/j0taaa/jaydb2/tree/experiment-integration)
@@ -115,13 +115,7 @@ alone does not establish proof or durability correctness. The older individual
 `make verify-contract`, `make verify`, `make test` and application targets remain
 available.
 
-The [main-merge review](experiments/integration/MAIN_REVIEW.md) records the
-reviewed engine, concrete repairs and raw validation evidence. Experiment
-reports retain their historical revisions and measured scope.
-
-The subsequent [project review](docs/review.md) records further repairs,
-proof coverage and remaining obligations. The English
-[TCC article and editable defense slides](paper/README.md) use the project's
+The English [TCC article and editable defense slides](paper/README.md) use the project's
 verified evidence and identify its trusted boundaries.
 
 ## Guarantees and assumptions

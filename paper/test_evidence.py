@@ -14,7 +14,7 @@ spec.loader.exec_module(evidence)
 class ComparisonEvidenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        folder = evidence.ROOT / 'experiments/database-comparison/evidence'
+        folder = evidence.ROOT / 'paper/evidence'
         cls.data = json.loads((folder / 'results.json').read_text())
         cls.raw = json.loads((folder / 'raw-result.json').read_text())
         cls.audit = json.loads((folder / 'provenance-audit.json').read_text())

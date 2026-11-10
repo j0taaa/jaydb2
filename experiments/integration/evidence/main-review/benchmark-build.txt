@@ -1,2 +1,0 @@
-   Compiling jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/experiment-integration)
-    Finished `release` profile [optimized] target(s) in 2.35s

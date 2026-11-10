@@ -72,11 +72,6 @@ test-integration:
 
 test-library: build
 	mkdir -p build/library/tmp
-	python3 -B experiments/library/prepare_proofs.py
-	python3 -B tools/check.py library/VERIFY.bend build/library/application-proof/Check.bend
-	python3 -B experiments/library/test_negative.py
-	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_arithmetic.py
-	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B experiments/library/test_collections.py
 	TMPDIR="$(CURDIR)/build/library/tmp" python3 -B applications/tasks/query_check.py
 
 demo: build
@@ -108,11 +103,11 @@ test-idempotency-recovery:
 # Caller holds /tmp/jaydb2-experiments-heavy.lock; no nested lock is acquired.
 .PHONY: verify-integration test-feature-integration
 verify-integration: verify-contract verify
-	python3 -B tools/check.py experiments/idempotency/VERIFY.bend
+	python3 -B tools/check.py tests/service/ReceiptHelpers.bend
 
 test-feature-integration: build
 	python3 -B applications/indexed/run_check.py
-	python3 -B experiments/integration/check_features.py
+	python3 -B tests/service/check_features.py
 	python3 -B applications/vouchers/check.py --restart
 
 # One opt-in fault binary for the storage, timing and lost-reply receipt gates.

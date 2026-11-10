@@ -1,9 +1,0 @@
-{
-  "arithmetic_cases": 98305,
-  "distinct_operand_pairs": 19661,
-  "key_cases": 2025,
-  "arithmetic_emitted_sha256": "5ec3c2a07456dfa07218cb1c48a28225e5fe3d98b2d6dd7d80cd616e75ec268f",
-  "key_emitted_sha256": "421bcf47a2d66a7f6c9d3e3cd7886453fb215346e651bb41b4a1f8598ff1f5bd",
-  "status": "passed",
-  "controller_modified": false
-}

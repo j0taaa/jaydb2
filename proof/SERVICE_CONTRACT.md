@@ -100,8 +100,7 @@ enqueue may precede earlier execution, but selection, authentication, admission,
 execution, cleanup, publication and response delivery remain serial. The
 existing serial theorem does not mechanize the Rust queue, byte reservations,
 poll/cancellation or their refinement. These are additional explicit host
-contracts supported by deterministic and real CLI tests; see the
-[scheduling report](../experiments/scheduling/REPORT.md). A fallible publication
+contracts supported by deterministic and real CLI tests. A fallible publication
 hook allows fatal commit errors to end service without an invented response;
 it does not by itself establish durability or extend the serial theorem to a
 persistent host.

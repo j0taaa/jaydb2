@@ -122,9 +122,7 @@ Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable
 and its sources/tooling. Development databases are disposable; cross-build
 compatibility and migrations are deliberately outside this feature. Recreate a
-development database explicitly after changing its frozen environment. The [persistence report](../../experiments/persistence/REPORT.md)
-states the serialization/recovery proof, OS/filesystem assumptions, fault tests
-and limitations. Process death tests do not establish hardware power-loss safety.
+development database explicitly after changing its frozen environment. Process death tests do not establish hardware power-loss safety.
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs

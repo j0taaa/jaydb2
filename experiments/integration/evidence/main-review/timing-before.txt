@@ -1,2 +1,0 @@
-timing= False exit= 0 elapsed= 5.372 response= {'status': 'authentication', 'value': None}
-timing= True exit= 101 elapsed= 5.356 response= <empty>
