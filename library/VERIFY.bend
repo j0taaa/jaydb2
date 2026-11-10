@@ -51,6 +51,11 @@ import ./IndexClaimProofs.bend as IndexClaimProofs
 import ./IndexLookupProofs.bend as IndexLookupProofs
 import ./ReceiptLookupProofs.bend as ReceiptLookupProofs
 import ./ReceiptWriteProofs.bend as ReceiptWriteProofs
+import ./RowLookupProofs.bend as RowLookupProofs
+import ./RowRemovalLookupProofs.bend as RowRemovalLookupProofs
+import ./MutationStateShapeProofs.bend as MutationStateShapeProofs
+import ./MutationValidatorProofs.bend as MutationValidatorProofs
+import ./CollectionChangeCompositionProofs.bend as CollectionChangeCompositionProofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

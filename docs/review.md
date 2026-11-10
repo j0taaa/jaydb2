@@ -236,15 +236,23 @@ No arbitrary callback preservation or administrator-chosen invariant is assumed.
 Direct claim/lookup content meanings and total receipt helpers now also prove
 complete source-derived results, ordered reads, early conflict/missing handoff,
 full-row writes and data errors. Unreached fields need no validity premise.
-Application idempotency and Voucher pair/lifetime/dispatch/replay correctness
-remain separate from reusable helper correctness. These algorithm contracts are distinct from the transaction
+The Voucher reference now also proves its independent bidirectional lifetime
+invariant for every request/principal, complete actual all-fuel dispatch,
+cancellation/retirement/permission behavior, and full replay closure. The actual
+installed laws and existing seed imply that invariant. Existential reachability
+does not establish actual observed request/input provenance. These application
+and algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
 
 The latest combined maintained gate passed both official modes and all 352
 intended core rejections per mode on unchanged recorded inputs. Its import
-inventory reaches 400 modules, including 170 library modules; this inventory
-still measures checked reachability, not whole-project correctness.
+inventory reaches 405 modules, including 175 library modules; this inventory
+still measures checked reachability, not whole-project correctness. That gate
+also checked all 56 Voucher false-proof controls per mode and 37 real native
+application calls. The 1,160 recorded inputs stayed unchanged. Proof checking
+uses a separate temporary application package, preserving the original full
+native certificate and keeping verification modules outside runtime copying.
 
 A real read-batch progress defect was also repaired. A later worker spawn
 failure previously discarded replies from the already started prefix. The

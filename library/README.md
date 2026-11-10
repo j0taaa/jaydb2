@@ -377,9 +377,12 @@ total receipt binding and exact source-input hit/miss/conflict results. Literal
 input or operation conflicts stop before reading later fields; missing keys
 hand off after the first read. `ReceiptWriteProofs` covers the full-row write,
 actual data errors and precise continuation/state/history. Callbacks remain
-arbitrary. These helper contracts alone do not prove application idempotency or
-a receipt's whole lifetime; the Voucher pair/retirement/dispatch/replay invariant
-and broader business functional specifications remain separate obligations.
+arbitrary. The Voucher application separately proves its independent
+bidirectional pair/lifetime invariant, actual reference-program behavior for
+every fuel and complete replay closure. Its actual installed law list implies
+that invariant. Existential replay reachability does not establish actual
+observed input/history provenance; that and broader application specifications
+remain separate obligations.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

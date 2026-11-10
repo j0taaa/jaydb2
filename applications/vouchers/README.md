@@ -71,6 +71,22 @@ flock /tmp/jaydb2-experiments-heavy.lock python3 -B applications/vouchers/check.
 
 Open uses the same frozen environment/controller and no seed.
 
+## Checked lifetime proofs
+
+`proof/VERIFY.bend` checks an independent bidirectional invariant over every
+request ID and principal table. The actual frozen reference preserves it for
+all execution fuels and complete replay histories, including real cancellation
+writes followed by rollback, retirement and permission changes. The proofs also
+establish exact live-hit reads/results and input/cancellation conflict refusal.
+The existing seed and actual installed configuration laws imply the invariant.
+
+`check.py` runs both official proof modes and 56 deliberate false-proof controls
+in one temporary copy of the public namespace, then checks the original complete
+native certificate. Application verification files stay under `proof/` and are
+not copied into the runtime package. `ReceiptLaws.State` is existential reference
+reachability; these results do not establish actual observed request/history
+provenance or a complete native service proof.
+
 ## Lost-response recovery check
 
 Run the focused durability test under the common heavy lock:

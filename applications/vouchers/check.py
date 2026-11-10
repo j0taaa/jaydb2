@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 APP = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 from applications.tasks.app import Database
+from applications.vouchers.proof.check import check as proof_check
 
 
 def prepare(directory):
@@ -29,23 +30,6 @@ def prepare(directory):
         (directory / f'{name}.bend').write_text(
             source.replace('../contract/', './').replace('../src/', './'))
 
-
-def proof_check(directory):
-    # Development-only flat package: same module bodies, only relative imports
-    # and generated open targets are replaced. Integration still uses real ones.
-    for folder in ('contract', 'src'):
-        for source in (ROOT / folder).glob('*.bend'):
-            (directory / source.name).write_text(source.read_text().replace('../contract/', './'))
-    (directory / 'Environment.bend').write_text('import Base\ndef identity() -> String:\n  "proof-development"\n')
-    proof = (directory / 'ClientProof.bend').read_text()
-    proof = proof[:proof.index('def B.certificate')]
-    proof = proof.replace('import ./Instance.bend as I\n', '').replace('import ./Bindings.bend as B\n', '')
-    (directory / 'ClientProof.bend').write_text(proof)
-    (directory / 'Check.bend').write_text('import ./ClientProof.bend as ClientProof\nimport ./Seed.bend as Seed\n')
-    subprocess.run([sys.executable, '-B', str(ROOT / 'tools/check.py'), str(directory / 'Check.bend'),
-        str(ROOT / 'experiments/idempotency/VERIFY.bend')], check=True,
-        env={**os.environ, 'TMPDIR': str(directory.parent.resolve())})
-    prepare(directory)  # Actual integration uses the complete original proof.
 
 
 @contextmanager

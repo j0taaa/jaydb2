@@ -1201,5 +1201,76 @@
       "Complete chronological ordinary/prepared service composition, concurrent scheduling, progress, recovery and native/compiler/OS/storage/derivation correspondence."
     ],
     "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
+  },
+  "voucher_lifetime_2026_11_10": {
+    "base_main": "e87cdbb",
+    "whole_goal_complete": false,
+    "scope": "Complete independent bidirectional all-request/all-principal lifetime meaning; exact actual reference source success effects for ALL inputs/fuels; actual advance/replay closure and unchanged RL.State ->Global; exact live hit/conflict/current permission, complete retirement, cancellation and publication. Live conflict refutes ALL complete reference successes and separately supplied successful final certificates under the installed rule list. Actual unchanged Configuration.config R.Valid ->exact frozen RL.State ->Global and actual successful SafetyFinal ->Global are kernel checked in original flat namespace; actual Seed.initial_valid is instantiated. RL.State remains EXISTENTIAL reachability, not actual observed-history/input provenance, and refusal-prefix abort freedom remains unchanged. No proof manufactures arbitrary program certifiability or deployed Environment identity.",
+    "theorems": [
+      "Independent bidirectional invariant covers every request and principal table. Actual reference program advance preserves it for every input and fuel; all unchanged ReceiptLaws.replay histories preserve it. Actual origin and installed configuration validity imply that invariant.",
+      "Exact source-content live hits recheck current permission and return the exact stored result without writes; changed input or cancellation conflicts cannot have a complete reference success. Cancellation retains both working writes and rolls back; retirement removes both rows and starts a new lifetime on reuse.",
+      "Successful R.SafetyFinal under the actual installed law list implies published lifetime validity. The checked actual Seed.initial_valid supplies a nonempty instance. State remains existential reference reachability; actual observed input/history provenance and native correspondence are separate."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration; python3 -B applications/vouchers/check.py",
+      "runs": [
+        {
+          "command": [
+            "make",
+            "verify-integration"
+          ],
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "applications/vouchers/check.py"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 879.2482612133026,
+      "frozen_inputs": 1160,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 352,
+      "voucher_rejection_controls_per_mode": 56,
+      "native_call_checks": 37
+    },
+    "coverage": {
+      "transitive_modules": 405,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 175,
+          "law_declarations": 799
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_proof_modules": 27,
+    "new_causal_controls": 56,
+    "runtime_source_changes": false,
+    "verification_packaging": "New application proofs live under proof/, outside runtime source copying. Development proof checks use a separate temporary flat namespace; complete original ClientProof is supplied to all native admissions. Generic library Proofs is renamed only in that temporary namespace to avoid colliding with actual task Proofs. Mathematical configuration projection is parametric in environment, not proof of a deployed identity.",
+    "evidence_sha256": {
+      ".build/review/proof-resumption-voucher-gate.log": "cadda49d33474e8517b23ae88f316a6fa38e1d82d0fc3fd7c191290697a3e9fc",
+      ".build/review/voucher-functional/promotion-combined.json": "b9e6f4134cba6c2657bea22092f334fa1f9ed9b19c4df5ba23fd418e6cae24eb",
+      ".build/review/voucher-functional/integration/validation-flat.json": "8c4c7f300791d048d178ddc4a33831baec3c641d159e2c7f38f1278b6426e933",
+      ".build/review/voucher-functional/protocol/validation.json": "9d21821f3d4099d471ed579035671ac9955497480f1914df0f3a94262cf89d0f",
+      ".build/review/voucher-proofs-promoted.json": "810d5a072a7635bc48ee5cc19f421e9bdb39023372d8f0919af2bdce50c6cdbb"
+    },
+    "remaining": [
+      "Actual observed reference-history/input provenance; broader application functional specifications.",
+      "Complete ordinary/prepared law composition and whole-service witness, concurrent execution, progress, recovery and native/compiler/OS/storage/derivation correspondence."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; all checked maintained implementation/proof/test/tool inputs unchanged."
   }
 }
