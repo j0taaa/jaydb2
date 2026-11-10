@@ -202,3 +202,20 @@ law core_progress_supplies_worker_completion:
 def core_progress_supplies_worker_completion(c, s, ctx, machine, progress):
   match progress:
     case (n, w, ts, r, L.Both{exact, rest}): (n, (w, ts, r, exact))
+
+# The worker's generated law can discharge every decoded/selected premise.
+# These eliminators do not assume anything about the runtime Boolean guards.
+def decoded_oracle(input: Input.PreAuthentication, -c: S.Configuration,
+  -admit: Gate.Oracle(), sound: @r: P.Request -> Theorems.OracleSoundness(c, r, admit)) ->
+  Theorems.DecodedOracleSoundness(input, c, admit):
+  match input:
+    case Input.InputReady{s, r}: sound(r)
+    case Input.ErrorMessage{status}: Unit{}
+    case Input.ErrorTransport{}: Unit{}
+
+def selected_oracle(selection: Resolve.Selection, -c: S.Configuration,
+  -admit: Gate.Oracle(), sound: @r: P.Request -> Theorems.OracleSoundness(c, r, admit)) ->
+  Theorems.SelectedOracleSoundness(selection, c, admit):
+  match selection:
+    case Resolve.Selected{r}: sound(r)
+    case Resolve.Denied{status}: Unit{}

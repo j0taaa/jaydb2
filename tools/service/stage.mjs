@@ -52,13 +52,19 @@ const EXECUTE = COMMON + `import ./Input.bend as Input
 import ./Execution.bend as E
 import ./Worker.bend as Worker
 import ./Gate.bend as Gate
-import ./Generate.bend as Generate
 import ./Protocol.bend as P
 import ./Instance.bend as Instance
 import ./Transport.bend as Transport
 import ./Client.bend as Client
 import ./ClientProof.bend as ClientProof
 import ./Bindings.bend as Bindings
+import ./WorkerOracleTheorems.bend as Theorems
+import ./Requirements.bend as R
+import ./Logic.bend as L
+import ./WorkerProofOracleEquality.bend as Equality
+import ./WorkerProofOrders.bend as Orders
+import ./WorkerProofFoundations.bend as Foundations
+import ./WorkerProofOracleEvidence.bend as Evidence
 
 # The function capture owns the provisional state and moves once to the step.
 def convert(i: E.Iteration) -> Native.Iteration<(Unit -> E.StateExecution)>:
@@ -112,11 +118,16 @@ def request_proof(r: P.Request) -> String:
   P.Request{credential, code, arguments, proof_source} = r
   proof_source
 
-def admit(c: S.Configuration, r: P.Request, ctx: D.Context) -> Gate.Verdict:
+def matches(c: S.Configuration, r: P.Request, ctx: D.Context) -> Bool:
   +r = r
-  verdict(String.eq(S.environment(c), S.environment(C.config())) &&
+  String.eq(S.environment(c), S.environment(C.config())) &&
     String.eq(Gate.code(r), Bindings.code()) &&
-    String.eq(request_proof(r), Bindings.proof_source()) && INSTANCE_MATCH)
+    String.eq(request_proof(r), Bindings.proof_source()) && (INSTANCE_MATCH)
+
+def admit(c: S.Configuration, r: P.Request, ctx: D.Context) -> Gate.Verdict:
+  verdict(matches(c, r, ctx))
+
+ORACLE_PROOF
 
 def launch(iteration: E.Iteration) -> IO(Unit):
   match iteration:
@@ -139,6 +150,53 @@ def main() -> IO(Unit):
     launch(entry(bytes))
 
 `;
+
+function oracleProof(universal) {
+  const instance = 'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())';
+  return `
+# This premise is checked in the same Book as the actual accepting branch.
+def matched_certificate(+r: P.Request, +ctx: D.Context,
+  +matched: {matches(C.config(), r, ctx) == True{} : Bool}) ->
+  R.Certifies(C.config(), Gate.code(r), Client.program(), ctx, Gate.arguments(r)):
+  +prefix = String.eq(S.environment(C.config()), S.environment(C.config())) && String.eq(Gate.code(r), Bindings.code()) && String.eq(request_proof(r), Bindings.proof_source())
+  +first = Foundations.and_boolean_left(prefix, ${universal ? 'True{}' : instance}, matched)
+  +two = Foundations.and_boolean_left(String.eq(S.environment(C.config()), S.environment(C.config())) && String.eq(Gate.code(r), Bindings.code()), String.eq(request_proof(r), Bindings.proof_source()), first)
+  %Equal.sym(String, Gate.code(r), Bindings.code(), Orders.string_equal(Gate.code(r), Bindings.code(), Foundations.and_boolean_right(String.eq(S.environment(C.config()), S.environment(C.config())), String.eq(Gate.code(r), Bindings.code()), two))) :
+    R.Certifies(C.config(), _, Client.program(), ctx, Gate.arguments(r))
+${universal ? '  Bindings.certificate(ctx, Gate.arguments(r))' : `  +instance = Foundations.and_boolean_right(prefix, ${instance}, matched)
+  %Equal.sym(D.Context, ctx, Instance.context(), Equality.context_sound(ctx, Instance.context(), Foundations.and_boolean_left(D.context_equal(ctx, Instance.context()), Equality.arguments_equal(Gate.arguments(r), Instance.arguments()), instance))) :
+    R.Certifies(C.config(), Bindings.code(), Client.program(), _, Gate.arguments(r))
+  %Equal.sym(D.Value, Gate.arguments(r), Instance.arguments(), Equality.arguments_sound(Gate.arguments(r), Instance.arguments(), Foundations.and_boolean_right(D.context_equal(ctx, Instance.context()), Equality.arguments_equal(Gate.arguments(r), Instance.arguments()), instance))) :
+    R.Certifies(C.config(), Bindings.code(), Client.program(), Instance.context(), _)
+  Bindings.certificate`}
+
+def verdict_sound(accepted: Bool, +r: P.Request, +ctx: D.Context,
+  matched: {matches(C.config(), r, ctx) == accepted : Bool}) ->
+  Theorems.VerdictSound(verdict(accepted), C.config(), r, ctx):
+  match accepted:
+    case False{}: Unit{}
+    case True{}:
+      L.Both{matched_certificate(r, ctx, matched), s => Bindings.terminates(s, ctx, Gate.arguments(r))}
+
+law generated_oracle_sound:
+  for r: P.Request
+  Theorems.OracleSoundness(C.config(), r, admit)
+def generated_oracle_sound(r, ctx):
+  +r = r
+  +ctx = ctx
+  verdict_sound(matches(C.config(), r, ctx), r, ctx, {==})
+
+# The repository CertifiedWorker corollaries consume this package and supply
+# every Ingress/UnifiedCore premise internally from its checked sound field.
+def checked_oracle() -> Evidence.Checked<C.config()>:
+  Evidence.Checked{admit, admit, {==}, generated_oracle_sound}
+
+law checked_oracle_is_actual:
+  {Evidence.oracle(C.config(), checked_oracle()) == admit : Gate.Oracle()}
+def checked_oracle_is_actual(): {==}
+
+`;
+}
 
 function imports(data) {
   const result = [];
@@ -232,6 +290,27 @@ function freeze(workdir, configuration, seed) {
     const bytes = read(path.join(ROOT, folder, name));
     sources.set(name, folder === 'src' ? Buffer.from(utf8(bytes).replaceAll('../contract/', './')) : bytes);
   }
+  // Keep proof namespaces separate from administrator helper module names.
+  // Relocation changes import paths only; the bodies are the maintained proofs.
+  const proofName = relative => relative === 'contract/Theorems.bend' ? 'WorkerOracleTheorems.bend'
+    : relative.startsWith('contract/') || relative.startsWith('src/') ? path.posix.basename(relative)
+    : 'WorkerProof' + path.posix.basename(relative);
+  const loaded = new Set();
+  const loadProof = relative => {
+    if (loaded.has(relative)) return;
+    loaded.add(relative);
+    let source = utf8(read(path.join(ROOT, relative)));
+    for (const { specifier } of header(source, relative).imports) {
+      if (specifier === 'Base') continue;
+      const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(relative), specifier));
+      if (!dependency.startsWith('contract/') && !dependency.startsWith('src/') || dependency === 'contract/Theorems.bend') loadProof(dependency);
+      source = source.replace('import ' + specifier + ' as ', 'import ./' + proofName(dependency) + ' as ');
+    }
+    sources.set(proofName(relative), Buffer.from(source));
+  };
+  loadProof('contract/Theorems.bend');
+  loadProof('proof/OracleEquality.bend');
+  loadProof('proof/OracleEvidence.bend');
   sources.set('Native.bend', read(path.join(ROOT, 'native/effects.bend')));
   const seedSources = loadAdministrator(configuration, seed, sources), tooling = new Map();
   for (const folder of ['tools/admission', 'tools/verifier']) for (const name of fs.readdirSync(path.join(ROOT, folder)).sort()) {
@@ -303,7 +382,8 @@ def main() -> IO(Unit):
     available.set('Bindings.bend', Buffer.from(utf8(available.get('Bindings.bend')) +
       '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
     main = EXECUTE.replace('INSTANCE_MATCH', purpose === 'prepare' ? 'True{}' :
-      'D.context_equal(ctx, Instance.context()) && String.eq(Generate.value(Gate.arguments(r)), Generate.value(Instance.arguments()))')
+      'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())')
+      .replace('ORACLE_PROOF', oracleProof(purpose === 'prepare'))
       .replaceAll(/WORKER_ENTRY|WORKER_REFERENCE/g, purpose === 'prepare'
         ? 'Worker.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
         : 'Worker.packet(C.config(), bytes, admit)');
@@ -378,7 +458,9 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   const limits = report.limits;
   if (Object.keys(limits).sort().join(',') !== 'message,response,state' || Object.values(limits).some(x => !/^(0|[1-9][0-9]*)$/.test(x))) fail('CONFIGURATION', 'Expected three natural logical limits');
   const executable = path.join(directory, report.cSha256 + '.program'), clang = '/usr/bin/clang-19';
-  const flags = ['-std=gnu11', '-O2', '-w', '--no-default-config', source, '-o', executable, '-lm', '-pthread'];
+  // Ordinary calls pay compilation per request; reusable workers amortize -O2.
+  const optimization = purpose === 'execute' ? '-O0' : '-O2';
+  const flags = ['-std=gnu11', optimization, '-w', '--no-default-config', source, '-o', executable, '-lm', '-pthread'];
   command(clang, flags);
   if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
   json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags });

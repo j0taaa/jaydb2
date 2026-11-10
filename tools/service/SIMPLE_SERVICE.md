@@ -40,7 +40,7 @@ oracle. It starts exactly the admitted program with that authenticated context
 and the actual arguments, or calls `Gate.early` without constructing a program.
 
 For concrete admission the oracle matches the exact source/proof strings,
-authenticated context and canonical arguments. Universal prepared admission
+authenticated context and structural arguments. Universal prepared admission
 matches the frozen source/proof and specializes the checked universal proof to
 the current context/arguments. Configuration is the same closed declaration at
 every call site; the environment comparison is an additional integrity guard,
@@ -158,7 +158,9 @@ limit and never replays prefixes. These lemmas connect the emitted decision
 and bytes to Ingress/UnifiedCore under their existing validity and sound-oracle
 premises, without assuming compiler or C-loop preservation as a Bend proof.
 
-T1 remains official admission soundness plus exact source/target/Book binding.
+The generated `generated_oracle_sound` law supplies the logical oracle premise.
+T1 retains official checker soundness, exact source/Book/artifact binding and
+the source/purity audit.
 T2 remains preservation by the official compiler, native runtime and foreign
 loop. The remaining T3 plumbing obligations are:
 
@@ -210,3 +212,9 @@ it wraps explicitly and does not identify semantic worlds, runs or proof times.
 Host diagnostics are best-effort. A failed timing or inspection sink is disabled
 before attempting its diagnostic, and failed stderr writes cannot suppress an
 ordinary response, undo publication or turn an observer error into a panic.
+
+The compiler preflights the import-only pure root and verifies that every pure
+module has exactly the executable Book's bytes, role and policy. A successful
+full Book checks all these declarations in both official modes once. If the
+worker fails, the separate pure check still distinguishes a rejected client
+certificate from a host wrapper failure; no successful declaration is skipped.
