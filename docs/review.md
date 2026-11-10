@@ -226,14 +226,16 @@ source state. General filter-map order/projection follows from local contextual
 visitor contracts, discharged for a real one-cell visitor. Total action/mutation proofs now cover ordered writes, evolving working state,
 conditional insert/replace/CAS, checked counters and finalized Core rollback.
 Original schema/address/value conditions are explicit, and arbitrary callbacks
-are not falsely treated as read-only. Summary storage, index, receipt and broader
-business functional specifications remain open. These algorithm contracts are distinct from the transaction
+are not falsely treated as read-only. Summary storage and total index execution
+are now proved, including complete independent source-scan origins, payloads,
+ranks, multiplicity and order. Complete index state-maintenance invariants,
+receipt helpers and broader business functional specifications remain open. These algorithm contracts are distinct from the transaction
 authorization/publication laws. No result here is labeled "100% proved for the
 entire project."
 
-The latest combined maintained gate passed both official modes and all 269
+The latest combined maintained gate passed both official modes and all 307
 intended core rejections per mode on unchanged recorded inputs. Its import
-inventory reaches 366 modules, including 136 library modules; this inventory
+inventory reaches 381 modules, including 151 library modules; this inventory
 still measures checked reachability, not whole-project correctness.
 
 A real read-batch progress defect was also repaired. A later worker spawn

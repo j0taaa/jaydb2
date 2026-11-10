@@ -38,6 +38,13 @@ import ./MutationPrefixProofs.bend as MutationPrefixProofs
 import ./MutationPublicationProofs.bend as MutationPublicationProofs
 import ./MutationBooleanProofs.bend as MutationBooleanProofs
 import ./MutationCounterProofs.bend as MutationCounterProofs
+import ./SummaryStoreProofs.bend as SummaryStoreProofs
+import ./IndexKeyProofs.bend as IndexKeyProofs
+import ./IndexEntryProofs.bend as IndexEntryProofs
+import ./IndexActionProofs.bend as IndexActionProofs
+import ./IndexRebuildTrace.bend as IndexRebuildTrace
+import ./IndexScanProofs.bend as IndexScanProofs
+import ./IndexSourceProofs.bend as IndexSourceProofs
 import ../experiments/library/VERIFY.bend as Extensions
 
 def schema() -> D.Schema:

@@ -188,7 +188,10 @@ there is no implicit initialization. `next` returns the incremented value.
 Each index table has required text columns `id`, `target`, `value`, keyed by
 `id`. Unique entries use `Key.encode(parts)` as their key. Nonunique entries use
 `Key.encode(parts ++ [target])`; the `value` cell retains `Key.encode(parts)`.
-Each indexed field combination has a fixed arity in the application's schema.
+Each indexed field combination has a fixed arity in the application's schema
+and uses its own index table. Per-mode encodings are injective. Unique and
+nonunique key spaces are disjoint at equal arity; mixing different arities and
+modes in one table can collide because a nonunique target is a final key part.
 `lookup` reads `target`. `scan_equal` enumerates ALL index keys and reads BOTH
 `target` and `value` of EVERY entry, then filters by equality. This is a useful
 ordinary derived-table query. A faster nonunique lookup representation is deferred;
@@ -339,8 +342,21 @@ domains explicitly. A compatible `DefineColumn` can succeed unchanged when the
 row is missing; `counter_add` refuses missing/noninteger counters. `replace_if`
 can insert a missing row when its predicate accepts `RowAbsent`. These results
 do not certify an administrator's chosen business invariant or bypass access
-permissions. Summary storage, index, receipt and broader business functional
-specifications remain to be proved.
+permissions.
+
+`SummaryStoreProofs` covers checked count/total and its one-row store, including
+refusal before any write on overflow. `IndexActionProofs`, `IndexRebuildTrace`
+and the index scan/visit modules cover total actual execution, every return,
+first failure, exact continuation and complete read/write histories.
+`IndexKeyProofs` and `IndexEntryProofs` prove key injection, exact projection and
+Unicode conditions. `IndexSourceProofs` derives the complete scan from a
+consistent source table with independent literal matching parts: every original
+position, payload, prefix rank, duplicate occurrence and output order is retained.
+The domain covers the entire descriptor/table, unique keys and valid Unicode;
+one successful cell lookup cannot establish global consistency.
+
+Complete independent frame/remove/upsert/rebuild/maintenance state invariants,
+receipt helpers and broader business functional specifications remain open.
 Advanced ordered/range indexes remain later; full text, geospatial and a query
 optimizer are excluded. Idempotency/receipt handling belongs to its own module
 and is not duplicated here.

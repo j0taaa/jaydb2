@@ -1051,5 +1051,55 @@
       ".build/review/service-operational/serial/staging-target-collision.log": "c609f1d8a950a643bd6c09a4fd9b3e301a6bb82b750e78af960a662ba5ce9736"
     },
     "post_gate_changes": "Existing review documentation/metadata only after the unchanged-input native gate."
+  },
+  "index_storage_2026_11_10": {
+    "base_main": "5c9abae",
+    "whole_goal_complete": false,
+    "scope": "Total summary/index execution and independent source-index scan semantics. Complete rebuild/maintenance and arbitrary business-table invariants remain open.",
+    "theorems": [
+      "Summary.store computes independent mathematical count/total and emits exactly its single row write, or refuses before writing on aggregation overflow.",
+      "Total Index claim/lookup/maintain/rebuild/scan execution from actual input-driven engine state, events and continuation; all Return variants, first failure and invalid-entry refusal included. Maintain removes old keys then upserts new entries before the arbitrary business action; rebuild enumerates/removes the current table before replacement.",
+      "Per-mode composite-key injection, equal-arity cross-mode disjointness, entry Unicode and exact schema projection. A mixed-arity cross-mode collision is an explicit counterexample, not a false disjointness theorem.",
+      "Complete source-table scan with independent literal parts matching, every original position/payload/rank, completeness, duplicate multiplicity, order and actual all-read history. Public domains cover the complete descriptor/table view, unique keys, valid Unicode and exact schema; no completed trace/result or single-lookup-to-global-consistency premise."
+    ],
+    "combined_gate": {
+      "command": "make verify-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 482.34447264671326,
+      "frozen_inputs": 1011,
+      "changed_inputs": [],
+      "core_rejection_controls_per_mode": 307
+    },
+    "coverage": {
+      "transitive_modules": 381,
+      "areas": {
+        "src": {
+          "modules": 16,
+          "law_declarations": 26
+        },
+        "proof": {
+          "modules": 171,
+          "law_declarations": 1366
+        },
+        "library": {
+          "modules": 151,
+          "law_declarations": 704
+        }
+      },
+      "meaning": "Import coverage of maintained Bend modules; not a proof of every functional specification or host refinement."
+    },
+    "new_causal_controls": 38,
+    "runtime_changes": false,
+    "evidence_sha256": {
+      ".build/review/proof-resumption-index-storage-gate.log": "bf97fcdb4d36fe91e7d4b1edad0b427c3ba5430c9d2ae8006b6048a4885136da",
+      ".build/review/index-storage-functional/validation.json": "1c79e77a4c60d9f01605cf3fc290626635bae0110a4d0d5806aff17d7286ff23",
+      ".build/review/index-storage-functional/invariants/validation.json": "124ba91dc389060fe8142c911b1af08ef6ece3a1dbdf18fa9c46a87ea5b59cba",
+      ".build/review/index-storage-promoted.json": "6f7cd5b4aa70943b59645fc262e5a7e55872604c93cb22b1099b6c379fd422be"
+    },
+    "remaining": [
+      "Complete independent index frame/remove/upsert/rebuild/maintenance state invariants and Receipts functional obligations.",
+      "Complete chronological ordinary/prepared service composition, progress, recovery and native/compiler/OS/storage/derivation correspondence."
+    ],
+    "post_gate_changes": "Existing documentation and validation metadata only; checked maintained runtime/Bend/test/tool inputs unchanged."
   }
 }
