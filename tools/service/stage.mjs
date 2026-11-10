@@ -50,6 +50,12 @@ def main() -> IO(Unit):
 `;
 const EXECUTE = COMMON + `import ./Input.bend as Input
 import ./Execution.bend as E
+import ./Worker.bend as Worker
+import ./Gate.bend as Gate
+import ./Generate.bend as Generate
+import ./Protocol.bend as P
+import ./Instance.bend as Instance
+import ./Transport.bend as Transport
 import ./Client.bend as Client
 import ./ClientProof.bend as ClientProof
 import ./Bindings.bend as Bindings
@@ -95,17 +101,43 @@ law step_preserves_exact_execution_advance:
 def step_preserves_exact_execution_advance(state):
   conversion_preserves_exact_iteration(E.advance(state(Unit{}), C.config()))
 
-def launch(ready: Maybe<&1, (Unit -> E.StateExecution)>) -> IO(Unit):
-  match ready:
-    case Some{initial}:
-      Native.loop((Unit -> E.StateExecution), step, initial)
-    case None{}:
-      Native.write([2])
+# c is always the closed C.config() at the only call site. Comparing its
+# environment also fails closed on a mismatched private binding (T1).
+def verdict(accepted: Bool) -> Gate.Verdict:
+  match accepted:
+    case True{}: Gate.Accept{Client.program()}
+    case False{}: Gate.Reject{}
+
+def request_proof(r: P.Request) -> String:
+  P.Request{credential, code, arguments, proof_source} = r
+  proof_source
+
+def admit(c: S.Configuration, r: P.Request, ctx: D.Context) -> Gate.Verdict:
+  +r = r
+  verdict(String.eq(S.environment(c), S.environment(C.config())) &&
+    String.eq(Gate.code(r), Bindings.code()) &&
+    String.eq(request_proof(r), Bindings.proof_source()) && INSTANCE_MATCH)
+
+def launch(iteration: E.Iteration) -> IO(Unit):
+  match iteration:
+    case E.Continue{state}: Native.loop((Unit -> E.StateExecution), step, u => state)
+    case E.Prepare{state}: Native.loop((Unit -> E.StateExecution), step, u => state)
+    case E.FinishOutput{bytes}: Native.write(bytes)
+    case E.Inconsistent{}: Native.write([2])
+
+def entry(bytes: List<&2, U32>) -> E.Iteration:
+  WORKER_ENTRY
+
+law generated_entry_is_checked_worker:
+  for bytes: List<&2, U32>
+  {entry(bytes) == WORKER_REFERENCE : E.Iteration}
+def generated_entry_is_checked_worker(bytes): {==}
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    launch(E.launch(u => Client.program(), Input.analyze(bytes, S.schema(C.config()), S.limits(C.config()))))
+    launch(entry(bytes))
+
 `;
 
 function imports(data) {
@@ -250,9 +282,14 @@ function stage(environment, directory, purpose, metadata) {
   let main;
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
   else if (purpose === 'recover') main = RECOVER;
-  else if (purpose === 'decode' || purpose === 'authenticate') main = PREPROCESS
-    .replace('FUNCTION', purpose === 'decode' ? 'framing' : 'authentication')
-    .replace('PARSER', purpose === 'decode' ? 'decode' : 'analyze');
+  else if (purpose === 'decode') main = PREPROCESS.replace('FUNCTION', 'framing').replace('PARSER', 'decode');
+  else if (purpose === 'authenticate') main = COMMON + `import ./Dispatch.bend as Dispatch
+
+def main() -> IO(Unit):
+  do IO<Unit>:
+    bytes : List<&2, U32> <- Native.read()
+    Native.write(Dispatch.authentication(bytes, S.schema(C.config()), S.limits(C.config())))
+`;
   else if (['execute', 'prepare'].includes(purpose)) {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
     if (purpose === 'prepare') {
@@ -261,15 +298,15 @@ function stage(environment, directory, purpose, metadata) {
       const links = utf8(available.get('Bindings.bend'));
       if (links.split(concrete).length !== 2) fail('TARGET', 'Expected the generated concrete certificate target');
       available.set('Bindings.bend', Buffer.from(links.replace(concrete,
-        '\nlaw certificate:\n  @ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)\n') +
-        '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
+        '\nlaw certificate:\n  @ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)\n')));
     }
-    main = purpose === 'prepare'
-      ? EXECUTE.replace('import ./Input.bend as Input',
-          'import ./Input.bend as Input\nimport ./Prepared.bend as Prepared')
-        .replace('Input.analyze(bytes, S.schema(C.config()), S.limits(C.config()))',
-          'Prepared.resolve_analysis(Input.analyze(bytes, S.schema(C.config()), S.limits(C.config())), Bindings.code(), Bindings.proof_source())')
-      : EXECUTE;
+    available.set('Bindings.bend', Buffer.from(utf8(available.get('Bindings.bend')) +
+      '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
+    main = EXECUTE.replace('INSTANCE_MATCH', purpose === 'prepare' ? 'True{}' :
+      'D.context_equal(ctx, Instance.context()) && String.eq(Generate.value(Gate.arguments(r)), Generate.value(Instance.arguments()))')
+      .replaceAll(/WORKER_ENTRY|WORKER_REFERENCE/g, purpose === 'prepare'
+        ? 'Worker.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
+        : 'Worker.packet(C.config(), bytes, admit)');
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = ['execute', 'prepare'].includes(purpose);
   available.set('Main.bend', Buffer.from(main));
@@ -287,7 +324,7 @@ function stage(environment, directory, purpose, metadata) {
       role = 'host'; exports = { 'Environment.bend': ['Environment:identity'],
         'Instance.bend': ['Instance:config', 'Instance:context', 'Instance:arguments'],
         'Bindings.bend': ['Bindings:code', 'Bindings:certificate', 'Bindings:terminates'] }[name];
-      if (name === 'Bindings.bend' && purpose === 'prepare') exports.push('Bindings:proof_source');
+      if (name === 'Bindings.bend') exports.push('Bindings:proof_source');
     } else if (name === 'Configuration.bend' && purpose === 'initialize') role = 'host';
     manifest.dependencies.push({ path: name, role, sha256: digest(data), ...(role === 'host' ? { exports } : {}) });
   }

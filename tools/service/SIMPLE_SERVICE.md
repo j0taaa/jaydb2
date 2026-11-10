@@ -23,26 +23,45 @@ universal certificate and compiles once, then reuses an instance-local native
 executable in fresh processes with current authentication, state, and arguments. Its controls and
 receipts have a separate protocol boundary from the ordinary path below.
 
-1. A bounded reader receives complete frames and checks message size. It
-   enqueues FIFO bodies without inspecting credentials or programs. One
-   coordinator selects a request for service against the current snapshot.
-2. One official native Bend authenticator decodes and authenticates against
-   published state. `Input.analyze` preserves decode errors before checking
-   credentials, so no separate decode child or decoder compilation is needed.
-3. Admission checks source, dependencies, and proof with official tools against
-   the actual configuration, context, and arguments.
-4. The same checked Book is compiled by the official compiler. The stage only
-   invokes Clang on literal C and records C and executable hashes.
-5. The program runs in a fresh native child process on CPU with GPU disabled.
-   Its proposal is private. It still runs `Input.analyze` on the same actual
-   state/request packet, obtaining its current authenticated context and
-   arguments. The Codec remains the compiled Bend program.
-6. The host receives all output, reaps the process, validates state/response,
-   and removes the temporary directory before accepting publication.
-7. Success replaces the serial host's `Published { state, response }` pair.
-   A refusal or earlier failure preserves the previous publication.
-8. Delivery follows. A delivery failure preserves the published pair and closes
-   the channel without automatic retry or deduplication.
+The framing reader queues complete original bodies. The checked native
+`Dispatch.authentication` classifies ordinary versus prepared envelopes,
+checks the full body length (including extension bytes), decodes before
+fresh authentication, and enforces the empty handle-proof rule. Its tagged
+metadata selects external admission or a prepared artifact; Rust copies the
+checked source/context/arguments bindings to staging.
+
+The generated entry calls `Worker.packet` (ordinary) or
+`Worker.registered_packet` (prepared). Both decode the private published root
+and retain it on early errors. Ordinary bodies use `Input.read_message`.
+Prepared execution receives the actual live registration handle separately
+from the original body and calls `Resolve.select`, then the same `Gate.begin`.
+The gate authenticates against this root and invokes the generated admission
+oracle. It starts exactly the admitted program with that authenticated context
+and the actual arguments, or calls `Gate.early` without constructing a program.
+
+For concrete admission the oracle matches the exact source/proof strings,
+authenticated context and canonical arguments. Universal prepared admission
+matches the frozen source/proof and specializes the checked universal proof to
+the current context/arguments. Configuration is the same closed declaration at
+every call site; the environment comparison is an additional integrity guard,
+not an equality test for arbitrary configurations containing functions. T1
+includes the binding of these declarations, certificate targets and actual
+elaborated program to the immutable admitted Book. The oracle never elaborates
+or approves new source at runtime.
+
+The native loop drives `Execution.advance` / `Core.advance` incrementally.
+On stopping, `Gate.finish` performs finalization, publication selection and
+exact response framing. `Execution.decision` computes `Commit{root, bytes}` or
+`Keep{bytes}` in checked Bend; its private encoding remains
+`1 || frame(root) || response` or `0 || response`. Rust parses that sum, reaps
+the child, completes rollback-capable cleanup, persists a Commit if enabled,
+and physically replaces the published root/last-successful-response pair only
+on Commit. It writes the returned response bytes unchanged. Packet framing and
+size checks in Rust are integrity defenses, not a second finalizer.
+
+Prepare/invalidate receipts, registry storage and artifact lifecycle remain
+optional host control operations outside Ingress/UnifiedCore. Unknown artifact
+lookups and external tool/process failures retain their fixed failure responses.
 
 The serial coordinator completes execution, cleanup, and publication, then
 writes and flushes the response before selecting another request. Uncertain
@@ -125,31 +144,46 @@ Optional [administrator timing](SERVICE_TIMING.md) records monotonic elapsed
 service time through cleanup and result readiness, before response delivery.
 It changes no client responses or admission decisions. This integration has no quota policy.
 
-## Verification
+## Verification and remaining host obligations
 
-Bend proofs cover the pure machine, certificates, and their consequences for
-authentication, operations, observations, and preparation/publication in the
-model. Administrator laws remain mandatory at every prefix, including before
-a refusal or failure.
+`proof/WorkerBridge.bend::worker_body_equals_ingress_composition` proves that,
+for any final reference trace, finite unrolling of the actual worker adapter
+produces exactly the Gate composition's output. It reuses
+`ExecutionAdapter.finite_execution_reaches_exact_adapter_result`;
+`worker_unified_equals_gate_composition` covers actual Resolve selection.
+Halted paths use `Gate.early` and cannot resume. The generated checked Book
+also proves its literal entry and Native iteration conversion/step equations.
+Core's progress witness supplies the finite index; production has no fuel
+limit and never replays prefixes. These lemmas connect the emitted decision
+and bytes to Ingress/UnifiedCore under their existing validity and sound-oracle
+premises, without assuming compiler or C-loop preservation as a Bend proof.
 
-The execution's trusted base includes pinned official tools, Node, Clang, the
-operating system, and JayDB integration code: the Rust controller, Node
-preparation/admission, and `native/effects.c`. This code connects checked
-sources, arguments, pipes, and concrete publication; its bodies are not
-formally checked by Bend's checkers. This does not permit dispensing with a
-client proof or replacing laws with final-result tests.
+T1 remains official admission soundness plus exact source/target/Book binding.
+T2 remains preservation by the official compiler, native runtime and foreign
+loop. The remaining T3 plumbing obligations are:
 
-Rust tests cover publication, rollback, and framing. `make test-native`
-compiles official C and exercises effects, representation, and actual
-toolchain limits. `make test-integration` admits, compiles, and executes real
-Bend transactions. Hashes and tests identify artifacts and support the cases
-executed; they do not replace a proof of the complete executable's eight laws.
+1. Freeze the checked configuration, dependency/tool bytes and valid initial
+   root; keep private root bytes separate from client inputs.
+2. Frame complete original bodies with the specified bounds/EOF ordering;
+   supply exactly one current root and the live registration/artifact binding.
+3. Admit the exact checked tuple, compile the same immutable Book, validate
+   artifact provenance and run a fresh worker with only its private proposal.
+4. Collect complete output, reap workers and finish rollback-capable cleanup
+   before publication; actual precommit technical failures keep the old root.
+5. Obey Commit/Keep exactly, atomically publish the paired root/response, and
+   write the returned bytes; delivery failure cannot undo a committed root.
+6. Preserve FIFO root feeding and timing/inspection noninterference. Optional
+   durable storage and prepare/invalidate controllers need their own physical
+   ordering and recovery obligations; the core bridge does not prove them.
 
 `make test` rebuilds before native/integration tests. `make verify-contract`
 and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/
-Fold and wire theorems with both official tools. The
-[proof guide](../../proof/README.md) maps their premises and numbered T1–T3
-integration obligations. Native worker integration of `Gate` is in progress.
+Fold, wire and worker-bridge theorems with both official tools, including
+causal negative controls for refusal publication and forged worker context.
+The [proof guide](../../proof/README.md) maps their premises and the T1–T3
+integration obligations. Native/integration tests check real compilation,
+effects, persistence and responses; they do not prove T1, T2 or Rust/OS
+correspondence.
 
 ## Rust helper pipe startup
 

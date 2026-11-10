@@ -308,20 +308,26 @@ fn response_frame(status: &str, value: Option<&str>) -> Vec<u8> {
     packet(&body, &[])
 }
 
+// Exact checked worker decision; Rust never derives publication from status.
+enum Decision {
+    Commit { state: Vec<u8>, response: Vec<u8> },
+    Keep { response: Vec<u8> },
+}
+
 struct Published {
     state: Vec<u8>,
     response: Vec<u8>,
 }
 
 impl Published {
-    fn finish(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Vec<u8> {
+    fn finish(&mut self, proposal: Result<Decision>) -> Vec<u8> {
         match proposal {
-            Ok((response, Some(state))) => {
+            Ok(Decision::Commit { state, response }) => {
                 // Both values and all cleanup are complete before this store.
                 *self = Self { state, response };
                 self.response.clone()
             }
-            Ok((response, None)) => response,
+            Ok(Decision::Keep { response }) => response,
             Err(error) => {
                 diagnostic(format_args!("{}: {}", error.code, error.message));
                 error.response()
@@ -330,7 +336,9 @@ impl Published {
     }
 }
 
-fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+// Framing/size checks here defend the private ABI against corruption.
+// Gate.finish already decided limits, status, publication and exact bytes.
+fn parse_decision(output: &[u8], limits: &Limits) -> Result<Decision> {
     let (state, response) = match output.first() {
         Some(1) => {
             let (state, response) = split(&output[1..])?;
@@ -349,7 +357,14 @@ fn checked_proposal(output: &[u8], limits: &Limits) -> Result<(Vec<u8>, Option<V
     if !trailing.is_empty() || response_body.len() as u64 > limits.response {
         return Err(Error::new("HOST_TRANSPORT", "invalid proposed response"));
     }
-    Ok((response.to_vec(), state.map(|state| state.to_vec())))
+    let response = response.to_vec();
+    Ok(match state {
+        Some(state) => Decision::Commit {
+            state: state.to_vec(),
+            response,
+        },
+        None => Decision::Keep { response },
+    })
 }
 
 // One entropy candidate retains the ordinary random-handle behavior. After a
@@ -596,7 +611,7 @@ impl Database {
     // Reusable service boundary: input is a complete checked proposal after
     // worker cleanup. Ok is result-ready; Err is fatal (no response or dispatch).
     // Scheduling/timing can wrap this method without moving the durable point.
-    fn publish(&mut self, proposal: Result<(Vec<u8>, Option<Vec<u8>>)>) -> Result<Vec<u8>> {
+    fn publish(&mut self, proposal: Result<Decision>) -> Result<Vec<u8>> {
         self.publish_with_ready(proposal, || {})
     }
 
@@ -605,10 +620,10 @@ impl Database {
     // cannot turn an already committed result into an ordinary failure.
     fn publish_with_ready(
         &mut self,
-        mut proposal: Result<(Vec<u8>, Option<Vec<u8>>)>,
+        mut proposal: Result<Decision>,
         result_ready: impl FnOnce(),
     ) -> Result<Vec<u8>> {
-        if let Ok((_, Some(state))) = &proposal
+        if let Ok(Decision::Commit { state, .. }) = &proposal
             && let Some(storage) = &mut self.storage
         {
             if let Err(error) = storage.persist(&self.environment, &self.limits, state) {
@@ -638,35 +653,24 @@ impl Database {
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
         let output = program.run(input, self.threads)?;
-        if !matches!(output.first(), Some(0 | 1)) {
+        if !matches!(output.first(), Some(0 | 1 | 3..=5)) {
             return Err(Error::new("HOST_TRANSPORT", "invalid preprocessing result"));
         }
         Ok(output)
     }
 
-    fn propose(
-        &mut self,
-        body: &[u8],
-        attempt: &mut Option<Attempt>,
-    ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
-        // 7 is outside the canonical Value tags (0..6). The extension contains
-        // one opcode and an otherwise ordinary, officially decoded request.
-        let (operation, body) = if body.first() == Some(&7) {
-            match body.get(1) {
-                Some(op @ 0..=2) => (Some(*op), &body[2..]),
-                _ => return Ok((error_frame("input"), None)),
-            }
-        } else {
-            (None, body)
-        };
+    fn propose(&mut self, body: &[u8], attempt: &mut Option<Attempt>) -> Result<Decision> {
         let input = packet(&self.published.state, body);
         // Input.analyze decodes before authenticating and preserves decode
         // errors. A separate decode child would repeat that entire pass.
-        // Execution still analyzes this same packet in its own fresh process.
+        // The worker decodes this same packet and enters through Gate.begin.
         let authenticated = self.preprocess(&self.authenticate, &input)?;
         if authenticated[0] == 0 {
-            return Ok((authenticated[1..].to_vec(), None));
+            return Ok(Decision::Keep {
+                response: authenticated[1..].to_vec(),
+            });
         }
+        let operation = authenticated[0];
         let (principal, metadata) = split(&authenticated[1..])?;
         let principal = std::str::from_utf8(principal)
             .map_err(|_| Error::new("HOST_TRANSPORT", "invalid authenticated principal"))?;
@@ -676,13 +680,10 @@ impl Database {
         let (code, rest) = split(metadata)?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
-        if matches!(operation, Some(1 | 2)) {
-            if !proof.is_empty() {
-                return Ok((error_frame("input"), None));
-            }
+        if matches!(operation, 4 | 5) {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
-            if operation == Some(2) {
+            if operation == 5 {
                 if !self.prepared.contains_key(handle) {
                     return Err(Error::new("HANDLE", "unknown or invalidated handle"));
                 }
@@ -704,11 +705,13 @@ impl Database {
                 }));
             }
             let prepared = &self.prepared[handle];
-            // Only the native executable runs here. Its ordinary Input.analyze
-            // authenticates the received credential again on this same state;
-            // E.start receives that context and the actual decoded arguments.
-            let output = prepared.program.run(&input, self.threads)?;
-            return checked_proposal(&output, &self.limits);
+            // Supply the exact live registration separately from the raw request.
+            // Checked Resolve.select authenticates and resolves it; Gate.begin
+            // then authenticates again and invokes the universal oracle.
+            let output = prepared
+                .program
+                .run(&packet(handle.as_bytes(), &input), self.threads)?;
+            return parse_decision(&output, &self.limits);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -733,7 +736,7 @@ impl Database {
         let report = json_helper(
             &self.stage,
             &[
-                if operation == Some(0) {
+                if operation == 3 {
                     "prepare".into()
                 } else {
                     "execute".into()
@@ -752,7 +755,7 @@ impl Database {
             ));
         }
         let program = Program::load(text(&report, "program")?.into())?;
-        if operation == Some(0) {
+        if operation == 3 {
             if text(&report, "certificateMode")? != "universal" {
                 return Err(Error::new(
                     "TARGET",
@@ -779,16 +782,12 @@ impl Database {
             return Ok(response);
         }
         let output = program.run(&input, self.threads)?;
-        let proposal = checked_proposal(&output, &self.limits)?;
+        let proposal = parse_decision(&output, &self.limits)?;
         request.remove()?;
         Ok(proposal)
     }
 
-    fn control_response(
-        &self,
-        status: &str,
-        value: Option<&str>,
-    ) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    fn control_response(&self, status: &str, value: Option<&str>) -> Result<Decision> {
         let response = response_frame(status, value);
         if (response.len() - 8) as u64 > self.limits.response {
             return Err(Error::new(
@@ -796,7 +795,7 @@ impl Database {
                 "prepared response exceeds logical limit",
             ));
         }
-        Ok((response, None))
+        Ok(Decision::Keep { response })
     }
 
     fn serve(&mut self) -> Result<()> {
@@ -1294,12 +1293,12 @@ mod tests {
         };
         let success = [vec![1], packet(b"new", &error_frame("success"))].concat();
         assert_eq!(
-            published.finish(checked_proposal(&success, &limits)),
+            published.finish(parse_decision(&success, &limits)),
             error_frame("success")
         );
         let refusal = [vec![0], error_frame("refusal")].concat();
         assert_eq!(
-            published.finish(checked_proposal(&refusal, &limits)),
+            published.finish(parse_decision(&refusal, &limits)),
             error_frame("refusal")
         );
         for invalid in [
@@ -1317,7 +1316,7 @@ mod tests {
             .concat(),
         ] {
             assert_eq!(
-                published.finish(checked_proposal(&invalid, &limits)),
+                published.finish(parse_decision(&invalid, &limits)),
                 error_frame("failure")
             );
             assert_eq!(published.state, b"new");
@@ -1349,7 +1348,12 @@ mod tests {
             Cursor::new(packet(b"call", &[])),
             &mut BrokenOutput,
             4,
-            |_| Ok(published.finish(Ok((error_frame("success"), Some(b"new".to_vec()))))),
+            |_| {
+                Ok(published.finish(Ok(Decision::Commit {
+                    state: b"new".to_vec(),
+                    response: error_frame("success"),
+                })))
+            },
         );
         assert!(result.is_err());
         assert_eq!(published.state, b"new");
@@ -1415,15 +1419,21 @@ mod tests {
         let mut notified = false;
         let response = error_frame("success");
         assert_eq!(
-            db.publish_with_ready(Ok((response.clone(), Some(b"new".to_vec()))), || {
-                notified = true;
-                assert_ne!(fs::read(path.join("snapshot")).unwrap(), previous);
-                let mut byte = [0];
-                assert_eq!(
-                    observer.read(&mut byte).unwrap_err().kind(),
-                    io::ErrorKind::WouldBlock
-                );
-            })
+            db.publish_with_ready(
+                Ok(Decision::Commit {
+                    state: b"new".to_vec(),
+                    response: response.clone()
+                }),
+                || {
+                    notified = true;
+                    assert_ne!(fs::read(path.join("snapshot")).unwrap(), previous);
+                    let mut byte = [0];
+                    assert_eq!(
+                        observer.read(&mut byte).unwrap_err().kind(),
+                        io::ErrorKind::WouldBlock
+                    );
+                }
+            )
             .unwrap(),
             response
         );

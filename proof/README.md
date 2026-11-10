@@ -6,7 +6,7 @@ All public theorem types below have witnesses checked by official Bend 2.0.39
 and BendTT. The four Core clauses share the same universal premises: valid
 configuration, valid starting state, and sound admission for the exact request.
 
-Native worker integration of `Gate` is in progress.
+The native worker computes its result through `Gate` (see `WorkerBridge` below).
 
 ## Theorems and witnesses
 
@@ -20,6 +20,7 @@ Native worker integration of `Gate` is in progress.
 | `IngressTheorem` | Complete ordinary body decoding keeps the exact root and applies Core to the decoded request, or produces a bounded framed denial; it cannot produce a private transport error. | `Ingress.ingress_theorem`, `Ingress.bend` |
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
+| `WorkerBridge` | Finite execution of the actual generated worker adapter emits exactly the `Gate.begin` → advance → `Gate.finish`/`Gate.early` result (and, for prepared requests, after `Resolve.select`), so Ingress/UnifiedCore apply to the Commit/Keep decision and bytes the worker sends to the host. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition` |
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
 | `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |

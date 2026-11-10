@@ -98,13 +98,13 @@ function assertBindings(B, book, plan, mustBeOpen) {
       || v?.$ !== 'Lit' || v.k !== 'String' || v.v !== plan.records.get(canonical.client).text) {
     reject('SOURCE_BINDING', `${bind}.code must be the exact source literal for ${canonical.client}`);
   }
-  if (plan.certificateMode === 'universal') {
+  if (plan.certificateMode === 'universal' || book.tlds[bind + ':proof_source']) {
     const proof = book.tlds[bind + ':proof_source'];
     const value = proof?.v && B.term_lower(proof.v);
     const proofFile = plan.openTargets[bind + ':certificate'];
     if (proof?.$ !== 'Def' || proof.n !== 0 || !sameTerm(B, proof.T, B.Ref('String'))
         || value?.$ !== 'Lit' || value.k !== 'String' || value.v !== plan.records.get(proofFile).text)
-      reject('SOURCE_BINDING', `${bind}.proof_source must be the exact universal proof source literal`);
+      reject('SOURCE_BINDING', `${bind}.proof_source must be the exact admitted proof source literal`);
   }
   return expected;
 }

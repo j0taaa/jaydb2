@@ -17,6 +17,36 @@ Input and output travel through pipes; state is not written to the compilation
 directory. The process exits and the operating system releases its resources
 before the host accepts a proposal for publication.
 
+## Checked worker path
+
+The generated closed entry calls `Worker.packet` or, for a live prepared
+registration, `Worker.registered_packet`. Private state is decoded once and
+kept through every early-error branch. Ordinary request ingress is
+`Input.read_message`; prepared execution uses `Resolve.select` with the exact
+live registration supplied separately from the original request. Both enter
+`Gate.begin`: fresh authentication precedes the statically admitted oracle,
+and rejection leaves client program construction suspended.
+
+The oracle binds the frozen source/proof and configuration; concrete execution
+also binds the admitted context and canonical arguments, while a universal
+prepared certificate specializes to the current values. Its only Accept branch
+constructs that checked `Client.program()`. Exact source/elaboration/certificate
+binding remains T1; the environment guard does not purport to compare arbitrary
+function-valued configurations.
+
+The loop still consumes one `Execution.advance` step at a time, using
+`Core.advance`. The stopped branch now calls `Gate.finish`; early branches call
+`Gate.early`. Checked `Execution.decision` then selects Commit or Keep and
+encodes the exact framed bytes. The unchanged private ABI is
+`1 || frame(root) || response` for Commit and `0 || response` for Keep.
+Rust obeys this decision after cleanup and optional durable publication.
+`WorkerBridge.worker_body_equals_ingress_composition` and
+`worker_unified_equals_gate_composition` reuse the existing ExecutionAdapter
+proof to connect finite loop results to the theorem's Gate composition.
+The actual generated entry, iteration conversion and step equations are also
+checked in its admitted Book. Fuel belongs only to the proof, not the native
+execution policy.
+
 ## Application effects
 
 `effects.bend` declares the kernel's only trusted effects. `effects.c`
@@ -42,6 +72,22 @@ after receiving and validating complete output and reaping the process.
 State and response sizes are checked on the complete proposal; they are not
 RAM quotas. There is no program timeout or resource observer. A fatal failure
 of the database process can still lose the RAM instance.
+
+## Remaining T3 plumbing obligations
+
+1. Pin valid initial root, configuration, source, tool and executable bytes;
+   preserve the exact checked admission tuple and prepared registration.
+2. Supply complete original bodies and one current private root, with outer
+   framing bounds and FIFO/EOF behavior preserved.
+3. Run the same admitted Book through a fresh worker and the exact checked
+   step conversion; expose no publication capability to client code.
+4. Collect complete packets, reap children and finish rollback-capable cleanup
+   before accepting Commit; technical failures before commit preserve the root.
+5. Physically publish only Commit's exact root/response pair and deliver the
+   returned bytes. After commit, delivery failure preserves publication.
+6. Keep persistence, registry control receipts, timing and inspection ordering
+   faithful to their separate host specifications. They are not proved by the
+   core worker bridge. Compiler/runtime/foreign-loop preservation remains T2.
 
 ## Optional administrator inspection
 
@@ -69,5 +115,5 @@ explicit toolchain-failure controls, not declared supported features. F32,
 captured functions within the supported domain, bytes, and iteration are
 exercised with actual official C.
 
-These checks do not establish general compiler correspondence or the complete
-executable's `Contract`. JayDB does not modify Bend to claim either result.
+These checks do not establish general compiler correspondence or discharge
+T1–T3. JayDB does not modify Bend to claim either result.

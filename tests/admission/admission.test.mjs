@@ -133,6 +133,16 @@ test('private host capture is rejected', async t => {
   await rejected(f.manifest(), ['HOST_CAPTURE']);
 });
 
+test('concrete worker oracle binds the exact admitted proof source', async t => {
+  const f = fixture(t);
+  f.write('Bindings.bend', f.read('Bindings.bend') + '\ndef proof_source() -> String:\n  ' +
+    JSON.stringify(f.read('ClientProof.bend')) + '\n');
+  const accepted = await admitSubmission(f.manifest());
+  assert.equal(accepted.report.primary, true);
+  f.write('ClientProof.bend', f.read('ClientProof.bend') + '\n# changed after oracle binding\n');
+  await rejected(f.manifest(), ['SOURCE_BINDING']);
+});
+
 test('universal targets reject concrete substitution and transitive captured values', async t => {
   const prepare = () => {
     const f = fixture(t);
