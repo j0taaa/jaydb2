@@ -72,8 +72,8 @@ page. The unnumbered **Use of Artificial Intelligence** note before the referenc
 states tools/models/vendors, purposes, contribution to all article sections and
 slides, author responsibility and executed-data provenance (Arts. 6–9). Its source
 comment `% AUTHOR: review and adjust this declaration` marks it for author review.
-The advisor is visibly marked in red by `\advisor` as **[Nome do orientador]** in
-the SBC author block. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasil.
+The advisor, Gabriel Barbosa da Fonseca, appears in the SBC author block and on
+the title slide. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasil.
 No email, committee member or defense date is invented.
 
 To fit the page limit, the article condenses the model, architecture, related work,
@@ -94,9 +94,8 @@ Formatting commands are stripped and numerical macros count as spoken tokens;
 actual delivery and numerical pronunciation vary, so the author should rehearse.
 The seven appendix frames and their notes are for questions and are not timed.
 
-Before submission, the author must fill in the advisor's name, review the AI-use
-declaration, and rehearse the defense. No other administrative identity/date is
-assumed. Rebuild after replacing the advisor placeholder and confirm the page cap.
+Before submission, the advisor reviews the article, and the author rehearses the
+defense. No committee member or defense date is assumed.
 
 For visual QA, render every article page and slide at 60 dpi (scratch files stay
 ignored in `paper/.qa/`):
