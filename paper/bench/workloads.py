@@ -60,7 +60,7 @@ def comparison():
         limitations=['SQLite is an unconstrained baseline: no RLS or administrator ownership law.',
         'JayDB2 uses owner-named tables (existing access/tasks policy pattern); PG uses owner column RLS.',
         'Point update returns an acknowledgment in JayDB2; a separate untimed read verifies the stored integer. SQL returns the integer.',
-        'JayDB2 success, including reads, persists a complete image; PG/SQLite read-only SELECT does not fsync a new image.',
+        'JayDB2 changed-state success persists a complete image; byte-identical state reuses the durable image. PG/SQLite read-only SELECT does not fsync a new image.',
         'Prepared SQL queries use psycopg automatic server preparation; SQLite uses its default statement cache.'])
     with postgres() as (psycopg,dsn,admin,settings):
         data['settings']['postgresql']=settings

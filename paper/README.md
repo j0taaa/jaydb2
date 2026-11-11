@@ -170,3 +170,25 @@ T1–T3 integration premises and finite tests. These measurements establish
 neither unconditional executable correctness nor a performance advantage over
 PostgreSQL or SQLite. The removed read-batch experiment and historical
 comparison evidence are no longer inputs to this pipeline.
+
+## Investigating latency variability
+
+The CPU's `powersave` policy can alternate between approximately 4.6 GHz and
+800 MHz during these short serial operations. Use the separate diagnostic to
+record native body wall time, process CPU time, endpoint CPU frequencies, page
+faults and context switches alongside the existing phase timings:
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/diagnose.py'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; strace -f -tt -T -s 100 -o .build/paper-bench/diagnostic.strace -e trace=read,write,execve,wait4,futex,poll,ppoll,pselect6,clock_nanosleep,mmap,munmap,madvise,fsync,rename,close python3 -B paper/bench/diagnose.py --calls 5 --output .build/paper-bench/diagnostic-traced.json'
+```
+
+The diagnostic compiles `paper/bench/worker-clock.c` as an opt-in `LD_PRELOAD`
+observer. It does not alter the emitted C, native executable, wire bytes or
+execution decision. It adds observation overhead and is **not** enabled in the
+headline experiments. Endpoint frequency is a sampled policy observation, not
+an integrated hardware cycle counter. `DIAG START/END` delimit sampled calls in
+the syscall trace; initialization/registration and idle pipe waits are outside
+that window. No governor, affinity or power setting is changed by the harness.
+Persistent equal-state successes now reuse their durable image; changed state,
+including new receipt rows, still follows file sync/rename/directory sync.

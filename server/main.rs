@@ -29,9 +29,12 @@ fn bench_start() -> Option<std::time::Instant> {
 fn bench_mark(start: &mut Option<std::time::Instant>, phase: &str) {
     if let Some(previous) = start {
         let now = std::time::Instant::now();
-        diagnostic(format_args!("JAYDB_BENCH {}", serde_json::json!({
-            "phase": phase, "ns": now.duration_since(*previous).as_nanos().to_string()
-        })));
+        diagnostic(format_args!(
+            "JAYDB_BENCH {}",
+            serde_json::json!({
+                "phase": phase, "ns": now.duration_since(*previous).as_nanos().to_string()
+            })
+        ));
         *previous = now;
     }
 }
@@ -640,7 +643,12 @@ impl Database {
         result_ready: impl FnOnce(),
     ) -> Result<Vec<u8>> {
         let mut bench = bench_start();
+        // The current state is already durable after create/recovery and every
+        // accepted publication. Environment and limits are immutable; state is
+        // the image's only varying field. Equal bytes need no new durable image.
+        // Still publish Commit's exact response below, even when it differs.
         if let Ok(Decision::Commit { state, .. }) = &proposal
+            && state != &self.published.state
             && let Some(storage) = &mut self.storage
         {
             if let Err(error) = storage.persist(&self.environment, &self.limits, state) {
@@ -1471,6 +1479,27 @@ mod tests {
             storage: Some(storage),
             environment,
         };
+        // Equal state with a different response still publishes the pair, but
+        // must not replace the durable inode. Keep it open to prevent inode reuse.
+        use std::os::unix::fs::MetadataExt;
+        let durable = fs::File::open(path.join("snapshot")).unwrap();
+        let inode = durable.metadata().unwrap().ino();
+        let first_response = error_frame("first-success");
+        assert_eq!(
+            db.publish(Ok(Decision::Commit {
+                state: b"old".to_vec(),
+                response: first_response.clone(),
+            }))
+            .unwrap(),
+            first_response
+        );
+        assert_eq!(db.published.response, first_response);
+        assert_eq!(db.published.state, b"old");
+        assert_eq!(fs::metadata(path.join("snapshot")).unwrap().ino(), inode);
+        assert_eq!(fs::read(path.join("snapshot")).unwrap(), previous);
+        // Drain this completion's inspection event before checking readiness.
+        assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+        db.inspection_sequence = u64::MAX;
         let mut notified = false;
         let response = error_frame("success");
         assert_eq!(
