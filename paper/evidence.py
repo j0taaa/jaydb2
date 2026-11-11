@@ -81,6 +81,7 @@ def validate(data):
     if len(comparisons)!=12 or {(r['engine'],r['policy'],r['rows']) for r in comparisons}!={(e,p,n) for e in ('jaydb2','postgresql','sqlite') for p in ('point','owner') for n in (10,data['comparison']['large_rows'])}:
         raise ValueError('Comparison engine/policy coverage')
     for r in comparisons:
+        if r.get('total_rows_checked') is not True:raise ValueError('Unverified comparison row count')
         for workload in ('read','update'):samples(r,900,workload)
         if r['engine']=='jaydb2':
             for s in r['samples']:
@@ -96,6 +97,17 @@ def validate(data):
     for row in policy:
         if row.get('refused') != (row['engine']!='sqlite') or row.get('checked') is not True or canonical(row['actual'])!=canonical(row['expected']) or not row.get('attempt'):
             raise ValueError('Policy check failed')
+        if row['engine']=='postgresql' and row['actual']!=[]:raise ValueError('PostgreSQL cross-user SQL returned rows')
+        if row['engine']=='jaydb2' and row['actual']!={'status':'certificate','value':None}:raise ValueError('JayDB2 cross-user admission did not reject certificate')
+        if row['engine']=='sqlite' and row['actual']!=([[0]] if row['workload']=='read' else [[999]]):raise ValueError('SQLite unconstrained check did not succeed')
+    postchecks=data['comparison'].get('policy_postchecks',[])
+    expected_post={(e,n,sid) for e in ('jaydb2','postgresql','sqlite') for n in (10,data['comparison']['large_rows']) for sid in (1,2,3)}
+    if len(postchecks)!=len(expected_post) or {(r['engine'],r['rows'],r['session']) for r in postchecks}!=expected_post:
+        raise ValueError('Missing cross-user postchecks')
+    for row in postchecks:
+        expected_value={'status':'success','value':0} if row['engine']=='jaydb2' else [[0]]
+        if row.get('checked') is not True or row['actual']!=expected_value or row['actual']!=row['expected']:
+            raise ValueError('Cross-user stored value changed')
     for pg in [data['comparison']['settings']['postgresql']]+[x['settings'] for r in comparisons if r['engine']=='postgresql' for x in r['sessions']]:
         if pg['fsync']!='on' or pg['synchronous_commit']!='on' or pg['role'][1:]!=[False,False] or ('rls' in pg and pg['rls']!=[True,True]):
             raise ValueError('PostgreSQL durability/RLS settings')
@@ -105,6 +117,9 @@ def validate(data):
         validate_frequency(data[name]['metadata'])
         for record in data[name]['records']:validate_sessions(record,name)
     validate_frequency(data['scaling']['metadata'])
+    for record in comparisons:
+        if record['engine']=='postgresql' and record['policy']=='owner':
+            if any(z['settings'].get('rls')!=[True,True] for z in record['sessions']):raise ValueError('PostgreSQL durability/RLS settings')
     commands=data['verification']['commands']
     if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
     for row in commands:
@@ -351,21 +366,56 @@ def derive(data):
     for size,label in [(populations[0],'Small'),(scaling['max_rows'],'Large')]:
         r=next(r for r in scaling['records'] if r['rows']==size and not r['persistent'])
         macro('ScalingFirstKey'+label+'Ms',summary(r['first_key_samples'])['median']/1e6,'Volatile first-key read median at '+label.lower()+' population','ms')
-    registration_rows=[['Program / storage','Min s','Median s','Max s','n']]
+    registration_rows=[['Program / storage','Min s','Median s','Max s','Session medians s','n']]
     for r in data['prepared']['records']:
         values=[x['elapsed_ns']/1e9 for x in r['registrations']]
-        registration_rows.append([PROGRAMS[r['program']]+' / '+('durable' if r['persistent'] else 'volatile'),f'{min(values):.2f}',f'{statistics.median(values):.2f}',f'{max(values):.2f}',len(values)])
-    table('registration-table.tex','lrrrr',registration_rows)
+        session_medians=[statistics.median(x['elapsed_ns'] for x in z['registrations'])/1e9 for z in r['sessions']]
+        registration_rows.append([PROGRAMS[r['program']]+' / '+('durable' if r['persistent'] else 'volatile'),f'{min(values):.2f}',f'{statistics.median(values):.2f}',f'{max(values):.2f}',decimal(min(session_medians))+'--'+decimal(max(session_medians)),len(values)])
+    table('registration-table.tex','lrrrrr',registration_rows)
     headline=report_rows(data)
-    table('session-spread-table.tex','lrrrr',[['Metric (ms unless stated)','Pooled median [Q1, Q3]','Session min','Session max','n']]+[
-        [r['metric'],cell(r['stats'],r['scale'],3),decimal(min(r['session_medians'])/r['scale'],3),decimal(max(r['session_medians'])/r['scale'],3),r['stats']['n']] for r in headline])
-    report=dict(protocol=dict(sessions=3,scaling_sessions=1,governor='performance',epp='performance',no_turbo=1,nominal_ghz=3.6),headline=headline)
-    (ROOT/'paper/evidence/final-summary.json').write_text(json.dumps(report,indent=2)+'\n')
+    table('session-spread-table.tex','llrrrr',[['Metric','Unit','Pooled median [Q1, Q3]','Session min','Session max','n']]+[
+        [r['metric'].replace(',', '{,}'),r['unit'],cell(r['stats'],r['scale'],3),decimal(min(r['session_medians'])/r['scale'],3),decimal(max(r['session_medians'])/r['scale'],3),r['stats']['n']] for r in headline])
+    report=dict(measurement_metadata={name:data[name]['metadata'] for name in ('ordinary','prepared','comparison','scaling')},registration=[dict(program=r['program'],persistent=r['persistent'],n=len(r['registrations']),min_ns=min(x['elapsed_ns'] for x in r['registrations']),median_ns=statistics.median(x['elapsed_ns'] for x in r['registrations']),max_ns=max(x['elapsed_ns'] for x in r['registrations']),session_medians_ns=[statistics.median(x['elapsed_ns'] for x in z['registrations']) for z in r['sessions']]) for r in data['prepared']['records']],protocol=dict(sessions=3,scaling_sessions=1,governor='performance',epp='performance',no_turbo=1,nominal_ghz=3.6),headline=headline)
+    (OUT/'final-summary.json').write_text(json.dumps(report,indent=2)+'\n')
     markdown=['| Metric | Unit | Pooled median [Q1, Q3] | Session median min–max | n |','|---|---|---|---|---|']
     for r in headline:
         v=r['stats'];k=r['scale']
-        markdown.append(f"| {r['metric']} | {r['unit']} | {v['median']/k:.3f} [{v['qone']/k:.3f}, {v['qthree']/k:.3f}] | {min(r['session_medians'])/k:.3f}–{max(r['session_medians'])/k:.3f} | {v['n']} |")
-    (ROOT/'paper/evidence/final-headlines.md').write_text('\n'.join(markdown)+'\n')
+        markdown.append(f"| {r['metric']} | {r['unit']} | {v['median']/k:,.3f} [{v['qone']/k:,.3f}, {v['qthree']/k:,.3f}] | {min(r['session_medians'])/k:,.3f}–{max(r['session_medians'])/k:,.3f} | {v['n']} |")
+    (OUT/'final-headlines.md').write_text('\n'.join(markdown)+'\n')
+    details=['# Final controlled JayDB2 thesis evidence',
+        '', 'E1–E3: three fresh sessions per condition. E5: one session, one service per storage mode reused across all sizes. Governor/EPP performance; turbo disabled; nominal 3.6 GHz. No CPU pinning. Inclusive quartiles; no outlier removal.',
+        '', 'E3 uses 10 and 1,104 total rows in all engines; owner rows are divided equally between Alice and Bob. SQLite is unconstrained. E4 wall times are retained historical successful runs under powersave/turbo; only source sizes were collected anew.',
+        '', 'All latency rows below use milliseconds. Session spread is min–max of session medians; E5 has only one session. Throughput rows use calls/s.', '',*markdown,
+        '', '## Registration (nine observations per condition)', '', '| Program / storage | Min (s) | Median (s) | Max (s) | Session median min–max (s) | n |', '|---|---|---|---|---|---|']
+    for r in data['prepared']['records']:
+        ns=[x['elapsed_ns']/1e9 for x in r['registrations']]
+        sm=[statistics.median(x['elapsed_ns'] for x in z['registrations'])/1e9 for z in r['sessions']]
+        details.append(f"| {PROGRAMS[r['program']]} / {'durable' if r['persistent'] else 'volatile'} | {min(ns):.2f} | {statistics.median(ns):.2f} | {max(ns):.2f} | {min(sm):.2f}–{max(sm):.2f} | {len(ns)} |")
+    details += ['', '## Ordinary phases', '', '| Program | Phase | Median [Q1,Q3] (ms) | n |', '|---|---|---|---|']
+    for r in data['ordinary']['records']:
+        for label,phases in [('Checking',('primary_check','bendtt_translate_check')),('C generation/build',('c_emission','c_compilation')),('Worker',('ordinary_worker',))]:
+            ns=[sum(x['phases_ns'][p] for p in phases) for x in r['samples']]
+            z=quartiles(ns)
+            details.append(f"| {PROGRAMS[r['program']]} | {label} | {z['median']/1e6:.2f} [{z['qone']/1e6:.2f}, {z['qthree']/1e6:.2f}] | {len(ns)} |")
+    details += ['', '## Preparation break-even', '', '| Program | Calls |', '|---|---|']
+    for p in PROGRAMS:details.append(f"| {PROGRAMS[p]} | {MACROS['BreakEven'+PROGRAMS[p]+'Calls'][0]} |")
+    details += ['', '## Retained verification times', '', '| Command | Seconds | n | Exit |', '|---|---|---|---|']
+    for r in v['commands']:details.append(f"| {r['command']} | {r['elapsed_ns']/1e9:.3f} | 1 | {r['returncode']} |")
+    details += ['', 'Quartiles and session spread are undefined for these single historical command observations.', '', '## Source inventory', '', sizes['definition'], '', '| Area | Program / production lines | Proof / test lines | Proof/program ratio |', '|---|---|---|---|',f"| Rust host | {sizes['rust_production_lines']} | {sizes['rust_test_lines']} | — |"]
+    for app in ('indexed','voucher'):
+        a=sizes['applications'][app]
+        details.append(f"| {app.title()} | {a['client_lines']} | {a['proof_lines']} | {a['proof_lines']/a['client_lines']:.3f} |")
+    names=['CpuGovernor','CpuClockGHz','TurboSetting','SessionCount','RustProductionLines','RustTestLines','IndexedClientLines','IndexedProofLines','IndexedProofRatio','VoucherClientLines','VoucherProofLines','VoucherProofRatio','ComparisonLargeRows','ScalingFirstKeySmallMs','ScalingFirstKeyLargeMs']
+    names += ['Large'+policy+engine+op+'Ms' for policy in ('','Owner') for engine in ('Jay','Pg','Sq') for op in ('Read','Write')]
+    details += ['', '## New macro contract', '', '| Macro | Value | Unit |', '|---|---|---|']
+    for name in names:
+        value,_,unit=MACROS[name]
+        details.append(f"| `\\{name}` | {value if isinstance(value,str) else format(value,'.6g')} | {unit} |")
+    restoration=ROOT/'paper/evidence/cpu-restoration.json'
+    if restoration.exists():
+        restored=json.loads(restoration.read_text())
+        details += ['', '## CPU restoration', '', 'Final observed values (all 16 CPUs): governor `powersave`; EPP `balance_performance`; `intel_pstate/no_turbo=0`. Exact saved settings and final sampled frequencies are in `cpu-restoration.json`. Verified: '+str(restored['verified'])+'.']
+    (OUT/'final-report.md').write_text('\n'.join(details)+'\n')
     (OUT/'numbers.tex').write_text('\n'.join('\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items())+'\n')
     (OUT/'macro-reference.md').write_text('| Macro | Meaning | Unit |\n|---|---|---|\n'+''.join(f'| `\\{n}` | {m} | {u} |\n' for n,(_,m,u) in MACROS.items()))
     return MACROS
@@ -385,9 +435,9 @@ def report_rows(data):
         add(label+' closed-loop throughput',[[300e9/z['batch_elapsed_ns']] for z in r['sessions']],1,'calls/s')
     for r in data['comparison']['records']:
         for w in ('read','update'):
-            add('E3 '+str(r['rows'])+' '+r['policy'].title()+' '+{'jaydb2':'JayDB2','postgresql':'PostgreSQL','sqlite':'SQLite'}[r['engine']]+' '+w.title(),[[x['elapsed_ns'] for x in z['samples'] if x['workload']==w] for z in r['sessions']])
+            add('E3 '+format(r['rows'],',')+' '+r['policy'].title()+' '+{'jaydb2':'JayDB2','postgresql':'PostgreSQL','sqlite':'SQLite'}[r['engine']]+' '+w.title(),[[x['elapsed_ns'] for x in z['samples'] if x['workload']==w] for z in r['sessions']])
     for r in data['scaling']['records']:
-        label='E5 '+str(r['rows'])+' / '+('durable' if r['persistent'] else 'volatile')
+        label='E5 '+format(r['rows'],',')+' / '+('durable' if r['persistent'] else 'volatile')
         for w in ('read','update'):add(label+' '+w.title(),[[x['elapsed_ns'] for x in r['samples'] if x['workload']==w]])
         if r['first_key_samples']:add(label+' first-key Read',[[x['elapsed_ns'] for x in r['first_key_samples']]])
     return rows
@@ -395,6 +445,8 @@ def report_rows(data):
 
 def main():
     data=load();derive(data)
+    for name in ('final-summary.json','final-headlines.md','final-report.md'):
+        (ROOT/'paper/evidence'/name).write_text((OUT/name).read_text())
     print(f'Validated {len(FILES)} fresh evidence files; generated {len(MACROS)} macros and tables in {OUT}')
 
 if __name__=='__main__':main()

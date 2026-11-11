@@ -42,6 +42,14 @@ import ./Environment.bend as E
         start, end = original.index('type Both'), original.index('def schema()')
         config += original[start:end].replace('D.Users{}', 'D.Application{owner}').replace(
             '{key == id : String}', '{owner == id : String}').replace('"credential"', '"value"')
+    if policy:
+        # The same ownership requirement applies to certified setup operations.
+        # Timed ReadCell/DefineColumn cases and their column checks are unchanged.
+        config=config.replace('    case _:', '''    case D.DefineRow{D.Application{owner}, key, fields}:
+      Both<{owner == id : String}, Unit>
+    case D.CountRows{D.Application{owner}}:
+      Both<{owner == id : String}, Unit>
+    case _:''',1)
     config += '''
 def table(name:String) -> D.SchemaTable:
   D.SchemaTable{name,"id",[D.Column{"id",D.TextValue{},False{}},D.Column{"value",D.Integer{},False{}}]}
@@ -247,9 +255,9 @@ def owner_population(policy_proof):
 
 def run_safe(+id:String,+kind:String,rs:List<&2,D.Row>) -> Safe(Client.depth(rs),D.Context{id,kind},Client.run(id,rs)):
   match rs:
-    case Nil{}: L.Both{C.Both{{==},{==}},r => response_safe(r,D.Context{id,kind})}
+    case Nil{}: L.Both{C.Both{{==},Unit{}},r => response_safe(r,D.Context{id,kind})}
     case Con{D.Row{key,fields},+rest}:
-      L.Both{C.Both{{==},{==}},r => run_safe(id,kind,rest)}
+      L.Both{C.Both{{==},Unit{}},r => run_safe(id,kind,rest)}
 
 def program_safe(ctx:D.Context,args:D.Value) -> Safe(Client.depth(Client.rows(args)),ctx,S.start(Client.program(),ctx,args)):
   match ctx:

@@ -88,7 +88,7 @@ def sql_record(engine,policy,conn,count,sid):
 def comparison():
     from paper.bench.run import pool_record
     large=min(max_rows(False),max_rows(True))
-    data=dict(metadata=metadata(),experiment='E3 durable local comparison',large_rows=large,records=[],policy_checks=[],settings={},
+    data=dict(metadata=metadata(),experiment='E3 durable local comparison',large_rows=large,records=[],policy_checks=[],policy_postchecks=[],settings={},
         limitations=['SQLite is an unconstrained WAL/FULL baseline; cross-user access succeeds.',
         'All engines have the same TOTAL row count: owner workload divides rows equally between alice and bob.',
         'Target is the last alice key; JayDB2 owner tables follow the existing access ownership law.',
@@ -96,17 +96,28 @@ def comparison():
         'JayDB2 update returns acknowledgement with untimed readback; SQL returns changed integer.',
         'JayDB2 persists a complete changed image; identical images reuse the durable snapshot.',
         'Each session/engine/condition has a fresh process/cluster/database; engine and condition order rotate.'])
+    if os.environ.get('JAYDB_BENCH_RESUME')=='1':
+        import json
+        data=json.loads((ROOT/'paper/evidence/comparison.json').read_text())
+        assert data.get('large_rows')==large, 'Cannot resume an older protocol'
+        data.setdefault('resumed_runs',[]).append(metadata())
     conditions=[(n,p) for n in (10,large) for p in (False,True)]
     engines=['postgresql','sqlite','jaydb2']
     for sid in range(1,4):
         for count,policy in conditions[sid-1:]+conditions[:sid-1]:
             entries=[(owner,f'k{i:06d}') for owner,n in ([('bench_alice',count//2),('bench_bob',count-count//2)] if policy else [('bench_alice',count)]) for i in range(n)]
             for engine in engines[sid-1:]+engines[:sid-1]:
+                if any(r['engine']==engine and r['policy']==('owner' if policy else 'point') and r['rows']==count and any(z['session']==sid for z in r['sessions']) for r in data['records']):continue
+                # A failed engine is rerun from a fresh instance; discard only its incomplete policy probes.
+                if policy:
+                    for field in ('policy_checks','policy_postchecks'):
+                        data[field]=[r for r in data[field] if (r['engine'],r['session'],r['rows'])!=(engine,sid,count)]
                 name=f'comparison-{count}-{policy}-{engine}-{sid}'
                 if engine=='postgresql':
                     with postgres() as (psycopg,dsn,admin,settings):
                         admin.execute('CREATE TABLE cells(owner text NOT NULL,id text NOT NULL,value bigint NOT NULL,PRIMARY KEY(owner,id))')
                         with admin.cursor() as cur:cur.executemany('INSERT INTO cells VALUES (%s,%s,0)',entries)
+                        assert admin.execute('SELECT count(*) FROM cells').fetchone()[0]==count
                         admin.execute('GRANT SELECT,UPDATE ON cells TO bench_alice')
                         if policy:
                             admin.execute('ALTER TABLE cells ENABLE ROW LEVEL SECURITY');admin.execute('ALTER TABLE cells FORCE ROW LEVEL SECURITY')
@@ -117,30 +128,36 @@ def comparison():
                                 for w,q in [('read',"SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'"),('update',"UPDATE cells SET value=999 WHERE owner='bench_bob' AND id='k000000' RETURNING value")]:
                                     actual=conn.execute(q).fetchall();assert actual==[]
                                     data['policy_checks'].append(dict(engine=engine,session=sid,rows=count,workload=w,attempt=q,credential='bench_alice (NOSUPERUSER NOBYPASSRLS)',actual=actual,expected=[],checked=True,refused=True))
-                                assert admin.execute("SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'").fetchone()==(0,)
+                                postquery="SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'"
+                                actual=admin.execute(postquery).fetchall();assert actual==[(0,)]
+                                data['policy_postchecks'].append(dict(engine=engine,session=sid,rows=count,attempt=postquery,credential='administrator',actual=[[0]],expected=[[0]],checked=True))
                                 settings['rls']=admin.execute("SELECT relrowsecurity,relforcerowsecurity FROM pg_class WHERE relname='cells'").fetchone()
                             record=sql_record(engine,policy,conn,count,sid)
-                            record['settings']=settings;data['settings']['postgresql']=settings
+                            record['settings']=settings;record['total_rows_checked']=True;data['settings']['postgresql']=settings
                 elif engine=='sqlite':
                     path=BUILD/(name+'.db');path.unlink(missing_ok=True)
                     with sqlite3.connect(path,isolation_level=None) as conn:
                         conn.execute('PRAGMA journal_mode=WAL');conn.execute('PRAGMA synchronous=FULL')
                         conn.execute('CREATE TABLE cells(owner TEXT NOT NULL,id TEXT NOT NULL,value INTEGER NOT NULL,PRIMARY KEY(owner,id)) STRICT')
                         conn.executemany('INSERT INTO cells VALUES (?,?,0)',entries)
+                        assert conn.execute('SELECT count(*) FROM cells').fetchone()[0]==count
                         settings={k:conn.execute('PRAGMA '+k).fetchone()[0] for k in ('journal_mode','synchronous','page_size','wal_autocheckpoint')}
                         if policy:
                             for w,q,expected in [('read',"SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'",[(0,)]),('update',"UPDATE cells SET value=999 WHERE owner='bench_bob' AND id='k000000' RETURNING value",[(999,)])]:
                                 actual=conn.execute(q).fetchall();assert actual==expected
                                 data['policy_checks'].append(dict(engine=engine,session=sid,rows=count,workload=w,attempt=q,credential='unconstrained connection (no RLS)',actual=[list(x) for x in actual],expected=[list(x) for x in expected],checked=True,refused=False))
                             conn.execute("UPDATE cells SET value=0 WHERE owner='bench_bob' AND id='k000000'")
-                        record=sql_record(engine,policy,conn,count,sid);record['settings']=settings;data['settings']['sqlite']=settings
+                            postquery="SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'"
+                            assert conn.execute(postquery).fetchall()==[(0,)]
+                            data['policy_postchecks'].append(dict(engine=engine,session=sid,rows=count,attempt=postquery,credential='unconstrained connection, after reset',actual=[[0]],expected=[[0]],checked=True))
+                        record=sql_record(engine,policy,conn,count,sid);record['settings']=settings;record['total_rows_checked']=True;data['settings']['sqlite']=settings
                 else:
                     folder=package(BUILD/name,'policy' if policy else 'read',0)
                     code,proof,universal=source(folder)
                     target=f'k{(count//2 if policy else count)-1:06d}'
                     record=dict(engine=engine,policy='owner' if policy else 'point',rows=count,state_bytes=state_bytes(count,policy),persistent=True,session=sid,frequency=metadata()['frequency'],n=300,samples=[],warmup=[],ordinary=[],target=target)
                     with session(folder,name,persistent=True) as s:
-                        record['population']=populate(s,code,proof,count,policy)
+                        record['population']=populate(s,code,proof,count,policy);record['total_rows_checked']=True
                         handle,registration=s.prepare(code,universal);record['registration']=registration
                         if policy:
                             for workload,op in [('read','D.ReadCell'),('update','D.DefineColumn')]:
@@ -150,7 +167,9 @@ def comparison():
                                 row=s.call(bad,proof,args,dict(status='certificate',value=None))
                                 row.update(engine=engine,session=sid,rows=count,workload=workload,refused=True,attempt=dict(code=bad,proof=proof,arguments=args,credential='alice-token'),stage='ordinary admission; unchanged ownership certificate rejected')
                                 data['policy_checks'].append(row)
-                            s.call(code,proof,['read','k000000'],dict(status='success',value=0),handle=handle,user='bob-token')
+                            post=s.call(code,proof,['read','k000000'],dict(status='success',value=0),handle=handle,user='bob-token')
+                            post.update(engine=engine,session=sid,rows=count,attempt=dict(code=code,arguments=['read','k000000'],handle=handle,credential='bob-token'))
+                            data['policy_postchecks'].append(post)
                         for workload in ('read','update'):
                             # Retain ordinary context at the existing small state only.
                             if count==10:
@@ -173,7 +192,7 @@ def comparison():
 
 def scaling(populations=None):
     n=max_rows()
-    data=dict(metadata=metadata(),experiment='E5 state scaling',session_count=1,state_limit=65536,max_rows=n,records=[],failures=[],boundary_checks=[],
+    data=dict(metadata=metadata(1),experiment='E5 state scaling',session_count=1,state_limit=65536,max_rows=n,records=[],failures=[],boundary_checks=[],
         setup_method='One experimental session; one fresh service per storage mode, reused across all ascending sizes. Certified population resets every row to zero between sizes; population handles invalidated before sampling.',
         limitations=['Unchanged 65536-byte ceiling; canonical seven-byte keys, int64 values and two users.',
         'Last-key point operations include complete-state transfer, decoding, validation, lookup and publication.',

@@ -91,8 +91,7 @@ all 16 sampled `scaling_cur_freq` values (kHz), inherited CPU affinity and UTC.
 Samples near 3.6 GHz support the configured policy; they are endpoint
 observations, not integrated hardware cycle measurements. No `taskset` pinning
 is applied: the harness, all engines and their children inherit the same CPU
-set. Scaling's `metadata.session_count` is overridden by its top-level
-`session_count=1`; E1–E3 use three sessions per condition.
+set. Scaling records `session_count=1`; E1–E3 use three sessions per condition.
 
 Run the commands under the common heavy-work lock, with unlimited stack and
 `make build` first. The wrapper does not acquire a nested lock. PostgreSQL
@@ -138,6 +137,9 @@ canonical bytes of the unmodified 65,536-byte ceiling; the point arm uses
 65,444 bytes. A certified universally quantified population program initializes
 these states from an empty valid seed; the owner population reuses the access
 example's ownership and termination inductions and runs separately as each user.
+The benchmark ownership law also permits `DefineRow` and `CountRows` only on
+the authenticated user's table, for certified initialization. Its timed
+`ReadCell`/`DefineColumn` ownership and column restrictions are unchanged.
 Population and initialization are outside measured samples.
 
 Cross-user checks run for **both states in every session**, and JSON retains
@@ -228,7 +230,8 @@ fragments (`ordinary-table`, `prepared-table`, `phase-table`,
 `database-comparison-table`, `registration-phase-table`, `registration-table`,
 `session-spread-table`, `throughput-table`, `verification-table`, `size-table`, `scaling-table`),
 `ordinary-phase-summary.tex`, named coordinate macros in `scaling-coordinates.tex`,
-and four `scaling-{volatile,persistent}_{read,update}.dat` files with
+the versioned `final-summary.json`, `final-headlines.md` and `final-report.md`
+under `paper/evidence/`, and four `scaling-{volatile,persistent}_{read,update}.dat` files with
 `rows state_bytes median_ms lower_ms upper_ms` columns for pgfplots. The last two
 columns are distances from the median to Q1 and Q3; coordinate macros use decimal
 kB on the horizontal axis and ms on the vertical axis. Include `numbers.tex` once.

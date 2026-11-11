@@ -1,6 +1,5 @@
 """Reproducible physical nonblank counts; no source edits or compiler estimates."""
 from pathlib import Path
-import re
 
 ROOT=Path(__file__).resolve().parents[2]
 
@@ -42,7 +41,7 @@ if __name__=='__main__':
         path=ROOT/'paper/evidence/verification.json'
         data=json.loads(path.read_text())
         data['detailed_sizes']=result
-        data['size_collection_metadata']=metadata()
+        data['size_collection_metadata']=metadata(1)
         data['timing_policy_note']='Original successful verification wall times retained; their historical metadata precedes fixed-clock control. New size_collection_metadata records only source-inventory collection, not a rerun of command wall times.'
         save('verification.json',data)
     else:

@@ -30,11 +30,11 @@ def command(*args):
     return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT).strip()
 
 
-def metadata():
+def metadata(session_count=3):
     from paper.bench.frequency import observe
     tracked = command('git', 'ls-files').splitlines()
     source = [p for p in tracked if p.startswith(('server/', 'src/', 'contract/', 'proof/', 'tools/', 'native/'))]
-    return dict(frequency=observe(), frequency_original=json.loads(Path(os.environ['JAYDB_BENCH_FREQUENCY_ORIGINAL']).read_text()) if 'JAYDB_BENCH_FREQUENCY_ORIGINAL' in os.environ else None, session_count=3, commit=command('git','rev-parse','HEAD'), base_commit='95027beddd57b8f0a647f6980d16610497c3bbf0',
+    return dict(frequency=observe(), frequency_original=json.loads(Path(os.environ['JAYDB_BENCH_FREQUENCY_ORIGINAL']).read_text()) if 'JAYDB_BENCH_FREQUENCY_ORIGINAL' in os.environ else None, session_count=session_count, commit=command('git','rev-parse','HEAD'), base_commit='95027beddd57b8f0a647f6980d16610497c3bbf0',
         branch=command('git','branch','--show-current'), utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
         cpu=next(x.split(':',1)[1].strip() for x in Path('/proc/cpuinfo').read_text().splitlines() if x.startswith('model name')),
         logical_cpus=os.cpu_count(), kernel=platform.platform(), python=sys.version, sqlite=sqlite3.sqlite_version,
@@ -216,7 +216,7 @@ def prepared():
 
 
 def verification():
-    data=dict(metadata=metadata(),experiment='E4 verification and sizes',commands=[])
+    data=dict(metadata=metadata(1),experiment='E4 verification and sizes',commands=[])
     for target in ('verify-contract','verify','test'):
         started=time.perf_counter_ns()
         result=subprocess.run(['make',target],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
