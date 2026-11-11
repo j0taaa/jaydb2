@@ -107,4 +107,54 @@ class EvidenceTests(unittest.TestCase):
         result=evidence.summary([dict(elapsed_ns=x) for x in (1,2,3,4,100)])
         self.assertEqual((result['median'],result['qone'],result['qthree']),(3,2,4))
 
+    def test_missing_session(self):
+        self.corrupt(lambda d:d['prepared']['records'][0]['sessions'].pop(),'independent sessions')
+
+    def test_raw_and_pooled_views_cannot_diverge(self):
+        self.corrupt(lambda d:d['ordinary']['records'][0]['sessions'][0]['samples'][0].update(elapsed_ns=1),'Pooled samples')
+
+    def test_frequency_policy_is_required(self):
+        def edit(d):
+            settings=d['prepared']['metadata']['frequency']['settings']
+            key=next(k for k in settings if k.endswith('/scaling_governor'))
+            settings[key]='powersave'
+        self.corrupt(edit,'CPU frequency policy')
+
+    def test_sampled_frequencies_required(self):
+        self.corrupt(lambda d:d['comparison']['metadata']['frequency']['scaling_cur_freq_khz'].clear(),'sampled CPU frequencies')
+
+    def test_missing_large_state_arm(self):
+        self.corrupt(lambda d:d['comparison']['records'].__delitem__(next(i for i,r in enumerate(d['comparison']['records']) if r['rows']>10)),'engine/policy coverage')
+
+    def test_missing_first_key_observations(self):
+        self.corrupt(lambda d:d['scaling']['records'][0]['first_key_samples'].pop(),'samples')
+
+    def test_scaling_uses_same_service_across_sizes(self):
+        self.corrupt(lambda d:d['scaling']['records'][0].update(service_pid=-1),'service not reused')
+
+    def test_size_inventory_and_new_macro_contract(self):
+        sizes=self.data['verification']['detailed_sizes']
+        self.assertEqual(sizes['rust_production_lines']+sizes['rust_test_lines'],self.data['verification']['sizes']['server']['nonblank_lines'])
+        for app in sizes['applications'].values():
+            self.assertEqual(app['client_lines'],sum(app['program_files'].values()))
+            self.assertEqual(app['proof_lines'],sum(app['proof_files'].values()))
+            for path,count in {**app['program_files'],**app['proof_files']}.items():
+                self.assertEqual(count,sum(bool(x.strip()) for x in (evidence.ROOT/path).read_text().splitlines()))
+        previous=evidence.OUT
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder)
+                macros=evidence.derive(self.data)
+                names='CpuGovernor CpuClockGHz TurboSetting SessionCount RustProductionLines RustTestLines IndexedClientLines IndexedProofLines IndexedProofRatio VoucherClientLines VoucherProofLines VoucherProofRatio ComparisonLargeRows ScalingFirstKeySmallMs ScalingFirstKeyLargeMs'.split()
+                names += ['Large'+policy+engine+operation+'Ms' for policy in ('','Owner') for engine in ('Jay','Pg','Sq') for operation in ('Read','Write')]
+                for name in names:self.assertIn(name,macros)
+                self.assertEqual(macros['SessionCount'][0],3)
+                self.assertEqual(macros['ComparisonLargeRows'][0],1104)
+                self.assertIn('65{,}536',(Path(folder)/'numbers.tex').read_text())
+                self.assertIn('Min s',(Path(folder)/'registration-table.tex').read_text())
+                self.assertTrue((Path(folder)/'session-spread-table.tex').is_file())
+                for row in evidence.report_rows(self.data):
+                    if row['metric'].startswith(('E1','E2','E3')):self.assertEqual(len(row['session_medians']),3)
+        finally:evidence.OUT=previous
+
 if __name__=='__main__':unittest.main(verbosity=2)

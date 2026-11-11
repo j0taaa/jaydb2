@@ -30,7 +30,7 @@ def summary(samples):
 
 def active_throughput(record):
     rows=record['samples']
-    return quartiles([30e9/sum(s['elapsed_ns'] for s in rows[i:i+30]) for i in range(0,300,30)])
+    return quartiles([30e9/sum(s['elapsed_ns'] for s in rows[i:i+30]) for i in range(0,len(rows),30)])
 
 
 def checked(sample):
@@ -40,7 +40,8 @@ def checked(sample):
         raise ValueError('Invalid elapsed nanoseconds')
 
 
-def samples(record,n,workload=None):
+def samples(record,n=None,workload=None):
+    n=record['n'] if n is None else n
     rows=record['samples']
     warmup=record['warmup']
     if workload:
@@ -61,15 +62,15 @@ def validate(data):
     if {r['program'] for r in data['ordinary']['records']}!=set(PROGRAMS) or len(data['ordinary']['records'])!=3:
         raise ValueError('Ordinary program coverage')
     for r in data['ordinary']['records']:
-        samples(r,10)
+        samples(r,30)
         phases={'staging','primary_check','bendtt_translate_check','c_compilation','ordinary_worker','publication'}
         if any(not phases<=s['phases_ns'].keys() for s in r['samples']): raise ValueError('Missing ordinary phase timing')
     expected={(p,m) for p in PROGRAMS for m in (False,True)}
     identities=[(r['program'],r['persistent']) for r in data['prepared']['records']]
     if len(identities)!=6 or set(identities)!=expected:raise ValueError('Prepared program/mode coverage')
     for r in data['prepared']['records']:
-        samples(r,300)
-        if len(r['registrations'])<3:raise ValueError('Missing registration samples')
+        samples(r,900)
+        if len(r['registrations'])!=9:raise ValueError('Missing registration samples')
         for row in r['registrations']:
             checked(row)
             if row['actual'].get('status')!='prepared' or not re.fullmatch('[a-f0-9]{64}',row['actual'].get('value','')):
@@ -77,27 +78,33 @@ def validate(data):
         if r['program']=='voucher' and any(s.get('untimed_retirement_checked') is not True for s in r['samples']):
             raise ValueError('Unchecked voucher retirement')
     comparisons=data['comparison']['records']
-    if len(comparisons)!=6 or {(r['engine'],r['policy']) for r in comparisons}!={(e,p) for e in ('jaydb2','postgresql','sqlite') for p in ('point','owner')}:
+    if len(comparisons)!=12 or {(r['engine'],r['policy'],r['rows']) for r in comparisons}!={(e,p,n) for e in ('jaydb2','postgresql','sqlite') for p in ('point','owner') for n in (10,data['comparison']['large_rows'])}:
         raise ValueError('Comparison engine/policy coverage')
     for r in comparisons:
-        for workload in ('read','update'):samples(r,300,workload)
+        for workload in ('read','update'):samples(r,900,workload)
         if r['engine']=='jaydb2':
             for s in r['samples']:
                 if s['workload']=='update' and s.get('stored_value_checked') is not True:raise ValueError('Unchecked stored update')
-            for w in ('read','update'):
+            for w in (('read','update') if r['rows']==10 else ()):
                 rows=[s for s in r['ordinary'] if s['workload']==w and s['phase']=='sample']
-                if len(rows)!=10:raise ValueError('Ordinary comparison context samples')
+                if len(rows)!=30:raise ValueError('Ordinary comparison context samples')
                 for row in rows:checked(row)
     policy=data['comparison']['policy_checks']
-    if len(policy)!=4 or {(r['engine'],r['workload']) for r in policy}!={(e,w) for e in ('jaydb2','postgresql') for w in ('read','update')}:
+    expected={(e,w,n,sid) for e in ('jaydb2','postgresql','sqlite') for w in ('read','update') for n in (10,data['comparison']['large_rows']) for sid in (1,2,3)}
+    if len(policy)!=len(expected) or {(r['engine'],r['workload'],r['rows'],r['session']) for r in policy}!=expected:
         raise ValueError('Missing policy refusal checks')
     for row in policy:
-        if row.get('refused') is not True or row.get('checked') is not True or canonical(row['actual'])!=canonical(row['expected']):raise ValueError('Policy check failed')
-    pg=data['comparison']['settings']['postgresql']
-    if pg['fsync']!='on' or pg['synchronous_commit']!='on' or pg['role'][1:]!=[False,False] or pg['rls']!=[True,True]:
-        raise ValueError('PostgreSQL durability/RLS settings')
-    sq=data['comparison']['settings']['sqlite']
-    if sq['synchronous']!=2 or sq['journal_mode']!='wal':raise ValueError('SQLite durability settings')
+        if row.get('refused') != (row['engine']!='sqlite') or row.get('checked') is not True or canonical(row['actual'])!=canonical(row['expected']) or not row.get('attempt'):
+            raise ValueError('Policy check failed')
+    for pg in [data['comparison']['settings']['postgresql']]+[x['settings'] for r in comparisons if r['engine']=='postgresql' for x in r['sessions']]:
+        if pg['fsync']!='on' or pg['synchronous_commit']!='on' or pg['role'][1:]!=[False,False] or ('rls' in pg and pg['rls']!=[True,True]):
+            raise ValueError('PostgreSQL durability/RLS settings')
+    for sq in [data['comparison']['settings']['sqlite']]+[x['settings'] for r in comparisons if r['engine']=='sqlite' for x in r['sessions']]:
+        if sq['synchronous']!=2 or sq['journal_mode']!='wal':raise ValueError('SQLite durability settings')
+    for name in ('ordinary','prepared','comparison'):
+        validate_frequency(data[name]['metadata'])
+        for record in data[name]['records']:validate_sessions(record,name)
+    validate_frequency(data['scaling']['metadata'])
     commands=data['verification']['commands']
     if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
     for row in commands:
@@ -109,16 +116,21 @@ def validate(data):
     if not scaling.get('setup_method'):raise ValueError('Missing scaling setup method')
     identities=[(r['rows'],r['persistent']) for r in scaling['records']]
     if len(identities)!=len(set(identities)):raise ValueError('Duplicate scaling point')
-    expected={(n,m) for n in (10,100,1000,scaling['max_rows']) for m in (False,True)}
-    attempts=set(identities)|{(r['rows'],r['persistent']) for r in scaling['failures'] if 'persistent' in r}
-    if not expected<=attempts:raise ValueError('Missing scaling population/mode coverage')
+    expected={(n,m) for n in (10,30,100,300,600,1000,scaling['max_rows']) for m in (False,True)}
+    if not expected<=set(identities):raise ValueError('Missing scaling population/mode coverage')
     for r in scaling['records']:
-        checked(r['population'])
-        if r['population']['actual']!={'status':'success','value':r['rows']}:raise ValueError('Scaling population count disagrees')
+        for row in r['population']['calls']:checked(row)
+        if r['population']['total_rows']!=r['rows'] or r['population']['calls'][0]['actual']!={'status':'success','value':r['rows']}:raise ValueError('Scaling population count disagrees')
         if r['state_bytes']>scaling['state_limit']:raise ValueError('Scaling state exceeds limit')
         for w in ('read','update'):samples(r,50,w)
         for s in r['samples']:
             if s['workload']=='update' and s.get('stored_value_checked') is not True:raise ValueError('Unchecked scaling update')
+    for mode in (False,True):
+        if len({r['service_pid'] for r in scaling['records'] if r['persistent']==mode})!=1:raise ValueError('Scaling service not reused')
+    for r in scaling['records']:
+        validate_frequency(r)
+        if r['rows'] in (10,scaling['max_rows']):
+            samples(dict(n=50,samples=r['first_key_samples'],warmup=r['first_key_warmup']),50,'read')
     for failure in scaling['failures']:
         if not failure.get('reason'):raise ValueError('Unexplained scaling failure')
     for mode in (False,True):
@@ -132,6 +144,31 @@ def validate(data):
     for attempt in data['scaling-seed-attempt']['failures']:
         if attempt.get('measured') and not attempt.get('reason'):raise ValueError('Unexplained seed-check failure')
     return data
+
+
+def validate_frequency(record):
+    f=record.get('frequency',{})
+    settings=f.get('settings',{})
+    if len(settings)!=33 or any(v!=('1' if p.endswith('/no_turbo') else 'performance') for p,v in settings.items()):
+        raise ValueError('Missing fixed CPU frequency policy')
+    if len(f.get('scaling_cur_freq_khz',{}))!=16 or any(v<=0 for v in f['scaling_cur_freq_khz'].values()):
+        raise ValueError('Missing sampled CPU frequencies')
+
+
+def validate_sessions(record,name):
+    sessions=record.get('sessions',[])
+    if len(sessions)!=3 or {r.get('session') for r in sessions}!={1,2,3}:raise ValueError('Missing independent sessions')
+    n=10 if name=='ordinary' else 300
+    for r in sessions:
+        validate_frequency(r)
+        for w in (('read','update') if name=='comparison' else (None,)):samples(r,n,w)
+        if name=='prepared':
+            if len(r['registrations'])!=3:raise ValueError('Missing session registrations')
+            for x in r['registrations']:checked(x)
+    # The pooled view must exactly retain every raw measured observation.
+    pooled=[{k:v for k,v in x.items() if k not in ('session','session_iteration','iteration')} for x in record['samples']]
+    raw=[{k:v for k,v in x.items() if k!='iteration'} for r in sessions for x in r['samples']]
+    if canonical(pooled)!=canonical(raw):raise ValueError('Pooled samples disagree with independent sessions')
 
 
 def load():
@@ -148,26 +185,34 @@ def metric(prefix,s,unit,scale,meaning):
 
 
 def fmt(x):
-    return str(x) if isinstance(x,int) else f'{x:.6g}'
+    return f'{x:,}'.replace(',', '{,}') if isinstance(x,int) else str(x) if isinstance(x,str) else f'{x:.6g}'
 
 
-def cell(s,scale=1e6):
-    return f"{s['median']/scale:.4g} [{s['qone']/scale:.4g}, {s['qthree']/scale:.4g}]"
+def decimal(value,precision=2):
+    return f'{value:,.{precision}f}'.replace(',', '{,}')
+
+
+def cell(s,scale=1e6,precision=2):
+    return f"{decimal(s['median']/scale,precision)} [{decimal(s['qone']/scale,precision)}, {decimal(s['qthree']/scale,precision)}]"
 
 
 def table(name,columns,rows):
-    rendered=[' & '.join(map(str,row))+r' \\' for row in rows]
+    rendered=[' & '.join(fmt(x) if isinstance(x,int) else str(x) for x in row)+r' \\' for row in rows]
     (OUT/name).write_text('\\begin{tabular}{'+columns+'}\\toprule\n'+rendered[0]+'\n\\midrule\n'+'\n'.join(rendered[1:])+'\n\\bottomrule\\end{tabular}\n')
 
 
 def derive(data):
     MACROS.clear();OUT.mkdir(parents=True,exist_ok=True)
-    for prefix,count in [('Ordinary',10),('Prepared',300),('Registration',3),('Comparison',300),('Scaling',50)]:
+    for prefix,count in [('Ordinary',30),('Prepared',900),('Registration',9),('Comparison',900),('Scaling',50)]:
         macro(prefix+'Samples',count,prefix.lower()+' measured samples per program/mode/operation','samples')
+    macro('CpuGovernor','performance','Linux CPU scaling governor and EPP on all 16 CPUs','text')
+    macro('CpuClockGHz',3.6,'Nominal base clock; endpoint frequencies retained in raw metadata','GHz')
+    macro('TurboSetting','disabled','Intel turbo disabled (no_turbo=1)','text')
+    macro('SessionCount',3,'Independent sessions per E1/E2/E3 condition (E5 uses one)','sessions')
     ordinary={r['program']:summary(r['samples']) for r in data['ordinary']['records']}
     table('ordinary-table.tex','lrr', [['Program','Seconds: median [Q1, Q3]','n']]+[[PROGRAMS[p],cell(s,1e9),s['n']] for p,s in ordinary.items()])
     for p,s in ordinary.items():metric('Ordinary'+PROGRAMS[p],s,'Seconds',1e9,p+' ordinary round-trip latency')
-    rows=[['Program / mode','Registration s','Call ms']]
+    rows=[['Program / mode','Registration ms (median)','Call ms']]
     rates=[['Program / mode','Active calls/s [Q1, Q3]','Blocks','Closed-loop calls/s']]
     registration_phases=[['Program / mode','Checking s','C generation/build s']]
     for r in data['prepared']['records']:
@@ -175,18 +220,18 @@ def derive(data):
         prefix=PROGRAMS[p]+mode
         metric('Prepared'+prefix,s,'Ms',1e6,p+' '+mode.lower()+' prepared latency')
         metric('Registration'+prefix,reg,'Seconds',1e9,p+' '+mode.lower()+' one-time registration')
-        rps=300e9/r['batch_elapsed_ns']
+        rps=statistics.median([300e9/x['batch_elapsed_ns'] for x in r['sessions']])
         macro('Prepared'+prefix+'CallsPerSecond',rps,'Closed-loop throughput, including checked voucher retirements when applicable','calls/s')
         active=active_throughput(r)
-        macro('Prepared'+prefix+'ActiveCallsPerSecond',active['median'],'Median active throughput in ten consecutive 30-call blocks; excludes maintenance and validation gaps','calls/s')
-        rates.append([p+' / '+mode.lower(),cell(active,1),10,f'{rps:.4g}'])
+        macro('Prepared'+prefix+'ActiveCallsPerSecond',active['median'],'Median active throughput in thirty 30-call blocks, ten per session; excludes maintenance and validation gaps','calls/s')
+        rates.append([PROGRAMS[p]+' / '+mode.lower(),cell(active,1),30,f'{rps:.2f}'])
         if not r['persistent']:
             breakeven=math.ceil(reg['median']/(ordinary[p]['median']-s['median']))
             macro('BreakEven'+PROGRAMS[p]+'Calls',breakeven,'First integer call count where median registration plus prepared calls costs no more than ordinary calls','calls')
-        rows.append([p+' / '+mode.lower(),cell(reg,1e9),cell(s)])
+        rows.append([PROGRAMS[p]+' / '+mode.lower(),decimal(reg['median']/1e6),cell(s)])
         checks=summary([dict(elapsed_ns=x['phases_ns']['primary_check']+x['phases_ns']['bendtt_translate_check']) for x in r['registrations']])
         compile_times=summary([dict(elapsed_ns=x['phases_ns']['c_emission']+x['phases_ns']['c_compilation']) for x in r['registrations']])
-        registration_phases.append([p+' / '+mode.lower(),cell(checks,1e9),cell(compile_times,1e9)])
+        registration_phases.append([PROGRAMS[p]+' / '+mode.lower(),cell(checks,1e9),cell(compile_times,1e9)])
     table('prepared-table.tex','lrr',rows)
     table('throughput-table.tex','lrrr',rates)
     table('registration-phase-table.tex','lrr',registration_phases)
@@ -197,7 +242,7 @@ def derive(data):
     for r in data['ordinary']['records']:
         for phase in sorted(r['samples'][0]['phases_ns']):
             s=summary([dict(elapsed_ns=x['phases_ns'][phase]) for x in r['samples']])
-            phase_rows.append([r['program'],phase.replace('_',r'\_'),cell(s)])
+            phase_rows.append([PROGRAMS[r['program']],phase.replace('_',r'\_'),cell(s)])
     table('phase-table.tex','llr',phase_rows)
     # Aggregate within each call before summarizing; admission_total is nested.
     phase_summary=[['Phase (unit)']+list(PROGRAMS.values())]
@@ -219,22 +264,26 @@ def derive(data):
         macro('Ordinary'+PROGRAMS[r['program']]+'WorkerSharePercent',
             statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in r['samples']]),
             r['program']+' median per-call worker share of ordinary round trip','percent')
-        phase_cells[r['program']]={name:cell(quartiles(ns),1e6 if name=='WorkerMs' else 1e9)
+        phase_cells[r['program']]={name:cell(quartiles(ns),1e6)
             for name,ns in values.items()}
-    for name,label in [('CheckingSeconds','Checking (s)'),('CompilationSeconds','C generation/build (s)'),
-            ('WorkerMs','Worker (ms)'),('OtherSeconds','Other (s)')]:
+    for name,label in [('CheckingSeconds','Checking (ms)'),('CompilationSeconds','C generation/build (ms)'),
+            ('WorkerMs','Worker (ms)'),('OtherSeconds','Other (ms)')]:
         phase_summary.append([label]+[phase_cells[p][name] for p in PROGRAMS])
     table('ordinary-phase-summary.tex','lrrr',phase_summary)
-    compare=[['Policy','Engine','Read ms','Update ms']]
+    compare=[['Rows / policy','Engine',r'Read $\mu$s',r'Update $\mu$s']]
     for r in data['comparison']['records']:
         prefix={'jaydb2':'Jay','postgresql':'Postgres','sqlite':'Sqlite'}[r['engine']]+('Owner' if r['policy']=='owner' else 'Point')
-        summaries={w:samples(r,300,w) for w in ('read','update')}
-        for w,s in summaries.items():metric(prefix+w.title(),s,'Ms',1e6,r['engine']+' '+r['policy']+' '+w+' latency')
-        compare.append([r['policy'],r['engine'],cell(summaries['read']),cell(summaries['update'])])
-        if r['engine']=='jaydb2':
+        summaries={w:samples(r,900,w) for w in ('read','update')}
+        if r['rows']==10:
+            for w,s in summaries.items():metric(prefix+w.title(),s,'Ms',1e6,r['engine']+' '+r['policy']+' '+w+' latency')
+        else:
+            for w,ss in summaries.items():macro('Large'+('Owner' if r['policy']=='owner' else '')+{'jaydb2':'Jay','postgresql':'Pg','sqlite':'Sq'}[r['engine']]+('Read' if w=='read' else 'Write')+'Ms',ss['median']/1e6,'Large-state durable '+r['engine']+' '+r['policy']+' '+w+' median','ms')
+        compare.append([fmt(r['rows'])+' / '+r['policy'].title(),{'jaydb2':'JayDB2','postgresql':'PostgreSQL','sqlite':'SQLite'}[r['engine']],cell(summaries['read'],1e3),cell(summaries['update'],1e3)])
+        if r['engine']=='jaydb2' and r['rows']==10:
             for w in ('read','update'):
                 s=summary([x for x in r['ordinary'] if x['workload']==w and x['phase']=='sample'])
                 metric('Ordinary'+prefix+w.title(),s,'Seconds',1e9,'Durable ordinary '+r['policy']+' '+w+' latency')
+    macro('ComparisonLargeRows',data['comparison']['large_rows'],'Total rows shared by all engines in the large-state comparison','rows')
     table('database-comparison-table.tex','llrr',compare)
     for policy in ('Point','Owner'):
         for workload in ('Read','Update'):
@@ -256,13 +305,13 @@ def derive(data):
     coverage=re.search(r'OK import coverage: ([^\n]+)',v['commands'][1]['output'])
     if coverage:
         for area,count in re.findall(r'(\w+) (\d+) modules',coverage.group(1)):macro(area.title()+'CoverageModules',int(count),area+' modules covered by verify import roots','modules')
-    table('verification-table.tex','lrr',[['Command','Seconds','Exit']]+[[r['command'],f"{r['elapsed_ns']/1e9:.4g}",r['returncode']] for r in v['commands']])
-    table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a,s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()])
+    table('verification-table.tex','lrr',[['Command','Seconds','Exit']]+[[r['command'],f"{r['elapsed_ns']/1e9:.2f}",r['returncode']] for r in v['commands']])
+    table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a.title(),s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()])
     scaling=data['scaling'];macro('StateLimitBytes',scaling['state_limit'],'Configured canonical state ceiling','bytes');macro('StateMaximumRows',scaling['max_rows'],'Largest analytically fitting population of this row shape','rows')
     macro('LargeSeedFuelFailures',sum('Seed.initial_valid' in r['reason'] and 'out of fuel' in r['reason'] for r in data['scaling-seed-attempt']['failures']),'Retained large direct-seed initialization attempts exhausted official BendTT fuel','attempts')
     populations=sorted({r['rows'] for r in scaling['records']})
-    for name,index in [('Small',0),('Middle',1),('Large',2)]:
-        macro('Scaling'+name+'Rows',populations[index],'Measured '+name.lower()+' scaling population','rows')
+    for name,count in [('Small',10),('Middle',100),('Large',1000)]:
+        macro('Scaling'+name+'Rows',count,'Measured '+name.lower()+' scaling population','rows')
     largest=next(r for r in scaling['records'] if r['rows']==scaling['max_rows'])
     macro('StateMaximumBytes',largest['state_bytes'],'Canonical bytes at the largest fitting measured population','bytes')
     excess=min(scaling['failures'],key=lambda r:r['rows'])
@@ -275,7 +324,7 @@ def derive(data):
     rows=[['Rows','State bytes','Mode','Read ms','Update ms']];coordinates={}
     for r in scaling['records']:
         ss={w:samples(r,50,w) for w in ('read','update')}
-        rows.append([r['rows'],r['state_bytes'],'persistent' if r['persistent'] else 'volatile',cell(ss['read']),cell(ss['update'])])
+        rows.append([r['rows'],r['state_bytes'],'Persistent' if r['persistent'] else 'Volatile',cell(ss['read']),cell(ss['update'])])
         for w,s in ss.items():
             mode='Persistent' if r['persistent'] else 'Volatile'
             if r['rows']==populations[0] or r['rows']==scaling['max_rows']:
@@ -291,9 +340,57 @@ def derive(data):
         (OUT/('scaling-'+name+'.dat')).write_text('rows state_bytes median_ms lower_ms upper_ms\n'+''.join(
             f"{x} {b} {s['median']/1e6:.8g} {(s['median']-s['qone'])/1e6:.8g} {(s['qthree']-s['median'])/1e6:.8g}\n"
             for x,b,s in xy))
+    sizes=v['detailed_sizes']
+    for name,key in [('RustProductionLines','rust_production_lines'),('RustTestLines','rust_test_lines')]:
+        macro(name,sizes[key],sizes['definition'],'lines')
+    for app,label in [('indexed','Indexed'),('voucher','Voucher')]:
+        a=sizes['applications'][app]
+        macro(label+'ClientLines',a['client_lines'],'Nonblank client program lines; see detailed file inventory','lines')
+        macro(label+'ProofLines',a['proof_lines'],'Nonblank client certificate and local proof helper lines; see inventory','lines')
+        macro(label+'ProofRatio',a['proof_lines']/a['client_lines'],'Local client proof lines / client program lines','ratio')
+    for size,label in [(populations[0],'Small'),(scaling['max_rows'],'Large')]:
+        r=next(r for r in scaling['records'] if r['rows']==size and not r['persistent'])
+        macro('ScalingFirstKey'+label+'Ms',summary(r['first_key_samples'])['median']/1e6,'Volatile first-key read median at '+label.lower()+' population','ms')
+    registration_rows=[['Program / storage','Min s','Median s','Max s','n']]
+    for r in data['prepared']['records']:
+        values=[x['elapsed_ns']/1e9 for x in r['registrations']]
+        registration_rows.append([PROGRAMS[r['program']]+' / '+('durable' if r['persistent'] else 'volatile'),f'{min(values):.2f}',f'{statistics.median(values):.2f}',f'{max(values):.2f}',len(values)])
+    table('registration-table.tex','lrrrr',registration_rows)
+    headline=report_rows(data)
+    table('session-spread-table.tex','lrrrr',[['Metric (ms unless stated)','Pooled median [Q1, Q3]','Session min','Session max','n']]+[
+        [r['metric'],cell(r['stats'],r['scale'],3),decimal(min(r['session_medians'])/r['scale'],3),decimal(max(r['session_medians'])/r['scale'],3),r['stats']['n']] for r in headline])
+    report=dict(protocol=dict(sessions=3,scaling_sessions=1,governor='performance',epp='performance',no_turbo=1,nominal_ghz=3.6),headline=headline)
+    (ROOT/'paper/evidence/final-summary.json').write_text(json.dumps(report,indent=2)+'\n')
+    markdown=['| Metric | Unit | Pooled median [Q1, Q3] | Session median min–max | n |','|---|---|---|---|---|']
+    for r in headline:
+        v=r['stats'];k=r['scale']
+        markdown.append(f"| {r['metric']} | {r['unit']} | {v['median']/k:.3f} [{v['qone']/k:.3f}, {v['qthree']/k:.3f}] | {min(r['session_medians'])/k:.3f}–{max(r['session_medians'])/k:.3f} | {v['n']} |")
+    (ROOT/'paper/evidence/final-headlines.md').write_text('\n'.join(markdown)+'\n')
     (OUT/'numbers.tex').write_text('\n'.join('\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items())+'\n')
     (OUT/'macro-reference.md').write_text('| Macro | Meaning | Unit |\n|---|---|---|\n'+''.join(f'| `\\{n}` | {m} | {u} |\n' for n,(_,m,u) in MACROS.items()))
     return MACROS
+
+
+def report_rows(data):
+    rows=[]
+    def add(metric,groups,scale=1e6,unit='ms'):
+        values=[x for g in groups for x in g]
+        rows.append(dict(metric=metric,stats=quartiles(values),session_medians=[statistics.median(g) for g in groups],scale=scale,unit=unit))
+    for r in data['ordinary']['records']:
+        add('E1 '+PROGRAMS[r['program']],[[x['elapsed_ns'] for x in z['samples']] for z in r['sessions']])
+    for r in data['prepared']['records']:
+        label='E2 '+PROGRAMS[r['program']]+' / '+('durable' if r['persistent'] else 'volatile')
+        add(label,[[x['elapsed_ns'] for x in z['samples']] for z in r['sessions']])
+        add(label+' active throughput',[[30e9/sum(x['elapsed_ns'] for x in z['samples'][i:i+30]) for i in range(0,300,30)] for z in r['sessions']],1,'calls/s')
+        add(label+' closed-loop throughput',[[300e9/z['batch_elapsed_ns']] for z in r['sessions']],1,'calls/s')
+    for r in data['comparison']['records']:
+        for w in ('read','update'):
+            add('E3 '+str(r['rows'])+' '+r['policy'].title()+' '+{'jaydb2':'JayDB2','postgresql':'PostgreSQL','sqlite':'SQLite'}[r['engine']]+' '+w.title(),[[x['elapsed_ns'] for x in z['samples'] if x['workload']==w] for z in r['sessions']])
+    for r in data['scaling']['records']:
+        label='E5 '+str(r['rows'])+' / '+('durable' if r['persistent'] else 'volatile')
+        for w in ('read','update'):add(label+' '+w.title(),[[x['elapsed_ns'] for x in r['samples'] if x['workload']==w]])
+        if r['first_key_samples']:add(label+' first-key Read',[[x['elapsed_ns'] for x in r['first_key_samples']]])
+    return rows
 
 
 def main():

@@ -73,86 +73,143 @@ for p in .build/paper-bench/pg-packages/*.deb; do dpkg -x "$p" .build/paper-benc
 uv pip install --python /usr/bin/python3 --target .build/paper-bench/python 'psycopg[binary]==3.3.8'
 ```
 
-Run each experiment under the common lock. The harness does not acquire a
-nested lock. PostgreSQL uses a private cluster and local Unix socket, starts
-and stops with the comparison, and never uses a system service. Reruns replace
-only benchmark artifacts under `.build/paper-bench/` and the five primary JSON outputs (the initial failed seed attempt is retained
-separately):
+The final E1–E3 and E5 evidence uses the i7-11700K at its nominal 3.6 GHz
+base clock. `paper/bench/fixed-clock.sh COMMAND ...` saves every CPU's governor
+and EPP and Intel `no_turbo` before changing anything. It applies `performance`,
+`performance`, and `no_turbo=1`, verifies the settings, runs the command, and
+restores and verifies the exact saved values on EXIT, INT, TERM or HUP. The
+wrapper retains original/applied/restored JSON under `.build/paper-bench/frequency-*`;
+the final restoration receipt is copied to `paper/evidence/cpu-restoration.json`.
+Original values are `powersave`, `balance_performance`, and `no_turbo=0` on
+all 16 logical CPUs. The recovery JSON can be restored manually with
+`sudo -n python3 -B paper/bench/frequency.py restore PATH/TO/original.json`.
+As with any shell trap, SIGKILL or machine power loss cannot run cleanup; the
+saved recovery file is written before changing the policy.
+
+Every new result's metadata and each session/size record contain the policy,
+all 16 sampled `scaling_cur_freq` values (kHz), inherited CPU affinity and UTC.
+Samples near 3.6 GHz support the configured policy; they are endpoint
+observations, not integrated hardware cycle measurements. No `taskset` pinning
+is applied: the harness, all engines and their children inherit the same CPU
+set. Scaling's `metadata.session_count` is overridden by its top-level
+`session_count=1`; E1–E3 use three sessions per condition.
+
+Run the commands under the common heavy-work lock, with unlimited stack and
+`make build` first. The wrapper does not acquire a nested lock. PostgreSQL
+uses a new private cluster and local Unix socket for **every engine/condition/
+session**, starts and stops with the harness, and never uses a system service.
+SQLite gets a fresh connection/database; JayDB2 gets a fresh service and durable
+database for each E1–E3 session. The full final reproduction is:
 
 ```sh
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/run.py latency'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/run.py prepared'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/run.py comparison'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/run.py scaling'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/run.py verification'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh bash -c "python3 -B paper/bench/run.py latency && python3 -B paper/bench/run.py prepared && python3 -B paper/bench/run.py comparison && python3 -B paper/bench/run.py scaling"'
+# E4 wall times are retained from the previous unchanged implementation;
+# optionally replace them with a new controlled run:
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B paper/bench/run.py verification'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B -m paper.bench.source_sizes --update'
 python3 -B paper/evidence.py
 python3 -B -m unittest discover -s paper -p test_evidence.py -v
 ```
 
-`ordinary.json` has ten measured calls per program after one warmup.
-`prepared.json` has three registrations and 300 measured executions per
-program/storage mode. The indexed transaction alternates the Boolean value.
-Voucher calls issue fresh equal-length IDs and retire each voucher with a
-checked, separately timed maintenance call to bound state size. Registration
-samples include real certificate checking and optimized compilation; these
-three samples have no discarded registration warmup. Every session first
-waits for initialization via an untimed rejected-credential request.
+`ordinary.json` measures ten calls per program in each of three independent
+sessions (30 pooled), after one excluded warmup per session. Program order
+rotates by session. E1 voucher issues accumulate ten vouchers; the indexed set
+alternates false/true. `prepared.json` measures three registrations and 300
+calls per program/storage/session: nine registrations and 900 calls pooled.
+Registration has no discarded warmup and reports **min/median/max**, not
+quartiles of three observations. Each session invalidates its first two handles
+before registering its measured handle, so one entry remains live. Voucher
+executions issue equal-length fresh IDs and then retire them with a separately
+checked maintenance call. Each session waits for initialization with an
+untimed rejected-credential request. Prepared condition order rotates by two
+positions per session, changing the program and storage order.
 
-`comparison.json` has 300 measured reads and updates per engine/policy, plus
-ten measured durable ordinary JayDB2 calls per operation for context. Writes
-change the integer. JayDB2 writes return an acknowledgment and each is checked
-by a separate untimed readback; SQL writes return their stored value. JayDB2
-uses existing access-law proof combinators with owner-named tables. PostgreSQL
-uses an owner column, a non-superuser/non-BYPASSRLS role, enabled and forced
-RLS, and synchronous commits. Cross-user reads/updates must fail admission in
-JayDB2 and affect/return no rows in PostgreSQL. The PostgreSQL `rls` settings in the JSON describe the ownership arm; the
-point arm has RLS disabled. SQLite is explicitly an
-**unconstrained baseline**, with WAL and `synchronous=FULL`. The point workload
-has ten rows; the ownership workload has ten rows for each of two users.
+`comparison.json` measures 300 reads and 300 changing integer updates per
+engine/policy/state/session (900 pooled per operation). Small-state ordinary
+JayDB2 context has ten samples per operation/session (30 pooled), after one
+warmup. SQL/JayDB2 timing boundaries are described above; JayDB2 updates return
+an acknowledgement with a separate untimed checked readback; SQL returns the
+integer. Engine order and state/policy condition order rotate by session.
+The two **total** row counts are 10 and 1,104 in every engine, in both policy
+arms. The owner arm splits rows equally between Alice and Bob (5+5 or
+552+552); this corrects the previous owner arm's 10+10 versus point arm's 10.
+The operation targets the last Alice key. The large owner state uses 65,500
+canonical bytes of the unmodified 65,536-byte ceiling; the point arm uses
+65,444 bytes. A certified universally quantified population program initializes
+these states from an empty valid seed; the owner population reuses the access
+example's ownership and termination inductions and runs separately as each user.
+Population and initialization are outside measured samples.
 
-`scaling.json` retains the 65,536-byte application state ceiling, measures 50
-reads and 50 updates per supported population/mode. It starts from an empty
-valid seed and populates it through a universally certified prepared transaction
-that returns the checked row count; that handle is invalidated before sampling.
-It records larger populations or failed attempts explicitly. Rows have a seven-byte ID and one
-int64 cell. An independently admitted full-row writer probes the first excess
-row after the point-operation samples. Scaling latency includes transfer, decoding,
-validation, lookup and publication; it does not isolate copying alone. Both
-operations target the lexicographically last key, so linear lookup also grows
-with population.
-`verification.json` retains complete command outputs and wall times, inventories and source-size definitions.
-The retained `scaling-seed-attempt.json` records the initial direct-seed
-approach: the unmodified BendTT checker exhausted fuel in `Seed.initial_valid`
-at 1,000 and 1,105 rows. These are initialization/checker failures, not measured
-operation latencies. The final scaling procedure avoids that large seed proof. An initial boundary
-probe also had an affine-key error in benchmark source; the corrected probe
-reuses the admitted population program. Its two rejected attempts are retained
-in `corrected_harness_failures`; the two maximum-size groups were re-measured,
-and the six smaller groups were retained. `supplemental_run` records that
-measurement run's metadata.
+Cross-user checks run for **both states in every session**, and JSON retains
+exact SQL or full JayDB2 program/proof/arguments, credentials and outcomes:
 
-To reproduce the initial failed 1,000-row seed check after setting up the harness
-(the command is expected to exit nonzero with `Seed.initial_valid: out of fuel`):
+- JayDB2: Alice submits an **ordinary** program whose read or update operation
+  names Bob's table, with the unchanged ownership certificate. Admission returns
+  `certificate` and no value for both attempts. Bob then uses the legitimate
+  universal prepared program to verify his row is still zero. This measures
+  rejection of the supplied certificate, not a theorem that arbitrary invalid
+  programs can never obtain certificates.
+- PostgreSQL 16.15: the non-superuser, non-BYPASSRLS `bench_alice` role issues
+  `SELECT value FROM cells WHERE owner='bench_bob' AND id='k000000'` and
+  `UPDATE cells SET value=999 WHERE owner='bench_bob' AND id='k000000' RETURNING value`.
+  ENABLE/FORCE RLS and `owner=current_user` return/affect zero rows; the
+  administrator verifies Bob's value remains zero. The point arm disables RLS.
+- SQLite: the same SQL **succeeds** on the unconstrained connection, returning
+  Bob's zero and then 999. The harness resets Bob's value afterward. SQLite is
+  an unconstrained baseline with WAL and `synchronous=FULL`, not an ownership
+  mechanism. PostgreSQL uses fsync, synchronous commits and full-page writes.
 
-```sh
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B -c "from paper.bench.run import BUILD, Session; from paper.bench.fixtures import package; Session(package(BUILD / \"seed-fuel-repro\", \"read\", rows=1000), \"seed-fuel-repro\").close()"'
-```
+`scaling.json` is **one experimental session**, with one service process per
+storage mode reused across every ascending size: 10, 30, 100, 300, 600,
+1,000 and the maximum 1,105 rows (65,503 bytes). This makes within-mode size
+comparisons share the same process and registered point program. A certified
+population transaction resets all rows to zero at each size; its handle is
+invalidated before timing. Each point has 50 reads and 50 changing updates,
+after one warmup per operation. Target is the last key; first-key reads add 50
+observations at 10 and 1,105 rows in both storage modes. Complete-state transfer,
+decoding, validation, linear lookup and publication remain included; comparing
+first and last key helps distinguish lookup from complete-state work without
+claiming to isolate either. The first excess row is actually attempted and
+must return `limit`; an absent-row read confirms rollback. Canonical sizes for
+1,106 and 10,000 rows are retained as untimed failures. The historical
+`scaling-seed-attempt.json` records direct-seed BendTT fuel failures and is
+retained for provenance, not pooled with final operation samples.
 
-Counts of `law` declarations, proof definitions and named theorem witnesses
-are distinct syntactic facts; they are not equivalent proof-strength metrics.
+`verification.json` retains its successful original `make verify-contract`,
+`make verify`, and `make test` wall times and full output; these are single runs
+under the earlier powersave/turbo policy, **not fixed-clock comparisons**.
+The new `detailed_sizes` inventory separates the Rust host's nonblank physical
+lines (comments/imports/attributes included) in `server/*.rs`: each
+`#[cfg(test)]` attribute and its following top-level item through the unindented
+closing brace count as test lines; all remaining lines count as production.
+The file-level split sums exactly to the existing host total. Feature-gated
+fault injection remains production under this syntactic definition unless
+inside a `cfg(test)` item.
 
-All spreads are inclusive quartiles (Q1 and Q3); medians and quartiles are
-derived from raw samples without outlier removal. The preparation break-even
-is `ceil(median_registration / (median_ordinary - median_prepared))`, using
-matching volatile programs, excluding service startup. This is an amortization
-model over the measured medians, not a guarantee for every state or call. E1
-voucher samples accumulate ten issued vouchers; E2 bounds state with retirements.
-Closed-loop throughput includes validation gaps
-and the voucher maintenance calls. Active-call throughput is the median rate over ten consecutive blocks of 30
-calls, computed as 30 divided by the sum of their measured round trips. It
-excludes maintenance and gaps; its table reports quartiles across ten blocks.
-The full closed-loop rate is one 300-call batch observation. These two rates
-have deliberately different boundaries.
+Client program lines count `applications/indexed/Client.bend` for Indexed and
+`applications/vouchers/Client.bend` **plus `Voucher.bend`** for Voucher (the
+six-line wrapper delegates the actual dispatcher there). Client proof lines
+count Indexed's `ClientProof.bend`, `CheckedActions.bend`, `Completion.bend`,
+and Voucher's `ClientProof.bend`. Ratios are proof/program nonblank lines.
+These local client-certificate counts exclude reusable library/kernel proofs,
+model/schema/seed files, shared application ownership proofs, and the separate
+voucher functional theorem suite; they are scoped client integration costs,
+not complete application correctness-proof sizes. `detailed_sizes` lists every
+included file and its count. Counts of `law` declarations, proof definitions
+and named theorem witnesses remain distinct syntactic facts.
+
+Statistics use inclusive quartiles, without outlier removal. Tables report
+pooled median [Q1,Q3] and a separate min–max of the three session medians in
+`session-spread-table.tex` and `paper/evidence/final-headlines.md` (E5 has one
+session, so its session range is degenerate). E2 registration instead uses
+min/median/max over nine observations. Preparation break-even remains
+`ceil(median_registration / (median_ordinary - median_prepared))`, matching
+volatile programs and excluding startup; it is an amortization model over
+medians. Active throughput uses 30 consecutive blocks of 30 measured calls
+(ten per session), excludes maintenance/gaps, and reports pooled quartiles.
+Closed-loop throughput records three independent 300-call batch rates,
+including validation gaps and voucher retirements; its macro is their median.
+No pooling crosses a session boundary when forming throughput blocks.
 
 Set `JAYDB_BENCH_TIMING=1` only for the opt-in diagnostic phase hooks. The
 ordinary and prepared experiments enable it; comparison and scaling do not.
@@ -168,22 +225,23 @@ service timer also writes raw sidecars under the ignored build directory.
 
 `python3 -B paper/evidence.py` writes `.build/tcc/numbers.tex`, booktabs table
 fragments (`ordinary-table`, `prepared-table`, `phase-table`,
-`database-comparison-table`, `registration-phase-table`, `throughput-table`, `verification-table`, `size-table`, `scaling-table`),
+`database-comparison-table`, `registration-phase-table`, `registration-table`,
+`session-spread-table`, `throughput-table`, `verification-table`, `size-table`, `scaling-table`),
 `ordinary-phase-summary.tex`, named coordinate macros in `scaling-coordinates.tex`,
 and four `scaling-{volatile,persistent}_{read,update}.dat` files with
 `rows state_bytes median_ms lower_ms upper_ms` columns for pgfplots. The last two
 columns are distances from the median to Q1 and Q3; coordinate macros use decimal
 kB on the horizontal axis and ms on the vertical axis. Include `numbers.tex` once.
-No macro name contains digits. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
+No macro name contains digits. Integers use `{,}` grouping for text and math; latency table columns use fixed two-decimal precision (three decimals in the session-spread table to retain SQL read resolution), in one unit per latency table. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
 
 | Macro names | Meaning | Unit |
 |---|---|---|
-| `\OrdinarySamples`, `\PreparedSamples`, `\RegistrationSamples`, `\ComparisonSamples`, `\ScalingSamples` | Measured sample count per program, mode, or operation | samples |
+| `\OrdinarySamples`, `\PreparedSamples`, `\RegistrationSamples`, `\ComparisonSamples`, `\ScalingSamples` | Pooled measured sample count per program, mode, or operation (30/900/9/900/50) | samples |
 | `\OrdinaryReadMedianSeconds`, `\OrdinaryIndexedMedianSeconds`, `\OrdinaryVoucherMedianSeconds` | Ordinary median latency by program (Read, Indexed, Voucher) | s |
 | `\PreparedReadVolatileMedianMs`, `\PreparedIndexedVolatileMedianMs`, `\PreparedVoucherVolatileMedianMs`, `\PreparedReadPersistentMedianMs`, `\PreparedIndexedPersistentMedianMs`, `\PreparedVoucherPersistentMedianMs` | Prepared median latency by program and storage mode | ms |
 | `\RegistrationReadVolatileMedianSeconds`, `\RegistrationIndexedVolatileMedianSeconds`, `\RegistrationVoucherVolatileMedianSeconds`, `\RegistrationReadPersistentMedianSeconds`, `\RegistrationIndexedPersistentMedianSeconds`, `\RegistrationVoucherPersistentMedianSeconds` | One-time registration median by program and storage mode | s |
-| `\PreparedReadVolatileCallsPerSecond`, `\PreparedIndexedVolatileCallsPerSecond`, `\PreparedVoucherVolatileCallsPerSecond`, `\PreparedReadPersistentCallsPerSecond`, `\PreparedIndexedPersistentCallsPerSecond`, `\PreparedVoucherPersistentCallsPerSecond` | Observed full-loop throughput, one 300-call batch (includes voucher retirements) | calls/s |
-| `\PreparedReadVolatileActiveCallsPerSecond`, `\PreparedIndexedVolatileActiveCallsPerSecond`, `\PreparedVoucherVolatileActiveCallsPerSecond`, `\PreparedReadPersistentActiveCallsPerSecond`, `\PreparedIndexedPersistentActiveCallsPerSecond`, `\PreparedVoucherPersistentActiveCallsPerSecond` | Median active throughput, ten consecutive 30-call blocks (maintenance/gaps excluded) | calls/s |
+| `\PreparedReadVolatileCallsPerSecond`, `\PreparedIndexedVolatileCallsPerSecond`, `\PreparedVoucherVolatileCallsPerSecond`, `\PreparedReadPersistentCallsPerSecond`, `\PreparedIndexedPersistentCallsPerSecond`, `\PreparedVoucherPersistentCallsPerSecond` | Median full-loop throughput across three independent 300-call batches (includes voucher retirements) | calls/s |
+| `\PreparedReadVolatileActiveCallsPerSecond`, `\PreparedIndexedVolatileActiveCallsPerSecond`, `\PreparedVoucherVolatileActiveCallsPerSecond`, `\PreparedReadPersistentActiveCallsPerSecond`, `\PreparedIndexedPersistentActiveCallsPerSecond`, `\PreparedVoucherPersistentActiveCallsPerSecond` | Median active throughput, thirty 30-call blocks (ten per session) (maintenance/gaps excluded) | calls/s |
 | `\BreakEvenReadCalls`, `\BreakEvenIndexedCalls`, `\BreakEvenVoucherCalls` | Volatile preparation break-even by program, from measured median costs | calls |
 | `\OrdinaryMedianSeconds`, `\PreparedMedianMs`, `\BreakEvenCalls` | Default point-read aliases: ordinary seconds, volatile prepared milliseconds, volatile break-even calls | s / ms / calls |
 | `\PostgresPointReadMedianMs`, `\PostgresPointUpdateMedianMs`, `\SqlitePointReadMedianMs`, `\SqlitePointUpdateMedianMs`, `\JayPointReadMedianMs`, `\JayPointUpdateMedianMs`, `\PostgresOwnerReadMedianMs`, `\PostgresOwnerUpdateMedianMs`, `\SqliteOwnerReadMedianMs`, `\SqliteOwnerUpdateMedianMs`, `\JayOwnerReadMedianMs`, `\JayOwnerUpdateMedianMs` | Durable comparison medians: engine, Point/Owner policy, Read/Update operation | ms |
@@ -207,10 +265,24 @@ No macro name contains digits. Quartiles appear in table fragments and sample co
 | `\OrdinaryReadWorkerSharePercent`, `\OrdinaryIndexedWorkerSharePercent`, `\OrdinaryVoucherWorkerSharePercent` | Median of per-call worker/round-trip shares | % |
 | `\JayPointReadOverPostgres`, `\JayPointReadOverSqlite`, `\JayPointUpdateOverPostgres`, `\JayPointUpdateOverSqlite`, `\JayOwnerReadOverPostgres`, `\JayOwnerReadOverSqlite`, `\JayOwnerUpdateOverPostgres`, `\JayOwnerUpdateOverSqlite` | Ratio of durable prepared JayDB2 median to the named SQL median, with matching policy and operation | ratio |
 | `\ProofToImplementationRatio` | Nonblank `proof/` lines divided by `src/` lines, including comments | ratio |
-| `\ScalingSmallRows`, `\ScalingMiddleRows`, `\ScalingLargeRows` | First three measured scaling populations, sorted by row count | rows |
+| `\ScalingSmallRows`, `\ScalingMiddleRows`, `\ScalingLargeRows` | Legacy scaling anchors: 10, 100 and 1,000 rows | rows |
 | `\StateMaximumBytes`, `\StateFirstExcessRows`, `\StateFirstExcessBytes` | Canonical bytes at the maximum fitting population, first excess row count, and bytes at first excess | bytes / rows / bytes |
 | `\StateOversizedRows`, `\StateOversizedBytes`, `\StateOversizedKilobytes` | Largest requested out-of-configuration population and its canonical size; not timed | rows / bytes / decimal kB |
 | `\ScalingSmallVolatileReadMedianMs`, `\ScalingSmallVolatileUpdateMedianMs`, `\ScalingSmallPersistentReadMedianMs`, `\ScalingSmallPersistentUpdateMedianMs`, `\ScalingMaximumVolatileReadMedianMs`, `\ScalingMaximumVolatileUpdateMedianMs`, `\ScalingMaximumPersistentReadMedianMs`, `\ScalingMaximumPersistentUpdateMedianMs` | Prepared median at the smallest and maximum fitting scaling populations, by storage/operation | ms |
+
+| `\CpuGovernor` | Governor and EPP for all 16 CPUs (`performance`) | text |
+| `\CpuClockGHz` | Nominal base clock (sampled endpoints retained separately) | GHz |
+| `\TurboSetting` | Intel turbo state (`disabled`, `no_turbo=1`) | text |
+| `\SessionCount` | Independent sessions per E1–E3 condition; E5 uses one | sessions |
+| `\RustProductionLines`, `\RustTestLines` | Rust host nonblank production/test physical lines, split by cfg(test) items | lines |
+| `\IndexedClientLines`, `\IndexedProofLines` | Indexed client program and local certificate/helper nonblank lines, files defined above | lines |
+| `\IndexedProofRatio` | Indexed proof/program line ratio | ratio |
+| `\VoucherClientLines`, `\VoucherProofLines` | Voucher client wrapper+dispatcher and local certificate nonblank lines, files defined above | lines |
+| `\VoucherProofRatio` | Voucher proof/program line ratio | ratio |
+| `\ComparisonLargeRows` | Total rows per engine in the large comparison (both policy arms) | rows |
+| `\LargeJayReadMs`, `\LargeJayWriteMs`, `\LargePgReadMs`, `\LargePgWriteMs`, `\LargeSqReadMs`, `\LargeSqWriteMs` | Large-state durable point read/update median: JayDB2, PostgreSQL, SQLite | ms |
+| `\LargeOwnerJayReadMs`, `\LargeOwnerJayWriteMs`, `\LargeOwnerPgReadMs`, `\LargeOwnerPgWriteMs`, `\LargeOwnerSqReadMs`, `\LargeOwnerSqWriteMs` | Large-state durable owner-arm read/update median: JayDB2, PostgreSQL FORCE RLS, unconstrained SQLite | ms |
+| `\ScalingFirstKeySmallMs`, `\ScalingFirstKeyLargeMs` | Volatile first-key read median at smallest and maximum population | ms |
 
 The article and slides distinguish the executable theorems from the
 T1–T3 integration premises and finite tests. These measurements establish
@@ -236,7 +308,7 @@ execution decision. It adds observation overhead and is **not** enabled in the
 headline experiments. Endpoint frequency is a sampled policy observation, not
 an integrated hardware cycle counter. `DIAG START/END` delimit sampled calls in
 the syscall trace; initialization/registration and idle pipe waits are outside
-that window. No governor, affinity or power setting is changed by the harness.
+that window. The diagnostic alone does not change policy; run it inside `fixed-clock.sh` to compare under the final policy.
 Persistent equal-state successes now reuse their durable image; changed state,
 including new receipt rows, still follows file sync/rename/directory sync.
 

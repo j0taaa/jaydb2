@@ -31,9 +31,10 @@ def command(*args):
 
 
 def metadata():
+    from paper.bench.frequency import observe
     tracked = command('git', 'ls-files').splitlines()
     source = [p for p in tracked if p.startswith(('server/', 'src/', 'contract/', 'proof/', 'tools/', 'native/'))]
-    return dict(commit=command('git','rev-parse','HEAD'), base_commit='95027beddd57b8f0a647f6980d16610497c3bbf0',
+    return dict(frequency=observe(), frequency_original=json.loads(Path(os.environ['JAYDB_BENCH_FREQUENCY_ORIGINAL']).read_text()) if 'JAYDB_BENCH_FREQUENCY_ORIGINAL' in os.environ else None, session_count=3, commit=command('git','rev-parse','HEAD'), base_commit='95027beddd57b8f0a647f6980d16610497c3bbf0',
         branch=command('git','branch','--show-current'), utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
         cpu=next(x.split(':',1)[1].strip() for x in Path('/proc/cpuinfo').read_text().splitlines() if x.startswith('model name')),
         logical_cpus=os.cpu_count(), kernel=platform.platform(), python=sys.version, sqlite=sqlite3.sqlite_version,
@@ -139,37 +140,64 @@ def operation(kind,i):
     return ['issue',f'r{i:04d}','coffee',False],f'v:r{i:04d}'
 
 
+def pool_record(data, record, keys):
+    """Keep independent session records and a backwards-compatible pooled view."""
+    import copy
+    group=next((r for r in data['records'] if all(r[k]==record[k] for k in keys)),None)
+    if group is None:
+        group={k:v for k,v in record.items() if k not in ('samples','warmup','registrations','ordinary','batch_elapsed_ns')}
+        group.update(sessions=[],samples=[],warmup=[],n=0)
+        data['records'].append(group)
+    group['sessions'].append(record)
+    group['n']+=record['n']
+    group['warmup']=record['warmup'] if len(group['sessions'])==1 else group['warmup']
+    counters={}
+    for row in group['samples']:
+        w=row.get('workload','call');counters[w]=counters.get(w,0)+1
+    for row in copy.deepcopy(record['samples']):
+        w=row.get('workload','call');counters[w]=counters.get(w,0)+1
+        row.update(session=record['session'],session_iteration=row['iteration'],iteration=counters[w])
+        group['samples'].append(row)
+    for field in ('registrations','ordinary'):
+        if field in record:group.setdefault(field,[]).extend(copy.deepcopy(record[field]))
+    if 'batch_elapsed_ns' in record:
+        group['batch_elapsed_ns']=group.get('batch_elapsed_ns',0)+record['batch_elapsed_ns']
+
+
 def latency():
     data=dict(metadata=metadata(),experiment='E1 ordinary',records=[],limitations=[
-        'Oracle soundness is included in primary/BendTT whole-Book phases; no per-law callback exists in pinned APIs.',
-        'BendTT phase includes official translation, IO and kernel process; subphases are not separated.',
-        'Instrumentation is opt-in; measured client intervals include its small diagnostic cost.',
-        'Voucher issue uses a fresh equal-length key per call; index set alternates false/true.'])
-    for kind in ('read','indexed','voucher'):
-        folder=package(BUILD/('ordinary-'+kind),kind)
-        code,proof,_=source(folder)
-        record=dict(program=kind,n=10,warmup=[],samples=[])
-        with session(folder,'ordinary-'+kind,timing=True) as s:
-            for i in range(11):
-                args,value=operation(kind,i)
-                row=s.call(code,proof,args,dict(status='success',value=value))
-                row['iteration']=i
-                record['warmup' if i==0 else 'samples'].append(row)
-                print('ordinary',kind,i,round(row['elapsed_ns']/1e9,3),flush=True)
-        data['records'].append(record); save('ordinary.json',data)
+        'Three fresh service instances per condition; program order rotates by session.',
+        'Whole-Book checking includes oracle soundness; no per-law timer.',
+        'Opt-in phase instrumentation is included in round trips.'])
+    kinds=['read','indexed','voucher']
+    for sid in range(3):
+        for kind in kinds[sid:]+kinds[:sid]:
+            name=f'ordinary-{kind}-session-{sid+1}'
+            folder=package(BUILD/name,kind)
+            code,proof,_=source(folder)
+            record=dict(program=kind,session=sid+1,frequency=metadata()['frequency'],n=10,warmup=[],samples=[])
+            with session(folder,name,timing=True) as s:
+                for i in range(11):
+                    args,value=operation(kind,i)
+                    row=s.call(code,proof,args,dict(status='success',value=value))
+                    row['iteration']=i
+                    record['warmup' if i==0 else 'samples'].append(row)
+                    print('ordinary',sid+1,kind,i,round(row['elapsed_ns']/1e9,3),flush=True)
+            pool_record(data,record,('program',));save('ordinary.json',data)
 
 
 def prepared():
     data=dict(metadata=metadata(),experiment='E2 prepared',records=[])
-    for persistent in (False,True):
-        for kind in ('read','indexed','voucher'):
-            name=f'prepared-{kind}-{persistent}'
+    conditions=[(kind,mode) for mode in (False,True) for kind in ('read','indexed','voucher')]
+    for sid in range(3):
+        # Rotate the six conditions, interleaving storage modes across sessions.
+        order=conditions[2*sid:]+conditions[:2*sid]
+        for kind,persistent in order:
+            name=f'prepared-{kind}-{persistent}-session-{sid+1}'
             folder=package(BUILD/name,kind)
             code,proof,universal=source(folder)
-            record=dict(program=kind,persistent=persistent,n=300,registrations=[],samples=[],warmup=[])
+            record=dict(program=kind,persistent=persistent,session=sid+1,frequency=metadata()['frequency'],n=300,registrations=[],samples=[],warmup=[])
             with session(folder,name,persistent=persistent,timing=True) as s:
-                # Three one-time registration observations; discarded handles are
-                # invalidated so the measured worker always has one live entry.
                 for j in range(3):
                     handle,row=s.prepare(code,universal); record['registrations'].append(row)
                     if j<2: s.exchange(prepared_frame(2,handle,'alice-token'),dict(status='invalidated',value=None))
@@ -183,8 +211,8 @@ def prepared():
                         row['untimed_retirement_checked']=maintenance['checked']
                     record['warmup' if i==0 else 'samples'].append(row)
                 record['batch_elapsed_ns']=time.perf_counter_ns()-batch_start
-            data['records'].append(record); save('prepared.json',data)
-            print('prepared',kind,persistent,'complete',flush=True)
+            pool_record(data,record,('program','persistent'));save('prepared.json',data)
+            print('prepared',sid+1,kind,persistent,'complete',flush=True)
 
 
 def verification():
@@ -197,6 +225,8 @@ def verification():
         data['commands'].append(dict(command='make '+target,elapsed_ns=elapsed,returncode=result.returncode,output=result.stdout))
         save('verification.json',data)
         print(target,result.returncode,round(elapsed/1e9,2),flush=True)
+    from paper.bench.source_sizes import counts
+    data['detailed_sizes']=counts()
     data['source_extensions']=['.bend','.rs','.mjs','.json','.c','.h','.py']
     data['line_count_definition']='Nonblank physical source lines, including comments; documentation excluded.'
     data['sizes']={}
