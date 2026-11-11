@@ -15,6 +15,20 @@ delete Alice/Bob notes. No role can read or mutate the registry through client
 operations, or perform partial-column writes. The demo does not provision users,
 change roles, transfer ownership, or confer any implicit kernel privilege.
 
+## Unbounded-directory follow-up (incomplete)
+
+The attempted follow-up is isolated in [`unbounded/`](unbounded/README.md).
+It contains a bitmap-directory model, prototype CRUD/list actions, generic
+key/directory algebra and concrete reference-interpreter examples beyond the
+old cap. **It is not an admitted application: the universal mutation/publication
+certificate is unfinished. The working app described below still has two slots.**
+
+The [proof-gap report](unbounded/README.md#where-certification-remains-unfinished)
+identifies the required actual-upsert/removal and publication obligations and
+explains why ownership alone would be insufficient. No installed law, existing
+negative control, host source or checker limit was weakened for this spike.
+Its model controls must not be reported as new native admission-denial tests.
+
 ## Representation and listing
 
 There are exactly two possible note slots per user: `alice/1`, `alice/2`,
@@ -194,11 +208,50 @@ is free is intended.
 | Client program | `Client.bend` | 91 |
 | Scoped client certificate | `ClientProof.bend` | 112 |
 | Ownership/prefix infrastructure | `Ownership.bend`, `Proofs.bend` | 370 |
-| All application-local proof files | All three files above | 482 |
+| All admitted application-local proof files | All three files above | 482 |
 
 Scoped proof/program ratio: **1.23**. Including all local proof infrastructure: **5.30**.
 
-## Validation result
+## Follow-up model line counts
+
+The isolated, uncertified prototype uses the same nonblank physical-line
+counter. Its files are excluded from the admitted-app totals above.
+
+| Follow-up scope | Files | Nonblank lines |
+| --- | --- | ---: |
+| Prototype program | `unbounded/Client.bend` | 127 |
+| Generic representation/key algebra | `unbounded/DirectoryProof.bend` | 91 |
+| Concrete model/interpreter examples | `unbounded/Examples.bend` | 63 |
+| Model and proposed invariant | `unbounded/Model.bend` | 70 |
+| Completed unbounded client certificate | None | **Not implemented** |
+
+There is no meaningful unbounded certificate/program ratio: the missing
+certificate must not be counted as zero proof cost. The working app's **1.23**
+scoped and **5.30** all-local ratios remain unchanged.
+
+## Follow-up validation result — incomplete feature
+
+Validated on 2026-11-11 from `fa819db`. `make build` passed first. All heavy
+commands ran with the common lock held and unlimited stack; no checker fuel or
+configured state limit changed. The original app remains the certified two-slot
+version. The following passing regressions **do not certify the unbounded
+prototype**.
+
+| Command | Result and scope |
+| --- | --- |
+| `python3 -B applications/rls/unbounded/check_model.py` | Passed both official modes for generic model/key algebra and the concrete reference-interpreter examples. All four model controls failed only at `false` in both modes with expected/observed directory text. |
+| `python3 -B applications/rls/check.py --proof-only` | Passed the original ordinary/universal certificates, termination, seed and five causal negatives in both modes. |
+| `make test-rls` | Passed the original 81-response native session, including all five admission denials and unchanged-state checks. |
+| `make verify` | Passed import coverage, all three existing positive roots in both modes, 373 negative fixtures / 746 official-mode rejections, and the original RLS proof gate. |
+| `make test` | Passed admission/verifier, 10 native runtime, 36 Rust host and 16 service integration tests, followed by another successful original 81-response RLS session. |
+
+Logs are in `.build/unbounded-validation/`; model-control diagnostics are
+`.build/unbounded-*-check-only.log` and `.build/unbounded-*-verdict.log`.
+The full unbounded client certificate, new native CRUD/admission tests and
+unbounded prepared reuse remain unfinished. The proposed exact directory law
+has not been installed, and no ownership-only alternative was substituted.
+
+## First-version validation result
 
 Validated on 2026-11-11 from base `ff96188` with the pinned official toolchain.
 `make build` ran first. All heavy commands used the shared lock and unlimited
