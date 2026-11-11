@@ -20,9 +20,8 @@ def classified_reply(flag: Bool, c: S.Configuration, +root: D.State,
   L.E<{Control.finish(Control.ControlDenied{Errors.classified(flag)}, root, last, reg) ==
       Control.ControlResult{root, last, reg, Control.ControlTransaction{S.response_error(Errors.classified(flag))}} : Control.Transition},
     L.E<T.Early(c, root, S.response_error(Errors.classified(flag))),
-      {Wire.output(Control.finish(Control.ControlDenied{Errors.classified(flag)}, root, Nil{}, reg)) ==
-        Wire.output(Control.ControlResult{root, last, reg,
-          Control.ControlTransaction{S.response_error(Errors.classified(flag))}}) : List<&2, U32>}>>:
+      {Wire.output(Control.finish(Control.ControlDenied{Errors.classified(flag)}, root, last, reg)) ==
+        Messages.error(Errors.classified(flag)) : List<&2, U32>}>>:
   match flag:
     case True{}: L.Both{{==}, L.Both{Dispatch.early(c, root, S.Certificate{}, limits, Unit{}), {==}}}
     case False{}: L.Both{{==}, L.Both{Dispatch.early(c, root, S.Failure{}, limits, Unit{}), {==}}}

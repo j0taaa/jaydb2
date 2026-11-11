@@ -6,6 +6,7 @@
 import Base
 import ../src/Control.bend as Control
 import ../src/ControlBridge.bend as ControlBridge
+import ../src/Messages.bend as Messages
 import ./HostErrors.bend as HostErrors
 import ../src/Dispatch.bend as Dispatch
 import ./PreparedProtocol.bend as PreparedProtocol
@@ -633,14 +634,15 @@ def ServiceFoldTheorem() -> Type:
 # Exact private code -> checked denial, including admission failures, artifact
 # misses and integrity failures. No assumption about certificate soundness is
 # needed to deny; this does not prove the host observed the right failure.
+# The emitted bytes depend only on code, for every root/last/registry, so exact
+# checked replies may be memoized by code under immutable instance limits.
 def HostErrorReply(+code: String, -c: S.Configuration, +root: D.State,
   +last: List<&2, U32>, +reg: Control.Registry) -> Type:
   L.E<{Control.host_error(code, root, last, reg) ==
       Control.ControlResult{root, last, reg, Control.ControlTransaction{S.response_error(HostErrors.status(code))}} : Control.Transition},
     L.E<Early(c, root, S.response_error(HostErrors.status(code))),
-      {ControlBridge.output(Control.host_error(code, root, Nil{}, reg)) ==
-        ControlBridge.output(Control.ControlResult{root, last, reg,
-          Control.ControlTransaction{S.response_error(HostErrors.status(code))}}) : List<&2, U32>}>>
+      {ControlBridge.output(Control.host_error(code, root, last, reg)) ==
+        Messages.error(HostErrors.status(code)) : List<&2, U32>}>>
 
 def HostErrorReplyTheorem() -> Type:
   @code: String -> @c: S.Configuration -> @root: D.State ->

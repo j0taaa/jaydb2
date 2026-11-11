@@ -201,15 +201,15 @@ loop. The remaining T3 plumbing obligations are:
 5. Collect complete output, reap children and finish rollback-capable cleanup.
    Forward admission/other observed error codes/current snapshots to the checked
    controller; denial-executable/transport failure retains the fixed technical
-   fallback. Prepared physical failures forward the cached checked denial.
+   fallback. Memo hits forward checked bytes for the exact observed code.
 6. Obey Commit/Keep exactly and atomically publish the paired root/response;
    feed the resulting root to the next request.
 7. Forward the latest controller-emitted registry bytes unchanged, supply the
    exact T1 admission tuple to controls, install only checked deltas, preserve
    allocation history, and manage the matching artifacts. Physical map/integrity
    checks must prevent execution of an unavailable or changed artifact. Cache
-   exactly the startup controller's technical denial for prepared failures;
-   `HostErrors.emitted_frame` proves its validity for every later root/registry.
+   only checked replies by exact observed code; prefill both prepared codes at
+   startup. `HostErrorReplyTheorem` states their independence from root/last/registry.
 8. Deliver exactly the returned bytes; delivery failure cannot undo a commit.
    EOF/shutdown between requests closes the channel without a transaction.
 
@@ -231,20 +231,29 @@ all other strings map to `failure`, including `HOST_COMPILE`, `HANDLE` and
 `PREPARED_INTEGRITY`. Pure admission's failure code is preserved; a worker/C
 failure after successful pure admission remains `HOST_COMPILE`.
 
-Rust sends admission/other codes unchanged and forwards only a checked Keep
-response. During startup it also computes the `HANDLE` denial once. The
-`emitted_frame` theorem is independent of root/last/registry; both prepared codes
-produce the same failure, so those exact bytes remain valid for every current
-root under the instance's immutable limits. Artifact-map and integrity failures
-carry these cached bytes directly through publication, without another child.
-Startup fails if the checked denial cannot be obtained. Physical failure
-detection, correct code/snapshot forwarding and preventing
-execution of an integrity-failed prepared artifact remain host duties. If the
-controller executable or denial transport itself fails, Rust keeps the root
-and uses the existing fixed technical fallback. This is the T3 physical-failure
-boundary, with no recursive denial attempt. Ordinary success, healthy prepared
-execution and prepared map/integrity denials keep their original process/check
-counts; startup performs the one checked denial computation. The proof guide's canonical T3 inventory now has eight duties.
+Rust sends each exact observed code unchanged and memoizes only checked Keep
+response bytes by that code. Startup prefills `HANDLE` and `PREPARED_INTEGRITY`
+separately and fails if either checked denial cannot be obtained.
+`HostErrorReplyTheorem` states that output equals
+`Messages.error(HostErrors.status(code))` for every root/last/registry, so the
+memo remains valid for later roots under immutable instance limits. Prepared
+map/integrity denials use these entries without another child. Other codes,
+including `HOST_IO`, use their own entry or the checked controller.
+
+The status table and reply construction moved into checked Bend. Detection of
+handle-map misses and integrity failures, passing the exact observed code,
+cache forwarding and the technical fallback remain trusted within the
+corresponding host duties. The proof guide reorganizes these duties into eight
+items; it does not claim a reduction from eleven to eight trusted duties.
+The 17-code certificate table is a contract specification, with no proof that
+it equals the Node tools' proof-rejection codes (`ORACLE_PROOF`, `ADT` and
+`INSTANCE_MATCH` map to `failure`). A literal-code inventory test guards
+against new codes without deliberate classification.
+
+If the denial controller or its transport fails, Rust keeps the root and emits
+the fixed technical fallback with an explicit stderr diagnostic. The fallback
+is never memoized. Ordinary success and healthy prepared execution retain
+their process/check counts; startup performs two checked denial computations.
 
 Prepare/invalidate replies come from the controller under `ControlTheorem`,
 not the worker's denial branch. The Dispatch bridge compares tag-0 output to

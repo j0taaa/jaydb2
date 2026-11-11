@@ -20,13 +20,16 @@ classification and canonical response construction, preserving the published
 root, last response and prepared registry. `contract/HostErrors.bend` specifies
 the certificate-code table; every other code, including `HANDLE` and
 `PREPARED_INTEGRITY`, produces `failure`. Rust forwards the observed code and
-returned bytes. The prepared technical denial is computed once at startup;
-`HostErrors.emitted_frame` proves its bytes independent of root/last/registry,
-so reuse preserves the exact checked denial for each later current root and
-adds no process to failed prepared calls. Physical artifact lookup/integrity, detection of actual failures
-and preventing execution after a failed integrity check remain host duties.
+returned bytes, memoized by exact code. Startup separately prefills `HANDLE`
+and `PREPARED_INTEGRITY`; `HostErrorReplyTheorem` states the emitted bytes equal
+`Messages.error(HostErrors.status(code))` for every root/last/registry. Memo reuse
+therefore preserves the exact checked denial at later roots and adds no process
+to prepared denials with those codes. Physical artifact lookup/integrity, detection
+of actual failures and preventing execution after a failed integrity check remain
+host duties.
 If the denial executable/transport itself fails, the host retains the existing
-fixed technical failure fallback. Successful calls use the same execution path.
+fixed technical failure fallback, diagnosed on stderr and never memoized.
+Successful calls use the same execution path.
 
 # Database concept
 
@@ -219,8 +222,12 @@ establish `Requirements.Certifies` and termination for the actual program,
 configuration, context and arguments. T1 binds those targets to exact source,
 dependencies and the immutable checked Book compiled for execution, including
 purity and host-effect exclusion. A failed client proof rejects whole-Book
-admission before Gate runs; the host maps admission error codes to `certificate`
-or `failure` as specified in [T3.9](proof/README.md#trusted-base).
+admission before Gate runs; the checked controller maps exact observed error
+codes to `certificate` or `failure` under `HostErrorReplyTheorem` and the
+[contract code table](contract/HostErrors.bend). Detection and exact code/cache
+forwarding remain [trusted host duties](proof/README.md#trusted-base).
+The 17-code table is a specification, not a proof that it equals the Node tools'
+proof-rejection codes; `ORACLE_PROOF`, `ADT` and `INSTANCE_MATCH` map to `failure`.
 Gate's `Reject` branch exists for the theorems but is not the production proof
 rejection path; `Reject` and `ToolFailure` describe post-admission oracle
 verdicts and never start the program. Soundness does not imply that every valid

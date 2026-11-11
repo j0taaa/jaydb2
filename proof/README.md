@@ -25,7 +25,7 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `CertifiedWorker` | The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
 | `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
-| `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `emitted_frame` is independent of root/last/registry, so the prepared denial may be computed once at startup and reused for every current root. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
+| `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `HostErrorReply` states exact emitted bytes independent of root/last/registry, justifying a memo keyed by exact observed code; both prepared codes are prefilled at startup. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
 | `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
 | `ServiceFoldTheorem` | Mixed transactions/controls preserve root validity, exact registry transition history and sound universal sources for live lookups from an empty registry. Invalidation removes scoped entries and preserves allocation history; every later position refuses reuse of an allocated handle, and `ServiceNoRevivalTheorem` preserves its absence. Controls carry the exact T1 admission-soundness premise. | `ControlHistory.service_fold_theorem` |
 | `ControlRegistryBytes` | Successfully encoded and framed controller metadata yields exactly its next registry through the prepared worker's `ControlBridge.decode_registry`, given representable byte length within its uint64 ceiling and octet blocks. This connects the mixed fold's registry to worker selection when forwarded unchanged. | `ControlRegistryBytes.control_output_registry_decodes`, `ControlRegistryBytes.registry_bytes_decode` |
@@ -73,8 +73,9 @@ missing name or unfinished proof rejects the fixture. `InputLimit.bend` and
 and the distinct rejection of actual excess body bytes.
 `HostError*.bend` negatives invert every certificate-code row and the prepared
 and compile-failure defaults; `HostReply*.bend` mutate both prepared denial
-frames, and `HostErrorPublishesRoot.bend` mutates the preserved root. Native
-service tests exercise exact controller bytes for all 17 certificate codes,
+frames, and `HostErrorPublishesRoot.bend` mutates the preserved root.
+`HostReplyDependsOnLast.bend` rejects serialization depending on the last
+response. Native service tests exercise exact controller bytes for all 17 certificate codes,
 technical defaults and unknown/case-different codes, then compare actual
 map/integrity replies with the checked worker's not-found denial.
 
@@ -132,7 +133,7 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    the prior root and emits the fixed failure frame when possible; fatal loss
    may stop the process without a reply. Supply admission/other observed error
    codes, current root and registry to the checked controller and forward its
-   denial; prepared physical failures use the cached checked denial below.
+   denial; a memo hit forwards the checked bytes for that exact observed code.
    If that executable or transport itself fails, the fixed technical fallback
    remains host plumbing; it cannot produce a certificate rejection.
 6. Atomically publish exactly the checked Commit root and paired response;
@@ -152,16 +153,20 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    never rolls back a control. Keep the physical artifact-map lookup and exact
    byte-integrity checks; never execute an artifact whose integrity check failed.
    Those observations and fail-before-execution ordering remain trusted. Cache
-   exactly the controller-emitted `HANDLE` denial computed at startup and forward
-   those bytes on map/integrity failures. `emitted_frame` proves independence of
-   root, last response and registry; the two prepared code rows prove the same
-   technical denial for both failures. Limits remain immutable for the instance.
+   only controller-emitted bytes by exact observed code, prefilling `HANDLE` and
+   `PREPARED_INTEGRITY` separately at startup. `HostErrorReplyTheorem` states
+   output independence from root, last response and registry; limits remain
+   immutable for the instance. Never cache a technical fallback.
 8. Deliver exactly the returned bytes. After a post-commit delivery failure,
    retain the committed root and stop/close as appropriate. EOF or shutdown
    between requests terminates the channel rather than creating a transaction.
 
-The former T3.9 status table and T3.10/T3.11 Rust-only reply construction
-are checked by `HostErrorReplyTheorem`, leaving **eight** numbered duties.
+The status table and construction of admission, handle-miss and integrity
+replies moved from Rust into checked Bend under `HostErrorReplyTheorem`.
+The eight items above reorganize the host obligations; they do not represent a
+reduction from eleven to eight trusted duties. Detection of handle-map misses
+and integrity failures, passing the exact observed code, cache forwarding and
+the technical fallback remain trusted, folded into duties 5 and 7.
 `contract/HostErrors.bend` lists `IMPORT`, `IMPORT_CYCLE`, `DEPENDENCY`, `PARSE`,
 `META`, `UNSAFE`, `FOREIGN`, `IO`, `OPEN_LAW`, `SHADOW`, `REDEFINITION`,
 `PRIMARY_CHECK`, `BENDTT_CHECK`, `TARGET`, `SOURCE_BINDING`, `HOST_CAPTURE`,
@@ -170,11 +175,19 @@ are checked by `HostErrorReplyTheorem`, leaving **eight** numbered duties.
 followed by worker Book/C compilation failure reports `HOST_COMPILE`.
 These failures reject before the request's Gate runs. The host supplies the
 actual observed code; checked code does not prove the tool produced it.
-The controller computes the prepared technical denial once during startup.
-`HostErrors.emitted_frame` quantifies over every root, last response and registry;
-combined with the two prepared rows, it proves those cached bytes equal the
-checked denial for every later current root. No extra child runs on prepared
-map/integrity failures. An artifact-map miss can indicate an absent registration
+The 17-code certificate table is a contract specification. Nothing proves
+that it equals the set of codes the Node tools use for proof rejection;
+`ORACLE_PROOF`, `ADT` and `INSTANCE_MATCH`, for example, map to `failure`.
+`tests/admission/error_codes.test.mjs` cross-checks literal codes in the Node
+admission/service tools against the table and deliberate failure classifications;
+it detects inventory drift, not semantic equivalence or dynamically supplied codes.
+The controller computes `HANDLE` and `PREPARED_INTEGRITY` replies separately
+at startup. `HostErrorReplyTheorem` quantifies over every root, last response
+and registry and states that emitted bytes equal `Messages.error(HostErrors.status(code))`.
+This justifies memoizing checked replies by exact code for later roots.
+Other observed codes, including `HOST_IO`, use their own memo entry or invoke
+the controller with that exact code. No extra child runs on prepared map/integrity
+failures with the prefilled codes. An artifact-map miss can indicate an absent registration
 or an unavailable live artifact. The integrity denial is a technical failure, not evidence
 against the original certificate. Neither denial executes that artifact.
 
@@ -196,7 +209,7 @@ transitions and recovered bytes, not device durability.
 
 The optional durable host stores canonical state, immutable environment binding
 and limits, plus a checksum. It does not persist the instance-local last response
-or prepared registry/allocation history. T3.6 and T3.7 still require the exact
+or prepared registry/allocation history. Host duties 6 and 7 still require the exact
 root/response pair in RAM, including on equal-root successful transactions and
 controls. A byte-identical state Commit may reuse an already durable complete
 image while publishing its new paired response. Create establishes durability;

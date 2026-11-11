@@ -237,15 +237,24 @@ class PreparedTests(unittest.TestCase):
                         artifact.write_bytes(original)
                 self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),
                     {'status': 'success', 'value': 'alice-final'})
-                self.assertNotIn('HOST_IO', server.diagnostics()[diagnostic_start:],
-                    'prepared denials attempted to load the offline controller')
+                diagnostics = server.diagnostics()[diagnostic_start:]
+                self.assertEqual(diagnostics.count('checked denial memo hit: HANDLE'), 1)
+                self.assertEqual(diagnostics.count('checked denial memo hit: PREPARED_INTEGRITY'), 4)
+                self.assertNotIn('launching denial controller', diagnostics,
+                    'prepared denials attempted to launch the offline controller')
+                self.assertEqual(log.read_bytes(), baseline, 'prepared route entered node')
+                # An uncached ordinary error does attempt the offline controller
+                # and must explicitly diagnose its non-memoized fallback.
+                self.assertEqual(server.call(code, (example/'ClientProof.bend').read_text(), 'alice-final'),
+                    {'status': 'failure', 'value': None})
+                self.assertNotEqual(log.read_bytes(), baseline, 'causal admission gate was not reached')
+                diagnostics = server.diagnostics()[diagnostic_start:]
+                self.assertIn('admission-disabled', diagnostics)
+                self.assertIn('launching denial controller for exact code: HELPER', diagnostics)
+                self.assertIn('denial controller failed for HELPER:', diagnostics)
+                self.assertIn('using technical failure fallback (not memoized)', diagnostics)
             finally:
                 offline_control.rename(control)
-            self.assertEqual(log.read_bytes(), baseline, 'prepared route entered node')
-            self.assertEqual(server.call(code, (example/'ClientProof.bend').read_text(), 'alice-final'),
-                {'status': 'failure', 'value': None})
-            self.assertNotEqual(log.read_bytes(), baseline, 'causal admission gate was not reached')
-            self.assertIn('admission-disabled', server.diagnostics())
 
             other = self.server(example)
             self.assertEqual(other.prepared(1, handle, 'alice-token', 'foreign'),

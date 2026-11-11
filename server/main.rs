@@ -49,8 +49,6 @@ fn diagnostic(message: std::fmt::Arguments<'_>) {
 struct Error {
     code: String,
     message: String,
-    // Opaque denial bytes computed by the checked controller, never a status.
-    checked_reply: Option<Vec<u8>>,
 }
 
 impl Error {
@@ -58,7 +56,6 @@ impl Error {
         Self {
             code: code.into(),
             message: message.into(),
-            checked_reply: None,
         }
     }
 }
@@ -397,8 +394,8 @@ struct Database {
     authenticate: Program,
     control: Program,
     registry: Vec<u8>,
-    // Both prepared host failures have the same root-independent checked frame.
-    prepared_denial: Vec<u8>,
+    // Only exact-code replies successfully returned by the checked controller.
+    error_replies: HashMap<String, Vec<u8>>,
     limits: Limits,
     published: Published,
     inspector: Option<UnixStream>,
@@ -555,7 +552,7 @@ impl Database {
             authenticate,
             control,
             registry: Vec::new(),
-            prepared_denial: Vec::new(),
+            error_replies: HashMap::new(),
             limits,
             published: Published {
                 state,
@@ -569,10 +566,12 @@ impl Database {
             storage,
             environment,
         };
-        // HostErrors.emitted_frame is independent of root, last response and
-        // registry. The HANDLE and PREPARED_INTEGRITY rows are the same denial,
-        // so these checked bytes remain exact for every later current root.
-        database.prepared_denial = database.checked_error("HANDLE")?;
+        // HostErrorReplyTheorem states exact output independent of root, last
+        // response and registry. Limits stay immutable. Prefill each prepared
+        // code separately so these denials work with the controller offline.
+        for code in ["HANDLE", "PREPARED_INTEGRITY"] {
+            database.checked_error(code)?;
+        }
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
                 database.directory.path.join("environment.json"),
@@ -650,16 +649,13 @@ impl Database {
             Ok(decision) => decision,
             Err(error) => {
                 diagnostic(format_args!("{}: {}", error.code, error.message));
-                // Forward checked bytes, or the exact code for Bend to classify.
-                // A broken denial executable/transport is itself a T3.5 physical
-                // failure, for which the existing fixed technical reply remains.
-                let response = match error.checked_reply {
-                    Some(bytes) => bytes,
-                    None => self.checked_error(&error.code).unwrap_or_else(|failure| {
-                        diagnostic(format_args!("{}: {}", failure.code, failure.message));
-                        error_frame("failure")
-                    }),
-                };
+                let response = self.checked_error(&error.code).unwrap_or_else(|failure| {
+                    diagnostic(format_args!(
+                        "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
+                        error.code, failure.code, failure.message
+                    ));
+                    error_frame("failure")
+                });
                 Decision::Keep { response }
             }
         };
@@ -705,17 +701,16 @@ impl Database {
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
         if matches!(operation, 4 | 5) {
-            let handle = std::str::from_utf8(code)
-                .map_err(|_| self.prepared_error(Error::new("HANDLE", "invalid handle")))?;
+            let handle =
+                std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
             if operation == 5 {
                 return self.control_operation(body, "", &[], &[]);
             }
-            let prepared = self.prepared.get(handle).ok_or_else(|| {
-                self.prepared_error(Error::new("HANDLE", "unknown or invalidated handle"))
-            })?;
-            prepared
-                .validate()
-                .map_err(|error| self.prepared_error(error))?;
+            let prepared = self
+                .prepared
+                .get(handle)
+                .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
+            prepared.validate()?;
             bench_mark(&mut bench, "prepared_integrity");
             if self.inspector.is_some() {
                 self.inspect(serde_json::json!({
@@ -789,16 +784,9 @@ impl Database {
                     return Err(Error::new("HOST_TRANSPORT", "unexpected control removal"));
                 }
             };
-            let mut sealed =
-                PreparedProgram::seal(&request.path).map_err(|error| self.prepared_error(error))?;
-            sealed.extend(
-                PreparedProgram::seal(&self.directory.path.join("public"))
-                    .map_err(|error| self.prepared_error(error))?,
-            );
-            sealed.extend(
-                PreparedProgram::seal(&self.directory.path.join("runtime"))
-                    .map_err(|error| self.prepared_error(error))?,
-            );
+            let mut sealed = PreparedProgram::seal(&request.path)?;
+            sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
+            sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
             self.prepared.insert(
                 handle,
                 PreparedProgram {
@@ -820,14 +808,14 @@ impl Database {
         Ok(proposal)
     }
 
-    fn prepared_error(&self, mut error: Error) -> Error {
-        // Physical map/integrity failures forward the cached checked denial.
-        // No additional process runs, including when the controller is offline.
-        error.checked_reply = Some(self.prepared_denial.clone());
-        error
-    }
-
-    fn checked_error(&self, code: &str) -> Result<Vec<u8>> {
+    fn checked_error(&mut self, code: &str) -> Result<Vec<u8>> {
+        if let Some(response) = self.error_replies.get(code) {
+            diagnostic(format_args!("checked denial memo hit: {code}"));
+            return Ok(response.clone());
+        }
+        diagnostic(format_args!(
+            "launching denial controller for exact code: {code}"
+        ));
         // Canonical Value text, distinct from preparation's four-field list.
         // No entropy, checker, compiler or prepared artifact runs on this path.
         let mut metadata = vec![4];
@@ -845,7 +833,10 @@ impl Database {
             ));
         }
         match parse_decision(&output, &self.limits)? {
-            Decision::Keep { response } => Ok(response),
+            Decision::Keep { response } => {
+                self.error_replies.insert(code.to_owned(), response.clone());
+                Ok(response)
+            }
             Decision::Commit { .. } => unreachable!("denial tag checked above"),
         }
     }
@@ -1493,7 +1484,7 @@ mod tests {
                 sha256: String::new(),
             },
             registry: Vec::new(),
-            prepared_denial: Vec::new(),
+            error_replies: HashMap::new(),
             threads: 1,
             timing: None,
             storage: Some(storage),
@@ -1591,7 +1582,6 @@ mod tests {
             assert!(body.is_empty());
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         }
-        db.prepared_denial = db.checked_error("HANDLE").unwrap();
         // A broken denial ABI cannot introduce a Commit. Failure of the
         // denial machinery itself uses the existing technical fallback.
         fs::write(
@@ -1600,24 +1590,48 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            db.publish(Err(Error::new("PRIMARY_CHECK", "rejected")))
-                .unwrap(),
+            db.publish(Err(Error::new("HOST_IO", "rejected"))).unwrap(),
             error_frame("failure")
         );
         assert_eq!(db.published.state, b"new");
         assert_eq!(db.published.response, response);
+        assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+        assert!(!db.error_replies.contains_key("HOST_IO"));
+        // A later successful exact-code reply must replace neither a prepared
+        // entry nor a fallback; only this checked reply is memoized.
+        let host_io_reply = error_frame("host-io-specific");
+        fs::write(
+            executable.with_extension("reply"),
+            [vec![0], host_io_reply.clone()].concat(),
+        )
+        .unwrap();
+        assert_eq!(
+            db.publish(Err(Error::new("HOST_IO", "retry"))).unwrap(),
+            host_io_reply
+        );
+        let input = fs::read(executable.with_extension("input")).unwrap();
+        let (metadata, _) = split(&input).unwrap();
+        assert_eq!(metadata, [vec![4], packet(b"HOST_IO", &[])].concat());
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         fs::remove_file(&executable).unwrap();
+        for _ in 0..2 {
+            assert_eq!(
+                db.publish(Err(Error::new("UNSEEN_CODE", "rejected")))
+                    .unwrap(),
+                error_frame("failure")
+            );
+            assert_eq!(db.published.state, b"new");
+            assert_eq!(db.published.response, response);
+            assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+            assert!(!db.error_replies.contains_key("UNSEEN_CODE"));
+        }
         assert_eq!(
-            db.publish(Err(Error::new("PRIMARY_CHECK", "rejected")))
-                .unwrap(),
-            error_frame("failure")
+            db.publish(Err(Error::new("HOST_IO", "memoized"))).unwrap(),
+            host_io_reply
         );
-        assert_eq!(db.published.state, b"new");
-        assert_eq!(db.published.response, response);
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-        for code in ["HANDLE", "PREPARED_INTEGRITY", "HOST_IO"] {
-            let error = db.prepared_error(Error::new(code, "physical prepared failure"));
+        for code in ["PRIMARY_CHECK", "HANDLE", "PREPARED_INTEGRITY"] {
+            let error = Error::new(code, "physical prepared failure");
             assert_eq!(db.publish(Err(error)).unwrap(), forwarded);
             assert_eq!(db.published.state, b"new");
             assert_eq!(db.published.response, response);

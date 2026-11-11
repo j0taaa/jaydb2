@@ -88,19 +88,23 @@ supplies the exact source/proof and certificate mode from completed admission
 prepare request and immutable instance. Rust stores the returned registry bytes,
 keeps/deletes the named artifacts and copies the returned receipt (T3).
 No registry/certificate/receipt decision is inferred from public status text.
-The same executable accepts canonical private text error codes. Rust supplies
-`HANDLE` during startup; `Control.host_error` computes its canonical `failure`
-reply. `HostErrors.emitted_frame` proves independence of root/last/registry, and
-the prepared code rows prove the same denial for `PREPARED_INTEGRITY`. Rust
-therefore caches those exact bytes and forwards them on map/integrity failures
-for every later current root, without another child.
-`HostErrorReplyTheorem` proves unchanged root/last response/registry and bounded
-framing. Rust forwards the bytes. Map availability and physical integrity
-observations, correct code delivery, and stopping before artifact execution
-remain host obligations. Startup fails if the checked denial cannot be computed.
-The fixed technical fallback remains for uncached admission/other errors when
-the denial executable or transport fails. Healthy prepared execution and
-map/integrity denials keep their original process/check counts. Artifact integrity
+The same executable accepts canonical private text error codes. Rust separately
+supplies `HANDLE` and `PREPARED_INTEGRITY` during startup and memoizes their
+checked replies by exact code. `HostErrorReplyTheorem` states that emitted bytes
+equal `Messages.error(HostErrors.status(code))` for every root/last/registry.
+These entries therefore remain valid for later roots without another child,
+including with the controller offline. Other observed codes (including `HOST_IO`)
+use their own entry or invoke the controller with that exact code.
+The theorem also proves unchanged root/last response/registry and bounded
+framing. Map availability and physical integrity observations, exact code
+and cache forwarding, and stopping before artifact execution remain trusted
+host obligations. Startup fails if either prefilled denial cannot be computed.
+If the denial executable or transport fails for an uncached code, the host emits
+the technical fallback with an explicit stderr diagnostic and never memoizes it.
+The 17-code certificate table specifies the contract; no theorem equates it to
+the Node tools' proof-rejection codes (`ORACLE_PROOF`, `ADT` and `INSTANCE_MATCH`
+map to `failure`). Healthy prepared execution and map/integrity denials with the
+prefilled codes keep their original process/check counts. Artifact integrity
 and physical cleanup remain host obligations.
 
 ## Proof target and capture boundary

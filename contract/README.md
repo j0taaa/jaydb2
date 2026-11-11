@@ -52,12 +52,16 @@ that premise to derive universal certification of registered sources.
 bounded canonical denial bytes and
 unchanged root/last-response/registry. `HostErrors` witnesses check every named
 certificate row and the default, including prepared map/integrity failures.
-`HostErrors.emitted_frame` is independent of root/last/registry, permitting the
-prepared technical denial computed at startup to be reused for every later
-current root. The host still detects failures, forwards the actual code/current
-snapshot (or the exact cached prepared denial), and prevents execution after an
-integrity failure. Failure of the denial
-executable/transport retains a fixed host technical fallback.
+`HostErrorReply` states that emitted bytes equal
+`Messages.error(HostErrors.status(code))` for every root/last/registry, permitting
+checked replies to be memoized by exact code. Startup prefills `HANDLE` and
+`PREPARED_INTEGRITY` separately for offline prepared denials. The host still
+detects failures, forwards the actual code/current snapshot (or the exact
+memoized reply for that code), and prevents execution after an integrity failure. Failure of the denial
+executable/transport retains a fixed host technical fallback, diagnosed on stderr
+and never memoized. The 17-code table specifies the contract; it is not proved
+equal to the Node tools' proof-rejection codes. `ORACLE_PROOF`, `ADT` and
+`INSTANCE_MATCH`, for example, map to `failure`.
 Artifact IO, admission-token delivery, physical IO and atomic root replacement
 remain host obligations. The proof guide numbers the required host
 plumbing; compiler/runtime preservation is T2. Durability, OS failures and
