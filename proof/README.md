@@ -21,12 +21,13 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `IngressTheorem` | Complete ordinary body decoding keeps the exact root and applies Core to the decoded request, or produces a bounded framed denial; it cannot produce a private transport error. | `Ingress.ingress_theorem`, `Ingress.bend` |
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
-| `WorkerBridge` | Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with a guard binding selected source/proof to the artifact. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
+| `WorkerBridge` | Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
 | `CertifiedWorker` | The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
-| `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
+| `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
 | `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
 | `ServiceFoldTheorem` | Mixed transactions/controls preserve root validity, exact registry transition history and sound universal sources for live lookups from an empty registry. Invalidation removes scoped entries and preserves allocation history; every later position refuses reuse of an allocated handle, and `ServiceNoRevivalTheorem` preserves its absence. Controls carry the exact T1 admission-soundness premise. | `ControlHistory.service_fold_theorem` |
+| `ControlRegistryBytes` | Successfully encoded and framed controller metadata yields exactly its next registry through the prepared worker's `ControlBridge.decode_registry`, given representable byte length within its uint64 ceiling and octet blocks. This connects the mixed fold's registry to worker selection when forwarded unchanged. | `ControlRegistryBytes.control_output_registry_decodes`, `ControlRegistryBytes.registry_bytes_decode` |
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
 | `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
@@ -126,11 +127,18 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
 6. Atomically publish exactly the checked Commit root and paired response;
    otherwise preserve the prior root. Send no reply before this decision.
    Start the next transaction with the resulting root.
-7. Supply prepared execution the current opaque checked registry and original
-   root/body, and controls the exact T1 universal-admission tuple, original body,
-   current root and prior opaque registry; install only the checked registry
-   delta and manage the matching artifact. Preserve allocated history and the
-   root/last-response pair. Receipt delivery never rolls back a control.
+7. Supply prepared execution exactly the latest controller-emitted registry
+   bytes unchanged and the original root/body; before any control, the registry
+   is the empty byte string, decoded as the empty registry. These canonical
+   bytes are unauthenticated. "Invalidated means not executable" and the
+   correspondence between a handle and its registered program hold only while
+   the host forwards those latest bytes unchanged. Stale or fabricated registry bytes can break those
+   properties; executed programs remain universally certified under T1 and the
+   generated source/proof matching regardless. Supply controls the exact T1
+   universal-admission tuple, original body, current root and latest registry;
+   install only the checked registry delta and manage the matching artifact.
+   Preserve allocated history and the root/last-response pair. Receipt delivery
+   never rolls back a control.
 8. Deliver exactly the returned bytes. After a post-commit delivery failure,
    retain the committed root and stop/close as appropriate. EOF or shutdown
    between requests terminates the channel rather than creating a transaction.
@@ -144,6 +152,17 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    reports `HOST_COMPILE` for a failed worker Book or C compilation. This table
    and classification are trusted host decisions, not the checked Gate Reject
    branch.
+10. On an authenticated execute request with empty proof, a host artifact-map
+    miss (unknown/invalidated handle, `HANDLE`) preserves the root and sends the
+    fixed `failure` frame. For an absent registry lookup this equals the checked
+    not-found denial. If the map lacks a live registration's artifact, it is a
+    host availability failure. This Rust-only reply is a T3 obligation.
+11. On prepared artifact-integrity failure (`PREPARED_INTEGRITY`), preserve the
+    root and send the same fixed `failure` frame without executing the artifact.
+    This Rust-only check/reply is a T3 obligation, not a checked worker verdict
+    or evidence against the original certificate. Service tests compare both
+    Rust-only replies byte-for-byte with a checked worker not-found denial for
+    the same root.
 
 ## Scope
 

@@ -1,5 +1,6 @@
 # Exact private serialization for the checked control executable. The host
-# keeps registry bytes opaque. All public receipt bytes come from Control.
+# forwards the latest registry bytes unchanged (T3). Public receipts come
+# from Control.
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D

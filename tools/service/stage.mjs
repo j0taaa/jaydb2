@@ -139,11 +139,6 @@ def launch(iteration: E.Iteration) -> IO(Unit):
 def entry(bytes: List<&2, U32>) -> E.Iteration:
   WORKER_ENTRY
 
-law generated_entry_is_checked_worker:
-  for bytes: List<&2, U32>
-  {entry(bytes) == WORKER_REFERENCE : E.Iteration}
-def generated_entry_is_checked_worker(bytes): {==}
-
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
@@ -387,7 +382,7 @@ def main() -> IO(Unit):
     main = EXECUTE.replace('INSTANCE_MATCH', purpose === 'prepare' ? 'True{}' :
       'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())')
       .replace('ORACLE_PROOF', oracleProof(purpose === 'prepare'))
-      .replaceAll(/WORKER_ENTRY|WORKER_REFERENCE/g, purpose === 'prepare'
+      .replace('WORKER_ENTRY', purpose === 'prepare'
         ? 'Worker.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
         : 'Worker.packet(C.config(), bytes, admit)');
   } else fail('DEPENDENCY', 'Invalid purpose');

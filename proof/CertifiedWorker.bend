@@ -125,7 +125,7 @@ def artifact_checked(-c: S.Configuration, +code: String, +proof: String,
         Equal.cong(Gate.Oracle(), Gate.Oracle(), a => W.artifact_oracle(code, proof, a), bridge, admit, same),
         +r => +ctx => artifact_sound(String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof), c, r, ctx, admit, sound(r, ctx))}
 
-# The literal native packet, actual decoded opaque registry and exact root/body
+# The literal native packet, actual decoded registry bytes and exact root/body
 # feed the same UnifiedCore instance and finite worker composition.
 def checked_prepared(~c: S.Configuration, k: T.Clause, +s: D.State,
   +bytes: List<&2, U32>, +registry_bytes: List<&2, U32>, +packet: List<&2, U32>, +state_bytes: List<&2, U32>, +body: List<&2, U32>,

@@ -28,6 +28,9 @@ return `input`. Ordinary malformed records remain malformed.
 
 All three operations authenticate the actual credential against current
 published state before admission, semantic handle resolution, or invalidation.
+Handles are bearer capabilities: anyone holding a handle may execute it, but
+every execution re-authenticates and runs the universally certified program
+under the caller's identity.
 A handle grants no actor identity; another authenticated user can execute the program under
 their own context. Unknown, invalidated, and other-instance handles return
 `failure`; nonempty handle-call proofs and malformed opcodes return `input`.
@@ -78,8 +81,8 @@ Scoped removal eliminates the named lookup; allocated history prevents revival.
 
 Initialization/recovery compile a separate native control executable through
 the same official checked-Book mechanism as other service programs.
-`ControlBridge.packet` decodes the original body/current root and opaque
-registry, then calls `Control.control` and serializes its typed result. Rust
+`ControlBridge.packet` decodes the original body/current root and current
+registry bytes, then calls `Control.control` and serializes its typed result. Rust
 supplies the exact source/proof and certificate mode from completed admission
 (T1), plus an entropy candidate. Bend compares that tuple to the decoded
 prepare request and immutable instance. Rust stores the returned registry bytes,
@@ -201,6 +204,6 @@ actual Core preparation/publication lemmas.
 `ControlTheorem` covers prepare/invalidate decisions, exact bounded receipts
 before mutation, lifetime freshness and scoped registry changes. The mixed
 service fold preserves root validity and accepted-admission lookup provenance.
-Current artifact integrity, T1 admission-result delivery, exact opaque-registry
-storage and physical receipt delivery remain integration obligations. The
+Current artifact integrity, T1 admission-result delivery, forwarding the latest registry bytes
+unchanged and physical receipt delivery remain integration obligations. The
 [proof guide](../../proof/README.md) lists T1–T3 and the native worker bridge.

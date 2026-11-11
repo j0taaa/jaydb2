@@ -176,6 +176,29 @@ class PreparedTests(unittest.TestCase):
                     self.assertEqual(worker.returncode, 0, worker.stderr.decode())
                     self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
                     self.assertEqual(unframe(worker.stdout[1:])['status'], status)
+            # Compare exact public bytes at the same published root. Rust's
+            # map-miss and seal checks bypass the worker, so they are explicit
+            # T3 obligations rather than consequences of the worker theorem.
+            current_root = encode({'tables': [], 'users': [
+                {'credential': 'alice-final', 'id': 'alice', 'kind': 'user'},
+                {'credential': 'bob-new', 'id': 'bob', 'kind': 'user'}]})
+            def checked_missing_reply(requested):
+                raw = prepared_frame(1, requested, 'alice-final', 'tampered')[8:]
+                result = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                    input=private_packet(dead_registry, private_packet(current_root, raw)),
+                    capture_output=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
+                self.assertEqual(result.stdout[0], 0, 'not-found denial must be Keep')
+                self.assertEqual(unframe(result.stdout[1:]), {'status': 'failure', 'value': None})
+                return result.stdout[1:]
+            def host_reply(requested):
+                server.process.stdin.write(prepared_frame(1, requested, 'alice-final', 'tampered'))
+                server.process.stdin.flush()
+                header = server.read(8)
+                return header + server.read(int.from_bytes(header, 'big'))
+            not_found_reply = checked_missing_reply('missing-handle')
+            self.assertEqual(host_reply('missing-handle'), not_found_reply, server.diagnostics())
+            absent_registration_reply = checked_missing_reply(handle)
             for source in prepared.rglob('*.bend'):
                 self.assertNotIn('alice-token', source.read_text())
                 self.assertNotIn('bob-token', source.read_text())
@@ -185,8 +208,7 @@ class PreparedTests(unittest.TestCase):
                 original = artifact.read_bytes()
                 try:
                     artifact.write_bytes(original+b'\nchanged')
-                    self.assertEqual(server.prepared(1, handle, 'alice-final', 'tampered'),
-                        {'status': 'failure', 'value': None}, server.diagnostics())
+                    self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
                     self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
                 finally:
                     artifact.write_bytes(original)
@@ -220,8 +242,7 @@ class PreparedTests(unittest.TestCase):
                 self.assertEqual(server.exchange(len(unknown).to_bytes(8, 'big')+unknown),
                     {'status': 'input', 'value': None})
             self.assertEqual(server.prepared(2, handle, 'alice-final'), {'status': 'invalidated', 'value': None})
-            self.assertEqual(server.prepared(1, handle, 'alice-final', 'forgotten'),
-                {'status': 'failure', 'value': None})
+            self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
             self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
                 {'status': 'refusal', 'value': 'cancelled'})
             # Cleanup cannot turn a checked, irrevocable removal into denial.

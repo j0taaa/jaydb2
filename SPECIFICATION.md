@@ -205,9 +205,13 @@ exact oracle `Accept` and exact `Core.start`. `OracleSoundness` makes acceptance
 establish `Requirements.Certifies` and termination for the actual program,
 configuration, context and arguments. T1 binds those targets to exact source,
 dependencies and the immutable checked Book compiled for execution, including
-purity and host-effect exclusion. Gate rejection and tool failure have distinct
-computed outcomes and never start the program. Soundness does not imply that
-every valid certificate is accepted.
+purity and host-effect exclusion. A failed client proof rejects whole-Book
+admission before Gate runs; the host maps admission error codes to `certificate`
+or `failure` as specified in [T3.9](proof/README.md#trusted-base).
+Gate's `Reject` branch exists for the theorems but is not the production proof
+rejection path; `Reject` and `ToolFailure` describe post-admission oracle
+verdicts and never start the program. Soundness does not imply that every valid
+certificate is accepted.
 
 ## Law 5 Faithful execution and complete observations
 
@@ -246,7 +250,9 @@ The `Progressing` clause proves that an accepted machine reaches a final trace
 and completes. If `WithinLimits` holds for that computed trace (a success or
 refusal proposal preserved by finalization), the final response is success or
 refusal. Safe terminating programs may still encounter data errors.
-`StartupTheorem` supplies accepted-start progress for the admitted seed. The real tasks positive fixture
+`StartupTheorem` proves the initializer's seed encoding and the recovery check;
+accepted-start progress comes from Core's `Progressing` clause, with the fold
+carrying Core's clauses through the finite run. The real tasks positive fixture
 shows valid admission and changed-root success; refutations exclude a
 reject-all gate when its oracle returns `Accept`.
 

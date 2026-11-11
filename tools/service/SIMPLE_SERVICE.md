@@ -33,12 +33,14 @@ checked source/context/arguments bindings to staging.
 The generated entry calls `Worker.packet` (ordinary) or
 `Worker.registered_packet` (prepared). Both decode the private published root
 and retain it on early errors. Ordinary bodies use `Input.read_message`.
-Prepared execution receives the opaque current registry returned by the checked
-controller separately from the original body, decodes it with
+Prepared execution receives the latest unchanged registry bytes from the
+checked controller separately from the original body, decodes it with
 `ControlBridge.decode_registry`, and calls `Resolve.select` over all live entries.
-The resolved source/proof must match the artifact's frozen bindings before its
-oracle can accept; missing, removed, malformed or mismatched entries emit a fixed
-denial with Keep. Rust's map only locates the executable file. Selection then
+The generated oracle's `matches` compares resolved source/proof with the
+artifact's frozen bindings under T1; `Worker.artifact_oracle` adds a second
+integrity guard before that oracle can accept. Missing, removed, malformed or
+mismatched entries emit a fixed denial with Keep. Rust's map locates the
+executable file and can reject missing artifacts before the worker runs. Selection then
 reaches the same `Gate.begin`.
 The gate authenticates against this root and invokes the generated admission
 oracle. It starts exactly the admitted program with that authenticated context
@@ -68,7 +70,7 @@ Prepare/invalidate use the separately checked `Control.control` transition throu
 `ControlBridge.packet`, compiled at startup. The native controller checks the
 current identity, full envelope, exact universal admission tuple, lifetime
 freshness and bounded receipt before returning the registry delta. Rust stores
-the opaque registry bytes, manages admitted artifacts and copies receipts.
+the returned registry bytes, manages admitted artifacts and copies receipts.
 `ControlTheorem` and the mixed service fold cover those decisions; physical
 artifact integrity/cleanup and external process failures remain host duties.
 
@@ -167,7 +169,7 @@ and body decoding. `CertifiedWorker.checked_prepared` covers the literal prepare
 packet and its real registry; `WorkerDecision.completion_emits_exact_decision` states exact
 Keep/Commit correspondence with the publication path and next root/bytes.
 Halted paths use `Gate.early` and cannot resume. The generated checked Book
-also proves its literal entry and Native iteration conversion/step equations.
+also proves the Native iteration conversion/step equations.
 Core's progress witness supplies the finite index; production has no fuel
 limit and never replays prefixes. These lemmas connect the emitted decision
 and bytes to Ingress/UnifiedCore under their existing validity and sound-oracle
@@ -182,7 +184,12 @@ loop. The remaining T3 plumbing obligations are:
 1. Freeze the checked configuration, dependency/tool bytes and valid initial
    root; keep private root bytes separate from client inputs.
 2. Frame complete original bodies with the specified bounds/EOF ordering;
-   supply exactly one current root and the current opaque checked registry.
+   supply exactly one current root and exactly the latest controller-emitted
+   registry bytes unchanged. The bytes
+   are unauthenticated: "invalidated means not executable" and the correspondence
+   between a handle and its registered program depend on this forwarding obligation.
+   Executed programs remain universally certified under T1 and generated
+   source/proof matching even if stale or fabricated bytes are supplied.
 3. Admit the exact checked tuple, compile the same immutable Book, validate
    artifact provenance and run a fresh worker with only its private proposal.
 4. Collect complete output, reap workers and finish rollback-capable cleanup
@@ -190,8 +197,8 @@ loop. The remaining T3 plumbing obligations are:
 5. Obey Commit/Keep exactly, atomically publish the paired root/response, and
    write the returned bytes; delivery failure cannot undo a committed root.
 6. Supply controls the unchanged current root, complete body, exact T1
-   universal-admission tuple and prior opaque registry. Store only the returned
-   delta/registry, retain allocated history, manage the corresponding artifact
+   universal-admission tuple and latest unchanged registry bytes. Store only the
+   returned delta/registry, retain allocated history, manage the corresponding artifact
    and write exactly the returned receipt; keep the root/response pair.
 7. Preserve FIFO root feeding and timing/inspection noninterference. Optional
    durable storage and artifact cleanup retain their physical ordering and
@@ -206,6 +213,24 @@ loop. The remaining T3 plumbing obligations are:
    fails, `compile.mjs` runs pure admission: its failure code is preserved, while
    successful pure admission followed by worker/C failure is `HOST_COMPILE`.
    These host decisions are not covered by Gate's checked Reject branch.
+
+9. For an authenticated execute request with empty proof, a missing artifact
+   (`HANDLE`, including unknown/invalidated handles) keeps the root and emits
+   the fixed `failure` frame, equal to the checked not-found denial when the
+   registry lookup is absent. A missing artifact for a live entry is a host
+   availability failure. This Rust-only reply remains a T3 obligation.
+10. A prepared seal/artifact-integrity failure (`PREPARED_INTEGRITY`) keeps the
+    root and emits that same fixed `failure` frame before execution. This
+    Rust-only check/reply remains a T3 obligation, not a worker verdict or a
+    mathematical certificate rejection. Tests assert byte equality of both
+    host replies with the checked worker's not-found denial for the same root.
+
+Prepare/invalidate replies come from the controller under `ControlTheorem`,
+not the worker's denial branch. The Dispatch bridge compares tag-0 output to
+Ingress/Unified; it does not prove correspondence with controller replies.
+`ControlRegistryBytes.control_output_registry_decodes` connects successful
+controller registry serialization/framing to the exact decoder used by the
+prepared worker, subject to representable lengths and octet blocks.
 
 `make test` rebuilds before native/integration tests. `make verify-contract`
 and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/

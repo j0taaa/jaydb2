@@ -69,8 +69,8 @@ def private_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>,
 def packet(~c: S.Configuration, bytes: List<&2, U32>, admit: Gate.Oracle()) -> X.Iteration:
   private_parts(c, T.separate(bytes), None{}, admit)
 
-# The registry is the opaque checked controller result, never a host-selected
-# handle. An absent/malformed registry supplies no execution authority.
+# T3 forwards the latest controller registry bytes unchanged, separately from
+# the handle. An absent/malformed registry supplies no execution authority.
 def registry_entries(registry: Maybe<&2, Control.Registry>) -> List<&2, Registry.Entry>:
   match registry:
     case None{}: Nil{}

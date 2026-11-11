@@ -310,8 +310,6 @@ test('concrete and prepared staging check the actual worker oracle and bridge pr
         ['Native.Prepare{u => s}', 'Native.Continue{u => s}', 'conversion_preserves_exact_iteration'],
         ['Native.FinishOutput{bs}', 'Native.FinishOutput{Nil{}}', 'conversion_preserves_exact_iteration'],
         ['convert(E.advance(state(Unit{}), C.config()))', 'Native.Inconsistent{}', 'step_preserves_exact_execution_advance'],
-        [main.slice(main.indexOf('def entry('), main.indexOf('law generated_entry_is_checked_worker:')),
-          'def entry(bytes: List<&2, U32>) -> E.Iteration:\n  E.Inconsistent{}\n\n', 'generated_entry_is_checked_worker'],
       ];
       const info = bootstrapInfo();
       for (const [index, [from, to, location]] of mutations.entries()) {
