@@ -59,6 +59,9 @@ def validate(data):
         for key in ('cpu','kernel','python','node','clang','rust','cargo','bend','toolchain','commit','binary_sha256','source_sha256'):
             if not meta.get(key): raise ValueError('Missing metadata: '+key)
         if not re.fullmatch('[0-9a-f]{40}',meta['commit']): raise ValueError('Invalid commit')
+    for key in ('binary_sha256','source_sha256'):
+        if len({data[name]['metadata'][key] for name in ('ordinary','prepared','comparison','scaling')})!=1:
+            raise ValueError('Mixed engine fingerprints: '+key)
     if {r['program'] for r in data['ordinary']['records']}!=set(PROGRAMS) or len(data['ordinary']['records'])!=3:
         raise ValueError('Ordinary program coverage')
     for r in data['ordinary']['records']:
@@ -84,6 +87,11 @@ def validate(data):
         if r.get('total_rows_checked') is not True:raise ValueError('Unverified comparison row count')
         for workload in ('read','update'):samples(r,900,workload)
         if r['engine']=='jaydb2':
+            for z in r['sessions']:
+                population=z['population']
+                for call in population['calls']:checked(call)
+                if population['total_rows']!=r['rows'] or sum(call['actual']['value'] for call in population['calls'])!=r['rows']:
+                    raise ValueError('Comparison population count disagrees')
             for s in r['samples']:
                 if s['workload']=='update' and s.get('stored_value_checked') is not True:raise ValueError('Unchecked stored update')
             for w in (('read','update') if r['rows']==10 else ()):
@@ -120,6 +128,7 @@ def validate(data):
     for record in comparisons:
         if record['engine']=='postgresql' and record['policy']=='owner':
             if any(z['settings'].get('rls')!=[True,True] for z in record['sessions']):raise ValueError('PostgreSQL durability/RLS settings')
+    validate_frequency(data['verification'].get('size_collection_metadata',data['verification']['metadata']))
     commands=data['verification']['commands']
     if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
     for row in commands:
@@ -411,12 +420,28 @@ def derive(data):
     for name in names:
         value,_,unit=MACROS[name]
         details.append(f"| `\\{name}` | {value if isinstance(value,str) else format(value,'.6g')} | {unit} |")
+    small=next(r for r in scaling['records'] if r['rows']==10 and not r['persistent'])
+    hundred=next(r for r in scaling['records'] if r['rows']==100 and not r['persistent'])
+    low=summary([x for x in small['samples'] if x['workload']=='read'])['median']/1e6
+    high=summary([x for x in hundred['samples'] if x['workload']=='read'])['median']/1e6
+    details += ['', '## Observations and limits', '',f'Fixed-clock volatile last-key read is {low:.3f} ms at 10 rows and {high:.3f} ms at 100 rows ({high/low:.3f}×). Compare the earlier powersave measurements in performance-report.txt; the fresh data are not pooled with that historical run.']
+    r=next(r for r in data['prepared']['records'] if r['program']=='indexed' and r['persistent'])
+    totals=[statistics.median(x['elapsed_ns'] for x in z['samples'])/1e6 for z in r['sessions']]
+    pubs=[statistics.median(x['phases_ns']['publication'] for x in z['samples'])/1e6 for z in r['sessions']]
+    workers=[statistics.median(x['phases_ns']['prepared_worker'] for x in z['samples'])/1e6 for z in r['sessions']]
+    details += ['', 'Durable Indexed session medians (ms): '+', '.join(f'{v:.3f}' for v in totals)+'. Publication phase medians: '+', '.join(f'{v:.3f}' for v in pubs)+'. Worker phase medians: '+', '.join(f'{v:.3f}' for v in workers)+'. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.']
     restoration=ROOT/'paper/evidence/cpu-restoration.json'
     if restoration.exists():
         restored=json.loads(restoration.read_text())
         details += ['', '## CPU restoration', '', 'Final observed values (all 16 CPUs): governor `powersave`; EPP `balance_performance`; `intel_pstate/no_turbo=0`. Exact saved settings and final sampled frequencies are in `cpu-restoration.json`. Verified: '+str(restored['verified'])+'.']
     (OUT/'final-report.md').write_text('\n'.join(details)+'\n')
-    (OUT/'numbers.tex').write_text('\n'.join('\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items())+'\n')
+    # Beamer's existing pgf number helpers require plain numeric tokens. The
+    # English article receives grouped integer text that also works in math.
+    common=['\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items() if not isinstance(value,int)]
+    raw=['\\newcommand{\\'+name+'}{'+str(value)+'}' for name,(value,_,_) in MACROS.items() if isinstance(value,int)]
+    grouped=['\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items() if isinstance(value,int)]
+    (OUT/'numbers.tex').write_text('\n'.join(common+[
+        r'\makeatletter',r'\@ifclassloaded{beamer}{%']+raw+['}{%']+grouped+['}',r'\makeatother'])+'\n')
     (OUT/'macro-reference.md').write_text('| Macro | Meaning | Unit |\n|---|---|---|\n'+''.join(f'| `\\{n}` | {m} | {u} |\n' for n,(_,m,u) in MACROS.items()))
     return MACROS
 

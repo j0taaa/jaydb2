@@ -107,6 +107,9 @@ class EvidenceTests(unittest.TestCase):
         result=evidence.summary([dict(elapsed_ns=x) for x in (1,2,3,4,100)])
         self.assertEqual((result['median'],result['qone'],result['qthree']),(3,2,4))
 
+    def test_mixed_engine_revision(self):
+        self.corrupt(lambda d:d['comparison']['metadata'].update(source_sha256='0'*64),'Mixed engine fingerprints')
+
     def test_missing_session(self):
         self.corrupt(lambda d:d['prepared']['records'][0]['sessions'].pop(),'independent sessions')
 

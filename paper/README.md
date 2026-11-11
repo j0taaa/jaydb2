@@ -79,7 +79,8 @@ and EPP and Intel `no_turbo` before changing anything. It applies `performance`,
 `performance`, and `no_turbo=1`, verifies the settings, runs the command, and
 restores and verifies the exact saved values on EXIT, INT, TERM or HUP. The
 wrapper retains original/applied/restored JSON under `.build/paper-bench/frequency-*`;
-the final restoration receipt is copied to `paper/evidence/cpu-restoration.json`.
+the final restoration receipt is written to `paper/evidence/cpu-restoration.json`
+by `check-clock.py`, which also exercises nonzero exit, INT, TERM and HUP.
 Original values are `powersave`, `balance_performance`, and `no_turbo=0` on
 all 16 logical CPUs. The recovery JSON can be restored manually with
 `sudo -n python3 -B paper/bench/frequency.py restore PATH/TO/original.json`.
@@ -106,6 +107,7 @@ flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make buil
 # optionally replace them with a new controlled run:
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B paper/bench/run.py verification'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B -m paper.bench.source_sizes --update'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && python3 -B paper/bench/check-clock.py'
 python3 -B paper/evidence.py
 python3 -B -m unittest discover -s paper -p test_evidence.py -v
 ```
@@ -168,7 +170,8 @@ comparisons share the same process and registered point program. A certified
 population transaction resets all rows to zero at each size; its handle is
 invalidated before timing. Each point has 50 reads and 50 changing updates,
 after one warmup per operation. Target is the last key; first-key reads add 50
-observations at 10 and 1,105 rows in both storage modes. Complete-state transfer,
+observations at 10 and 1,105 rows in both storage modes. First- and last-key
+reads run on the same all-zero state before timed updates. Complete-state transfer,
 decoding, validation, linear lookup and publication remain included; comparing
 first and last key helps distinguish lookup from complete-state work without
 claiming to isolate either. The first excess row is actually attempted and
@@ -235,7 +238,7 @@ under `paper/evidence/`, and four `scaling-{volatile,persistent}_{read,update}.d
 `rows state_bytes median_ms lower_ms upper_ms` columns for pgfplots. The last two
 columns are distances from the median to Q1 and Q3; coordinate macros use decimal
 kB on the horizontal axis and ms on the vertical axis. Include `numbers.tex` once.
-No macro name contains digits. Integers use `{,}` grouping for text and math; latency table columns use fixed two-decimal precision (three decimals in the session-spread table to retain SQL read resolution), in one unit per latency table. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
+No macro name contains digits. Integers use `{,}` grouping for English article text and math. `numbers.tex` detects the Beamer class and supplies raw integer tokens there, preserving the slides' existing PGF number helpers; latency table columns use fixed two-decimal precision (three decimals in the session-spread table to retain SQL read resolution), in one unit per latency table. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
 
 | Macro names | Meaning | Unit |
 |---|---|---|

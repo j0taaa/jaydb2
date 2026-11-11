@@ -210,6 +210,11 @@ def scaling(populations=None):
             for count in sizes:
                 record=dict(rows=count,state_bytes=state_bytes(count),persistent=persistent,session=1,service_pid=s.p.pid,frequency=metadata()['frequency'],n=50,samples=[],warmup=[],first_key_samples=[],first_key_warmup=[],registration=registration)
                 record['population']=populate(s,code,proof,count)
+                if count in (sizes[0],sizes[-1]):
+                    for i in range(51):
+                        row=s.call(code,proof,['read','k000000'],dict(status='success',value=0),handle=handle)
+                        row.update(workload='read',iteration=i)
+                        record['first_key_warmup' if i==0 else 'first_key_samples'].append(row)
                 for workload in ('read','update'):
                     for i in range(51):
                         args=[workload,f'k{count-1:06d}']+([i] if workload=='update' else [])
@@ -217,11 +222,6 @@ def scaling(populations=None):
                         if workload=='update':
                             check=s.call(code,proof,['read',f'k{count-1:06d}'],dict(status='success',value=i),handle=handle);row['stored_value_checked']=check['checked']
                         row.update(workload=workload,iteration=i);record['warmup' if i==0 else 'samples'].append(row)
-                if count in (sizes[0],sizes[-1]):
-                    for i in range(51):
-                        row=s.call(code,proof,['read','k000000'],dict(status='success',value=0),handle=handle)
-                        row.update(workload='read',iteration=i)
-                        record['first_key_warmup' if i==0 else 'first_key_samples'].append(row)
                 data['records'].append(record);save('scaling.json',data)
                 print('scaling',count,persistent,'complete',flush=True)
             population,certificate=bulk_population(proof);growth,_=s.prepare(population,certificate)

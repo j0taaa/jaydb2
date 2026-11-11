@@ -7,7 +7,8 @@ recovery=$(mktemp -d "$root/.build/paper-bench/frequency-XXXXXX")
 python3 -B "$root/paper/bench/frequency.py" capture "$recovery/original.json"
 restore() {
     status=$?
-    trap - EXIT INT TERM HUP
+    trap - EXIT
+    trap '' INT TERM HUP
     if ! sudo -n python3 -B "$root/paper/bench/frequency.py" restore "$recovery/original.json" > "$recovery/restored.json"; then
         echo "CPU RESTORATION FAILED; recovery snapshot: $recovery/original.json" >&2
         exit 1
