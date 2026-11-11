@@ -91,7 +91,19 @@ matching uses proved String/context/structural-value equality; universal
 certificates specialize at the current context and arguments. T1 still trusts
 the soundness of both pinned official checkers, the source/target/purity audit
 (including isolation from host effects), and that the very checked Book is the
-Book passed to C compilation and bound to the loaded artifact. Initialization
+Book passed to C compilation and bound to the loaded artifact. Service builds
+may overlap the original BendTT executable with C emission/native compilation:
+primary checking and official Safe translation finish first; the semantic Book
+seal is verified immediately before emission. The official emitter transforms
+that private Book under T2; its resulting state receives a second seal, verified
+after both concurrent paths settle.
+The same private Book supplies the fixed BendTT payload and the unmodified C
+emitter, with no source reload or cached verdict. Generated C and executables
+remain provisional: neither an admission handle nor successful artifact
+receipts/path are released until both checkers accept, the seal still matches,
+and the C/executable hashes are verified. Failure reaps both processes and
+discards provisional files before returning an error; no provisional worker is
+loaded or executed. Initialization
 validity uses `assertInitialization`: it requires a filled checked declaration
 with exactly `Requirements.Valid(configuration(), state())` and closed pure
 configuration/seed definitions before the startup Book can run. The initializer

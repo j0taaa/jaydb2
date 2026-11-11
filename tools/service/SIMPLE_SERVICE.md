@@ -281,3 +281,37 @@ module has exactly the executable Book's bytes, role and policy. A successful
 full Book checks all these declarations in both official modes once. If the
 worker fails, the separate pure check still distinguishes a rejected client
 certificate from a host wrapper failure; no successful declaration is skipped.
+
+
+Service compilation overlaps only independent work. The primary checker first
+elaborates every declaration, then the official Safe translator consumes those
+checked trees and fixes the complete BendTT input. The original BendTT process
+runs concurrently with C emission from that same private Book and Clang
+(`-O0` for ordinary requests, `-O2` for reusable/startup workers). The semantic
+seal is checked after translation immediately before C emission; it covers
+checked runtime bodies as well as source terms. The official emitter transforms
+its input Book under T2. A second seal covers its resulting private state and
+is checked before admission returns, detecting subsequent edits. No client
+source is reread, no verdict is cached, and Safe's permitted symbolic constants
+retain the existing treatment. The foreign C snapshot is validated before use.
+
+C, the executable and their hashes are provisional during that overlap.
+`compile.mjs` waits for both paths, reaps their children, and withholds successful
+C/native receipts until both checkers accept and the seal and artifact hashes
+match. `stage.mjs` validates those hashes before releasing a program path; Rust
+retains its existing artifact verification before a fresh worker launch. A
+checker/build/binding failure discards provisional files and releases no worker.
+A checker failure takes precedence over a simultaneous build failure. The
+separate pure check still determines client-certificate versus host failure,
+so public response statuses and publication behavior are unchanged.
+
+With `JAYDB_BENCH_TIMING`, `bendtt_translate_check` records the observed wall
+span of translation and the kernel child; it overlaps `c_emission` and
+`c_compilation` and must not be added to them or subtracted with them from the
+round trip to infer an exclusive remainder. Child completion can be observed
+after synchronous C emission yields the Node event loop. `admission_total`
+remains the inclusive wall time of admission/build. Staging, worker, cleanup
+and publication hooks retain their original boundaries.
+
+[Controlled timings and reproduction](ADMISSION_LATENCY.md) record the measured
+ordinary/preparation latency changes and the validation of this release barrier.

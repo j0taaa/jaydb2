@@ -15,3 +15,12 @@ python3 tools/bootstrap.py --source /path/to/bend-2.0.39 --kernel /path/to/bendt
 The expected kernel has SHA-256 `e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18`. Using the database does not require generating a new Lean verifier.
 
 `make verify` checks the general proofs in both official modes. Acceptance of these components alone does not prove the contract of the complete executable.
+
+
+`startBookCheck` uses the same translator, pinned binary, original CLI/defaults
+and verdict parser as the synchronous path. It fixes and hashes the translated
+payload before spawning, then resolves with a verdict or infrastructure error
+only after child close and log reading. Its private input/log directory remains
+owned until completion and is then removed. This allows trusted compilation to
+overlap the kernel process; callers must await the result before admission or
+artifact release. A failed check never authorizes the speculative output.
