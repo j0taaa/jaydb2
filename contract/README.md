@@ -52,8 +52,11 @@ that premise to derive universal certification of registered sources.
 bounded canonical denial bytes and
 unchanged root/last-response/registry. `HostErrors` witnesses check every named
 certificate row and the default, including prepared map/integrity failures.
-The host still detects failures, forwards the actual code/current snapshot,
-and prevents execution after an integrity failure. Failure of the denial
+`HostErrors.emitted_frame` is independent of root/last/registry, permitting the
+prepared technical denial computed at startup to be reused for every later
+current root. The host still detects failures, forwards the actual code/current
+snapshot (or the exact cached prepared denial), and prevents execution after an
+integrity failure. Failure of the denial
 executable/transport retains a fixed host technical fallback.
 Artifact IO, admission-token delivery, physical IO and atomic root replacement
 remain host obligations. The proof guide numbers the required host

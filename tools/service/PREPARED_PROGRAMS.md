@@ -89,14 +89,19 @@ prepare request and immutable instance. Rust stores the returned registry bytes,
 keeps/deletes the named artifacts and copies the returned receipt (T3).
 No registry/certificate/receipt decision is inferred from public status text.
 The same executable accepts canonical private text error codes. Rust supplies
-`HANDLE` on an artifact-map miss and `PREPARED_INTEGRITY` on a byte-integrity
-failure; `Control.host_error` computes their canonical `failure` replies.
+`HANDLE` during startup; `Control.host_error` computes its canonical `failure`
+reply. `HostErrors.emitted_frame` proves independence of root/last/registry, and
+the prepared code rows prove the same denial for `PREPARED_INTEGRITY`. Rust
+therefore caches those exact bytes and forwards them on map/integrity failures
+for every later current root, without another child.
 `HostErrorReplyTheorem` proves unchanged root/last response/registry and bounded
 framing. Rust forwards the bytes. Map availability and physical integrity
 observations, correct code delivery, and stopping before artifact execution
-remain host obligations. If the denial executable/transport fails, the existing
-fixed host technical fallback applies. Healthy prepared calls run no extra
-process or admission check. Artifact integrity and physical cleanup remain host obligations.
+remain host obligations. Startup fails if the checked denial cannot be computed.
+The fixed technical fallback remains for uncached admission/other errors when
+the denial executable or transport fails. Healthy prepared execution and
+map/integrity denials keep their original process/check counts. Artifact integrity
+and physical cleanup remain host obligations.
 
 ## Proof target and capture boundary
 

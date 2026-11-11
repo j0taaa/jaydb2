@@ -199,14 +199,17 @@ loop. The remaining T3 plumbing obligations are:
 4. Run a fresh private worker through the checked gate/advance/finalizer and
    native loop, without publication capability.
 5. Collect complete output, reap children and finish rollback-capable cleanup.
-   Forward the observed error code/current snapshot to the checked controller;
-   denial-executable/transport failure retains the fixed technical fallback.
+   Forward admission/other observed error codes/current snapshots to the checked
+   controller; denial-executable/transport failure retains the fixed technical
+   fallback. Prepared physical failures forward the cached checked denial.
 6. Obey Commit/Keep exactly and atomically publish the paired root/response;
    feed the resulting root to the next request.
 7. Forward the latest controller-emitted registry bytes unchanged, supply the
    exact T1 admission tuple to controls, install only checked deltas, preserve
    allocation history, and manage the matching artifacts. Physical map/integrity
-   checks must prevent execution of an unavailable or changed artifact.
+   checks must prevent execution of an unavailable or changed artifact. Cache
+   exactly the startup controller's technical denial for prepared failures;
+   `HostErrors.emitted_frame` proves its validity for every later root/registry.
 8. Deliver exactly the returned bytes; delivery failure cannot undo a commit.
    EOF/shutdown between requests closes the channel without a transaction.
 
@@ -228,14 +231,20 @@ all other strings map to `failure`, including `HOST_COMPILE`, `HANDLE` and
 `PREPARED_INTEGRITY`. Pure admission's failure code is preserved; a worker/C
 failure after successful pure admission remains `HOST_COMPILE`.
 
-Rust sends the code unchanged and forwards only a checked Keep response.
-Physical failure detection, correct code/snapshot forwarding and preventing
+Rust sends admission/other codes unchanged and forwards only a checked Keep
+response. During startup it also computes the `HANDLE` denial once. The
+`emitted_frame` theorem is independent of root/last/registry; both prepared codes
+produce the same failure, so those exact bytes remain valid for every current
+root under the instance's immutable limits. Artifact-map and integrity failures
+carry these cached bytes directly through publication, without another child.
+Startup fails if the checked denial cannot be obtained. Physical failure
+detection, correct code/snapshot forwarding and preventing
 execution of an integrity-failed prepared artifact remain host duties. If the
 controller executable or denial transport itself fails, Rust keeps the root
 and uses the existing fixed technical fallback. This is the T3 physical-failure
-boundary, with no recursive denial attempt. Ordinary success and healthy
-prepared calls launch no extra child and perform no extra checks. The proof
-guide's canonical T3 inventory now has eight duties.
+boundary, with no recursive denial attempt. Ordinary success, healthy prepared
+execution and prepared map/integrity denials keep their original process/check
+counts; startup performs the one checked denial computation. The proof guide's canonical T3 inventory now has eight duties.
 
 Prepare/invalidate replies come from the controller under `ControlTheorem`,
 not the worker's denial branch. The Dispatch bridge compares tag-0 output to

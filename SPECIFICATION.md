@@ -20,7 +20,10 @@ classification and canonical response construction, preserving the published
 root, last response and prepared registry. `contract/HostErrors.bend` specifies
 the certificate-code table; every other code, including `HANDLE` and
 `PREPARED_INTEGRITY`, produces `failure`. Rust forwards the observed code and
-returned bytes. Physical artifact lookup/integrity, detection of actual failures
+returned bytes. The prepared technical denial is computed once at startup;
+`HostErrors.emitted_frame` proves its bytes independent of root/last/registry,
+so reuse preserves the exact checked denial for each later current root and
+adds no process to failed prepared calls. Physical artifact lookup/integrity, detection of actual failures
 and preventing execution after a failed integrity check remain host duties.
 If the denial executable/transport itself fails, the host retains the existing
 fixed technical failure fallback. Successful calls use the same execution path.

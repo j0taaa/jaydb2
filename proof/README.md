@@ -25,7 +25,7 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `CertifiedWorker` | The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
 | `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
-| `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
+| `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `emitted_frame` is independent of root/last/registry, so the prepared denial may be computed once at startup and reused for every current root. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
 | `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
 | `ServiceFoldTheorem` | Mixed transactions/controls preserve root validity, exact registry transition history and sound universal sources for live lookups from an empty registry. Invalidation removes scoped entries and preserves allocation history; every later position refuses reuse of an allocated handle, and `ServiceNoRevivalTheorem` preserves its absence. Controls carry the exact T1 admission-soundness premise. | `ControlHistory.service_fold_theorem` |
 | `ControlRegistryBytes` | Successfully encoded and framed controller metadata yields exactly its next registry through the prepared worker's `ControlBridge.decode_registry`, given representable byte length within its uint64 ceiling and octet blocks. This connects the mixed fold's registry to worker selection when forwarded unchanged. | `ControlRegistryBytes.control_output_registry_decodes`, `ControlRegistryBytes.registry_bytes_decode` |
@@ -130,8 +130,9 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
 5. Collect the complete result/response and finish rollback-capable cleanup
    before publication. An actual pre-commit tool/process/transport failure keeps
    the prior root and emits the fixed failure frame when possible; fatal loss
-   may stop the process without a reply. Supply the actual observed error code,
-   current root and registry to the checked controller and forward its denial.
+   may stop the process without a reply. Supply admission/other observed error
+   codes, current root and registry to the checked controller and forward its
+   denial; prepared physical failures use the cached checked denial below.
    If that executable or transport itself fails, the fixed technical fallback
    remains host plumbing; it cannot produce a certificate rejection.
 6. Atomically publish exactly the checked Commit root and paired response;
@@ -150,7 +151,11 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    Preserve allocated history and the root/last-response pair. Receipt delivery
    never rolls back a control. Keep the physical artifact-map lookup and exact
    byte-integrity checks; never execute an artifact whose integrity check failed.
-   Those observations and fail-before-execution ordering remain trusted.
+   Those observations and fail-before-execution ordering remain trusted. Cache
+   exactly the controller-emitted `HANDLE` denial computed at startup and forward
+   those bytes on map/integrity failures. `emitted_frame` proves independence of
+   root, last response and registry; the two prepared code rows prove the same
+   technical denial for both failures. Limits remain immutable for the instance.
 8. Deliver exactly the returned bytes. After a post-commit delivery failure,
    retain the committed root and stop/close as appropriate. EOF or shutdown
    between requests terminates the channel rather than creating a transaction.
@@ -165,8 +170,12 @@ are checked by `HostErrorReplyTheorem`, leaving **eight** numbered duties.
 followed by worker Book/C compilation failure reports `HOST_COMPILE`.
 These failures reject before the request's Gate runs. The host supplies the
 actual observed code; checked code does not prove the tool produced it.
-An artifact-map miss can indicate an absent registration or an unavailable
-live artifact. The integrity denial is a technical failure, not evidence
+The controller computes the prepared technical denial once during startup.
+`HostErrors.emitted_frame` quantifies over every root, last response and registry;
+combined with the two prepared rows, it proves those cached bytes equal the
+checked denial for every later current root. No extra child runs on prepared
+map/integrity failures. An artifact-map miss can indicate an absent registration
+or an unavailable live artifact. The integrity denial is a technical failure, not evidence
 against the original certificate. Neither denial executes that artifact.
 
 ## Scope

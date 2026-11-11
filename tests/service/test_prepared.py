@@ -221,17 +221,26 @@ class PreparedTests(unittest.TestCase):
                 self.assertNotIn('alice-token', source.read_text())
                 self.assertNotIn('bob-token', source.read_text())
             self.assertFalse(list(private.rglob('Seed.bend')))
-            for artifact in (next(prepared.glob('*.program')), prepared/'Client.bend', prepared/'Size.bend',
-                             private/'runtime/tools/service/stage.mjs'):
-                original = artifact.read_bytes()
-                try:
-                    artifact.write_bytes(original+b'\nchanged')
-                    self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
-                    self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
-                finally:
-                    artifact.write_bytes(original)
-            self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),
-                {'status': 'success', 'value': 'alice-final'})
+            offline_control = control.with_suffix('.offline')
+            control.rename(offline_control)
+            diagnostic_start = len(server.diagnostics())
+            try:
+                self.assertEqual(host_reply('missing-handle'), not_found_reply)
+                for artifact in (next(prepared.glob('*.program')), prepared/'Client.bend', prepared/'Size.bend',
+                                 private/'runtime/tools/service/stage.mjs'):
+                    original = artifact.read_bytes()
+                    try:
+                        artifact.write_bytes(original+b'\nchanged')
+                        self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
+                        self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
+                    finally:
+                        artifact.write_bytes(original)
+                self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),
+                    {'status': 'success', 'value': 'alice-final'})
+                self.assertNotIn('HOST_IO', server.diagnostics()[diagnostic_start:],
+                    'prepared denials attempted to load the offline controller')
+            finally:
+                offline_control.rename(control)
             self.assertEqual(log.read_bytes(), baseline, 'prepared route entered node')
             self.assertEqual(server.call(code, (example/'ClientProof.bend').read_text(), 'alice-final'),
                 {'status': 'failure', 'value': None})
