@@ -251,10 +251,18 @@ export async function admitKernel(options) {
 }
 
 async function admit(options, kernelOnly) {
+  let stamp = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
+  const timed = phase => {
+    if (stamp === null) return;
+    const now = process.hrtime.bigint();
+    try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase, ns: String(now - stamp)}) + '\n'); } catch {}
+    stamp = now;
+  };
   // No frontend code runs until the *entire* explicit graph passes preflight.
   const plan = preflight(options, kernelOnly);
   const tc = await loadToolchain(options.toolchain);
   const { B, S } = tc;
+  timed('bootstrap_preflight');
   let state, foreignSnapshot;
   try {
     try {
@@ -265,6 +273,7 @@ async function admit(options, kernelOnly) {
       validateKernelEntry(B, state);
       audit(B, state);
       auditLoopCalls(B, state);
+      timed('parse_audit');
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;
       if (!frontendDiagnostic(cause)) {
@@ -274,6 +283,7 @@ async function admit(options, kernelOnly) {
     }
     try {
       B.book_valid(state.book);
+      timed('primary_check');
     } catch (cause) {
       if (!frontendDiagnostic(cause)) {
         const last = state.book.order.filter(k => state.book.tlds[k]?.e).at(-1);
@@ -291,8 +301,10 @@ async function admit(options, kernelOnly) {
     if (!kernelOnly) assertBindings(B, state.book, plan, false);
     assertInitialization(B, state.book, plan);
     const changedDefinition = bookSeal(B, state.book);
+    timed('binding_audit_seal');
     try {
       state.verifier = checkBook(S, state.book, tc.info.verifier);
+      timed('bendtt_translate_check');
       // The source Book has already passed the primary checker. A negative
       // result for its translated payload establishes pipeline disagreement,
       // not absence of a derivation for the original source certificate.

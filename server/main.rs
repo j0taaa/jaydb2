@@ -22,6 +22,20 @@ use timing::{Attempt, Timing};
 
 type Result<T> = std::result::Result<T, Error>;
 
+// Optional experiment diagnostics; never part of a response or a decision.
+fn bench_start() -> Option<std::time::Instant> {
+    std::env::var_os("JAYDB_BENCH_TIMING").map(|_| std::time::Instant::now())
+}
+fn bench_mark(start: &mut Option<std::time::Instant>, phase: &str) {
+    if let Some(previous) = start {
+        let now = std::time::Instant::now();
+        diagnostic(format_args!("JAYDB_BENCH {}", serde_json::json!({
+            "phase": phase, "ns": now.duration_since(*previous).as_nanos().to_string()
+        })));
+        *previous = now;
+    }
+}
+
 // Diagnostics cannot turn an ordinary outcome or disabled observer into a
 // panic when the administrator's stderr destination is unavailable.
 fn diagnostic(message: std::fmt::Arguments<'_>) {
@@ -132,6 +146,13 @@ fn json_helper(script: &Path, arguments: &[OsString]) -> Result<Value> {
             .args(arguments),
         &[],
     )?;
+    if std::env::var_os("JAYDB_BENCH_TIMING").is_some() {
+        for line in String::from_utf8_lossy(&output.stderr).lines() {
+            if line.starts_with("JAYDB_BENCH ") {
+                diagnostic(format_args!("{line}"));
+            }
+        }
+    }
     if output.status.success() {
         return Ok(serde_json::from_slice(&output.stdout)?);
     }
@@ -618,6 +639,7 @@ impl Database {
         mut proposal: Result<Decision>,
         result_ready: impl FnOnce(),
     ) -> Result<Vec<u8>> {
+        let mut bench = bench_start();
         if let Ok(Decision::Commit { state, .. }) = &proposal
             && let Some(storage) = &mut self.storage
         {
@@ -638,6 +660,7 @@ impl Database {
             .err()
             .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
         let response = self.published.finish(proposal);
+        bench_mark(&mut bench, "publication");
         result_ready();
         storage::fault_point("after_publish")
             .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
@@ -655,11 +678,13 @@ impl Database {
     }
 
     fn propose(&mut self, body: &[u8], attempt: &mut Option<Attempt>) -> Result<Decision> {
+        let mut bench = bench_start();
         let input = packet(&self.published.state, body);
         // Input.analyze decodes before authenticating and preserves decode
         // errors. A separate decode child would repeat that entire pass.
         // The worker decodes this same packet and enters through Gate.begin.
         let authenticated = self.preprocess(&self.authenticate, &input)?;
+        bench_mark(&mut bench, "packet_authentication");
         if authenticated[0] == 0 {
             return Ok(Decision::Keep {
                 response: authenticated[1..].to_vec(),
@@ -686,6 +711,7 @@ impl Database {
                 .get(handle)
                 .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
             prepared.validate()?;
+            bench_mark(&mut bench, "prepared_integrity");
             if self.inspector.is_some() {
                 self.inspect(serde_json::json!({
                     "event": "prepared-resolved", "handle": handle,
@@ -699,6 +725,7 @@ impl Database {
             let output = prepared
                 .program
                 .run(&packet(&self.registry, &input), self.threads)?;
+            bench_mark(&mut bench, "prepared_worker");
             return parse_decision(&output, &self.limits);
         }
         if self.inspector.is_some() {
@@ -743,6 +770,7 @@ impl Database {
             ));
         }
         let program = Program::load(text(&report, "program")?.into())?;
+        bench_mark(&mut bench, "admission_total");
         if operation == 3 {
             let control = self.run_control(body, text(&report, "certificateMode")?, code, proof)?;
             let (handle, registry, response) = match control {
@@ -773,8 +801,10 @@ impl Database {
             return Ok(Decision::Keep { response });
         }
         let output = program.run(&input, self.threads)?;
+        bench_mark(&mut bench, "ordinary_worker");
         let proposal = parse_decision(&output, &self.limits)?;
         request.remove()?;
+        bench_mark(&mut bench, "proposal_cleanup");
         Ok(proposal)
     }
 
