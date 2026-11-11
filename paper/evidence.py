@@ -1,172 +1,247 @@
 #!/usr/bin/env python3
-"""Derive the manuscript's numbers from retained measurements, never timings here."""
+"""Validate fresh checked samples and derive LaTeX/plot data (no benchmarks)."""
 import json
-import hashlib
 import math
 from pathlib import Path
+import re
 import statistics
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / ".build/tcc"
-
-COMPARISON_DIGESTS = {
-    "results.json": "355fd9b197d980dd590f0a2c5e2b6d6cd5f406616618d9da94a77f2db5d48ba6",
-    "raw-result.json": "fbce76fdafe3ed56f40f1264a16e188209a10119e5cb9ba0ec0eac0fbd8079a4",
-    "provenance-audit.json": "0d0906ee261582e6bd98d0056190f025c0613fb17a4f8a8b17b073c5f17d7498",
-}
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'.build/tcc'
+FILES=('ordinary','prepared','comparison','verification','scaling','scaling-seed-attempt')
+PROGRAMS={'read':'Read','indexed':'Indexed','voucher':'Voucher'}
+MACROS={}
 
 
 def canonical(value):
-    # JSON type identity matters: true is not the integer 1.
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False)
 
 
-def comparison_statistics(data, raw, audit, raw_digest):
-    """Recompute the narrowly scoped point-operation table, not an engine ranking."""
-    if audit.get("status") != "passed" or audit.get("raw_result_sha256") != raw_digest:
-        raise ValueError("Comparison provenance audit does not bind the raw result")
-    if data.get("provenance_audit") != audit or raw.get("status") != "failed":
-        raise ValueError("Comparison must retain its original inventory-guard failure")
-    allowed_changes = {"error", "status", "provenance_audit", "analysis_input_path",
-                       "original_inventory_guard_status"}
-    if any(canonical(data.get(key)) != canonical(raw.get(key))
-           for key in (set(data) | set(raw)) - allowed_changes):
-        raise ValueError("Audited comparison changed captured measurements or configuration")
-    if data.get("original_inventory_guard_status") != "failed" or audit.get("raw_result_status") != "failed":
-        raise ValueError("Original comparison failure must remain explicit")
-    if data.get("settings", {}).get("samples") != 7 or data["settings"].get("warmups") != 1:
-        raise ValueError("Comparison design changed; revise the article")
-    records = data["results"]
-    engines = ("jaydb2", "postgresql", "sqlite")
-    scenarios = {record["scenario"] for record in records}
-    identities = [(record["scenario"], record["engine"]) for record in records]
-    expected = {(scenario, engine) for scenario in scenarios for engine in engines}
-    if len(scenarios) != 10 or len(identities) != 30 or set(identities) != expected:
-        raise ValueError("Missing or duplicate comparison engine/scenario records")
-    values = {(workload, engine): [] for workload in ("point_read", "point_update") for engine in engines}
-    for record in records:
-        if record.get("status") != "passed":
-            raise ValueError("A comparison record failed")
-        for sample in record["samples"]:
-            if sample.get("checked") is not True or canonical(sample["actual"]) != canonical(sample["expected"]):
-                raise ValueError("An independently checked comparison output disagrees")
-        for workload in ("point_read", "point_update"):
-            rows = [sample for sample in record["samples"] if sample["workload"] == workload]
-            measured = [sample for sample in rows if sample["phase"] == "sample"]
-            warmup = [sample for sample in rows if sample["phase"] == "warmup"]
-            if (any(type(sample["iteration"]) is not int for sample in rows)
-                    or len(rows) != 8 or len(measured) != 7 or len(warmup) != 1
-                    or warmup[0]["iteration"] != 0
-                    or {sample["iteration"] for sample in measured} != set(range(1, 8))):
-                raise ValueError("Missing or duplicate comparison point-operation samples")
-            if any(type(sample["elapsed_ns"]) is not int or sample["elapsed_ns"] <= 0 for sample in rows):
-                raise ValueError("Invalid comparison latency")
-            median = statistics.median(sample["elapsed_ns"] for sample in measured)
-            summary = record["summary"][workload]
-            if summary["n"] != 7 or not math.isclose(median, summary["median_ns"]):
-                raise ValueError("Comparison summary disagrees with measured samples")
-            values[workload, record["engine"]].append(median)
-    for scenario in scenarios:
-        hashes = {record["final_data_sha256"] for record in records if record["scenario"] == scenario}
-        if len(hashes) != 1:
-            raise ValueError("Comparison final models disagree across engines")
-    return {key: statistics.median(samples) / 1e6 for key, samples in values.items()}
+def quartiles(values):
+    q1,_,q3=statistics.quantiles(values,n=4,method='inclusive')
+    return dict(n=len(values),median=statistics.median(values),qone=q1,qthree=q3,
+        iqr=q3-q1)
 
 
-def write_comparison():
-    directory = ROOT / "paper/evidence"
-    payloads = {name: (directory / name).read_bytes() for name in COMPARISON_DIGESTS}
-    for name, payload in payloads.items():
-        if hashlib.sha256(payload).hexdigest() != COMPARISON_DIGESTS[name]:
-            raise ValueError(f"Retained comparison input changed: {name}")
-    data, raw, audit = (json.loads(payloads[name]) for name in COMPARISON_DIGESTS)
-    values = comparison_statistics(data, raw, audit, COMPARISON_DIGESTS["raw-result.json"])
-    rows, macros = [], []
-    for workload, label, suffix in (("point_read", "Point read", "Read"),
-                                    ("point_update", "Point update", "Update")):
-        numbers = []
-        for engine, prefix in (("jaydb2", "Jay"), ("postgresql", "Postgres"), ("sqlite", "Sqlite")):
-            value = f"{values[workload, engine]:.4g}"
-            numbers.append(value)
-            macros.append(f"\\newcommand{{\\Db{prefix}{suffix}}}{{{value}}}")
-        rows.append(label + " & " + " & ".join(numbers) + r" \\")
-    (OUT / "database-comparison-table.tex").write_text(
-        "\\begin{tabular}{lrrr}\\toprule\n"
-        "Operation & JayDB2 & PostgreSQL & SQLite \\\\\\midrule\n"
-        + "\n".join(rows) + "\n\\bottomrule\\end{tabular}\n")
-    (OUT / "database-comparison-numbers.tex").write_text("\n".join(macros) + "\n")
-    print("Verified raw/audited comparison linkage and 30 records; derived point-operation table")
+def summary(samples):
+    values=[s['elapsed_ns'] for s in samples]
+    return quartiles(values)
+
+
+def active_throughput(record):
+    rows=record['samples']
+    return quartiles([30e9/sum(s['elapsed_ns'] for s in rows[i:i+30]) for i in range(0,300,30)])
+
+
+def checked(sample):
+    if sample.get('checked') is not True or canonical(sample.get('actual'))!=canonical(sample.get('expected')):
+        raise ValueError('Unchecked or incorrect output')
+    if type(sample.get('elapsed_ns')) is not int or sample['elapsed_ns']<=0:
+        raise ValueError('Invalid elapsed nanoseconds')
+
+
+def samples(record,n,workload=None):
+    rows=record['samples']
+    warmup=record['warmup']
+    if workload:
+        rows=[s for s in rows if s['workload']==workload]
+        warmup=[s for s in warmup if s['workload']==workload]
+    if len(rows)!=n or any(type(s['iteration']) is not int for s in rows) or {s['iteration'] for s in rows}!=set(range(1,n+1)) or len(warmup)!=1 or warmup[0]['iteration']!=0:
+        raise ValueError('Missing or duplicate measured samples/warmup')
+    for row in rows+warmup:checked(row)
+    return summary(rows)
+
+
+def validate(data):
+    for name in FILES:
+        meta=data[name].get('metadata',{})
+        for key in ('cpu','kernel','python','node','clang','rust','cargo','bend','toolchain','commit','binary_sha256','source_sha256'):
+            if not meta.get(key): raise ValueError('Missing metadata: '+key)
+        if not re.fullmatch('[0-9a-f]{40}',meta['commit']): raise ValueError('Invalid commit')
+    if {r['program'] for r in data['ordinary']['records']}!=set(PROGRAMS) or len(data['ordinary']['records'])!=3:
+        raise ValueError('Ordinary program coverage')
+    for r in data['ordinary']['records']:
+        samples(r,10)
+        phases={'staging','primary_check','bendtt_translate_check','c_compilation','ordinary_worker','publication'}
+        if any(not phases<=s['phases_ns'].keys() for s in r['samples']): raise ValueError('Missing ordinary phase timing')
+    expected={(p,m) for p in PROGRAMS for m in (False,True)}
+    identities=[(r['program'],r['persistent']) for r in data['prepared']['records']]
+    if len(identities)!=6 or set(identities)!=expected:raise ValueError('Prepared program/mode coverage')
+    for r in data['prepared']['records']:
+        samples(r,300)
+        if len(r['registrations'])<3:raise ValueError('Missing registration samples')
+        for row in r['registrations']:
+            checked(row)
+            if row['actual'].get('status')!='prepared' or not re.fullmatch('[a-f0-9]{64}',row['actual'].get('value','')):
+                raise ValueError('Invalid prepared receipt')
+        if r['program']=='voucher' and any(s.get('untimed_retirement_checked') is not True for s in r['samples']):
+            raise ValueError('Unchecked voucher retirement')
+    comparisons=data['comparison']['records']
+    if len(comparisons)!=6 or {(r['engine'],r['policy']) for r in comparisons}!={(e,p) for e in ('jaydb2','postgresql','sqlite') for p in ('point','owner')}:
+        raise ValueError('Comparison engine/policy coverage')
+    for r in comparisons:
+        for workload in ('read','update'):samples(r,300,workload)
+        if r['engine']=='jaydb2':
+            for s in r['samples']:
+                if s['workload']=='update' and s.get('stored_value_checked') is not True:raise ValueError('Unchecked stored update')
+            for w in ('read','update'):
+                rows=[s for s in r['ordinary'] if s['workload']==w and s['phase']=='sample']
+                if len(rows)!=10:raise ValueError('Ordinary comparison context samples')
+                for row in rows:checked(row)
+    policy=data['comparison']['policy_checks']
+    if len(policy)!=4 or {(r['engine'],r['workload']) for r in policy}!={(e,w) for e in ('jaydb2','postgresql') for w in ('read','update')}:
+        raise ValueError('Missing policy refusal checks')
+    for row in policy:
+        if row.get('refused') is not True or row.get('checked') is not True or canonical(row['actual'])!=canonical(row['expected']):raise ValueError('Policy check failed')
+    pg=data['comparison']['settings']['postgresql']
+    if pg['fsync']!='on' or pg['synchronous_commit']!='on' or pg['role'][1:]!=[False,False] or pg['rls']!=[True,True]:
+        raise ValueError('PostgreSQL durability/RLS settings')
+    sq=data['comparison']['settings']['sqlite']
+    if sq['synchronous']!=2 or sq['journal_mode']!='wal':raise ValueError('SQLite durability settings')
+    commands=data['verification']['commands']
+    if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
+    for row in commands:
+        if not row.get('output') or row['elapsed_ns']<=0:raise ValueError('Missing verification output')
+        if row['returncode']!=0:raise ValueError('Required verification gate failed; inspect retained output')
+    # Failed measurements remain visible; they are never replaced with estimates.
+    scaling=data['scaling']
+    if not scaling['records']:raise ValueError('No state scaling measurements')
+    if not scaling.get('setup_method'):raise ValueError('Missing scaling setup method')
+    identities=[(r['rows'],r['persistent']) for r in scaling['records']]
+    if len(identities)!=len(set(identities)):raise ValueError('Duplicate scaling point')
+    expected={(n,m) for n in (10,100,1000,scaling['max_rows']) for m in (False,True)}
+    attempts=set(identities)|{(r['rows'],r['persistent']) for r in scaling['failures'] if 'persistent' in r}
+    if not expected<=attempts:raise ValueError('Missing scaling population/mode coverage')
+    for r in scaling['records']:
+        checked(r['population'])
+        if r['population']['actual']!={'status':'success','value':r['rows']}:raise ValueError('Scaling population count disagrees')
+        if r['state_bytes']>scaling['state_limit']:raise ValueError('Scaling state exceeds limit')
+        for w in ('read','update'):samples(r,50,w)
+        for s in r['samples']:
+            if s['workload']=='update' and s.get('stored_value_checked') is not True:raise ValueError('Unchecked scaling update')
+    for failure in scaling['failures']:
+        if not failure.get('reason'):raise ValueError('Unexplained scaling failure')
+    for mode in (False,True):
+        if (scaling['max_rows'],mode) in identities:
+            probes=[s for s in scaling.get('boundary_checks',[]) if s['persistent']==mode]
+            if len(probes)!=1:raise ValueError('Missing actual state-limit probe')
+            probe=probes[0];checked(probe)
+            if probe['actual']!={'status':'limit','value':None} or probe['rows']!=scaling['max_rows']+1 or probe['state_bytes']<=scaling['state_limit']:
+                raise ValueError('Invalid state-limit probe')
+            checked(probe['rollback_check'])
+    for attempt in data['scaling-seed-attempt']['failures']:
+        if attempt.get('measured') and not attempt.get('reason'):raise ValueError('Unexplained seed-check failure')
+    return data
+
+
+def load():
+    return validate({n:json.loads((ROOT/'paper/evidence'/f'{n}.json').read_text()) for n in FILES})
+
+
+def macro(name,value,meaning,unit):
+    if not re.fullmatch('[A-Z][a-zA-Z]*',name):raise ValueError(name)
+    MACROS[name]=(value,meaning,unit)
+
+
+def metric(prefix,s,unit,scale,meaning):
+    macro(prefix+'Median'+unit,s['median']/scale,meaning+' median',unit)
+
+
+def fmt(x):
+    return str(x) if isinstance(x,int) else f'{x:.6g}'
+
+
+def cell(s,scale=1e6):
+    return f"{s['median']/scale:.4g} [{s['qone']/scale:.4g}, {s['qthree']/scale:.4g}]"
+
+
+def table(name,columns,rows):
+    rendered=[' & '.join(map(str,row))+r' \\' for row in rows]
+    (OUT/name).write_text('\\begin{tabular}{'+columns+'}\\toprule\n'+rendered[0]+'\n\\midrule\n'+'\n'.join(rendered[1:])+'\n\\bottomrule\\end{tabular}\n')
+
+
+def derive(data):
+    MACROS.clear();OUT.mkdir(parents=True,exist_ok=True)
+    for prefix,count in [('Ordinary',10),('Prepared',300),('Registration',3),('Comparison',300),('Scaling',50)]:
+        macro(prefix+'Samples',count,prefix.lower()+' measured samples per program/mode/operation','samples')
+    ordinary={r['program']:summary(r['samples']) for r in data['ordinary']['records']}
+    table('ordinary-table.tex','lrr', [['Program','Seconds: median [Q1, Q3]','n']]+[[PROGRAMS[p],cell(s,1e9),s['n']] for p,s in ordinary.items()])
+    for p,s in ordinary.items():metric('Ordinary'+PROGRAMS[p],s,'Seconds',1e9,p+' ordinary round-trip latency')
+    rows=[['Program / mode','Registration s','Call ms','n','Calls/s']]
+    rates=[['Program / mode','Active calls/s [Q1, Q3]','Blocks','Closed-loop calls/s']]
+    registration_phases=[['Program / mode','Checking s','C emission/compilation s','n']]
+    for r in data['prepared']['records']:
+        p=r['program'];mode='Persistent' if r['persistent'] else 'Volatile';s=summary(r['samples']);reg=summary(r['registrations'])
+        prefix=PROGRAMS[p]+mode
+        metric('Prepared'+prefix,s,'Ms',1e6,p+' '+mode.lower()+' prepared latency')
+        metric('Registration'+prefix,reg,'Seconds',1e9,p+' '+mode.lower()+' one-time registration')
+        rps=300e9/r['batch_elapsed_ns']
+        macro('Prepared'+prefix+'CallsPerSecond',rps,'Closed-loop throughput, including checked voucher retirements when applicable','calls/s')
+        active=active_throughput(r)
+        macro('Prepared'+prefix+'ActiveCallsPerSecond',active['median'],'Median active throughput in ten consecutive 30-call blocks; excludes maintenance and validation gaps','calls/s')
+        rates.append([p+' / '+mode.lower(),cell(active,1),10,f'{rps:.4g}'])
+        if not r['persistent']:
+            breakeven=math.ceil(reg['median']/(ordinary[p]['median']-s['median']))
+            macro('BreakEven'+PROGRAMS[p]+'Calls',breakeven,'First integer call count where median registration plus prepared calls costs no more than ordinary calls','calls')
+        rows.append([p+' / '+mode.lower(),cell(reg,1e9),cell(s),s['n'],f'{rps:.4g}'])
+        checks=summary([dict(elapsed_ns=x['phases_ns']['primary_check']+x['phases_ns']['bendtt_translate_check']) for x in r['registrations']])
+        compile_times=summary([dict(elapsed_ns=x['phases_ns']['c_emission']+x['phases_ns']['c_compilation']) for x in r['registrations']])
+        registration_phases.append([p+' / '+mode.lower(),cell(checks,1e9),cell(compile_times,1e9),len(r['registrations'])])
+    table('prepared-table.tex','lrrrr',rows)
+    table('throughput-table.tex','lrrr',rates)
+    table('registration-phase-table.tex','lrrr',registration_phases)
+    macro('OrdinaryMedianSeconds',ordinary['read']['median']/1e9,'Trivial point read ordinary median','s')
+    macro('PreparedMedianMs',MACROS['PreparedReadVolatileMedianMs'][0],'Trivial point read volatile prepared median','ms')
+    macro('BreakEvenCalls',MACROS['BreakEvenReadCalls'][0],'Trivial point read volatile preparation break-even','calls')
+    phase_rows=[['Program','Phase','Milliseconds: median [Q1, Q3]']]
+    for r in data['ordinary']['records']:
+        for phase in sorted(r['samples'][0]['phases_ns']):
+            s=summary([dict(elapsed_ns=x['phases_ns'][phase]) for x in r['samples']])
+            phase_rows.append([r['program'],phase.replace('_',r'\_'),cell(s)])
+    table('phase-table.tex','llr',phase_rows)
+    compare=[['Policy','Engine','Read ms','Update ms','n/op']]
+    for r in data['comparison']['records']:
+        prefix={'jaydb2':'Jay','postgresql':'Postgres','sqlite':'Sqlite'}[r['engine']]+('Owner' if r['policy']=='owner' else 'Point')
+        summaries={w:samples(r,300,w) for w in ('read','update')}
+        for w,s in summaries.items():metric(prefix+w.title(),s,'Ms',1e6,r['engine']+' '+r['policy']+' '+w+' latency')
+        compare.append([r['policy'],r['engine'],cell(summaries['read']),cell(summaries['update']),300])
+        if r['engine']=='jaydb2':
+            for w in ('read','update'):
+                s=summary([x for x in r['ordinary'] if x['workload']==w and x['phase']=='sample'])
+                metric('Ordinary'+prefix+w.title(),s,'Seconds',1e9,'Durable ordinary '+r['policy']+' '+w+' latency')
+    table('database-comparison-table.tex','llrrr',compare)
+    v=data['verification']
+    for r in v['commands']:
+        name={'make verify-contract':'VerifyContract','make verify':'Verify','make test':'Test'}[r['command']]
+        macro(name+'Seconds',r['elapsed_ns']/1e9,r['command']+' wall time','s')
+        macro(name+'ExitCode',r['returncode'],r['command']+' exit status','exit code')
+    for key,name in [('negative_fixtures','NegativeFixtures'),('theorem_types','ContractTheoremTypes'),('proof_law_declarations','ProofLawDeclarations'),('proof_definitions','ProofDefinitions')]:
+        macro(name,v[key],key.replace('_',' '),'count')
+    macro('ProofTheoremWitnesses',len(v['theorem_witnesses']),'Named top-level theorem witnesses (names ending theorem); excludes supporting lemmas','witnesses')
+    for area,s in v['sizes'].items():macro(area.title()+'NonblankLines',s['nonblank_lines'],area+' source nonblank lines (comments included)','lines')
+    coverage=re.search(r'OK import coverage: ([^\n]+)',v['commands'][1]['output'])
+    if coverage:
+        for area,count in re.findall(r'(\w+) (\d+) modules',coverage.group(1)):macro(area.title()+'CoverageModules',int(count),area+' modules covered by verify import roots','modules')
+    table('verification-table.tex','lrr',[['Command','Seconds','Exit']]+[[r['command'],f"{r['elapsed_ns']/1e9:.4g}",r['returncode']] for r in v['commands']])
+    table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a,s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()])
+    scaling=data['scaling'];macro('StateLimitBytes',scaling['state_limit'],'Configured canonical state ceiling','bytes');macro('StateMaximumRows',scaling['max_rows'],'Largest analytically fitting population of this row shape','rows')
+    macro('LargeSeedFuelFailures',sum('Seed.initial_valid' in r['reason'] and 'out of fuel' in r['reason'] for r in data['scaling-seed-attempt']['failures']),'Retained large direct-seed initialization attempts exhausted official BendTT fuel','attempts')
+    rows=[['Rows','State bytes','Mode','Read ms','Update ms','n/op']];coordinates={}
+    for r in scaling['records']:
+        ss={w:samples(r,50,w) for w in ('read','update')}
+        rows.append([r['rows'],r['state_bytes'],'persistent' if r['persistent'] else 'volatile',cell(ss['read']),cell(ss['update']),50])
+        for w,s in ss.items():coordinates.setdefault(('persistent' if r['persistent'] else 'volatile')+'_'+w,[]).append((r['rows'],s['median']/1e6))
+    table('scaling-table.tex','rrlrrr',rows)
+    (OUT/'scaling-coordinates.tex').write_text('\n'.join('% '+name+'\n'+' '.join(f'({x},{y:.8g})' for x,y in xy) for name,xy in coordinates.items())+'\n')
+    for name,xy in coordinates.items():
+        (OUT/('scaling-'+name+'.dat')).write_text('rows median_ms\n'+''.join(f'{x} {y:.8g}\n' for x,y in xy))
+    (OUT/'numbers.tex').write_text('\n'.join('\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items())+'\n')
+    (OUT/'macro-reference.md').write_text('| Macro | Meaning | Unit |\n|---|---|---|\n'+''.join(f'| `\\{n}` | {m} | {u} |\n' for n,(_,m,u) in MACROS.items()))
+    return MACROS
 
 
 def main():
-    source = ROOT / "paper/evidence/benchmark.json"
-    data = json.loads(source.read_text())
-    records = data["records"]
-    if sum(r["checked_responses"] for r in records) != data["checked_responses"]:
-        raise ValueError("Response counts disagree")
-    if data["checked_responses"] != 256 or data["settings"]["samples"] != 7:
-        raise ValueError("Manuscript experiment design changed; revise its narrative")
-    if not data["controller"]["controller_build"]["chosen_executable_verified_against_fresh_build"]:
-        raise ValueError("Measured executable was not matched to a fresh build")
-    if data["settings"]["storage"] or data["settings"]["timing_log"]:
-        raise ValueError("Manuscript's volatile/unobserved profile no longer holds")
-    actual_keys = [(r["iterations_base"], r["read_workers"], r["phase"], r["round"])
-                   for r in records]
-    expected_keys = {(count, readers, "warmup" if round_ == 0 else "sample", round_)
-                     for count in (0, 100_000_000) for readers in (1, 2)
-                     for round_ in range(8)}
-    if len(actual_keys) != len(expected_keys) or set(actual_keys) != expected_keys:
-        raise ValueError("Missing or duplicate benchmark bursts")
-    for r in records:
-        if r["checked_responses"] != 8 or len(r["response_latency_ns"]) != 8:
-            raise ValueError("A recorded burst does not contain eight checked responses")
-        if r["elapsed_ns"] <= 0 or not math.isclose(r["requests_per_second"], 8e9 / r["elapsed_ns"]):
-            raise ValueError("Burst throughput disagrees with elapsed time")
-    summaries = {}
-    for summary in data["summary"]:
-        key = (summary["iterations_base"], summary["read_workers"])
-        rows = [r for r in records if r["phase"] == "sample" and
-                (r["iterations_base"], r["read_workers"]) == key]
-        latencies = sorted(n for r in rows for n in r["response_latency_ns"])
-        computed = {
-            "median_requests_per_second": statistics.median(8e9 / r["elapsed_ns"] for r in rows),
-            "median_burst_ns": statistics.median(r["elapsed_ns"] for r in rows),
-            "response_latency_p95_ns": latencies[math.ceil(.95 * len(latencies)) - 1],
-            "max_sampled_tree_rss_bytes": max(r["sampled_tree_peak_rss_bytes"] for r in rows),
-        }
-        if len(rows) != 7 or any(not math.isclose(value, summary[name]) for name, value in computed.items()):
-            raise ValueError("Summary disagrees with raw measured bursts")
-        summaries[key] = computed
-    if set(summaries) != {(n, r) for n in (0, 100_000_000) for r in (1, 2)}:
-        raise ValueError("Missing quantitative summaries")
-    macros, table = [], []
-    for label, count in [("Tiny", 0), ("Heavy", 100_000_000)]:
-        paired = []
-        for round_ in range(1, 8):
-            rs = {r["read_workers"]: r["requests_per_second"] for r in records
-                  if r["phase"] == "sample" and r["iterations_base"] == count and r["round"] == round_}
-            paired.append(rs[2] / rs[1])
-        median = statistics.median(paired)
-        retained = next(p for p in data["paired_comparison"] if p["iterations_base"] == count)
-        if not math.isclose(median, retained["median_throughput_ratio_parallel_over_serial"]):
-            raise ValueError("Paired ratio disagrees with raw bursts")
-        macros.append("\\newcommand{\\" + label + "Ratio}{" + f"{median:.2f}" + "}")
-        for readers in (1, 2):
-            s = summaries[count, readers]
-            name = label + ("One" if readers == 1 else "Two") + "Rps"
-            macros.append("\\newcommand{\\" + name + "}{" + f"{s['median_requests_per_second']:.1f}" + "}")
-            table.append(f"{label.lower()} & {readers} & {s['median_requests_per_second']:.1f} & "
-                         f"{s['median_burst_ns']/1e6:.2f} & {s['response_latency_p95_ns']/1e6:.2f} & "
-                         f"{s['max_sampled_tree_rss_bytes']/2**20:.2f} " + r"\\")
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "numbers.tex").write_text("\n".join(macros) + "\n")
-    (OUT / "table.tex").write_text(
-        "\\begin{tabular}{lrrrrr}\\toprule\n"
-        "Workload & Readers & Requests/s & Burst ms & p95 ms & Peak MiB \\\\\\midrule\n"
-        + "\n".join(table) + "\n\\bottomrule\\end{tabular}\n")
-    print("Verified the count of 256 checked responses and all four seven-burst summaries; generated TCC data")
-    write_comparison()
+    data=load();derive(data)
+    print(f'Validated {len(FILES)} fresh evidence files; generated {len(MACROS)} macros and tables in {OUT}')
 
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()

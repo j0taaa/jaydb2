@@ -45,7 +45,9 @@ try {
     throw workerError;
   }
   pureAccepted = Boolean(pure);
+  const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
   const c = emitC(admitted);
+  if (started !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_emission', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
   fs.writeFileSync(outputFile, c, { flag: 'wx', mode: 0o600 });
   fs.writeFileSync(outputFile + '.json', JSON.stringify({ cSha256: sha256(c),
     backend: 'official-bend-c', admission: admitted.report,

@@ -1,0 +1,6521 @@
+{
+  "metadata": {
+    "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/tcc-fresh-benchmarks",
+    "utc": "2026-11-11T13:37:23Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+    "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+    "dirty": [
+      "M paper/README.md",
+      " M paper/bench/fixtures.py",
+      " M paper/bench/run.py",
+      " M paper/bench/workloads.py",
+      " M paper/evidence.py",
+      " M paper/test_evidence.py",
+      "?? paper/evidence/comparison.json",
+      "?? paper/evidence/ordinary.json",
+      "?? paper/evidence/prepared.json"
+    ],
+    "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1
+  },
+  "experiment": "E5 state-size scaling",
+  "state_limit": 65536,
+  "records": [
+    {
+      "rows": 10,
+      "state_bytes": 898,
+      "persistent": false,
+      "n": 50,
+      "samples": [
+        {
+          "elapsed_ns": 3249457,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 2969595,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 2917774,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 2885883,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 3066345,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 2956966,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 3024886,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 3102961,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 3037094,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 2953211,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 3046010,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 3074764,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 3075131,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 3086547,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 3045360,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 2959296,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 2959551,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 3297935,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 3197740,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 3156772,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 2964978,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 2937952,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 2998337,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 3103438,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 2980837,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 2901540,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 2923307,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 2980742,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 2959786,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 3131120,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 3022506,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 2952397,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 2984412,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 3273651,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 3097909,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 3046142,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 3098429,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 2999284,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 3066089,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 3088449,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 3031191,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 3075693,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 2991843,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 3135439,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 3082732,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 3114327,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 3045498,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 3019487,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 3029205,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 3023846,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 50
+        },
+        {
+          "elapsed_ns": 3045822,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 3032735,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 3050788,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 2998997,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 2962240,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 2913490,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 2986808,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 2912812,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 3012644,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 2939876,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 3036245,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 3062834,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 3117722,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 2969753,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 3056798,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 3048452,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 3026770,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 2934853,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 3044832,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 3061141,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 3027869,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 2886299,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 3166649,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 2929271,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 2936565,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 3028502,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 2983891,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 3206726,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 2961346,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 2944828,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 2995987,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 3048288,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 3074130,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 3088838,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 3053347,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 3220657,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 2923577,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 2991897,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 3011389,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 3115558,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 2939623,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 2924494,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 2955189,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 2971510,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 3041379,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 3008556,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 3102879,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 3049110,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 3089096,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 2988874,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 50
+        }
+      ],
+      "warmup": [
+        {
+          "elapsed_ns": 3773084,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 0
+        },
+        {
+          "elapsed_ns": 3033444,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 0
+        }
+      ],
+      "registration": {
+        "elapsed_ns": 5904410347,
+        "actual": {
+          "status": "prepared",
+          "value": "96964eb9703e8fdf6af9f26e823442dff9ff588583fb343bb2ed3324195da218"
+        },
+        "expected": {
+          "status": "prepared",
+          "value": "96964eb9703e8fdf6af9f26e823442dff9ff588583fb343bb2ed3324195da218"
+        },
+        "checked": true,
+        "phases_ns": {}
+      }
+    },
+    {
+      "rows": 10,
+      "state_bytes": 898,
+      "persistent": true,
+      "n": 50,
+      "samples": [
+        {
+          "elapsed_ns": 16337481,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 20860012,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 27950763,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 27178308,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 29507166,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 25692423,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 30225804,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 27122837,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 28840261,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 28878610,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 29843288,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 27278943,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 30049073,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 27335000,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 30064074,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 27674340,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 28410106,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 27422217,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 29752809,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 27881378,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 30017271,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 12862026,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 24972115,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 14479399,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 30659277,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 27897647,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 30138310,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 27584137,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 30256959,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 30514413,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 26183416,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 30532300,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 28670741,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 30768377,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 27579105,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 29929880,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 27754696,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 30497026,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 27712124,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 29863276,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 26626990,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 30580234,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 27618494,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 30362460,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 27605777,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 30437962,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 27629650,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 30064927,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 27513494,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 30322663,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 50
+        },
+        {
+          "elapsed_ns": 27061338,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 27229688,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 20351501,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 27568976,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 27048250,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 27541937,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 27469224,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 26211503,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 27587980,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 25862095,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 27587104,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 27708433,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 27688579,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 27640273,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 29454111,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 28117042,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 27974435,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 27856360,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 26316500,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 27617376,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 20031116,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 17624544,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 27813974,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 26995195,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 27270664,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 27743215,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 28734791,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 27454298,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 28069890,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 27547016,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 27952346,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 27277741,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 27148938,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 27563537,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 27398396,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 27811788,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 27782040,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 24110335,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 14124231,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 19053523,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 21654730,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 27210722,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 27290352,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 29313192,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 30560051,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 29608276,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 29230730,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 30425279,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 29904984,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 30248819,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 50
+        }
+      ],
+      "warmup": [
+        {
+          "elapsed_ns": 13083211,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 0
+        },
+        {
+          "elapsed_ns": 27681957,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 0
+        }
+      ],
+      "registration": {
+        "elapsed_ns": 5906046249,
+        "actual": {
+          "status": "prepared",
+          "value": "610908051043c556bd99ba9976cf7faf6d48323ea5404fd7aedce0f9df051d3c"
+        },
+        "expected": {
+          "status": "prepared",
+          "value": "610908051043c556bd99ba9976cf7faf6d48323ea5404fd7aedce0f9df051d3c"
+        },
+        "checked": true,
+        "phases_ns": {}
+      }
+    },
+    {
+      "rows": 100,
+      "state_bytes": 6208,
+      "persistent": false,
+      "n": 50,
+      "samples": [
+        {
+          "elapsed_ns": 5680858,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 7034246,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 10785532,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 8075703,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 11286627,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 8378407,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 12205170,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 11618974,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 9931548,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 11571140,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 10565294,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 19333446,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 13390878,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 12547833,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 10072435,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 16934045,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 22566955,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 26493777,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 24868185,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 28274268,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 22452966,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 27119205,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 18256416,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 27061436,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 17873592,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 28293286,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 23799859,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 11053909,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 7456244,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 16389606,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 27144020,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 27236532,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 26222329,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 27973127,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 26926180,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 22258141,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 17092309,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 22674283,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 25751633,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 13319340,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 7966392,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 12510596,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 9144235,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 15706101,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 27496633,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 21170107,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 9108236,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 5665098,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 9427113,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 20761882,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 50
+        },
+        {
+          "elapsed_ns": 5110184,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 7141198,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 11487091,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 22890154,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 7163035,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 25543013,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 22313228,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 26955762,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 11343005,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 13605777,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 12342126,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 15361115,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 24819163,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 7223486,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 9033939,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 25724562,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 25156586,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 26794757,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 12087185,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 8941341,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 26851252,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 12640280,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 26713901,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 18468311,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 13998876,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 27958882,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 12938655,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 25952196,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 5242420,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 5288629,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 8589709,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 19269219,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 11578903,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 8399538,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 10464660,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 13569569,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 5510650,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 5367343,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 13306836,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 16999515,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 23870649,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 20291120,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 24903292,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 27544010,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 28609003,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 28748602,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 20179536,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 21014360,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 15444386,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 27664815,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 50
+        }
+      ],
+      "warmup": [
+        {
+          "elapsed_ns": 5980683,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 0
+        },
+        {
+          "elapsed_ns": 10721102,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 0
+        }
+      ],
+      "registration": {
+        "elapsed_ns": 5920663546,
+        "actual": {
+          "status": "prepared",
+          "value": "c01b42b7637953fd47ba68dfa1c293a5cd23ec6fb09e6e342f66a16c78c22277"
+        },
+        "expected": {
+          "status": "prepared",
+          "value": "c01b42b7637953fd47ba68dfa1c293a5cd23ec6fb09e6e342f66a16c78c22277"
+        },
+        "checked": true,
+        "phases_ns": {}
+      }
+    },
+    {
+      "rows": 100,
+      "state_bytes": 6208,
+      "persistent": true,
+      "n": 50,
+      "samples": [
+        {
+          "elapsed_ns": 20466107,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 36798097,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 29464010,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 33258019,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 34691217,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 42134257,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 38629965,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 41711228,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 38580175,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 39494157,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 39298666,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 39989128,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 38929109,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 18717489,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 39284200,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 26492214,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 35838102,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 34103353,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 37637943,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 40534779,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 24127966,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 23255612,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 29443576,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 36707377,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 40993279,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 39215181,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 39777551,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 38319475,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 30472484,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 43040208,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 24633936,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 42558943,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 37094795,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 34042084,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 38409431,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 42904663,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 35839835,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 43130116,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 35764250,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 40484656,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 36155556,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 42846128,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 34979291,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 41518691,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 38222408,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 42916063,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 39653165,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 24399181,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 27725264,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 40443521,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 50
+        },
+        {
+          "elapsed_ns": 37767378,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 1
+        },
+        {
+          "elapsed_ns": 38037639,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 2
+        },
+        {
+          "elapsed_ns": 23949755,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 3
+        },
+        {
+          "elapsed_ns": 37733936,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 4
+        },
+        {
+          "elapsed_ns": 36736713,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 5
+        },
+        {
+          "elapsed_ns": 34619057,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 6
+        },
+        {
+          "elapsed_ns": 38445796,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 7
+        },
+        {
+          "elapsed_ns": 38566757,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 8
+        },
+        {
+          "elapsed_ns": 38179078,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 9
+        },
+        {
+          "elapsed_ns": 37032831,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 10
+        },
+        {
+          "elapsed_ns": 37791532,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 11
+        },
+        {
+          "elapsed_ns": 13100622,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 12
+        },
+        {
+          "elapsed_ns": 13120717,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 13
+        },
+        {
+          "elapsed_ns": 24082787,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 14
+        },
+        {
+          "elapsed_ns": 37525803,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 15
+        },
+        {
+          "elapsed_ns": 32455538,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 16
+        },
+        {
+          "elapsed_ns": 32626834,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 17
+        },
+        {
+          "elapsed_ns": 36126185,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 18
+        },
+        {
+          "elapsed_ns": 38590573,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 19
+        },
+        {
+          "elapsed_ns": 38722226,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 20
+        },
+        {
+          "elapsed_ns": 38732913,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 21
+        },
+        {
+          "elapsed_ns": 26214168,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 22
+        },
+        {
+          "elapsed_ns": 38123770,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 23
+        },
+        {
+          "elapsed_ns": 38181827,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 24
+        },
+        {
+          "elapsed_ns": 38182168,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 25
+        },
+        {
+          "elapsed_ns": 25428544,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 26
+        },
+        {
+          "elapsed_ns": 13527037,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 27
+        },
+        {
+          "elapsed_ns": 32430060,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 28
+        },
+        {
+          "elapsed_ns": 40030811,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 29
+        },
+        {
+          "elapsed_ns": 40105011,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 30
+        },
+        {
+          "elapsed_ns": 40138319,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 31
+        },
+        {
+          "elapsed_ns": 39321262,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 32
+        },
+        {
+          "elapsed_ns": 39234560,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 33
+        },
+        {
+          "elapsed_ns": 39787133,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 34
+        },
+        {
+          "elapsed_ns": 37312614,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 35
+        },
+        {
+          "elapsed_ns": 30713100,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 36
+        },
+        {
+          "elapsed_ns": 39237296,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 37
+        },
+        {
+          "elapsed_ns": 36114587,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 38
+        },
+        {
+          "elapsed_ns": 18120854,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 39
+        },
+        {
+          "elapsed_ns": 27796666,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 40
+        },
+        {
+          "elapsed_ns": 39740456,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 41
+        },
+        {
+          "elapsed_ns": 40419534,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 42
+        },
+        {
+          "elapsed_ns": 39233652,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 43
+        },
+        {
+          "elapsed_ns": 35698254,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 44
+        },
+        {
+          "elapsed_ns": 39356974,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 45
+        },
+        {
+          "elapsed_ns": 38472660,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 46
+        },
+        {
+          "elapsed_ns": 40022507,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 47
+        },
+        {
+          "elapsed_ns": 40058575,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 48
+        },
+        {
+          "elapsed_ns": 39210927,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 49
+        },
+        {
+          "elapsed_ns": 30708717,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 50
+        }
+      ],
+      "warmup": [
+        {
+          "elapsed_ns": 18038114,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {},
+          "workload": "read",
+          "iteration": 0
+        },
+        {
+          "elapsed_ns": 36138681,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {},
+          "stored_value_checked": true,
+          "workload": "update",
+          "iteration": 0
+        }
+      ],
+      "registration": {
+        "elapsed_ns": 5916761773,
+        "actual": {
+          "status": "prepared",
+          "value": "4ca8393f04f61940cc1c501163827918a681099ac0dbe026f58aadd86025fcdc"
+        },
+        "expected": {
+          "status": "prepared",
+          "value": "4ca8393f04f61940cc1c501163827918a681099ac0dbe026f58aadd86025fcdc"
+        },
+        "checked": true,
+        "phases_ns": {}
+      }
+    }
+  ],
+  "failures": [
+    {
+      "rows": 1000,
+      "state_bytes": 59308,
+      "persistent": false,
+      "reason": "jaydb2: BENDTT_INFRASTRUCTURE: Error: In Seed.initial_valid:\nout of fuel\n    at checkKernelFile (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397656-0/runtime/tools/verifier/check.mjs:41:63)\n    at checkBook (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397656-0/runtime/tools/verifier/check.mjs:56:17)\n    at admit (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397656-0/runtime/tools/admission/index.mjs:306:24)\n    at async file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397656-0/runtime/tools/service/compile.mjs:42:7\n",
+      "measured": true
+    },
+    {
+      "rows": 1000,
+      "state_bytes": 59308,
+      "persistent": true,
+      "reason": "jaydb2: BENDTT_INFRASTRUCTURE: Error: In Seed.initial_valid:\nout of fuel\n    at checkKernelFile (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397931-0/runtime/tools/verifier/check.mjs:41:63)\n    at checkBook (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397931-0/runtime/tools/verifier/check.mjs:56:17)\n    at admit (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397931-0/runtime/tools/admission/index.mjs:306:24)\n    at async file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2397931-0/runtime/tools/service/compile.mjs:42:7\n",
+      "measured": true
+    },
+    {
+      "rows": 1105,
+      "state_bytes": 65503,
+      "persistent": false,
+      "reason": "jaydb2: BENDTT_INFRASTRUCTURE: Error: In Seed.initial_valid:\nout of fuel\n    at checkKernelFile (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398081-0/runtime/tools/verifier/check.mjs:41:63)\n    at checkBook (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398081-0/runtime/tools/verifier/check.mjs:56:17)\n    at admit (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398081-0/runtime/tools/admission/index.mjs:306:24)\n    at async file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398081-0/runtime/tools/service/compile.mjs:42:7\n",
+      "measured": true
+    },
+    {
+      "rows": 1105,
+      "state_bytes": 65503,
+      "persistent": true,
+      "reason": "jaydb2: BENDTT_INFRASTRUCTURE: Error: In Seed.initial_valid:\nout of fuel\n    at checkKernelFile (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398316-0/runtime/tools/verifier/check.mjs:41:63)\n    at checkBook (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398316-0/runtime/tools/verifier/check.mjs:56:17)\n    at admit (file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398316-0/runtime/tools/admission/index.mjs:306:24)\n    at async file:///home/jota/.t3/worktrees/jaydb2/t3-f6d6e255-c0920a03959db5be/.build/paper-bench/tmp/jaydb2-2398316-0/runtime/tools/service/compile.mjs:42:7\n",
+      "measured": true
+    },
+    {
+      "rows": 1106,
+      "state_bytes": 65562,
+      "reason": "canonical state exceeds configured state limit",
+      "measured": false
+    },
+    {
+      "rows": 10000,
+      "state_bytes": 590308,
+      "reason": "canonical state exceeds configured state limit",
+      "measured": false
+    }
+  ],
+  "limitations": [
+    "Default application state limit retained (65536 canonical bytes). Larger requested populations are sized canonically and reported as outside the limit, without timing impossible valid seeds.",
+    "Each table row has an id of seven ASCII bytes and one int64 value; two fixed users.",
+    "State bytes computed by the canonical wire encoder, matching Data.state_value."
+  ],
+  "max_rows": 1105
+}

@@ -439,7 +439,10 @@ function command(program, args) {
   if (result.error || result.signal || result.status !== 0) fail('HELPER', `${path.basename(program)}: ${result.error?.message ?? result.signal ?? result.status}`);
 }
 function compile(environment, directory, purpose, sourceDir, kernelPath, metadata, runtimeRoot) {
+  const timing = process.env.JAYDB_BENCH_TIMING;
+  const started = timing ? process.hrtime.bigint() : null;
   stage(environment, directory, purpose, metadata);
+  if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'staging', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
   const source = path.join(directory, 'checked.c');
   try { command(process.execPath, ['--stack_size=65536', path.join(runtimeRoot, 'tools/service/compile.mjs'), path.join(directory, 'manifest.json'), source, sourceDir, kernelPath,
     ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : [])]); }
@@ -459,7 +462,9 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   // Ordinary calls pay compilation per request; reusable workers amortize -O2.
   const optimization = purpose === 'execute' ? '-O0' : '-O2';
   const flags = ['-std=gnu11', optimization, '-w', '--no-default-config', source, '-o', executable, '-lm', '-pthread'];
+  const clangStarted = timing ? process.hrtime.bigint() : null;
   command(clang, flags);
+  if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_compilation', ns: String(process.hrtime.bigint() - clangStarted)}) + '\n'); } catch {}
   if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
   json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags });
   return { program: executable, limits, certificateMode: report.admission.certificateMode };
