@@ -167,9 +167,9 @@ def derive(data):
     ordinary={r['program']:summary(r['samples']) for r in data['ordinary']['records']}
     table('ordinary-table.tex','lrr', [['Program','Seconds: median [Q1, Q3]','n']]+[[PROGRAMS[p],cell(s,1e9),s['n']] for p,s in ordinary.items()])
     for p,s in ordinary.items():metric('Ordinary'+PROGRAMS[p],s,'Seconds',1e9,p+' ordinary round-trip latency')
-    rows=[['Program / mode','Registration s','Call ms','n','Calls/s']]
+    rows=[['Program / mode','Registration s','Call ms']]
     rates=[['Program / mode','Active calls/s [Q1, Q3]','Blocks','Closed-loop calls/s']]
-    registration_phases=[['Program / mode','Checking s','C emission/compilation s','n']]
+    registration_phases=[['Program / mode','Checking s','C generation/build s']]
     for r in data['prepared']['records']:
         p=r['program'];mode='Persistent' if r['persistent'] else 'Volatile';s=summary(r['samples']);reg=summary(r['registrations'])
         prefix=PROGRAMS[p]+mode
@@ -183,13 +183,13 @@ def derive(data):
         if not r['persistent']:
             breakeven=math.ceil(reg['median']/(ordinary[p]['median']-s['median']))
             macro('BreakEven'+PROGRAMS[p]+'Calls',breakeven,'First integer call count where median registration plus prepared calls costs no more than ordinary calls','calls')
-        rows.append([p+' / '+mode.lower(),cell(reg,1e9),cell(s),s['n'],f'{rps:.4g}'])
+        rows.append([p+' / '+mode.lower(),cell(reg,1e9),cell(s)])
         checks=summary([dict(elapsed_ns=x['phases_ns']['primary_check']+x['phases_ns']['bendtt_translate_check']) for x in r['registrations']])
         compile_times=summary([dict(elapsed_ns=x['phases_ns']['c_emission']+x['phases_ns']['c_compilation']) for x in r['registrations']])
-        registration_phases.append([p+' / '+mode.lower(),cell(checks,1e9),cell(compile_times,1e9),len(r['registrations'])])
-    table('prepared-table.tex','lrrrr',rows)
+        registration_phases.append([p+' / '+mode.lower(),cell(checks,1e9),cell(compile_times,1e9)])
+    table('prepared-table.tex','lrr',rows)
     table('throughput-table.tex','lrrr',rates)
-    table('registration-phase-table.tex','lrrr',registration_phases)
+    table('registration-phase-table.tex','lrr',registration_phases)
     macro('OrdinaryMedianSeconds',ordinary['read']['median']/1e9,'Trivial point read ordinary median','s')
     macro('PreparedMedianMs',MACROS['PreparedReadVolatileMedianMs'][0],'Trivial point read volatile prepared median','ms')
     macro('BreakEvenCalls',MACROS['BreakEvenReadCalls'][0],'Trivial point read volatile preparation break-even','calls')
@@ -199,17 +199,49 @@ def derive(data):
             s=summary([dict(elapsed_ns=x['phases_ns'][phase]) for x in r['samples']])
             phase_rows.append([r['program'],phase.replace('_',r'\_'),cell(s)])
     table('phase-table.tex','llr',phase_rows)
-    compare=[['Policy','Engine','Read ms','Update ms','n/op']]
+    # Aggregate within each call before summarizing; admission_total is nested.
+    phase_summary=[['Phase (unit)']+list(PROGRAMS.values())]
+    phase_cells={}
+    for r in data['ordinary']['records']:
+        groups={
+            'CheckingSeconds':('primary_check','bendtt_translate_check'),
+            'CompilationSeconds':('c_emission','c_compilation'),
+            'WorkerMs':('ordinary_worker',),
+        }
+        values={name:[sum(s['phases_ns'][p] for p in phases) for s in r['samples']]
+            for name,phases in groups.items()}
+        values['OtherSeconds']=[s['elapsed_ns']-sum(values[name][i] for name in groups)
+            for i,s in enumerate(r['samples'])]
+        for name,ns in values.items():
+            macro('Ordinary'+PROGRAMS[r['program']]+name,statistics.median(ns)/(1e6 if name=='WorkerMs' else 1e9),
+                r['program']+' ordinary '+name+' (other = round trip minus checking, C generation/build and worker)',
+                'ms' if name=='WorkerMs' else 's')
+        macro('Ordinary'+PROGRAMS[r['program']]+'WorkerSharePercent',
+            statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in r['samples']]),
+            r['program']+' median per-call worker share of ordinary round trip','percent')
+        phase_cells[r['program']]={name:cell(quartiles(ns),1e6 if name=='WorkerMs' else 1e9)
+            for name,ns in values.items()}
+    for name,label in [('CheckingSeconds','Checking (s)'),('CompilationSeconds','C generation/build (s)'),
+            ('WorkerMs','Worker (ms)'),('OtherSeconds','Other (s)')]:
+        phase_summary.append([label]+[phase_cells[p][name] for p in PROGRAMS])
+    table('ordinary-phase-summary.tex','lrrr',phase_summary)
+    compare=[['Policy','Engine','Read ms','Update ms']]
     for r in data['comparison']['records']:
         prefix={'jaydb2':'Jay','postgresql':'Postgres','sqlite':'Sqlite'}[r['engine']]+('Owner' if r['policy']=='owner' else 'Point')
         summaries={w:samples(r,300,w) for w in ('read','update')}
         for w,s in summaries.items():metric(prefix+w.title(),s,'Ms',1e6,r['engine']+' '+r['policy']+' '+w+' latency')
-        compare.append([r['policy'],r['engine'],cell(summaries['read']),cell(summaries['update']),300])
+        compare.append([r['policy'],r['engine'],cell(summaries['read']),cell(summaries['update'])])
         if r['engine']=='jaydb2':
             for w in ('read','update'):
                 s=summary([x for x in r['ordinary'] if x['workload']==w and x['phase']=='sample'])
                 metric('Ordinary'+prefix+w.title(),s,'Seconds',1e9,'Durable ordinary '+r['policy']+' '+w+' latency')
-    table('database-comparison-table.tex','llrrr',compare)
+    table('database-comparison-table.tex','llrr',compare)
+    for policy in ('Point','Owner'):
+        for workload in ('Read','Update'):
+            for baseline in ('Postgres','Sqlite'):
+                macro('Jay'+policy+workload+'Over'+baseline,
+                    MACROS['Jay'+policy+workload+'MedianMs'][0]/MACROS[baseline+policy+workload+'MedianMs'][0],
+                    'Ratio of durable prepared JayDB2 to '+baseline+' '+policy.lower()+' '+workload.lower()+' medians','ratio')
     v=data['verification']
     for r in v['commands']:
         name={'make verify-contract':'VerifyContract','make verify':'Verify','make test':'Test'}[r['command']]
@@ -219,6 +251,8 @@ def derive(data):
         macro(name,v[key],key.replace('_',' '),'count')
     macro('ProofTheoremWitnesses',len(v['theorem_witnesses']),'Named top-level theorem witnesses (names ending theorem); excludes supporting lemmas','witnesses')
     for area,s in v['sizes'].items():macro(area.title()+'NonblankLines',s['nonblank_lines'],area+' source nonblank lines (comments included)','lines')
+    macro('ProofToImplementationRatio',v['sizes']['proof']['nonblank_lines']/v['sizes']['src']['nonblank_lines'],
+        'Nonblank proof/ lines divided by src/ implementation lines, including comments','ratio')
     coverage=re.search(r'OK import coverage: ([^\n]+)',v['commands'][1]['output'])
     if coverage:
         for area,count in re.findall(r'(\w+) (\d+) modules',coverage.group(1)):macro(area.title()+'CoverageModules',int(count),area+' modules covered by verify import roots','modules')
@@ -226,15 +260,37 @@ def derive(data):
     table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a,s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()])
     scaling=data['scaling'];macro('StateLimitBytes',scaling['state_limit'],'Configured canonical state ceiling','bytes');macro('StateMaximumRows',scaling['max_rows'],'Largest analytically fitting population of this row shape','rows')
     macro('LargeSeedFuelFailures',sum('Seed.initial_valid' in r['reason'] and 'out of fuel' in r['reason'] for r in data['scaling-seed-attempt']['failures']),'Retained large direct-seed initialization attempts exhausted official BendTT fuel','attempts')
-    rows=[['Rows','State bytes','Mode','Read ms','Update ms','n/op']];coordinates={}
+    populations=sorted({r['rows'] for r in scaling['records']})
+    for name,index in [('Small',0),('Middle',1),('Large',2)]:
+        macro('Scaling'+name+'Rows',populations[index],'Measured '+name.lower()+' scaling population','rows')
+    largest=next(r for r in scaling['records'] if r['rows']==scaling['max_rows'])
+    macro('StateMaximumBytes',largest['state_bytes'],'Canonical bytes at the largest fitting measured population','bytes')
+    excess=min(scaling['failures'],key=lambda r:r['rows'])
+    for name,key in [('StateFirstExcessRows','rows'),('StateFirstExcessBytes','state_bytes')]:
+        macro(name,excess[key],'First population above the configured ceiling: '+key.replace('_',' '),key)
+    oversized=max(scaling['failures'],key=lambda r:r['rows'])
+    macro('StateOversizedRows',oversized['rows'],'Requested oversized population, not timed','rows')
+    macro('StateOversizedBytes',oversized['state_bytes'],'Canonical bytes required by oversized population, not timed','bytes')
+    macro('StateOversizedKilobytes',oversized['state_bytes']/1000,'Decimal kilobytes required by oversized population','kB')
+    rows=[['Rows','State bytes','Mode','Read ms','Update ms']];coordinates={}
     for r in scaling['records']:
         ss={w:samples(r,50,w) for w in ('read','update')}
-        rows.append([r['rows'],r['state_bytes'],'persistent' if r['persistent'] else 'volatile',cell(ss['read']),cell(ss['update']),50])
-        for w,s in ss.items():coordinates.setdefault(('persistent' if r['persistent'] else 'volatile')+'_'+w,[]).append((r['rows'],s['median']/1e6))
-    table('scaling-table.tex','rrlrrr',rows)
-    (OUT/'scaling-coordinates.tex').write_text('\n'.join('% '+name+'\n'+' '.join(f'({x},{y:.8g})' for x,y in xy) for name,xy in coordinates.items())+'\n')
+        rows.append([r['rows'],r['state_bytes'],'persistent' if r['persistent'] else 'volatile',cell(ss['read']),cell(ss['update'])])
+        for w,s in ss.items():
+            mode='Persistent' if r['persistent'] else 'Volatile'
+            if r['rows']==populations[0] or r['rows']==scaling['max_rows']:
+                size='Small' if r['rows']==populations[0] else 'Maximum'
+                metric('Scaling'+size+mode+w.title(),s,'Ms',1e6,'Scaling '+size.lower()+' '+mode.lower()+' '+w+' latency')
+            coordinates.setdefault(mode.lower()+'_'+w,[]).append((r['rows'],r['state_bytes'],s))
+    table('scaling-table.tex','rrlrr',rows)
+    (OUT/'scaling-coordinates.tex').write_text('\n'.join(
+        '\\newcommand{\\Scaling'+''.join(part.title() for part in name.split('_'))+'Coordinates}{'+
+        ' '.join(f"({b/1000:.8g},{s['median']/1e6:.8g})" for _,b,s in points)+'}'
+        for name,points in coordinates.items())+'\n')
     for name,xy in coordinates.items():
-        (OUT/('scaling-'+name+'.dat')).write_text('rows median_ms\n'+''.join(f'{x} {y:.8g}\n' for x,y in xy))
+        (OUT/('scaling-'+name+'.dat')).write_text('rows state_bytes median_ms lower_ms upper_ms\n'+''.join(
+            f"{x} {b} {s['median']/1e6:.8g} {(s['median']-s['qone'])/1e6:.8g} {(s['qthree']-s['median'])/1e6:.8g}\n"
+            for x,b,s in xy))
     (OUT/'numbers.tex').write_text('\n'.join('\\newcommand{\\'+name+'}{'+fmt(value)+'}' for name,(value,_,_) in MACROS.items())+'\n')
     (OUT/'macro-reference.md').write_text('| Macro | Meaning | Unit |\n|---|---|---|\n'+''.join(f'| `\\{n}` | {m} | {u} |\n' for n,(_,m,u) in MACROS.items()))
     return MACROS

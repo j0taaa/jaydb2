@@ -3,6 +3,7 @@ import copy
 import importlib.util
 from pathlib import Path
 import re
+import statistics
 import tempfile
 import unittest
 
@@ -29,6 +30,39 @@ class EvidenceTests(unittest.TestCase):
                 self.assertIn('BreakEvenCalls',macros)
                 self.assertTrue(all(re.fullmatch('[A-Z][a-zA-Z]*',name) for name in macros))
                 self.assertTrue((Path(folder)/'scaling-coordinates.tex').is_file())
+                self.assertAlmostEqual(macros['ProofToImplementationRatio'][0],
+                    self.data['verification']['sizes']['proof']['nonblank_lines']/
+                    self.data['verification']['sizes']['src']['nonblank_lines'])
+                for policy in ('Point','Owner'):
+                    for workload in ('Read','Update'):
+                        for baseline in ('Postgres','Sqlite'):
+                            self.assertAlmostEqual(macros['Jay'+policy+workload+'Over'+baseline][0],
+                                macros['Jay'+policy+workload+'MedianMs'][0]/
+                                macros[baseline+policy+workload+'MedianMs'][0])
+                for record in self.data['ordinary']['records']:
+                    prefix='Ordinary'+evidence.PROGRAMS[record['program']]
+                    rows=record['samples']
+                    self.assertAlmostEqual(macros[prefix+'CheckingSeconds'][0],
+                        statistics.median([s['phases_ns']['primary_check']+
+                            s['phases_ns']['bendtt_translate_check'] for s in rows])/1e9)
+                    self.assertAlmostEqual(macros[prefix+'WorkerSharePercent'][0],
+                        statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in rows]))
+                    self.assertAlmostEqual(macros[prefix+'OtherSeconds'][0],statistics.median([
+                        s['elapsed_ns']-sum(s['phases_ns'][p] for p in
+                            ('primary_check','bendtt_translate_check','c_emission','c_compilation','ordinary_worker'))
+                        for s in rows])/1e9)
+                self.assertGreater(macros['StateFirstExcessBytes'][0],macros['StateLimitBytes'][0])
+                self.assertLessEqual(macros['StateMaximumBytes'][0],macros['StateLimitBytes'][0])
+                # Plot x values are actual canonical bytes, and whiskers are quartiles.
+                for mode in ('volatile','persistent'):
+                    lines=(Path(folder)/f'scaling-{mode}_read.dat').read_text().splitlines()
+                    for line,record in zip(lines[1:],[r for r in self.data['scaling']['records']
+                            if r['persistent']==(mode=='persistent')]):
+                        count,size,median,lower,upper=map(float,line.split())
+                        stats=evidence.samples(record,50,'read')
+                        self.assertEqual((count,size),(record['rows'],record['state_bytes']))
+                        self.assertAlmostEqual(median-lower,stats['qone']/1e6,places=5)
+                        self.assertAlmostEqual(median+upper,stats['qthree']/1e6,places=5)
                 readme=(evidence.ROOT/'paper/README.md').read_text()
                 for name in macros:self.assertIn('`\\'+name+'`',readme)
         finally:evidence.OUT=previous

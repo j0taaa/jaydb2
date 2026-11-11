@@ -1,10 +1,44 @@
 # TCC manuscript and defense slides
 
-English article by **Gabriel Jota Lizardo, PUC Minas**, and an editable
-Portuguese Beamer defense presentation. Build with `make -C paper`; output is
-under `.build/tcc/output/`. The paper and slides are being updated separately
-from the evidence pipeline. LaTeX needs pdfLaTeX, AMS, Times, geometry,
-microtype, natbib, booktabs, hyperref, Beamer and PGF.
+English article by **Gabriel Jota Lizardo, PUC Minas**, with a **Portuguese
+defense presentation**: 18 main frames and six appendix frames (the executable
+theorem list and the eleven T3 host duties). Both use LaTeX; the slides use Beamer, with
+Portuguese speaker notes in each frame. Change wording and layout directly in `slides.tex`.
+
+```sh
+make -C paper
+```
+
+Requires Python 3 and pdfLaTeX with standard AMS, Times, geometry, microtype,
+natbib, booktabs, hyperref, Beamer, PGF and PGFPlots packages. Build products stay ignored
+under `.build/tcc/`; the deliverables are:
+
+- `.build/tcc/output/jaydb2-tcc.pdf`
+- `.build/tcc/output/jaydb2-defense.pdf`
+
+The article and slides describe the serial executable Bend gate, generated
+admission-oracle proof, worker Commit/Keep decision, and checked prepared
+controller and registry. The article develops the model, architecture,
+executable guarantees and trusted base T1–T3, then the indexed ownership and
+voucher/receipt applications. Its evaluation covers ordinary admission cost,
+prepared reuse, durable and owner-only point operations against PostgreSQL 16
+and SQLite, verification cost, and complete-state size scaling.
+
+The build regenerates validated evidence before compiling both documents. The direct
+outputs are `.build/tcc/main.pdf` and `.build/tcc/slides.pdf`; the Makefile copies
+them to the delivery paths above. Every measured result comes from generated
+macros, tables or plot data, so rerunning the evidence builder updates both documents.
+
+The organization roughly follows the author's
+[tcc-final article](https://github.com/j0taaa/tcc-final/tree/main/paper), while
+using a self-contained article layout and this project's executable specification.
+The current [PUC Minas library guidance](https://www.pucminas.br/biblioteca/DocumentoBiblioteca/ABNT-GUIA-COMPLETO-Elaborar-formatar-trabalho-cientifico.pdf)
+and the [2026 ICEI article example](https://www.overleaf.com/latex/templates/modelo-de-artigo-icei-puc-minas/bxwcdrxpdgbc)
+informed the format. The specific course's submission template, advisor,
+committee, defense date and any mandatory translated abstract still need local
+confirmation before submission; they have not been invented. The main text
+and abstract are English as requested. Source bibliography titles retain their
+original language.
 
 ## Reproducing the fresh evidence
 
@@ -135,23 +169,25 @@ service timer also writes raw sidecars under the ignored build directory.
 `python3 -B paper/evidence.py` writes `.build/tcc/numbers.tex`, booktabs table
 fragments (`ordinary-table`, `prepared-table`, `phase-table`,
 `database-comparison-table`, `registration-phase-table`, `throughput-table`, `verification-table`, `size-table`, `scaling-table`),
-`scaling-coordinates.tex`, and four `scaling-{volatile,persistent}_{read,update}.dat`
-files with `rows median_ms` columns for pgfplots. Include `numbers.tex` once.
-No macro name contains digits. Quartiles and sample counts are in table
-fragments; no measurement is copied manually into the manuscript.
+`ordinary-phase-summary.tex`, named coordinate macros in `scaling-coordinates.tex`,
+and four `scaling-{volatile,persistent}_{read,update}.dat` files with
+`rows state_bytes median_ms lower_ms upper_ms` columns for pgfplots. The last two
+columns are distances from the median to Q1 and Q3; coordinate macros use decimal
+kB on the horizontal axis and ms on the vertical axis. Include `numbers.tex` once.
+No macro name contains digits. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
 
 | Macro names | Meaning | Unit |
 |---|---|---|
 | `\OrdinarySamples`, `\PreparedSamples`, `\RegistrationSamples`, `\ComparisonSamples`, `\ScalingSamples` | Measured sample count per program, mode, or operation | samples |
-| `\OrdinaryReadMedianSeconds`, `\OrdinaryIndexedMedianSeconds`, `\OrdinaryVoucherMedianSeconds` | Ordinary median latency by program (Read, Indexed, Voucher) | Seconds |
-| `\PreparedReadVolatileMedianMs`, `\PreparedIndexedVolatileMedianMs`, `\PreparedVoucherVolatileMedianMs`, `\PreparedReadPersistentMedianMs`, `\PreparedIndexedPersistentMedianMs`, `\PreparedVoucherPersistentMedianMs` | Prepared median latency by program and storage mode | Ms |
-| `\RegistrationReadVolatileMedianSeconds`, `\RegistrationIndexedVolatileMedianSeconds`, `\RegistrationVoucherVolatileMedianSeconds`, `\RegistrationReadPersistentMedianSeconds`, `\RegistrationIndexedPersistentMedianSeconds`, `\RegistrationVoucherPersistentMedianSeconds` | One-time registration median by program and storage mode | Seconds |
+| `\OrdinaryReadMedianSeconds`, `\OrdinaryIndexedMedianSeconds`, `\OrdinaryVoucherMedianSeconds` | Ordinary median latency by program (Read, Indexed, Voucher) | s |
+| `\PreparedReadVolatileMedianMs`, `\PreparedIndexedVolatileMedianMs`, `\PreparedVoucherVolatileMedianMs`, `\PreparedReadPersistentMedianMs`, `\PreparedIndexedPersistentMedianMs`, `\PreparedVoucherPersistentMedianMs` | Prepared median latency by program and storage mode | ms |
+| `\RegistrationReadVolatileMedianSeconds`, `\RegistrationIndexedVolatileMedianSeconds`, `\RegistrationVoucherVolatileMedianSeconds`, `\RegistrationReadPersistentMedianSeconds`, `\RegistrationIndexedPersistentMedianSeconds`, `\RegistrationVoucherPersistentMedianSeconds` | One-time registration median by program and storage mode | s |
 | `\PreparedReadVolatileCallsPerSecond`, `\PreparedIndexedVolatileCallsPerSecond`, `\PreparedVoucherVolatileCallsPerSecond`, `\PreparedReadPersistentCallsPerSecond`, `\PreparedIndexedPersistentCallsPerSecond`, `\PreparedVoucherPersistentCallsPerSecond` | Observed full-loop throughput, one 300-call batch (includes voucher retirements) | calls/s |
 | `\PreparedReadVolatileActiveCallsPerSecond`, `\PreparedIndexedVolatileActiveCallsPerSecond`, `\PreparedVoucherVolatileActiveCallsPerSecond`, `\PreparedReadPersistentActiveCallsPerSecond`, `\PreparedIndexedPersistentActiveCallsPerSecond`, `\PreparedVoucherPersistentActiveCallsPerSecond` | Median active throughput, ten consecutive 30-call blocks (maintenance/gaps excluded) | calls/s |
 | `\BreakEvenReadCalls`, `\BreakEvenIndexedCalls`, `\BreakEvenVoucherCalls` | Volatile preparation break-even by program, from measured median costs | calls |
 | `\OrdinaryMedianSeconds`, `\PreparedMedianMs`, `\BreakEvenCalls` | Default point-read aliases: ordinary seconds, volatile prepared milliseconds, volatile break-even calls | s / ms / calls |
-| `\PostgresPointReadMedianMs`, `\PostgresPointUpdateMedianMs`, `\SqlitePointReadMedianMs`, `\SqlitePointUpdateMedianMs`, `\JayPointReadMedianMs`, `\JayPointUpdateMedianMs`, `\PostgresOwnerReadMedianMs`, `\PostgresOwnerUpdateMedianMs`, `\SqliteOwnerReadMedianMs`, `\SqliteOwnerUpdateMedianMs`, `\JayOwnerReadMedianMs`, `\JayOwnerUpdateMedianMs` | Durable comparison medians: engine, Point/Owner policy, Read/Update operation | Ms |
-| `\OrdinaryJayPointReadMedianSeconds`, `\OrdinaryJayPointUpdateMedianSeconds`, `\OrdinaryJayOwnerReadMedianSeconds`, `\OrdinaryJayOwnerUpdateMedianSeconds` | Durable ordinary JayDB2 median: Point/Owner policy, Read/Update operation | Seconds |
+| `\PostgresPointReadMedianMs`, `\PostgresPointUpdateMedianMs`, `\SqlitePointReadMedianMs`, `\SqlitePointUpdateMedianMs`, `\JayPointReadMedianMs`, `\JayPointUpdateMedianMs`, `\PostgresOwnerReadMedianMs`, `\PostgresOwnerUpdateMedianMs`, `\SqliteOwnerReadMedianMs`, `\SqliteOwnerUpdateMedianMs`, `\JayOwnerReadMedianMs`, `\JayOwnerUpdateMedianMs` | Durable comparison medians: engine, Point/Owner policy, Read/Update operation | ms |
+| `\OrdinaryJayPointReadMedianSeconds`, `\OrdinaryJayPointUpdateMedianSeconds`, `\OrdinaryJayOwnerReadMedianSeconds`, `\OrdinaryJayOwnerUpdateMedianSeconds` | Durable ordinary JayDB2 median: Point/Owner policy, Read/Update operation | s |
 | `\VerifyContractSeconds`, `\VerifySeconds`, `\TestSeconds` | Wall time of the named make target, one run | s |
 | `\VerifyContractExitCode`, `\VerifyExitCode`, `\TestExitCode` | Required verification command exit status (zero means passed) | exit code |
 | `\NegativeFixtures` | negative fixtures | count |
@@ -164,8 +200,19 @@ fragments; no measurement is copied manually into the manuscript.
 | `\StateLimitBytes` | Configured canonical state ceiling | bytes |
 | `\StateMaximumRows` | Largest analytically fitting population of this row shape | rows |
 | `\LargeSeedFuelFailures` | Retained large direct-seed initialization attempts exhausted official BendTT fuel | attempts |
+| `\OrdinaryReadCheckingSeconds`, `\OrdinaryIndexedCheckingSeconds`, `\OrdinaryVoucherCheckingSeconds` | Median of the per-call sum of primary and BendTT whole-Book checking | s |
+| `\OrdinaryReadCompilationSeconds`, `\OrdinaryIndexedCompilationSeconds`, `\OrdinaryVoucherCompilationSeconds` | Median of the per-call sum of C emission and compilation | s |
+| `\OrdinaryReadWorkerMs`, `\OrdinaryIndexedWorkerMs`, `\OrdinaryVoucherWorkerMs` | Median worker phase wall time | ms |
+| `\OrdinaryReadOtherSeconds`, `\OrdinaryIndexedOtherSeconds`, `\OrdinaryVoucherOtherSeconds` | Median per-call round trip minus checking, C generation/build and worker; includes all remaining work/communication | s |
+| `\OrdinaryReadWorkerSharePercent`, `\OrdinaryIndexedWorkerSharePercent`, `\OrdinaryVoucherWorkerSharePercent` | Median of per-call worker/round-trip shares | % |
+| `\JayPointReadOverPostgres`, `\JayPointReadOverSqlite`, `\JayPointUpdateOverPostgres`, `\JayPointUpdateOverSqlite`, `\JayOwnerReadOverPostgres`, `\JayOwnerReadOverSqlite`, `\JayOwnerUpdateOverPostgres`, `\JayOwnerUpdateOverSqlite` | Ratio of durable prepared JayDB2 median to the named SQL median, with matching policy and operation | ratio |
+| `\ProofToImplementationRatio` | Nonblank `proof/` lines divided by `src/` lines, including comments | ratio |
+| `\ScalingSmallRows`, `\ScalingMiddleRows`, `\ScalingLargeRows` | First three measured scaling populations, sorted by row count | rows |
+| `\StateMaximumBytes`, `\StateFirstExcessRows`, `\StateFirstExcessBytes` | Canonical bytes at the maximum fitting population, first excess row count, and bytes at first excess | bytes / rows / bytes |
+| `\StateOversizedRows`, `\StateOversizedBytes`, `\StateOversizedKilobytes` | Largest requested out-of-configuration population and its canonical size; not timed | rows / bytes / decimal kB |
+| `\ScalingSmallVolatileReadMedianMs`, `\ScalingSmallVolatileUpdateMedianMs`, `\ScalingSmallPersistentReadMedianMs`, `\ScalingSmallPersistentUpdateMedianMs`, `\ScalingMaximumVolatileReadMedianMs`, `\ScalingMaximumVolatileUpdateMedianMs`, `\ScalingMaximumPersistentReadMedianMs`, `\ScalingMaximumPersistentUpdateMedianMs` | Prepared median at the smallest and maximum fitting scaling populations, by storage/operation | ms |
 
-The article should continue to distinguish the executable theorems from the
+The article and slides distinguish the executable theorems from the
 T1–T3 integration premises and finite tests. These measurements establish
 neither unconditional executable correctness nor a performance advantage over
 PostgreSQL or SQLite. The removed read-batch experiment and historical

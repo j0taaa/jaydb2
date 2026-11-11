@@ -7,7 +7,14 @@
 \usepackage{booktabs,tikz,array,xcolor,pgfplots}
 \usetikzlibrary{arrows.meta,positioning}
 \pgfplotsset{compat=1.18}
-\newcommand{\pending}[1]{\textcolor{red}{[#1]}}
+\input{../.build/tcc/numbers.tex}
+\input{../.build/tcc/scaling-coordinates.tex}
+\newcommand{\numpt}[1]{\pgfmathprintnumber[fixed,precision=2,use comma,1000 sep={\,}]{#1}}
+\newcommand{\latpt}[1]{\pgfmathprintnumber[fixed,precision=3,use comma,1000 sep={\,}]{#1}}
+\newcommand{\ratiopt}[1]{\pgfmathprintnumber[fixed,precision=1,use comma,1000 sep={\,}]{#1}}
+\pgfplotsset{every axis/.append style={
+ tick label style={font=\scriptsize,/pgf/number format/use comma},
+ label style={font=\small},legend style={font=\scriptsize}}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \definecolor{ink}{HTML}{142B42}
 \definecolor{accent}{HTML}{087F72}
@@ -123,7 +130,7 @@ Rust obedece à decisão tipada produzida em Bend.
 \draw[->,thick] (worker) -- (decision);
 \draw[->,thick] (decision) -- (pub);
 \end{tikzpicture}
-\source{Requisições FIFO e seriais. Host Rust: aproximadamente 3,4 mil linhas.}
+\source{Requisições FIFO e seriais. Host Rust: \numpt{\ServerNonblankLines} linhas não vazias.}
 \note{Rust coordena processos, pipes e a raiz publicada. Node prepara fontes e chama as ferramentas oficiais. O Book verificado é o mesmo enviado ao compilador Bend para C, e Clang compila esse C sem reescrita. O worker chama Gate.begin, avança o interpretador e termina por Gate.finish ou Gate.early. WorkerBridge relaciona essa execução à composição dos teoremas. Cada Book gerado também prova generated\_oracle\_sound para o seu próprio oráculo de admissão. Assim, o oráculo aceito constrói exatamente o programa certificado. As requisições são processadas em série. O paralelismo interno do runtime não cria transações concorrentes.}
 \end{frame}
 
@@ -218,77 +225,139 @@ Dois controles preservam a prova de permissão e falham na igualdade final.
 \end{frame}
 
 % 13
-\begin{frame}{E1--E2: custo ordinário e reutilização}
+\begin{frame}{E1--E2: admissão e reutilização}
 \begin{columns}[T,onlytextwidth]
-\column{.48\textwidth}
-\textbf{Ordinário: mediana em segundos}\par\vspace{3mm}
+\column{.52\textwidth}
+\textbf{Fases ordinárias (s)}\par\vspace{2mm}
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4cm,ybar,bar width=8pt,
+ symbolic x coords={Leitura,Índice,Voucher},xtick=data,
+ ymin=0,enlarge x limits=.23,grid=major,
+ legend style={at={(.5,1.02)},anchor=south,legend columns=2,draw=none}]
+\addplot[fill=accent,draw=accent] coordinates {
+ (Leitura,\OrdinaryReadCheckingSeconds)
+ (Índice,\OrdinaryIndexedCheckingSeconds)
+ (Voucher,\OrdinaryVoucherCheckingSeconds)};
+\addlegendentry{Verificação}
+\addplot[fill=ink,draw=ink] coordinates {
+ (Leitura,\OrdinaryReadCompilationSeconds)
+ (Índice,\OrdinaryIndexedCompilationSeconds)
+ (Voucher,\OrdinaryVoucherCompilationSeconds)};
+\addlegendentry{Geração/compilação C}
+\end{axis}
+\end{tikzpicture}
+\column{.45\textwidth}
+\textbf{Chamada preparada (ms)}\par\vspace{4mm}
 \small
-\begin{tabular}{@{}lc@{}}
-Leitura & \pending{OrdReadMedS}\\[2mm]
-Índice & \pending{OrdIndexMedS}\\[2mm]
-Voucher & \pending{OrdVoucherMedS}\\
+\begin{tabular}{@{}lrr@{}}\toprule
+Mediana & Volátil & Durável\\\midrule
+Leitura & \numpt{\PreparedReadVolatileMedianMs} & \numpt{\PreparedReadPersistentMedianMs}\\[2mm]
+Índice & \numpt{\PreparedIndexedVolatileMedianMs} & \numpt{\PreparedIndexedPersistentMedianMs}\\[2mm]
+Voucher & \numpt{\PreparedVoucherVolatileMedianMs} & \numpt{\PreparedVoucherPersistentMedianMs}\\\bottomrule
 \end{tabular}
-\column{.48\textwidth}
-\textbf{Preparado: perfil volátil}\par\vspace{3mm}
-\small
-Registro: \pending{PrepVolRegS} s\par\vspace{2mm}
-Chamada: \pending{PrepVolCallS} s\par\vspace{2mm}
-Equilíbrio: \pending{PrepVolBreakEven} chamadas
+\par\vspace{4mm}
+Registro volátil da leitura:\\
+\numpt{\RegistrationReadVolatileMedianSeconds} s, uma vez.
 \end{columns}
-\gap
-\small Equilíbrio estimado: $N=\lceil R/(O-P)\rceil$, para $O>P$.
-\source{Fases E1: dois modos de prova, incluindo a lei do oráculo, C e worker. E2 separa volátil e persistente.}
-\note{E1 mede leitura trivial, set do índice e emissão de voucher pelo caminho ordinário. Vamos separar os dois modos de verificação, que incluem a lei do oráculo gerado, a compilação C e a execução, mantendo fases residuais identificadas. E2 mede o registro uma vez e as chamadas preparadas em perfis volátil e persistente. Para o mesmo programa e política, R é registro, O é chamada ordinária e P é preparada. Se O for maior que P, a expressão estima quantas chamadas amortizam o registro. Caso contrário, não há equilíbrio finito. Os campos vermelhos aguardam os dados da execução atual.}
+\vspace{1mm}
+\small
+Worker: \numpt{\OrdinaryReadWorkerSharePercent}\% do tempo ordinário da leitura.\par
+Registro amortizado em \BreakEvenReadCalls{} chamadas voláteis no modelo de medianas.
+\source{E1: $n=\OrdinarySamples$. E2: $n=\PreparedSamples$ por programa/modo, \RegistrationSamples{} registros.}
+\note{As barras mostram medianas de dois grupos do caminho ordinário: os dois checks do Book inteiro e a geração mais compilação C. Elas não somam toda a latência, pois há auditorias, staging e comunicação. As medianas totais são \numpt{\OrdinaryReadMedianSeconds}, \numpt{\OrdinaryIndexedMedianSeconds} e \numpt{\OrdinaryVoucherMedianSeconds} segundos. A lei generated\_oracle\_sound está dentro dos checks e sua parcela individual não pôde ser separada. O worker representa apenas \numpt{\OrdinaryReadWorkerSharePercent} por cento na leitura. A tabela à direita mostra chamadas preparadas em milissegundos, sem repetir verificação ou compilação. O registro paga esses custos uma vez. A fórmula é o teto de R dividido por O menos P, com unidades iguais. Os equilíbrios voláteis são \BreakEvenReadCalls, \BreakEvenIndexedCalls{} e \BreakEvenVoucherCalls{} chamadas para leitura, índice e voucher. São estimativas com medianas, excluindo inicialização. As operações têm um aquecimento, mas os registros não. O índice alterna o valor e o voucher usa IDs novos com retirada fora do intervalo da emissão. As distribuições do índice e voucher são amplas. O artigo separa throughput ativo em blocos do throughput completo, que inclui validações e retiradas.}
 \end{frame}
 
 % 14
-\begin{frame}{E3: operações pontuais e propriedade}
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Mediana (ms) & JayDB2 & PostgreSQL 16 & SQLite\\\midrule
-Leitura durável & \pending{DbJayReadMs} & \pending{DbPgReadMs} & \pending{DbSqReadMs}\\[3mm]
-Atualização durável & \pending{DbJayWriteMs} & \pending{DbPgWriteMs} & \pending{DbSqWriteMs}\\
-\bottomrule
-\end{tabular}
-\gap
-\normalsize
-Política comum: leitura e atualização somente do proprietário.\par\vspace{3mm}
-PostgreSQL com \texttt{FORCE ROW LEVEL SECURITY}.\par\vspace{3mm}
-Acesso entre usuários: \pending{CrossUserChecks}
-\source{SQLite fornece a linha de base sem restrição de proprietário.}
-\note{A comparação tem dois perfis. O primeiro mede leitura e atualização duráveis com chave, valor e resultado equivalentes, registrando as configurações de sincronização e validando reabertura. O segundo compara a lei de propriedade do JayDB2 com políticas de leitura e atualização no PostgreSQL 16, com FORCE ROW LEVEL SECURITY e cliente sem privilégios de bypass. Antes de cronometrar, tentamos ler e alterar dados de outro usuário e verificamos ausência de divulgação e mudança. O SQL pode filtrar a linha, enquanto o JayDB2 recusa a operação. Registramos essa diferença de resposta e validamos a propriedade comum. SQLite permanece uma linha de base sem essa política. Fonte: documentação PostgreSQL 16, ddl-rowsecurity.}
+\begin{frame}{E3: leitura durável tem a maior diferença}
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=.94\linewidth,height=4.5cm,ybar,bar width=10pt,
+ ymode=log,log origin=infty,ymin=.01,ymax=120,
+ ylabel={Mediana (ms), escala log},
+ ytick={.01,.1,1,10,100},yticklabel={\pgfmathparse{exp(\tick)}\pgfmathprintnumber[fixed,precision=2,use comma]{\pgfmathresult}},
+ symbolic x coords={L,U,PL,PU},xtick=data,
+ xticklabels={{Pontual: leitura},{Pontual: atualização},{Proprietário: leitura},{Proprietário: atualização}},
+ enlarge x limits=.15,grid=major,
+ legend style={at={(.5,1.02)},anchor=south,legend columns=3,draw=none},
+ nodes near coords, point meta=explicit symbolic, nodes near coords style={font=\scriptsize,fill=white,inner sep=.4pt}]
+\addplot[fill=accent,draw=accent] coordinates {
+ (L,\JayPointReadMedianMs)[\latpt{\JayPointReadMedianMs}] (U,\JayPointUpdateMedianMs)[\latpt{\JayPointUpdateMedianMs}]
+ (PL,\JayOwnerReadMedianMs)[\latpt{\JayOwnerReadMedianMs}] (PU,\JayOwnerUpdateMedianMs)[\latpt{\JayOwnerUpdateMedianMs}]};
+\addlegendentry{JayDB2 preparado}
+\addplot[fill=ink,draw=ink] coordinates {
+ (L,\PostgresPointReadMedianMs)[\latpt{\PostgresPointReadMedianMs}] (U,\PostgresPointUpdateMedianMs)[\latpt{\PostgresPointUpdateMedianMs}]
+ (PL,\PostgresOwnerReadMedianMs)[\latpt{\PostgresOwnerReadMedianMs}] (PU,\PostgresOwnerUpdateMedianMs)[\latpt{\PostgresOwnerUpdateMedianMs}]};
+\addlegendentry{PostgreSQL 16}
+\addplot[fill=muted!35,draw=muted] coordinates {
+ (L,\SqlitePointReadMedianMs)[\latpt{\SqlitePointReadMedianMs}] (U,\SqlitePointUpdateMedianMs)[\latpt{\SqlitePointUpdateMedianMs}]
+ (PL,\SqliteOwnerReadMedianMs)[\latpt{\SqliteOwnerReadMedianMs}] (PU,\SqliteOwnerUpdateMedianMs)[\latpt{\SqliteOwnerUpdateMedianMs}]};
+\addlegendentry{SQLite sem restrição}
+\end{axis}
+\end{tikzpicture}
+\par\vspace{1mm}\small\raggedright
+Leitura pontual: \ratiopt{\JayPointReadOverPostgres}$\times$ PostgreSQL.
+Atualização: \ratiopt{\JayPointUpdateOverPostgres}$\times$.\par
+Lei do administrador e FORCE RLS recusaram acesso entre usuários.
+\source{Durável, $n=\ComparisonSamples$ por operação. Processo e estado completos a cada chamada JayDB2.}
+\note{O eixo vertical é logarítmico e começa acima de zero. As barras são medianas em milissegundos, com um aquecimento e \ComparisonSamples{} chamadas por condição. Leitura e atualização são medidas tanto sem política de propriedade quanto com proprietário. SQLite continua sem essa restrição em ambos. As leituras JayDB2 são ordens de grandeza mais lentas que as SQL. As atualizações têm diferença menor: no perfil pontual, \ratiopt{\JayPointUpdateOverPostgres} vezes PostgreSQL e \ratiopt{\JayPointUpdateOverSqlite} vezes SQLite. Não podemos generalizar ordens de grandeza para todas as operações. PostgreSQL usa fsync, synchronous\_commit e full\_page\_writes ligados. SQLite usa WAL e synchronous FULL. JayDB2 lança um worker nativo novo, transfere o estado completo e sincroniza uma imagem completa mesmo nas leituras. Chamadas preparadas não repetem prova, então verificação não explica esta diferença. Não isolamos a contribuição de cada mecanismo. O intervalo JayDB2 termina após ler a resposta completa, antes de decodificá-la. SQL inclui o driver em execute e fetchall. JayDB2 atualiza com confirmação e leitura posterior fora do intervalo, enquanto SQL retorna o valor na atualização. Na política comum, JayDB2 usa tabelas do proprietário e uma lei administrativa. PostgreSQL usa coluna de dono e FORCE ROW LEVEL SECURITY, com papel sem superusuário ou BYPASSRLS. Ambos impediram leitura e alteração entre usuários, por rejeição de admissão ou por nenhuma linha afetada. A fonte dos resultados é comparison.json. A documentação da política SQL está em PostgreSQL 16, ddl-rowsecurity.}
 \end{frame}
 
 % 15
-\begin{frame}{E4: custo de verificação}
-\begin{tabular}{@{}L{.52\linewidth}L{.39\linewidth}@{}}
-\texttt{make verify-contract} & \pending{VerifyContractS} s\\[5mm]
-\texttt{make verify} & \pending{VerifyAllS} s\\[5mm]
-Linhas de implementação Bend & \pending{BendImplLines}\\[5mm]
-Linhas de prova Bend & \pending{BendProofLines}\\
+\begin{frame}{E4: verificação e tamanho das provas}
+\begin{columns}[T,onlytextwidth]
+\column{.51\textwidth}
+\textbf{Tempo de parede (s)}\par\vspace{2mm}
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.15cm,ybar,bar width=24pt,
+ symbolic x coords={Contrato,Completa},xtick=data,ymin=0,
+ enlarge x limits=.5,grid=major,
+ nodes near coords, nodes near coords style={font=\small,/pgf/number format/.cd,fixed,precision=1,use comma}]
+\addplot[fill=accent,draw=accent] coordinates {
+ (Contrato,\VerifyContractSeconds) (Completa,\VerifySeconds)};
+\end{axis}
+\end{tikzpicture}
+\column{.46\textwidth}
+\textbf{Linhas não vazias}\par\vspace{4mm}
+\small
+\begin{tabular}{@{}lr@{}}\toprule
+Implementação \texttt{src/} & \numpt{\SrcNonblankLines}\\[2mm]
+Especificação \texttt{contract/} & \numpt{\ContractNonblankLines}\\[2mm]
+Provas \texttt{proof/} & \numpt{\ProofNonblankLines}\\[2mm]
+Host \texttt{server/} & \numpt{\ServerNonblankLines}\\\bottomrule
 \end{tabular}
-\source{Verificação positiva nos dois modos e controles negativos com causa exata.}
-\note{E4 mede tempo de parede dos dois alvos de verificação e registra cache, configuração e repetições. Contamos implementação, provas, aplicações e host com regras explícitas, excluindo fontes geradas e dependências vendorizadas. A verificação completa também exige que os controles negativos falhem na definição false. A presença de todos os imports ajuda a manter o inventário, enquanto os enunciados determinam as garantias. O tamanho de fonte descreve o artefato, sem representar porcentagem de cobertura ou esforço de autoria. Os resultados numéricos aguardam a medição atual.}
+\par\vspace{4mm}
+Provas: \ratiopt{\ProofToImplementationRatio}$\times$ as linhas\\
+da implementação Bend.
+\end{columns}
+\small Ambos os alvos passaram. Verificação completa: \NegativeFixtures{} controles negativos.
+\source{Uma execução por alvo. Linhas incluem comentários e excluem documentação e código gerado.}
+\note{As barras medem uma execução local de make verify-contract e uma de make verify, em sequência e sem limpeza deliberada de cache. São \numpt{\VerifyContractSeconds} e \numpt{\VerifySeconds} segundos, não latências de requisição. Os dois modos oficiais verificam testemunhas positivas. O alvo completo exige imports mantidos e \NegativeFixtures{} controles negativos com falha exatamente na definição false. make test também passou e levou \numpt{\TestSeconds} segundos. A tabela conta linhas físicas não vazias, incluindo comentários, nas áreas nomeadas. O quociente entre proof e src é \ratiopt{\ProofToImplementationRatio}. Ele mostra o tamanho substancial do artefato de prova, sem medir cobertura, força lógica, tempo de autoria ou manutenibilidade. As aplicações não fazem parte desse inventário. Há \numpt{\ProofLawDeclarations} leis, \numpt{\ProofDefinitions} definições e \ProofTheoremWitnesses{} testemunhas de topo com nome terminado em theorem. São contagens sintáticas distintas.}
 \end{frame}
 
 % 16
-\begin{frame}{E5: transferência do estado completo}
+\begin{frame}{E5: escala do estado completo}
 \centering
 \begin{tikzpicture}
-\begin{axis}[width=.83\linewidth,height=4.35cm,
-xmin=0,xmax=1,ymin=0,ymax=1,xtick=\empty,ytick=\empty,
-xlabel={Estado canônico em bytes},ylabel={Latência mediana (s)},
-axis lines=left,axis line style={muted},
-legend style={at={(.02,.98)},anchor=north west,draw=none,font=\small},clip=false]
-\addlegendimage{accent,mark=*}\addlegendentry{Leitura preparada}
-\addlegendimage{ink,mark=square*}\addlegendentry{Atualização preparada}
-\node[font=\small,align=center] at (axis description cs:.56,.42)
-{\pending{StateScalingSeries}\\Coordenadas medidas pendentes};
+\begin{axis}[width=.91\linewidth,height=4.45cm,
+ xmin=0,ymin=0,grid=major,
+ xlabel={Estado canônico (kB decimais)},ylabel={Mediana (ms)},
+ legend style={at={(.5,1.02)},anchor=south,legend columns=2,draw=none},
+ axis lines=left]
+\addplot[accent,thick,mark=*] coordinates {\ScalingVolatileReadCoordinates};
+\addlegendentry{Leitura volátil}
+\addplot[ink,thick,mark=square*] coordinates {\ScalingVolatileUpdateCoordinates};
+\addlegendentry{Atualização volátil}
+\addplot[accent,thick,dashed,mark=triangle*] coordinates {\ScalingPersistentReadCoordinates};
+\addlegendentry{Leitura durável}
+\addplot[ink,thick,dashed,mark=diamond*] coordinates {\ScalingPersistentUpdateCoordinates};
+\addlegendentry{Atualização durável}
 \end{axis}
 \end{tikzpicture}
-\source{Mesma operação pontual. Estado crescente até o limite configurado. Sem amostras fictícias.}
-\note{Aumentamos um estado válido mantendo a operação lógica pontual. Medimos leitura e atualização preparadas, com o registro fora do intervalo e o tamanho canônico real no eixo horizontal. A grade alcança o limite de estado configurado. As medianas e a dispersão entre rodadas preencherão o gráfico. Os eixos estão sem valores enquanto os dados não chegam. O objetivo é observar o custo de decodificar, transferir e produzir um estado completo mesmo quando apenas uma célula interessa à operação. Devemos registrar o modo de armazenamento e distinguir rejeição por limite de uma chamada bem-sucedida lenta.}
+\par\vspace{1mm}\small\raggedright
+Teto de \numpt{\StateLimitBytes} bytes: \numpt{\StateMaximumRows} linhas.\par
+\numpt{\StateOversizedRows} linhas exigiriam \numpt{\StateOversizedKilobytes} kB, fora desta configuração.
+\source{$n=\ScalingSamples$ por operação/tamanho/modo. Distribuições amplas e durável não monotônico.}
+\note{As linhas conectam medianas observadas em \ScalingSmallRows, \ScalingMiddleRows, \numpt{\ScalingLargeRows} e \numpt{\StateMaximumRows} linhas. O eixo horizontal usa o tamanho canônico real em kB decimais. As linhas contínuas são voláteis e as tracejadas são duráveis, com leitura e atualização separadas. O artigo apresenta os quartis, que são amplos. Há um aumento marcado entre \ScalingSmallRows{} e \ScalingMiddleRows{} linhas. Apenas descrevemos esse salto, sem atribuir causa. A série durável de leitura cai do penúltimo ponto ao último, portanto não é monotônica. O benchmark mede também lookup linear na última chave, decodificação, validação e publicação, além da transferência. O teto de \numpt{\StateLimitBytes} bytes comporta \numpt{\StateMaximumRows} linhas com \numpt{\StateMaximumBytes} bytes. A linha seguinte retorna limit nos dois modos e preserva a raiz. A população maior exige \numpt{\StateOversizedBytes} bytes e não recebeu latência. A carga foi construída por uma transação certificada a partir de uma semente vazia. Tentativas iniciais de semente grande esgotaram combustível em Seed.initial\_valid e não são amostras de operação. Os maiores grupos foram medidos novamente após corrigir a sonda de limite, e os menores foram retidos. Não extraímos uma lei geral de escalabilidade dessas séries.}
 \end{frame}
 
 % 17
@@ -301,20 +370,21 @@ legend style={at={(.02,.98)},anchor=north west,draw=none,font=\small},clip=false
 \end{itemize}
 \gap
 {\color{accent}A garantia aplica as leis instaladas sob T1--T3.}
-\note{O administrador ainda precisa especificar a política desejada. Uma lei ausente não vira uma obrigação automaticamente. O exemplo do índice tem dois usuários fixos e uma linha booleana por usuário. Os recibos protegem o ID enquanto forem retidos e o estado autoritativo sobreviver. As medições dependem de cache, armazenamento, sincronização e posicionamento de CPU. Chamadas na mesma rodada são correlacionadas. Ordinário e preparado usam níveis distintos de otimização C, então sua diferença mede os perfis de serviço. Uma leitura bem-sucedida também pode seguir a publicação durável de uma raiz inalterada. Canais de tempo e consumo físico ficam fora do modelo de observações.}
+\note{O administrador ainda precisa especificar a política desejada. Uma lei ausente não vira uma obrigação automaticamente. O exemplo do índice tem dois usuários fixos e uma linha booleana por usuário. Os recibos protegem o ID enquanto forem retidos e o estado autoritativo sobreviver. As medições usam uma máquina local, sem limpeza deliberada de cache ou repetição independente. Cache, armazenamento, sincronização e posicionamento de CPU podem mudar os resultados. Os hooks de fase afetam E1 e E2. Chamadas na mesma rodada são correlacionadas. Ordinário e preparado usam níveis distintos de otimização C, então sua diferença mede os perfis de serviço. Uma leitura bem-sucedida também pode seguir a publicação durável de uma raiz inalterada. Canais de tempo e consumo físico ficam fora do modelo de observações.}
 \end{frame}
 
 % 18
 \begin{frame}{Contribuições e próximos passos}
 \textbf{Resultado}\par\vspace{3mm}
-Certificados ligados ao programa executado e à publicação.\par\vspace{3mm}
-Gate, controlador e folds com testemunhas verificadas.\par\vspace{3mm}
-Aplicações de índice e recibos, com controles causais.
+Certificados ligados à execução e à publicação sob T1--T3.\par\vspace{3mm}
+Leitura: \numpt{\OrdinaryReadMedianSeconds} s ordinária,
+\numpt{\PreparedReadVolatileMedianMs} ms preparada volátil.\par\vspace{3mm}
+Reuso amortizado em \BreakEvenReadCalls{} chamadas no modelo de medianas.
 \gap
 \textbf{Próximos passos}\par\vspace{3mm}
-Provar durabilidade após falhas, reduzir T3 e acelerar a admissão ordinária.
+Provar durabilidade após falhas, reduzir T3 e o custo de estado completo.
 \source{Fundamentos: Necula e Lee (1996), Ynot (2008), Malecha et al. (2010), Fiat (2015).}
-\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham seus prefixos e selecionam o resultado publicado. O contrato é habitado e exclui comportamentos errados concretos. O controle preparado agora também é Bend verificado e participa do fold do serviço. As duas aplicações mostram permissões e invariantes com obrigações diferentes. A avaliação mede o custo dessa construção no executável atual, com resultados numéricos ainda pendentes nesta versão. Os próximos passos são uma prova de durabilidade e recuperação, uma fronteira física menor para T3 e menor custo de admissão ordinária. As referências completas estão no artigo.}
+\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham os prefixos e selecionam o resultado publicado. O contrato é habitado e exclui comportamentos errados concretos. O controlador preparado participa do fold verificado e as aplicações mostram permissões e invariantes distintos. A avaliação quantifica o custo: segundos na admissão ordinária e milissegundos no reuso preparado, com equilíbrio volátil estimado em \BreakEvenReadCalls{} chamadas para leitura. Mesmo preparada, a leitura pontual durável custa \ratiopt{\JayPointReadOverPostgres} vezes PostgreSQL. As provas têm \ratiopt{\ProofToImplementationRatio} vezes as linhas da implementação Bend e o teto atual admite \numpt{\StateMaximumRows} linhas da carga de escala. Os próximos passos incluem prova de durabilidade e recuperação, menos confiança física em T3, admissão mais rápida e menor transferência e publicação de estado completo. As referências completas estão no artigo.}
 \end{frame}
 
 \appendix
