@@ -122,12 +122,15 @@ verified evidence and identify its trusted boundaries.
 The [executable contract](contract/README.md) has checked witnesses for
 initialization, authenticated admission, every-prefix law safety, exact
 finalization/publication, accepted execution progress, direct/registered
-ingress, finite serial runs and canonical wire encodings. The
+ingress, prepared-control transitions, mixed serial runs and canonical wire
+encodings. `StartupTheorem` covers the executed initializer/recovery check;
+T1 admits the exact seed-validity declaration before initialization runs. The
 [proof guide](proof/README.md) gives precise premises, non-vacuity evidence and
 the trusted base: T1 admission soundness and exact source/Book binding,
 T2 compiler/runtime preservation, and T3 numbered host plumbing obligations.
 
-Native worker integration of `Gate` is in progress.
+The native worker executes the checked `Gate`/interpreter/finalizer path;
+compiler/runtime preservation and physical host plumbing remain T2/T3.
 
 Authentication uses current published state; configuration and dependencies
 remain immutable. Scoped cached universal prepared admission specializes at

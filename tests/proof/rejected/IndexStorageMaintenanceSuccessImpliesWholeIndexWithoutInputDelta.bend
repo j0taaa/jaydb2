@@ -15,6 +15,6 @@ def state(index: List<&2,D.Row>,rows: List<&2,D.Row>) -> D.State: D.State{[D.Tab
 
 def identity(rows: List<&2,D.Row>) -> List<&2,D.Row>: rows
 
-law false_reject_maintenance_success_implies_whole_index_without_input_delta:
+law false:
   Table.ExactIndex(~identity,base(),collection(),Maint.state(collection(),state([entry("a","stale")],[entry("b","business")]),Nil{},[entry("n","new")],[entry("a","stale")]))
-def false_reject_maintenance_success_implies_whole_index_without_input_delta(): {==}
+def false(): {==}

@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_count_value_changed:
+law false:
   {Read.count_return(n => S.Finish{D.VText{Nat.show(n)}},S.Datum{D.Count{2n}}) == S.Finish{D.VText{"1"}} : S.Action}
-def false_reject_count_value_changed(): {==}
+def false(): {==}

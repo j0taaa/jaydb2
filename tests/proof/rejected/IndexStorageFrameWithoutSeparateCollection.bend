@@ -11,6 +11,6 @@ def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
 def state(index: List<&2,D.Row>,rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"base",rows},D.Table{"index",index}],Nil{}}
 
-law false_reject_frame_without_separate_collection:
+law false:
   {D.rows_collection(collection(),D.swap_collection(collection(),state([entry("a","old")],Nil{}),[entry("n","new")])) == Some{[entry("a","old")]} : Maybe<&2,List<&2,D.Row>>}
-def false_reject_frame_without_separate_collection(): {==}
+def false(): {==}

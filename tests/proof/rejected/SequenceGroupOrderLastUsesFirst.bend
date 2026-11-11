@@ -10,6 +10,6 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_last_position_can_be_the_first_matching_position:
+law false:
   {Last.last(~key,"a",[D.VText{"a"},D.VText{"b"},D.VText{"a"}]) == Some{0n} : Maybe<&2,Nat>}
-def false_negative_last_position_can_be_the_first_matching_position(): {==}
+def false(): {==}

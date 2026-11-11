@@ -12,6 +12,6 @@ def never_less(a: D.Value,b: D.Value) -> Bool: False{}
 def always_less(a: D.Value,b: D.Value) -> Bool: True{}
 def all(v: D.Value) -> Bool: True{}
 
-law false_negative_class_stability_needs_no_comparison_domain:
+law false:
   {Sequence.filter(~all,Sequence.sort(~always_less,[D.VText{"a"},D.VText{"b"}])) == Sequence.filter(~all,[D.VText{"a"},D.VText{"b"}]) : List<&2,D.Value>}
-def false_negative_class_stability_needs_no_comparison_domain(): {==}
+def false(): {==}

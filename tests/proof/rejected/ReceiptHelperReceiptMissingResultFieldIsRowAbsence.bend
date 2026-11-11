@@ -20,6 +20,6 @@ def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
 def event(name: String,value: D.Observation) -> S.OperationEvent: S.OperationEvent{D.ReadCell{D.Application{"owner"},"r",name},S.Reading{value}}
 
-law false_reject_receipt_missing_result_field_is_row_absence:
+law false:
   {T.observe(4n,H.bound("owner","r","op","input",missing(),done),schema(),state([D.Row{"r",[D.Field{"id",D.VText{"r"}},D.Field{"input",D.VText{"input"}},D.Field{"operation",D.VText{"op"}}]}]),Nil{}) == S.Final{state([D.Row{"r",[D.Field{"id",D.VText{"r"}},D.Field{"input",D.VText{"input"}},D.Field{"operation",D.VText{"op"}}]}]),[event("input",D.Cell{D.VText{"input"}}),event("operation",D.Cell{D.VText{"op"}}),event("result",D.RowAbsent{})],S.Response{S.Refusal{},D.VText{"bad result"}}} : S.Trace}
-def false_reject_receipt_missing_result_field_is_row_absence(): {==}
+def false(): {==}

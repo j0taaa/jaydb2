@@ -24,6 +24,6 @@ def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
 def event(name: String,value: D.Observation) -> S.OperationEvent: S.OperationEvent{D.ReadCell{D.Application{"owner"},"r",name},S.Reading{value}}
 
-law false_reject_receipt_hit_reads_operation_before_input:
+law false:
   {T.observe(4n,H.bound("owner","r","op","input",missing(),done),schema(),state([row("input","op",D.VText{"stored"})]),Nil{}) == S.Final{state([row("input","op",D.VText{"stored"})]),[event("operation",D.Cell{D.VText{"op"}}),event("input",D.Cell{D.VText{"input"}}),event("result",D.Cell{D.VText{"stored"}})],S.Response{S.Success{},D.VText{"stored"}}} : S.Trace}
-def false_reject_receipt_hit_reads_operation_before_input(): {==}
+def false(): {==}

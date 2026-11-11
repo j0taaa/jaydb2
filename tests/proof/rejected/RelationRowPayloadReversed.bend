@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_match_payload_can_swap_left_and_right:
+law false:
   {Relation.matches(~key,~key,item("a","L"),[item("a","R")]) == [Rows.pair(item("a","R"),item("a","L"))] : List<&2,D.Value>}
-def false_negative_match_payload_can_swap_left_and_right(): {==}
+def false(): {==}

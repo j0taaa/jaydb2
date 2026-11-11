@@ -9,9 +9,9 @@ def wrong_sub(a: V.Int64, b: V.Int64) -> V.Int64:
   V.Int64{i, j} = b
   V.Int64{U32.sub(h, i), U32.sub(l, j)}
 
-law false_subtraction_without_borrow:
+law false:
   for +a: V.Int64
   for +b: V.Int64
   {A.bits(wrong_sub(a, b)) == Word.sub(64n, A.bits(a), A.bits(b)) : Word(64n)}
-def false_subtraction_without_borrow(a, b):
+def false(a, b):
   P.wrapping_sub_is_full_word_sub(a, b)

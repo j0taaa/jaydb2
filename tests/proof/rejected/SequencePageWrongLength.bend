@@ -10,6 +10,6 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_page_length_is_always_the_requested_size:
+law false:
   {Sequence.length(Sequence.page(1n,10n,[D.VText{"a"},D.VText{"b"},D.VText{"c"}])) == 10n : Nat}
-def false_negative_page_length_is_always_the_requested_size(): {==}
+def false(): {==}

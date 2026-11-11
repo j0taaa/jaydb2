@@ -11,6 +11,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_insert_unexpected_returns_false:
+law false:
   {M.inserted(collection(),row("k","new"),bool_done,S.Datum{D.Cell{D.VAbsent{}}}) == bool_done(False{}) : S.Action}
-def false_reject_insert_unexpected_returns_false(): {==}
+def false(): {==}

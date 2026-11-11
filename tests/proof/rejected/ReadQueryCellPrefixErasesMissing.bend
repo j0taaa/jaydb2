@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_cell_prefix_erases_missing:
+law false:
   {M.expected(~C.Context,~C.reply,C.Context{D.Application{"t"},[S.Datum{D.Cell{D.VAbsent{}}},S.Datum{D.RowAbsent{}}]},0n,["a","b"]) == Q.Selected{D.VRecord{"a",D.VAbsent{},D.VRecord{"b",D.VAbsent{},D.VRecordEmpty{}}}} : Q.Selection}
-def false_reject_cell_prefix_erases_missing(): {==}
+def false(): {==}

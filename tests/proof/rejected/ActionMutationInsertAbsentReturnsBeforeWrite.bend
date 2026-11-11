@@ -11,6 +11,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_insert_absent_returns_before_write:
+law false:
   {M.inserted(collection(),row("k","new"),bool_done,S.Datum{D.Existence{False{}}}) == bool_done(True{}) : S.Action}
-def false_reject_insert_absent_returns_before_write(): {==}
+def false(): {==}

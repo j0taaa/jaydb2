@@ -11,6 +11,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_groups_can_split_one_key_into_two_entries:
+law false:
   {Sequence.group(~key,[item("a","1"),item("a","2")]) == [Sequence.Group{"a",[item("a","1")]},Sequence.Group{"a",[item("a","2")]}] : List<&2,Sequence.Group>}
-def false_negative_groups_can_split_one_key_into_two_entries(): {==}
+def false(): {==}

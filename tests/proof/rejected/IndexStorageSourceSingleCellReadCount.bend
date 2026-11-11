@@ -11,6 +11,6 @@ def collection() -> D.Collection: D.Application{"index"}
 
 def matching() -> Source.SourceEntry: e("a",["yes"],"target")
 
-law false_reject_source_single_cell_read_count:
+law false:
   {List.length(&2,S.OperationEvent,Content.events([matching()],collection())) == 1n : Nat}
-def false_reject_source_single_cell_read_count(): {==}
+def false(): {==}

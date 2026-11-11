@@ -15,6 +15,6 @@ import ../../../src/Termination.bend as T
 
 def refusing(env: Unit,key: String,done: Maybe<&2,D.Value> -> S.Action) -> S.Action: S.Refuse{D.VAbsent{}}
 
-law false_reject_visitor_always_continues:
+law false:
   {Q.filter_map(~Unit,~refusing,Unit{},["a","b"],value => S.Finish{value}) == S.Finish{D.VListEmpty{}} : S.Action}
-def false_reject_visitor_always_continues(): {==}
+def false(): {==}

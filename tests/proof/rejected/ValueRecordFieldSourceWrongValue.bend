@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_field_source_witness_can_change_its_value:
+law false:
   FieldLookup.Found([D.Field{"a",D.VAbsent{}}],"a",D.VBool{True{}})
-def false_negative_field_source_witness_can_change_its_value(): Tuple{0n,{==}}
+def false(): Tuple{0n,{==}}

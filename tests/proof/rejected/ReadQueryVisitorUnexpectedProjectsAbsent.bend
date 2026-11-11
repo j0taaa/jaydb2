@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_visitor_unexpected_projects_absent:
+law false:
   {C.project(S.UnitValue{}) == Some{D.VAbsent{}} : Maybe<&2,D.Value>}
-def false_reject_visitor_unexpected_projects_absent(): {==}
+def false(): {==}

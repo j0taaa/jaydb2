@@ -3,7 +3,7 @@ import Base
 import ../../../library/Value.bend as V
 import ../../../library/Int64Proofs.bend as P
 
-law false_zero_plus_zero_may_be_rejected:
+law false:
   P.AdditionCorrect(V.Int64{0, 0}, V.Int64{0, 0}, None{})
-def false_zero_plus_zero_may_be_rejected():
+def false():
   P.checked_add_is_integer_addition(V.Int64{0, 0}, V.Int64{0, 0})

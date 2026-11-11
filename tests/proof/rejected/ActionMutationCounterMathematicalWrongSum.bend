@@ -3,6 +3,6 @@ import Base
 import ../../../library/Value.bend as V
 import ../../../library/Int64Proofs.bend as Math
 
-law false_reject_counter_mathematical_wrong_sum:
+law false:
   Math.IntegerSum(Math.integer(V.Int64{0,0}),Math.integer(V.Int64{0,1}),Math.integer(V.Int64{0,2}))
-def false_reject_counter_mathematical_wrong_sum(): {==}
+def false(): {==}

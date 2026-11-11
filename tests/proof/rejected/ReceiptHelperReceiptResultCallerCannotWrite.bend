@@ -23,6 +23,6 @@ def hit_events(value: D.Value) -> List<&2,S.OperationEvent>: [event("input",D.Ce
 
 def write_done(r: S.Return) -> S.Action: H.put("owner","x",fields("x","input","op",D.VText{"extra"}),S.Finish{D.VText{"written"}})
 
-law false_reject_receipt_result_caller_cannot_write:
+law false:
   {T.observe(5n,H.bound("owner","r","op","input",missing(),write_done),schema(),state([row("input","op",D.VText{"stored"})]),Nil{}) == S.Final{state([row("input","op",D.VText{"stored"})]),hit_events(D.VText{"stored"}),S.Response{S.Success{},D.VText{"written"}}} : S.Trace}
-def false_reject_receipt_result_caller_cannot_write(): {==}
+def false(): {==}

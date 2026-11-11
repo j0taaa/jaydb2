@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_record_make_can_accept_invalid_nested_text:
+law false:
   {Record.make([D.Field{"a",D.VText{surrogate()}}]) == Some{D.VRecord{"a",D.VText{surrogate()},D.VRecordEmpty{}}} : Maybe<&2,D.Value>}
-def false_negative_record_make_can_accept_invalid_nested_text(): {==}
+def false(): {==}

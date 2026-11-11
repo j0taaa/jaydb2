@@ -2,7 +2,7 @@ import Base
 import ../../../library/Value.bend as V
 import ../../../library/Int64UnsignedMultiply.bend as M
 
-law false_always_none:
+law false:
   M.UnsignedResult(0n,None{})
-def false_always_none():
+def false():
   r => same => same

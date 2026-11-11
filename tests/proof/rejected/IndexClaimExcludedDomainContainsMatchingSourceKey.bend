@@ -7,6 +7,6 @@ import ../../../library/ValueScalarProofs.bend as Pair
 
 
 
-law false_reject_excluded_domain_contains_matching_source_key:
+law false:
   Views.Absent(K.encode(["v"]),[I.unique(["v"],"stored")])
-def false_reject_excluded_domain_contains_matching_source_key(): Pair.Both{{==},Unit{}}
+def false(): Pair.Both{{==},Unit{}}

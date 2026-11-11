@@ -22,6 +22,6 @@ def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
 def event(name: String,value: D.Observation) -> S.OperationEvent: S.OperationEvent{D.ReadCell{D.Application{"owner"},"r",name},S.Reading{value}}
 
-law false_reject_receipt_miss_caller_cannot_write:
+law false:
   {T.observe(4n,H.bound("owner","r","op","input",H.put("owner","x",fields("x","input","op",D.VText{"extra"}),missing()),done),schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[event("input",D.RowAbsent{})],S.Response{S.Success{},D.VText{"miss"}}} : S.Trace}
-def false_reject_receipt_miss_caller_cannot_write(): {==}
+def false(): {==}

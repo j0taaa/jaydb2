@@ -15,6 +15,6 @@ def entry(key: String,tag: String,target: String) -> D.Row: I.entry(key,[tag],ta
 
 def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{}}
 
-law false_reject_business_cannot_change_maintained_index:
+law false:
   {T.observe(3n,I.maintain(collection(),Nil{},[entry("n","yes","new")],M.remove_rows(collection(),["n"],S.Finish{D.VAbsent{}})),schema(),state(Nil{}),Nil{}) == S.Final{state([entry("n","yes","new")]),[S.OperationEvent{D.DefineRow{collection(),"n",Entry.fields(entry("n","yes","new"))},S.Write{}},S.OperationEvent{D.RemoveRow{collection(),"n"},S.Write{}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_business_cannot_change_maintained_index(): {==}
+def false(): {==}

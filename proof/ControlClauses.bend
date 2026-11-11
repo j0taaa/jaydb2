@@ -209,4 +209,4 @@ def configuration(c: S.Configuration, k: T.ControlClause, +root: D.State, +last:
       clause(schema, laws, limits, instance, k, root, last, reg, body, a, h)
 
 def control_theorem() -> T.ControlTheorem():
-  k => c => root => last => registry => body => a => h => sound => configuration(c, k, root, last, registry, body, a, h)
+  k => c => root => last => registry => body => a => h => configuration(c, k, root, last, registry, body, a, h)

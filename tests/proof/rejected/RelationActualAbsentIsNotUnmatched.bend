@@ -14,7 +14,7 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_actual_matching_absent_value_is_an_unmatched_placeholder:
+law false:
   Outer.Origin(~same,~same,item("a","L"),[D.VAbsent{}],0n,Rows.pair(item("a","L"),D.VAbsent{}))
-def false_negative_actual_matching_absent_value_is_an_unmatched_placeholder():
+def false():
   L.Right{N.Both{{==},N.Both{{==},{==}}}}

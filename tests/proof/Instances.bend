@@ -15,6 +15,7 @@ import ../../src/Resolve.bend as Resolve
 import ../../proof/Iteration.bend as Iteration
 import ./Controls.bend as X
 import ./WrongSteps.bend as Wrong
+import ../../proof/Configuration.bend as Startup
 
 def refusal_safe(+ctx: D.Context, +s: D.State, n: Nat) ->
   R.SafetyTrace(S.execute(n, X.program(), D.Schema{Nil{}}, s, ctx, D.VAbsent{}),
@@ -78,3 +79,9 @@ law controls_fold:
 def controls_fold(a, j):
   Iteration.fold_theorem()(a, X.configuration(), X.seed(), G.SeedAccept{X.seed_valid()}, run(),
     controls_started(), j)
+
+# The real startup function's public theorem uses the admitted seed declaration.
+law controls_executed_startup:
+  G.Startup(X.configuration(), "controls", X.seed())
+def controls_executed_startup():
+  Startup.startup_theorem()(X.configuration(), "controls", X.seed(), X.seed_valid())

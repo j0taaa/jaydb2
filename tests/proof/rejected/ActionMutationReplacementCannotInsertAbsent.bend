@@ -19,6 +19,6 @@ def accept_absent(obs: D.Observation) -> Bool:
     case D.Count{count}: False{}
     case D.Existence{exists}: False{}
 
-law false_reject_replacement_cannot_insert_absent:
+law false:
   {M.replace_received(~accept_absent,collection(),row("k","new"),bool_done,S.Datum{D.RowAbsent{}}) == bool_done(False{}) : S.Action}
-def false_reject_replacement_cannot_insert_absent(): {==}
+def false(): {==}

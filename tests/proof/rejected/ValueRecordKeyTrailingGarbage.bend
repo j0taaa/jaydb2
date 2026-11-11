@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_key_decode_ignores_trailing_garbage:
+law false:
   {Key.decode("zz") == Some{[]} : Maybe<&2,List<&2,String>>}
-def false_negative_key_decode_ignores_trailing_garbage(): {==}
+def false(): {==}

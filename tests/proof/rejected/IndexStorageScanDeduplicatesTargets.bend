@@ -17,6 +17,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def done(value: D.Value) -> S.Action: S.Finish{value}
 
-law false_reject_scan_deduplicates_targets:
+law false:
   {T.observe(6n,I.scan_equal(collection(),["yes"],done),schema(),state([entry("a","yes","same"),entry("c","yes","same")]),Nil{}) == S.Final{state([entry("a","yes","same"),entry("c","yes","same")]),[S.OperationEvent{D.EnumerateKeys{collection()},S.Reading{D.Keys{["a","c"]}}},S.OperationEvent{D.ReadCell{collection(),"a","target"},S.Reading{D.Cell{D.VText{"same"}}}},S.OperationEvent{D.ReadCell{collection(),"a","value"},S.Reading{D.Cell{D.VText{K.encode(["yes"])}}}},S.OperationEvent{D.ReadCell{collection(),"c","target"},S.Reading{D.Cell{D.VText{"same"}}}},S.OperationEvent{D.ReadCell{collection(),"c","value"},S.Reading{D.Cell{D.VText{K.encode(["yes"])}}}}],S.Response{S.Success{},D.VList{D.VText{"same"},D.VListEmpty{}}}} : S.Trace}
-def false_reject_scan_deduplicates_targets(): {==}
+def false(): {==}

@@ -13,7 +13,7 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_canonical_spec_can_omit_all_pair_order:
+law false:
   Canonical.Canonical([D.Field{"z",D.VAbsent{}},D.Field{"a",D.VAbsent{}}])
-def false_negative_canonical_spec_can_omit_all_pair_order():
+def false():
   Scalar.Both{{==},Scalar.Both{{==},Scalar.Both{Scalar.Both{{==},Unit{}},Scalar.Both{{==},Scalar.Both{{==},Scalar.Both{Unit{},Unit{}}}}}}}

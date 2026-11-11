@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_later_error_overrides_first:
+law false:
   {M.expected(~C.Context,~C.reply,C.Context{D.Application{"t"},[S.Datum{D.RowAbsent{}},S.UnitValue{}]},0n,["a","b"]) == Q.UnexpectedReturn{} : Q.Selection}
-def false_reject_later_error_overrides_first(): {==}
+def false(): {==}

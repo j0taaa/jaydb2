@@ -9,6 +9,6 @@ def maybe_done(value: Maybe<&2,D.Value>) -> S.Action:
     case None{}: S.Finish{D.VAbsent{}}
     case Some{value}: S.Finish{value}
 
-law false_reject_unequal_index_value_projects:
+law false:
   {I.projected("wanted",maybe_done,I.Target{"target","other"}) == maybe_done(Some{D.VText{"target"}}) : S.Action}
-def false_reject_unequal_index_value_projects(): {==}
+def false(): {==}

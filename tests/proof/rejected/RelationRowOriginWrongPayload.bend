@@ -14,7 +14,7 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_source_occurrence_can_change_the_left_payload:
+law false:
   Rows.Origin(~key,~key,item("a","L"),[item("a","R")],0n,Rows.pair(item("a","OTHER"),item("a","R")))
-def false_negative_source_occurrence_can_change_the_left_payload():
+def false():
   Tuple{0n,Tuple{item("a","R"),L.Both{{==},L.Both{{==},L.Both{{==},{==}}}}}}

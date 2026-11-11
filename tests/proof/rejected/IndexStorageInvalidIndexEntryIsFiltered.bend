@@ -10,6 +10,6 @@ def maybe_done(value: Maybe<&2,D.Value>) -> S.Action:
     case None{}: S.Finish{D.VAbsent{}}
     case Some{value}: S.Finish{value}
 
-law false_reject_invalid_index_entry_is_filtered:
+law false:
   {I.selected("v",maybe_done,Q.InvalidFields{}) == maybe_done(None{}) : S.Action}
-def false_reject_invalid_index_entry_is_filtered(): {==}
+def false(): {==}

@@ -14,7 +14,7 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_unmatched_placeholder_has_a_matching_right_source_index:
+law false:
   Rows.Origin(~same,~same,item("a","L"),[],0n,Rows.pair(item("a","L"),D.VAbsent{}))
-def false_negative_unmatched_placeholder_has_a_matching_right_source_index():
+def false():
   Tuple{0n,Tuple{D.VAbsent{},L.Both{{==},L.Both{{==},L.Both{{==},{==}}}}}}

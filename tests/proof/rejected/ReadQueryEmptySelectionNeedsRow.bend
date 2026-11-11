@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_empty_selection_needs_row:
+law false:
   {T.observe(1n,P.select(D.Application{"t"},"missing",Nil{}),D.Schema{Nil{}},D.State{Nil{},Nil{}},Nil{}) == S.Final{D.State{Nil{},Nil{}},Nil{},S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_empty_selection_needs_row(): {==}
+def false(): {==}

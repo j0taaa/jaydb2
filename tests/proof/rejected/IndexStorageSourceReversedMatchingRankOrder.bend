@@ -8,6 +8,6 @@ def e(key: String,parts: List<&2,String>,target: String) -> Source.SourceEntry: 
 
 def matching() -> Source.SourceEntry: e("a",["yes"],"target")
 
-law false_reject_source_reversed_matching_rank_order:
+law false:
   {Nat.is_lt(Projection.before([matching(),e("b",["yes"],"last")],1n,K.encode(["yes"])),Projection.before([matching(),e("b",["yes"],"last")],0n,K.encode(["yes"]))) == True{} : Bool}
-def false_reject_source_reversed_matching_rank_order(): {==}
+def false(): {==}

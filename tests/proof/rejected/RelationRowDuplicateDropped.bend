@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_matching_duplicates_can_be_dropped:
+law false:
   {Relation.matches(~key,~key,item("a","L"),[item("a","R"),item("a","R")]) == [Rows.pair(item("a","L"),item("a","R"))] : List<&2,D.Value>}
-def false_negative_matching_duplicates_can_be_dropped(): {==}
+def false(): {==}

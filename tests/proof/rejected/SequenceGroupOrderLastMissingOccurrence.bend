@@ -10,6 +10,6 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_last_measure_can_hide_a_matching_source_occurrence:
+law false:
   {Last.last(~key,"a",[D.VText{"a"}]) == None{} : Maybe<&2,Nat>}
-def false_negative_last_measure_can_hide_a_matching_source_occurrence(): {==}
+def false(): {==}

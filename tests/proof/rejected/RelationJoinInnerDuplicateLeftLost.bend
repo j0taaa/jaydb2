@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_inner_join_can_deduplicate_left_source_occurrences:
+law false:
   {Relation.inner(~key,~key,[item("a","L1"),item("a","L1")],[item("a","R1")]) == [Rows.pair(item("a","L1"),item("a","R1"))] : List<&2,D.Value>}
-def false_negative_inner_join_can_deduplicate_left_source_occurrences(): {==}
+def false(): {==}

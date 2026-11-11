@@ -11,6 +11,6 @@ def schema() -> D.Schema: D.Schema{[D.SchemaTable{"owner","id",columns()}]}
 
 def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"owner",rows}],Nil{}}
 
-law false_reject_receipt_invalid_put_invokes_caller:
+law false:
   {T.observe(2n,H.put("owner","r",Nil{},S.Finish{D.VText{"written"}}),schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[S.OperationEvent{D.DefineRow{D.Application{"owner"},"r",Nil{}},S.ErrorOfData{}}],S.Response{S.Success{},D.VText{"written"}}} : S.Trace}
-def false_reject_receipt_invalid_put_invokes_caller(): {==}
+def false(): {==}

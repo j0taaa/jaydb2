@@ -9,6 +9,6 @@ def done(r: S.Return) -> S.Action:
     case S.Datum{D.Cell{value}}: S.Finish{value}
     case _: S.Refuse{D.VText{"bad result"}}
 
-law false_reject_receipt_nontext_operation_reads_result:
+law false:
   {H.operation_seen("owner","r","op",done,S.Datum{D.Cell{D.VBool{True{}}}}) == S.Access{D.ReadCell{D.Application{"owner"},"r","result"},done} : S.Action}
-def false_reject_receipt_nontext_operation_reads_result(): {==}
+def false(): {==}

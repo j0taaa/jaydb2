@@ -6,6 +6,6 @@ import ../../../library/Action.bend as A
 
 def collection() -> D.Collection: D.Application{"t"}
 
-law false_reject_empty_writes_ignore_caller:
+law false:
   {A.define_rows(collection(),Nil{},S.Access{D.RemoveRow{collection(),"k"},r => S.Finish{D.VAbsent{}}}) == S.Finish{D.VAbsent{}} : S.Action}
-def false_reject_empty_writes_ignore_caller(): {==}
+def false(): {==}

@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_key_decode_confuses_escaped_data_with_a_delimiter:
+law false:
   {Key.decode("pceez") == Some{[""]} : Maybe<&2,List<&2,String>>}
-def false_negative_key_decode_confuses_escaped_data_with_a_delimiter(): {==}
+def false(): {==}

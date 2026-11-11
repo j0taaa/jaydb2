@@ -12,6 +12,6 @@ def collection() -> D.Collection: D.Application{"t"}
 def row(+key: String,title: String) -> D.Row:
   D.Row{key,[D.Field{"id",D.VText{key}},D.Field{"title",D.VText{title}}]}
 
-law false_reject_define_rows_reordering:
+law false:
   {Cut.cut(~Unit,~Prefix.unit_return,Unit{},2n,0n,A.define_rows(collection(),[row("k","first"),row("z","second")],S.Finish{D.VAbsent{}})) == Cut.prefix([D.DefineRow{collection(),D.row_key(row("z","second")),Boolean.row_fields(row("z","second"))},D.DefineRow{collection(),D.row_key(row("k","first")),Boolean.row_fields(row("k","first"))}],S.Finish{D.VAbsent{}}) : Cut.Prefix}
-def false_reject_define_rows_reordering(): {==}
+def false(): {==}

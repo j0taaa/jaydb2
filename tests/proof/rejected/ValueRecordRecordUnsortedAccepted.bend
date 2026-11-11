@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_record_make_can_accept_unsorted_names:
+law false:
   {Record.make([D.Field{"z",D.VAbsent{}},D.Field{"a",D.VAbsent{}}]) == Some{D.VRecord{"z",D.VAbsent{},D.VRecord{"a",D.VAbsent{},D.VRecordEmpty{}}}} : Maybe<&2,D.Value>}
-def false_negative_record_make_can_accept_unsorted_names(): {==}
+def false(): {==}

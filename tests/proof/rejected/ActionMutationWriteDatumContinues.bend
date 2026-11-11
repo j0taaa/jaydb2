@@ -6,6 +6,6 @@ import ../../../library/Action.bend as A
 
 def collection() -> D.Collection: D.Application{"t"}
 
-law false_reject_write_datum_continues:
+law false:
   {A.written(S.Access{D.RemoveRow{collection(),"next"},r => S.Finish{D.VAbsent{}}},S.Datum{D.Cell{D.VAbsent{}}}) == S.Access{D.RemoveRow{collection(),"next"},r => S.Finish{D.VAbsent{}}} : S.Action}
-def false_reject_write_datum_continues(): {==}
+def false(): {==}

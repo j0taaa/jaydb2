@@ -10,6 +10,6 @@ def collection() -> D.Collection: D.Application{"t"}
 
 def int_done(x: V.Int64) -> S.Action: S.Finish{V.int_value(x)}
 
-law false_reject_counter_writes_before_read:
+law false:
   {M.counter_add(collection(),"k","count",V.Int64{0,1},int_done) == S.Access{D.DefineColumn{collection(),"k","count",D.VInt{0,1}},r => A.written(int_done(V.Int64{0,1}),r)} : S.Action}
-def false_reject_counter_writes_before_read(): {==}
+def false(): {==}

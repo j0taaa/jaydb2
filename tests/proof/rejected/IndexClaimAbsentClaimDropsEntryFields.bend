@@ -16,6 +16,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def bool_done(value: Bool) -> S.Action: S.Finish{D.VBool{value}}
 
-law false_reject_absent_claim_drops_entry_fields:
+law false:
   {T.observe(3n,I.claim(collection(),["v"],"new",bool_done),schema(),state(Nil{}),Nil{}) == S.Final{state([D.Row{K.encode(["v"]),[D.Field{"id",D.VText{K.encode(["v"])}}]}]),Claim.new_events(collection(),["v"],"new",Nil{}),S.Response{S.Success{},D.VBool{True{}}}} : S.Trace}
-def false_reject_absent_claim_drops_entry_fields(): {==}
+def false(): {==}

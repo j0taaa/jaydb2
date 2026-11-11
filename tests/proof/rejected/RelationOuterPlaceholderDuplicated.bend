@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_unmatched_outer_row_can_emit_two_placeholders:
+law false:
   {Relation.outer_matches(item("a","L"),[]) == [Rows.pair(item("a","L"),D.VAbsent{}),Rows.pair(item("a","L"),D.VAbsent{})] : List<&2,D.Value>}
-def false_negative_unmatched_outer_row_can_emit_two_placeholders(): {==}
+def false(): {==}

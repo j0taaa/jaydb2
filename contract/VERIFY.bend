@@ -15,3 +15,5 @@ import ../proof/CoreClauses.bend as CoreWitness
 import ../proof/Ingress.bend as IngressWitness
 import ../proof/Iteration.bend as FoldWitness
 import ../proof/ControlClauses.bend as ControlWitness
+import ../proof/Configuration.bend as StartupWitness
+import ../proof/ControlHistory.bend as ServiceFoldWitness

@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_absent_row_refusal:
+law false:
   {P.cell_result(S.Datum{D.RowAbsent{}}) == S.Refuse{D.VAbsent{}} : S.Action}
-def false_reject_absent_row_refusal(): {==}
+def false(): {==}

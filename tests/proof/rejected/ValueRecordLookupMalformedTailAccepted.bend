@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_validated_lookup_can_ignore_a_malformed_record_tail:
+law false:
   {Query.field(D.VRecord{"a",D.VBool{True{}},D.VText{"bad tail"}},"a") == Some{D.VBool{True{}}} : Maybe<&2,D.Value>}
-def false_negative_validated_lookup_can_ignore_a_malformed_record_tail(): {==}
+def false(): {==}

@@ -16,6 +16,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def bool_done(value: Bool) -> S.Action: S.Finish{D.VBool{value}}
 
-law false_reject_occupied_claim_overwrites_different_target:
+law false:
   {T.observe(3n,I.claim(collection(),["v"],"other",bool_done),schema(),state([I.unique(["v"],"stored")]),Nil{}) == S.Final{state([I.unique(["v"],"other")]),[S.OperationEvent{D.ViewExistence{collection(),K.encode(["v"])},S.Reading{D.Existence{True{}}}},S.OperationEvent{Claim.write(collection(),["v"],"other"),S.Write{}}],S.Response{S.Success{},D.VBool{True{}}}} : S.Trace}
-def false_reject_occupied_claim_overwrites_different_target(): {==}
+def false(): {==}

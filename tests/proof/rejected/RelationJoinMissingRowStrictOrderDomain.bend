@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_inner_order_is_strict_even_for_a_nonemitted_row:
+law false:
   {Nat.is_lt(Model.before_left(~key,~key,False{},[item("b","M"),item("a","L1")],[item("a","R1")],0n),Model.before_left(~key,~key,False{},[item("b","M"),item("a","L1")],[item("a","R1")],1n)) == True{} : Bool}
-def false_negative_inner_order_is_strict_even_for_a_nonemitted_row(): {==}
+def false(): {==}

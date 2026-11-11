@@ -4,6 +4,6 @@ import ../../../contract/Data.bend as D
 import ../../../library/Index.bend as I
 import ../../../library/Query.bend as Q
 
-law false_reject_projection_accepts_nontext:
+law false:
   {I.projection(Q.Selected{D.VRecord{"target",D.VInt{0,1},D.VRecord{"value",D.VText{"v"},D.VRecordEmpty{}}}}) == I.Target{"1","v"} : I.Projection}
-def false_reject_projection_accepts_nontext(): {==}
+def false(): {==}

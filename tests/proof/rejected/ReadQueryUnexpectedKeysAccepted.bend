@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_unexpected_keys_accepted:
+law false:
   {Read.keys_return(keys => S.Finish{D.VListEmpty{}},S.UnitValue{}) == S.Finish{D.VListEmpty{}} : S.Action}
-def false_reject_unexpected_keys_accepted(): {==}
+def false(): {==}

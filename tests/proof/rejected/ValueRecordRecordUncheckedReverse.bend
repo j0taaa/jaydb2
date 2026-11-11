@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_unchecked_fields_reverse_roundtrip_is_unconditional:
+law false:
   {Record.raw(Record.fields(D.VRecord{"a",D.VAbsent{},D.VText{"bad tail"}})) == D.VRecord{"a",D.VAbsent{},D.VText{"bad tail"}} : D.Value}
-def false_negative_unchecked_fields_reverse_roundtrip_is_unconditional(): {==}
+def false(): {==}

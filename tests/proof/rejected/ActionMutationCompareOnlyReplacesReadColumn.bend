@@ -12,6 +12,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_compare_only_replaces_read_column:
+law false:
   {M.cas_received(collection(),row("k","new"),D.VText{"k"},bool_done,S.Datum{D.Cell{D.VText{"k"}}}) == S.Access{D.DefineColumn{collection(),"k","id",D.VText{"k"}},r => A.written(bool_done(True{}),r)} : S.Action}
-def false_reject_compare_only_replaces_read_column(): {==}
+def false(): {==}

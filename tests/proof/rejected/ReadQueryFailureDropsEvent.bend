@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_failure_drops_event:
+law false:
   {T.observe(2n,S.Access{D.ReadCell{D.Application{"t"},"k","a"},r => S.Finish{D.VAbsent{}}},D.Schema{Nil{}},D.State{Nil{},Nil{}},Nil{}) == S.Final{D.State{Nil{},Nil{}},Nil{},S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_failure_drops_event(): {==}
+def false(): {==}

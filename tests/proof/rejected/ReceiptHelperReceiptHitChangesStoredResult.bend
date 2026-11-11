@@ -26,6 +26,6 @@ def event(name: String,value: D.Observation) -> S.OperationEvent: S.OperationEve
 
 def hit_events(value: D.Value) -> List<&2,S.OperationEvent>: [event("input",D.Cell{D.VText{"input"}}),event("operation",D.Cell{D.VText{"op"}}),event("result",D.Cell{value})]
 
-law false_reject_receipt_hit_changes_stored_result:
+law false:
   {T.observe(4n,H.bound("owner","r","op","input",missing(),done),schema(),state([row("input","op",D.VText{"stored"})]),Nil{}) == S.Final{state([row("input","op",D.VText{"stored"})]),hit_events(D.VText{"stored"}),S.Response{S.Success{},D.VText{"invented"}}} : S.Trace}
-def false_reject_receipt_hit_changes_stored_result(): {==}
+def false(): {==}

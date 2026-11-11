@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_list_decoder_can_truncate_a_malformed_tail:
+law false:
   {V.list(D.VList{D.VAbsent{},D.VText{"bad"}}) == Some{[D.VAbsent{}]} : Maybe<&2,List<&2,D.Value>>}
-def false_negative_list_decoder_can_truncate_a_malformed_tail(): {==}
+def false(): {==}

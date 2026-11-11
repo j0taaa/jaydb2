@@ -4,6 +4,6 @@ import ../../../library/Receipts.bend as H
 
 
 
-law false_reject_receipt_binding_normalizes_unicode:
+law false:
   {H.matches("op","é","op","é") == True{} : Bool}
-def false_reject_receipt_binding_normalizes_unicode(): {==}
+def false(): {==}

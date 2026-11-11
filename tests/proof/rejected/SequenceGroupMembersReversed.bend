@@ -11,6 +11,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_groups_can_reverse_same_key_occurrences:
+law false:
   {Lookup.lookup("a",Sequence.group(~key,[item("a","1"),item("b","x"),item("a","2")])) == Some{[item("a","2"),item("a","1")]} : Maybe<&2,List<&2,D.Value>>}
-def false_negative_groups_can_reverse_same_key_occurrences(): {==}
+def false(): {==}

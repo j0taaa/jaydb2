@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_canonical_lookup_can_change_a_field_payload:
+law false:
   {Query.field(Record.raw([D.Field{"a",D.VText{"original"}}]),"a") == Some{D.VText{"changed"}} : Maybe<&2,D.Value>}
-def false_negative_canonical_lookup_can_change_a_field_payload(): {==}
+def false(): {==}

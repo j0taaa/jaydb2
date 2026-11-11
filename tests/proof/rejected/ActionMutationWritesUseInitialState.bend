@@ -17,6 +17,6 @@ def rowschema() -> D.Schema:
 def rowsstate(rows: List<&2,D.Row>) -> D.State:
   D.State{[D.Table{"t",rows}],Nil{}}
 
-law false_reject_writes_use_initial_state:
+law false:
   {T.observe(3n,A.define_rows(collection(),[row("k","first"),row("z","second")],S.Finish{D.VAbsent{}}),rowschema(),rowsstate(Nil{}),Nil{}) == S.Final{rowsstate([row("z","second")]),[S.OperationEvent{D.DefineRow{collection(),D.row_key(row("k","first")),Boolean.row_fields(row("k","first"))},S.Write{}},S.OperationEvent{D.DefineRow{collection(),D.row_key(row("z","second")),Boolean.row_fields(row("z","second"))},S.Write{}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_writes_use_initial_state(): {==}
+def false(): {==}

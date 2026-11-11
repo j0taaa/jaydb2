@@ -17,6 +17,6 @@ def rowschema() -> D.Schema:
 def rowsstate(rows: List<&2,D.Row>) -> D.State:
   D.State{[D.Table{"t",rows}],Nil{}}
 
-law false_reject_refusal_working_state_rollback:
+law false:
   {T.observe(2n,A.define_rows(collection(),[row("k","first")],S.Refuse{D.VAbsent{}}),rowschema(),rowsstate(Nil{}),Nil{}) == S.Final{rowsstate(Nil{}),[S.OperationEvent{D.DefineRow{collection(),D.row_key(row("k","first")),Boolean.row_fields(row("k","first"))},S.Write{}}],S.Response{S.Refusal{},D.VAbsent{}}} : S.Trace}
-def false_reject_refusal_working_state_rollback(): {==}
+def false(): {==}

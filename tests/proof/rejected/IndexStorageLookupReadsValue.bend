@@ -15,6 +15,6 @@ def selection_done(selection: Q.Selection) -> S.Action:
     case Q.InvalidFields{}: S.Refuse{D.VAbsent{}}
     case Q.UnexpectedReturn{}: S.Refuse{D.VAbsent{}}
 
-law false_reject_lookup_reads_value:
+law false:
   {I.lookup(collection(),["x"],selection_done) == S.Access{D.ReadCell{collection(),K.encode(["x"]),"value"},r => S.Finish{D.VAbsent{}}} : S.Action}
-def false_reject_lookup_reads_value(): {==}
+def false(): {==}

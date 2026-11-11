@@ -20,6 +20,6 @@ def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
 def reject_all(obs: D.Observation) -> Bool: False{}
 
-law false_reject_rejected_replacement_erases_read:
+law false:
   {T.observe(3n,M.replace_if(~reject_all,collection(),row("k","new"),"title",bool_done),rowschema(),rowsstate([row("k","old")]),Nil{}) == S.Final{rowsstate([row("k","old")]),Nil{},S.Response{S.Success{},D.VBool{False{}}}} : S.Trace}
-def false_reject_rejected_replacement_erases_read(): {==}
+def false(): {==}

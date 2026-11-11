@@ -15,6 +15,6 @@ def schema() -> D.Schema:
 def state(value: D.Value) -> D.State:
   D.State{[D.Table{"t",[D.Row{"k",[D.Field{"a",value}]}]}],Nil{}}
 
-law false_reject_complete_validity_without_structure:
+law false:
   Props.CanonicalTrace(T.observe(2n,P.select(D.Application{"t"},"k",["a"]),schema(),state(D.VList{D.VAbsent{},D.VAbsent{}}),Nil{}))
-def false_reject_complete_validity_without_structure(): {==}
+def false(): {==}

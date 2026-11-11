@@ -14,7 +14,7 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_source_occurrence_can_claim_another_occurrences_rank:
+law false:
   Rows.Origin(~key,~key,item("a","L"),[item("a","1"),item("a","2")],0n,Rows.pair(item("a","L"),item("a","2")))
-def false_negative_source_occurrence_can_claim_another_occurrences_rank():
+def false():
   Tuple{1n,Tuple{item("a","2"),L.Both{{==},L.Both{{==},L.Both{{==},{==}}}}}}

@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_non_text_argument_starts_select:
+law false:
   {P.start(Nil{},D.Context{"t","user"},D.VBool{True{}}) == P.select(D.Application{"t"},"",Nil{}) : S.Action}
-def false_reject_non_text_argument_starts_select(): {==}
+def false(): {==}

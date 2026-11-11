@@ -6,6 +6,6 @@ import ../../../library/IndexEntryProofs.bend as Entry
 
 def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
-law false_reject_canonical_replacement_allows_repeated_keys:
+law false:
   {D.rows_valid_cases([entry("a","first"),entry("a","second")],Entry.schema("index")) == True{} : Bool}
-def false_reject_canonical_replacement_allows_repeated_keys(): {==}
+def false(): {==}

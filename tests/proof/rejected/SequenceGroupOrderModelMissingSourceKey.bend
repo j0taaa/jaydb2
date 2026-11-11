@@ -10,7 +10,7 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_group_order_can_invent_a_source_key_location:
+law false:
   Order.Ordered(~key,[D.VText{"a"}],[Sequence.Group{"z",[D.VText{"z"}]}])
-def false_negative_group_order_can_invent_a_source_key_location():
+def false():
   U.Both{Order.Located{0n,{==}},U.Both{Unit{},Unit{}}}

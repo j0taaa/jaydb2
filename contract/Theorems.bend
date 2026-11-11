@@ -1,6 +1,8 @@
 # Executable contract statements over the actual gate, interpreter and finisher.
 # Witnesses: proof/Init (Init), proof/CoreClauses (Core), proof/Ingress
-# (Ingress, UnifiedCore), proof/Iteration (Fold), proof/WireTheorems (wire).
+# (Ingress, UnifiedCore), proof/Iteration (Fold), proof/WireTheorems (wire),
+# proof/Configuration (Startup), proof/ControlClauses (Control), and
+# proof/ControlHistory (ServiceFold, lookup, invalidation and lifetime).
 import Base
 import ../src/Control.bend as Control
 import ../src/Dispatch.bend as Dispatch
@@ -159,7 +161,8 @@ def CoreClauseTheorem(k: Clause) -> Type:
 def CoreTheorem() -> Type:
   @k: Clause -> CoreClauseTheorem(k)
 
-# Init is typed admission of a seed proof, not a Boolean runtime law test.
+# Abstract seed-admission helper retained for FoldTheorem. The running startup
+# guarantee is StartupTheorem below; the service does not execute init.
 type SeedVerdict<-c: S.Configuration, -seed: D.State> is Type:
   SeedReject{}
   SeedAccept{valid: R.Valid(c, seed)}
@@ -190,6 +193,30 @@ def Init(-c: S.Configuration, -seed: D.State, -v: SeedVerdict<c, seed>) -> Type:
 
 def InitTheorem() -> Type:
   @c: S.Configuration -> @seed: D.State -> @v: SeedVerdict<c, seed> -> Init(c, seed, v)
+
+# T1's assertInitialization admits a closed declaration of R.Valid(c, seed)
+# for the exact frozen configuration/seed definitions. It supplies the premise
+# below, not a runtime proof field. initialize cannot test checker admission:
+# the host runs it only after that declaration passes both official checkers.
+def Startup(-c: S.Configuration, -identity: String, -seed: D.State) -> Type:
+  L.E<({ConfigurationCheck.is_valid(c, identity) == True{} : Bool} ->
+    &bytes: List<&2, U32> ->
+      L.E<{P.encode(D.state_value(seed)) == Some{bytes} : Maybe<&2, List<&2, U32>>},
+        {ConfigurationCheck.initialize(c, identity, u => seed) == Con{1, bytes} : List<&2, U32>}>),
+    L.E<(@bytes: List<&2, U32> ->
+      {ConfigurationCheck.initialize(c, identity, u => seed) == Con{1, bytes} : List<&2, U32>} ->
+        L.E<{ConfigurationCheck.is_valid(c, identity) == True{} : Bool},
+          {P.encode(D.state_value(seed)) == Some{bytes} : Maybe<&2, List<&2, U32>>}>),
+      L.E<({ConfigurationCheck.is_valid(c, identity) == False{} : Bool} ->
+        {ConfigurationCheck.initialize(c, identity, u => seed) == [2] : List<&2, U32>}),
+        L.E<({ConfigurationCheck.recover(c, identity) == [1] : List<&2, U32>} ->
+          {ConfigurationCheck.is_valid(c, identity) == True{} : Bool}),
+          ({ConfigurationCheck.is_valid(c, identity) == True{} : Bool} ->
+            {ConfigurationCheck.recover(c, identity) == [1] : List<&2, U32>})>>>>
+
+def StartupTheorem() -> Type:
+  @c: S.Configuration -> @identity: String -> @seed: D.State ->
+    R.Valid(c, seed) -> Startup(c, identity, seed)
 
 # Public encoding uses P.encode; the executable decoder is C.decode.
 def CodecRoundtrip() -> Type:
@@ -475,7 +502,128 @@ def ControlAdmissionSound(-c: S.Configuration, a: Control.Admission) -> Type:
         L.E<(@ctx: D.Context -> @args: D.Value -> R.Certifies(c, code, program, ctx, args)),
           (@state: D.State -> @ctx: D.Context -> @args: D.Value -> Terminates(program, c, state, ctx, args))>
 
+# Structural checks hold for every token. Universal source certification
+# needs ControlAdmissionSound in ServiceRun, rather than an unused premise here.
 def ControlTheorem() -> Type:
   @k: ControlClause -> @c: S.Configuration -> @root: D.State -> @last: List<&2, U32> ->
     @registry: Control.Registry -> @body: List<&2, U32> -> @a: Control.Admission -> @h: String ->
-      ControlAdmissionSound(c, a) -> ControlAt(c, k, root, last, registry, body, a, h)
+      ControlAt(c, k, root, last, registry, body, a, h)
+
+# The exact source/proof/instance tuple has a sound universal admission.
+def EntryAdmitted(-c: S.Configuration, e: Registry.Entry) -> Type:
+  match e:
+    case Registry.Entry{i, h, code, proof, ro, seal}:
+      &a: Control.Admission -> L.E<ControlAdmissionSound(c, a),
+        {Control.admission_matches(a, i, P.Request{"", code, D.VAbsent{}, proof}) == True{} : Bool}>
+
+def Tracked(-c: S.Configuration, es: List<&2, Registry.Entry>) -> Type:
+  match es:
+    case Nil{}: Unit
+    case Con{e, rest}: L.E<EntryAdmitted(c, e), Tracked(c, rest)>
+
+def next_registry(result: Control.Transition) -> Control.Registry:
+  Control.ControlResult{root, last, registry, outcome} = result
+  registry
+
+type ServiceRun<-c: S.Configuration, -root: D.State, -registry: Control.Registry> is Type:
+  ServiceEnd{}
+  ServiceTransaction{request: P.Request, admit: K.Oracle(), next: D.State,
+    sound: OracleSoundness(c, request, admit), step: Step<c, root, request, admit, next>,
+    rest: ServiceRun<c, next, registry>}
+  ServiceControl{body: List<&2, U32>, admission: Control.Admission, candidate: String,
+    sound: ControlAdmissionSound(c, admission),
+    rest: ServiceRun<c, root, next_registry(Control.control(c, root, Nil{}, registry, body, admission, candidate))>}
+
+# A transcript of actual checked registry transitions, beginning empty.
+# Together with Tracked and lookup, this exposes accepted-prepare provenance;
+# no caller can insert an arbitrary initial entry into this witness.
+type RegistryHistory<-c: S.Configuration, -registry: Control.Registry> is Type:
+  RegistryEmpty{empty: {registry == Control.ControlRegistry{Nil{}, Nil{}} : Control.Registry}}
+  RegistryControl{previous: Control.Registry, root: D.State, body: List<&2, U32>,
+    admission: Control.Admission, candidate: String,
+    before: RegistryHistory<c, previous>,
+    produced: {registry == next_registry(Control.control(c, root, Nil{}, previous, body, admission, candidate)) : Control.Registry}}
+
+# Reached roots are valid; every live lookup has a sound universal source
+# admission. Rest indices use the actual checked delta, never a host event.
+def ServiceAt(j: Nat, -c: S.Configuration, -root: D.State, -reg: Control.Registry,
+  run: ServiceRun<c, root, reg>) -> Type:
+  match j run:
+    case _ ServiceEnd{}: L.E<R.Valid(c, root), L.E<Tracked(c, Control.entries(reg)), RegistryHistory<c, reg>>>
+    case 0n ServiceTransaction{request, admit, next, sound, step, rest}:
+      L.E<R.Valid(c, root), L.E<Tracked(c, Control.entries(reg)), RegistryHistory<c, reg>>>
+    case 0n ServiceControl{body, a, h, sound, rest}:
+      L.E<R.Valid(c, root), L.E<Tracked(c, Control.entries(reg)), RegistryHistory<c, reg>>>
+    case 1n+i ServiceTransaction{request, admit, next, sound, step, rest}: ServiceAt(i, c, next, reg, rest)
+    case 1n+i ServiceControl{body, a, h, sound, rest}:
+      ServiceAt(i, c, root, next_registry(Control.control(c, root, Nil{}, reg, body, a, h)), rest)
+
+def UniversalSource(-c: S.Configuration, -code: String) -> Type:
+  &program: S.Program ->
+    L.E<(@ctx: D.Context -> @args: D.Value -> R.Certifies(c, code, program, ctx, args)),
+      (@state: D.State -> @ctx: D.Context -> @args: D.Value -> Terminates(program, c, state, ctx, args))>
+
+# A removed handle stays in the allocation history. At every future service
+# position it is still allocated and cannot be accepted as a prepare candidate.
+# Combined with exact scoped removal and the accepted-prepare provenance fold,
+# this rules out reviving an invalidated handle by later preparation.
+def HandleRetired(-h: String, -reg: Control.Registry) -> Type:
+  L.E<{Control.member(h, Control.used(reg)) == True{} : Bool},
+    (@limits: S.Limits -> @instance: String -> @ctx: D.Context -> @i: String -> @r: P.Request ->
+      {Control.admitted(limits, instance, True{}, ctx, i, h, reg, r) == Control.ControlDenied{S.Failure{}} : Control.Plan})>
+
+def HandleRetiredAt(j: Nat, +h: String, -c: S.Configuration, -root: D.State, -reg: Control.Registry,
+  run: ServiceRun<c, root, reg>) -> Type:
+  match j run:
+    case _ ServiceEnd{}: HandleRetired(h, reg)
+    case 0n ServiceTransaction{request, admit, next, sound, step, rest}: HandleRetired(h, reg)
+    case 0n ServiceControl{body, a, candidate, sound, rest}: HandleRetired(h, reg)
+    case 1n+i ServiceTransaction{request, admit, next, sound, step, rest}: HandleRetiredAt(i, h, c, next, reg, rest)
+    case 1n+i ServiceControl{body, a, candidate, sound, rest}:
+      HandleRetiredAt(i, h, c, root, next_registry(Control.control(c, root, Nil{}, reg, body, a, candidate)), rest)
+
+def ServiceLifetimeTheorem() -> Type:
+  @c: S.Configuration -> @root: D.State -> @reg: Control.Registry -> @h: String ->
+    @run: ServiceRun<c, root, reg> ->
+      {Control.member(h, Control.used(reg)) == True{} : Bool} ->
+        @j: Nat -> HandleRetiredAt(j, h, c, root, reg, run)
+
+# Absence is preserved at every later actual registry, including when later
+# controls prepare other handles or invalidate other entries.
+def RevokedAt(j: Nat, +i: String, +h: String, -c: S.Configuration, -root: D.State, -reg: Control.Registry,
+  run: ServiceRun<c, root, reg>) -> Type:
+  match j run:
+    case _ ServiceEnd{}:
+      L.E<HandleRetired(h, reg), {Registry.lookup(i, h, Control.entries(reg)) == None{} : Maybe<&2, Registry.Entry>}>
+    case 0n ServiceTransaction{request, admit, next, sound, step, rest}:
+      L.E<HandleRetired(h, reg), {Registry.lookup(i, h, Control.entries(reg)) == None{} : Maybe<&2, Registry.Entry>}>
+    case 0n ServiceControl{body, a, candidate, sound, rest}:
+      L.E<HandleRetired(h, reg), {Registry.lookup(i, h, Control.entries(reg)) == None{} : Maybe<&2, Registry.Entry>}>
+    case 1n+n ServiceTransaction{request, admit, next, sound, step, rest}: RevokedAt(n, i, h, c, next, reg, rest)
+    case 1n+n ServiceControl{body, a, candidate, sound, rest}:
+      RevokedAt(n, i, h, c, root, next_registry(Control.control(c, root, Nil{}, reg, body, a, candidate)), rest)
+
+def ServiceNoRevivalTheorem() -> Type:
+  @c: S.Configuration -> @root: D.State -> @reg: Control.Registry -> @i: String -> @h: String ->
+    @run: ServiceRun<c, root, reg> ->
+      {Control.member(h, Control.used(reg)) == True{} : Bool} ->
+        {Registry.lookup(i, h, Control.entries(reg)) == None{} : Maybe<&2, Registry.Entry>} ->
+          @j: Nat -> RevokedAt(j, i, h, c, root, reg, run)
+
+# Lookup soundness and lifetime facts are public parts of the mixed fold.
+def RegistryLookupTheorem() -> Type:
+  @c: S.Configuration -> @i: String -> @h: String -> @es: List<&2, Registry.Entry> -> @e: Registry.Entry ->
+    Tracked(c, es) -> {Registry.lookup(i, h, es) == Some{e} : Maybe<&2, Registry.Entry>} ->
+      UniversalSource(c, Registry.code(e))
+
+def RegistryInvalidationTheorem() -> Type:
+  @i: String -> @h: String -> @reg: Control.Registry ->
+    L.E<{Registry.lookup(i, h, Control.entries(Control.apply(Control.ControlRemove{i, h}, reg))) == None{} : Maybe<&2, Registry.Entry>},
+      {Control.used(Control.apply(Control.ControlRemove{i, h}, reg)) == Control.used(reg) : List<&2, String>}>
+
+def ServiceFoldTheorem() -> Type:
+  @c: S.Configuration -> @root: D.State -> @run: ServiceRun<c, root, Control.ControlRegistry{Nil{}, Nil{}}> ->
+    {R.configuration_is_valid(c) == True{} : Bool} -> R.Valid(c, root) -> @j: Nat ->
+      L.E<ServiceAt(j, c, root, Control.ControlRegistry{Nil{}, Nil{}}, run),
+        L.E<RegistryLookupTheorem(), L.E<RegistryInvalidationTheorem(),
+          L.E<ServiceLifetimeTheorem(), ServiceNoRevivalTheorem()>>>>

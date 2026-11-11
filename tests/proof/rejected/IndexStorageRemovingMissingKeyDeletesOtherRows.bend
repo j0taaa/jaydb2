@@ -6,6 +6,6 @@ import ../../../library/RowRemovalProofs.bend as Remove
 
 def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
-law false_reject_removing_missing_key_deletes_other_rows:
+law false:
   {Remove.all(["missing"],[entry("a","kept")]) == Nil{} : List<&2,D.Row>}
-def false_reject_removing_missing_key_deletes_other_rows(): {==}
+def false(): {==}

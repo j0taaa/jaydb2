@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_selected_record_reordering:
+law false:
   {Cut.cut(~C.Context,~C.reply,C.Context{D.Application{"t"},[S.Datum{D.Cell{D.VAbsent{}}},S.Datum{D.Cell{D.VAbsent{}}}]},2n,0n,Q.read_fields(D.Application{"t"},"k",["a","b"],P.selected)) == Cut.prefix([D.ReadCell{D.Application{"t"},"k","a"},D.ReadCell{D.Application{"t"},"k","b"}],S.Finish{D.VRecord{"b",D.VAbsent{},D.VRecord{"a",D.VAbsent{},D.VRecordEmpty{}}}}) : Cut.Prefix}
-def false_reject_selected_record_reordering(): {==}
+def false(): {==}

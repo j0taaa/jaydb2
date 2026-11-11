@@ -12,6 +12,6 @@ def never_less(a: D.Value,b: D.Value) -> Bool: False{}
 def always_less(a: D.Value,b: D.Value) -> Bool: True{}
 def all(v: D.Value) -> Bool: True{}
 
-law false_negative_sort_can_reverse_completed_payloads:
+law false:
   {Sequence.sort(~Sort.completed_less,[completed("a"),incomplete("x"),completed("b")]) == [incomplete("x"),completed("b"),completed("a")] : List<&2,D.Value>}
-def false_negative_sort_can_reverse_completed_payloads(): {==}
+def false(): {==}

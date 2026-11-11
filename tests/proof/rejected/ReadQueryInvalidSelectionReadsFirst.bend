@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_invalid_selection_reads_first:
+law false:
   {P.select(D.Application{"t"},"k",["z","a"]) == S.Access{D.ReadCell{D.Application{"t"},"k","z"},r => S.Finish{D.VAbsent{}}} : S.Action}
-def false_reject_invalid_selection_reads_first(): {==}
+def false(): {==}

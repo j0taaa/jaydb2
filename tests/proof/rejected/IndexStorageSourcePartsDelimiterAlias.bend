@@ -6,6 +6,6 @@ import ../../../library/Key.bend as K
 
 def e(key: String,parts: List<&2,String>,target: String) -> Source.SourceEntry: Source.SourceEntry{key,parts,target}
 
-law false_reject_source_parts_delimiter_alias:
+law false:
   {Content.matches(K.encode(["a","b"]),e("a",["a|b"],"t")) == True{} : Bool}
-def false_reject_source_parts_delimiter_alias(): {==}
+def false(): {==}

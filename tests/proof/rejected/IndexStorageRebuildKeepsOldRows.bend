@@ -14,6 +14,6 @@ def entry(key: String,tag: String,target: String) -> D.Row: I.entry(key,[tag],ta
 
 def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{}}
 
-law false_reject_rebuild_keeps_old_rows:
+law false:
   {T.observe(5n,I.rebuild(collection(),[entry("n","yes","new")],S.Finish{D.VAbsent{}}),schema(),state([entry("a","yes","old-a"),entry("b","no","old-b")]),Nil{}) == S.Final{state([entry("a","yes","old-a"),entry("b","no","old-b"),entry("n","yes","new")]),[S.OperationEvent{D.EnumerateKeys{collection()},S.Reading{D.Keys{["a","b"]}}},S.OperationEvent{D.RemoveRow{collection(),"a"},S.Write{}},S.OperationEvent{D.RemoveRow{collection(),"b"},S.Write{}},S.OperationEvent{D.DefineRow{collection(),"n",Entry.fields(entry("n","yes","new"))},S.Write{}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_rebuild_keeps_old_rows(): {==}
+def false(): {==}

@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_matching_duplicate_multiplicity_is_not_the_cartesian_count:
+law false:
   {Model.total(~key,~key,False{},[item("a","L1"),item("a","L2")],[item("a","R1"),item("a","R2")]) == 2n : Nat}
-def false_negative_matching_duplicate_multiplicity_is_not_the_cartesian_count(): {==}
+def false(): {==}

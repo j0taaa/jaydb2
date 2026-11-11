@@ -2,7 +2,7 @@
 import Base
 import ../../../proof/DecimalParser.bend as P
 
-law false_following_digit_is_preserved_as_suffix:
+law false:
   {P.parse_word(U32.show(1) ++ "0") == P.WordParsed{1, "0"} : P.WordParsed}
-def false_following_digit_is_preserved_as_suffix():
+def false():
   {==}

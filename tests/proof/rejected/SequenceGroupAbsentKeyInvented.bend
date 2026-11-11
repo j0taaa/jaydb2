@@ -11,6 +11,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_groups_can_materialize_an_absent_key:
+law false:
   {Lookup.lookup("z",Sequence.group(~key,[item("a","1")])) == Some{[]} : Maybe<&2,List<&2,D.Value>>}
-def false_negative_groups_can_materialize_an_absent_key(): {==}
+def false(): {==}

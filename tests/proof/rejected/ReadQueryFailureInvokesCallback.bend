@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_failure_invokes_callback:
+law false:
   {S.step(S.Access{D.ReadCell{D.Application{"t"},"k","a"},r => S.Finish{D.VBool{True{}}}},D.Schema{Nil{}},D.State{Nil{},Nil{}}) == S.Stopped{D.State{Nil{},Nil{}},S.Response{S.Success{},D.VBool{True{}}}} : S.Step}
-def false_reject_failure_invokes_callback(): {==}
+def false(): {==}

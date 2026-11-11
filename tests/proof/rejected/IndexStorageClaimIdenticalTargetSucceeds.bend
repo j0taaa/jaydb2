@@ -15,6 +15,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def bool_done(value: Bool) -> S.Action: S.Finish{D.VBool{value}}
 
-law false_reject_claim_identical_target_succeeds:
+law false:
   {T.observe(3n,I.claim(collection(),["known"],"t",bool_done),schema(),state([I.unique(["known"],"t")]),Nil{}) == S.Final{state([I.unique(["known"],"t")]),[S.OperationEvent{D.ViewExistence{collection(),K.encode(["known"])},S.Reading{D.Existence{True{}}}}],S.Response{S.Success{},D.VBool{True{}}}} : S.Trace}
-def false_reject_claim_identical_target_succeeds(): {==}
+def false(): {==}

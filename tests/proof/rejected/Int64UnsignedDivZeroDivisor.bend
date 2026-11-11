@@ -5,7 +5,7 @@ import ../../../library/Int64UnsignedDivision.bend as D
 import ../../../contract/Logic.bend as L
 
 # The equality 6=0*0+6 holds, but no remainder can be strictly below zero.
-law false_negative_zero_divisor_euclidean_result:
+law false:
   D.Euclidean(V.Int64{0,6},V.Int64{0,0},I.Division{V.Int64{0,0},V.Int64{0,6}})
-def false_negative_zero_divisor_euclidean_result():
+def false():
   L.Both{{==},L.Both{{==},{==}}}

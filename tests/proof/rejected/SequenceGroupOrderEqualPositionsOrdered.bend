@@ -10,6 +10,6 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_last_position_order_can_be_nonstrict:
+law false:
   Order.Greater(Some{1n},Some{1n})
-def false_negative_last_position_order_can_be_nonstrict(): {==}
+def false(): {==}

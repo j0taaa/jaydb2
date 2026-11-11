@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_left_join_can_deduplicate_unmatched_left_occurrences:
+law false:
   {Relation.left_join(~key,~key,[item("b","M"),item("b","M")],[]) == [Rows.pair(item("b","M"),D.VAbsent{})] : List<&2,D.Value>}
-def false_negative_left_join_can_deduplicate_unmatched_left_occurrences(): {==}
+def false(): {==}

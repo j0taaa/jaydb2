@@ -16,6 +16,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def done(value: D.Value) -> S.Action: S.Finish{value}
 
-law false_reject_scan_failure_continues:
+law false:
   {T.observe(8n,I.scan_equal(collection(),["yes"],done),bad_schema(),state([entry("a","yes","first"),entry("b","no","skipped"),entry("c","yes","last")]),Nil{}) == S.Final{state([entry("a","yes","first"),entry("b","no","skipped"),entry("c","yes","last")]),[S.OperationEvent{D.EnumerateKeys{collection()},S.Reading{D.Keys{["a","b","c"]}}},S.OperationEvent{D.ReadCell{collection(),"a","target"},S.Reading{D.Cell{D.VText{"first"}}}},S.OperationEvent{D.ReadCell{collection(),"a","value"},S.ErrorOfData{}},S.OperationEvent{D.ReadCell{collection(),"b","target"},S.Reading{D.Cell{D.VText{"skipped"}}}}],S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_scan_failure_continues(): {==}
+def false(): {==}

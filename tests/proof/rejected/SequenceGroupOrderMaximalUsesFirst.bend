@@ -11,7 +11,7 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_first_matching_position_satisfies_greatest_position_meaning:
+law false:
   Last.Maximal(~key,"a",[D.VText{"a"},D.VText{"b"},D.VText{"a"}],0n)
-def false_negative_first_matching_position_satisfies_greatest_position_meaning():
+def false():
   Tuple{D.VText{"a"},L.Both{{==},L.Both{{==},+index => +value => present => matched => {==}}}}

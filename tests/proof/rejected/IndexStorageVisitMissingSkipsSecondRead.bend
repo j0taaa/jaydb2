@@ -18,6 +18,6 @@ def maybe_done(value: Maybe<&2,D.Value>) -> S.Action:
     case None{}: S.Finish{D.VAbsent{}}
     case Some{value}: S.Finish{value}
 
-law false_reject_visit_missing_skips_second_read:
+law false:
   {T.observe(3n,I.visit(I.Scan{collection(),K.encode(["yes"])},"missing",maybe_done),schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[S.OperationEvent{D.ReadCell{collection(),"missing","target"},S.Reading{D.RowAbsent{}}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_visit_missing_skips_second_read(): {==}
+def false(): {==}

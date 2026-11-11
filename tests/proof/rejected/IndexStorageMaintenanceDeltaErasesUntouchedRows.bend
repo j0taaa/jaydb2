@@ -6,6 +6,6 @@ import ../../../library/IndexMaintenancePlan.bend as Maint
 
 def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
-law false_reject_maintenance_delta_erases_untouched_rows:
+law false:
   {Maint.rows(["a"],[entry("n","new")],[entry("a","old"),entry("b","untouched")]) == [entry("n","new")] : List<&2,D.Row>}
-def false_reject_maintenance_delta_erases_untouched_rows(): {==}
+def false(): {==}

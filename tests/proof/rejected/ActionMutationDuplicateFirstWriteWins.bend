@@ -17,6 +17,6 @@ def rowschema() -> D.Schema:
 def rowsstate(rows: List<&2,D.Row>) -> D.State:
   D.State{[D.Table{"t",rows}],Nil{}}
 
-law false_reject_duplicate_first_write_wins:
+law false:
   {T.observe(3n,A.define_rows(collection(),[row("k","first"),row("k","new")],S.Finish{D.VAbsent{}}),rowschema(),rowsstate(Nil{}),Nil{}) == S.Final{rowsstate([row("k","first")]),[S.OperationEvent{D.DefineRow{collection(),D.row_key(row("k","first")),Boolean.row_fields(row("k","first"))},S.Write{}},S.OperationEvent{D.DefineRow{collection(),D.row_key(row("k","new")),Boolean.row_fields(row("k","new"))},S.Write{}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_duplicate_first_write_wins(): {==}
+def false(): {==}

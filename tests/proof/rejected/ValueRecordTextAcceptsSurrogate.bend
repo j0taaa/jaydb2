@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_text_decoder_accepts_surrogate_char_data:
+law false:
   {V.text(D.VText{surrogate()}) == Some{surrogate()} : Maybe<&2,String>}
-def false_negative_text_decoder_accepts_surrogate_char_data(): {==}
+def false(): {==}

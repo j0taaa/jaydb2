@@ -7,6 +7,6 @@ def collection() -> D.Collection: D.Application{"index"}
 
 def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
-law false_reject_application_swap_overwrites_users:
+law false:
   {D.swap_collection(collection(),D.State{[D.Table{"index",Nil{}}],[entry("u","user")]},[entry("n","new")]) == D.State{[D.Table{"index",[entry("n","new")]}],[entry("n","new")]} : D.State}
-def false_reject_application_swap_overwrites_users(): {==}
+def false(): {==}

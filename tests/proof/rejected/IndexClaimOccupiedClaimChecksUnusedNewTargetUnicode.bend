@@ -16,6 +16,6 @@ def bool_done(value: Bool) -> S.Action: S.Finish{D.VBool{value}}
 
 def badkey() -> String: SCon{Chr{55296},SNil{}}
 
-law false_reject_occupied_claim_checks_unused_new_target_unicode:
+law false:
   {T.observe(3n,I.claim(collection(),["v"],badkey(),bool_done),schema(),state([I.unique(["v"],"stored")]),Nil{}) == S.Final{state([I.unique(["v"],"stored")]),Nil{},S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_occupied_claim_checks_unused_new_target_unicode(): {==}
+def false(): {==}

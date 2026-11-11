@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_missing_schema_column_as_absent:
+law false:
   {D.read_column(None{},None{},"a") == D.Observed{D.RowAbsent{}} : D.ResultOp}
-def false_reject_missing_schema_column_as_absent(): {==}
+def false(): {==}

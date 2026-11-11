@@ -12,6 +12,6 @@ def never_less(a: D.Value,b: D.Value) -> Bool: False{}
 def always_less(a: D.Value,b: D.Value) -> Bool: True{}
 def all(v: D.Value) -> Bool: True{}
 
-law false_negative_sort_stability_can_drop_a_duplicate:
+law false:
   {Sequence.sort(~never_less,[D.VText{"a"},D.VText{"a"},D.VText{"b"}]) == [D.VText{"a"},D.VText{"b"}] : List<&2,D.Value>}
-def false_negative_sort_stability_can_drop_a_duplicate(): {==}
+def false(): {==}

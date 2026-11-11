@@ -2,7 +2,7 @@
 import Base
 import ../../../contract/Resources.bend as X
 
-law false_mismatched_physical_length_is_valid:
+law false:
   X.ReceptionValid(X.BodyReceived{0, 0, [7, 1]})
-def false_mismatched_physical_length_is_valid():
+def false():
   {==}

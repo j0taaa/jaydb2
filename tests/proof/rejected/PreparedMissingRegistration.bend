@@ -4,10 +4,10 @@
 import Base
 import ../../../contract/PreparedRegistry.bend as G
 
-law false_skipped_registration_would_resolve_current_handle:
+law false:
   for -instance: String
   for -handle: String
   for -entry: G.Entry
   {G.lookup(instance, handle, Nil{}) == Some{entry} : Maybe<&2, G.Entry>}
-def false_skipped_registration_would_resolve_current_handle(instance, handle, entry):
+def false(instance, handle, entry):
   {==}

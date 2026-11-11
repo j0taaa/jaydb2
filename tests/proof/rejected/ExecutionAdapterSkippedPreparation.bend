@@ -7,7 +7,7 @@ import ../../../proof/ExecutionAdapter.bend as A
 import ../../../src/Core.bend as N
 import ../../../src/Execution.bend as X
 
-law false_skipping_preparation_still_emits_complete_response:
+law false:
   for ~c: S.Configuration
   for initial: D.State
   for working: D.State
@@ -15,5 +15,5 @@ law false_skipping_preparation_still_emits_complete_response:
   {A.drive(c, 0n, X.Prepare{X.StateExecution{initial,
     N.Stopped{working, Nil{}, S.Response{S.Refusal{}, value}}}}) ==
     X.FinishOutput{Nil{}} : X.Iteration}
-def false_skipping_preparation_still_emits_complete_response(c, initial, working, value):
+def false(c, initial, working, value):
   {==}

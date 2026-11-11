@@ -6,6 +6,6 @@ import ../../../library/Receipts.bend as H
 
 
 
-law false_reject_receipt_write_datum_invokes_caller:
+law false:
   {H.written(S.Finish{D.VText{"written"}},S.Datum{D.Cell{D.VAbsent{}}}) == S.Finish{D.VText{"written"}} : S.Action}
-def false_reject_receipt_write_datum_invokes_caller(): {==}
+def false(): {==}

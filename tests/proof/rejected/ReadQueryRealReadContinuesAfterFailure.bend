@@ -15,6 +15,6 @@ def schema() -> D.Schema:
 def state(value: D.Value) -> D.State:
   D.State{[D.Table{"t",[D.Row{"k",[D.Field{"a",value}]}]}],Nil{}}
 
-law false_reject_real_read_continues_after_failure:
+law false:
   {T.observe(4n,P.select(D.Application{"t"},"k",["a","z","zz"]),schema(),state(D.VAbsent{}),Nil{}) == S.Final{state(D.VAbsent{}),[S.OperationEvent{D.ReadCell{D.Application{"t"},"k","a"},S.Reading{D.Cell{D.VAbsent{}}}},S.OperationEvent{D.ReadCell{D.Application{"t"},"k","z"},S.ErrorOfData{}},S.OperationEvent{D.ReadCell{D.Application{"t"},"k","zz"},S.ErrorOfData{}}],S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_real_read_continues_after_failure(): {==}
+def false(): {==}

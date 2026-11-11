@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_existence_value_changed:
+law false:
   {Read.exists_return(b => S.Finish{D.VBool{b}},S.Datum{D.Existence{False{}}}) == S.Finish{D.VBool{True{}}} : S.Action}
-def false_reject_existence_value_changed(): {==}
+def false(): {==}

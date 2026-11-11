@@ -16,6 +16,6 @@ def bool_done(value: Bool) -> S.Action: S.Finish{D.VBool{value}}
 
 def badkey() -> String: SCon{Chr{55296},SNil{}}
 
-law false_reject_invalid_absent_claim_skips_its_existence_read:
+law false:
   {T.observe(3n,I.claim(collection(),["v"],badkey(),bool_done),schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),Nil{},S.Response{S.DataError{},D.VAbsent{}}} : S.Trace}
-def false_reject_invalid_absent_claim_skips_its_existence_read(): {==}
+def false(): {==}

@@ -11,6 +11,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_compare_present_absent_is_missing:
+law false:
   {M.cas_received(collection(),row("k","new"),D.VAbsent{},bool_done,S.Datum{D.Cell{D.VAbsent{}}}) == bool_done(False{}) : S.Action}
-def false_reject_compare_present_absent_is_missing(): {==}
+def false(): {==}

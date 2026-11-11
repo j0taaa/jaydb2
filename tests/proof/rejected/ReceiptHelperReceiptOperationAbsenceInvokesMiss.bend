@@ -11,6 +11,6 @@ def done(r: S.Return) -> S.Action:
 
 def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
-law false_reject_receipt_operation_absence_invokes_miss:
+law false:
   {H.operation_seen("owner","r","op",done,S.Datum{D.RowAbsent{}}) == missing() : S.Action}
-def false_reject_receipt_operation_absence_invokes_miss(): {==}
+def false(): {==}

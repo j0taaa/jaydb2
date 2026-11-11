@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_read_callback_cannot_write:
+law false:
   {Read.keys_return(keys => S.Access{D.RemoveRow{D.Application{"t"},"k"},r => S.Finish{D.VAbsent{}}},S.Datum{D.Keys{Nil{}}}) == S.Finish{D.VListEmpty{}} : S.Action}
-def false_reject_read_callback_cannot_write(): {==}
+def false(): {==}

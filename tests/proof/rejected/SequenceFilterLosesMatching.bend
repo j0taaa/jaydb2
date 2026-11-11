@@ -10,6 +10,6 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_filter_can_omit_a_later_matching_occurrence:
+law false:
   {Sequence.filter(~accept_bool,[D.VBool{True{}},D.VBool{False{}},D.VBool{True{}}]) == [D.VBool{True{}}] : List<&2,D.Value>}
-def false_negative_filter_can_omit_a_later_matching_occurrence(): {==}
+def false(): {==}

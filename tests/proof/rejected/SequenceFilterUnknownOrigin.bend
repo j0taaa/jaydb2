@@ -11,7 +11,7 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_filter_origin_can_invent_an_input_value:
+law false:
   Filter.Origin(~accept_all,[D.VText{"a"}],0n,D.VText{"b"})
-def false_negative_filter_origin_can_invent_an_input_value():
+def false():
   Tuple{0n,L.Both{{==},L.Both{{==},{==}}}}

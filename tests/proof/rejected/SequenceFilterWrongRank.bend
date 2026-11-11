@@ -11,7 +11,7 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_filter_origin_can_have_the_wrong_rank:
+law false:
   Filter.Origin(~accept_all,[D.VText{"a"},D.VText{"b"}],0n,D.VText{"b"})
-def false_negative_filter_origin_can_have_the_wrong_rank():
+def false():
   Tuple{1n,L.Both{{==},L.Both{{==},{==}}}}

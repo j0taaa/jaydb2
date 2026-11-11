@@ -4,6 +4,6 @@ import ../../../library/Receipts.bend as H
 
 
 
-law false_reject_receipt_binding_changes_input:
+law false:
   {H.matches("op","input","op","other") == True{} : Bool}
-def false_reject_receipt_binding_changes_input(): {==}
+def false(): {==}

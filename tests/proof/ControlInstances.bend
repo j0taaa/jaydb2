@@ -70,12 +70,12 @@ law foreign_invalidation_denied:
 def foreign_invalidation_denied(): {==}
 
 law denial_preserves_registry:
-  {History.next_registry(C.finish(C.ControlDenied{S.Authentication{}}, X.seed(), [1, 2], registered())) ==
+  {T.next_registry(C.finish(C.ControlDenied{S.Authentication{}}, X.seed(), [1, 2], registered())) ==
     registered() : C.Registry}
 def denial_preserves_registry(): {==}
 
 law receipt_before_mutation:
-  {History.next_registry(C.finish(C.receipt(S.Limits{1024n, 1024n, 64n}, "controls", X.context(),
+  {T.next_registry(C.finish(C.receipt(S.Limits{1024n, 1024n, 64n}, "controls", X.context(),
     C.ControlAdd{entry()}, W.PreparedReceipt{handle()}), X.seed(), [1, 2], registry())) == registry() : C.Registry}
 def receipt_before_mutation(): {==}
 
@@ -86,19 +86,38 @@ law all_control_clauses:
   for k: T.ControlClause
   T.ControlAt(X.configuration(), k, X.seed(), [1, 2], registry(), body(W.Prepare{}, request()), admission(), handle())
 def all_control_clauses(k):
-  Proof.control_theorem()(k, X.configuration(), X.seed(), [1, 2], registry(), body(W.Prepare{}, request()), admission(), handle(), sound())
+  Proof.control_theorem()(k, X.configuration(), X.seed(), [1, 2], registry(), body(W.Prepare{}, request()), admission(), handle())
 
-def mixed_run() -> History.ServiceRun<X.configuration(), X.seed(), registry()>:
-  History.ServiceControl{body(W.Prepare{}, request()), admission(), handle(), sound(),
-    History.ServiceTransaction{X.request(), Wrong.accept, X.seed(), Instances.controls_oracle_sound,
+def mixed_run() -> T.ServiceRun<X.configuration(), X.seed(), registry()>:
+  T.ServiceControl{body(W.Prepare{}, request()), admission(), handle(), sound(),
+    T.ServiceTransaction{X.request(), Wrong.accept, X.seed(), Instances.controls_oracle_sound,
       T.StepRan{X.context(), X.program(), 1n, X.seed(), Nil{}, S.Response{S.Refusal{}, D.VAbsent{}},
         Instances.refused(), Instances.refused_bytes(), {==}, {==}, {==}, {==}},
-      History.ServiceControl{body(W.Invalidate{}, invalidation()), C.ControlUnaccepted{}, handle(), Unit{},
-        History.ServiceEnd{}}}}
+      T.ServiceControl{body(W.Invalidate{}, invalidation()), C.ControlUnaccepted{}, handle(), Unit{},
+        T.ServiceEnd{}}}}
 
 law mixed_fold:
   for j: Nat
-  History.ServiceAt(j, X.configuration(), X.seed(), registry(), mixed_run())
+  T.ServiceAt(j, X.configuration(), X.seed(), registry(), mixed_run())
 def mixed_fold(j):
-  History.service_fold_theorem()(X.configuration(), X.seed(), mixed_run(),
-    Instances.controls_configured(), X.seed_valid(), j)
+  L.and_left(T.ServiceAt(j, X.configuration(), X.seed(), registry(), mixed_run()),
+    L.E<T.RegistryLookupTheorem(), L.E<T.RegistryInvalidationTheorem(), L.E<T.ServiceLifetimeTheorem(), T.ServiceNoRevivalTheorem()>>>,
+    History.service_fold_theorem()(X.configuration(), X.seed(), mixed_run(),
+      Instances.controls_configured(), X.seed_valid(), j))
+
+# A revoked handle stays absent through a repeated prepare attempt and another
+# invalidation. The generic theorem also covers arbitrary interleaved calls.
+def revoked_registry() -> C.Registry:
+  C.apply(C.ControlRemove{"controls", handle()}, registered())
+
+def retired_run() -> T.ServiceRun<X.configuration(), X.seed(), revoked_registry()>:
+  T.ServiceControl{body(W.Prepare{}, request()), admission(), handle(), sound(),
+    T.ServiceControl{body(W.Invalidate{}, invalidation()), C.ControlUnaccepted{}, handle(), Unit{},
+      T.ServiceEnd{}}}
+
+law revoked_handle_never_revives:
+  for j: Nat
+  T.RevokedAt(j, "controls", handle(), X.configuration(), X.seed(), revoked_registry(), retired_run())
+def revoked_handle_never_revives(j):
+  History.service_no_revival_theorem()(X.configuration(), X.seed(), revoked_registry(), "controls", handle(),
+    retired_run(), {==}, {==}, j)

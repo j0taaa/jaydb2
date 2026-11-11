@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_present_absent_is_missing:
+law false:
   {Q.combine("a",S.Datum{D.Cell{D.VAbsent{}}},Q.Selected{D.VRecordEmpty{}}) == Q.MissingRow{} : Q.Selection}
-def false_reject_present_absent_is_missing(): {==}
+def false(): {==}

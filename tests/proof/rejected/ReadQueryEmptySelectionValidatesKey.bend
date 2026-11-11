@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_empty_selection_validates_key:
+law false:
   {P.select(D.Application{"t"},SCon{Chr{55296},SNil{}},Nil{}) == S.Refuse{D.VText{"invalid key"}} : S.Action}
-def false_reject_empty_selection_validates_key(): {==}
+def false(): {==}

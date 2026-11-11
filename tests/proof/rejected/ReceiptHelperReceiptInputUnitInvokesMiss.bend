@@ -11,6 +11,6 @@ def done(r: S.Return) -> S.Action:
 
 def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
-law false_reject_receipt_input_unit_invokes_miss:
+law false:
   {H.input_seen("owner","r","op","input",missing(),done,S.UnitValue{}) == missing() : S.Action}
-def false_reject_receipt_input_unit_invokes_miss(): {==}
+def false(): {==}

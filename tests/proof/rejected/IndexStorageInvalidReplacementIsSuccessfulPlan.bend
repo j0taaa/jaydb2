@@ -15,6 +15,6 @@ def state(index: List<&2,D.Row>,rows: List<&2,D.Row>) -> D.State: D.State{[D.Tab
 
 def badrow() -> D.Row: D.Row{"n",Nil{}}
 
-law false_reject_invalid_replacement_is_successful_plan:
+law false:
   {Plan.plan([D.DefineRow{collection(),"n",Nil{}}],schema(),state(Nil{},Nil{})) == Plan.WriteHandoff{state([badrow()],Nil{}),[S.OperationEvent{D.DefineRow{collection(),"n",Nil{}},S.Write{}}]} : Plan.Plan}
-def false_reject_invalid_replacement_is_successful_plan(): {==}
+def false(): {==}

@@ -16,6 +16,6 @@ import ../../../src/Termination.bend as T
 def context() -> C.Context: C.Context{D.Application{"t"},[S.Datum{D.Cell{D.VText{"first"}}},S.Datum{D.Cell{D.VText{"second"}}}]}
 def MaybeItems() -> List<&2,D.Value>: [D.VText{"first"},D.VText{"second"}]
 
-law false_reject_original_projection_wrong_rank:
+law false:
   {At.at(MaybeItems(),Pos.before(~C.Context,~C.cost,~C.item,context(),["a","b"],1n,0n)) == Some{D.VText{"first"}} : Maybe<&2,D.Value>}
-def false_reject_original_projection_wrong_rank(): {==}
+def false(): {==}

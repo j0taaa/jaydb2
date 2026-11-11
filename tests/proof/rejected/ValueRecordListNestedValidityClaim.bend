@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_list_shape_decoder_rejects_invalid_nested_values:
+law false:
   {V.list(D.VList{D.VText{surrogate()},D.VListEmpty{}}) == None{} : Maybe<&2,List<&2,D.Value>>}
-def false_negative_list_shape_decoder_rejects_invalid_nested_values(): {==}
+def false(): {==}

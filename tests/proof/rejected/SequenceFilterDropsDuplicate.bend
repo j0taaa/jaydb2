@@ -10,6 +10,6 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_filter_can_drop_matching_duplicates:
+law false:
   {Sequence.filter(~accept_all,[D.VText{"a"},D.VText{"a"}]) == [D.VText{"a"}] : List<&2,D.Value>}
-def false_negative_filter_can_drop_matching_duplicates(): {==}
+def false(): {==}

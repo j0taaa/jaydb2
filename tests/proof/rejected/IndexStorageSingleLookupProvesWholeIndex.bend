@@ -10,6 +10,6 @@ def entry(key: String,tag: String,target: String) -> D.Row: I.entry(key,[tag],ta
 
 def build(rows: List<&2,D.Row>) -> List<&2,D.Row>: rows
 
-law false_reject_single_lookup_proves_whole_index:
+law false:
   Law.ExactIndex(~build,D.Application{"base"},collection(),D.State{[D.Table{"base",[I.unique(["known"],"t")]},D.Table{"index",[I.unique(["known"],"t"),entry("z","other","extra")]}],Nil{}})
-def false_reject_single_lookup_proves_whole_index(): {==}
+def false(): {==}

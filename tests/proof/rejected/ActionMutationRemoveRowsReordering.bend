@@ -8,6 +8,6 @@ import ../../../library/Mutation.bend as M
 
 def collection() -> D.Collection: D.Application{"t"}
 
-law false_reject_remove_rows_reordering:
+law false:
   {Cut.cut(~Unit,~Prefix.unit_return,Unit{},2n,0n,M.remove_rows(collection(),["a","b"],S.Finish{D.VAbsent{}})) == Cut.prefix([D.RemoveRow{collection(),"b"},D.RemoveRow{collection(),"a"}],S.Finish{D.VAbsent{}}) : Cut.Prefix}
-def false_reject_remove_rows_reordering(): {==}
+def false(): {==}

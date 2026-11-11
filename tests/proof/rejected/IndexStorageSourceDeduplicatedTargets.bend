@@ -7,6 +7,6 @@ import ../../../library/Sequence.bend as Sequence
 
 def e(key: String,parts: List<&2,String>,target: String) -> Source.SourceEntry: Source.SourceEntry{key,parts,target}
 
-law false_reject_source_deduplicated_targets:
+law false:
   {Sequence.length(Content.targets([e("a",["yes"],"same"),e("b",["yes"],"same")],K.encode(["yes"]))) == 1n : Nat}
-def false_reject_source_deduplicated_targets(): {==}
+def false(): {==}

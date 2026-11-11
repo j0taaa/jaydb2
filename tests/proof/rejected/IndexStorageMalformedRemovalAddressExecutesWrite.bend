@@ -18,6 +18,6 @@ def state(index: List<&2,D.Row>,rows: List<&2,D.Row>) -> D.State: D.State{[D.Tab
 
 def badkey() -> String: SCon{Chr{55296},SNil{}}
 
-law false_reject_malformed_removal_address_executes_write:
+law false:
   {Plan.plan([D.RemoveRow{collection(),badkey()}],schema(),state([entry("a","old")],Nil{})) == Plan.WriteHandoff{state([entry("a","old")],Nil{}),[S.OperationEvent{D.RemoveRow{collection(),badkey()},S.Write{}}]} : Plan.Plan}
-def false_reject_malformed_removal_address_executes_write(): {==}
+def false(): {==}

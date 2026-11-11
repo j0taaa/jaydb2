@@ -8,6 +8,6 @@ def e(key: String,parts: List<&2,String>,target: String) -> Source.SourceEntry: 
 
 def matching() -> Source.SourceEntry: e("a",["yes"],"target")
 
-law false_reject_source_invented_position:
+law false:
   Projection.Origin<["yes"],[matching()],0n,D.VText{"target"}>
-def false_reject_source_invented_position(): Projection.SourceOrigin{1n,matching(),{==},{==},{==},{==}}
+def false(): Projection.SourceOrigin{1n,matching(),{==},{==},{==},{==}}

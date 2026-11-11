@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_helper_stops_on_unexpected:
+law false:
   {Cut.cut(~C.Context,~C.reply,C.Context{D.Application{"t"},[S.UnitValue{},S.Datum{D.Cell{D.VAbsent{}}}]},2n,0n,Q.read_fields(D.Application{"t"},"k",["a","b"],P.selected)) == Cut.prefix([D.ReadCell{D.Application{"t"},"k","a"}],S.Refuse{D.VText{"unexpected selection return"}}) : Cut.Prefix}
-def false_reject_helper_stops_on_unexpected(): {==}
+def false(): {==}

@@ -14,6 +14,6 @@ def entry(key: String,tag: String,target: String) -> D.Row: I.entry(key,[tag],ta
 
 def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{}}
 
-law false_reject_rebuild_duplicate_first_wins:
+law false:
   {T.observe(4n,I.rebuild(collection(),[entry("k","yes","first"),entry("k","yes","last")],S.Finish{D.VAbsent{}}),schema(),state(Nil{}),Nil{}) == S.Final{state([entry("k","yes","first")]),[S.OperationEvent{D.EnumerateKeys{collection()},S.Reading{D.Keys{[]}}},S.OperationEvent{D.DefineRow{collection(),"k",Entry.fields(entry("k","yes","first"))},S.Write{}},S.OperationEvent{D.DefineRow{collection(),"k",Entry.fields(entry("k","yes","last"))},S.Write{}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_rebuild_duplicate_first_wins(): {==}
+def false(): {==}

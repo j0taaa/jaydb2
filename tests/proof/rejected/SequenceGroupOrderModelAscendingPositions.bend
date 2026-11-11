@@ -10,7 +10,7 @@ def key(value: D.Value) -> String:
     case D.VText{s}: s
     case _: ""
 
-law false_negative_ascending_source_positions_satisfy_descending_group_order:
+law false:
   Order.Ordered(~key,[D.VText{"a"},D.VText{"b"}],[Sequence.Group{"a",[D.VText{"a"}]},Sequence.Group{"b",[D.VText{"b"}]}])
-def false_negative_ascending_source_positions_satisfy_descending_group_order():
+def false():
   U.Both{Order.Located{0n,{==}},U.Both{U.Both{{==},Unit{}},U.Both{Order.Located{1n,{==}},U.Both{Unit{},Unit{}}}}}

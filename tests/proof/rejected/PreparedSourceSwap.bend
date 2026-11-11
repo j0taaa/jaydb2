@@ -5,8 +5,8 @@ import ../../../contract/RequestFacts.bend as I
 import ../../../src/Prepared.bend as H
 import ../../../contract/Protocol.bend as P
 
-law false_handle_is_original_source:
+law false:
   {I.code(H.resolve_request(P.Request{"credential", "handle", D.VAbsent{}, ""},
     "original-source", "universal-proof")) == "handle" : String}
-def false_handle_is_original_source():
+def false():
   {==}

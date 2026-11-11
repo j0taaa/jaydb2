@@ -19,6 +19,6 @@ def selection_done(result: Q.Selection) -> S.Action:
 
 def no_target() -> D.Schema: D.Schema{[D.SchemaTable{"index","id",[D.Column{"id",D.TextValue{},False{}}]}]}
 
-law false_reject_unknown_target_column_means_missing_unique_row:
+law false:
   {T.observe(2n,I.lookup(collection(),["v"],selection_done),no_target(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[S.OperationEvent{D.ReadCell{collection(),K.encode(["v"]),"target"},S.Reading{D.RowAbsent{}}}],S.Response{S.Success{},D.VAbsent{}}} : S.Trace}
-def false_reject_unknown_target_column_means_missing_unique_row(): {==}
+def false(): {==}

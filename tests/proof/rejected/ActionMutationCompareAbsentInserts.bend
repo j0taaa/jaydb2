@@ -13,6 +13,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_compare_absent_inserts:
+law false:
   {M.cas_received(collection(),row("k","new"),D.VAbsent{},bool_done,S.Datum{D.RowAbsent{}}) == S.Access{D.DefineRow{collection(),D.row_key(row("k","new")),Boolean.row_fields(row("k","new"))},r => A.written(bool_done(True{}),r)} : S.Action}
-def false_reject_compare_absent_inserts(): {==}
+def false(): {==}

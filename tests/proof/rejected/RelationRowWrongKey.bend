@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_nonmatching_right_keys_can_enter_the_row:
+law false:
   {Relation.matches(~key,~key,item("a","L"),[item("b","R")]) == [Rows.pair(item("a","L"),item("b","R"))] : List<&2,D.Value>}
-def false_negative_nonmatching_right_keys_can_enter_the_row(): {==}
+def false(): {==}

@@ -12,7 +12,8 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 
 | Bend name | What it proves | Witness |
 | --- | --- | --- |
-| `InitTheorem` | A started instance has exactly the supplied valid seed and valid configuration; accepted valid initialization starts, and rejected initialization does not. | `Init.init_theorem`, `Init.bend` |
+| `StartupTheorem` | Given the exact T1-admitted seed-validity declaration, the executed `ConfigurationCheck.initialize` succeeds iff configuration and frozen identity pass, with exactly the seed encoding; recovery accepts iff the same check passes, without a seed. | `Configuration.startup_theorem`, `Configuration.bend` |
+| `InitTheorem` | Abstract typed seed-admission helper for `FoldTheorem`; this helper is not executed by the service. | `Init.init_theorem`, `Init.bend` |
 | `CoreTheorem` — `Admitted` | A started machine has the current authenticated context, exact oracle acceptance and exact `Core.start` state/arguments. A halted gate has the computed rejection and bounded, correctly framed response preserving the root. | `CoreClauses.core_theorem`, `CoreClauses.bend`; gate equations in `Gate.bend` |
 | `CoreTheorem` — `Safe` | Every prefix of the actual machine satisfies all installed laws, including failure closures. | `CoreClauses.core_theorem`, `CoreClauses.bend` |
 | `CoreTheorem` — `Completed` | Every final trace has an actual finisher result: exact `Requirements.finalize`, exact `Semantics.publish`, a valid next root, exact framed bytes and a bounded response, without a generic `failure`. | `CoreClauses.core_theorem`, `CoreClauses.bend` |
@@ -21,7 +22,8 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
 | `WorkerBridge` | Finite execution of the actual generated worker adapter emits exactly the `Gate.begin` → advance → `Gate.finish`/`Gate.early` result (and, for prepared requests, after `Resolve.select`), so Ingress/UnifiedCore apply to the Commit/Keep decision and bytes the worker sends to the host. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition` |
-| `ControlTheorem` | Prepare/invalidate authenticate against the current root, require the exact universal admission tuple, check lifetime freshness, prepare exact bounded metadata before the specified registry delta, and preserve the database root/last response; the mixed `ServiceFoldTheorem` preserves validity and accepted-prepare lookup provenance. | `ControlClauses.control_theorem`, `ControlHistory.service_fold_theorem` |
+| `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
+| `ServiceFoldTheorem` | Mixed transactions/controls preserve root validity, exact registry transition history and sound universal sources for live lookups from an empty registry. Invalidation removes scoped entries and preserves allocation history; every later position refuses reuse of an allocated handle, and `ServiceNoRevivalTheorem` preserves its absence. Controls carry the exact T1 admission-soundness premise. | `ControlHistory.service_fold_theorem` |
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
 | `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
@@ -59,8 +61,11 @@ unified ingress and the finite-run fold with real oracle evidence.
 on refusal and rejecting an accepted program cannot satisfy the relevant
 clauses. `Controls.bend` and `WrongSteps.bend` provide concrete inputs and
 mutations. Every remaining `rejected/*.bend` fixture must fail at its named
-`false` proof with expected/observed diagnostics in **both** official modes;
-missing names and unfinished proofs fail the test driver.
+`false` proof with expected/observed diagnostics in **both** official modes.
+Every diagnostic location must name exactly `false`; a helper co-failure,
+missing name or unfinished proof rejects the fixture. `InputLimit.bend` and
+`InputRefusals.bend` cover forged internal lengths in physically bounded bodies
+and the distinct rejection of actual excess body bytes.
 
 ```sh
 make verify-contract
@@ -83,7 +88,13 @@ certificates specialize at the current context and arguments. T1 still trusts
 the soundness of both pinned official checkers, the source/target/purity audit
 (including isolation from host effects), and that the very checked Book is the
 Book passed to C compilation and bound to the loaded artifact. Initialization
-validity uses those same checkers; handles and hashes identify artifacts but do
+validity uses `assertInitialization`: it requires a filled checked declaration
+with exactly `Requirements.Valid(configuration(), state())` and closed pure
+configuration/seed definitions before the startup Book can run. The initializer
+receives no proof value and cannot detect whether admission ran. `StartupTheorem`
+uses that admitted declaration as its validity premise. Recovery checks only
+configuration/identity; recovered-byte provenance remains a host/persistence
+obligation. Handles and hashes identify artifacts but do
 not supply proofs. Oracle guard soundness and certificate specialization are
 now checked propositions, rather than additional admission assumptions.
 

@@ -10,6 +10,6 @@ def accept_bool(v: D.Value) -> Bool:
     case D.VBool{b}: b
     case _: False{}
 
-law false_negative_page_ignores_offset:
+law false:
   {Sequence.page(1n,2n,[D.VText{"a"},D.VText{"b"},D.VText{"c"}]) == [D.VText{"a"},D.VText{"b"}] : List<&2,D.Value>}
-def false_negative_page_ignores_offset(): {==}
+def false(): {==}

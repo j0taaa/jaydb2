@@ -16,6 +16,6 @@ def done(r: S.Return) -> S.Action:
 
 def missing() -> S.Action: S.Finish{D.VText{"miss"}}
 
-law false_reject_receipt_data_failure_invokes_miss:
+law false:
   {T.observe(4n,H.bound("owner","r","op","input",missing(),done),no_input_schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[S.OperationEvent{D.ReadCell{D.Application{"owner"},"r","input"},S.ErrorOfData{}}],S.Response{S.Success{},D.VText{"miss"}}} : S.Trace}
-def false_reject_receipt_data_failure_invokes_miss(): {==}
+def false(): {==}

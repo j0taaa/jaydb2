@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_left_join_can_omit_a_nonmatching_left_occurrence:
+law false:
   {Relation.left_join(~key,~key,[item("b","M")],[item("a","R1")]) == [] : List<&2,D.Value>}
-def false_negative_left_join_can_omit_a_nonmatching_left_occurrence(): {==}
+def false(): {==}

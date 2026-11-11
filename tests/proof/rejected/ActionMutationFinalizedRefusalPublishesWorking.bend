@@ -13,6 +13,6 @@ def rowschema() -> D.Schema:
 def rowsstate(rows: List<&2,D.Row>) -> D.State:
   D.State{[D.Table{"t",rows}],Nil{}}
 
-law false_reject_finalized_refusal_publishes_working:
+law false:
   {S.publish(R.finalize(S.Response{S.Refusal{},D.VAbsent{}},S.Configuration{rowschema(),S.NoneLaw{},S.Limits{0n,0n,0n},"test"},rowsstate([row("k","first")])),rowsstate(Nil{}),rowsstate([row("k","first")])) == rowsstate([row("k","first")]) : D.State}
-def false_reject_finalized_refusal_publishes_working(): {==}
+def false(): {==}

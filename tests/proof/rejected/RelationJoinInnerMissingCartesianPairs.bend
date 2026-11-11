@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_inner_join_only_needs_one_diagonal_pair_per_left:
+law false:
   {Relation.inner(~key,~key,[item("a","L1"),item("a","L2")],[item("a","R1"),item("a","R2")]) == [Rows.pair(item("a","L1"),item("a","R1")),Rows.pair(item("a","L2"),item("a","R2"))] : List<&2,D.Value>}
-def false_negative_inner_join_only_needs_one_diagonal_pair_per_left(): {==}
+def false(): {==}

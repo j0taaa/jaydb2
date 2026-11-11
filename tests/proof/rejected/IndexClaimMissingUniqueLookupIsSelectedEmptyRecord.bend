@@ -20,6 +20,6 @@ def selection_done(result: Q.Selection) -> S.Action:
     case Q.MissingRow{}: S.Finish{D.VAbsent{}}
     case _: S.Refuse{D.VAbsent{}}
 
-law false_reject_missing_unique_lookup_is_selected_empty_record:
+law false:
   {T.observe(2n,I.lookup(collection(),["v"],selection_done),schema(),state(Nil{}),Nil{}) == S.Final{state(Nil{}),[S.OperationEvent{D.ReadCell{collection(),K.encode(["v"]),"target"},S.Reading{D.RowAbsent{}}}],S.Response{S.Success{},D.VRecordEmpty{}}} : S.Trace}
-def false_reject_missing_unique_lookup_is_selected_empty_record(): {==}
+def false(): {==}

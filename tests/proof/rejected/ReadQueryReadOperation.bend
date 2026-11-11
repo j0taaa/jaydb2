@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_read_operation:
+law false:
   {Read.keys(D.Application{"t"},keys => S.Finish{D.VListEmpty{}}) == S.Access{D.CountRows{D.Application{"t"}},r => S.Finish{D.VListEmpty{}}} : S.Action}
-def false_reject_read_operation(): {==}
+def false(): {==}

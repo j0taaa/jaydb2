@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_unstructured_read_payload_valid:
+law false:
   Valid.ResultValue(D.read_row(Some{D.Row{"k",[D.Field{"a",D.VList{D.VAbsent{},D.VAbsent{}}}]}},"a"))
-def false_reject_unstructured_read_payload_valid(): {==}
+def false(): {==}

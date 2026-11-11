@@ -12,6 +12,6 @@ def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
 def state(index: List<&2,D.Row>,rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"base",rows},D.Table{"index",index}],Nil{}}
 
-law false_reject_rebuild_replacement_changes_separate_base:
+law false:
   {D.rows_collection(base(),Replace.state(collection(),state([entry("a","old")],[entry("b","business")]),[entry("a","old")],[entry("n","new")])) == Some{[entry("n","new")]} : Maybe<&2,List<&2,D.Row>>}
-def false_reject_rebuild_replacement_changes_separate_base(): {==}
+def false(): {==}

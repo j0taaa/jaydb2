@@ -19,6 +19,6 @@ def counterstate(value: D.Value) -> D.State:
 
 def int_done(x: V.Int64) -> S.Action: S.Finish{V.int_value(x)}
 
-law false_reject_counter_overflow_drops_read:
+law false:
   {T.observe(3n,M.next(collection(),"k","count",int_done),counterschema(D.Integer{}),counterstate(D.VInt{2147483647,4294967295}),Nil{}) == S.Final{counterstate(D.VInt{2147483647,4294967295}),Nil{},S.Response{S.Refusal{},D.VText{"counter overflow"}}} : S.Trace}
-def false_reject_counter_overflow_drops_read(): {==}
+def false(): {==}

@@ -10,6 +10,6 @@ def entry(key: String,target: String) -> D.Row: I.entry(key,["v"],target)
 
 def duplicate() -> D.State: D.State{[D.Table{"index",[entry("a","first")]},D.Table{"index",[entry("b","second")]}],Nil{}}
 
-law false_reject_empty_batch_replaces_duplicate_physical_tables:
+law false:
   {Batch.working(Nil{},collection(),duplicate(),[entry("a","first")]) == D.swap_collection(collection(),duplicate(),[entry("a","first")]) : D.State}
-def false_reject_empty_batch_replaces_duplicate_physical_tables(): {==}
+def false(): {==}

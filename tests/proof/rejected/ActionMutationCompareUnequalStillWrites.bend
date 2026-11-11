@@ -13,6 +13,6 @@ def row(+key: String,title: String) -> D.Row:
 
 def bool_done(b: Bool) -> S.Action: S.Finish{D.VBool{b}}
 
-law false_reject_compare_unequal_still_writes:
+law false:
   {M.cas_received(collection(),row("k","new"),D.VText{"new"},bool_done,S.Datum{D.Cell{D.VText{"old"}}}) == S.Access{D.DefineRow{collection(),D.row_key(row("k","new")),Boolean.row_fields(row("k","new"))},r => A.written(bool_done(True{}),r)} : S.Action}
-def false_reject_compare_unequal_still_writes(): {==}
+def false(): {==}

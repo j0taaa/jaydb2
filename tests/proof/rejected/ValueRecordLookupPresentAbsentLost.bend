@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_present_absent_field_is_a_missing_lookup:
+law false:
   {Query.field(Record.raw([D.Field{"a",D.VAbsent{}}]),"a") == None{} : Maybe<&2,D.Value>}
-def false_negative_present_absent_field_is_a_missing_lookup(): {==}
+def false(): {==}

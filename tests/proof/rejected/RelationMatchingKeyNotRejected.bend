@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_a_matching_source_key_is_rejected:
+law false:
   N.Rejected(~key,~key,item("a","L"),[item("a","R")])
-def false_negative_a_matching_source_key_is_rejected(): N.Both{{==},Unit{}}
+def false(): N.Both{{==},Unit{}}

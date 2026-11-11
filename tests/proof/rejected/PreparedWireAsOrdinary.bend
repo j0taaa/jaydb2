@@ -2,9 +2,9 @@
 import Base
 import ../../../contract/Protocol.bend as P
 
-law false_prepared_body_is_an_ordinary_request:
+law false:
   for +request: P.Request
   for +tail: List<&2, U32>
   P.Encoding(P.request_value(request), Con{7, tail})
-def false_prepared_body_is_an_ordinary_request(request, tail):
+def false(request, tail):
   {==}

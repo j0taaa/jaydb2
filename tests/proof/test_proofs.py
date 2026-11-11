@@ -70,7 +70,23 @@ def positive_bindings():
     print('OK tasks source/proof literal bindings', flush=True)
 
 
+def only_false_fails(output):
+    # Check every diagnostic location, including failures in imported helpers.
+    locations = re.findall(r'^Location:\s*(\S+)\s*$', output, re.MULTILINE)
+    return bool(locations) and set(locations) == {'false'}
+
+
+def diagnostic_controls():
+    assert only_false_fails('Location: false\n')
+    assert not only_false_fails('Location: false_handle_is_original_source\n')
+    assert not only_false_fails('Location: false\nLocation: certificate\n')
+    assert not only_false_fails('Location: certificate\nLocation: false\n')
+    assert not only_false_fails('SOME PROOFS FAIL\n')
+    print('OK negative diagnostic-location controls', flush=True)
+
+
 def main():
+    diagnostic_controls()
     coverage_controls()
     positive_bindings()
     # Each mutation removes a different premise: bytes, administrative law,
@@ -83,7 +99,8 @@ def main():
                 cwd=ROOT, env=environment(), capture_output=True, text=True, timeout=600)
             output = run.stdout + run.stderr
             if not (run.returncode and 'SOME PROOFS FAIL' in output
-                    and 'Location: false' in output and '- expected :' in output
+                    and only_false_fails(output)
+                    and '- expected :' in output
                     and '- observed :' in output and 'a defined name' not in output
                     and 'a filled definition' not in output):
                 raise AssertionError(f'Expected a false proof, not a broken fixture: {path} {mode}\n{output}')

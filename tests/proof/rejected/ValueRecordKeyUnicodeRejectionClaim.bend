@@ -13,6 +13,6 @@ import ../../../library/RecordLookupProofs.bend as FieldLookup
 
 def surrogate() -> String: SCon{Chr{55296},SNil{}}
 
-law false_negative_key_format_decoder_silently_validates_unicode:
+law false:
   {Key.decode(Key.encode([surrogate()])) == None{} : Maybe<&2,List<&2,String>>}
-def false_negative_key_format_decoder_silently_validates_unicode(): {==}
+def false(): {==}

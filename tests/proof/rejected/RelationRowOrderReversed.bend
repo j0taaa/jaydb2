@@ -14,6 +14,6 @@ def key(value: D.Value) -> String:
     case _: ""
 def same(value: D.Value) -> String: "a"
 
-law false_negative_matching_right_occurrences_can_be_reversed:
+law false:
   {Relation.matches(~key,~key,item("a","L"),[item("a","1"),item("a","2")]) == [Rows.pair(item("a","L"),item("a","2")),Rows.pair(item("a","L"),item("a","1"))] : List<&2,D.Value>}
-def false_negative_matching_right_occurrences_can_be_reversed(): {==}
+def false(): {==}

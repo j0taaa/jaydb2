@@ -9,9 +9,11 @@ and scoped lookup in `contract/PreparedRegistry.bend`. `UnifiedCoreTheorem`
 covers the exact request selected by `src/Resolve.bend`, with fresh
 authentication and sound admission for that request. Cached universal admission
 specialized at lookup is part of T1's source/program/artifact binding.
-Preparation and invalidation host controllers remain integration obligations.
+Preparation and invalidation use the checked `Control` plan/delta.
+Artifact IO and delivery of T1 admission tokens remain host obligations.
 
-Native worker integration of `Gate` is in progress.
+The native worker executes the checked `Gate`/interpreter/finalizer path;
+compiler/runtime preservation and physical host plumbing remain T2/T3.
 
 # Database concept
 
@@ -34,9 +36,9 @@ Read control covers information inspected by the program even when it is not ret
 
 The kernel defines no record ownership, role hierarchy, private fields, self-promotion ban, balance conservation, cross-table relationships, application cryptography, or authorization necessarily based on prior state. Administrator laws may express all of these. Reading and changing are independent permissions.
 
-The first version serves one request at a time in a local process over standard input/output, using native CPU Bend in a fresh child process per call. The host retains published state in RAM; the child receives a private proposal and does not publish directly. Schema and laws remain fixed for the instance; data and users may change. Exiting the instance loses its in-memory data.
+The service processes requests serially over standard input/output, using native CPU Bend in a fresh child process per call. The host retains published state in RAM; the child receives a private proposal and does not publish directly. Schema and laws remain fixed for the instance; data and users may change. Without opt-in complete-image persistence, exiting loses the data. Persistence reopening checks the frozen configuration without evaluating a seed; durability remains outside the pure source theorems.
 
-Outside this version: persistence, networking, distribution, guaranteed parallelism, dynamic schema changes, migrations, configurable indexes, history, auditing, sessions, password recovery, preinstalled programs, mandatory caching, automatic retries, and request deduplication. The database does not generate or repair proofs.
+Outside this version: a network database daemon, distribution, guaranteed parallel request execution, dynamic schema changes, migrations, configurable indexes, history, auditing, sessions, password recovery, preinstalled programs, mandatory caching, automatic retries, and request deduplication. The database does not generate or repair proofs.
 
 Every transaction uses code and a proof, either supplied in the request or
 resolved from an instance-local prepared registration. Preparation is optional
@@ -156,12 +158,25 @@ execution of the numbered plumbing obligations in [the proof guide](proof/README
 
 ## Law 1 Faithful initialization and fixed contract
 
-`InitTheorem` proves that initialization returns exactly the supplied seed,
-its validity and valid configuration; accepted valid initialization starts,
-and rejection returns no state. `FoldTheorem` uses the same configuration
-through a finite run and derives validity of every reached root from that
-accepted seed. T1 binds initial validity evidence to actual seed/configuration
-sources; T3 pins those bytes and installs exactly that root.
+`StartupTheorem` describes the executed `ConfigurationCheck.initialize`:
+for the seed whose `Requirements.Valid` declaration was admitted under T1,
+it returns success with exactly that seed's encoding iff the configuration
+and frozen environment identity check passes; otherwise it returns refusal.
+`ConfigurationCheck.recover` accepts iff that same check passes, without
+opening a seed. Recovery-byte validity and durability have separate scope.
+`assertInitialization` checks the exact closed configuration/seed declaration;
+the runtime initializer does not receive or test a proof value. `InitTheorem`
+is an abstract seed-admission helper for `FoldTheorem`, which derives validity
+of every reached root under the same configuration. T3 installs exactly the
+checked root and pins the configuration/source bytes.
+
+`ServiceFoldTheorem` extends validity to interleaved transactions and checked
+controls starting with an empty registry, with exact registry transition history
+and universally certified live sources. Its public lookup/invalidation clauses
+and `ServiceNoRevivalTheorem` show that removal clears scoped entries, preserves
+allocation history, and an allocated absent handle stays absent at every later
+position. `ControlTheorem` proves the structural controller checks for every
+admission token; sound source certification uses the T1 premise in `ServiceRun`.
 
 ## Law 2 Representation without changing meaning
 
@@ -231,7 +246,7 @@ The `Progressing` clause proves that an accepted machine reaches a final trace
 and completes. If `WithinLimits` holds for that computed trace (a success or
 refusal proposal preserved by finalization), the final response is success or
 refusal. Safe terminating programs may still encounter data errors.
-`InitTheorem` supplies accepted-start progress. The real tasks positive fixture
+`StartupTheorem` supplies accepted-start progress for the admitted seed. The real tasks positive fixture
 shows valid admission and changed-root success; refutations exclude a
 reject-all gate when its oracle returns `Accept`.
 

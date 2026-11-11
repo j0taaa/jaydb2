@@ -17,6 +17,6 @@ def state(rows: List<&2,D.Row>) -> D.State: D.State{[D.Table{"index",rows}],Nil{
 
 def done(value: D.Value) -> S.Action: S.Finish{value}
 
-law false_reject_scan_reads_value_before_target:
+law false:
   {T.observe(2n,I.scan_equal(collection(),["yes"],done),schema(),state([entry("a","yes","first"),entry("b","no","skipped"),entry("c","yes","last")]),Nil{}) == S.Prefix{state([entry("a","yes","first"),entry("b","no","skipped"),entry("c","yes","last")]),[S.OperationEvent{D.EnumerateKeys{collection()},S.Reading{D.Keys{["a","b","c"]}}},S.OperationEvent{D.ReadCell{collection(),"a","value"},S.Reading{D.Cell{D.VText{K.encode(["yes"])}}}}]} : S.Trace}
-def false_reject_scan_reads_value_before_target(): {==}
+def false(): {==}

@@ -12,6 +12,6 @@ def key(value: D.Value) -> String:
     case D.VRecord{"key",D.VText{name},tail}: name
     case _: ""
 
-law false_negative_left_join_can_add_a_placeholder_for_a_matched_left:
+law false:
   {Relation.left_join(~key,~key,[item("a","L1")],[item("a","R1")]) == [Rows.pair(item("a","L1"),item("a","R1")),Rows.pair(item("a","L1"),D.VAbsent{})] : List<&2,D.Value>}
-def false_negative_left_join_can_add_a_placeholder_for_a_matched_left(): {==}
+def false(): {==}

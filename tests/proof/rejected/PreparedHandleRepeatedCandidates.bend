@@ -2,7 +2,7 @@
 import Base
 import ../../../proof/HandleCardinality.bend as F
 
-law false_repeated_candidates_force_freshness:
+law false:
   {F.search(["occupied", "occupied"], ["occupied"]) == Some{"fresh"} : Maybe<&2, String>}
-def false_repeated_candidates_force_freshness():
+def false():
   {==}

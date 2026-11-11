@@ -2,7 +2,7 @@
 import Base
 import ../../../proof/HandleHex.bend as H
 
-law false_distinct_counters_alias:
+law false:
   {H.counter_key(0n) == H.counter_key(1n) : String}
-def false_distinct_counters_alias():
+def false():
   {==}

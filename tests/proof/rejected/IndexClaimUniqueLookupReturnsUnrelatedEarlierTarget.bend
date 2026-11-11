@@ -20,6 +20,6 @@ def selection_done(result: Q.Selection) -> S.Action:
     case Q.MissingRow{}: S.Finish{D.VAbsent{}}
     case _: S.Refuse{D.VAbsent{}}
 
-law false_reject_unique_lookup_returns_unrelated_earlier_target:
+law false:
   {T.observe(2n,I.lookup(collection(),["v"],selection_done),schema(),state([I.unique(["earlier"],"wrong"),I.unique(["v"],"right")]),Nil{}) == S.Final{state([I.unique(["earlier"],"wrong"),I.unique(["v"],"right")]),[S.OperationEvent{D.ReadCell{collection(),K.encode(["v"]),"target"},S.Reading{D.Cell{D.VText{"right"}}}}],S.Response{S.Success{},D.VRecord{"target",D.VText{"wrong"},D.VRecordEmpty{}}}} : S.Trace}
-def false_reject_unique_lookup_returns_unrelated_earlier_target(): {==}
+def false(): {==}

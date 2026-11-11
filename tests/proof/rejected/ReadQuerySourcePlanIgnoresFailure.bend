@@ -15,6 +15,6 @@ def schema() -> D.Schema:
 def state(value: D.Value) -> D.State:
   D.State{[D.Table{"t",[D.Row{"k",[D.Field{"a",value}]}]}],Nil{}}
 
-law false_reject_source_plan_ignores_failure:
+law false:
   {Plan.plan(schema(),state(D.VAbsent{}),D.Application{"t"},"k",["z"]) == Plan.ReadsReady{Meaning.Clear{},D.VRecordEmpty{},Nil{}} : Plan.Plan}
-def false_reject_source_plan_ignores_failure(): {==}
+def false(): {==}

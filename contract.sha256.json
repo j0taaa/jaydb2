@@ -13,6 +13,6 @@
   "contract/Requirements.bend": "8af19b5de1e25f627a1a3acbe5d5b80b9ccd1cc6441d8a5e3893e0b6071804ca",
   "contract/Resources.bend": "7d181b531358b32b846e074a01c174851aab61be8d4853ce3de6582353e64e26",
   "contract/Semantics.bend": "db312a6dfed886934640bf9d4504de837c13908b365831456da1fc3319b2dd30",
-  "contract/Theorems.bend": "1ede95320552cc8d632890be910a9856ed7ea5360683a390da43a3f1ca06de8a",
-  "contract/VERIFY.bend": "a4956e70f676c048bb31ea1629dfc9e26ba3ea0069f4793ffc96b051ad78b9ca"
+  "contract/Theorems.bend": "f81643830e7d04344440312636911ed5c76c0bf9298b26c17711d9ecdc99836a",
+  "contract/VERIFY.bend": "8cfa67a409bd42cb82005c68ed4e03b68f961709be74c5d07d4fa72c7a3cecee"
 }

@@ -6,6 +6,6 @@ import ../../../library/Summary.bend as Summary
 
 def collection() -> D.Collection: D.Application{"index"}
 
-law false_reject_empty_summary_skips_write:
+law false:
   {Summary.store(collection(),"s",Nil{},S.Finish{D.VAbsent{}}) == S.Finish{D.VAbsent{}} : S.Action}
-def false_reject_empty_summary_skips_write(): {==}
+def false(): {==}

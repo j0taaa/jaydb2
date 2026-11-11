@@ -13,6 +13,6 @@ import ../../../library/ReadProgram.bend as P
 import ../../../library/SequencePaginationProofs.bend as At
 import ../../../src/Termination.bend as T
 
-law false_reject_unchecked_payload_canonical:
+law false:
   {D.value_valid(M.record(~C.Context,~C.reply,C.Context{D.Application{"t"},[S.Datum{D.Cell{D.VList{D.VAbsent{},D.VAbsent{}}}}]},["a"],0n)) == True{} : Bool}
-def false_reject_unchecked_payload_canonical(): {==}
+def false(): {==}
