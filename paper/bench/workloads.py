@@ -1,14 +1,12 @@
 """Durable SQL comparison and complete-state scaling, all outputs checked."""
 from contextlib import contextmanager
-import json
 import os
-from pathlib import Path
 import shutil
 import sqlite3
 import subprocess
 import time
 
-from paper.bench.run import BUILD, ROOT, command, metadata, package, save, session, source
+from paper.bench.run import BUILD, ROOT, metadata, package, save, session, source
 
 
 @contextmanager
@@ -69,7 +67,7 @@ def comparison():
         for policy in (False,True):
             admin.execute('DROP TABLE IF EXISTS cells')
             admin.execute('CREATE TABLE cells(owner text NOT NULL,id text NOT NULL,value bigint NOT NULL,PRIMARY KEY(owner,id))')
-            for owner in ('bench_alice','bench_bob'):
+            for owner in (('bench_alice','bench_bob') if policy else ('bench_alice',)):
                 for i in range(10): admin.execute('INSERT INTO cells VALUES (%s,%s,0)',(owner,f'k{i:06d}'))
             admin.execute('GRANT SELECT,UPDATE ON cells TO bench_alice')
             if policy:
@@ -89,7 +87,7 @@ def comparison():
             with sqlite3.connect(path,isolation_level=None) as conn:
                 conn.execute('PRAGMA journal_mode=WAL');conn.execute('PRAGMA synchronous=FULL')
                 conn.execute('CREATE TABLE cells(owner TEXT NOT NULL,id TEXT NOT NULL,value INTEGER NOT NULL,PRIMARY KEY(owner,id)) STRICT')
-                conn.executemany('INSERT INTO cells VALUES (?,?,0)',[(owner,f'k{i:06d}') for owner in ('bench_alice','bench_bob') for i in range(10)])
+                conn.executemany('INSERT INTO cells VALUES (?,?,0)',[(owner,f'k{i:06d}') for owner in (('bench_alice','bench_bob') if policy else ('bench_alice',)) for i in range(10)])
                 data['settings']['sqlite']={k:conn.execute('PRAGMA '+k).fetchone()[0] for k in ('journal_mode','synchronous','page_size','wal_autocheckpoint')}
                 data['records'].append(sql_record('sqlite',policy,conn))
             save('comparison.json',data)
@@ -128,11 +126,12 @@ def comparison():
             print('comparison',policy,'complete',flush=True)
 
 
-def scaling():
+def scaling(populations=None):
     # Default 64 KiB state ceiling: report its actual boundary rather than
     # silently increasing the application limit to make larger plots fit.
     data=dict(metadata=metadata(),experiment='E5 state-size scaling',state_limit=65536,records=[],failures=[],
-        limitations=['Default application state limit retained (65536 canonical bytes). Larger requested populations are tested and reported as outside the limit.',
+        setup_method='Empty valid seed, certified prepared population transaction, checked row count; population handle invalidated before sampling.',
+        limitations=['Default application state limit retained (65536 canonical bytes). Larger requested populations are sized canonically and reported as outside the limit, without timing impossible valid seeds.',
         'Each table row has an id of seven ASCII bytes and one int64 value; two fixed users.',
         'State bytes computed by the canonical wire encoder, matching Data.state_value.'])
     from tools.client import encode
@@ -141,18 +140,24 @@ def scaling():
     n=0
     while len(encode(state(n+1)))<=65536:n+=1
     data['max_rows']=n
-    for count in sorted(set([10,100,1000,10000,n,n+1])):
+    for count in sorted(set(populations or [10,100,1000,10000,n,n+1])):
         size=len(encode(state(count)))
         if size>65536:
             data['failures'].append(dict(rows=count,state_bytes=size,reason='canonical state exceeds configured state limit',measured=False))
             save('scaling.json',data);continue
         for persistent in (False,True):
-            name=f'scaling-{count}-{persistent}';folder=package(BUILD/name,'read',count)
+            name=f'scaling-{count}-{persistent}';folder=package(BUILD/name,'read',0)
             code,proof,universal=source(folder)
             record=dict(rows=count,state_bytes=size,persistent=persistent,n=50,samples=[],warmup=[])
             try:
                 with session(folder,name,persistent=persistent) as s:
                     handle,registration=s.prepare(code,universal);record['registration']=registration
+                    from paper.bench.fixtures import bulk_population
+                    population,population_proof=bulk_population(proof)
+                    population_handle,_=s.prepare(population,population_proof)
+                    record['population']=s.call(population,population_proof,[f'k{i:06d}' for i in range(count)],dict(status='success',value=count),handle=population_handle)
+                    from tools.client import prepared_frame
+                    s.exchange(prepared_frame(2,population_handle,'alice-token'),dict(status='invalidated',value=None))
                     for workload in ('read','update'):
                         for i in range(51):
                             args=[workload,f'k{count-1:06d}']+([i] if workload=='update' else [])
@@ -162,6 +167,14 @@ def scaling():
                                 row['stored_value_checked']=check['checked']
                             row.update(workload=workload,iteration=i)
                             record['warmup' if i==0 else 'samples'].append(row)
+                    if count==n:
+                        # Re-admit the same population program for one excess
+                        # row after all point-operation samples finish.
+                        growth_handle,_=s.prepare(population,population_proof)
+                        boundary=s.call(population,population_proof,[f'k{count:06d}'],dict(status='limit',value=None),handle=growth_handle)
+                        boundary.update(rows=count+1,state_bytes=len(encode(state(count+1))),persistent=persistent)
+                        data.setdefault('boundary_checks',[]).append(boundary)
+                        boundary['rollback_check']=s.call(code,proof,['read',f'k{count:06d}'],dict(status='refusal',value=None),handle=handle)
                 data['records'].append(record)
             except (RuntimeError,AssertionError,TimeoutError) as error:
                 data['failures'].append(dict(rows=count,state_bytes=size,persistent=persistent,reason=str(error),measured=True))

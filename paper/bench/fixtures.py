@@ -1,6 +1,5 @@
 """Small benchmark packages, using the repository's actual proof combinators."""
 from pathlib import Path
-import shutil
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -57,8 +56,7 @@ def config() -> S.Configuration:
     users = '''[
     D.Row{"alice",[D.Field{"credential",D.VText{"alice-token"}},D.Field{"id",D.VText{"alice"}},D.Field{"kind",D.VText{"user"}}]},
     D.Row{"bob",[D.Field{"credential",D.VText{"bob-token"}},D.Field{"id",D.VText{"bob"}},D.Field{"kind",D.VText{"user"}}]}]'''
-    # A recursive seed avoids a giant literal and its elaboration cost. Validity
-    # follows by induction over this exact list, not an assumed host token.
+    # The exact seed literal and its validity witness are checked normally.
     seed = '''import Base
 import ./Data.bend as D
 import ./Requirements.bend as R
@@ -176,3 +174,52 @@ def program_safe(+ctx:D.Context,args:D.Value) -> Safe(2n,ctx,S.start(Client.prog
 '''+old[b:]
         proof = proof.replace('safe(3n,', 'safe(2n,').replace('finite(3n,', 'finite(2n,').replace('T.program_finite(3n,', 'T.program_finite(2n,')
     (d/'ClientProof.bend').write_text(proof)
+
+
+def bulk_population(point_proof):
+    """Populate a valid empty seed, reusing Free and finite-action induction."""
+    code='''import Base
+import ./Data.bend as D
+import ./Semantics.bend as S
+
+def rows(value:D.Value) -> List<&2,D.Row>:
+  match value:
+    case D.VList{D.VText{+key},rest}:
+      D.Row{key,[D.Field{"id",D.VText{key}},D.Field{"value",D.VInt{0,0}}]} <> rows(rest)
+    case _: Nil{}
+
+def response(r:S.Return) -> S.Action:
+  match r:
+    case S.Datum{D.Count{n}}: S.Finish{D.VInt{0,U32.from_nat(n)}}
+    case _: S.Refuse{D.VAbsent{}}
+
+def run(rs:List<&2,D.Row>) -> S.Action:
+  match rs:
+    case Nil{}: S.Access{D.CountRows{D.Application{"cells"}},response}
+    case Con{D.Row{key,fields},rest}:
+      S.Access{D.DefineRow{D.Application{"cells"},key,fields},ignored => run(rest)}
+
+def depth(rs:List<&2,D.Row>) -> Nat:
+  match rs:
+    case Nil{}: 2n
+    case Con{row,rest}: Succ{depth(rest)}
+
+def program() -> S.Program:
+  S.Program{ctx => args => run(rows(args))}
+'''
+    # The Free certificate quantifies over every program trace. The existing
+    # one-step response proof is reused, then structural list induction proves
+    # the exact number of accesses for this particular population program.
+    prefix=point_proof.split('def response_finite')[0]
+    response=point_proof.split('def response_finite')[1].split('def finite(')[0]
+    proof=prefix+'def response_finite'+response+'''def finite(rs:List<&2,D.Row>) -> T.Finite(Client.depth(rs),Client.run(rs)):
+  match rs:
+    case Nil{}: response_finite
+    case Con{D.Row{key,fields},+rest}: r => finite(rest)
+
+def B.terminates(s,ctx,args):
+  +ctx=ctx
+  +args=args
+  T.program_finite(Client.depth(Client.rows(args)),Client.program(),C.schema(),s,ctx,args,finite(Client.rows(args)))
+'''
+    return code,universal(proof)

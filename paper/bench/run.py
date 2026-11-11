@@ -41,9 +41,9 @@ def metadata():
         cargo=command('cargo','--version'), bend='2.0.39', toolchain=json.loads((ROOT/'tools/admission/toolchain.lock.json').read_text()),
         binary_sha256=hashlib.sha256((ROOT/'target/release/jaydb2').read_bytes()).hexdigest(),
         source_sha256=hashlib.sha256(b''.join(p.encode()+b'\0'+(ROOT/p).read_bytes() for p in source)).hexdigest(),
-        dirty=command('git','status','--porcelain').splitlines(), threads=1,
+        dirty=command('git','status','--porcelain').splitlines(), threads=1, ordinary_optimization='-O0', prepared_optimization='-O2', gpu='off',
         filesystem=command('findmnt','-T',str(BUILD),'-no','FSTYPE,SOURCE,OPTIONS'),
-        clock='time.perf_counter_ns; client send/flush through full framed response; encoding and result validation excluded',
+        clock='time.perf_counter_ns (monotonic wall clock)',
         lock='/tmp/jaydb2-experiments-heavy.lock', warmups=1)
 
 
@@ -71,7 +71,12 @@ class Session:
         if timing: env['JAYDB_BENCH_TIMING']='1'
         else: env.pop('JAYDB_BENCH_TIMING',None)
         self.p=subprocess.Popen(args,cwd=ROOT,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.errors,start_new_session=True)
-        self.exchange(frame(dict(code='',proof='',credential='invalid',arguments=None)),dict(status='authentication',value=None))
+        try:
+            self.exchange(frame(dict(code='',proof='',credential='invalid',arguments=None)),dict(status='authentication',value=None))
+        except BaseException:
+            if self.p.poll() is None: os.killpg(self.p.pid,signal.SIGKILL)
+            self.p.wait();self.p.stdin.close();self.p.stdout.close();self.errors.close()
+            raise
 
     def read(self,n):
         result=b''
@@ -169,6 +174,7 @@ def prepared():
                     handle,row=s.prepare(code,universal); record['registrations'].append(row)
                     if j<2: s.exchange(prepared_frame(2,handle,'alice-token'),dict(status='invalidated',value=None))
                 for i in range(301):
+                    if i==1: batch_start=time.perf_counter_ns()
                     args,value=operation(kind,i)
                     row=s.call(code,proof,args,dict(status='success',value=value),handle=handle)
                     row['iteration']=i
@@ -176,6 +182,7 @@ def prepared():
                         maintenance=s.call(code,proof,['retire',f'r{i:04d}'],dict(status='success',value='retired'),handle=handle)
                         row['untimed_retirement_checked']=maintenance['checked']
                     record['warmup' if i==0 else 'samples'].append(row)
+                record['batch_elapsed_ns']=time.perf_counter_ns()-batch_start
             data['records'].append(record); save('prepared.json',data)
             print('prepared',kind,persistent,'complete',flush=True)
 
@@ -190,6 +197,8 @@ def verification():
         data['commands'].append(dict(command='make '+target,elapsed_ns=elapsed,returncode=result.returncode,output=result.stdout))
         save('verification.json',data)
         print(target,result.returncode,round(elapsed/1e9,2),flush=True)
+    data['source_extensions']=['.bend','.rs','.mjs','.json','.c','.h','.py']
+    data['line_count_definition']='Nonblank physical source lines, including comments; documentation excluded.'
     data['sizes']={}
     for group,dirs in [('src',['src']),('contract',['contract']),('proof',['proof']),('server',['server']),('tools',['tools/admission','tools/service']),('native',['native'])]:
         files=[p for base in dirs for p in (ROOT/base).rglob('*') if p.is_file() and p.suffix in ('.bend','.rs','.mjs','.json','.c','.h','.py')]
@@ -198,6 +207,8 @@ def verification():
     data['theorem_types']=len(re.findall(r'^def \w*Theorem\b',(ROOT/'contract/Theorems.bend').read_text(),re.M))
     data['proof_law_declarations']=sum(len(re.findall(r'^law\s+',p.read_text(),re.M)) for p in (ROOT/'proof').glob('*.bend'))
     data['proof_definitions']=sum(len(re.findall(r'^def\s+',p.read_text(),re.M)) for p in (ROOT/'proof').glob('*.bend'))
+    data['theorem_witnesses']=[f'{p.name}:{name}' for p in sorted((ROOT/'proof').glob('*.bend'))
+        for name in re.findall(r'^def (\w*theorem)\(',p.read_text(),re.M)]
     save('verification.json',data)
 
 
