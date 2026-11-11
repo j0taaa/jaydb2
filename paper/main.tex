@@ -15,8 +15,7 @@
 \hypersetup{pdftitle={JayDB2: Proof-Carrying Transactions under Administrator-Defined Laws},
 pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
 \input{../.build/tcc/numbers.tex}
-\input{pending-macros.tex}
-\input{../.build/tcc/scaling-coordinates.tex}
+\newcommand{\laten}[1]{\pgfmathprintnumber[fixed,precision=3,1000 sep={,}]{#1}}
 \newcommand{\numen}[1]{\pgfmathprintnumber[fixed,precision=2,1000 sep={,}]{#1}}
 
 \newcommand{\code}[1]{\texttt{#1}}
@@ -553,7 +552,7 @@ admission tooling, not the external toolchain. Line counts do not measure trust.
 \begin{tabular}{@{}L{.08\linewidth}L{.53\linewidth}L{.32\linewidth}@{}}
 \toprule Layer & Components & Nonblank lines\\\midrule
 T1 & Official checkers; Node admission/service tools and binding audit &
-\numen{\ToolsNonblankLines} tools lines\\
+\ToolsNonblankLines{} tools lines\\
 T2 & Bend compiler/runtime; Clang & External toolchain\\
 T3 & Rust production host & \RustProductionLines\\
 \bottomrule
@@ -718,8 +717,10 @@ below. The reproduction procedure and macro definitions are in
 The experiments use the real serial Rust host, official Bend~2.0.39 and BendTT,
 literal emitted C and Clang~19 on an Intel Core i7-11700K/Linux machine with an
 ext4 filesystem. CPU frequency control uses the \CpuGovernor{} governor,
-a fixed \CpuClockGHz{}~GHz clock and turbo \TurboSetting{}.
-E1--E4 use \SessionCount{} independent sessions; E5 uses one session with
+turbo \TurboSetting{} and a nominal base clock of \CpuClockGHz{}~GHz.
+The wrapper saves, restores and verifies the original CPU settings; no CPU
+pinning is applied.
+E1--E3 use \SessionCount{} independent sessions; E5 uses \ScalingSessionCount{} session with
 log-spaced populations and a first-key variant. An earlier run under frequency
 scaling was discarded after the diagnosis retained in
 \path{paper/evidence/performance-report.txt}.
@@ -739,19 +740,22 @@ checks are outside. Every output is checked against its expected value, and
 updates receive an additional stored-value check. Medians and inclusive
 quartiles [Q1, Q3] use all samples without outlier removal. Independent sessions describe repeatability on this deployment, not
 replication across machines. Table~\ref{tab:session-spread} separates pooled
-call medians from the spread of session medians.
+JayDB2 call medians from the spread of session medians; the retained report
+also gives every SQL and throughput session range.
 Sample counts below refer to calls, except where preparation or throughput
 blocks are explicitly named.
 
 \begin{table}[htbp]\centering\small
-\caption{Pooled headline medians and min--max of independent session medians.}
+\caption{JayDB2 pooled medians and min--max of independent session medians
+(all latencies in ms). E3 labels give total rows and profile.}
 \label{tab:session-spread}
-\IfFileExists{../.build/tcc/session-spread-table.tex}{\input{../.build/tcc/session-spread-table.tex}}{\textcolor{red}{pending table}}
+\input{../.build/tcc/session-spread-table.tex}
 \end{table}
 
 \subsection{E1: ordinary admission and phase cost}
 E1 sends a trivial read, indexed \code{set} and voucher issue through ordinary
-admission, with \OrdinarySamples{} measured calls per program after one warmup.
+admission, with \OrdinarySamples{} pooled measured calls per program
+(\OrdinarySessionSamples{} per session), after one warmup per session.
 Indexed updates alternate the Boolean value. Voucher calls use fresh
 equal-length IDs, accumulating vouchers in this experiment.
 Table~\ref{tab:ordinary} shows median latencies of
@@ -789,13 +793,15 @@ separately, so displayed medians need not sum to the median round trip.
 \setlength{\tabcolsep}{3pt}
 \caption{E1: phase groups, median [Q1, Q3]. Units appear in the first column. Full phase records remain in the evidence.}
 \label{tab:phases}
-\input{../.build/tcc/ordinary-phase-summary.tex}
+\resizebox{\linewidth}{!}{\input{../.build/tcc/ordinary-phase-summary.tex}}
 \end{table}
 
 \subsection{E2: prepared reuse and break-even}
 E2 prepares universally certified versions of the same three programs, then
-measures \PreparedSamples{} executions per program and storage mode after one
-warmup. Preparation has \RegistrationSamples{} measured samples with no
+measures \PreparedSamples{} pooled executions per program and storage mode
+(\PreparedBatchCalls{} per session), after one warmup per session.
+Preparation has \RegistrationSamples{} measured samples
+(\RegistrationSessionSamples{} per session) with no
 discarded preparation warmup; initialization completes before timing begins.
 Indexed writes alternate values. Voucher calls use fresh IDs, then a separately
 timed, checked retirement bounds state size before the next issue. Preparation
@@ -804,8 +810,8 @@ neither. Table~\ref{tab:registration-phases} reports its spread.
 
 \begin{table}[htbp]\centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{E2: preparation (seconds) and prepared calls (milliseconds), median
-[Q1, Q3]. Preparation $n=\RegistrationSamples$ and calls $n=\PreparedSamples$
+\caption{E2: median preparation time (seconds) and prepared-call median
+[Q1, Q3] (milliseconds). Preparation $n=\RegistrationSamples$ and calls $n=\PreparedSamples$
 per condition. Throughput appears separately in Table~\ref{tab:throughput}.}
 \label{tab:prepared}
 \input{../.build/tcc/prepared-table.tex}
@@ -813,17 +819,21 @@ per condition. Throughput appears separately in Table~\ref{tab:throughput}.}
 \begin{table}[htbp]\centering\small
 \caption{E2: one-time preparation time, minimum/median/maximum in seconds.}
 \label{tab:registration-phases}
-\IfFileExists{../.build/tcc/registration-table.tex}{\input{../.build/tcc/registration-table.tex}}{\textcolor{red}{pending table}}
+\input{../.build/tcc/registration-table.tex}
 \end{table}
 
 For the read, one-time volatile preparation costs
 \numen{\RegistrationReadVolatileMedianSeconds}~s and subsequent calls take
 \numen{\PreparedReadVolatileMedianMs}~ms at the median. Indexed and voucher calls
-also move to milliseconds; Table~\ref{tab:prepared} reports their quartiles. The durable-mode
+take \numen{\PreparedIndexedVolatileMedianMs} and
+\numen{\PreparedVoucherVolatileMedianMs}~ms, respectively. The durable-mode
 read median is \numen{\PreparedReadPersistentMedianMs}~ms.
 Prepared reuse retains fresh worker startup, integrity checks and full-state
 transfer. Equal-state successful reads reuse the durable image; state-changing
-calls add the image write and synchronization path. Reuse removes admission and compilation from the per-call path.
+calls add the image write and synchronization path. Durable indexed and voucher medians are
+\numen{\PreparedIndexedPersistentMedianMs} and
+\numen{\PreparedVoucherPersistentMedianMs}~ms.
+Reuse removes admission and compilation from the per-call path.
 
 Let $R$ be median preparation time, $O$ median ordinary call time and $P$ median
 prepared call time, using consistent units. For $O>P$, preparation amortizes
@@ -835,7 +845,8 @@ startup. It is not a measured cumulative sequence or an isolation of proof cost.
 
 \subsection{E3: PostgreSQL and SQLite point operations}
 E3 compares prepared JayDB2 with PostgreSQL~16.15 and SQLite~3.45.1, using
-\ComparisonSamples{} reads and updates per engine/policy after one warmup.
+\ComparisonSamples{} pooled reads and updates per engine/profile/state,
+after one warmup per operation in each session.
 PostgreSQL uses a private local Unix socket, \code{fsync=on},
 \code{synchronous\_commit=on} and \code{full\_page\_writes=on}.
 SQLite uses WAL and \code{synchronous=FULL}. JayDB2 reuses the already
@@ -848,14 +859,20 @@ the stored value inside the timed statement.
 
 The small point fixture has \ScalingSmallRows{} rows; an additional point
 near the state limit uses \ComparisonLargeRows{} rows
-(Table~\ref{tab:comparison-large}). In the ownership profile, the stated population applies to each of two users. An administrator law confines JayDB2 to
+(Table~\ref{tab:comparison-large}). Both profiles use these same total row counts in every engine;
+the ownership profile divides rows equally between Alice and Bob. An administrator law confines JayDB2 to
 owner-named tables. PostgreSQL enforces owner-only row visibility and updates
 with an owner column, enabled and forced row-level security, including the
 new-row check, under a non-superuser/non-\code{BYPASSRLS} role
-\citep{postgresrls}. The interfaces differ: JayDB2 rejected cross-user requests at admission,
-whereas PostgreSQL returned/affected no foreign rows. Checks confirmed no foreign
-value disclosure or modification. SQLite is an unconstrained baseline, without
-an equivalent ownership policy.
+\citep{postgresrls}. In both states in every session, Alice submitted ordinary read and update
+programs naming Bob's table with the unchanged ownership certificate.
+JayDB2 returned \code{certificate} without a value. PostgreSQL's Alice role
+explicitly selected and updated Bob's named row, with the update returning
+the stored value; RLS returned/affected no rows. Bob's legitimate prepared
+read in JayDB2 and an administrator read in PostgreSQL confirmed his value
+was unchanged. These checks establish rejection of the supplied certificate
+and filtering of the attempted SQL, respectively. SQLite's unconstrained
+connection allowed both attempts and the harness reset the value afterward.
 
 \begin{table}[htbp]\centering\small
 \setlength{\tabcolsep}{3pt}
@@ -867,19 +884,23 @@ $n=\ComparisonSamples$ per operation/condition.}
 \end{table}
 
 Prepared JayDB2 is slower in every measured condition
-(Table~\ref{tab:comparison}). Point reads take
-\numen{\JayPointReadMedianMs}~ms, or
+(Table~\ref{tab:comparison}). At \ScalingSmallRows{} rows, point reads take
+\numen{\JayPointReadMedianMs}~ms versus
+\laten{\PostgresPointReadMedianMs}~ms for PostgreSQL and
+\laten{\SqlitePointReadMedianMs}~ms for SQLite:
 \numen{\JayPointReadOverPostgres} times PostgreSQL and
 \numen{\JayPointReadOverSqlite} times SQLite. Owner-only reads take
 \numen{\JayOwnerReadMedianMs}~ms, or
 \numen{\JayOwnerReadOverPostgres} and \numen{\JayOwnerReadOverSqlite} times
 those baselines. The read gap spans orders of magnitude.
-The update gap is smaller: point updates are
+The update gap is smaller: point updates take
+\numen{\JayPointUpdateMedianMs}~ms versus
+\numen{\PostgresPointUpdateMedianMs} and \numen{\SqlitePointUpdateMedianMs}~ms,
+or
 \numen{\JayPointUpdateOverPostgres} times PostgreSQL and
 \numen{\JayPointUpdateOverSqlite} times SQLite, while owner-only updates are
 \numen{\JayOwnerUpdateOverPostgres} and
-\numen{\JayOwnerUpdateOverSqlite} times, respectively. Thus the evidence does
-not support describing every operation as orders of magnitude slower.
+\numen{\JayOwnerUpdateOverSqlite} times, respectively. Updates therefore differ by a small factor at the small state.
 
 Each prepared JayDB2 read still pays for a fresh worker process, complete-state
 transfer, decoding and validation. A byte-identical success does not write or
@@ -891,15 +912,21 @@ complete service paths and do not isolate each mechanism's contribution.
 \begin{table}[htbp]\centering\small
 \caption{E3: large-state durable medians (ms), \ComparisonLargeRows{} rows.}
 \label{tab:comparison-large}
-\resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}llrrr@{}}\toprule
 Profile & Operation & JayDB2 & PostgreSQL & SQLite\\\midrule
-Point & Read & \LargeJayReadMs & \LargePgReadMs & \LargeSqReadMs\\
-Point & Update & \LargeJayWriteMs & \LargePgWriteMs & \LargeSqWriteMs\\
-Owner & Read & \LargeOwnerJayReadMs & \LargeOwnerPgReadMs & \LargeOwnerSqReadMs\\
-Owner & Update & \LargeOwnerJayWriteMs & \LargeOwnerPgWriteMs & \LargeOwnerSqWriteMs\\\bottomrule
-\end{tabular}}
+Point & Read & \laten{\LargeJayReadMs} & \laten{\LargePgReadMs} & \laten{\LargeSqReadMs}\\
+Point & Update & \laten{\LargeJayWriteMs} & \laten{\LargePgWriteMs} & \laten{\LargeSqWriteMs}\\
+Owner & Read & \laten{\LargeOwnerJayReadMs} & \laten{\LargeOwnerPgReadMs} & \laten{\LargeOwnerSqReadMs}\\
+Owner & Update & \laten{\LargeOwnerJayWriteMs} & \laten{\LargeOwnerPgWriteMs} & \laten{\LargeOwnerSqWriteMs}\\\bottomrule
+\end{tabular}
 \end{table}
+
+At \ComparisonLargeRows{} rows, point reads rise to
+\numen{\LargeJayReadMs}~ms and updates to \numen{\LargeJayWriteMs}~ms.
+SQL read latency stays nearly flat and SQL updates remain on the same
+millisecond scale, so the gap grows with state size. The owner-only profile
+shows the same pattern (Table~\ref{tab:comparison-large}). JayDB2 transfers
+the complete state on every call, even for a point operation.
 
 Ordinary durable JayDB2 calls provide context: read/update medians are
 \numen{\OrdinaryJayPointReadMedianSeconds}/\numen{\OrdinaryJayPointUpdateMedianSeconds}~s
@@ -910,7 +937,8 @@ for ownership, with \OrdinarySamples{} calls per operation.
 \subsection{E4: verification time and source size}
 E4 retains command wall-clock runs of \code{make verify-contract},
 \code{make verify} and \code{make test}, in that order on the same local
-installation, without a deliberate cache reset. The first two run positive
+installation under the earlier default powersave/turbo policy,
+without a deliberate cache reset; source sizes were recollected for this report. The first two run positive
 witnesses in both official modes; full verification also checks import coverage
 and causal negative fixtures. All three commands exited successfully.
 \code{make verify-contract} takes \numen{\VerifyContractSeconds}~s and
@@ -918,7 +946,8 @@ and causal negative fixtures. All three commands exited successfully.
 separate from request latency.
 
 \begin{table}[htbp]\centering\small
-\caption{E4: command wall times, one run per session. Exit zero indicates success.}
+\caption{E4: retained command wall times, one historical successful run per
+command under powersave/turbo. Exit zero indicates success.}
 \label{tab:verification}
 \input{../.build/tcc/verification-table.tex}
 \end{table}
@@ -933,12 +962,12 @@ The counted extensions are Bend, Rust, JavaScript modules, JSON, C, headers and
 Python in the named directories. The tools row covers admission and service
 code; the Rust area includes tests, whose separate count is given in
 Table~\ref{tab:tcb-size}. Table~\ref{tab:client-effort} adds application
-program/proof counts, excluded from the infrastructure inventory. There are \numen{\ProofNonblankLines}
-nonblank lines in \code{proof/} against \numen{\SrcNonblankLines} in
+program/proof counts, excluded from the infrastructure inventory. There are \ProofNonblankLines{}
+nonblank lines in \code{proof/} against \SrcNonblankLines{} in
 \code{src/}: a ratio of \numen{\ProofToImplementationRatio} to one.
-\code{contract/} adds \numen{\ContractNonblankLines} lines of specifications.
-The inventory records \numen{\ProofLawDeclarations} law declarations,
-\numen{\ProofDefinitions} definitions and \ProofTheoremWitnesses{} named
+\code{contract/} adds \ContractNonblankLines{} lines of specifications.
+The inventory records \ProofLawDeclarations{} law declarations,
+\ProofDefinitions{} definitions and \ProofTheoremWitnesses{} named
 top-level theorem witnesses. These syntactic counts differ from one another
 and do not measure proof strength. Full verification rejects
 \NegativeFixtures{} negative fixtures at the intended \code{false} definition
@@ -948,19 +977,24 @@ without estimating authoring effort or coverage.
 \begin{table}[htbp]\centering\small
 \caption{E4: client program and proof size (nonblank lines). Ratios are proof/program.}
 \label{tab:client-effort}
-\resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lrrr@{}}\toprule
 Application & Program & Proof & Ratio\\\midrule
-Indexed & \IndexedClientLines & \IndexedProofLines & \IndexedProofRatio\\
-Voucher & \VoucherClientLines & \VoucherProofLines & \VoucherProofRatio\\\bottomrule
-\end{tabular}}
+Indexed & \IndexedClientLines & \IndexedProofLines & \numen{\IndexedProofRatio}\\
+Voucher & \VoucherClientLines & \VoucherProofLines & \numen{\VoucherProofRatio}\\\bottomrule
+\end{tabular}
 \end{table}
+Program lines count the indexed client, and the voucher wrapper plus
+dispatcher. Proof lines count only local client certificates and indexed
+checked-action/completion helpers, excluding shared ownership proofs,
+model/seed files, reusable libraries and the separate voucher functional
+suite. Rust production and test lines are split syntactically at top-level
+\code{cfg(test)} items, as specified in the README.
 These counts expose certificate size, not time spent authoring proofs, reuse of
 library lemmas, difficulty or maintenance effort. Both applications were
 constructed by the author; no independent developer study was conducted.
 
 \subsection{E5: scaling with complete state size}
-In one frequency-controlled session, E5 uses log-spaced populations up to the
+In \ScalingSessionCount{} frequency-controlled session, E5 uses log-spaced populations up to the
 configured maximum and samples \ScalingSamples{} reads and updates per population/mode after one
 warmup, with preparation outside latency. A certified prepared population
 transaction grows an empty valid seed; its handle is invalidated before
@@ -979,12 +1013,12 @@ $n=\ScalingSamples$ per operation/condition.}
 \input{../.build/tcc/scaling-table.tex}
 \end{table}
 
-The configured \numen{\StateLimitBytes}-byte ceiling fits
-\numen{\StateMaximumRows} rows at \numen{\StateMaximumBytes} bytes. The next row
-requires \numen{\StateFirstExcessBytes} bytes; actual boundary probes return
+The configured \StateLimitBytes{}-byte ceiling fits
+\StateMaximumRows{} rows at \StateMaximumBytes{} bytes. The next row
+requires \StateFirstExcessBytes{} bytes; actual boundary probes return
 \code{limit} and preserve the prior state in both modes.
-A \numen{\StateOversizedRows}-row state would require
-\numen{\StateOversizedBytes} bytes (about
+A \StateOversizedRows{}-row state would require
+\StateOversizedBytes{} bytes (about
 \numen{\StateOversizedKilobytes}~kB) and is outside this configuration, with no
 operation latency assigned. Separately, \LargeSeedFuelFailures{} retained
 large direct-seed attempts exhausted BendTT fuel in \code{Seed.initial\_valid}.
@@ -993,39 +1027,50 @@ slow operation samples.
 
 \begin{figure}[htbp]\centering
 \begin{tikzpicture}
-\begin{axis}[width=.94\linewidth,height=6.8cm,
-xlabel={Canonical state size (decimal kB)},ylabel={Call latency (ms)},
-xmin=0,ymin=0,grid=major,
-legend style={at={(.5,1.03)},anchor=south,legend columns=2,font=\small,draw=none},
-error bars/y dir=both,error bars/y explicit]
-\addplot+[blue,mark=*,error bars/.cd,y dir=both,y explicit]
-table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_read.dat};
-\addlegendentry{Volatile read}
-\addplot+[black,mark=square*,error bars/.cd,y dir=both,y explicit]
-table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_update.dat};
-\addlegendentry{Volatile update}
-\addplot+[blue,dashed,mark=triangle*,error bars/.cd,y dir=both,y explicit]
-table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_read.dat};
-\addlegendentry{Durable read}
-\addplot+[black,dashed,mark=diamond*,error bars/.cd,y dir=both,y explicit]
-table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_update.dat};
-\addlegendentry{Durable update}
+\begin{axis}[name=volatile,width=.48\linewidth,height=5.8cm,
+ title={Volatile},xlabel={Rows (log scale)},ylabel={Call latency (ms)},
+ xmode=log,log basis x=10,ymin=0,ymax=55,grid=major,
+ xtick={10,100,1000},mark size=1.5pt,
+ legend style={at={(.5,1.16)},anchor=south,legend columns=2,font=\small,draw=none}]
+\addplot+[blue,mark=o,thick,error bars/.cd,y dir=both,y explicit]
+table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_read.dat};
+\addlegendentry{Read}
+\addplot+[black,mark=+,dashed,error bars/.cd,y dir=both,y explicit]
+table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_update.dat};
+\addlegendentry{Update}
+\end{axis}
+\begin{axis}[at={(volatile.east)},anchor=west,xshift=9mm,
+ width=.48\linewidth,height=5.8cm,
+ title={Durable},xlabel={Rows (log scale)},
+ xmode=log,log basis x=10,ymin=0,ymax=55,grid=major,
+ xtick={10,100,1000},mark size=1.5pt]
+\addplot+[blue,mark=o,thick,error bars/.cd,y dir=both,y explicit]
+table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_read.dat};
+\addplot+[black,mark=+,dashed,error bars/.cd,y dir=both,y explicit]
+table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_update.dat};
 \end{axis}
 \end{tikzpicture}
-\caption{E5: medians and inclusive interquartile ranges. Lines connect sampled
-sizes, with no fitted scaling model. Error bars describe calls within each run.}
+\caption{E5: medians and inclusive interquartile ranges, with separate storage
+panels and a common latency scale. Lines connect sampled row counts; whiskers
+show Q1--Q3 and can be smaller than the markers.}
 \label{fig:scaling}
 \end{figure}
 
-Figure~\ref{fig:scaling} reports complete service paths without a fitted scaling
-law. Last-key volatile read medians are
-\numen{\ScalingSmallVolatileReadMedianMs}~ms at \ScalingSmallRows{} rows and
-\numen{\ScalingMaximumVolatileReadMedianMs}~ms at the maximum; corresponding
-first-key medians are \ScalingFirstKeySmallMs{} and
-\ScalingFirstKeyLargeMs{}~ms. Comparing first and last keys helps distinguish
-lookup position from transfer and validation of the complete state. It does
-not isolate those phases or establish a general complexity law. Equal-state
-reads reuse a durable image; state-changing updates include full-image sync.
+Volatile last-key read medians grow smoothly and approximately linearly with
+row count, from \numen{\ScalingSmallVolatileReadMedianMs}~ms at
+\ScalingSmallRows{} rows to \numen{\ScalingMaximumVolatileReadMedianMs}~ms at
+\StateMaximumRows{} rows. A least-squares fit to the sampled medians gives
+\numen{\ScalingVolatileReadSlopeUsPerRow}~$\mu$s per row.
+The abrupt small-state jump in the earlier frequency-scaling run disappears
+under the fixed policy. First-key medians are
+\numen{\ScalingFirstKeySmallMs} and \numen{\ScalingFirstKeyLargeMs}~ms at those
+endpoints, close to the last-key medians. Lookup position therefore explains
+little of the observed growth; complete-state transfer, decoding and
+validation dominate the scaling pattern.
+Durable reads track volatile reads because they reuse the unchanged image.
+Durable updates add full-image synchronization: their medians are nearly flat
+at the smallest populations, then grow steadily to
+\numen{\ScalingMaximumPersistentUpdateMedianMs}~ms at the maximum.
 
 \section{Discussion, Limitations and Threats to Validity}
 \label{sec:limitations}
@@ -1070,8 +1115,9 @@ use different C optimization levels, so their latency difference measures the
 supported service profiles rather than proof checking alone. Checking is the certification component. Compilation, complete-state
 transfer, fresh processes and changed-state image synchronization are costs
 of this prototype architecture. A successful unchanged-state read follows
-Commit, reuses the already durable image and publishes the new response in RAM. These costs affect comparison
-with SQL engines that use different storage and execution paths.
+Commit, reuses the already durable image and publishes the new response in RAM. The state-size experiments show that this complete-state work grows with
+population, while first- and last-key costs remain similar. These costs affect
+comparison with SQL engines that use different storage and execution paths.
 
 The experiments use one local deployment, selected small programs and
 a single serial client. Cache state, storage synchronization, CPU placement and
@@ -1083,7 +1129,14 @@ independent replication across machines,
 and phase hooks add diagnostic overhead in E1/E2. Fixed governor/clock and
 independent sessions replace the discarded frequency-scaling run, but do not
 remove cache effects or correlation within each session. E5 remains one
-session, including its first-key variant. Initial seed-fuel failures are
+session, including its first-key variant. The fitted per-row slope summarizes
+this row shape and range rather than proving an asymptotic bound or isolating
+copying. Durable indexed session medians range from
+\numen{\PreparedIndexedPersistentSessionMinMs} to
+\numen{\PreparedIndexedPersistentSessionMaxMs}~ms; the slow session is retained.
+Phase records localize its increase to publication, without isolating individual
+fsync calls. E4 command timings retain the earlier default clock policy and
+are not fixed-clock comparisons. Initial seed-fuel failures are
 retained separately.
 Source-line counts depend on counting rules and do not measure proof coverage
 or maintainability.
@@ -1109,7 +1162,9 @@ model. Durable prepared point reads remain
 \numen{\JayPointReadOverPostgres} times PostgreSQL and
 \numen{\JayPointReadOverSqlite} times SQLite; updates have smaller gaps.
 The proof-to-implementation line ratio is \numen{\ProofToImplementationRatio},
-and the configured state ceiling admits \numen{\StateMaximumRows} scaling rows.
+and the configured state ceiling admits \StateMaximumRows{} scaling rows.
+Over this range, prepared volatile reads grow roughly linearly with population,
+with similar first- and last-key costs.
 These results establish an executable proof-carrying design with substantial
 verification and service costs. Future work
 will prove crash-durability behavior, reduce T3 by checking more of the physical
@@ -1225,6 +1280,7 @@ DOI: \href{https://doi.org/10.1145/2908080.2908098}{10.1145/2908080.2908098}.
 
 \end{thebibliography}
 
+\clearpage
 \appendix
 \section{Prepared throughput timing boundaries}
 \begin{table}[htbp]\centering\small
@@ -1237,8 +1293,10 @@ Active quartiles are across consecutive blocks, not independent trials.}
 
 Table~\ref{tab:throughput} distinguishes two timing boundaries. Active throughput
 is the median rate across consecutive blocks of measured round trips,
-excluding validation gaps and voucher retirement. Full-loop throughput is one
-\PreparedSamples-call batch, including those gaps and retirement. For example,
+excluding validation gaps and voucher retirement. There are
+\ThroughputBlocks{} blocks of \ThroughputBlockCalls{} calls, formed within
+sessions. Full-loop throughput is the median of \SessionCount{} independent
+\PreparedBatchCalls{}-call batch rates, including those gaps and retirement. For example,
 volatile voucher throughput is
 \numen{\PreparedVoucherVolatileActiveCallsPerSecond} active calls/s versus
 \numen{\PreparedVoucherVolatileCallsPerSecond} full-loop calls/s. These rates

@@ -42,6 +42,14 @@ import ./Environment.bend as E
         start, end = original.index('type Both'), original.index('def schema()')
         config += original[start:end].replace('D.Users{}', 'D.Application{owner}').replace(
             '{key == id : String}', '{owner == id : String}').replace('"credential"', '"value"')
+    if policy:
+        # The same ownership requirement applies to certified setup operations.
+        # Timed ReadCell/DefineColumn cases and their column checks are unchanged.
+        config=config.replace('    case _:', '''    case D.DefineRow{D.Application{owner}, key, fields}:
+      Both<{owner == id : String}, Unit>
+    case D.CountRows{D.Application{owner}}:
+      Both<{owner == id : String}, Unit>
+    case _:''',1)
     config += '''
 def table(name:String) -> D.SchemaTable:
   D.SchemaTable{name,"id",[D.Column{"id",D.TextValue{},False{}},D.Column{"value",D.Integer{},False{}}]}
@@ -210,6 +218,7 @@ def program() -> S.Program:
     # The Free certificate quantifies over every program trace. The existing
     # one-step response proof is reused, then structural list induction proves
     # the exact number of accesses for this particular population program.
+    if not point_proof: return code,''
     prefix=point_proof.split('def response_finite')[0]
     response=point_proof.split('def response_finite')[1].split('def finite(')[0]
     proof=prefix+'def response_finite'+response+'''def finite(rs:List<&2,D.Row>) -> T.Finite(Client.depth(rs),Client.run(rs)):
@@ -222,4 +231,40 @@ def B.terminates(s,ctx,args):
   +args=args
   T.program_finite(Client.depth(Client.rows(args)),Client.program(),C.schema(),s,ctx,args,finite(Client.rows(args)))
 '''
+    return code,universal(proof)
+
+
+def owner_population(policy_proof):
+    """The access example's induction, specialized to certified own-row inserts."""
+    code,_=bulk_population('')
+    code=code.replace('def run(rs:', 'def run(+owner:String,rs:')
+    code=code.replace('D.Application{"cells"}', 'D.Application{owner}')
+    code=code.replace('ignored => run(rest)', 'ignored => run(owner,rest)')
+    code=code.replace('S.Program{ctx => args => run(rows(args))}', 'S.Program{ctx => args => run(D.context_id(ctx),rows(args))}')
+    a=policy_proof.index('def response_safe');b=policy_proof.index('def prefix(')
+    proof=policy_proof[:a]+'''def response_safe(r:S.Return,ctx:D.Context) -> Safe(1n,ctx,Client.response(r)):
+  match r:
+    case S.UnitValue{}: Unit{}
+    case S.Datum{obs}:
+      match obs:
+        case D.Cell{v}: Unit{}
+        case D.RowAbsent{}: Unit{}
+        case D.Existence{b}: Unit{}
+        case D.Count{n}: Unit{}
+        case D.Keys{xs}: Unit{}
+
+def run_safe(+id:String,+kind:String,rs:List<&2,D.Row>) -> Safe(Client.depth(rs),D.Context{id,kind},Client.run(id,rs)):
+  match rs:
+    case Nil{}: L.Both{C.Both{{==},Unit{}},r => response_safe(r,D.Context{id,kind})}
+    case Con{D.Row{key,fields},+rest}:
+      L.Both{C.Both{{==},Unit{}},r => run_safe(id,kind,rest)}
+
+def program_safe(ctx:D.Context,args:D.Value) -> Safe(Client.depth(Client.rows(args)),ctx,S.start(Client.program(),ctx,args)):
+  match ctx:
+    case D.Context{id,kind}: run_safe(id,kind,Client.rows(args))
+
+'''+policy_proof[b:]
+    proof=proof.replace('safe(2n, n,', 'safe(Client.depth(Client.rows(I.arguments())), n,')
+    proof=proof.replace('T.program_finite(2n,', 'T.program_finite(Client.depth(Client.rows(arguments)),')
+    proof=proof.replace('finite(2n, S.start', 'finite(Client.depth(Client.rows(arguments)), S.start')
     return code,universal(proof)

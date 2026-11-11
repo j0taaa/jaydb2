@@ -67,6 +67,39 @@ class EvidenceTests(unittest.TestCase):
                 for name in macros:self.assertIn('`\\'+name+'`',readme)
         finally:evidence.OUT=previous
 
+    def test_integration_derivations_and_table_units(self):
+        previous=evidence.OUT
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder)
+                macros=evidence.derive(self.data)
+                records=[r for r in self.data['scaling']['records'] if not r['persistent']]
+                xs=[r['rows'] for r in records]
+                ys=[statistics.median(s['elapsed_ns'] for s in r['samples']
+                    if s['workload']=='read')/1000 for r in records]
+                xm,ym=statistics.mean(xs),statistics.mean(ys)
+                slope=sum((x-xm)*(y-ym) for x,y in zip(xs,ys))/sum((x-xm)**2 for x in xs)
+                self.assertAlmostEqual(macros['ScalingVolatileReadSlopeUsPerRow'][0],slope)
+                indexed=next(r for r in self.data['prepared']['records']
+                    if r['persistent'] and r['program']=='indexed')
+                medians=[statistics.median(s['elapsed_ns'] for s in z['samples'])/1e6
+                    for z in indexed['sessions']]
+                self.assertEqual(macros['PreparedIndexedPersistentSessionMinMs'][0],min(medians))
+                self.assertEqual(macros['PreparedIndexedPersistentSessionMaxMs'][0],max(medians))
+                self.assertEqual(macros['PreparedBatchCalls'][0],len(indexed['sessions'][0]['samples']))
+                self.assertEqual(macros['ThroughputBlocks'][0]*macros['ThroughputBlockCalls'][0],
+                    len(indexed['samples']))
+                prepared=(Path(folder)/'prepared-table.tex').read_text()
+                self.assertIn('Preparation s',prepared)
+                self.assertIn('7.51',prepared)
+                comparison=(Path(folder)/'database-comparison-table.tex').read_text()
+                self.assertIn('Read ms',comparison)
+                self.assertIn('0.003',comparison)
+                spread=(Path(folder)/'session-spread-table.tex').read_text()
+                self.assertIn('17.201--50.658',spread)
+                self.assertEqual(spread.count('E2 '),6)
+        finally:evidence.OUT=previous
+
     def test_duplicate_iteration(self):
         self.corrupt(lambda d:d['ordinary']['records'][0]['samples'][1].update(iteration=1),'samples')
 
@@ -106,5 +139,58 @@ class EvidenceTests(unittest.TestCase):
     def test_summary_uses_inclusive_quartiles(self):
         result=evidence.summary([dict(elapsed_ns=x) for x in (1,2,3,4,100)])
         self.assertEqual((result['median'],result['qone'],result['qthree']),(3,2,4))
+
+    def test_mixed_engine_revision(self):
+        self.corrupt(lambda d:d['comparison']['metadata'].update(source_sha256='0'*64),'Mixed engine fingerprints')
+
+    def test_missing_session(self):
+        self.corrupt(lambda d:d['prepared']['records'][0]['sessions'].pop(),'independent sessions')
+
+    def test_raw_and_pooled_views_cannot_diverge(self):
+        self.corrupt(lambda d:d['ordinary']['records'][0]['sessions'][0]['samples'][0].update(elapsed_ns=1),'Pooled samples')
+
+    def test_frequency_policy_is_required(self):
+        def edit(d):
+            settings=d['prepared']['metadata']['frequency']['settings']
+            key=next(k for k in settings if k.endswith('/scaling_governor'))
+            settings[key]='powersave'
+        self.corrupt(edit,'CPU frequency policy')
+
+    def test_sampled_frequencies_required(self):
+        self.corrupt(lambda d:d['comparison']['metadata']['frequency']['scaling_cur_freq_khz'].clear(),'sampled CPU frequencies')
+
+    def test_missing_large_state_arm(self):
+        self.corrupt(lambda d:d['comparison']['records'].__delitem__(next(i for i,r in enumerate(d['comparison']['records']) if r['rows']>10)),'engine/policy coverage')
+
+    def test_missing_first_key_observations(self):
+        self.corrupt(lambda d:d['scaling']['records'][0]['first_key_samples'].pop(),'samples')
+
+    def test_scaling_uses_same_service_across_sizes(self):
+        self.corrupt(lambda d:d['scaling']['records'][0].update(service_pid=-1),'service not reused')
+
+    def test_size_inventory_and_new_macro_contract(self):
+        sizes=self.data['verification']['detailed_sizes']
+        self.assertEqual(sizes['rust_production_lines']+sizes['rust_test_lines'],self.data['verification']['sizes']['server']['nonblank_lines'])
+        for app in sizes['applications'].values():
+            self.assertEqual(app['client_lines'],sum(app['program_files'].values()))
+            self.assertEqual(app['proof_lines'],sum(app['proof_files'].values()))
+            for path,count in {**app['program_files'],**app['proof_files']}.items():
+                self.assertEqual(count,sum(bool(x.strip()) for x in (evidence.ROOT/path).read_text().splitlines()))
+        previous=evidence.OUT
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder)
+                macros=evidence.derive(self.data)
+                names='CpuGovernor CpuClockGHz TurboSetting SessionCount RustProductionLines RustTestLines IndexedClientLines IndexedProofLines IndexedProofRatio VoucherClientLines VoucherProofLines VoucherProofRatio ComparisonLargeRows ScalingFirstKeySmallMs ScalingFirstKeyLargeMs'.split()
+                names += ['Large'+policy+engine+operation+'Ms' for policy in ('','Owner') for engine in ('Jay','Pg','Sq') for operation in ('Read','Write')]
+                for name in names:self.assertIn(name,macros)
+                self.assertEqual(macros['SessionCount'][0],3)
+                self.assertEqual(macros['ComparisonLargeRows'][0],1104)
+                self.assertIn('65{,}536',(Path(folder)/'numbers.tex').read_text())
+                self.assertIn('Min s',(Path(folder)/'registration-table.tex').read_text())
+                self.assertTrue((Path(folder)/'session-spread-table.tex').is_file())
+                for row in evidence.report_rows(self.data):
+                    if row['metric'].startswith(('E1','E2','E3')):self.assertEqual(len(row['session_medians']),3)
+        finally:evidence.OUT=previous
 
 if __name__=='__main__':unittest.main(verbosity=2)

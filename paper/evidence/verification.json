@@ -119,5 +119,262 @@
     "Ingress.bend:unified_core_theorem",
     "Init.bend:init_theorem",
     "Iteration.bend:fold_theorem"
-  ]
+  ],
+  "detailed_sizes": {
+    "definition": "Nonblank physical lines, including comments/imports/attributes. Rust: server/*.rs; #[cfg(test)] attribute and following top-level item through its unindented closing brace are test lines; all remaining lines are production. Client ratios count Client.bend (plus Voucher.bend for the voucher dispatcher) versus its local certificate/checked-action/completion files only, excluding reusable library, domain/model, configuration, seed, and separately checked functional proofs.",
+    "rust_files": [
+      {
+        "file": "server/capture.rs",
+        "production": 143,
+        "tests": 162
+      },
+      {
+        "file": "server/main.rs",
+        "production": 1071,
+        "tests": 421
+      },
+      {
+        "file": "server/scheduling.rs",
+        "production": 290,
+        "tests": 518
+      },
+      {
+        "file": "server/storage.rs",
+        "production": 344,
+        "tests": 194
+      },
+      {
+        "file": "server/timing.rs",
+        "production": 98,
+        "tests": 62
+      }
+    ],
+    "rust_production_lines": 1946,
+    "rust_test_lines": 1357,
+    "applications": {
+      "indexed": {
+        "program_files": {
+          "applications/indexed/Client.bend": 46
+        },
+        "proof_files": {
+          "applications/indexed/ClientProof.bend": 126,
+          "applications/indexed/CheckedActions.bend": 170,
+          "applications/indexed/Completion.bend": 108
+        },
+        "client_lines": 46,
+        "proof_lines": 404
+      },
+      "voucher": {
+        "program_files": {
+          "applications/vouchers/Client.bend": 6,
+          "applications/vouchers/Voucher.bend": 113
+        },
+        "proof_files": {
+          "applications/vouchers/ClientProof.bend": 205
+        },
+        "client_lines": 119,
+        "proof_lines": 205
+      }
+    }
+  },
+  "size_collection_metadata": {
+    "frequency": {
+      "utc": "2026-11-11T17:12:05Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3582178,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3599826,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3614516,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3487357,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3605179,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1961830,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3603805
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "frequency_original": {
+      "utc": "2026-11-11T17:12:05Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1601777,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4700000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4650112,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "session_count": 1,
+    "commit": "638d7f482346aa628086009c11606f3718777208",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/fixed-clock-thesis-evidence",
+    "utc": "2026-11-11T17:12:05Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "d0779cec2bcc520c7820332445df2f7fd6cb9928947b8a6625a93734cc1b91d4",
+    "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+    "dirty": [
+      "M paper/README.md",
+      " M paper/evidence.py",
+      " M paper/evidence/comparison.json",
+      " M paper/evidence/ordinary.json",
+      " M paper/evidence/prepared.json",
+      " M paper/evidence/scaling.json"
+    ],
+    "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1
+  },
+  "timing_policy_note": "Original successful verification wall times retained; their historical metadata precedes fixed-clock control. New size_collection_metadata records only source-inventory collection, not a rerun of command wall times."
 }
