@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{article}
+\documentclass[a4paper,11pt]{article}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -15,13 +15,15 @@
 \hypersetup{pdftitle={JayDB2: Proof-Carrying Transactions under Administrator-Defined Laws},
 pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
 \input{../.build/tcc/numbers.tex}
+\input{pending-macros.tex}
 \input{../.build/tcc/scaling-coordinates.tex}
 \newcommand{\numen}[1]{\pgfmathprintnumber[fixed,precision=2,1000 sep={,}]{#1}}
 
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\jay}{JayDB2}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newcounter{listing}
 \newtheorem{definition}{Definition}
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{3pt}
@@ -40,36 +42,34 @@ pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carr
 \begin{document}
 \maketitle
 \begin{abstract}
-A transaction policy can constrain both the observations made during execution
-and the state eventually published. This article presents \jay{}, an
-experimental database written in Bend~2 with a Rust host. Clients submit pure
-programs, credentials, arguments and proofs of administrator-defined laws.
-Admission binds the certificate to the exact program and authenticated inputs.
-Theorems over the executable gate, interpreter, finalizer and prepared-program
-controller establish authenticated admission, law safety at every execution
-prefix, exact publication and responses, accepted logical progress and validity
-through serial runs. Each generated worker proves its own admission oracle
-sound. A trusted computing base separates checker and source binding, compiler
-and runtime preservation, and physical host plumbing. Two certified applications
-combine ownership with exact index maintenance and with voucher receipts.
-Evaluation examines ordinary admission, prepared reuse, point operations against
-PostgreSQL~16 and SQLite, verification effort and state-size scaling. Ordinary
-point reads take \numen{\OrdinaryReadMedianSeconds}~s at the median,
-versus \numen{\PreparedReadVolatileMedianMs}~ms after volatile preparation,
-whose registration amortizes after \BreakEvenReadCalls{} calls in the median-cost
-model. Durable prepared reads remain orders of magnitude slower
-than the SQL baselines. Proof sources contain
-\numen{\ProofToImplementationRatio} times as many nonblank lines as the Bend
-implementation. The configured \numen{\StateLimitBytes}-byte state ceiling fits
-\numen{\StateMaximumRows} rows of the scaling fixture. The case study connects
-transaction
-certificates to the code that decides execution and publication, and makes the
-remaining system assumptions explicit.
+Proof-carrying transactions let clients establish administrator-defined laws
+before their programs observe private data. \jay{} is an experimental Bend~2
+database with a Rust host. Its theorems concern the very gate, interpreter,
+finalizer and prepared-program controller executed by the native worker.
+Under a trusted source-binding audit, admission ties the certificate to the
+exact program, authenticated context and arguments. Conditional on T1--T3
+(checking and binding, compilation and runtime, and host plumbing), the
+system provides authenticated admission, prefix law safety, logical progress,
+valid serial states and exact Commit/Keep decisions and responses; physical
+publication is host duty T3.6, and crash durability lies outside the proofs.
+An earlier vacuous contract motivated theorems over computed functions,
+a useful positive instance and checked refutations. Ownership/index and
+voucher/receipt applications demonstrate access and publication obligations.
+An ordinary read takes \numen{\OrdinaryReadMedianSeconds}~s at the median;
+volatile prepared reuse takes \numen{\PreparedReadVolatileMedianMs}~ms and
+amortizes preparation after \BreakEvenReadCalls{} calls in a median-cost model.
+Evaluation separates checking from compilation and the prototype's process,
+state-transfer and storage costs. The case study demonstrates an executable
+proof-carrying design with an explicit trusted base and substantial current cost.
 \end{abstract}
 \noindent\textbf{Keywords:} proof-carrying code; databases; dependent types;
 transaction policies; formal verification; Bend.
 
 \section{Introduction}
+Proof-carrying transactions move application-law obligations into a certificate
+checked before execution can observe private data. \jay{} connects this idea
+to the executable functions that admit, interpret and finalize transactions,
+with explicit assumptions for the surrounding native service.
 Consider an availability service in which Alice and Bob each have a primary row
 and a secondary-index table. Changing Alice's availability requires removing an
 old index entry, inserting its replacement and updating the primary row. Every
@@ -96,6 +96,8 @@ typed decision, \code{Commit} or \code{Keep}, which the Rust host obeys. Prepare
 programs reuse a universal certificate and compiled artifact while authenticating
 each invocation anew. Their controller and registry transitions are also Bend
 functions with checked witnesses.
+The study claims neither a fully verified database stack nor proved crash
+durability, concurrent isolation or a performance advantage over SQL engines.
 
 The study addresses three research questions:
 \begin{enumerate}
@@ -104,7 +106,7 @@ code, and under which trusted computing base do they apply to the native service
 \item \textbf{RQ2:} Can application certificates combine access restrictions
 at every prefix with publication invariants, with invalid controls failing at
 the intended obligation?
-\item \textbf{RQ3:} What does certification cost in the current executable,
+\item \textbf{RQ3:} What is the cost of the current certified executable,
 and how does prepared reuse change that cost?
 \end{enumerate}
 
@@ -117,12 +119,12 @@ functions, including generated admission-oracle proofs and an explicit trusted b
 \item An architecture that places transaction and prepared-control decisions
 in checked Bend and leaves process, byte and publication plumbing to Rust.
 \item Certified ownership/index and voucher/receipt applications with targeted
-negative controls, together with measurements of certification cost.
+negative controls, together with measurements separating checking and service costs.
 \end{itemize}
 
 \section{Background and Related Work}
 Proof-carrying code allows a producer to accompany a program with a checkable
-argument that it respects a consumer's policy \citep{necula1996}. Here the
+argument that it respects a consumer's policy \citep{necula1996,necula1997}. Here the
 consumer is a database administrator, and the admitted object is a transaction
 program. Its policy includes observations and provisional changes as well as
 successful publication. The certificate targets the source action semantics.
@@ -145,21 +147,51 @@ implementation; \jay{} accepts a client-authored implementation and certificate
 for a fixed live database configuration. Its optional library provides ordinary
 actions and proof helpers for queries, index maintenance and receipts.
 
-PostgreSQL offers integrity constraints and row security policies
-\citep{postgresconstraints,postgresrls}. Constraints express admissible stored
-data, while row policies restrict which rows normal queries and modifications
-may access. These mechanisms provide established ways to implement the
-motivating application's requirements. \jay{} places the proof obligation on
-the whole submitted transaction, including intermediate observations and its
-final publication. The evaluation compares an owner-only policy in both systems
-as a concrete common requirement.
+Transaction verification predates this prototype: \citet{sheard1989}
+automatically verify database transaction safety. \jay{} contributes a
+client-certificate interface tied to the gate and interpreter that execute
+those transactions. UrFlow statically checks database-dependent access and
+information-flow policies expressed through SQL queries \citep{urflow2010}.
+Hails confines untrusted web applications using mandatory access control
+\citep{hails2012}; LWeb combines labeled database policies with a mechanized
+noninterference result \citep{lweb2019}; Jacqueline dynamically propagates
+information-flow policies across applications and databases \citep{jacqueline2016}.
+These systems address information release across application components.
+\jay{} instead checks client proofs of arbitrary installed propositions over
+action prefixes and publication; it does not claim their end-to-end
+information-flow guarantees.
+
+PostgreSQL's conventional analogues are row-level security (RLS), constraints
+and triggers \citep{postgresrls,postgresconstraints,postgrescreate,postgrestrigger}.
+RLS normally filters unauthorized rows silently; it does not itself reject a
+transaction merely for attempting to read Bob's index. Supported deferrable
+constraints permit temporary inconsistency, but PostgreSQL's \code{CHECK}
+constraints are not deferrable. Exact equality between ordinary index and
+business tables needs triggers, including deferred constraint triggers when
+checked at transaction end; SQL \code{CREATE ASSERTION} is not implemented
+\citep{postgresunsupported}. These mechanisms can protect stored invariants
+and restrict returned rows, with different observation semantics from JayDB2.
+
+Why require proofs? Installed laws are arbitrary propositions, potentially
+expensive or undecidable to decide at run time. For example, the voucher law
+quantifies over reachability using an erased witness. A transaction lacking
+the required certificate is rejected before observing private data, rather
+than discovering a violation after reads and aborting. The certificate covers
+all valid states, needs no private snapshot for admission, and preparation
+amortizes its check across invocations. This expressiveness has a price:
+manual proofs and, in the current implementation, high execution cost even
+after checking has been removed from the invocation path.
 
 Bend~2 supplies the dependent source language, official checker modes and native
 compiler/runtime used by the prototype \citep{bend}. The evaluated toolchain is
-Bend~2.0.39, with official \code{--check-only} and BendTT \code{--verdict}
+Bend~2.0.39, with official \texttt{-{}-check-only} and BendTT \texttt{-{}-verdict}
 checking. A checked collection of definitions is called a \emph{Book}; admission
 checks the same Book that proceeds to C compilation. The host coordinates this
 process through Node and compiles the literal emitted C with Clang~19.
+Bend was chosen so that specifications, proofs and executable functions share
+one language and the checked Book is the very artifact compiled to C. This
+is an engineering choice for studying that connection, rather than a claim
+of superiority over Coq, Lean or F*.
 
 Verified systems distinguish the proved program from the components trusted to
 execute its meaning. CompCert's semantic-preservation approach
@@ -173,8 +205,8 @@ conditional theorems with identifiable implementation obligations.
 \subsection{Configuration, state and observations}
 A fixed configuration $C$ contains the schema, installed laws, their admitted
 dependencies, the environment identity and three canonical byte limits: message,
-state and response. Published state $s$ contains finite tables and a user
-registry. Tables have unique textual primary keys and typed columns. Cell values
+state and response. The \emph{root} is the currently published state $s$; it contains finite
+tables and a user registry (distinct from the prepared-program handle table). Tables have unique textual primary keys and typed columns. Cell values
 are Unicode text, booleans or signed 64-bit integers, with explicit optional
 absence. A missing row differs from an absent optional value. Writes supply
 complete explicit values and obey the schema.
@@ -202,7 +234,8 @@ the outer eight-byte header, and permit equality with the ceiling.
 
 \subsection{Programs as actions}
 A request is $r=(k,\sigma,a,\pi)$: credential $k$, source text $\sigma$,
-arguments $a$ and proof source $\pi$. Its elaborated pure program $p$ maps an
+arguments $a$ and proof source $\pi$. A proof is the supplied derivation;
+a certificate is its checked evidence for the transaction obligations. Its elaborated pure program $p$ maps an
 authenticated context and arguments to an action. Actions either finish with a
 value, refuse with a value, or request a database operation with a continuation.
 The interpreter supplies the operation's actual result to that continuation.
@@ -241,8 +274,8 @@ observation depth $n$. Abbreviating \code{Requirements.Certifies},
 \]
 Validity includes structural validity, the state limit and all stable-state
 laws. Presence means that $c$ is a current registry context. For a prefix,
-\code{SafetyTrace} requires the executing laws and their technical-failure
-closure. For a final trace it also requires all laws at the finalized closure
+\code{SafetyTrace} requires the executing laws and the laws for closing
+that prefix with a technical failure while preserving the published state. For a final trace it also requires all laws at the finalized closure
 and validity of any successfully published working state.
 \end{definition}
 
@@ -257,8 +290,11 @@ universal over states, contexts and arguments.
 \subsection{Request path and publication}
 Figure~\ref{fig:architecture} shows the ordinary request path. The service uses
 standard input/output and processes complete requests serially in FIFO order.
-The Rust host owns the published root, processes and pipes. Its \numen{\ServerNonblankLines} nonblank source lines implement this
-physical coordination. Node stages admission and compilation. Bend implements decoding, authentication, dispatch,
+The Rust host owns the published root, processes and pipes. Its
+\RustProductionLines{} production lines implement this physical coordination;
+\RustTestLines{} test lines are counted separately. The gate authenticates
+and admits a request; the finisher checks its proposed result and selects
+the next root and response. Node stages admission and compilation. Bend implements decoding, authentication, dispatch,
 execution, finalization and prepared controls.
 
 \begin{figure}[htbp]
@@ -270,7 +306,7 @@ execution, finalization and prepared controls.
 \node[block,right=of client] (host) {Rust host\\frame and current root};
 \node[block,right=of host] (admit) {Admission and compilation\\both checkers, exact Book};
 \node[block,below=13mm of admit] (worker) {Native Bend worker\\\code{Gate.begin}, interpreter,\\\code{Gate.finish} / \code{early}};
-\node[block,left=of worker] (decision) {Checked decision\\\code{Commit(root, bytes)}\\or \code{Keep(bytes)}};
+\node[block,left=of worker] (decision) {Checked decision\\\code{Commit / Keep}};
 \node[block,left=of decision] (publish) {Rust publication\\cleanup, replace root,\\deliver exact bytes};
 \draw[->] (client) -- (host);
 \draw[->] (host) -- (admit);
@@ -291,7 +327,9 @@ checker modes check the pure declarations and executable Book. That exact Book
 feeds the official Bend-to-C compiler. Ordinary requests use Clang \code{-O0}
 to reduce compilation latency; reusable prepared workers use \code{-O2}.
 
-The worker uses a generated oracle for admission. It returns
+The worker uses a generated oracle for admission, a function packaging the
+checked decision. The Node oracle generator is untrusted because its output
+is checked; T1 still trusts checker soundness and the source-binding audit. It returns
 \code{Reject}, \code{ToolFailure} or \code{Accept(program)}. It compares the
 resolved source and proof with frozen bindings. Concrete admission additionally
 matches the authenticated context and structural arguments. Its sole accepting
@@ -301,14 +339,16 @@ admission, proving this actual oracle's
 \code{OracleSoundness} premise. The oracle packages an already checked result;
 it does not elaborate fresh client source while running the transaction.
 
-\code{Gate.begin} authenticates against the supplied current state before
-invoking that oracle. Acceptance starts precisely the admitted program with
-the actual context and arguments. The worker advances the checked interpreter
-incrementally. Stopping calls \code{Gate.finish}; early errors call
-\code{Gate.early}. The finisher computes the finalized response, selected root
-and framed bytes. \code{Execution.decision} emits a typed \code{Commit} or
-\code{Keep}. The WorkerBridge and WorkerDecision proofs connect this worker
-path to the gate theorems and exact emitted decision.
+Inside the worker, the entry function \code{Gate.begin} (the gate)
+authenticates the credential against the current state and calls the admission
+oracle. On acceptance it starts exactly the admitted program with the
+authenticated context and arguments, and the worker steps the checked
+interpreter until the program stops. A normal stop goes through the finisher
+(\code{Gate.finish}), an early error through \code{Gate.early}; both compute
+the response, the root to publish and the framed bytes. A final checked
+function, \code{Execution.decision}, turns this result into Commit or Keep.
+Two bridge proofs, WorkerBridge and WorkerDecision, show that this loop
+computes exactly what the theorems describe.
 
 Rust collects complete output, waits for child exit and completes cleanup before
 obeying the decision. Commit carries the whole selected root and paired response;
@@ -318,7 +358,8 @@ request with the resulting published state.
 
 \subsection{Prepared programs and the controller}
 Preparation checks a universal certificate and compiles once, returning an
-instance-local handle. Each invocation supplies a fresh credential and arguments.
+instance-local identifier (handle). The registry is the handle table
+that maps these identifiers to their admitted program bindings. Each invocation supplies a fresh credential and arguments.
 Checked registered selection authenticates first, resolves the handle within
 the instance and selects the original source/proof tuple. The worker specializes
 the universal certificate to its current context and arguments. Handle reuse
@@ -327,27 +368,35 @@ and execution processes and artifact-integrity checks.
 
 \code{Control.control} implements preparation and invalidation as a checked
 plan followed by a registry delta. Preparation compares the exact universal
-admission tuple supplied after T1 checking, validates the handle's shape and
+admission tuple supplied after trusted checking and source binding (T1, Section~\ref{sec:tcb}), validates the handle's shape and
 rejects every previously allocated candidate. It encodes and bounds the receipt
 before installing a delta. Invalidation removes the scoped entry and retains
 allocation history. Control receipts are metadata: they preserve the database
 root and last published transaction response.
 
 The host forwards the latest controller-emitted registry bytes unchanged to the
-worker, which decodes them and performs checked lookup. The ControlRegistryBytes
-proof relates that serialization to the worker's decoder. The mixed service fold
-tracks transaction roots and registry history together, and no-revival preserves
-the absence of an allocated, removed handle. A handle supplies a program
-reference, while each caller retains their own current authenticated identity.
+worker. The \code{ControlRegistryBytes} proof shows that the worker decodes
+exactly the controller's handle table. \code{ServiceFoldTheorem} composes a
+serial sequence containing both transactions and controls, tracking states and
+handle history together. \code{ServiceNoRevivalTheorem} says that an allocated
+handle, once removed, remains absent throughout the instance. The handle
+references a program; every caller still uses their current authenticated identity.
 Handles and allocation history last for the service instance and disappear at
 restart.
 
 \subsection{Persistence and result delivery}
-The default published state resides in RAM. Optional persistence writes and
-synchronizes a complete temporary image, replaces the authoritative image and
-synchronizes its directory before publishing in RAM and replying. Opening checks
-the same frozen environment and does not evaluate a seed. Missing, corrupt or
-incompatible images stop startup.
+The default published state resides in RAM. Optional durable storage creates a
+complete canonical image. A successful request whose canonical state is
+byte-identical reuses the already durable image, while publishing the new
+root/response pair in RAM. Only changed states write and fsync a complete
+temporary image, atomically replace the authoritative image and fsync its
+directory before RAM publication and reply. Opening validates the image and
+synchronizes the authoritative file and directory once before serving.
+Recovery checks the frozen configuration and identity without evaluating a
+seed; recovered-root validity relies on persistence integrity under the
+T1/host obligation, rather than a recovery-validity theorem. Missing, corrupt
+or incompatible images stop startup. Neither the last response nor prepared
+handles and allocation history are durable.
 
 A recoverable technical failure before commit keeps the prior root. Publication
 uncertainty stops service without claiming rollback. A delivery failure after
@@ -355,7 +404,7 @@ commit retains the committed root, so the client may lack knowledge of the
 outcome. The receipt application in Section~\ref{sec:vouchers} addresses that
 last case at the application level.
 
-\section{Executable Guarantees}
+\section{Guarantees over the executed Bend code}
 \subsection{Theorem contract}
 The public statements in \path{contract/Theorems.bend} refer directly to the
 functions used by the worker and controller. Table~\ref{tab:theorems} summarizes
@@ -385,7 +434,7 @@ Core: Admitted & Starts use current authenticated identity, exact oracle
 acceptance and exact machine/arguments. Halts have bounded framed replies and
 preserve the root. & CoreClauses\\[3pt]
 Core: Safe & Every actual machine prefix satisfies every installed law,
-including technical-failure closures. & CoreClauses\\[3pt]
+including closure after technical failure. & CoreClauses\\[3pt]
 Core: Completed & Every final trace has the exact finisher, publication, valid
 next root and bounded response bytes, with no generic logical failure. & CoreClauses\\[3pt]
 Core: Progressing & Accepted machines reach a final trace and completion.
@@ -422,8 +471,8 @@ composition, including the prepared packet's decoded registry.
 \code{CertifiedWorker} consumes the generated checked oracle to establish that
 composition for the actual worker. \code{WorkerDecision} proves that Keep is
 exactly the non-success publication path and Commit carries the exact next root
-and response bytes. \code{DispatchBridge} equates tag-zero dispatcher denials
-with the gate's early replies. Controller replies use Control's own theorem.
+and response bytes. \code{DispatchBridge} shows that the dispatcher's rejection replies
+(the private protocol's tag zero) equal the gate's early replies. Controller replies use Control's own theorem.
 
 \subsection{Formal Core statement}
 Write $A(C,r)$ for the executable oracle, and let $e$ be the computed result of
@@ -439,12 +488,12 @@ certification and termination of the exact accepted program:
 \]
 This abbreviates the dependent \code{OracleSoundness} and \code{Accepted}
 definitions, with $\sigma$ and $a$ projected from $r$.
-\begin{proposition}[Core]
+\begin{theorem}[Core; mechanized as \code{CoreTheorem}]
 For every configuration $C$, state $s$, request $r$ and oracle $A$, configuration
 validity, $\operatorname{Valid}(C,s)$ and $\operatorname{Sound}(C,r,A)$ imply
 all four clauses of $\operatorname{EntryCore}(e,C,s,r,A)$, where
 $e=\operatorname{Gate.begin}(C,s,r,A)$.
-\end{proposition}
+\end{theorem}
 
 If $e$ starts, Admitted identifies a context $c$ obtained by current-state
 authentication and a program $p$ with the exact Accept verdict and exact
@@ -486,7 +535,7 @@ publication on refusal and rejecting an oracle-accepted program violate the
 relevant clauses. This supplies both a useful inhabitant and concrete excluded
 behaviors.
 
-Hundreds of negative fixtures under \path{tests/proof/rejected/} exercise false
+\NegativeFixtures{} negative cases under \path{tests/proof/rejected/} exercise false
 claims. Each must fail in both official checker modes at a definition named
 exactly \code{false}. A syntax error, missing import or additional helper
 co-failure invalidates the control. Application controls similarly isolate
@@ -496,7 +545,21 @@ statement and rejection cause inspectable.
 \subsection{Trusted computing base}
 \label{sec:tcb}
 The native service result is conditional on the following trusted base, as
-specified in \path{proof/README.md}.
+specified in \path{proof/README.md}. Table~\ref{tab:tcb-size} sizes the host and
+admission tooling, not the external toolchain. Line counts do not measure trust.
+
+\begin{table}[htbp]\centering\small
+\caption{Trusted components and maintained source size.}\label{tab:tcb-size}
+\begin{tabular}{@{}L{.08\linewidth}L{.53\linewidth}L{.32\linewidth}@{}}
+\toprule Layer & Components & Nonblank lines\\\midrule
+T1 & Official checkers; Node admission/service tools and binding audit &
+\numen{\ToolsNonblankLines} tools lines\\
+T2 & Bend compiler/runtime; Clang & External toolchain\\
+T3 & Rust production host & \RustProductionLines\\
+\bottomrule
+\end{tabular}
+\par\small Rust tests: \RustTestLines{} lines, excluded from production size.
+\end{table}
 
 \paragraph{T1: checking, exact binding and purity.}
 The official checkers are sound. Source/target and purity audits bind the client
@@ -570,7 +633,7 @@ The action proof uses weakest-precondition reasoning over the real
 quantifies over all valid states, inputs and observation depths.
 
 \begin{table}[htbp]\centering\small
-\caption{Independent obligations in the indexed application.}
+\caption{Independent obligations in the indexed application.}\label{tab:indexed-variants}
 \begin{tabular}{@{}L{.35\linewidth}L{.25\linewidth}L{.32\linewidth}@{}}
 \toprule Variant & Prefix permission & Publication obligation\\\midrule
 Correct maintenance & Own tables & Exact index restored\\
@@ -581,12 +644,37 @@ Read Bob's index as Alice & Fails first foreign access & Cannot be admitted\\
 \end{tabular}
 \end{table}
 
-The negative variants retain the real operation/layout reasoning and, for
+The negative variants in Table~\ref{tab:indexed-variants} retain the real operation/layout reasoning and, for
 omitted and forged maintenance, independently checked permission proofs. Their
 full certificates fail at the intended terminal equality. The foreign-read
 variant fails at its first permission obligation. Native checks reject these
 requests and query the subsequent state. The two-principal layout makes the
 distinction between prefix safety and publication exactness concrete.
+
+
+Listing~\ref{lst:client} shows the actual client entry and ownership law
+from \path{applications/indexed/}. Context selects the caller's tables;
+\code{command} constructs the actions. The law inspects every recorded access.
+
+\noindent\begin{minipage}{\linewidth}\footnotesize
+\begin{verbatim}
+def start(ctx:D.Context,args:D.Value) -> S.Action:
+  D.Context{+id,kind}=ctx
+  flags(String.eq(id,"alice"),String.eq(id,"bob"),args)
+def program() -> S.Program:
+  S.Program{start}
+
+def Rule(h:S.Situation) -> Data:
+  match h:
+    case S.Stable{s}: M.Layout(s)
+    case S.Executing{s,ctx,code,args,w,ts}:
+      Both<M.Layout(w),AllAllowed(ctx,ts)>
+    case S.Closed{s,ctx,code,args,w,ts,r}:
+      Both<M.Layout(w),AllAllowed(ctx,ts)>
+\end{verbatim}
+\refstepcounter{listing}\label{lst:client}
+\centering Listing~\thelisting: Indexed client entry and ownership law; imports and helpers omitted.
+\end{minipage}
 
 \subsection{Vouchers and retained receipts}
 \label{sec:vouchers}
@@ -601,17 +689,19 @@ publishes. Explicit retirement removes both rows and ends that ID's lifetime.
 The key prefixes are disjoint and injective within each principal table. Input
 encoding preserves exact text and the cancellation flag. Ownership laws govern
 all receipt and business accesses. An additional \code{ReceiptLaws.Rule}
-requires actual prefixes to refine a frozen reference protocol and requires its
-completed success before publication. Stable-state validity constructively
-witnesses reachability from receipt-free tables through complete reference calls.
-The witness is erased proof, with ordinary table data holding the live receipt.
+requires each actual execution prefix to follow an allowed prefix of a fixed
+reference protocol; publication requires a completed successful reference call.
+For stable states, a proof witness describes how complete reference calls can
+reach that state from receipt-free tables. This reachability witness is erased
+before execution. The retained receipt itself is ordinary table data.
 
 Lifetime proofs establish the bidirectional business/receipt invariant, exact
 live-hit reads and results, conflict refusal, cancellation rollback and
 retirement. Negative proof controls challenge these obligations. Native tests
 also exercise permission changes and a lost-response scenario: kill after
 durable publication, reopen without a seed, then repeat identical and conflicting
-requests. A native trace check confirms that the retained hit performs no new
+requests. This restart/lost-response scenario is tested, not proved.
+A native trace check confirms that the retained hit performs no new
 business or receipt writes. Receipts thus express application-level repeat
 protection through the same law and action interface.
 
@@ -627,7 +717,13 @@ below. The reproduction procedure and macro definitions are in
 \subsection{Common protocol}
 The experiments use the real serial Rust host, official Bend~2.0.39 and BendTT,
 literal emitted C and Clang~19 on an Intel Core i7-11700K/Linux machine with an
-ext4 filesystem. One client sends serial requests to a single native worker
+ext4 filesystem. CPU frequency control uses the \CpuGovernor{} governor,
+a fixed \CpuClockGHz{}~GHz clock and turbo \TurboSetting{}.
+E1--E4 use \SessionCount{} independent sessions; E5 uses one session with
+log-spaced populations and a first-key variant. An earlier run under frequency
+scaling was discarded after the diagnosis retained in
+\path{paper/evidence/performance-report.txt}.
+One client sends serial requests to a single native worker
 thread, with GPU execution disabled. Initialization and operation warmups are
 outside the samples. The ordinary service compiles C with \code{-O0}; preparation
 uses \code{-O2}. Diagnostic phase hooks are enabled only for E1 and E2.
@@ -641,10 +737,17 @@ checks are outside that interval. SQL intervals surround
 \code{execute(...).fetchall()}, including driver encoding and decoding; result
 checks are outside. Every output is checked against its expected value, and
 updates receive an additional stored-value check. Medians and inclusive
-quartiles [Q1, Q3] use all samples without outlier removal. Each condition is a
-single local run of repeated calls, not a set of independent deployment trials.
-Sample counts below refer to calls, except where registration or throughput
+quartiles [Q1, Q3] use all samples without outlier removal. Independent sessions describe repeatability on this deployment, not
+replication across machines. Table~\ref{tab:session-spread} separates pooled
+call medians from the spread of session medians.
+Sample counts below refer to calls, except where preparation or throughput
 blocks are explicitly named.
+
+\begin{table}[htbp]\centering\small
+\caption{Pooled headline medians and min--max of independent session medians.}
+\label{tab:session-spread}
+\IfFileExists{../.build/tcc/session-spread-table.tex}{\input{../.build/tcc/session-spread-table.tex}}{\textcolor{red}{pending table}}
+\end{table}
 
 \subsection{E1: ordinary admission and phase cost}
 E1 sends a trivial read, indexed \code{set} and voucher issue through ordinary
@@ -662,9 +765,11 @@ Table~\ref{tab:ordinary} shows median latencies of
 \end{table}
 
 Whole-Book checking and native code generation/compilation dominate these
-seconds-long requests (Table~\ref{tab:phases}). Checking combines the primary
-\code{--check-only} pass and the official BendTT translation/check
-(\code{--verdict}); C cost combines emission and Clang compilation. The worker's
+seconds-long requests (Table~\ref{tab:phases}). Only the checking share
+measures certification cost; compilation, launch and state handling reflect
+the prototype architecture. Checking combines the primary
+\texttt{-{}-check-only} pass and the official BendTT translation/check
+(\texttt{-{}-verdict}); C cost combines emission and Clang compilation. The worker's
 median share of each individual round trip is only
 \numen{\OrdinaryReadWorkerSharePercent}\%,
 \numen{\OrdinaryIndexedWorkerSharePercent}\% and
@@ -688,41 +793,39 @@ separately, so displayed medians need not sum to the median round trip.
 \end{table}
 
 \subsection{E2: prepared reuse and break-even}
-E2 registers universally certified versions of the same three programs, then
+E2 prepares universally certified versions of the same three programs, then
 measures \PreparedSamples{} executions per program and storage mode after one
-warmup. Each registration has \RegistrationSamples{} measured samples with no
-discarded registration warmup; initialization completes before timing begins.
+warmup. Preparation has \RegistrationSamples{} measured samples with no
+discarded preparation warmup; initialization completes before timing begins.
 Indexed writes alternate values. Voucher calls use fresh IDs, then a separately
-timed, checked retirement bounds state size before the next issue. Registration
-includes real certificate checking and optimized compilation
-(Table~\ref{tab:registration-phases}); invocations repeat neither.
+timed, checked retirement bounds state size before the next issue. Preparation
+includes real certificate checking and optimized compilation; invocations repeat
+neither. Table~\ref{tab:registration-phases} reports its spread.
 
 \begin{table}[htbp]\centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{E2: registration (seconds) and prepared calls (milliseconds), median
-[Q1, Q3]. Registration $n=\RegistrationSamples$ and calls $n=\PreparedSamples$
+\caption{E2: preparation (seconds) and prepared calls (milliseconds), median
+[Q1, Q3]. Preparation $n=\RegistrationSamples$ and calls $n=\PreparedSamples$
 per condition. Throughput appears separately in Table~\ref{tab:throughput}.}
 \label{tab:prepared}
 \input{../.build/tcc/prepared-table.tex}
 \end{table}
 \begin{table}[htbp]\centering\small
-\setlength{\tabcolsep}{3pt}
-\caption{E2: one-time registration phase groups, median [Q1, Q3] in seconds.
-Checking includes both whole-Book passes and the generated oracle law;
-$n=\RegistrationSamples$ per condition.}
+\caption{E2: one-time preparation time, minimum/median/maximum in seconds.}
 \label{tab:registration-phases}
-\input{../.build/tcc/registration-phase-table.tex}
+\IfFileExists{../.build/tcc/registration-table.tex}{\input{../.build/tcc/registration-table.tex}}{\textcolor{red}{pending table}}
 \end{table}
 
-For the read, one-time volatile registration costs
+For the read, one-time volatile preparation costs
 \numen{\RegistrationReadVolatileMedianSeconds}~s and subsequent calls take
 \numen{\PreparedReadVolatileMedianMs}~ms at the median. Indexed and voucher calls
-also move to milliseconds, with broad interquartile ranges. Persistence raises
-the read median to \numen{\PreparedReadPersistentMedianMs}~ms.
+also move to milliseconds; Table~\ref{tab:prepared} reports their quartiles. The durable-mode
+read median is \numen{\PreparedReadPersistentMedianMs}~ms.
 Prepared reuse retains fresh worker startup, integrity checks and full-state
-transfer. It removes admission and compilation from the per-call path.
+transfer. Equal-state successful reads reuse the durable image; state-changing
+calls add the image write and synchronization path. Reuse removes admission and compilation from the per-call path.
 
-Let $R$ be median registration time, $O$ median ordinary call time and $P$ median
+Let $R$ be median preparation time, $O$ median ordinary call time and $P$ median
 prepared call time, using consistent units. For $O>P$, preparation amortizes
 when $R+NP\leq NO$, giving $N=\lceil R/(O-P)\rceil$.
 The volatile estimates are \BreakEvenReadCalls{} calls for the read,
@@ -730,42 +833,27 @@ The volatile estimates are \BreakEvenReadCalls{} calls for the read,
 issue. This is a median-cost model over the supported service profiles, excluding
 startup. It is not a measured cumulative sequence or an isolation of proof cost.
 
-\begin{table}[htbp]\centering\small
-\setlength{\tabcolsep}{3pt}
-\caption{E2: active-call throughput versus the full closed loop, in calls/s.
-Active quartiles are across consecutive blocks, not independent trials.}
-\label{tab:throughput}
-\input{../.build/tcc/throughput-table.tex}
-\end{table}
-
-Table~\ref{tab:throughput} distinguishes two timing boundaries. Active throughput
-is the median rate across ten consecutive blocks of 30 measured round trips,
-excluding validation gaps and voucher retirement. Full-loop throughput is one
-\PreparedSamples-call batch, including those gaps and retirement. For example,
-volatile voucher throughput is
-\numen{\PreparedVoucherVolatileActiveCallsPerSecond} active calls/s versus
-\numen{\PreparedVoucherVolatileCallsPerSecond} full-loop calls/s. These rates
-answer different questions and are not reciprocals of median latency.
-
 \subsection{E3: PostgreSQL and SQLite point operations}
 E3 compares prepared JayDB2 with PostgreSQL~16.15 and SQLite~3.45.1, using
 \ComparisonSamples{} reads and updates per engine/policy after one warmup.
 PostgreSQL uses a private local Unix socket, \code{fsync=on},
 \code{synchronous\_commit=on} and \code{full\_page\_writes=on}.
-SQLite uses WAL and \code{synchronous=FULL}. JayDB2 synchronizes and publishes a
-complete image on each success. SQL connections/statements are reused, with
+SQLite uses WAL and \code{synchronous=FULL}. JayDB2 reuses the already
+durable image on byte-identical success; changed states take the full-image
+write, file fsync, replacement and directory fsync path. SQL connections/statements are reused, with
 psycopg automatic server preparation and SQLite's statement cache. Updates
 change the integer value and are checked, including after close/reopen.
 JayDB2 returns an acknowledgment followed by an untimed readback; SQL returns
 the stored value inside the timed statement.
 
-The point fixture has \ScalingSmallRows{} rows. The ownership fixture has that
-many rows for each of two users. An administrator law confines JayDB2 to
-owner-named tables. PostgreSQL enforces the same owner-only read/update policy
+The small point fixture has \ScalingSmallRows{} rows; an additional point
+near the state limit uses \ComparisonLargeRows{} rows
+(Table~\ref{tab:comparison-large}). In the ownership profile, the stated population applies to each of two users. An administrator law confines JayDB2 to
+owner-named tables. PostgreSQL enforces owner-only row visibility and updates
 with an owner column, enabled and forced row-level security, including the
 new-row check, under a non-superuser/non-\code{BYPASSRLS} role
-\citep{postgresrls}. Both systems refused cross-user access: JayDB2 rejected
-admission and PostgreSQL returned/affected no rows. Checks confirmed no foreign
+\citep{postgresrls}. The interfaces differ: JayDB2 rejected cross-user requests at admission,
+whereas PostgreSQL returned/affected no foreign rows. Checks confirmed no foreign
 value disclosure or modification. SQLite is an unconstrained baseline, without
 an equivalent ownership policy.
 
@@ -793,12 +881,26 @@ The update gap is smaller: point updates are
 \numen{\JayOwnerUpdateOverSqlite} times, respectively. Thus the evidence does
 not support describing every operation as orders of magnitude slower.
 
-The protocol explains which extra work remains: each prepared JayDB2 request
-launches a fresh native worker, transfers a complete state and publishes a
-complete durable image, even for a read that leaves the root unchanged.
-SQL read-only queries do not synchronize a new image. Prepared calls do not
-repeat proof checking. These are measurements of the complete service paths;
-they do not isolate how much of the gap each remaining mechanism contributes.
+Each prepared JayDB2 read still pays for a fresh worker process, complete-state
+transfer, decoding and validation. A byte-identical success does not write or
+fsync a new image. Updates add a complete-image write, file fsync, atomic
+replacement and directory fsync; PostgreSQL instead synchronizes its WAL for
+commit. Prepared calls repeat no proof checking. These measurements compare
+complete service paths and do not isolate each mechanism's contribution.
+
+\begin{table}[htbp]\centering\small
+\caption{E3: large-state durable medians (ms), \ComparisonLargeRows{} rows.}
+\label{tab:comparison-large}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}llrrr@{}}\toprule
+Profile & Operation & JayDB2 & PostgreSQL & SQLite\\\midrule
+Point & Read & \LargeJayReadMs & \LargePgReadMs & \LargeSqReadMs\\
+Point & Update & \LargeJayWriteMs & \LargePgWriteMs & \LargeSqWriteMs\\
+Owner & Read & \LargeOwnerJayReadMs & \LargeOwnerPgReadMs & \LargeOwnerSqReadMs\\
+Owner & Update & \LargeOwnerJayWriteMs & \LargeOwnerPgWriteMs & \LargeOwnerSqWriteMs\\\bottomrule
+\end{tabular}}
+\end{table}
+
 Ordinary durable JayDB2 calls provide context: read/update medians are
 \numen{\OrdinaryJayPointReadMedianSeconds}/\numen{\OrdinaryJayPointUpdateMedianSeconds}~s
 for the point fixture and
@@ -806,7 +908,7 @@ for the point fixture and
 for ownership, with \OrdinarySamples{} calls per operation.
 
 \subsection{E4: verification time and source size}
-E4 retains one wall-clock run each of \code{make verify-contract},
+E4 retains command wall-clock runs of \code{make verify-contract},
 \code{make verify} and \code{make test}, in that order on the same local
 installation, without a deliberate cache reset. The first two run positive
 witnesses in both official modes; full verification also checks import coverage
@@ -816,7 +918,7 @@ and causal negative fixtures. All three commands exited successfully.
 separate from request latency.
 
 \begin{table}[htbp]\centering\small
-\caption{E4: command wall times, one run each. Exit zero indicates success.}
+\caption{E4: command wall times, one run per session. Exit zero indicates success.}
 \label{tab:verification}
 \input{../.build/tcc/verification-table.tex}
 \end{table}
@@ -829,8 +931,9 @@ comments and exclude documentation, generated artifacts and vendored code.}
 
 The counted extensions are Bend, Rust, JavaScript modules, JSON, C, headers and
 Python in the named directories. The tools row covers admission and service
-code. Application directories are not included in this inventory, so it supplies
-no application source/proof total. There are \numen{\ProofNonblankLines}
+code; the Rust area includes tests, whose separate count is given in
+Table~\ref{tab:tcb-size}. Table~\ref{tab:client-effort} adds application
+program/proof counts, excluded from the infrastructure inventory. There are \numen{\ProofNonblankLines}
 nonblank lines in \code{proof/} against \numen{\SrcNonblankLines} in
 \code{src/}: a ratio of \numen{\ProofToImplementationRatio} to one.
 \code{contract/} adds \numen{\ContractNonblankLines} lines of specifications.
@@ -842,13 +945,30 @@ and do not measure proof strength. Full verification rejects
 in both modes. The size ratio makes the substantial proof artifact visible,
 without estimating authoring effort or coverage.
 
+\begin{table}[htbp]\centering\small
+\caption{E4: client program and proof size (nonblank lines). Ratios are proof/program.}
+\label{tab:client-effort}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrr@{}}\toprule
+Application & Program & Proof & Ratio\\\midrule
+Indexed & \IndexedClientLines & \IndexedProofLines & \IndexedProofRatio\\
+Voucher & \VoucherClientLines & \VoucherProofLines & \VoucherProofRatio\\\bottomrule
+\end{tabular}}
+\end{table}
+These counts expose certificate size, not time spent authoring proofs, reuse of
+library lemmas, difficulty or maintenance effort. Both applications were
+constructed by the author; no independent developer study was conducted.
+
 \subsection{E5: scaling with complete state size}
-E5 samples \ScalingSamples{} reads and updates per population/mode after one
-warmup, with registration outside latency. A certified prepared population
+In one frequency-controlled session, E5 uses log-spaced populations up to the
+configured maximum and samples \ScalingSamples{} reads and updates per population/mode after one
+warmup, with preparation outside latency. A certified prepared population
 transaction grows an empty valid seed; its handle is invalidated before
 sampling. Rows have a seven-byte ID and one int64 cell. Both point operations
 target the lexicographically last key, so linear lookup grows with population
-as well as complete-state transfer, decoding, validation and publication.
+as well as complete-state transfer, decoding and validation. A first-key
+read variant retains complete-state costs while shortening lookup. Changed
+states additionally require image synchronization in durable mode.
 Table~\ref{tab:scaling} reports the measured state sizes and distributions.
 
 \begin{table}[htbp]\centering\small
@@ -886,10 +1006,10 @@ table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y err
 \addlegendentry{Volatile update}
 \addplot+[blue,dashed,mark=triangle*,error bars/.cd,y dir=both,y explicit]
 table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_read.dat};
-\addlegendentry{Persistent read}
+\addlegendentry{Durable read}
 \addplot+[black,dashed,mark=diamond*,error bars/.cd,y dir=both,y explicit]
 table[x expr=\thisrow{state_bytes}/1000,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_update.dat};
-\addlegendentry{Persistent update}
+\addlegendentry{Durable update}
 \end{axis}
 \end{tikzpicture}
 \caption{E5: medians and inclusive interquartile ranges. Lines connect sampled
@@ -897,15 +1017,15 @@ sizes, with no fitted scaling model. Error bars describe calls within each run.}
 \label{fig:scaling}
 \end{figure}
 
-Latency grows overall with state size (Figure~\ref{fig:scaling}). The volatile
-read median rises from \numen{\ScalingSmallVolatileReadMedianMs}~ms at
-\ScalingSmallRows{} rows to \numen{\ScalingMaximumVolatileReadMedianMs}~ms at
-the maximum. A marked increase already appears between \ScalingSmallRows{}
-and \ScalingMiddleRows{} rows, followed by smaller changes. The distributions
-are broad, and persistent scaling is non-monotonic: the read median at
-\ScalingLargeRows{} rows exceeds that at the maximum population. These
-observations establish costs for the sampled complete service paths, without
-identifying a cause for the jump or a general scaling law.
+Figure~\ref{fig:scaling} reports complete service paths without a fitted scaling
+law. Last-key volatile read medians are
+\numen{\ScalingSmallVolatileReadMedianMs}~ms at \ScalingSmallRows{} rows and
+\numen{\ScalingMaximumVolatileReadMedianMs}~ms at the maximum; corresponding
+first-key medians are \ScalingFirstKeySmallMs{} and
+\ScalingFirstKeyLargeMs{}~ms. Comparing first and last keys helps distinguish
+lookup position from transfer and validation of the complete state. It does
+not isolate those phases or establish a general complexity law. Equal-state
+reads reuse a durable image; state-changing updates include full-image sync.
 
 \section{Discussion, Limitations and Threats to Validity}
 \label{sec:limitations}
@@ -915,10 +1035,17 @@ responses and serial composition. Storage durability and crash recovery,
 operating-system failures, physical resource availability and checker
 completeness/adequacy lie outside those theorems. Persistence transition lemmas
 and injected-fault tests concern selected transitions and recovered bytes;
-device durability needs a separate specification and proof. The two checker
+device durability needs a separate specification and proof. Recovery checks
+configuration/identity, while recovered-root validity rests on persistence
+integrity under T1 and the host; the voucher lost-response scenario is a test.
+FSCQ's Crash Hoare Logic gives a relevant model for future crash specifications
+and recovery proofs \citep{fscq2015}. The two checker
 modes share a toolchain, so their agreement is not independent evidence of
 logical soundness. Compiler/runtime preservation and the numbered host duties
-remain trusted.
+remain trusted. Execution is serial, with no concurrency or isolation levels.
+Schema and installed laws are fixed: there is no evolution or re-certification
+of prepared programs. Logical termination supplies no time bound; a certified
+program can occupy the serial service for an arbitrarily long finite time.
 
 The interface enforces the installed laws. An administrator can omit a desired
 policy, or write incompatible laws that permit no useful program. The useful
@@ -938,12 +1065,12 @@ reachability in an erased proof describes allowable states, rather than an
 observed physical request history.
 
 For RQ3, ordinary admission includes checking and compilation, while prepared
-reuse moves those costs to registration. The ordinary and prepared paths also
+reuse moves those costs to preparation. The ordinary and prepared paths also
 use different C optimization levels, so their latency difference measures the
-supported service profiles rather than proof checking alone. Complete-state
-transfer, fresh processes and complete-image persistence add work beyond the
-logical point operation. A successful read follows Commit even for an unchanged
-root, including durable publication when enabled. These costs affect comparison
+supported service profiles rather than proof checking alone. Checking is the certification component. Compilation, complete-state
+transfer, fresh processes and changed-state image synchronization are costs
+of this prototype architecture. A successful unchanged-state read follows
+Commit, reuses the already durable image and publishes the new response in RAM. These costs affect comparison
 with SQL engines that use different storage and execution paths.
 
 The experiments use one local deployment, selected small programs and
@@ -953,10 +1080,11 @@ correlated. Owner-only checks align a concrete policy, while PostgreSQL filterin
 and JayDB2 refusal remain different observable interfaces. SQLite's unconstrained
 profile supplies a cost baseline. There is no deliberate cache reset or
 independent replication across machines,
-and phase hooks add diagnostic overhead in E1/E2. The scaling maximum-size
-conditions were re-measured after a corrected boundary probe, while smaller
-conditions were retained; their metadata records the separate run. Initial
-seed-fuel failures and rejected harness attempts are retained separately.
+and phase hooks add diagnostic overhead in E1/E2. Fixed governor/clock and
+independent sessions replace the discarded frequency-scaling run, but do not
+remove cache effects or correlation within each session. E5 remains one
+session, including its first-key variant. Initial seed-fuel failures are
+retained separately.
 Source-line counts depend on counting rules and do not measure proof coverage
 or maintainability.
 
@@ -970,12 +1098,13 @@ root validity and prepared-registry history, including permanent invalidation
 within an instance. The ownership/index and voucher/receipt applications
 illustrate how ordinary tables can support these obligations.
 
-The evaluation characterizes certification cost through ordinary admission,
+The evaluation characterizes the cost of the current certified executable
+through ordinary admission,
 prepared reuse, SQL point-operation comparisons, verification effort and state
 scaling. An ordinary read has median latency
 \numen{\OrdinaryReadMedianSeconds}~s, dominated by whole-Book checking and C
 work, while volatile prepared reads take \numen{\PreparedReadVolatileMedianMs}~ms
-and amortize registration after \BreakEvenReadCalls{} calls in the median-cost
+and amortize preparation after \BreakEvenReadCalls{} calls in the median-cost
 model. Durable prepared point reads remain
 \numen{\JayPointReadOverPostgres} times PostgreSQL and
 \numen{\JayPointReadOverSqlite} times SQLite; updates have smaller gaps.
@@ -988,16 +1117,50 @@ host boundary, and improve ordinary admission performance. Reducing complete-sta
 transfer and developing reusable certificate construction are further steps
 toward larger applications.
 
-\begin{thebibliography}{99}\small
-\bibitem[Necula and Lee(1996)]{necula1996}
-NECULA, G. C.; LEE, P. \textbf{Proof-carrying code}. Pittsburgh: Carnegie Mellon
-University, 1996. Technical Report CMU-CS-96-165.
-\url{https://personal.utdallas.edu/~hamlen/Papers/necula96.pdf}.
+RQ1: theorems over the executed Bend functions give authenticated admission,
+prefix safety, logical progress, valid serial roots and exact decisions and
+responses, conditional on T1--T3.
+RQ2: the indexed and voucher certificates combine prefix access laws with
+publication invariants, and targeted invalid controls fail at those obligations.
+RQ3: preparation amortizes checking and compilation, while the current
+executable retains substantial process, complete-state and storage costs.
 
-\bibitem[Nanevski et al.(2008)]{ynot2008}
-NANEVSKI, A.; MORRISETT, G.; SHINNAR, A.; GOVEREAU, P.; BIRKEDAL, L.
-Ynot: dependent types for imperative programs. In: \textbf{ICFP}, 2008,
-p. 229--240. DOI: \href{https://doi.org/10.1145/1411203.1411237}{10.1145/1411203.1411237}.
+\begin{thebibliography}{99}\small
+\bibitem[Bend contributors(2026)]{bend}
+BEND CONTRIBUTORS. \textbf{Bend}. Source distribution, version 2.0.39.
+\url{https://github.com/bendlang/bend}.
+
+\bibitem[Chen et al.(2015)]{fscq2015}
+CHEN, H.; ZIEGLER, D.; CHAJED, T.; CHLIPALA, A.; KAASHOEK, M. F.; ZELDOVICH, N.
+Using Crash Hoare Logic for certifying the FSCQ file system.
+In: \textbf{SOSP}, 2015, p. 18--37.
+DOI: \href{https://doi.org/10.1145/2815400.2815402}{10.1145/2815400.2815402}.
+
+\bibitem[Chlipala(2010)]{urflow2010}
+CHLIPALA, A. Static checking of dynamically-varying security policies in
+database-backed applications. In: \textbf{OSDI}, 2010, p. 105--118.
+\url{https://adam.chlipala.net/papers/UrFlowOSDI10/}.
+
+\bibitem[Delaware et al.(2015)]{fiat2015}
+DELAWARE, B.; PIT-CLAUDEL, C.; GROSS, J.; CHLIPALA, A.
+Fiat: deductive synthesis of abstract data types in a proof assistant.
+In: \textbf{POPL}, 2015, p. 689--700.
+DOI: \href{https://doi.org/10.1145/2676726.2677006}{10.1145/2676726.2677006}.
+
+\bibitem[Giffin et al.(2012)]{hails2012}
+GIFFIN, D. B.; LEVY, A.; STEFAN, D.; TEREI, D.; MAZI\`ERES, D.;
+MITCHELL, J. C.; RUSSO, A. Hails: protecting data privacy in untrusted web
+applications. In: \textbf{OSDI}, 2012, p. 47--60.
+\url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/giffin}.
+
+\bibitem[Leroy(2009)]{leroy2009}
+LEROY, X. Formal verification of a realistic compiler.
+\textbf{Communications of the ACM}, v. 52, n. 7, p. 107--115, 2009.
+DOI: \href{https://doi.org/10.1145/1538788.1538814}{10.1145/1538788.1538814}.
+
+\bibitem[Lizardo(2026)]{artifact}
+LIZARDO, G. J. \textbf{JayDB2: source, specification and applications}. 2026.
+\url{https://github.com/j0taaa/jaydb2}.
 
 \bibitem[Malecha et al.(2010)]{malecha2010}
 MALECHA, G.; MORRISETT, G.; SHINNAR, A.; WISNESKY, R.
@@ -1005,16 +1168,25 @@ Toward a verified relational database management system.
 In: \textbf{POPL}, 2010, p. 237--248.
 DOI: \href{https://doi.org/10.1145/1706299.1706329}{10.1145/1706299.1706329}.
 
-\bibitem[Delaware et al.(2015)]{fiat2015}
-DELAWARE, B.; PIT-CLAUDEL, C.; GROSS, J.; CHLIPALA, A.
-Fiat: deductive synthesis of abstract data types in a proof assistant.
-In: \textbf{POPL}, 2015.
-\url{https://hdl.handle.net/1721.1/91993.2}.
+\bibitem[Nanevski et al.(2008)]{ynot2008}
+NANEVSKI, A.; MORRISETT, G.; SHINNAR, A.; GOVEREAU, P.; BIRKEDAL, L.
+Ynot: dependent types for imperative programs. In: \textbf{ICFP}, 2008,
+p. 229--240. DOI: \href{https://doi.org/10.1145/1411204.1411237}{10.1145/1411204.1411237}.
 
-\bibitem[Leroy(2009)]{leroy2009}
-LEROY, X. Formal verification of a realistic compiler.
-\textbf{Communications of the ACM}, v. 52, n. 7, p. 107--115, 2009.
-DOI: \href{https://doi.org/10.1145/1538788.1538814}{10.1145/1538788.1538814}.
+\bibitem[Necula and Lee(1996)]{necula1996}
+NECULA, G. C.; LEE, P. \textbf{Proof-carrying code}. Pittsburgh: Carnegie Mellon
+University, 1996. Technical Report CMU-CS-96-165.
+\url{https://personal.utdallas.edu/~hamlen/Papers/necula96.pdf}.
+
+\bibitem[Necula(1997)]{necula1997}
+NECULA, G. C. Proof-carrying code. In: \textbf{POPL}, 1997, p. 106--119.
+DOI: \href{https://doi.org/10.1145/263699.263712}{10.1145/263699.263712}.
+
+\bibitem[Parker et al.(2019)]{lweb2019}
+PARKER, J.; VAZOU, N.; HICKS, M. LWeb: information flow security for multi-tier
+web applications. \textbf{Proceedings of the ACM on Programming Languages},
+v. 3, n. POPL, article 75, p. 1--30, 2019.
+DOI: \href{https://doi.org/10.1145/3290388}{10.1145/3290388}.
 
 \bibitem[PostgreSQL Global Development Group(2026a)]{postgresrls}
 POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
@@ -1026,12 +1198,51 @@ POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
 constraints}. \url{https://www.postgresql.org/docs/16/ddl-constraints.html}.
 Accessed: 11 Nov. 2026.
 
-\bibitem[Bend contributors(2026)]{bend}
-BEND CONTRIBUTORS. \textbf{Bend}. Source distribution, version 2.0.39.
-\url{https://github.com/bendlang/bend}.
+\bibitem[PostgreSQL Global Development Group(2026c)]{postgrescreate}
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+CREATE TABLE}. \url{https://www.postgresql.org/docs/16/sql-createtable.html}.
+Accessed: 11 Nov. 2026.
 
-\bibitem[Lizardo(2026)]{artifact}
-LIZARDO, G. J. \textbf{JayDB2: source, specification and applications}. 2026.
-\url{https://github.com/j0taaa/jaydb2}.
+\bibitem[PostgreSQL Global Development Group(2026d)]{postgrestrigger}
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+CREATE TRIGGER}. \url{https://www.postgresql.org/docs/16/sql-createtrigger.html}.
+Accessed: 11 Nov. 2026.
+
+\bibitem[PostgreSQL Global Development Group(2026e)]{postgresunsupported}
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+unsupported features}. \url{https://www.postgresql.org/docs/16/unsupported-features-sql-standard.html}.
+Accessed: 11 Nov. 2026.
+\bibitem[Sheard and Stemple(1989)]{sheard1989}
+SHEARD, T.; STEMPLE, D. Automatic verification of database transaction safety.
+\textbf{ACM Transactions on Database Systems}, v. 14, n. 3, p. 322--368, 1989.
+DOI: \href{https://doi.org/10.1145/68012.68014}{10.1145/68012.68014}.
+
+\bibitem[Yang et al.(2016)]{jacqueline2016}
+YANG, J.; HANCE, T.; AUSTIN, T. H.; SOLAR-LEZAMA, A.; FLANAGAN, C.; CHONG, S.
+Precise, dynamic information flow for database-backed applications.
+In: \textbf{PLDI}, 2016, p. 631--647.
+DOI: \href{https://doi.org/10.1145/2908080.2908098}{10.1145/2908080.2908098}.
+
 \end{thebibliography}
+
+\appendix
+\section{Prepared throughput timing boundaries}
+\begin{table}[htbp]\centering\small
+\setlength{\tabcolsep}{3pt}
+\caption{E2: active-call throughput versus the full closed loop, in calls/s.
+Active quartiles are across consecutive blocks, not independent trials.}
+\label{tab:throughput}
+\input{../.build/tcc/throughput-table.tex}
+\end{table}
+
+Table~\ref{tab:throughput} distinguishes two timing boundaries. Active throughput
+is the median rate across consecutive blocks of measured round trips,
+excluding validation gaps and voucher retirement. Full-loop throughput is one
+\PreparedSamples-call batch, including those gaps and retirement. For example,
+volatile voucher throughput is
+\numen{\PreparedVoucherVolatileActiveCallsPerSecond} active calls/s versus
+\numen{\PreparedVoucherVolatileCallsPerSecond} full-loop calls/s. These rates
+answer different questions and are not reciprocals of median latency.
+
+
 \end{document}

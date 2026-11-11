@@ -1,7 +1,7 @@
 # TCC manuscript and defense slides
 
 English article by **Gabriel Jota Lizardo, PUC Minas**, with a **Portuguese
-defense presentation**: 18 main frames and six appendix frames (the executable
+defense presentation**: 20 main frames and six appendix frames (the executable
 theorem list and the eleven T3 host duties). Both use LaTeX; the slides use Beamer, with
 Portuguese speaker notes in each frame. Change wording and layout directly in `slides.tex`.
 
@@ -28,6 +28,14 @@ The build regenerates validated evidence before compiling both documents. The di
 outputs are `.build/tcc/main.pdf` and `.build/tcc/slides.pdf`; the Makefile copies
 them to the delivery paths above. Every measured result comes from generated
 macros, tables or plot data, so rerunning the evidence builder updates both documents.
+`pending-macros.tex` is loaded immediately after `numbers.tex` in both documents.
+It supplies red, named fallbacks for the new measurement fields; generated
+definitions take precedence through `\providecommand`. The preparation-spread
+and session-spread tables use `\IfFileExists` and show a red pending-table marker
+until their generated fragments arrive. Existing numbers remain the retained
+evidence until the measurement work is integrated; the fixed-frequency protocol
+and new comparisons need a final reconciliation against that evidence before
+submission. Do not treat a successful PDF build as completion of that measurement pass.
 
 The organization roughly follows the author's
 [tcc-final article](https://github.com/j0taaa/tcc-final/tree/main/paper), while
@@ -44,8 +52,11 @@ original language.
 
 Each benchmark JSON records its exact source commit and executable/source
 fingerprints. The harness uses the real serial Rust host, official Bend 2.0.39 and
-BendTT, literal emitted C, Clang 19, and one native worker thread. No mock
-engine, alternate verifier, concurrent read batches, or historical executable
+BendTT, literal emitted C, Clang 19, and one native worker thread. The revised protocol uses independent sessions with a fixed CPU clock, the
+performance governor and turbo disabled. E5 uses one session with log-spaced
+populations and a first-key variant. The earlier run under frequency scaling
+is discarded for the revised evaluation; its diagnosis remains in
+`paper/evidence/performance-report.txt`. No mock engine or alternate verifier
 is measured. All output values are checked. Initialization and warmups are
 outside the operation samples. JSON files include raw nanoseconds, outputs,
 CPU/kernel/toolchain/commit metadata and executable/source fingerprints.
@@ -89,17 +100,18 @@ python3 -B paper/evidence.py
 python3 -B -m unittest discover -s paper -p test_evidence.py -v
 ```
 
-`ordinary.json` has ten measured calls per program after one warmup.
-`prepared.json` has three registrations and 300 measured executions per
-program/storage mode. The indexed transaction alternates the Boolean value.
+`ordinary.json` supplies `\OrdinarySamples` calls per program after warmup.
+`prepared.json` supplies `\RegistrationSamples` preparations and
+`\PreparedSamples` measured executions per program/storage mode and session. The indexed transaction alternates the Boolean value.
 Voucher calls issue fresh equal-length IDs and retire each voucher with a
 checked, separately timed maintenance call to bound state size. Registration
 samples include real certificate checking and optimized compilation; these
-three samples have no discarded registration warmup. Every session first
+samples have no discarded preparation warmup. Every session first
 waits for initialization via an untimed rejected-credential request.
 
-`comparison.json` has 300 measured reads and updates per engine/policy, plus
-ten measured durable ordinary JayDB2 calls per operation for context. Writes
+`comparison.json` supplies `\ComparisonSamples` measured reads and updates
+per engine/policy and session, plus `\OrdinarySamples` durable ordinary
+JayDB2 calls per operation for context. Writes
 change the integer. JayDB2 writes return an acknowledgment and each is checked
 by a separate untimed readback; SQL writes return their stored value. JayDB2
 uses existing access-law proof combinators with owner-named tables. PostgreSQL
@@ -107,11 +119,13 @@ uses an owner column, a non-superuser/non-BYPASSRLS role, enabled and forced
 RLS, and synchronous commits. Cross-user reads/updates must fail admission in
 JayDB2 and affect/return no rows in PostgreSQL. The PostgreSQL `rls` settings in the JSON describe the ownership arm; the
 point arm has RLS disabled. SQLite is explicitly an
-**unconstrained baseline**, with WAL and `synchronous=FULL`. The point workload
-has ten rows; the ownership workload has ten rows for each of two users.
+**unconstrained baseline**, with WAL and `synchronous=FULL`. The small point workload uses `\ScalingSmallRows`; the large point uses
+`\ComparisonLargeRows` near the state limit. Ownership profiles use the stated
+population for each of two users.
 
-`scaling.json` retains the 65,536-byte application state ceiling, measures 50
-reads and 50 updates per supported population/mode. It starts from an empty
+`scaling.json` retains the `\StateLimitBytes` state ceiling and supplies
+`\ScalingSamples` reads and updates per supported population/mode. The revised
+E5 uses log-spaced populations and a first-key read variant in one session. It starts from an empty
 valid seed and populates it through a universally certified prepared transaction
 that returns the checked row count; that handle is invalidated before sampling.
 It records larger populations or failed attempts explicitly. Rows have a seven-byte ID and one
@@ -119,7 +133,8 @@ int64 cell. An independently admitted full-row writer probes the first excess
 row after the point-operation samples. Scaling latency includes transfer, decoding,
 validation, lookup and publication; it does not isolate copying alone. Both
 operations target the lexicographically last key, so linear lookup also grows
-with population.
+with population. Unchanged-state reads reuse the already durable image;
+state-changing durable calls add full-image write and synchronization.
 `verification.json` retains complete command outputs and wall times, inventories and source-size definitions.
 The retained `scaling-seed-attempt.json` records the initial direct-seed
 approach: the unmodified BendTT checker exhausted fuel in `Seed.initial_valid`
@@ -146,7 +161,7 @@ derived from raw samples without outlier removal. The preparation break-even
 is `ceil(median_registration / (median_ordinary - median_prepared))`, using
 matching volatile programs, excluding service startup. This is an amortization
 model over the measured medians, not a guarantee for every state or call. E1
-voucher samples accumulate ten issued vouchers; E2 bounds state with retirements.
+voucher samples accumulate issued vouchers; E2 bounds state with retirements.
 Closed-loop throughput includes validation gaps
 and the voucher maintenance calls. Active-call throughput is the median rate over ten consecutive blocks of 30
 calls, computed as 30 divided by the sum of their measured round trips. It
@@ -212,6 +227,29 @@ No macro name contains digits. Quartiles appear in table fragments and sample co
 | `\StateOversizedRows`, `\StateOversizedBytes`, `\StateOversizedKilobytes` | Largest requested out-of-configuration population and its canonical size; not timed | rows / bytes / decimal kB |
 | `\ScalingSmallVolatileReadMedianMs`, `\ScalingSmallVolatileUpdateMedianMs`, `\ScalingSmallPersistentReadMedianMs`, `\ScalingSmallPersistentUpdateMedianMs`, `\ScalingMaximumVolatileReadMedianMs`, `\ScalingMaximumVolatileUpdateMedianMs`, `\ScalingMaximumPersistentReadMedianMs`, `\ScalingMaximumPersistentUpdateMedianMs` | Prepared median at the smallest and maximum fitting scaling populations, by storage/operation | ms |
 
+The additional evidence macros are defined as follows. `\CpuGovernor` and
+`\TurboSetting` are text, `\CpuClockGHz` is the fixed clock in GHz, and
+`\SessionCount` counts independent sessions. `\RustProductionLines` excludes
+the tests counted separately by `\RustTestLines`. `\IndexedClientLines`,
+`\IndexedProofLines` and `\IndexedProofRatio` count the indexed client,
+its proofs and their proof/program ratio; `\VoucherClientLines`,
+`\VoucherProofLines` and `\VoucherProofRatio` have the same meaning for
+vouchers. Counts are nonblank lines and do not estimate authoring time.
+
+`\ComparisonLargeRows` is the additional near-limit population. The
+`\LargeJayReadMs`, `\LargeJayWriteMs`, `\LargePgReadMs`, `\LargePgWriteMs`,
+`\LargeSqReadMs` and `\LargeSqWriteMs` macros report large-state point
+medians in milliseconds. The corresponding `\LargeOwnerJayReadMs`,
+`\LargeOwnerJayWriteMs`, `\LargeOwnerPgReadMs`, `\LargeOwnerPgWriteMs`,
+`\LargeOwnerSqReadMs` and `\LargeOwnerSqWriteMs` report the owner profile.
+`\ScalingFirstKeySmallMs` and `\ScalingFirstKeyLargeMs` are first-key read
+medians at the smallest and largest E5 populations, for comparison with the
+last-key volatile medians. Confirm their storage-mode interpretation in the
+measurement pass. `registration-table.tex` reports preparation time
+minimum/median/maximum by program and storage mode; `session-spread-table.tex`
+reports pooled headline medians and min–max of session medians. Both are
+written under `.build/tcc/` by the measurement agent's evidence builder.
+
 The article and slides distinguish the executable theorems from the
 T1–T3 integration premises and finite tests. These measurements establish
 neither unconditional executable correctness nor a performance advantage over
@@ -237,7 +275,7 @@ headline experiments. Endpoint frequency is a sampled policy observation, not
 an integrated hardware cycle counter. `DIAG START/END` delimit sampled calls in
 the syscall trace; initialization/registration and idle pipe waits are outside
 that window. No governor, affinity or power setting is changed by the harness.
-Persistent equal-state successes now reuse their durable image; changed state,
+Durable equal-state successes reuse their already durable image; changed state,
 including new receipt rows, still follows file sync/rename/directory sync.
 
 The performance follow-up is recorded in `paper/evidence/performance-report.txt`
@@ -245,3 +283,68 @@ and `performance-summary.json`, including before/after medians, inclusive
 quartiles, sample counts, validation and fingerprints for all E1–E5 cases.
 `latency-diagnosis.json` retains separate observer samples and syscall excerpts;
 these diagnostic timings are not inputs to the headline tables.
+
+Preparation means one-time checking and compilation; registry means the
+prepared handle table. Generated filenames and macro names retain their
+original registration/persistent spelling.
+
+## Claim and reference review
+
+A successful unchanged-state Commit updates the RAM root/response pair while
+reusing the durable image. Changed states complete full-image write, file
+fsync, atomic replacement and directory fsync before publication and reply;
+open synchronizes the validated authoritative file and directory once.
+Recovery checks configuration and identity, not a proof of recovered-root
+validity. Persistence integrity remains a T1/host obligation; the voucher
+lost-response/restart scenario is tested, not proved. The article and speaker
+notes state this boundary explicitly. Execution is serial and schema/laws are
+fixed; logical termination is not a wall-clock bound.
+
+References were checked against author copies, publisher proceedings and
+Crossref's publisher-deposited DOI metadata. The bibliography retains natbib
+author–year citations with an alphabetized ABNT-style reference list. Specific
+verification sources are:
+
+- Sheard and Stemple, TODS (1989), pages 322–368:
+  [publisher DOI](https://doi.org/10.1145/68012.68014), verified against its
+  Crossref record and the author's institutional publication listing.
+- Chlipala, UrFlow, OSDI (2010), pages 105–118:
+  [author page](https://adam.chlipala.net/papers/UrFlowOSDI10/) and
+  [MIT record](https://dspace.mit.edu/entities/publication/f21a3560-bda9-4731-b3ee-4c916aedb509).
+  No DOI is asserted for this USENIX paper.
+- Giffin, Levy, Stefan, Terei, Mazières, Mitchell and Russo, Hails, OSDI (2012),
+  pages 47–60: [USENIX record and BibTeX](https://www.usenix.org/conference/osdi12/technical-sessions/presentation/giffin).
+  No DOI is asserted for this USENIX paper.
+- Parker, Vazou and Hicks, LWeb, PACMPL 3 (POPL), article 75 (2019), 30 pages:
+  [author record](https://www.cs.umd.edu/~mwh/papers/parker19lweb.html),
+  author PDF and [publisher DOI](https://doi.org/10.1145/3290388).
+- Yang, Hance, Austin, Solar-Lezama, Flanagan and Chong, Jacqueline, PLDI (2016),
+  pages 631–647: [author PDF](https://www.cs.cmu.edu/~jyang2/papers/p631-yang.pdf)
+  and [proceedings DOI](https://doi.org/10.1145/2908080.2908098).
+- Chen, Ziegler, Chajed, Chlipala, Kaashoek and Zeldovich, FSCQ, SOSP (2015),
+  pages 18–37: [author page](https://adam.chlipala.net/papers/FscqSOSP15/),
+  SIGOPS proceedings and [publisher DOI](https://doi.org/10.1145/2815400.2815402).
+- Necula, PCC, POPL (1997), pages 106–119:
+  [author bibliography](https://people.eecs.berkeley.edu/~necula/papers.html)
+  and [publisher DOI](https://doi.org/10.1145/263699.263712), alongside the
+  existing Necula–Lee technical report.
+- Ynot's ICFP (2008) entry now uses the
+  [proceedings DOI](https://doi.org/10.1145/1411204.1411237), whose Crossref
+  container is ICFP, rather than the SIGPLAN Notices DOI. Fiat's POPL (2015)
+  entry adds pages 689–700 and the
+  [proceedings DOI](https://doi.org/10.1145/2676726.2677006), verified against
+  the [author PDF](https://adam.chlipala.net/papers/FiatPOPL15/FiatPOPL15.pdf)
+  and Crossref metadata.
+- PostgreSQL 16: [CREATE TABLE / deferrability](https://www.postgresql.org/docs/16/sql-createtable.html),
+  [constraint triggers](https://www.postgresql.org/docs/16/sql-createtrigger.html),
+  [unsupported assertions](https://www.postgresql.org/docs/16/unsupported-features-sql-standard.html)
+  and [row-security filtering](https://www.postgresql.org/docs/16/ddl-rowsecurity.html).
+
+The RLS comparison distinguishes row filtering from rejecting a program before
+its first forbidden observation. The source listing copies the indexed entry
+and `Policy.Rule` branches, omitting imports and helper definitions. Bend is
+used so that one checked Book contains both the proofs and the functions
+compiled to C; this choice does not assert superiority over Coq, Lean or F*.
+The oracle generator is untrusted because its output is checked, while checker
+soundness and source binding remain trusted. Agreement between the related
+checker modes is not independent evidence of logical soundness.
