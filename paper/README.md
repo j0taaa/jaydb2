@@ -1,46 +1,115 @@
 # TCC manuscript and defense slides
 
-English article by **Gabriel Jota Lizardo, PUC Minas**, with a **Portuguese
-defense presentation**: 20 main frames and six appendix frames (the executable
-theorem list and the eleven T3 host duties). Both use LaTeX; the slides use Beamer, with
-Portuguese speaker notes in each frame. Change wording and layout directly in `slides.tex`.
+English SBC conference article by **Gabriel Jota Lizardo, PUC Minas**, with a
+Portuguese Beamer defense and Portuguese speaker notes. The deck retains its
+existing theme and has **19 main frames and seven appendix frames**, including
+a final AI-use disclosure. The article has **16 pages including 29 references**;
+it contains no appendix. Change text directly in `main.tex` and `slides.tex`.
+
+## SBC template and build
+
+The unmodified `sbc-template.sty` (December 2017 update) and `sbc.bst` were
+obtained directly from the Sociedade Brasileira de Computação, without a mirror:
+
+- Official archive: <https://www.sbc.org.br/wp-content/uploads/2024/07/modelosparapublicaodeartigos.zip>
+- Archive members: `modelosparapublicaodeartigos/Template_SBC/template-latex/sbc-template.sty`
+  and `modelosparapublicaodeartigos/Template_SBC/template-latex/sbc.bst`.
+- Official SBC-authored Overleaf example: <https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr>
+
+The article uses `\documentclass[12pt]{article}` and `\usepackage{sbc-template}`,
+the template's title/author/address and abstract/resumo environments, Times font,
+A4 page, 3 cm side margins, 3.5 cm top and 2.5 cm bottom margins, template paragraph
+spacing and captions. There are no manuscript geometry/font/indent overrides.
+Article citations use the template's author/year labels from BibTeX with
+`sbc.bst`; `references.bib` preserves all 21 original references and adds eight
+official tool references. URLs/DOIs are in `note`/`howpublished` because the original
+SBC bibliography style does not print dedicated `url`/`doi` fields. The article
+uses `url` without `hyperref`, avoiding the official style's old hyperlink hook;
+the vendored style remains byte-identical to SBC's archive.
 
 ```sh
 make -C paper
+python3 -B -m unittest discover -s paper -p test_evidence.py -v
+pdfinfo .build/tcc/output/jaydb2-tcc.pdf
+pdfinfo .build/tcc/output/jaydb2-defense.pdf
 ```
 
-Requires Python 3 and pdfLaTeX with standard AMS, newtxtext/newtxmath, Latin Modern, caption, geometry, microtype,
-natbib, booktabs, hyperref, Beamer, PGF and PGFPlots packages. Build products stay ignored
-under `.build/tcc/`; the deliverables are:
+Requires Python 3, pdfLaTeX and BibTeX, plus standard Times/PSNFSS, fontenc/inputenc,
+Babel (English and Brazilian Portuguese), AMS, caption, titlesec, etoolbox,
+microtype, booktabs, array, url, Beamer, Latin Modern, Helvetica, hyperref (slides),
+TikZ/PGF and PGFPlots packages. Verified with TeX Live 2026. The article build is
+**pdflatex → bibtex → pdflatex → pdflatex**; the slides receive two pdfLaTeX passes.
+BibTeX runs inside the output directory, with the paper directory on its
+bibliography/style search paths. `make clean` also removes BibTeX intermediates.
+
+All build products are ignored under `.build/tcc/`; the deliverables are:
 
 - `.build/tcc/output/jaydb2-tcc.pdf`
 - `.build/tcc/output/jaydb2-defense.pdf`
 
-The article and slides describe the serial executable Bend gate, generated
-admission-oracle proof, worker Commit/Keep decision, and checked prepared
-controller and registry. The article develops the model, architecture,
-executable guarantees and trusted base T1–T3, then the indexed ownership and
-voucher/receipt applications. Its evaluation covers ordinary admission cost,
-prepared reuse, durable and owner-only point operations against PostgreSQL 16
-and SQLite, verification cost, and complete-state size scaling.
+The evidence builder validates the retained experiments and generates all measured
+values, table fragments and plot data. No measurement is copied into the article
+or slides source. This formatting work does not rerun benchmarks or change evidence
+JSON or `paper/bench/`. The builder's derived evidence reports remain unchanged.
 
-The build regenerates validated evidence before compiling both documents. The direct
-outputs are `.build/tcc/main.pdf` and `.build/tcc/slides.pdf`; the Makefile copies
-them to the delivery paths above. Every measured result comes from generated
-macros, tables or plot data, so rerunning the evidence builder updates both documents.
-The final evaluation uses the fixed-clock evidence described below; historical
-frequency-scaling runs are retained only for diagnosis and provenance.
+## Course-regulation compliance
 
-The organization roughly follows the author's
-[tcc-final article](https://github.com/j0taaa/tcc-final/tree/main/paper), while
-using a self-contained article layout and this project's executable specification.
-The current [PUC Minas library guidance](https://www.pucminas.br/biblioteca/DocumentoBiblioteca/ABNT-GUIA-COMPLETO-Elaborar-formatar-trabalho-cientifico.pdf)
-and the [2026 ICEI article example](https://www.overleaf.com/latex/templates/modelo-de-artigo-icei-puc-minas/bxwcdrxpdgbc)
-informed the format. The specific course's submission template, advisor,
-committee, defense date and any mandatory translated abstract still need local
-confirmation before submission; they have not been invented. The main text
-and abstract are English as requested. Source bibliography titles retain their
-original language.
+For PUC Minas Ciência da Computação TCC II, the manuscript follows Art. 3's SBC
+LaTeX requirement and Art. 4's **10–16 pages**, counting references. Its outline
+maps to the required roles in this order:
+
+| Regulation item | Article location |
+|---|---|
+| I — Introduction | Section 1: context, motivation/justification, problem, general objective paragraph, specific-objective bullets, research questions, synthesis/results and roadmap |
+| II — Theoretical background and literature review | Section 2: PCC, verified databases, policy systems, SQL mechanisms and trust boundaries |
+| III — Methodology | Section 3: construction steps, cited/versioned tools, model, architecture diagram, executable guarantees, trusted base, applications and evaluation protocol |
+| IV — Results with analysis | Section 4: E1–E5 latency, reuse, SQL comparison, verification and state scaling, with tables/PGFPlots; Section 5 discusses limitations |
+| V — Conclusions and future work | Section 6: contributions, main results, explicit comparison with literature and future directions |
+| VI — References | 29 BibTeX references using `sbc.bst` |
+
+Both the English abstract and faithful Portuguese **Resumo** appear on the first
+page. The unnumbered **Use of Artificial Intelligence** note before the references
+states tools/models/vendors, purposes, contribution to all article sections and
+slides, author responsibility and executed-data provenance (Arts. 6–9). Its source
+comment `% AUTHOR: review and adjust this declaration` marks it for author review.
+The advisor is visibly marked in red by `\advisor` as **[Nome do orientador]** in
+the SBC author block. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasil.
+No email, committee member or defense date is invented.
+
+To fit the page limit, the article condenses the model, architecture, related work,
+application descriptions and repeated results prose. The eleven T3 duties are
+grouped in a compact table; the full normative list remains in `proof/README.md`
+and is cited via the repository reference. The full theorem inventory is similarly
+referenced while the certificate/Core statements remain explicit. Separate
+throughput, session-spread, registration-detail, source-inventory and scaling-detail
+tables remain generated repository evidence; the article retains the architecture,
+application controls, essential latency tables and scaling figure. There is no
+article appendix.
+
+For Art. 18, the **19 main slides** have approximately **2,008 spoken words**, or
+**15.4 minutes at 130 words/minute**, leaving room for transitions within the
+20-minute maximum. Count only the notes before `\appendix`, stop each note at
+**Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` repository cues.
+Formatting commands are stripped and numerical macros count as spoken tokens;
+actual delivery and numerical pronunciation vary, so the author should rehearse.
+The seven appendix frames and their notes are for questions and are not timed.
+
+Before submission, the author must fill in the advisor's name, review the AI-use
+declaration, and rehearse the defense. No other administrative identity/date is
+assumed. Rebuild after replacing the advisor placeholder and confirm the page cap.
+
+For visual QA, render every article page and slide at 60 dpi (scratch files stay
+ignored in `paper/.qa/`):
+
+```sh
+mkdir -p paper/.qa/article paper/.qa/slides
+pdftoppm -png -r 60 .build/tcc/output/jaydb2-tcc.pdf paper/.qa/article/page
+pdftoppm -png -r 60 .build/tcc/output/jaydb2-defense.pdf paper/.qa/slides/slide
+```
+
+Inspect every PNG for clipping, captions, table/plot fit and typography. Final
+`main.log` and `slides.log` must contain no undefined references/citations/macros
+or overfull boxes. Count references with `rg -c '^\\bibitem' .build/tcc/main.bbl`.
 
 ## Reproducing the fresh evidence
 

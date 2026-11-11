@@ -38,23 +38,21 @@
 \subtitle{Transações acompanhadas de provas\\de conformidade com as leis do administrador}
 \author{Gabriel Jota Lizardo}
 \institute{Pontifícia Universidade Católica de Minas Gerais}
-\date{2026}
+\date{}
 \hypersetup{pdftitle={JayDB2: transações acompanhadas de provas},
  pdfauthor={Gabriel Jota Lizardo},pdflang={pt-BR}}
 \begin{document}
 
-% 1
 \begin{frame}[plain]
 \vspace{5mm}
 {\Huge\bfseries JayDB2}\par\gap
 {\LARGE Transações acompanhadas de provas}\par\vspace{3mm}
 {\large Conformidade com as leis do administrador}\par\vspace{10mm}
 Gabriel Jota Lizardo\par
-{\large PUC Minas\hspace{6mm}2026}
-\note{O JayDB2 é um banco de dados experimental escrito em Bend 2, com um host em Rust. O cliente envia um programa junto com uma prova de que ele respeita as leis instaladas pelo administrador. A pergunta central é como conectar essa prova à execução e à publicação da transação. Vou apresentar a interface, os teoremas sobre o código executável, duas aplicações certificadas e o custo do protótipo atual. A base de confiança fica explícita ao longo da construção.}
+{\large PUC Minas}
+\note{O JayDB2 é um banco de dados experimental escrito em Bend 2, com um host em Rust. O cliente envia um programa junto com uma prova de que ele respeita as leis instaladas pelo administrador. A pergunta central é como conectar essa prova à execução e à publicação da transação. Vou apresentar a interface, os teoremas sobre o código executável, duas aplicações certificadas e o custo do protótipo atual. A base de confiança fica explícita ao longo da construção. O objetivo geral é implementar e avaliar esse serviço com uma ligação explícita entre certificado, programa executado e resultado publicado. A apresentação está organizada em motivação, método, garantias, aplicações e análise dos experimentos.}
 \end{frame}
 
-% 2
 \begin{frame}{Permissões e integridade}
 \centering
 \vspace{3mm}
@@ -77,14 +75,13 @@ Ao publicar, o índice deve ser a projeção exata da linha principal.
 \note{Alice e Bob têm uma linha de disponibilidade e um índice próprios. Para mudar a disponibilidade, o programa remove a entrada antiga, grava a nova e altera a linha principal. Durante esses passos o índice pode ficar incompleto, mas cada acesso continua restrito às tabelas de Alice. Ao publicar sucesso, o índice precisa ser exatamente a projeção da linha. Ler o índice de Bob já viola a permissão, mesmo que a consulta descarte o resultado ou recuse depois. Esse exemplo separa uma obrigação sobre cada prefixo de outra sobre a publicação.}
 \end{frame}
 
-% 3
 \begin{frame}{Perguntas de pesquisa}
 \begin{tabular}{@{}L{.13\linewidth}L{.79\linewidth}@{}}
 \textbf{RQ1} & Quais garantias decorrem do código executável, sob qual base de confiança?\\\addlinespace[2mm]
 \textbf{RQ2} & Certificados combinam acesso em cada prefixo e invariantes de publicação?\\\addlinespace[2mm]
 \textbf{RQ3} & Quanto custa o executável certificado atual e quanto o reuso preparado reduz esse custo?\\
 \end{tabular}
-\note{A primeira pergunta exige teoremas sobre as funções que realmente decidem admissão, execução e publicação. A segunda trata da expressão de leis de aplicação, com controles inválidos que falham na obrigação correta. A terceira mede o custo do caminho ordinário e o que muda quando um programa preparado reutiliza a certificação. O método combina provas, controles negativos, execução nativa e experimentos com fronteiras de medição definidas.}
+\note{A primeira pergunta exige teoremas sobre as funções que realmente decidem admissão, execução e publicação. A segunda trata da expressão de leis de aplicação, com controles inválidos que falham na obrigação correta. A terceira mede o custo do caminho ordinário e o que muda quando um programa preparado reutiliza a certificação. O método combina provas, controles negativos, execução nativa e experimentos com fronteiras de medição definidas. Os objetivos específicos são definir ações e leis, provar as transições executáveis, construir certificados de aplicação e medir custo e escala. A evidência de correção é dedutiva e também inclui testes; a evidência de desempenho vem de chamadas realmente executadas, com resultados conferidos.}
 \end{frame}
 
 \begin{frame}{Posicionamento: por que provas?}
@@ -95,10 +92,9 @@ Ao publicar, o índice deve ser a projeção exata da linha principal.
 \textbf{JayDB2} & Proposições arbitrárias; prova de todos os caminhos e estados; preparação amortizada.\\
 \end{tabular}
 \source{Schneider (2000); Necula (1997); Malecha et al. (2010); PostgreSQL 16.}
-\note{Privilégios SQL nas tabelas de cada proprietário ou um monitor de referência podem impedir Alice de ler o índice de Bob antes da operação. GRANT e REVOKE são um análogo mais próximo desse layout que RLS em tabela compartilhada. Gatilhos de restrição adiáveis podem conferir igualdade ao commit. A motivação para provas não é que esses mecanismos só detectem violações depois da leitura. Aqui as provas combinam proposições arbitrárias, como a alcançabilidade apagada do voucher, garantia sobre todos os estados e caminhos sem aborto por política, e verificação amortizada entre chamadas. O preço são provas manuais e custo alto de execução. O experimento PostgreSQL usa RLS: filtrar linhas tem uma interface distinta de recusar o certificado. UrFlow verifica políticas estaticamente; Hails, LWeb e Jacqueline tratam fluxo de informação de ponta a ponta, que não reivindicamos.}
+\note{Privilégios SQL nas tabelas de cada proprietário ou um monitor de referência podem impedir Alice de ler o índice de Bob antes da operação. GRANT e REVOKE são um análogo mais próximo desse layout que RLS em tabela compartilhada. Gatilhos de restrição adiáveis podem conferir igualdade ao commit. A motivação para provas não é que esses mecanismos só detectem violações depois da leitura. Aqui as provas combinam proposições arbitrárias, como a alcançabilidade apagada do voucher, garantia sobre todos os estados e caminhos sem aborto por política, e verificação amortizada entre chamadas. O preço são provas manuais e custo alto de execução. A comparação com a literatura precisa respeitar essa diferença de objetivo: verificar as estruturas internas de um banco e admitir código externo certificado são problemas relacionados, com fronteiras de garantia distintas. As razões de latência apresentadas adiante vêm dos nossos experimentos SQL, e não de resultados publicados daqueles protótipos. O experimento PostgreSQL usa RLS: filtrar linhas tem uma interface distinta de recusar o certificado. UrFlow verifica políticas estaticamente; Hails, LWeb e Jacqueline tratam fluxo de informação de ponta a ponta, que não reivindicamos.}
 \end{frame}
 
-% 4
 \begin{frame}{Interface de programas e certificados}
 \begin{tabular}{@{}L{.25\linewidth}L{.68\linewidth}@{}}
 \textbf{Administrador} & Esquema e leis sobre situações.\\\addlinespace[2mm]
@@ -139,7 +135,6 @@ Voucher & \VoucherClientLines & \VoucherProofLines & \ratiopt{\VoucherProofRatio
 
 
 
-% 5
 \begin{frame}{Execução e publicação}
 \centering
 \begin{tikzpicture}[font=\small,node distance=8mm and 13mm]
@@ -158,7 +153,6 @@ Rust obedece à decisão tipada produzida em Bend.
 \note{A execução começa com uma proposta privada igual ao estado publicado. Leituras posteriores veem alterações anteriores da mesma chamada. O finalizador verifica estrutura, tamanho de estado e resposta e produz os bytes completos. A decisão de Commit ou Keep também é uma função Bend verificada. Sucesso publica a raiz selecionada, que pode ser igual à inicial em uma leitura. Os demais resultados preservam a raiz anterior. O host recolhe a saída completa e termina a limpeza antes de publicar e responder. Depois do commit, perder a resposta não desfaz a publicação. Fontes: src/Gate.bend, src/Execution.bend e proof/WorkerDecision.bend.}
 \end{frame}
 
-% 6
 \begin{frame}{Arquitetura do caminho ordinário}
 \centering
 \begin{tikzpicture}[font=\small,node distance=9mm and 10mm,
@@ -176,10 +170,9 @@ Rust obedece à decisão tipada produzida em Bend.
 \draw[->,thick] (decision) -- (pub);
 \end{tikzpicture}
 \source{Requisições FIFO e seriais. Host Rust: \intpt{\RustProductionLines}{} linhas de produção; \intpt{\RustTestLines} de testes.}
-\note{Rust coordena processos, pipes e a raiz publicada. Node prepara fontes e chama as ferramentas oficiais. O Book verificado é o mesmo enviado ao compilador Bend para C, e Clang compila esse C sem reescrita. O worker chama Gate.begin, avança o interpretador e termina por Gate.finish ou Gate.early. WorkerBridge relaciona essa execução à composição dos teoremas. Cada Book gerado também prova generated\_oracle\_sound para o seu próprio oráculo de admissão. Assim, o oráculo aceito constrói exatamente o programa certificado. As requisições são processadas em série. O paralelismo interno do runtime não cria transações concorrentes.}
+\note{Rust coordena processos, pipes e a raiz publicada. Node prepara fontes e chama as ferramentas oficiais. O Book verificado é o mesmo enviado ao compilador Bend para C, e Clang compila esse C sem reescrita. O worker chama Gate.begin, avança o interpretador e termina por Gate.finish ou Gate.early. WorkerBridge relaciona essa execução à composição dos teoremas. Cada Book gerado também prova generated\_oracle\_sound para o seu próprio oráculo de admissão. Assim, o oráculo aceito constrói exatamente o programa certificado. As requisições são processadas em série. O paralelismo interno do runtime não cria transações concorrentes. A implementação avaliada usa Bend 2.0.39 e seu BendTT oficial, Rust 1.98.0, Node 24.19.0 e Clang 19.1.1. Python 3.12.3 conduz o harness. Os arquivos de evidência registram essas versões e as impressões digitais das fontes e executáveis, permitindo conferir qual artefato foi medido.}
 \end{frame}
 
-% 7
 \begin{frame}{Garantias centrais (Core)}
 \begin{tabular}{@{}L{.27\linewidth}L{.66\linewidth}@{}}
 \textbf{Admitted} & Identidade atual e início do programa exato.\\\addlinespace[2mm]
@@ -191,23 +184,8 @@ Rust obedece à decisão tipada produzida em Bend.
 \note{As quatro cláusulas falam da mesma entrada computada por Gate.begin. Admitted fixa a identidade e a máquina iniciada, Safe cobre todos os seus prefixos, Completed identifica o finalizador e a publicação exatos, e Progressing fornece um prefixo final finito. Se a proposta de sucesso ou recusa é preservada pela finalização, a resposta mantém esse resultado. Erros de dados continuam possíveis. Ingress estende o resultado à decodificação, UnifiedCore à seleção direta ou registrada, e os folds preservam validade por sequências de transações e controles. A lista completa está no apêndice. Fonte: contract/Theorems.bend.}
 \end{frame}
 
-% 8
-\begin{frame}{Uma lição sobre contratos vazios}
-\begin{columns}[T,onlytextwidth]
-\column{.46\textwidth}
-\textbf{Contrato anterior}\par\vspace{4mm}
-$\forall e\in Env.\ P(e)$\par\vspace{3mm}
-$Env=\varnothing$: verdadeiro por vacuidade, sem executar.
-\column{.48\textwidth}
-\textbf{Contrato executável}\par\vspace{4mm}
-$e=\mathrm{Gate.begin}(C,s,r,A)$\par\vspace{3mm}
-Uma instância útil prova admissão, progresso e raiz alterada.
-\end{columns}
 
-\note{O contrato anterior deixava uma relação abstrata decidir quais execuções existiam. Um ambiente trivial podia tornar suas implicações verdadeiras sem executar uma transação útil. A correção foi formular os teoremas diretamente sobre Gate, o interpretador e o finalizador. O caso de teste positivo de tarefas usa política, programa, prova e semente reais e demonstra sucesso com mudança da raiz. Refutações excluem identidade falsa, início sem certificado, publicação em recusa e rejeição de um programa aceito pelo oráculo. \NegativeFixtures{} controles negativos precisam falhar exatamente na definição false, nos dois modos oficiais. Fontes: tests/proof/Positive.bend e tests/proof/Refutations.bend.}
-\end{frame}
 
-% 9
 \begin{frame}{Base de confiança e alcance}
 \small
 \begin{tabular}{@{}L{.09\linewidth}L{.55\linewidth}L{.29\linewidth}@{}}
@@ -223,7 +201,6 @@ Testes Rust (fora da contagem): \intpt{\RustTestLines} linhas.
 \note{T1 inclui a correção (soundness) dos verificadores, a auditoria de pureza e o vínculo do Book exato ao artefato. O gerador Node pode errar: sua saída, inclusive a prova do próprio oráculo, é verificada antes de compilar. T2 confia no compilador/runtime Bend e em Clang; T3 liga bytes, processos e a decisão lógica à publicação física. Completude do verificador (nem toda prova verdadeira é aceita), durabilidade e recursos físicos ficam fora dos teoremas. Se perguntarem: escolhemos Bend para usar uma linguagem cujo Book verificado é o próprio artefato compilado para C, sem reivindicar superioridade sobre outros assistentes de prova. A concordância de dois modos relacionados não demonstra sua correção. A recuperação confere somente configuração e identidade; a validade da raiz recuperada assume uma imagem produzida pelos commits deste host, obrigação de persistência T1 fora dos onze deveres T3 em memória.}
 \end{frame}
 
-% 10
 \begin{frame}{Programas preparados}
 \centering
 \begin{tikzpicture}[font=\small,node distance=9mm and 9mm]
@@ -241,7 +218,6 @@ Um identificador revogado permanece ausente na instância.
 \note{A preparação verifica um certificado universal e compila o programa uma única vez. Cada chamada por handle autentica no estado atual e especializa essa prova para o contexto e os argumentos recebidos. Não há verificador ou compilador na reutilização. O executável separado chama Control.control por ControlBridge.packet. O controlador verifica a admissão universal exata, o formato, se o handle nunca foi alocado na instância e o tamanho do recibo antes de mudar o registro. Control e ServiceFold cobrem essas transições, e ServiceNoRevival mantém um handle removido ausente. Rust encaminha os últimos bytes do registro sem alteração. Handles desaparecem no reinício. A preparação concede uma referência ao programa, mantendo a identidade atual de cada usuário.}
 \end{frame}
 
-% 11
 \begin{frame}{Aplicação: propriedade e índice exato}
 \begin{tabular}{@{}L{.34\linewidth}L{.26\linewidth}L{.31\linewidth}@{}}
 \toprule
@@ -258,7 +234,6 @@ Dois controles preservam a prova de permissão e falham na igualdade final.
 \note{A aplicação tem dois usuários fixos e uma linha booleana por usuário. O índice é uma tabela comum. A prova da ação segue os resultados reais de Data.operate e termina com a igualdade entre índice e projeção. As versões que omitem a manutenção ou gravam um valor falso têm provas independentes de permissão válidas para todos os estados e prefixos. O certificado completo falha exatamente na igualdade final. A leitura do índice de Bob por Alice falha na primeira obrigação de permissão. O host rejeita os três casos e consultas posteriores confirmam o estado preservado. Isso responde à RQ2 distinguindo duas causas de erro.}
 \end{frame}
 
-% 12
 \begin{frame}{Aplicação: vouchers e recibos}
 \begin{tabular}{@{}L{.34\linewidth}L{.59\linewidth}@{}}
 \textbf{Primeira emissão} & Grava voucher e recibo na mesma transação.\\\addlinespace[2mm]
@@ -270,7 +245,6 @@ Dois controles preservam a prova de permissão e falham na igualdade final.
 \note{Se o serviço publica e a resposta se perde, repetir uma emissão sem proteção pode duplicar seu efeito. Aqui o ID do pedido fica ligado à operação, à entrada exata e ao resultado. A consulta ao recibo depende da identidade e da permissão atuais. As leis exigem que os prefixos reais refinem o protocolo de referência e que seu sucesso esteja completo antes da publicação. Provas de ciclo de vida cobrem a correspondência entre voucher e recibo, conflitos, cancelamento e retirada. O cenário de resposta perdida é testado, não provado: o teste mata o serviço após publicação durável, reabre sem semente e confirma repetição sem novas escritas. Fonte: applications/vouchers/README.md.}
 \end{frame}
 
-% 13
 \begin{frame}{E1--E2: custo e reuso}
 \begin{columns}[T,onlytextwidth]
 \column{.52\textwidth}
@@ -312,10 +286,9 @@ Totais ordinários: \numpt{\OrdinaryReadMedianSeconds}/\numpt{\OrdinaryIndexedMe
 Execução no worker: \numpt{\OrdinaryReadWorkerSharePercent}\% do tempo ordinário da leitura.\par
 A preparação se paga após \BreakEvenReadCalls{} chamadas voláteis (modelo de medianas).
 \source{E1: $n=\OrdinarySamples$. E2: $n=\PreparedSamples$ por programa/modo, \RegistrationSamples{} preparações.}
-\note{A verificação é a parcela de certificação; geração e compilação C são custos da arquitetura atual. A preparação faz esse trabalho uma vez e as chamadas reutilizam o artefato. Os pontos de equilíbrio (break-even) usam um modelo de medianas, sem representar uma sequência cumulativa medida. Leituras duráveis e voláteis têm medianas próximas, pois leituras sem mudança reutilizam a imagem durável. Atualizações duráveis incluem escrita da imagem e fsyncs.\par\textbf{Se perguntarem:} usamos governador \CpuGovernor{}, núcleos ativos na frequência nominal de \numpt{\CpuClockGHz} GHz (leituras baixas podem ser de núcleos ociosos), turbo desativado e \SessionCount{} sessões independentes; o ensaio anterior com frequência variável foi descartado. E1 tem \OrdinarySamples{} chamadas por programa, E2 tem \RegistrationSamples{} preparações e \PreparedSamples{} chamadas por condição; aquecimento e inicialização ficam fora das chamadas. Os níveis C são O0 no ordinário e O2 no preparado. A prova do oráculo já integra o tempo de verificação e não é somada novamente. As medianas das sessões do índice durável variam de \numpt{\PreparedIndexedPersistentSessionMinMs} a \numpt{\PreparedIndexedPersistentSessionMaxMs} ms; a sessão lenta foi mantida e sua fase de publicação foi mais alta. Quartis de chamadas e dispersão entre sessões são distintos; throughput fica no apêndice do artigo.}
+\note{A verificação é a parcela de certificação; geração e compilação C são custos da arquitetura atual. A preparação faz esse trabalho uma vez e as chamadas reutilizam o artefato. Os pontos de equilíbrio (break-even) usam um modelo de medianas, sem representar uma sequência cumulativa medida. Leituras duráveis e voláteis têm medianas próximas, pois leituras sem mudança reutilizam a imagem durável. Atualizações duráveis incluem escrita da imagem e fsyncs.\par\textbf{Se perguntarem:} usamos governador \CpuGovernor{}, núcleos ativos na frequência nominal de \numpt{\CpuClockGHz} GHz (leituras baixas podem ser de núcleos ociosos), turbo desativado e \SessionCount{} sessões independentes; o ensaio anterior com frequência variável foi descartado. E1 tem \OrdinarySamples{} chamadas por programa, E2 tem \RegistrationSamples{} preparações e \PreparedSamples{} chamadas por condição; aquecimento e inicialização ficam fora das chamadas. Os níveis C são O0 no ordinário e O2 no preparado. A prova do oráculo já integra o tempo de verificação e não é somada novamente. As medianas das sessões do índice durável variam de \numpt{\PreparedIndexedPersistentSessionMinMs} a \numpt{\PreparedIndexedPersistentSessionMaxMs} ms; a sessão lenta foi mantida e sua fase de publicação foi mais alta. Quartis de chamadas e dispersão entre sessões são distintos; as taxas de chamadas ficam nas tabelas geradas da evidência.}
 \end{frame}
 
-% 14
 \begin{frame}{E3: custo das operações duráveis}
 \small
 \textbf{Pontual: razão JayDB2 / SQL}\par\vspace{1mm}
@@ -338,7 +311,6 @@ O custo do estado completo amplia a diferença.\par\vspace{1mm}
 \note{Na população pequena, JayDB2 lê em \latpt{\JayPointReadMedianMs} ms, PostgreSQL em \latpt{\PostgresPointReadMedianMs} e SQLite em \latpt{\SqlitePointReadMedianMs}. Atualizações custam \numpt{\JayPointUpdateMedianMs}, \numpt{\PostgresPointUpdateMedianMs} e \numpt{\SqlitePointUpdateMedianMs} ms, respectivamente: \ratiopt{\JayPointUpdateOverPostgres} vezes PostgreSQL e \ratiopt{\JayPointUpdateOverSqlite} vezes SQLite. A leitura pequena custa \ratiopt{\JayPointReadOverPostgres} e \ratiopt{\JayPointReadOverSqlite} vezes os respectivos bancos. No estado grande, as medianas JayDB2 chegam a \numpt{\LargeJayReadMs} e \numpt{\LargeJayWriteMs} ms, enquanto leituras SQL ficam quase constantes e suas atualizações continuam na escala de poucos milissegundos. O perfil de proprietário mostra o mesmo padrão: JayDB2 grande lê em \numpt{\LargeOwnerJayReadMs} e atualiza em \numpt{\LargeOwnerJayWriteMs} ms. Cada chamada transfere o estado completo, cria um worker, decodifica e valida. A leitura reutiliza a imagem durável; a atualização acrescenta escrita completa e fsyncs. Não há prova por chamada preparada.\par\textbf{Se perguntarem:} são \ComparisonSamples{} chamadas por operação, perfil e estado, agrupadas de \SessionCount{} sessões. As populações totais são iguais nos três bancos; no perfil de proprietário, Alice e Bob dividem as linhas igualmente. Em ambos os tamanhos e em cada sessão, Alice submeteu programas ordinários que nomeavam a tabela de Bob com o certificado de propriedade inalterado: admissão retornou certificate sem valor. Bob verificou sua linha com o programa preparado legítimo. No PostgreSQL, o papel não privilegiado de Alice fez SELECT e UPDATE RETURNING explícitos para a linha de Bob: RLS retornou ou afetou zero linhas e o administrador confirmou o valor inalterado. SQLite permitiu ambas as tentativas e o harness restaurou o valor. Isso testa os certificados fornecidos e os comandos concretos, com interfaces distintas de recusa e filtragem. PostgreSQL usa fsync, synchronous\_commit e full\_page\_writes; SQLite usa WAL e synchronous FULL. JayDB2 termina a medição antes de decodificar a resposta, enquanto SQL inclui execute/fetchall.}
 \end{frame}
 
-% 15
 \begin{frame}{E4: verificação e tamanho das provas}
 \small
 Contrato: \numpt{\VerifyContractSeconds} s\hspace{8mm}
@@ -359,7 +331,6 @@ Suíte de provas voucher & \intpt{\VoucherSuiteNonblankLines}\\\bottomrule
 \note{Os alvos de verificação passaram, com testemunhas positivas nos dois modos e \NegativeFixtures{} controles negativos. A tabela distingue implementação, especificação, provas centrais, biblioteca e suíte voucher. A razão proof/src exclui as duas últimas. A biblioteca tem \LibraryFiles{} arquivos e a suíte voucher tem \VoucherSuiteFiles{}; ambas são provas mantidas adicionais. O slide de código acrescenta programa, prova e razão por aplicação, sem inferir esforço de autoria. Concordância dos dois verificadores não é evidência independente de correção lógica, pois compartilham a ferramenta.\par\textbf{Se perguntarem:} os tempos foram mantidos de uma execução anterior bem-sucedida sob powersave e turbo, sem comparação de clock fixo; os tamanhos foram recolhidos novamente. São comandos de desenvolvimento separados da latência de requisição; make test também passou. As contagens excluem documentação, código gerado e dependências externas; a separação de produção e testes Rust usa itens de topo cfg(test). O cliente voucher inclui wrapper e dispatcher; as provas locais excluem biblioteca, propriedade compartilhada e a suíte funcional separada. Não estimam cobertura, dificuldade ou manutenção.}
 \end{frame}
 
-% 16
 \begin{frame}{E5: escala do estado completo}
 \centering
 {\scriptsize\color{accent}$\circ$ Leitura \quad \color{ink}$+$ Atualização}\par\vspace{1mm}
@@ -391,7 +362,6 @@ Atualização volátil quase coincide com leitura; marcadores distintos.
 \note{A política de frequência controlada elimina o salto anterior entre populações pequenas. As leituras voláteis crescem suavemente, aproximadamente em proporção ao número de linhas, com intercepto \numpt{\ScalingVolatileReadInterceptMs} ms de custo fixo estimado e inclinação ajustada por mínimos quadrados de \numpt{\ScalingVolatileReadSlopeUsPerRow} microssegundos por linha. A primeira chave custa \numpt{\ScalingFirstKeySmallMs} e \numpt{\ScalingFirstKeyLargeMs} ms nos extremos, muito perto da última chave. A posição da busca explica pouco do crescimento: transferência, decodificação e validação do estado completo dominam esse padrão. Leituras duráveis acompanham as voláteis pela reutilização da imagem. Atualizações duráveis ficam quase constantes nas menores populações e depois crescem com escrita e sincronização da imagem, até \numpt{\ScalingMaximumPersistentUpdateMedianMs} ms. As barras mostram quartis e podem ser menores que os marcadores.\par\textbf{Se perguntarem:} E5 usa \ScalingSessionCount{} sessão, \ScalingSamples{} chamadas por operação, tamanho e modo após aquecimento, e um serviço por modo reutilizado em todos os tamanhos. Preparação e população certificada desde semente vazia ficam fora da latência; o handle de população é invalidado. O ajuste resume esta forma de linha e intervalo, sem provar complexidade assintótica ou isolar cópia. O teto de \intpt{\StateLimitBytes} bytes admite \intpt{\StateMaximumRows} linhas; a tentativa da próxima linha retorna limit e preserva a raiz nos dois modos. Sementes grandes que esgotaram combustível são falhas de inicialização, separadas das operações.}
 \end{frame}
 
-% 17
 \begin{frame}{Limitações e ameaças à validade}
 \small
 \begin{itemize}
@@ -408,7 +378,6 @@ sementes grandes esgotaram combustível; escala acima dele não testada.
 \note{As leis e provas foram construídas pelo autor em aplicações pequenas; uma política ausente não é garantida. Execução é serial, sem concorrência nem níveis de isolamento, e esquema e leis são fixos, sem evolução ou recertificação de programas preparados. Terminação lógica não limita tempo: um programa certificado pode ocupar o serviço serial. Estados maiores não foram configurados nem demonstrados; sementes grandes esgotaram combustível do verificador. Escalabilidade da checagem e da execução de estado completo além desse teto não foi testada. Privilégios PostgreSQL em tabelas por proprietário são um análogo mais próximo que RLS em tabela compartilhada. O teste de resposta perdida do voucher não prova durabilidade nem validade após reinício. Se perguntarem: E1 a E3 usam \SessionCount{} sessões com política de frequência controlada, após descartar o ensaio sob escalonamento de frequência; E5 permanece em \ScalingSessionCount{} sessão. A sessão lenta do índice durável foi mantida; seus tempos de publicação foram mais altos. No E3, atualização grande do proprietário tem mediana \numpt{\LargeOwnerJayWriteMs} ms, Q3 \numpt{\LargeOwnerJayUpdateQthreeMs} ms e medianas de sessão \numpt{\LargeOwnerJayUpdateSessionMinMs} a \numpt{\LargeOwnerJayUpdateSessionMaxMs} ms; não há fases para atribuir a cauda a um fsync específico. Os tempos E4 são históricos sob powersave/turbo. Cache, colocação de CPU e hooks de fase ainda afetam os tempos. Canais de tempo e consumo físico estão fora do modelo.}
 \end{frame}
 
-% 18
 \begin{frame}{Respostas e próximos passos}
 \small
 \begin{tabular}{@{}L{.10\linewidth}L{.83\linewidth}@{}}
@@ -421,7 +390,7 @@ Preparação compensada após \BreakEvenReadCalls{} chamadas (modelo de medianas
 Leitura grande: \ratiopt{\LargeJayReadOverPostgres}$\times$ PostgreSQL.
 \par\vspace{3mm}
 \textbf{Próximos passos:} provar durabilidade; reduzir T3 e transferência de estado.
-\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham os prefixos e selecionam o resultado publicado. O contrato é habitado e exclui comportamentos errados concretos. O controlador preparado participa do fold verificado e as aplicações mostram permissões e invariantes distintos. A avaliação quantifica o custo: segundos na admissão ordinária e milissegundos no reuso preparado, com equilíbrio volátil estimado em \BreakEvenReadCalls{} chamadas para leitura. Mesmo preparada, a leitura pontual durável custa \ratiopt{\JayPointReadOverPostgres} vezes PostgreSQL. As provas centrais têm \ratiopt{\ProofToImplementationRatio} vezes as linhas da implementação Bend, excluindo biblioteca e suíte voucher e o teto atual admite \intpt{\StateMaximumRows} linhas da carga de escala. Os próximos passos incluem prova de durabilidade e recuperação, menos confiança física em T3, admissão mais rápida e menor transferência e publicação de estado completo. As referências completas estão no artigo.}
+\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham os prefixos e selecionam o resultado publicado. O controlador preparado participa do fold verificado e as aplicações mostram permissões e invariantes distintos. A avaliação quantifica o custo: segundos na admissão ordinária e milissegundos no reuso preparado, com equilíbrio volátil estimado em \BreakEvenReadCalls{} chamadas para leitura. Mesmo preparada, a leitura pontual durável custa \ratiopt{\JayPointReadOverPostgres} vezes PostgreSQL. As provas centrais têm \ratiopt{\ProofToImplementationRatio} vezes as linhas da implementação Bend, excluindo biblioteca e suíte voucher e o teto atual admite \intpt{\StateMaximumRows} linhas da carga de escala. Os próximos passos incluem prova de durabilidade e recuperação, menos confiança física em T3, admissão mais rápida e menor transferência e publicação de estado completo. As referências completas estão no artigo.}
 \end{frame}
 
 \appendix
@@ -495,5 +464,22 @@ Leitura grande: \ratiopt{\LargeJayReadOverPostgres}$\times$ PostgreSQL.
 \gap
 \small As duas respostas exclusivas de Rust são comparadas byte a byte com a negação verificada de handle ausente.
 \note{Uma prova inválida rejeita a admissão do Book inteiro antes de Gate executar. A classificação física usa a tabela exata de proof/README.md, T3.9: IMPORT, IMPORT\_CYCLE, DEPENDENCY, PARSE, META, UNSAFE, FOREIGN, IO, OPEN\_LAW, SHADOW, REDEFINITION, PRIMARY\_CHECK, BENDTT\_CHECK, TARGET, SOURCE\_BINDING, HOST\_CAPTURE e KERNEL\_CAPTURE viram certificate. Outros códigos, incluindo HOST\_COMPILE após admissão pura bem-sucedida, viram failure. HANDLE e PREPARED\_INTEGRITY geram as duas respostas diretamente em Rust. Os testes verificam sua igualdade byte a byte com a negação do worker. Artefato indisponível para registro vivo é falha de disponibilidade.}
+\end{frame}
+
+% AUTHOR: review and adjust this declaration
+\begin{frame}{Apêndice: uso de Inteligência Artificial}
+\small
+\begin{itemize}
+\item Claude Opus 5.5 (Anthropic, via Claude Code): planejamento,
+orquestração e revisões técnicas e de banca.
+\item GPT-6.1 Sol (OpenAI, via Codex): código, provas, harness e medições;
+redação e revisão de todas as seções do artigo e dos slides;
+tradução dos slides e formatação LaTeX.
+\item Trabalho dirigido e conteúdo revisado pelo autor, que assume
+responsabilidade integral.
+\item Todas as medições vêm de experimentos executados no repositório;
+nenhum dado foi fabricado.
+\end{itemize}
+\note{Esta declaração registra o uso extenso de agentes na fase final. Claude Opus 5.5 usa o identificador claude-opus-5-5. A declaração completa consta no artigo. O autor dirigiu o trabalho, revisou o conteúdo e permanece responsável. Os agentes auxiliaram as medições por meio do harness e das execuções registradas; os dados vêm dos experimentos executados no repositório.}
 \end{frame}
 \end{document}
