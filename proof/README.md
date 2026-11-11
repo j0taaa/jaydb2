@@ -91,19 +91,11 @@ matching uses proved String/context/structural-value equality; universal
 certificates specialize at the current context and arguments. T1 still trusts
 the soundness of both pinned official checkers, the source/target/purity audit
 (including isolation from host effects), and that the very checked Book is the
-Book passed to C compilation and bound to the loaded artifact. Service builds
-may overlap the original BendTT executable with C emission/native compilation:
-primary checking and official Safe translation finish first; the semantic Book
-seal is verified immediately before emission. The official emitter transforms
-that private Book under T2; its resulting state receives a second seal, verified
-after both concurrent paths settle.
-The same private Book supplies the fixed BendTT payload and the unmodified C
-emitter, with no source reload or cached verdict. Generated C and executables
-remain provisional: neither an admission handle nor successful artifact
-receipts/path are released until both checkers accept, the seal still matches,
-and the C/executable hashes are verified. Failure reaps both processes and
-discards provisional files before returning an error; no provisional worker is
-loaded or executed. Initialization
+Book passed to C compilation and bound to the loaded artifact. The
+[service release boundary](../tools/service/SIMPLE_SERVICE.md#admission-and-artifact-release)
+describes concurrent checking/building, seals and receipt/hash gates. T1 rests
+on those gates, not on cleanup; on every reported failure provisional files
+are discarded, while hard kills or uncatchable OOM can bypass cleanup. Initialization
 validity uses `assertInitialization`: it requires a filled checked declaration
 with exactly `Requirements.Valid(configuration(), state())` and closed pure
 configuration/seed definitions before the startup Book can run. The initializer
@@ -161,7 +153,9 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    map to `certificate`; every other code maps to `failure`. A failed proof
    rejects whole-Book admission before Gate runs. `compile.mjs` uses the pure
    admission error when that check fails; after successful pure admission it
-   reports `HOST_COMPILE` for a failed worker Book or C compilation. This table
+   reports `HOST_COMPILE` for a failed worker check. Native-build errors
+   (`phase: compile`) occur after both checkers accept, skip pure rechecking,
+   and report `HELPER` (still client `failure`). This table
    and classification are trusted host decisions, not the checked Gate Reject
    branch.
 10. On an authenticated execute request with empty proof, a host artifact-map

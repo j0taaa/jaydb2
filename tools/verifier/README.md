@@ -22,5 +22,5 @@ and verdict parser as the synchronous path. It fixes and hashes the translated
 payload before spawning, then resolves with a verdict or infrastructure error
 only after child close and log reading. Its private input/log directory remains
 owned until completion and is then removed. This allows trusted compilation to
-overlap the kernel process; callers must await the result before admission or
-artifact release. A failed check never authorizes the speculative output.
+overlap the kernel process under the
+[service release boundary](../service/SIMPLE_SERVICE.md#admission-and-artifact-release).

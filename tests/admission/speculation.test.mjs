@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import child from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
+import { initialize, execute } from '../../tools/service/stage.mjs';
 import { compileSubmission, admitSubmission, emitC } from '../../tools/admission/index.mjs';
 import { loadToolchain } from '../../tools/admission/bootstrap.mjs';
-import { fixture } from './helpers.mjs';
+import { fixture, repo } from './helpers.mjs';
 
 // Inject a kernel verdict in the process boundary, leaving source parsing,
 // primary checking, official Safe translation and C emission unchanged.
@@ -87,7 +89,7 @@ function changeLiteral(definitions) {
   assert.fail('executable literal was not found');
 }
 
-for (const when of ['during compilation', 'after admission']) test('Book edits are rejected ' + when, async t => {
+for (const when of ['during compilation', 'with build failure', 'after admission']) test('Book edits are rejected ' + when, async t => {
   const f = fixture(t), entries = Object.entries;
   let definitions;
   Object.entries = function (value) {
@@ -95,8 +97,11 @@ for (const when of ['during compilation', 'after admission']) test('Book edits a
     return entries(value);
   };
   t.after(() => { Object.entries = entries; });
-  if (when === 'during compilation') {
-    await assert.rejects(compileSubmission(f.manifest(), () => { changeLiteral(definitions); }),
+  if (when !== 'after admission') {
+    await assert.rejects(compileSubmission(f.manifest(), () => {
+      changeLiteral(definitions);
+      if (when === 'with build failure') throw new Error('clang failed');
+    }),
       e => e.code === 'BENDTT_INFRASTRUCTURE' && /changed a checked definition/.test(e.message));
   } else {
     const admitted = await admitSubmission(f.manifest());
@@ -170,5 +175,57 @@ test('every thrown builder value rejects admission', async t => {
     const f = fixture(t);
     await assert.rejects(compileSubmission(f.manifest(), () => { throw cause; }),
       e => e.code === 'COMPILE');
+  }
+});
+
+// Invoke Node directly: Rust's request-directory cleanup cannot satisfy these
+// assertions. Also force a second kernel invocation to fail, so a redundant
+// pure recheck would mask the original native-build diagnostic.
+for (const failure of ['kernel', 'clang']) test('compile.mjs cleans provisional files after ' + failure + ' failure', async t => {
+  const f = fixture(t), { info } = await loadToolchain();
+  const hook = path.join(repo, 'tests/admission/speculative-fault.mjs');
+  const compiled = path.join(f.root, 'compiled'), executed = path.join(f.root, 'executed');
+  // Stage a real worker/pure manifest pair, stopping before the compiler.
+  const instance = f.read('Instance.bend');
+  f.write('Configuration.bend', instance.split('\ndef context()')[0]);
+  f.write('Instance.bend', 'import ./Configuration.bend as C\n' +
+    instance.slice(0, instance.indexOf('def NotObserves')) +
+    'def config() -> S.Configuration:\n  C.config()\n' + instance.slice(instance.indexOf('\ndef context()')));
+  f.write('Initial.bend', 'import Base\ndef private_marker() -> String: "seed"\n');
+  const work = path.join(f.root, 'work'), request = path.join(f.root, 'request');
+  const spawnSync = child.spawnSync;
+  child.spawnSync = () => ({ status: 37 }); syncBuiltinESMExports();
+  try {
+    assert.throws(() => initialize(work, path.join(f.root, 'Configuration.bend'), path.join(f.root, 'Initial.bend'),
+      info.sourceDir, info.kernelPath), e => e.code === 'HELPER');
+    assert.throws(() => execute(work, request, f.root, info.sourceDir, info.kernelPath), e => e.code === 'HELPER');
+  } finally { child.spawnSync = spawnSync; syncBuiltinESMExports(); }
+  const output = path.join(request, 'checked.c'), manifestFile = path.join(request, 'manifest.json');
+  const pureFile = path.join(request, 'check-manifest.json');
+  const run = child.spawnSync(process.execPath, ['--stack_size=65536', path.join(repo, 'tools/service/compile.mjs'),
+    manifestFile, output, info.sourceDir, info.kernelPath, pureFile], {
+    encoding: 'utf8', timeout: 60000,
+    env: { ...process.env, NODE_OPTIONS: '--import ' + hook, JAYDB_BENCH_TIMING: '1',
+      JAYDB_TEST_KERNEL: failure === 'kernel' ? 'reject' : 'accept-once',
+      JAYDB_TEST_CLANG: failure === 'clang' ? 'reject' : '',
+      JAYDB_TEST_COMPILED: compiled, JAYDB_TEST_EXECUTED: executed },
+  });
+  assert.equal(run.status, 2, run.stdout + run.stderr);
+  const error = JSON.parse(fs.readFileSync(output + '.error.json', 'utf8'));
+  assert.equal(fs.existsSync(compiled + '.premature'), false, 'receipts withheld during checking');
+  assert.equal(fs.existsSync(output), false, 'Node removes checked.c');
+  assert.equal(fs.existsSync(output + '.json'), false, 'no C receipt');
+  assert.deepEqual(fs.readdirSync(request).filter(name => /\.program(?:\.json)?$/.test(name)), [], 'Node removes native artifacts and receipts');
+  assert.equal(fs.existsSync(executed), false, 'no provisional worker execution');
+  if (failure === 'kernel') {
+    assert.ok(fs.existsSync(compiled), 'the real Clang compilation completed before rejection');
+    assert.equal(error.code, 'HOST_COMPILE', error.message);
+    assert.match(error.message, /BENDTT_INFRASTRUCTURE:/);
+  } else {
+    assert.equal(error.code, 'HELPER', error.message);
+    assert.equal(error.phase, 'compile', error.message);
+    assert.match(error.message, /clang-19: 17/);
+    assert.equal(fs.existsSync(compiled + '.rechecked'), false, 'no second kernel invocation');
+    assert.equal(run.stderr.split('"phase":"primary_check"').length - 1, 1, 'no second primary check');
   }
 });

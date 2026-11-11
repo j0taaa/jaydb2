@@ -53,11 +53,8 @@ The trusted host APIs `compileSubmission(options, build)` and
 checking and Safe translation, `build(c)` receives provisional C emitted from
 the sealed private Book while the original BendTT child runs. The callback may
 compile C but must never load/execute its worker or publish an artifact receipt.
-The checked-Book seal is verified immediately before emission. The official
-emitter transforms that Book under T2; a second seal covers its resulting
-private state. The API waits for both checking and the builder, checks that seal,
-and returns `{ admitted, artifact }` only on success. The service owns and
-discards provisional files on error. Primary/translation failures never call
-the builder, and concurrent checker failure takes precedence over build failure.
+The API returns `{ admitted, artifact }` only on success. The
+[service release boundary](../service/SIMPLE_SERVICE.md#admission-and-artifact-release)
+specifies the seals, receipts, failure precedence and cleanup limits.
+Primary/translation failures never call the builder.
 The ordinary admission APIs remain available without speculative compilation.
-See the [service release boundary](../service/SIMPLE_SERVICE.md).

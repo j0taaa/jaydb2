@@ -314,13 +314,13 @@ async function admit(options, kernelOnly, build) {
     assertInitialization(B, state.book, plan);
     let changedDefinition = bookSeal(B, state.book);
     timed('binding_audit_seal');
+    let buildError;
     try {
       if (build) {
         // Safe consumes the primary checker's elaborated trees. Translation
         // finishes before C emission; only the independent native kernel runs
         // concurrently. Neither path rereads submission sources.
         const checking = startBookCheck(S, state.book, tc.info.verifier);
-        let buildError;
         try {
           const changed = changedDefinition();
           if (changed !== null) throw new AdmissionError('BENDTT_INFRASTRUCTURE', 'bendtt', 'Official Safe changed a checked definition: ' + changed);
@@ -339,12 +339,6 @@ async function admit(options, kernelOnly, build) {
         if (stamp !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'bendtt_translate_check', ns: checked.durationNs}) + '\n'); } catch {}
         if (checked.error) throw checked.error;
         state.verifier = checked.value;
-        if (state.verifier.why === null && buildError) {
-          const { cause } = buildError;
-          if (cause instanceof AdmissionError) throw cause;
-          throw new AdmissionError('COMPILE', 'compile',
-            cause instanceof Error ? cause.message : 'Native builder failed', { cause });
-        }
       } else {
         state.verifier = checkBook(S, state.book, tc.info.verifier);
         timed('bendtt_translate_check');
@@ -359,6 +353,13 @@ async function admit(options, kernelOnly, build) {
       const changed = changedDefinition();
       if (changed !== null) {
         throw new Error('Official Safe changed a checked definition: ' + changed);
+      }
+      // A seal violation must not be hidden by a simultaneous build failure.
+      if (buildError) {
+        const { cause } = buildError;
+        if (cause instanceof AdmissionError) throw cause;
+        throw new AdmissionError('COMPILE', 'compile',
+          cause instanceof Error ? cause.message : 'Native builder failed', { cause });
       }
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;

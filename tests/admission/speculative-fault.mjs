@@ -1,13 +1,25 @@
 // Test-only process fault injection, loaded by NODE_OPTIONS in a child service.
-// It runs only in the one-off worker compiler, never initialization/pure checks.
+// It activates only for worker manifests, leaving startup compiler calls alone.
 import fs from 'node:fs';
 import child from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 if (process.argv[1]?.endsWith('/tools/service/compile.mjs')) {
   const manifest = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
   if (manifest.nativeOptimization && manifest.certificateMode) {
-    const spawn = child.spawn;
+    const spawn = child.spawn, spawnSync = child.spawnSync;
+    child.spawnSync = function (bin, args, options) {
+      if (String(bin).includes('/bendtt-') && process.env.JAYDB_TEST_KERNEL === 'accept-once') {
+        fs.writeFileSync(process.env.JAYDB_TEST_COMPILED + '.rechecked', 'unexpected pure recheck');
+        return { status: 19 }; // Pure admission uses the synchronous checker.
+      }
+      return spawnSync(bin, args, options);
+    };
     child.spawn = function (bin, args, options) {
+      if (bin === '/usr/bin/clang-19' && process.env.JAYDB_TEST_CLANG === 'reject') {
+        // Leave a partial binary as a failed compiler may do.
+        fs.writeFileSync(args[args.indexOf('-o') + 1], 'partial');
+        return spawn(process.execPath, ['-e', 'process.exit(17)'], options);
+      }
       if (String(bin).includes('/bendtt-') && process.env.JAYDB_TEST_KERNEL === 'reject') {
         // Refuse only after a real speculative Clang invocation completed.
         return spawn(process.execPath, ['-e', `

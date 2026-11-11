@@ -49,10 +49,10 @@ try {
     const flags = ['-std=gnu11', manifest.nativeOptimization, '-w', '--no-default-config', outputFile, '-o', executable, '-lm', '-pthread'];
     const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
     const result = await new Promise(resolve => {
-      const process = spawn(compiler, flags, { stdio: ['ignore', 2, 2] });
+      const compilerChild = spawn(compiler, flags, { stdio: ['ignore', 2, 2] });
       let error;
-      process.once('error', cause => { error = cause; });
-      process.once('close', (status, signal) => resolve({ error, status, signal }));
+      compilerChild.once('error', cause => { error = cause; });
+      compilerChild.once('close', (status, signal) => resolve({ error, status, signal }));
     });
     if (started !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_compilation', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
     if (result.error || result.signal || result.status !== 0)
@@ -69,10 +69,13 @@ try {
       admitted = built.admitted; native = built.artifact;
     } else admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
   } catch (workerError) {
-    // Only a failed worker needs the separate pure check to distinguish a bad
-    // client certificate from a host-wrapper/compiler failure. Successful Books
-    // already checked the same pure declarations, and need no second proof run.
-    if (pure) {
+    if (workerError.phase === 'compile') {
+      // Both checkers accepted every pure declaration. Preserve the build error
+      // without risking a redundant pure check's infrastructure failure.
+      pureAccepted = Boolean(pure);
+    } else if (pure) {
+      // A failed worker check needs pure admission to distinguish a rejected
+      // client certificate from a host-wrapper failure.
       await (pure.purpose ? admitKernel : admitSubmission)({ ...pure, toolchain });
       pureAccepted = true;
     }
@@ -97,11 +100,11 @@ try {
     backend: 'official-bend-c', admission: admitted.report,
     limits: configurationLimits(admitted) }));
 } catch (e) {
-  // Reap/checking completes inside admission before control gets here. Discard
-  // speculative output on every failure; the caller receives only an error.
+  // On every reported failure, admission has awaited the checking/build paths.
+  // Discard provisional output before writing the error; hard kills can bypass this.
   for (const file of provisionalFiles.reverse()) fs.rmSync(file, { force: true });
   fs.writeFileSync(outputFile + '.error.json', JSON.stringify({
-    code: pureAccepted ? 'HOST_COMPILE' : e.code ?? 'HOST_COMPILE',
+    code: e.phase === 'compile' ? 'HELPER' : pureAccepted ? 'HOST_COMPILE' : e.code ?? 'HOST_COMPILE',
     phase: e.phase ?? 'host', message: pureAccepted && e.code ? `${e.code}: ${e.message}` : e.message }));
   process.exitCode = 2;
 }

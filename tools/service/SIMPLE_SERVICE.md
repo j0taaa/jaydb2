@@ -220,7 +220,9 @@ loop. The remaining T3 plumbing obligations are:
    map to `certificate`; every other code maps to `failure`. Failed proof
    admission rejects the whole Book before Gate executes. When the worker Book
    fails, `compile.mjs` runs pure admission: its failure code is preserved, while
-   successful pure admission followed by worker/C failure is `HOST_COMPILE`.
+   successful pure admission followed by worker-check failure is `HOST_COMPILE`.
+   Native-build errors (`phase: compile`) follow acceptance by both checkers,
+   skip pure rechecking, and report `HELPER` (still `failure` for clients).
    These host decisions are not covered by Gate's checked Reject branch.
 
 9. For an authenticated execute request with empty proof, a missing artifact
@@ -276,12 +278,13 @@ Host diagnostics are best-effort. A failed timing or inspection sink is disabled
 before attempting its diagnostic, and failed stderr writes cannot suppress an
 ordinary response, undo publication or turn an observer error into a panic.
 
+## Admission and artifact release
+
 The compiler preflights the import-only pure root and verifies that every pure
 module has exactly the executable Book's bytes, role and policy. A successful
-full Book checks all these declarations in both official modes once. If the
-worker fails, the separate pure check still distinguishes a rejected client
-certificate from a host wrapper failure; no successful declaration is skipped.
-
+full Book checks all these declarations in both official modes once. If worker
+checking fails, the separate pure check distinguishes a rejected client
+certificate from a host wrapper failure. Native-build failures need no recheck.
 
 Service compilation overlaps only independent work. The primary checker first
 elaborates every declaration, then the official Safe translator consumes those
@@ -296,14 +299,18 @@ source is reread, no verdict is cached, and Safe's permitted symbolic constants
 retain the existing treatment. The foreign C snapshot is validated before use.
 
 C, the executable and their hashes are provisional during that overlap.
-`compile.mjs` waits for both paths, reaps their children, and withholds successful
-C/native receipts until both checkers accept and the seal and artifact hashes
-match. `stage.mjs` validates those hashes before releasing a program path; Rust
-retains its existing artifact verification before a fresh worker launch. A
-checker/build/binding failure discards provisional files and releases no worker.
-A checker failure takes precedence over a simultaneous build failure. The
-separate pure check still determines client-certificate versus host failure,
-so public response statuses and publication behavior are unchanged.
+Both paths must settle and their children exit before admission returns a
+handle. `compile.mjs` withholds successful C/native receipts until both checkers
+accept and the seal and artifact hashes match. `stage.mjs` validates those
+hashes before releasing a program path; Rust retains its existing artifact
+verification before a fresh worker launch. A
+checker/build/binding failure releases no worker. On every reported failure,
+the checking/build paths have settled and provisional files are discarded.
+Uncatchable V8 OOM or a hard kill of the direct child can orphan kernel/Clang
+processes or leave provisional files. T1 rests on withheld receipts and seal/hash
+checks, not on cleanup. Checker and seal failures take precedence over a
+simultaneous build failure. Public response statuses and publication behavior
+are unchanged.
 
 With `JAYDB_BENCH_TIMING`, `bendtt_translate_check` records the observed wall
 span of translation and the kernel child; it overlaps `c_emission` and
@@ -312,6 +319,3 @@ round trip to infer an exclusive remainder. Child completion can be observed
 after synchronous C emission yields the Node event loop. `admission_total`
 remains the inclusive wall time of admission/build. Staging, worker, cleanup
 and publication hooks retain their original boundaries.
-
-[Controlled timings and reproduction](ADMISSION_LATENCY.md) record the measured
-ordinary/preparation latency changes and the validation of this release barrier.
