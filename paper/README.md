@@ -314,128 +314,7 @@ neither unconditional executable correctness nor a performance advantage over
 PostgreSQL or SQLite. The removed read-batch experiment and historical
 comparison evidence are no longer inputs to this pipeline.
 
-## Investigating latency variability
-
-The CPU's `powersave` policy can alternate between approximately 4.6 GHz and
-800 MHz during these short serial operations. Use the separate diagnostic to
-record native body wall time, process CPU time, endpoint CPU frequencies, page
-faults and context switches alongside the existing phase timings:
-
-```sh
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/diagnose.py'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; strace -f -tt -T -s 100 -o .build/paper-bench/diagnostic.strace -e trace=read,write,execve,wait4,futex,poll,ppoll,pselect6,clock_nanosleep,mmap,munmap,madvise,fsync,rename,close python3 -B paper/bench/diagnose.py --calls 5 --output .build/paper-bench/diagnostic-traced.json'
-```
-
-The diagnostic compiles `paper/bench/worker-clock.c` as an opt-in `LD_PRELOAD`
-observer. It does not alter the emitted C, native executable, wire bytes or
-execution decision. It adds observation overhead and is **not** enabled in the
-headline experiments. Endpoint frequency is a sampled policy observation, not
-an integrated hardware cycle counter. `DIAG START/END` delimit sampled calls in
-the syscall trace; initialization/registration and idle pipe waits are outside
-that window. The diagnostic alone does not change policy; run it inside `fixed-clock.sh` to compare under the final policy.
-Durable equal-state successes reuse their durable image; changed state,
-including new receipt rows, still follows file sync/rename/directory sync.
-
-The historical performance follow-up is recorded in `paper/evidence/performance-report.txt`
-and `performance-summary.json`, including before/after medians, inclusive
-quartiles, sample counts, validation and fingerprints for all E1–E5 cases.
-`latency-diagnosis.json` retains separate observer samples and syscall excerpts;
-these diagnostic timings are not inputs to the headline tables.
-
-Preparation means one-time checking and compilation; registry means the
-prepared handle registry. Generated filenames and macro names retain their
-original registration/persistent spelling.
-
-## Claim and reference review
-
-A successful unchanged-state Commit updates the RAM root/response pair while
-reusing the durable image. Changed states complete full-image write, file
-fsync, atomic replacement and directory fsync before publication and reply;
-open synchronizes the validated authoritative file and directory once.
-Recovery checks configuration and identity, not a proof of recovered-root
-validity. Recovered-root validity assumes an image produced by this host's own
-commits, a T1 persistence obligation outside the eleven in-memory T3 duties; the voucher
-lost-response/restart scenario is tested, not proved. The article and speaker
-notes state this boundary explicitly. Execution is serial and schema/laws are
-fixed; logical termination is not a wall-clock bound.
-
-References were checked against author copies, publisher proceedings and
-Crossref's publisher-deposited DOI metadata. The bibliography retains natbib
-author–year citations with an alphabetized ABNT-style reference list. Specific
-verification sources are:
-
-- Sheard and Stemple, TODS (1989), pages 322–368:
-  [publisher DOI](https://doi.org/10.1145/68012.68014), verified against its
-  Crossref record and the author's institutional publication listing.
-- Chlipala, UrFlow, OSDI (2010), pages 105–118:
-  [author page](https://adam.chlipala.net/papers/UrFlowOSDI10/) and
-  [MIT record](https://dspace.mit.edu/entities/publication/f21a3560-bda9-4731-b3ee-4c916aedb509).
-  No DOI is asserted for this USENIX paper.
-- Giffin, Levy, Stefan, Terei, Mazières, Mitchell and Russo, Hails, OSDI (2012),
-  pages 47–60: [USENIX record and BibTeX](https://www.usenix.org/conference/osdi12/technical-sessions/presentation/giffin).
-  No DOI is asserted for this USENIX paper.
-- Parker, Vazou and Hicks, LWeb, PACMPL 3 (POPL), article 75 (2019), 30 pages:
-  [author record](https://www.cs.umd.edu/~mwh/papers/parker19lweb.html),
-  author PDF and [publisher DOI](https://doi.org/10.1145/3290388).
-- Yang, Hance, Austin, Solar-Lezama, Flanagan and Chong, Jacqueline, PLDI (2016),
-  pages 631–647: [author PDF](https://www.cs.cmu.edu/~jyang2/papers/p631-yang.pdf)
-  and [proceedings DOI](https://doi.org/10.1145/2908080.2908098).
-- Chen, Ziegler, Chajed, Chlipala, Kaashoek and Zeldovich, FSCQ, SOSP (2015),
-  pages 18–37: [author page](https://adam.chlipala.net/papers/FscqSOSP15/),
-  SIGOPS proceedings and [publisher DOI](https://doi.org/10.1145/2815400.2815402).
-- Necula, PCC, POPL (1997), pages 106–119:
-  [author bibliography](https://people.eecs.berkeley.edu/~necula/papers.html)
-  and [publisher DOI](https://doi.org/10.1145/263699.263712), alongside the
-  existing Necula–Lee technical report.
-- Ynot's ICFP (2008) entry now uses the
-  [proceedings DOI](https://doi.org/10.1145/1411204.1411237), whose Crossref
-  container is ICFP, rather than the SIGPLAN Notices DOI. Fiat's POPL (2015)
-  entry adds pages 689–700 and the
-  [proceedings DOI](https://doi.org/10.1145/2676726.2677006), verified against
-  the [author PDF](https://adam.chlipala.net/papers/FiatPOPL15/FiatPOPL15.pdf)
-  and Crossref metadata.
-- PostgreSQL 16: [CREATE TABLE / deferrability](https://www.postgresql.org/docs/16/sql-createtable.html),
-  [constraint triggers](https://www.postgresql.org/docs/16/sql-createtrigger.html),
-  [unsupported assertions](https://www.postgresql.org/docs/16/unsupported-features-sql-standard.html)
-  and [row-security filtering](https://www.postgresql.org/docs/16/ddl-rowsecurity.html).
-
-Table privileges or a reference monitor can prevent forbidden reads before
-they occur. The benchmark uses shared-table RLS filtering; per-owner table
-privileges would be a closer analogue to the application layout. Proofs here
-combine arbitrary propositions, all-path admission without policy aborts and
-amortized preparation; they are not justified by claiming runtime checks occur
-only after observation. The source listing copies the indexed entry
-and `Policy.Rule` branches, omitting imports and helper definitions. Bend is
-used so that one checked Book contains both the proofs and the functions
-compiled to C; this choice does not assert superiority over other proof assistants.
-The oracle generator is untrusted because its output is checked, while checker
-soundness and source binding remain trusted. Agreement between the related
-checker modes is not independent evidence of logical soundness.
-
-## Final examiner derivations and review
-
-The scaling figures use a linear row axis. The intercept and slope come from
-one least-squares fit of volatile last-key read medians against row count;
-the intercept estimates fixed per-call cost within this measured range, not
-an independently isolated phase. Volatile updates nearly coincide with reads.
-The state ceiling limits both the execution evidence and demonstrated checking
-scale; direct large-seed failures are retained, not treated as timed operations.
-
-The inventory adds maintained Bend files from `library/` and
-`applications/vouchers/proof/` by recursively counting nonblank physical lines,
-including imports and comments. It does not change the evidence JSON. The
-`proof/src` ratio excludes both areas. The local voucher certificate imports
-`Receipts` and `ReceiptLaws` from the library, so its local ratio benefits from
-reusable proofs. Twelve witness names end in `_theorem`; three codec/framing
-witnesses have other names (the four Core clauses share one witness).
-
-The execution and architecture frames remain separate: one explains private
-state and the publication decision; the other explains processes and source
-binding. Positioning now immediately follows the research questions. The
-conclusion answers RQ1–RQ3 before future work. The deck retains 20 main frames
-and six appendix frames.
-
-New macros derived for this review (all emitted into `numbers.tex`):
+### Derived macros for preparation phases, sizes and ratios
 
 | Macro | Meaning / unit |
 |---|---|
@@ -470,86 +349,34 @@ New macros derived for this review (all emitted into `numbers.tex`):
 | `\VoucherSuiteNonblankLines` | Voucher proof suite nonblank Bend lines, including comments (lines) |
 | `\ScalingVolatileReadInterceptMs` | Intercept of the same least-squares volatile last-key read fit (ms) |
 
-Additional reference checks on 11 November 2026:
+## Investigating latency variability
 
-- Schneider, *Enforceable security policies*, TISSEC 3(1), 30–50 (2000):
-  [author PDF](https://www.cs.cornell.edu/fbs/publications/EnfSecPols.pdf)
-  verifies execution monitoring before a violating step, and
-  [Crossref publisher metadata](https://api.crossref.org/works/10.1145/353323.353382)
-  verifies author, title, venue, issue, pages, date and DOI
-  [10.1145/353323.353382](https://doi.org/10.1145/353323.353382).
-- PostgreSQL 16 [privileges](https://www.postgresql.org/docs/16/ddl-priv.html):
-  verified the roles of SELECT, GRANT and REVOKE, including inherited and
-  PUBLIC privileges. This documentation entry is now in the bibliography.
-- Bend attribution: the official [organization](https://github.com/bendlang)
-  identifies itself as BendLang; its [repository](https://github.com/bendlang/bend)
-  credits Victor Taelin and the team. The corporate-author entry is BendLang,
-  rather than attributing the current distribution to a different organization.
-  The unrelated proof-assistant name list was removed; Malecha et al.'s cited
-  database work still identifies its Coq/Ynot implementation.
+The CPU's `powersave` policy can alternate between approximately 4.6 GHz and
+800 MHz during these short serial operations. Use the separate diagnostic to
+record native body wall time, process CPU time, endpoint CPU frequencies, page
+faults and context switches alongside the existing phase timings:
 
-The article uses natbib author–year citations and a consistently alphabetized
-ABNT-style bibliography. Existing bibliography entries are retained.
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/diagnose.py'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; strace -f -tt -T -s 100 -o .build/paper-bench/diagnostic.strace -e trace=read,write,execve,wait4,futex,poll,ppoll,pselect6,clock_nanosleep,mmap,munmap,madvise,fsync,rename,close python3 -B paper/bench/diagnose.py --calls 5 --output .build/paper-bench/diagnostic-traced.json'
+```
 
-## Examiner completion checklist
+The diagnostic compiles `paper/bench/worker-clock.c` as an opt-in `LD_PRELOAD`
+observer. It does not alter the emitted C, native executable, wire bytes or
+execution decision. It adds observation overhead and is **not** enabled in the
+headline experiments. Endpoint frequency is a sampled policy observation, not
+an integrated hardware cycle counter. `DIAG START/END` delimit sampled calls in
+the syscall trace; initialization/registration and idle pipe waits are outside
+that window. The diagnostic alone does not change policy; run it inside `fixed-clock.sh` to compare under the final policy.
+Durable equal-state successes reuse their durable image; changed state,
+including new receipt rows, still follows file sync/rename/directory sync.
 
-| Request | Status and resolution |
-|---|---|
-| C1 | Done: abstract and §4.2 distinguish each native worker from the separate checked native control executable; §4.2 and prepared-program notes identify `ControlBridge.packet` → `Control.control`. |
-| C2 | Done: table privileges and reference monitors prevent reads before they occur; GRANT/REVOKE and deferred triggers are acknowledged. The three-part proof rationale, PostgreSQL comparison threat, early positioning frame and Portuguese note agree. Schneider DOI verified before inclusion. |
-| M1 | Done: both figures use linear 0–1,200 row axes. Updates are drawn first, reads remain visible, near-coincidence is disclosed, and a same-fit intercept macro accompanies closely linear growth. |
-| M2 | Done: article and limitations frame disclose the configured byte/row ceiling, failed large seeds and untested checking/execution scale beyond it; full explanation is in the Portuguese note. |
-| M3 | Done: maintained library and voucher proof suite added to inventory using source-derived nonblank-line/file macros with tests. Central proof/src and local voucher ratio exclusions and library imports are explicit. |
-| M4 | Done: T1 states own-commit provenance for recovered roots as a persistence obligation outside eleven in-memory T3 duties; §4.3, §8 and notes agree. |
-| M5(a) | Done: generated preparation-phase table follows the preparation-distribution table; measured checking/compilation ranges use derived macros. |
-| M5(b) | Done: durable variability includes the large owner update's Q3, median and session spread; no unmeasured per-fsync attribution is made. |
-| M6 | Done: positioning follows research questions; final frame answers RQ1/RQ2/RQ3; readable footnotesize code shows all Rule branches and an unscaled small table; ordinary totals added. Optional merge considered and not taken: execution and architecture explain distinct boundaries, so both diagrams remain. |
-| M7 | Done: rewritten abstract explains the conditional executable guarantee, vacuity repair and applications in plain language, gives ordinary/prepared and SQL headline costs, locates the separate controller and avoids claiming isolated state/storage costs. |
-| Numbers: trailing zeros | Done: fixed zerofill in article and Portuguese latency/number helpers. |
-| Numbers: ratios | Done: comparison and proof ratios use zero or one decimal. |
-| Fonts: article | Done: newtxtext/newtxmath replace Times; matching math numerals; redundant amssymb removed to avoid duplicate symbol definitions. |
-| Fonts: slides | Done: Latin Modern loads before Helvetica; pdffonts confirms no Type 3 fonts. |
-| Captions | Done: caption package with 4pt skip. |
-| Table 6 | Done: small, unscaled phase table in seconds; obsolete units sentence removed. |
-| Table 2 | Done: tools and Rust counts explicitly say lines; official checkers marked external. |
-| Figure 1 | Done: manual break after “both checkers,” prevents checker hyphenation. |
-| Wording: E5 session | Done: “In a single…” rather than a generated numeral at sentence start. |
-| Wording: negative cases | Done: sentence begins with “The”, not a numeral. |
-| Wording: positive fixture | Done: task-list application and applications/tasks path introduced. |
-| Wording: witness count | Done: `_theorem` names distinguished from codec/framing witnesses and from four clauses sharing Core; total witness macro is derived. |
-| Wording: registry | Done: handle registry distinguished from user registry in §4.2 and theorem table. |
-| Wording: image reuse | Done: full explanation kept in §4.3; one short reminder in E5. Redundant article explanations in E2, E3 and §8 removed. |
-| Wording: conclusion | Done: RQ answers precede future work. |
-| Wording: ordinary owner read | Done: higher measured cost reported; cause explicitly not isolated rather than guessed. |
-| Sources: large population | Done: largest even near-ceiling owner split explained with per-user and total-row macros. |
-| Sources: large SQL ratios | Done: read/update ratios derived and reported; conclusion includes large-state costs. |
-| Sources: T3.2 | Done: “prepared opcode bytes”. |
-| Sources: T3.10 | Done: authenticated empty-proof artifact-map miss for unknown/invalidated HANDLE, with live-artifact availability distinction; appendix agrees. |
-| Sources: CPU | Done: active cores under performance policy distinguished from idle-core endpoint readings; no global fixed-governor/clock assertion. |
-| Bibliography: retention | Done: existing entries retained. |
-| Bibliography: Bend | Done: BendLang attribution checked against official organization and repository credits. |
-| Bibliography: style | Done: natbib author–year with consistent ABNT-style list. |
-| Bibliography: assistant names | Done: unsupported comparison name list removed; cited Malecha et al. still supports the Coq/Ynot database description. No unrelated new references needed. |
-| Portuguese: permissions diagram | Done: diagram separated from title, unexplained line removed, índice kept unbroken, publication sentence made precise. |
-| Portuguese: trusted base | Done: oracle-generator and Rust-test wording corrected; T3 size says linhas. |
-| Portuguese: prepared call | Done: fresh authentication/current arguments/checked selection/private execution wording. |
-| Portuguese: cost slide | Done: preparation pays after derived call count; “Execução no worker”; ordinary totals shown. |
-| Portuguese: SQL comparison | Done: small read/update ratios shown as macros; large read ratio explicit; generic “orders/factor” summary removed. |
-| Portuguese: limitations | Done: guarantee covers exactly installed laws under T1–T3. |
-| Portuguese: conclusion | Done: preparation-compensation line uses macro and median-model qualifier. |
-| Portuguese: T3 duty 7 | Done: latest unchanged registry bytes, exact T1 tuple and only checked delta. |
-| Portuguese: vacuity | Done: redundant green positive-control line removed. |
-| Portuguese: appendix layout | Done: 2mm inter-row spacing via booktabs addlinespace after complete wrapped rows; avoids baseline collisions. |
-| Notes: title | Done: “e o custo do protótipo atual”. |
-| Notes: handle freshness | Done: handle never previously allocated in the instance. |
-| Notes: publication decision | Done: “à decisão Commit ou Keep”. |
-| Research question 3 | Done: current certified executable cost and reduction through prepared reuse. |
+The historical performance follow-up is recorded in `paper/evidence/performance-report.txt`
+and `performance-summary.json`, including before/after medians, inclusive
+quartiles, sample counts, validation and fingerprints for all E1–E5 cases.
+`latency-diagnosis.json` retains separate observer samples and syscall excerpts;
+these diagnostic timings are not inputs to the headline tables.
 
-Validation: `make -C paper` succeeds; final second-pass logs contain no undefined
-references/macros or overfull boxes. All 25 evidence unit tests pass. Every
-article page and defense slide was rendered with `pdftoppm -png -r 60` and
-visually inspected; diagram hyphenation, wrapped-row spacing and two vertical
-overflows found during inspection were fixed. Final artifacts contain 21 article
-pages and 26 defense slides (20 main plus six appendix), with a Portuguese
-speaker note in every frame. Evidence JSON, benchmarks and all source outside
-the permitted paper files are unchanged. No push is performed.
+Preparation means one-time checking and compilation; registry means the
+prepared handle registry. Generated filenames and macro names retain their
+original registration/persistent spelling.
