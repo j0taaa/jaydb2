@@ -100,6 +100,74 @@ class EvidenceTests(unittest.TestCase):
                 self.assertEqual(spread.count('E2 '),6)
         finally:evidence.OUT=previous
 
+    def test_examiner_derivations(self):
+        previous=evidence.OUT
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder)
+                macros=evidence.derive(self.data)
+                value=lambda name:macros[name][0]
+                self.assertEqual(value('PublicTheoremWitnesses'),len(self.data['verification']['theorem_witnesses'])+3)
+                # Independently reconstruct the normal-equation intercept and slope.
+                rows=[r for r in self.data['scaling']['records'] if not r['persistent']]
+                xs=[r['rows'] for r in rows]
+                ys=[statistics.median(s['elapsed_ns'] for s in r['samples']
+                    if s['workload']=='read')/1e6 for r in rows]
+                xbar,ybar=statistics.mean(xs),statistics.mean(ys)
+                slope=sum((x-xbar)*(y-ybar) for x,y in zip(xs,ys))/sum((x-xbar)**2 for x in xs)
+                self.assertAlmostEqual(value('ScalingVolatileReadInterceptMs'),ybar-slope*xbar)
+                self.assertAlmostEqual(value('ScalingVolatileReadSlopeUsPerRow'),slope*1000)
+                for group,phases in [('Checking',('primary_check','bendtt_translate_check')),
+                        ('Compilation',('c_emission','c_compilation'))]:
+                    medians=[]
+                    for record in self.data['prepared']['records']:
+                        median=statistics.median(sum(s['phases_ns'][p] for p in phases)
+                            for s in record['registrations'])/1e9
+                        medians.append(median)
+                        prefix='Registration'+evidence.PROGRAMS[record['program']]+('Persistent' if record['persistent'] else 'Volatile')
+                        self.assertAlmostEqual(value(prefix+group+'Seconds'),median)
+                    self.assertAlmostEqual(value('Registration'+group+'MinSeconds'),min(medians))
+                    self.assertAlmostEqual(value('Registration'+group+'MaxSeconds'),max(medians))
+                for workload in ('read','update'):
+                    records=self.data['comparison']['records']
+                    medians={r['engine']:statistics.median(s['elapsed_ns'] for s in r['samples']
+                        if s['workload']==workload) for r in records
+                        if r['policy']=='point' and r['rows']==self.data['comparison']['large_rows']}
+                    for label,engine in [('Postgres','postgresql'),('Sqlite','sqlite')]:
+                        self.assertAlmostEqual(value('LargeJay'+workload.title()+'Over'+label),
+                            medians['jaydb2']/medians[engine])
+                owner=next(r for r in records if r['policy']=='owner' and r['engine']=='jaydb2'
+                    and r['rows']==self.data['comparison']['large_rows'])
+                updates=[s['elapsed_ns']/1e6 for s in owner['samples'] if s['workload']=='update']
+                self.assertAlmostEqual(value('LargeOwnerJayUpdateQthreeMs'),
+                    statistics.quantiles(updates,n=4,method='inclusive')[2])
+                sm=[statistics.median(s['elapsed_ns']/1e6 for s in z['samples']
+                    if s['workload']=='update') for z in owner['sessions']]
+                self.assertAlmostEqual(value('LargeOwnerJayUpdateSessionMinMs'),min(sm))
+                self.assertAlmostEqual(value('LargeOwnerJayUpdateSessionMaxMs'),max(sm))
+                self.assertEqual(2*value('ComparisonOwnerRowsPerUser'),value('ComparisonLargeRows'))
+                for prefix,directory in [('Library','library'),('VoucherSuite','applications/vouchers/proof')]:
+                    files=list((evidence.ROOT/directory).rglob('*.bend'))
+                    count=sum(len([line for line in p.read_text().splitlines() if line.strip()]) for p in files)
+                    self.assertEqual(value(prefix+'Files'),len(files))
+                    self.assertEqual(value(prefix+'NonblankLines'),count)
+                phase=(Path(folder)/'ordinary-phase-summary.tex').read_text()
+                read=self.data['ordinary']['records'][0]
+                worker=statistics.median(s['phases_ns']['ordinary_worker'] for s in read['samples'])/1e9
+                self.assertIn('Phase (s)',phase)
+                self.assertIn(f'{worker:.3f}',phase)
+                self.assertNotIn('(ms)',phase)
+        finally:evidence.OUT=previous
+
+    def test_source_inventory_counts_nonblank_bend_only(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            (root/'one.bend').write_text('import Base\n\n# comment\n  \ndef f(): Unit{}\n')
+            (root/'nested').mkdir()
+            (root/'nested/two.bend').write_text('def g(): Unit{}\n')
+            (root/'ignored.md').write_text('not Bend\n')
+            self.assertEqual(evidence.source_inventory(root),dict(files=2,nonblank_lines=4))
+
     def test_duplicate_iteration(self):
         self.corrupt(lambda d:d['ordinary']['records'][0]['samples'][1].update(iteration=1),'samples')
 

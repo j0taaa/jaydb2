@@ -9,7 +9,7 @@ Portuguese speaker notes in each frame. Change wording and layout directly in `s
 make -C paper
 ```
 
-Requires Python 3 and pdfLaTeX with standard AMS, Times, geometry, microtype,
+Requires Python 3 and pdfLaTeX with standard AMS, newtxtext/newtxmath, Latin Modern, caption, geometry, microtype,
 natbib, booktabs, hyperref, Beamer, PGF and PGFPlots packages. Build products stay ignored
 under `.build/tcc/`; the deliverables are:
 
@@ -343,7 +343,7 @@ quartiles, sample counts, validation and fingerprints for all E1–E5 cases.
 these diagnostic timings are not inputs to the headline tables.
 
 Preparation means one-time checking and compilation; registry means the
-prepared handle table. Generated filenames and macro names retain their
+prepared handle registry. Generated filenames and macro names retain their
 original registration/persistent spelling.
 
 ## Claim and reference review
@@ -353,7 +353,8 @@ reusing the durable image. Changed states complete full-image write, file
 fsync, atomic replacement and directory fsync before publication and reply;
 open synchronizes the validated authoritative file and directory once.
 Recovery checks configuration and identity, not a proof of recovered-root
-validity. Persistence integrity remains a T1/host obligation; the voucher
+validity. Recovered-root validity assumes an image produced by this host's own
+commits, a T1 persistence obligation outside the eleven in-memory T3 duties; the voucher
 lost-response/restart scenario is tested, not proved. The article and speaker
 notes state this boundary explicitly. Execution is serial and schema/laws are
 fixed; logical termination is not a wall-clock bound.
@@ -398,11 +399,157 @@ verification sources are:
   [unsupported assertions](https://www.postgresql.org/docs/16/unsupported-features-sql-standard.html)
   and [row-security filtering](https://www.postgresql.org/docs/16/ddl-rowsecurity.html).
 
-The RLS comparison distinguishes row filtering from rejecting a program before
-its first forbidden observation. The source listing copies the indexed entry
+Table privileges or a reference monitor can prevent forbidden reads before
+they occur. The benchmark uses shared-table RLS filtering; per-owner table
+privileges would be a closer analogue to the application layout. Proofs here
+combine arbitrary propositions, all-path admission without policy aborts and
+amortized preparation; they are not justified by claiming runtime checks occur
+only after observation. The source listing copies the indexed entry
 and `Policy.Rule` branches, omitting imports and helper definitions. Bend is
 used so that one checked Book contains both the proofs and the functions
-compiled to C; this choice does not assert superiority over Coq, Lean or F*.
+compiled to C; this choice does not assert superiority over other proof assistants.
 The oracle generator is untrusted because its output is checked, while checker
 soundness and source binding remain trusted. Agreement between the related
 checker modes is not independent evidence of logical soundness.
+
+## Final examiner derivations and review
+
+The scaling figures use a linear row axis. The intercept and slope come from
+one least-squares fit of volatile last-key read medians against row count;
+the intercept estimates fixed per-call cost within this measured range, not
+an independently isolated phase. Volatile updates nearly coincide with reads.
+The state ceiling limits both the execution evidence and demonstrated checking
+scale; direct large-seed failures are retained, not treated as timed operations.
+
+The inventory adds maintained Bend files from `library/` and
+`applications/vouchers/proof/` by recursively counting nonblank physical lines,
+including imports and comments. It does not change the evidence JSON. The
+`proof/src` ratio excludes both areas. The local voucher certificate imports
+`Receipts` and `ReceiptLaws` from the library, so its local ratio benefits from
+reusable proofs. Twelve witness names end in `_theorem`; three codec/framing
+witnesses have other names (the four Core clauses share one witness).
+
+The execution and architecture frames remain separate: one explains private
+state and the publication decision; the other explains processes and source
+binding. Positioning now immediately follows the research questions. The
+conclusion answers RQ1–RQ3 before future work. The deck retains 20 main frames
+and six appendix frames.
+
+New macros derived for this review (all emitted into `numbers.tex`):
+
+| Macro | Meaning / unit |
+|---|---|
+| `\RegistrationReadVolatileCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationReadVolatileCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationIndexedVolatileCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationIndexedVolatileCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationVoucherVolatileCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationVoucherVolatileCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationReadPersistentCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationReadPersistentCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationIndexedPersistentCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationIndexedPersistentCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationVoucherPersistentCheckingSeconds` | Preparation whole-Book checking median (s) |
+| `\RegistrationVoucherPersistentCompilationSeconds` | Preparation C emission/build median at -O2 (s) |
+| `\RegistrationCheckingMinSeconds` | Range of preparation phase medians across programs/storage modes (s) |
+| `\RegistrationCheckingMaxSeconds` | Range of preparation phase medians across programs/storage modes (s) |
+| `\RegistrationCompilationMinSeconds` | Range of preparation phase medians across programs/storage modes (s) |
+| `\RegistrationCompilationMaxSeconds` | Range of preparation phase medians across programs/storage modes (s) |
+| `\ComparisonOwnerRowsPerUser` | Rows per user in the even large ownership split (rows) |
+| `\LargeJayReadOverPostgres` | Large-state durable point JayDB2 / Postgres median (ratio) |
+| `\LargeJayReadOverSqlite` | Large-state durable point JayDB2 / Sqlite median (ratio) |
+| `\LargeJayUpdateOverPostgres` | Large-state durable point JayDB2 / Postgres median (ratio) |
+| `\LargeJayUpdateOverSqlite` | Large-state durable point JayDB2 / Sqlite median (ratio) |
+| `\LargeOwnerJayUpdateQthreeMs` | Large owner update pooled upper quartile (ms) |
+| `\LargeOwnerJayUpdateSessionMinMs` | Large owner update session-median spread (ms) |
+| `\LargeOwnerJayUpdateSessionMaxMs` | Large owner update session-median spread (ms) |
+| `\PublicTheoremWitnesses` | Named top-level witnesses plus the separately named codec/framing witnesses (witnesses) |
+| `\LibraryFiles` | Library maintained Bend files (files) |
+| `\LibraryNonblankLines` | Library nonblank Bend lines, including comments (lines) |
+| `\VoucherSuiteFiles` | Voucher proof suite maintained Bend files (files) |
+| `\VoucherSuiteNonblankLines` | Voucher proof suite nonblank Bend lines, including comments (lines) |
+| `\ScalingVolatileReadInterceptMs` | Intercept of the same least-squares volatile last-key read fit (ms) |
+
+Additional reference checks on 11 November 2026:
+
+- Schneider, *Enforceable security policies*, TISSEC 3(1), 30–50 (2000):
+  [author PDF](https://www.cs.cornell.edu/fbs/publications/EnfSecPols.pdf)
+  verifies execution monitoring before a violating step, and
+  [Crossref publisher metadata](https://api.crossref.org/works/10.1145/353323.353382)
+  verifies author, title, venue, issue, pages, date and DOI
+  [10.1145/353323.353382](https://doi.org/10.1145/353323.353382).
+- PostgreSQL 16 [privileges](https://www.postgresql.org/docs/16/ddl-priv.html):
+  verified the roles of SELECT, GRANT and REVOKE, including inherited and
+  PUBLIC privileges. This documentation entry is now in the bibliography.
+- Bend attribution: the official [organization](https://github.com/bendlang)
+  identifies itself as BendLang; its [repository](https://github.com/bendlang/bend)
+  credits Victor Taelin and the team. The corporate-author entry is BendLang,
+  rather than attributing the current distribution to a different organization.
+  The unrelated proof-assistant name list was removed; Malecha et al.'s cited
+  database work still identifies its Coq/Ynot implementation.
+
+The article uses natbib author–year citations and a consistently alphabetized
+ABNT-style bibliography. Existing bibliography entries are retained.
+
+## Examiner completion checklist
+
+| Request | Status and resolution |
+|---|---|
+| C1 | Done: abstract and §4.2 distinguish each native worker from the separate checked native control executable; §4.2 and prepared-program notes identify `ControlBridge.packet` → `Control.control`. |
+| C2 | Done: table privileges and reference monitors prevent reads before they occur; GRANT/REVOKE and deferred triggers are acknowledged. The three-part proof rationale, PostgreSQL comparison threat, early positioning frame and Portuguese note agree. Schneider DOI verified before inclusion. |
+| M1 | Done: both figures use linear 0–1,200 row axes. Updates are drawn first, reads remain visible, near-coincidence is disclosed, and a same-fit intercept macro accompanies closely linear growth. |
+| M2 | Done: article and limitations frame disclose the configured byte/row ceiling, failed large seeds and untested checking/execution scale beyond it; full explanation is in the Portuguese note. |
+| M3 | Done: maintained library and voucher proof suite added to inventory using source-derived nonblank-line/file macros with tests. Central proof/src and local voucher ratio exclusions and library imports are explicit. |
+| M4 | Done: T1 states own-commit provenance for recovered roots as a persistence obligation outside eleven in-memory T3 duties; §4.3, §8 and notes agree. |
+| M5(a) | Done: generated preparation-phase table follows the preparation-distribution table; measured checking/compilation ranges use derived macros. |
+| M5(b) | Done: durable variability includes the large owner update's Q3, median and session spread; no unmeasured per-fsync attribution is made. |
+| M6 | Done: positioning follows research questions; final frame answers RQ1/RQ2/RQ3; readable footnotesize code shows all Rule branches and an unscaled small table; ordinary totals added. Optional merge considered and not taken: execution and architecture explain distinct boundaries, so both diagrams remain. |
+| M7 | Done: rewritten abstract explains the conditional executable guarantee, vacuity repair and applications in plain language, gives ordinary/prepared and SQL headline costs, locates the separate controller and avoids claiming isolated state/storage costs. |
+| Numbers: trailing zeros | Done: fixed zerofill in article and Portuguese latency/number helpers. |
+| Numbers: ratios | Done: comparison and proof ratios use zero or one decimal. |
+| Fonts: article | Done: newtxtext/newtxmath replace Times; matching math numerals; redundant amssymb removed to avoid duplicate symbol definitions. |
+| Fonts: slides | Done: Latin Modern loads before Helvetica; pdffonts confirms no Type 3 fonts. |
+| Captions | Done: caption package with 4pt skip. |
+| Table 6 | Done: small, unscaled phase table in seconds; obsolete units sentence removed. |
+| Table 2 | Done: tools and Rust counts explicitly say lines; official checkers marked external. |
+| Figure 1 | Done: manual break after “both checkers,” prevents checker hyphenation. |
+| Wording: E5 session | Done: “In a single…” rather than a generated numeral at sentence start. |
+| Wording: negative cases | Done: sentence begins with “The”, not a numeral. |
+| Wording: positive fixture | Done: task-list application and applications/tasks path introduced. |
+| Wording: witness count | Done: `_theorem` names distinguished from codec/framing witnesses and from four clauses sharing Core; total witness macro is derived. |
+| Wording: registry | Done: handle registry distinguished from user registry in §4.2 and theorem table. |
+| Wording: image reuse | Done: full explanation kept in §4.3; one short reminder in E5. Redundant article explanations in E2, E3 and §8 removed. |
+| Wording: conclusion | Done: RQ answers precede future work. |
+| Wording: ordinary owner read | Done: higher measured cost reported; cause explicitly not isolated rather than guessed. |
+| Sources: large population | Done: largest even near-ceiling owner split explained with per-user and total-row macros. |
+| Sources: large SQL ratios | Done: read/update ratios derived and reported; conclusion includes large-state costs. |
+| Sources: T3.2 | Done: “prepared opcode bytes”. |
+| Sources: T3.10 | Done: authenticated empty-proof artifact-map miss for unknown/invalidated HANDLE, with live-artifact availability distinction; appendix agrees. |
+| Sources: CPU | Done: active cores under performance policy distinguished from idle-core endpoint readings; no global fixed-governor/clock assertion. |
+| Bibliography: retention | Done: existing entries retained. |
+| Bibliography: Bend | Done: BendLang attribution checked against official organization and repository credits. |
+| Bibliography: style | Done: natbib author–year with consistent ABNT-style list. |
+| Bibliography: assistant names | Done: unsupported comparison name list removed; cited Malecha et al. still supports the Coq/Ynot database description. No unrelated new references needed. |
+| Portuguese: permissions diagram | Done: diagram separated from title, unexplained line removed, índice kept unbroken, publication sentence made precise. |
+| Portuguese: trusted base | Done: oracle-generator and Rust-test wording corrected; T3 size says linhas. |
+| Portuguese: prepared call | Done: fresh authentication/current arguments/checked selection/private execution wording. |
+| Portuguese: cost slide | Done: preparation pays after derived call count; “Execução no worker”; ordinary totals shown. |
+| Portuguese: SQL comparison | Done: small read/update ratios shown as macros; large read ratio explicit; generic “orders/factor” summary removed. |
+| Portuguese: limitations | Done: guarantee covers exactly installed laws under T1–T3. |
+| Portuguese: conclusion | Done: preparation-compensation line uses macro and median-model qualifier. |
+| Portuguese: T3 duty 7 | Done: latest unchanged registry bytes, exact T1 tuple and only checked delta. |
+| Portuguese: vacuity | Done: redundant green positive-control line removed. |
+| Portuguese: appendix layout | Done: 2mm inter-row spacing via booktabs addlinespace after complete wrapped rows; avoids baseline collisions. |
+| Notes: title | Done: “e o custo do protótipo atual”. |
+| Notes: handle freshness | Done: handle never previously allocated in the instance. |
+| Notes: publication decision | Done: “à decisão Commit ou Keep”. |
+| Research question 3 | Done: current certified executable cost and reduction through prepared reuse. |
+
+Validation: `make -C paper` succeeds; final second-pass logs contain no undefined
+references/macros or overfull boxes. All 25 evidence unit tests pass. Every
+article page and defense slide was rendered with `pdftoppm -png -r 60` and
+visually inspected; diagram hyphenation, wrapped-row spacing and two vertical
+overflows found during inspection were fixed. Final artifacts contain 21 article
+pages and 26 defense slides (20 main plus six appendix), with a Portuguese
+speaker note in every frame. Evidence JSON, benchmarks and all source outside
+the permitted paper files are unchanged. No push is performed.

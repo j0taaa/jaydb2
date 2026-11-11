@@ -225,6 +225,13 @@ def table(name,columns,rows):
     (OUT/name).write_text('\\begin{tabular}{'+columns+'}\\toprule\n'+rendered[0]+'\n\\midrule\n'+'\n'.join(rendered[1:])+'\n\\bottomrule\\end{tabular}\n')
 
 
+def source_inventory(directory):
+    """Count maintained Bend files and nonblank physical lines, including comments."""
+    files=sorted(directory.rglob('*.bend'))
+    return dict(files=len(files), nonblank_lines=sum(
+        bool(line.strip()) for path in files for line in path.read_text().splitlines()))
+
+
 def derive(data):
     MACROS.clear();OUT.mkdir(parents=True,exist_ok=True)
     for prefix,count in [('Ordinary',30),('Prepared',900),('Registration',9),('Comparison',900),('Scaling',50)]:
@@ -263,7 +270,13 @@ def derive(data):
         rows.append([PROGRAMS[p]+' / '+('Durable' if r['persistent'] else 'Volatile'),decimal(reg['median']/1e9),cell(s)])
         checks=summary([dict(elapsed_ns=x['phases_ns']['primary_check']+x['phases_ns']['bendtt_translate_check']) for x in r['registrations']])
         compile_times=summary([dict(elapsed_ns=x['phases_ns']['c_emission']+x['phases_ns']['c_compilation']) for x in r['registrations']])
+        macro('Registration'+PROGRAMS[p]+mode+'CheckingSeconds',checks['median']/1e9,'Preparation whole-Book checking median','s')
+        macro('Registration'+PROGRAMS[p]+mode+'CompilationSeconds',compile_times['median']/1e9,'Preparation C emission/build median at -O2','s')
         registration_phases.append([PROGRAMS[p]+' / '+('Durable' if r['persistent'] else 'Volatile'),cell(checks,1e9),cell(compile_times,1e9)])
+    for group in ('Checking','Compilation'):
+        values=[MACROS['Registration'+PROGRAMS[r['program']]+('Persistent' if r['persistent'] else 'Volatile')+group+'Seconds'][0] for r in data['prepared']['records']]
+        for bound,fn in [('Min',min),('Max',max)]:
+            macro('Registration'+group+bound+'Seconds',fn(values),'Range of preparation phase medians across programs/storage modes','s')
     table('prepared-table.tex','lrr',rows)
     table('throughput-table.tex','lrrr',rates)
     table('registration-phase-table.tex','lrr',registration_phases)
@@ -277,7 +290,7 @@ def derive(data):
             phase_rows.append([PROGRAMS[r['program']],phase.replace('_',r'\_'),cell(s)])
     table('phase-table.tex','llr',phase_rows)
     # Aggregate within each call before summarizing; admission_total is nested.
-    phase_summary=[['Phase (unit)']+list(PROGRAMS.values())]
+    phase_summary=[['Phase (s)']+list(PROGRAMS.values())]
     phase_cells={}
     for r in data['ordinary']['records']:
         groups={
@@ -296,10 +309,10 @@ def derive(data):
         macro('Ordinary'+PROGRAMS[r['program']]+'WorkerSharePercent',
             statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in r['samples']]),
             r['program']+' median per-call worker share of ordinary round trip','percent')
-        phase_cells[r['program']]={name:cell(quartiles(ns),1e6)
+        phase_cells[r['program']]={name:cell(quartiles(ns),1e9,3)
             for name,ns in values.items()}
-    for name,label in [('CheckingSeconds','Checking (ms)'),('CompilationSeconds','C generation/build (ms)'),
-            ('WorkerMs','Worker (ms)'),('OtherSeconds','Other (ms)')]:
+    for name,label in [('CheckingSeconds','Checking'),('CompilationSeconds','C generation/build'),
+            ('WorkerMs','Worker'),('OtherSeconds','Other')]:
         phase_summary.append([label]+[phase_cells[p][name] for p in PROGRAMS])
     table('ordinary-phase-summary.tex','lrrr',phase_summary)
     compare=[['Rows / profile','Engine','Read ms','Update ms']]
@@ -315,6 +328,17 @@ def derive(data):
             for w in ('read','update'):
                 s=summary([x for x in r['ordinary'] if x['workload']==w and x['phase']=='sample'])
                 metric('Ordinary'+prefix+w.title(),s,'Seconds',1e9,'Durable ordinary '+r['policy']+' '+w+' latency')
+    macro('ComparisonOwnerRowsPerUser',data['comparison']['large_rows']//2,'Rows per user in the even large ownership split','rows')
+    for workload,op in [('Read','Read'),('Update','Write')]:
+        for baseline,engine in [('Postgres','Pg'),('Sqlite','Sq')]:
+            macro('LargeJay'+workload+'Over'+baseline,
+                MACROS['LargeJay'+op+'Ms'][0]/MACROS['Large'+engine+op+'Ms'][0],
+                'Large-state durable point JayDB2 / '+baseline+' median','ratio')
+    owner=next(r for r in data['comparison']['records'] if r['rows']==data['comparison']['large_rows'] and r['engine']=='jaydb2' and r['policy']=='owner')
+    macro('LargeOwnerJayUpdateQthreeMs',samples(owner,900,'update')['qthree']/1e6,'Large owner update pooled upper quartile','ms')
+    session_medians=[samples(z,300,'update')['median']/1e6 for z in owner['sessions']]
+    for bound,fn in [('Min',min),('Max',max)]:
+        macro('LargeOwnerJayUpdateSession'+bound+'Ms',fn(session_medians),'Large owner update session-median spread','ms')
     macro('ComparisonLargeRows',data['comparison']['large_rows'],'Total rows shared by all engines in the large-state comparison','rows')
     table('database-comparison-table.tex','llrr',compare)
     for policy in ('Point','Owner'):
@@ -331,6 +355,10 @@ def derive(data):
     for key,name in [('negative_fixtures','NegativeFixtures'),('theorem_types','ContractTheoremTypes'),('proof_law_declarations','ProofLawDeclarations'),('proof_definitions','ProofDefinitions')]:
         macro(name,v[key],key.replace('_',' '),'count')
     macro('ProofTheoremWitnesses',len(v['theorem_witnesses']),'Named top-level theorem witnesses (names ending theorem); excludes supporting lemmas','witnesses')
+    wire_witnesses=re.findall(r'^def \w+\(\) -> C\.(\w+)\(\):',
+        (ROOT/'proof/WireTheorems.bend').read_text(),re.MULTILINE)
+    macro('PublicTheoremWitnesses',len(v['theorem_witnesses'])+len(wire_witnesses),
+        'Named top-level theorem witnesses plus the separately named codec/framing witnesses','witnesses')
     for area,s in v['sizes'].items():macro(area.title()+'NonblankLines',s['nonblank_lines'],area+' source nonblank lines (comments included)','lines')
     macro('ProofToImplementationRatio',v['sizes']['proof']['nonblank_lines']/v['sizes']['src']['nonblank_lines'],
         'Nonblank proof/ lines divided by src/ implementation lines, including comments','ratio')
@@ -338,7 +366,13 @@ def derive(data):
     if coverage:
         for area,count in re.findall(r'(\w+) (\d+) modules',coverage.group(1)):macro(area.title()+'CoverageModules',int(count),area+' modules covered by verify import roots','modules')
     table('verification-table.tex','lrr',[['Command','Seconds','Exit']]+[[r['command'],f"{r['elapsed_ns']/1e9:.2f}",r['returncode']] for r in v['commands']])
-    table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a.title(),s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()])
+    inventory=[]
+    for name,label,directory in [('Library','Library',ROOT/'library'),('VoucherSuite','Voucher proof suite',ROOT/'applications/vouchers/proof')]:
+        counts=source_inventory(directory)
+        macro(name+'Files',counts['files'],label+' maintained Bend files','files')
+        macro(name+'NonblankLines',counts['nonblank_lines'],label+' nonblank Bend lines, including comments','lines')
+        inventory.append([label,counts['files'],counts['nonblank_lines']])
+    table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a.title(),s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()]+inventory)
     scaling=data['scaling'];macro('StateLimitBytes',scaling['state_limit'],'Configured canonical state ceiling','bytes');macro('StateMaximumRows',scaling['max_rows'],'Largest analytically fitting population of this row shape','rows')
     macro('LargeSeedFuelFailures',sum('Seed.initial_valid' in r['reason'] and 'out of fuel' in r['reason'] for r in data['scaling-seed-attempt']['failures']),'Retained large direct-seed initialization attempts exhausted official BendTT fuel','attempts')
     populations=sorted({r['rows'] for r in scaling['records']})
@@ -386,6 +420,8 @@ def derive(data):
     points=coordinates['volatile_read']
     fit=statistics.linear_regression([x for x,_,_ in points],
         [s['median']/1e3 for _,_,s in points])
+    macro('ScalingVolatileReadInterceptMs',fit.intercept/1000,
+        'Intercept of the same least-squares volatile last-key read fit','ms')
     macro('ScalingVolatileReadSlopeUsPerRow',fit.slope,
         'Least-squares slope of volatile last-key read medians against row count','microseconds/row')
     indexed=next(r for r in data['prepared']['records'] if r['program']=='indexed' and r['persistent'])

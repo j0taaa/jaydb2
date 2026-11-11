@@ -2,9 +2,11 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage{times}
+\usepackage{newtxtext}
+\usepackage[skip=4pt]{caption}
 \usepackage[left=3cm,right=2cm,top=3cm,bottom=2cm]{geometry}
-\usepackage{amsmath,amssymb,amsthm,booktabs,array,microtype}
+\usepackage{amsmath,amsthm,booktabs,array,microtype}
+\usepackage{newtxmath}
 \usepackage[round,authoryear]{natbib}
 \usepackage{xcolor,tikz,pgfplots,longtable}
 \usetikzlibrary{arrows.meta,positioning}
@@ -15,9 +17,10 @@
 \hypersetup{pdftitle={JayDB2: Proof-Carrying Transactions under Administrator-Defined Laws},
 pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
 \input{../.build/tcc/numbers.tex}
-\newcommand{\laten}[1]{\pgfmathprintnumber[fixed,precision=3,1000 sep={,}]{#1}}
-\newcommand{\numen}[1]{\pgfmathprintnumber[fixed,precision=2,1000 sep={,}]{#1}}
+\newcommand{\laten}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=3,1000 sep={,}]{#1}}
+\newcommand{\numen}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=2,1000 sep={,}]{#1}}
 
+\newcommand{\ratioen}[1]{\pgfmathprintnumber[fixed,precision=1,1000 sep={,}]{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\jay}{JayDB2}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -41,25 +44,27 @@ pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carr
 \begin{document}
 \maketitle
 \begin{abstract}
-Proof-carrying transactions let clients establish administrator-defined laws
-before their programs observe private data. \jay{} is an experimental Bend~2
-database with a Rust host. Its theorems concern the very gate, interpreter,
-finalizer and prepared-program controller executed by the native worker.
-Under a trusted source-binding audit, admission ties the certificate to the
-exact program, authenticated context and arguments. Conditional on T1--T3
-(checking and binding, compilation and runtime, and host plumbing), the
-system provides authenticated admission, prefix law safety, logical progress,
-valid serial states and exact Commit/Keep decisions and responses; physical
-publication is host duty T3.6, and crash durability lies outside the proofs.
-An earlier vacuous contract motivated theorems over computed functions,
-a useful positive instance and checked refutations. Ownership/index and
-voucher/receipt applications demonstrate access and publication obligations.
-An ordinary read takes \numen{\OrdinaryReadMedianSeconds}~s at the median;
-volatile prepared reuse takes \numen{\PreparedReadVolatileMedianMs}~ms and
-amortizes preparation after \BreakEvenReadCalls{} calls in a median-cost model.
-Evaluation separates checking from compilation and the prototype's process,
-state-transfer and storage costs. The case study demonstrates an executable
-proof-carrying design with an explicit trusted base and substantial current cost.
+Proof-carrying transactions let a client prove, before execution, that its
+program respects laws installed by the database administrator. \jay{} is an
+experimental database with a Bend~2 kernel and a Rust host. Its theorems concern
+the very gate, interpreter and finalizer executed by each native worker, and
+the prepared-program controller executed by a separate checked native control
+executable. Assuming checker soundness and an exact source-binding audit (T1),
+compiler/runtime preservation (T2) and eleven host duties (T3), every admitted
+transaction runs as the authenticated caller, satisfies every law at every
+execution prefix, terminates logically and publishes exactly the checked result,
+preserving state validity across serial transactions; crash durability is not
+proved. An earlier vacuous contract motivated theorems over computed functions
+with a useful positive instance. Ownership/index and voucher/receipt
+applications show access and publication obligations failing at the intended
+point. Costs are high: an ordinary read takes
+\numen{\OrdinaryReadMedianSeconds}~s, mostly checking and C compilation;
+a volatile prepared read takes \numen{\PreparedReadVolatileMedianMs}~ms and
+repays preparation after \BreakEvenReadCalls{} calls in a median-cost model.
+Durable prepared point reads remain \ratioen{\JayPointReadOverPostgres} times
+slower than PostgreSQL at the small state. Every call transfers and validates
+the complete state; the large-state read gap reaches
+\ratioen{\LargeJayReadOverPostgres} times PostgreSQL.
 \end{abstract}
 \noindent\textbf{Keywords:} proof-carrying code; databases; dependent types;
 transaction policies; formal verification; Bend.
@@ -118,7 +123,7 @@ functions, including generated admission-oracle proofs and an explicit trusted b
 \item An architecture that places transaction and prepared-control decisions
 in checked Bend and leaves process, byte and publication plumbing to Rust.
 \item Certified ownership/index and voucher/receipt applications with targeted
-negative controls, together with measurements separating checking and service costs.
+negative controls, together with measurements distinguishing checking from compilation and total service costs.
 \end{itemize}
 
 \section{Background and Related Work}
@@ -160,26 +165,31 @@ These systems address information release across application components.
 action prefixes and publication; it does not claim their end-to-end
 information-flow guarantees.
 
-PostgreSQL's conventional analogues are row-level security (RLS), constraints
-and triggers \citep{postgresrls,postgresconstraints,postgrescreate,postgrestrigger}.
-RLS normally filters unauthorized rows silently; it does not itself reject a
+PostgreSQL's conventional analogues include table privileges, row-level
+security (RLS), constraints and triggers \citep{postgresrls,postgresconstraints,postgrescreate,postgrestrigger}.
+With per-owner tables, \code{GRANT}/\code{REVOKE} can prevent Alice from
+reading Bob's index before any row is read: withholding \code{SELECT} on
+\code{bob\_index} suffices when no inherited or public privilege grants it
+\citep{postgresprivileges}. RLS normally filters unauthorized rows silently; it does not itself reject a
 transaction merely for attempting to read Bob's index. Supported deferrable
 constraints permit temporary inconsistency, but PostgreSQL's \code{CHECK}
 constraints are not deferrable. Exact equality between ordinary index and
 business tables needs triggers, including deferred constraint triggers when
 checked at transaction end; SQL \code{CREATE ASSERTION} is not implemented
-\citep{postgresunsupported}. These mechanisms can protect stored invariants
-and restrict returned rows, with different observation semantics from JayDB2.
+\citep{postgresunsupported}. These mechanisms can protect stored invariants and restrict access; the RLS
+comparison below uses different observation semantics from JayDB2.
 
-Why require proofs? Installed laws are arbitrary propositions, potentially
-expensive or undecidable to decide at run time. For example, the voucher law
-quantifies over reachability using an erased witness. A transaction lacking
-the required certificate is rejected before observing private data, rather
-than discovering a violation after reads and aborting. The certificate covers
-all valid states, needs no private snapshot for admission, and preparation
-amortizes its check across invocations. This expressiveness has a price:
-manual proofs and, in the current implementation, high execution cost even
-after checking has been removed from the invocation path.
+Why require proofs? Some laws are enforceable at run time: table privileges
+or a reference monitor can stop Alice's read of Bob's index before it happens,
+and deferred constraint triggers can check index equality at commit
+\citep{schneider2000,postgrestrigger}. Proofs provide three things these
+mechanisms do not jointly provide here. Laws are arbitrary propositions,
+including ones that are expensive or undecidable to evaluate at run time,
+such as the voucher law's erased reachability witness. Admission decides once,
+over every valid state and input, that no execution path violates a law, so a
+certified program never aborts for a policy reason. Preparation amortizes that
+check across invocations. The price is manual proofs and, in this implementation,
+high execution cost even after checking leaves the invocation path.
 
 Bend~2 supplies the dependent source language, official checker modes and native
 compiler/runtime used by the prototype \citep{bend}. The evaluated toolchain is
@@ -190,7 +200,7 @@ process through Node and compiles the literal emitted C with Clang~19.
 Bend was chosen so that specifications, proofs and executable functions share
 one language and the checked Book is the very artifact compiled to C. This
 is an engineering choice for studying that connection, rather than a claim
-of superiority over Coq, Lean or F*.
+of superiority over other proof assistants.
 
 Verified systems distinguish the proved program from the components trusted to
 execute its meaning. CompCert's semantic-preservation approach
@@ -205,7 +215,7 @@ conditional theorems with identifiable implementation obligations.
 A fixed configuration $C$ contains the schema, installed laws, their admitted
 dependencies, the environment identity and three canonical byte limits: message,
 state and response. The \emph{root} is the currently published state $s$; it contains finite
-tables and a user registry (distinct from the prepared-program handle table). Tables have unique textual primary keys and typed columns. Cell values
+tables and a user registry (distinct from the prepared-program handle registry). Tables have unique textual primary keys and typed columns. Cell values
 are Unicode text, booleans or signed 64-bit integers, with explicit optional
 absence. A missing row differs from an absent optional value. Writes supply
 complete explicit values and obey the schema.
@@ -303,7 +313,7 @@ execution, finalization and prepared controls.
  node distance=8mm and 9mm]
 \node[block] (client) {Client\\program, credential, arguments, proof};
 \node[block,right=of client] (host) {Rust host\\frame and current root};
-\node[block,right=of host] (admit) {Admission and compilation\\both checkers, exact Book};
+\node[block,right=of host] (admit) {Admission and compilation\\both checkers,\\exact Book};
 \node[block,below=13mm of admit] (worker) {Native Bend worker\\\code{Gate.begin}, interpreter,\\\code{Gate.finish} / \code{early}};
 \node[block,left=of worker] (decision) {Checked decision\\\code{Commit / Keep}};
 \node[block,left=of decision] (publish) {Rust publication\\cleanup, replace root,\\deliver exact bytes};
@@ -357,25 +367,30 @@ request with the resulting published state.
 
 \subsection{Prepared programs and the controller}
 Preparation checks a universal certificate and compiles once, returning an
-instance-local identifier (handle). The registry is the handle table
-that maps these identifiers to their admitted program bindings. Each invocation supplies a fresh credential and arguments.
+instance-local identifier (handle). The handle registry maps these identifiers to their admitted program bindings. Each invocation supplies a fresh credential and arguments.
 Checked registered selection authenticates first, resolves the handle within
 the instance and selects the original source/proof tuple. The worker specializes
 the universal certificate to its current context and arguments. Handle reuse
 runs neither checker nor compiler, while retaining fresh native authentication
 and execution processes and artifact-integrity checks.
 
+The theorems concern the very gate, interpreter and finalizer executed by each
+native worker, and the prepared-program controller executed by a separate
+checked native control executable. Initialization/recovery compile that control
+executable through the official checked-Book mechanism;
+\code{ControlBridge.packet} calls \code{Control.control}.
+
 \code{Control.control} implements preparation and invalidation as a checked
-plan followed by a registry delta. Preparation compares the exact universal
+plan followed by a handle-registry delta. Preparation compares the exact universal
 admission tuple supplied after trusted checking and source binding (T1, Section~\ref{sec:tcb}), validates the handle's shape and
 rejects every previously allocated candidate. It encodes and bounds the receipt
 before installing a delta. Invalidation removes the scoped entry and retains
 allocation history. Control receipts are metadata: they preserve the database
 root and last published transaction response.
 
-The host forwards the latest controller-emitted registry bytes unchanged to the
+The host forwards the latest controller-emitted handle-registry bytes unchanged to the
 worker. The \code{ControlRegistryBytes} proof shows that the worker decodes
-exactly the controller's handle table. \code{ServiceFoldTheorem} composes a
+exactly the controller's handle registry. \code{ServiceFoldTheorem} composes a
 serial sequence containing both transactions and controls, tracking states and
 handle history together. \code{ServiceNoRevivalTheorem} says that an allocated
 handle, once removed, remains absent throughout the instance. The handle
@@ -393,7 +408,8 @@ directory before RAM publication and reply. Opening validates the image and
 synchronizes the authoritative file and directory once before serving.
 Recovery checks the frozen configuration and identity without evaluating a
 seed; recovered-root validity relies on persistence integrity under the
-T1/host obligation, rather than a recovery-validity theorem. Missing, corrupt
+T1 persistence obligation in Section~\ref{sec:tcb}, outside the eleven
+in-memory host duties, rather than a recovery-validity theorem. Missing, corrupt
 or incompatible images stop startup. Neither the last response nor prepared
 handles and allocation history are durable.
 
@@ -452,7 +468,7 @@ Control & Current authentication, exact admission-tuple comparison, handle
 freshness, bounded receipts before deltas, and root/last-response preservation.
 & ControlClauses\\[3pt]
 ServiceFold & Mixed transactions and controls preserve root validity, exact
-registry history and universal certification of live registered sources.
+handle-registry history and universal certification of live registered sources.
 & ControlHistory\\[3pt]
 RegistryLookup & A live tracked lookup selects a universally certified source.
 & ControlHistory\\[3pt]
@@ -460,7 +476,7 @@ RegistryInvalidation & Scoped removal clears the lookup and preserves allocated
 history. & ControlHistory\\[3pt]
 ServiceLifetime & A previously allocated handle remains allocated and every
 later preparation refuses to reuse it. & ControlHistory\\[3pt]
-ServiceNoRevival & An allocated handle absent from the registry remains absent
+ServiceNoRevival & An allocated handle absent from the handle registry remains absent
 at every later position of a mixed run. & ControlHistory\\
 \end{longtable}}
 
@@ -526,7 +542,7 @@ and progress requires an actual final trace after acceptance. Finite runs record
 those computed gate, interpreter and finisher equations rather than assuming
 that every reached state is valid.
 
-The positive tasks fixture uses the real policy, program, certificate and seed.
+The positive fixture from the task-list application (\path{applications/tasks/}) uses the real policy, program, certificate and seed.
 It proves current authentication, the exact sound-oracle premise, an accepted
 machine start and a successful publication whose root differs from the seed.
 Checked refutations show that spoofed identity, uncertified execution,
@@ -534,7 +550,7 @@ publication on refusal and rejecting an oracle-accepted program violate the
 relevant clauses. This supplies both a useful inhabitant and concrete excluded
 behaviors.
 
-\NegativeFixtures{} negative cases under \path{tests/proof/rejected/} exercise false
+The \NegativeFixtures{} negative cases under \path{tests/proof/rejected/} exercise false
 claims. Each must fail in both official checker modes at a definition named
 exactly \code{false}. A syntax error, missing import or additional helper
 co-failure invalidates the control. Application controls similarly isolate
@@ -551,10 +567,10 @@ admission tooling, not the external toolchain. Line counts do not measure trust.
 \caption{Trusted components and maintained source size.}\label{tab:tcb-size}
 \begin{tabular}{@{}L{.08\linewidth}L{.53\linewidth}L{.32\linewidth}@{}}
 \toprule Layer & Components & Nonblank lines\\\midrule
-T1 & Official checkers; Node admission/service tools and binding audit &
-\ToolsNonblankLines{} tools lines\\
+T1 & Official checkers (external toolchain); Node admission/service tools and binding audit &
+\ToolsNonblankLines{} lines of tools\\
 T2 & Bend compiler/runtime; Clang & External toolchain\\
-T3 & Rust production host & \RustProductionLines\\
+T3 & Rust production host & \RustProductionLines{} lines\\
 \bottomrule
 \end{tabular}
 \par\small Rust tests: \RustTestLines{} lines, excluded from production size.
@@ -569,6 +585,9 @@ the logical admission premise, including structural matching and universal
 specialization. Startup additionally requires admission of the exact closed
 \code{Requirements.Valid(configuration(), state())} seed declaration before
 initialization. The runtime initializer consumes no proof value.
+Recovery checks only configuration and identity; validity of a recovered root
+assumes the image was produced by this host's own commits (a persistence
+obligation outside the eleven in-memory T3 duties).
 
 \paragraph{T2: compiler and runtime preservation.}
 The Bend-to-C compiler, native ABI, runtime and fixed foreign loop preserve the
@@ -581,7 +600,7 @@ The proof guide specifies eleven duties:
 \setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}
 \item Freeze configuration, source/tool bytes and the valid initial root.
 \item Supply bounded complete frames, specified EOF behavior, original bodies
-and one current private snapshot, counting prepared prefix bytes.
+and one current private snapshot, counting prepared opcode bytes.
 \item Preserve the exact admitted tuple and compile/load its immutable checked Book.
 \item Run a fresh private worker through the checked gate and finalizer, with
 no publication capability and with logical observations preserved on interruption.
@@ -598,15 +617,18 @@ publication and stop/close appropriately. EOF between requests ends the channel.
 \item Implement the specified admission-error-code to status table.
 Proof/source admission codes map to \code{certificate}; other tool codes map
 to \code{failure}. Failed certificates reject whole-Book admission before Gate.
-\item On a missing prepared artifact, preserve the root and send the fixed
-failure frame. A missing artifact for a live entry is an availability failure.
+\item On an authenticated execute request with empty proof, a host artifact-map
+miss (unknown or invalidated handle, \code{HANDLE}) preserves the root and sends
+the fixed \code{failure} frame. For an absent registry lookup this equals the
+checked not-found denial; a missing artifact for a live entry is a host
+availability failure.
 \item On prepared artifact-integrity failure, preserve the root and send the
 same fixed failure frame before execution.
 \end{enumerate}
 The last two Rust-only replies are tested byte-for-byte against a checked
 worker not-found denial. T3.9's exact code table is given in the proof guide.
 
-Registry bytes are canonical but unauthenticated. Handle-to-program
+Handle-registry bytes are canonical but unauthenticated. Handle-to-program
 correspondence and revocation require T3's unchanged forwarding of the latest
 bytes; universal certification of an executed program still follows from T1 and
 generated matching. This obligation makes precise the connection between the
@@ -717,7 +739,9 @@ below. The reproduction procedure and macro definitions are in
 The experiments use the real serial Rust host, official Bend~2.0.39 and BendTT,
 literal emitted C and Clang~19 on an Intel Core i7-11700K/Linux machine with an
 ext4 filesystem. CPU frequency control uses the \CpuGovernor{} governor,
-turbo \TurboSetting{} and a nominal base clock of \CpuClockGHz{}~GHz.
+turbo \TurboSetting{}. The performance policy pins active cores at the
+nominal base clock of \CpuClockGHz{}~GHz; low endpoint readings in the metadata
+can belong to idle cores and do not indicate a fixed frequency on every core.
 The wrapper saves, restores and verifies the original CPU settings; no CPU
 pinning is applied.
 E1--E3 use \SessionCount{} independent sessions; E5 uses \ScalingSessionCount{} session with
@@ -791,9 +815,9 @@ separately, so displayed medians need not sum to the median round trip.
 
 \begin{table}[htbp]\centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{E1: phase groups, median [Q1, Q3]. Units appear in the first column. Full phase records remain in the evidence.}
+\caption{E1: phase groups, median [Q1, Q3] in seconds. Full phase records remain in the evidence.}
 \label{tab:phases}
-\resizebox{\linewidth}{!}{\input{../.build/tcc/ordinary-phase-summary.tex}}
+\input{../.build/tcc/ordinary-phase-summary.tex}
 \end{table}
 
 \subsection{E2: prepared reuse and break-even}
@@ -822,6 +846,17 @@ per condition. Throughput appears separately in Table~\ref{tab:throughput}.}
 \input{../.build/tcc/registration-table.tex}
 \end{table}
 
+\begin{table}[htbp]\centering\small
+\caption{E2: preparation phase groups at \code{-O2}, median [Q1, Q3] in seconds.}
+\label{tab:preparation-components}
+\input{../.build/tcc/registration-phase-table.tex}
+\end{table}
+Within preparation, checking is only part of the cost
+(\numen{\RegistrationCheckingMinSeconds}--\numen{\RegistrationCheckingMaxSeconds}~s
+across condition medians); C generation/build at \code{-O2} dominates
+(\numen{\RegistrationCompilationMinSeconds}--\numen{\RegistrationCompilationMaxSeconds}~s;
+Table~\ref{tab:preparation-components}).
+
 For the read, one-time volatile preparation costs
 \numen{\RegistrationReadVolatileMedianSeconds}~s and subsequent calls take
 \numen{\PreparedReadVolatileMedianMs}~ms at the median. Indexed and voucher calls
@@ -829,8 +864,7 @@ take \numen{\PreparedIndexedVolatileMedianMs} and
 \numen{\PreparedVoucherVolatileMedianMs}~ms, respectively. The durable-mode
 read median is \numen{\PreparedReadPersistentMedianMs}~ms.
 Prepared reuse retains fresh worker startup, integrity checks and full-state
-transfer. Equal-state successful reads reuse the durable image; state-changing
-calls add the image write and synchronization path. Durable indexed and voucher medians are
+transfer. Durable indexed and voucher medians are
 \numen{\PreparedIndexedPersistentMedianMs} and
 \numen{\PreparedVoucherPersistentMedianMs}~ms.
 Reuse removes admission and compilation from the per-call path.
@@ -849,9 +883,8 @@ E3 compares prepared JayDB2 with PostgreSQL~16.15 and SQLite~3.45.1, using
 after one warmup per operation in each session.
 PostgreSQL uses a private local Unix socket, \code{fsync=on},
 \code{synchronous\_commit=on} and \code{full\_page\_writes=on}.
-SQLite uses WAL and \code{synchronous=FULL}. JayDB2 reuses the already
-durable image on byte-identical success; changed states take the full-image
-write, file fsync, replacement and directory fsync path. SQL connections/statements are reused, with
+SQLite uses WAL and \code{synchronous=FULL}. JayDB2 uses the publication
+path in Section~4.3. SQL connections/statements are reused, with
 psycopg automatic server preparation and SQLite's statement cache. Updates
 change the integer value and are checked, including after close/reopen.
 JayDB2 returns an acknowledgment followed by an untimed readback; SQL returns
@@ -860,7 +893,10 @@ the stored value inside the timed statement.
 The small point fixture has \ScalingSmallRows{} rows; an additional point
 near the state limit uses \ComparisonLargeRows{} rows
 (Table~\ref{tab:comparison-large}). Both profiles use these same total row counts in every engine;
-the ownership profile divides rows equally between Alice and Bob. An administrator law confines JayDB2 to
+the ownership profile divides rows equally between Alice and Bob. The
+large population is the largest even split near the ceiling, with
+\ComparisonOwnerRowsPerUser{} rows per owner, so both profiles use
+\ComparisonLargeRows{} total rows. An administrator law confines JayDB2 to
 owner-named tables. PostgreSQL enforces owner-only row visibility and updates
 with an owner column, enabled and forced row-level security, including the
 new-row check, under a non-superuser/non-\code{BYPASSRLS} role
@@ -888,23 +924,22 @@ Prepared JayDB2 is slower in every measured condition
 \numen{\JayPointReadMedianMs}~ms versus
 \laten{\PostgresPointReadMedianMs}~ms for PostgreSQL and
 \laten{\SqlitePointReadMedianMs}~ms for SQLite:
-\numen{\JayPointReadOverPostgres} times PostgreSQL and
-\numen{\JayPointReadOverSqlite} times SQLite. Owner-only reads take
+\ratioen{\JayPointReadOverPostgres} times PostgreSQL and
+\ratioen{\JayPointReadOverSqlite} times SQLite. Owner-only reads take
 \numen{\JayOwnerReadMedianMs}~ms, or
-\numen{\JayOwnerReadOverPostgres} and \numen{\JayOwnerReadOverSqlite} times
+\ratioen{\JayOwnerReadOverPostgres} and \ratioen{\JayOwnerReadOverSqlite} times
 those baselines. The read gap spans orders of magnitude.
 The update gap is smaller: point updates take
 \numen{\JayPointUpdateMedianMs}~ms versus
 \numen{\PostgresPointUpdateMedianMs} and \numen{\SqlitePointUpdateMedianMs}~ms,
 or
-\numen{\JayPointUpdateOverPostgres} times PostgreSQL and
-\numen{\JayPointUpdateOverSqlite} times SQLite, while owner-only updates are
-\numen{\JayOwnerUpdateOverPostgres} and
-\numen{\JayOwnerUpdateOverSqlite} times, respectively. Updates therefore differ by a small factor at the small state.
+\ratioen{\JayPointUpdateOverPostgres} times PostgreSQL and
+\ratioen{\JayPointUpdateOverSqlite} times SQLite, while owner-only updates are
+\ratioen{\JayOwnerUpdateOverPostgres} and
+\ratioen{\JayOwnerUpdateOverSqlite} times, respectively. Updates therefore differ by a small factor at the small state.
 
 Each prepared JayDB2 read still pays for a fresh worker process, complete-state
-transfer, decoding and validation. A byte-identical success does not write or
-fsync a new image. Updates add a complete-image write, file fsync, atomic
+transfer, decoding and validation. Updates add a complete-image write, file fsync, atomic
 replacement and directory fsync; PostgreSQL instead synchronizes its WAL for
 commit. Prepared calls repeat no proof checking. These measurements compare
 complete service paths and do not isolate each mechanism's contribution.
@@ -923,7 +958,10 @@ Owner & Update & \laten{\LargeOwnerJayWriteMs} & \laten{\LargeOwnerPgWriteMs} & 
 
 At \ComparisonLargeRows{} rows, point reads rise to
 \numen{\LargeJayReadMs}~ms and updates to \numen{\LargeJayWriteMs}~ms.
-SQL read latency stays nearly flat and SQL updates remain on the same
+The point read ratios are \ratioen{\LargeJayReadOverPostgres} times PostgreSQL
+and \ratioen{\LargeJayReadOverSqlite} times SQLite; update ratios are
+\ratioen{\LargeJayUpdateOverPostgres} and \ratioen{\LargeJayUpdateOverSqlite},
+respectively. SQL read latency stays nearly flat and SQL updates remain on the same
 millisecond scale, so the gap grows with state size. The owner-only profile
 shows the same pattern (Table~\ref{tab:comparison-large}). JayDB2 transfers
 the complete state on every call, even for a point operation.
@@ -932,7 +970,9 @@ Ordinary durable JayDB2 calls provide context: read/update medians are
 \numen{\OrdinaryJayPointReadMedianSeconds}/\numen{\OrdinaryJayPointUpdateMedianSeconds}~s
 for the point fixture and
 \numen{\OrdinaryJayOwnerReadMedianSeconds}/\numen{\OrdinaryJayOwnerUpdateMedianSeconds}~s
-for ownership, with \OrdinarySamples{} calls per operation.
+for ownership, with \OrdinarySamples{} calls per operation. The ownership
+ordinary read is more expensive than the point read; these measurements do not
+isolate the cause of that difference.
 
 \subsection{E4: verification time and source size}
 E4 retains command wall-clock runs of \code{make verify-contract},
@@ -964,11 +1004,18 @@ code; the Rust area includes tests, whose separate count is given in
 Table~\ref{tab:tcb-size}. Table~\ref{tab:client-effort} adds application
 program/proof counts, excluded from the infrastructure inventory. There are \ProofNonblankLines{}
 nonblank lines in \code{proof/} against \SrcNonblankLines{} in
-\code{src/}: a ratio of \numen{\ProofToImplementationRatio} to one.
+\code{src/}: a ratio of \ratioen{\ProofToImplementationRatio} to one.
+This ratio excludes the maintained \code{library/}
+(\LibraryFiles{} Bend files, \LibraryNonblankLines{} nonblank lines) and
+\path{applications/vouchers/proof/} (\VoucherSuiteFiles{} files,
+\VoucherSuiteNonblankLines{} nonblank lines), both now included in the inventory.
 \code{contract/} adds \ContractNonblankLines{} lines of specifications.
 The inventory records \ProofLawDeclarations{} law declarations,
 \ProofDefinitions{} definitions and \ProofTheoremWitnesses{} named
-top-level theorem witnesses. These syntactic counts differ from one another
+top-level theorem witnesses whose names end in \code{\_theorem}. The three
+codec/framing witnesses use other names; together these cover the \PublicTheoremWitnesses{}
+public guarantees summarized in Table~\ref{tab:theorems} (the four Core clauses
+share one witness). These syntactic counts differ from one another
 and do not measure proof strength. Full verification rejects
 \NegativeFixtures{} negative fixtures at the intended \code{false} definition
 in both modes. The size ratio makes the substantial proof artifact visible,
@@ -979,22 +1026,24 @@ without estimating authoring effort or coverage.
 \label{tab:client-effort}
 \begin{tabular}{@{}lrrr@{}}\toprule
 Application & Program & Proof & Ratio\\\midrule
-Indexed & \IndexedClientLines & \IndexedProofLines & \numen{\IndexedProofRatio}\\
-Voucher & \VoucherClientLines & \VoucherProofLines & \numen{\VoucherProofRatio}\\\bottomrule
+Indexed & \IndexedClientLines & \IndexedProofLines & \ratioen{\IndexedProofRatio}\\
+Voucher & \VoucherClientLines & \VoucherProofLines & \ratioen{\VoucherProofRatio}\\\bottomrule
 \end{tabular}
 \end{table}
 Program lines count the indexed client, and the voucher wrapper plus
 dispatcher. Proof lines count only local client certificates and indexed
 checked-action/completion helpers, excluding shared ownership proofs,
 model/seed files, reusable libraries and the separate voucher functional
-suite. Rust production and test lines are split syntactically at top-level
+suite. The voucher certificate imports \code{Receipts} and \code{ReceiptLaws}
+from the reusable library, partly explaining its lower local ratio.
+Rust production and test lines are split syntactically at top-level
 \code{cfg(test)} items, as specified in the README.
 These counts expose certificate size, not time spent authoring proofs, reuse of
 library lemmas, difficulty or maintenance effort. Both applications were
 constructed by the author; no independent developer study was conducted.
 
 \subsection{E5: scaling with complete state size}
-In \ScalingSessionCount{} frequency-controlled session, E5 uses log-spaced populations up to the
+In a single frequency-controlled session, E5 uses log-spaced populations up to the
 configured maximum and samples \ScalingSamples{} reads and updates per population/mode after one
 warmup, with preparation outside latency. A certified prepared population
 transaction grows an empty valid seed; its handle is invalidated before
@@ -1028,22 +1077,22 @@ slow operation samples.
 \begin{figure}[htbp]\centering
 \begin{tikzpicture}
 \begin{axis}[name=volatile,width=.48\linewidth,height=5.8cm,
- title={Volatile},xlabel={Rows (log scale)},ylabel={Call latency (ms)},
- xmode=log,log basis x=10,ymin=0,ymax=55,grid=major,
- xtick={10,100,1000},mark size=1.5pt,
+ title={Volatile},xlabel={Rows},ylabel={Call latency (ms)},
+ xmin=0,xmax=1200,ymin=0,ymax=55,grid=major,
+ xtick={0,300,600,900,1200},mark size=1.5pt,
  legend style={at={(.5,1.16)},anchor=south,legend columns=2,font=\small,draw=none}]
-\addplot+[blue,mark=o,thick,error bars/.cd,y dir=both,y explicit]
-table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_read.dat};
-\addlegendentry{Read}
 \addplot+[black,mark=+,dashed,error bars/.cd,y dir=both,y explicit]
 table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_update.dat};
 \addlegendentry{Update}
+\addplot+[blue,mark=o,thick,error bars/.cd,y dir=both,y explicit]
+table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-volatile_read.dat};
+\addlegendentry{Read}
 \end{axis}
 \begin{axis}[at={(volatile.east)},anchor=west,xshift=9mm,
  width=.48\linewidth,height=5.8cm,
- title={Durable},xlabel={Rows (log scale)},
- xmode=log,log basis x=10,ymin=0,ymax=55,grid=major,
- xtick={10,100,1000},mark size=1.5pt]
+ title={Durable},xlabel={Rows},
+ xmin=0,xmax=1200,ymin=0,ymax=55,grid=major,
+ xtick={0,300,600,900,1200},mark size=1.5pt]
 \addplot+[blue,mark=o,thick,error bars/.cd,y dir=both,y explicit]
 table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.build/tcc/scaling-persistent_read.dat};
 \addplot+[black,mark=+,dashed,error bars/.cd,y dir=both,y explicit]
@@ -1052,22 +1101,25 @@ table[x=rows,y=median_ms,y error minus=lower_ms,y error plus=upper_ms] {../.buil
 \end{tikzpicture}
 \caption{E5: medians and inclusive interquartile ranges, with separate storage
 panels and a common latency scale. Lines connect sampled row counts; whiskers
-show Q1--Q3 and can be smaller than the markers.}
+show Q1--Q3 and can be smaller than the markers. Volatile updates nearly
+coincide with reads; distinct open-circle and cross markers show both series.}
 \label{fig:scaling}
 \end{figure}
 
-Volatile last-key read medians grow smoothly and approximately linearly with
+Volatile last-key read medians are closely linear with
 row count, from \numen{\ScalingSmallVolatileReadMedianMs}~ms at
 \ScalingSmallRows{} rows to \numen{\ScalingMaximumVolatileReadMedianMs}~ms at
 \StateMaximumRows{} rows. A least-squares fit to the sampled medians gives
-\numen{\ScalingVolatileReadSlopeUsPerRow}~$\mu$s per row.
+\numen{\ScalingVolatileReadSlopeUsPerRow}~$\mu$s per row and an intercept
+of \numen{\ScalingVolatileReadInterceptMs}~ms, estimating fixed per-call
+cost for this fit.
 The abrupt small-state jump in the earlier frequency-scaling run disappears
 under the fixed policy. First-key medians are
 \numen{\ScalingFirstKeySmallMs} and \numen{\ScalingFirstKeyLargeMs}~ms at those
 endpoints, close to the last-key medians. Lookup position therefore explains
 little of the observed growth; complete-state transfer, decoding and
 validation dominate the scaling pattern.
-Durable reads track volatile reads because they reuse the unchanged image.
+Durable reads track volatile reads (unchanged-image reuse, Section~4.3).
 Durable updates add full-image synchronization: their medians are nearly flat
 at the smallest populations, then grow steadily to
 \numen{\ScalingMaximumPersistentUpdateMedianMs}~ms at the maximum.
@@ -1081,8 +1133,9 @@ operating-system failures, physical resource availability and checker
 completeness/adequacy lie outside those theorems. Persistence transition lemmas
 and injected-fault tests concern selected transitions and recovered bytes;
 device durability needs a separate specification and proof. Recovery checks
-configuration/identity, while recovered-root validity rests on persistence
-integrity under T1 and the host; the voucher lost-response scenario is a test.
+configuration/identity, while recovered-root validity rests on
+the T1 persistence obligation outside the eleven in-memory T3 duties
+(Section~\ref{sec:tcb}); the voucher lost-response scenario is a test.
 FSCQ's Crash Hoare Logic gives a relevant model for future crash specifications
 and recovery proofs \citep{fscq2015}. The two checker
 modes share a toolchain, so their agreement is not independent evidence of
@@ -1109,13 +1162,17 @@ authoritative state survives; retirement explicitly ends it. Reference
 reachability in an erased proof describes allowable states, rather than an
 observed physical request history.
 
+The evaluated configuration caps canonical state at \StateLimitBytes{} bytes
+(\StateMaximumRows{} single-cell rows); larger states were neither configured
+nor demonstrated, and direct large seeds exhausted checker fuel, so scalability
+of both checking and complete-state execution beyond this size is untested.
+
 For RQ3, ordinary admission includes checking and compilation, while prepared
 reuse moves those costs to preparation. The ordinary and prepared paths also
 use different C optimization levels, so their latency difference measures the
 supported service profiles rather than proof checking alone. Checking is the certification component. Compilation, complete-state
 transfer, fresh processes and changed-state image synchronization are costs
-of this prototype architecture. A successful unchanged-state read follows
-Commit, reuses the already durable image and publishes the new response in RAM. The state-size experiments show that this complete-state work grows with
+of this prototype architecture. The state-size experiments show that this complete-state work grows with
 population, while first- and last-key costs remain similar. These costs affect
 comparison with SQL engines that use different storage and execution paths.
 
@@ -1124,9 +1181,11 @@ a single serial client. Cache state, storage synchronization, CPU placement and
 measurement overhead can change latency. Repeated calls within a run are
 correlated. Owner-only checks align a concrete policy, while PostgreSQL filtering
 and JayDB2 refusal remain different observable interfaces. SQLite's unconstrained
-profile supplies a cost baseline. There is no deliberate cache reset or
+profile supplies a cost baseline. PostgreSQL privileges on per-owner tables
+would be a closer analogue to the ownership layout than RLS on a shared table;
+that alternative was not benchmarked. There is no deliberate cache reset or
 independent replication across machines,
-and phase hooks add diagnostic overhead in E1/E2. Fixed governor/clock and
+and phase hooks add diagnostic overhead in E1/E2. A performance governor with turbo disabled and
 independent sessions replace the discarded frequency-scaling run, but do not
 remove cache effects or correlation within each session. E5 remains one
 session, including its first-key variant. The fitted per-row slope summarizes
@@ -1135,7 +1194,12 @@ copying. Durable indexed session medians range from
 \numen{\PreparedIndexedPersistentSessionMinMs} to
 \numen{\PreparedIndexedPersistentSessionMaxMs}~ms; the slow session is retained.
 Phase records localize its increase to publication, without isolating individual
-fsync calls. E4 command timings retain the earlier default clock policy and
+fsync calls. Variability also appears in the E3 large-state owner update:
+its pooled Q3 is \numen{\LargeOwnerJayUpdateQthreeMs}~ms against a median of
+\numen{\LargeOwnerJayWriteMs}~ms, with session medians spanning
+\numen{\LargeOwnerJayUpdateSessionMinMs}--\numen{\LargeOwnerJayUpdateSessionMaxMs}~ms.
+Those samples have no phase hooks, so their long tail cannot be assigned to an
+individual publication subphase. E4 command timings retain the earlier default clock policy and
 are not fixed-clock comparisons. Initial seed-fuel failures are
 retained separately.
 Source-line counts depend on counting rules and do not measure proof coverage
@@ -1147,7 +1211,7 @@ observations at every prefix and state at publication. Its contract speaks
 about the executable gate, interpreter, finalizer and controller. Generated
 oracle soundness links admission to the exact checked program, and worker
 bridges carry the result to a typed Commit/Keep decision. Serial folds preserve
-root validity and prepared-registry history, including permanent invalidation
+root validity and handle-registry history, including permanent invalidation
 within an instance. The ownership/index and voucher/receipt applications
 illustrate how ordinary tables can support these obligations.
 
@@ -1159,18 +1223,17 @@ scaling. An ordinary read has median latency
 work, while volatile prepared reads take \numen{\PreparedReadVolatileMedianMs}~ms
 and amortize preparation after \BreakEvenReadCalls{} calls in the median-cost
 model. Durable prepared point reads remain
-\numen{\JayPointReadOverPostgres} times PostgreSQL and
-\numen{\JayPointReadOverSqlite} times SQLite; updates have smaller gaps.
-The proof-to-implementation line ratio is \numen{\ProofToImplementationRatio},
+\ratioen{\JayPointReadOverPostgres} times PostgreSQL and
+\ratioen{\JayPointReadOverSqlite} times SQLite; updates have smaller gaps.
+At \ComparisonLargeRows{} rows, durable point reads are
+\ratioen{\LargeJayReadOverPostgres} times PostgreSQL and
+\ratioen{\LargeJayReadOverSqlite} times SQLite; updates are
+\ratioen{\LargeJayUpdateOverPostgres} and \ratioen{\LargeJayUpdateOverSqlite}
+times, respectively. The proof-to-implementation line ratio is \ratioen{\ProofToImplementationRatio},
+excluding the library and voucher functional suite,
 and the configured state ceiling admits \StateMaximumRows{} scaling rows.
 Over this range, prepared volatile reads grow roughly linearly with population,
 with similar first- and last-key costs.
-These results establish an executable proof-carrying design with substantial
-verification and service costs. Future work
-will prove crash-durability behavior, reduce T3 by checking more of the physical
-host boundary, and improve ordinary admission performance. Reducing complete-state
-transfer and developing reusable certificate construction are further steps
-toward larger applications.
 
 RQ1: theorems over the executed Bend functions give authenticated admission,
 prefix safety, logical progress, valid serial roots and exact decisions and
@@ -1180,9 +1243,16 @@ publication invariants, and targeted invalid controls fail at those obligations.
 RQ3: preparation amortizes checking and compilation, while the current
 executable retains substantial process, complete-state and storage costs.
 
+These results establish an executable proof-carrying design with substantial
+verification and service costs. Future work
+will prove crash-durability behavior, reduce T3 by checking more of the physical
+host boundary, and improve ordinary admission performance. Reducing complete-state
+transfer and developing reusable certificate construction are further steps
+toward larger applications.
+
 \begin{thebibliography}{99}\small
-\bibitem[Bend contributors(2026)]{bend}
-BEND CONTRIBUTORS. \textbf{Bend}. Source distribution, version 2.0.39.
+\bibitem[BendLang(2026)]{bend}
+BENDLANG. \textbf{Bend}. Source distribution, version 2.0.39.
 \url{https://github.com/bendlang/bend}.
 
 \bibitem[Chen et al.(2015)]{fscq2015}
@@ -1267,6 +1337,17 @@ Accessed: 11 Nov. 2026.
 POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
 unsupported features}. \url{https://www.postgresql.org/docs/16/unsupported-features-sql-standard.html}.
 Accessed: 11 Nov. 2026.
+\bibitem[PostgreSQL Global Development Group(2026f)]{postgresprivileges}
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+privileges}. \url{https://www.postgresql.org/docs/16/ddl-priv.html}.
+Accessed: 11 Nov. 2026.
+
+\bibitem[Schneider(2000)]{schneider2000}
+SCHNEIDER, F. B. Enforceable security policies.
+\textbf{ACM Transactions on Information and System Security}, v. 3, n. 1,
+p. 30--50, 2000.
+DOI: \href{https://doi.org/10.1145/353323.353382}{10.1145/353323.353382}.
+
 \bibitem[Sheard and Stemple(1989)]{sheard1989}
 SHEARD, T.; STEMPLE, D. Automatic verification of database transaction safety.
 \textbf{ACM Transactions on Database Systems}, v. 14, n. 3, p. 322--368, 1989.
