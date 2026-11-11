@@ -694,12 +694,11 @@ impl Database {
                 }));
             }
             let prepared = &self.prepared[handle];
-            // Supply the exact live registration separately from the raw request.
-            // Checked Resolve.select authenticates and resolves it; Gate.begin
-            // then authenticates again and invokes the universal oracle.
+            // The map locates the artifact; only checked registry lookup authorizes
+            // execution. Bend also binds the selected source/proof to this artifact.
             let output = prepared
                 .program
-                .run(&packet(handle.as_bytes(), &input), self.threads)?;
+                .run(&packet(&self.registry, &input), self.threads)?;
             return parse_decision(&output, &self.limits);
         }
         if self.inspector.is_some() {

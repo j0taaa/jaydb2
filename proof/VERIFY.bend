@@ -48,3 +48,5 @@ import ./OracleEvidence.bend as OracleEvidence
 import ./ControlClauses.bend as ControlClauses
 import ./ControlHistory.bend as ControlHistory
 import ./ControlTransport.bend as ControlTransport
+import ./WorkerDecision.bend as WorkerDecision
+import ./DispatchBridge.bend as DispatchBridge

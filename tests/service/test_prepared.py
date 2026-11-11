@@ -137,25 +137,45 @@ class PreparedTests(unittest.TestCase):
             self.assertIn('Worker.registered_packet(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             # Exercise Resolve/Gate in the compiled worker directly, bypassing
-            # the Rust handle/proof checks. A private live-registration binding
-            # must not be synthesized from the requested handle.
+            # Rust's artifact selection. Only the checked registry and the
+            # artifact's frozen source/proof may authorize execution.
             root = encode({'tables': [], 'users': [
                 {'credential': 'alice-token', 'id': 'alice', 'kind': 'user'}]})
             def private_packet(first, rest):
                 return len(first).to_bytes(8, 'big') + first + rest
             executable = next(prepared.glob('*.program'))
-            for requested, credential, supplied_proof, status in (
-                    (handle, 'alice-token', '', 'refusal'),
-                    ('missing-handle', 'alice-token', '', 'failure'),
-                    (handle, 'alice-token', 'not-empty', 'input'),
-                    ('missing-handle', 'invalid', 'not-empty', 'authentication')):
-                raw = prepared_frame(1, requested, credential, proof=supplied_proof)[8:]
-                worker = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
-                    input=private_packet(handle.encode(), private_packet(root, raw)),
-                    capture_output=True, timeout=30)
-                self.assertEqual(worker.returncode, 0, worker.stderr.decode())
-                self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
-                self.assertEqual(unframe(worker.stdout[1:])['status'], status)
+            mismatched_code = run_control(b'', 0, failing, proof, admitted_code=failing)
+            _, rest = split_control(mismatched_code[1:])
+            wrong_program_registry, _ = split_control(rest)
+            mismatched_proof = run_control(b'', 0, code, proof+'x', admitted_proof=proof+'x')
+            _, rest = split_control(mismatched_proof[1:])
+            wrong_proof_registry, _ = split_control(rest)
+            # Deliberately locate this executable as Rust's map would, then
+            # feed independent checked controller results. Registry authority
+            # must survive stale/incorrect artifact selection by the host.
+            for registry, requested, credential, supplied_proof, status in (
+                    (live_registry, candidate, 'alice-token', '', 'refusal'),
+                    (live_registry, 'missing-handle', 'alice-token', '', 'failure'),
+                    (live_registry, candidate, 'alice-token', 'not-empty', 'input'),
+                    (live_registry, 'missing-handle', 'invalid', 'not-empty', 'authentication'),
+                    (dead_registry, candidate, 'alice-token', '', 'failure'),
+                    (b'', candidate, 'alice-token', '', 'failure'),
+                    (b'malformed-registry', candidate, 'alice-token', '', 'failure'),
+                    (foreign, candidate, 'alice-token', '', 'failure'),
+                    (wrong_program_registry, candidate, 'alice-token', '', 'failure'),
+                    (wrong_proof_registry, candidate, 'alice-token', '', 'failure')):
+                with self.subTest(registry=registry[:30], requested=requested, status=status):
+                    raw = prepared_frame(1, requested, credential, 'must-not-publish', supplied_proof)[8:]
+                    # Successful matching selection can commit; use a refusal
+                    # argument to test its Keep path alongside the denials.
+                    if status == 'refusal':
+                        raw = prepared_frame(1, requested, credential, proof=supplied_proof)[8:]
+                    worker = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                        input=private_packet(registry, private_packet(root, raw)),
+                        capture_output=True, timeout=30)
+                    self.assertEqual(worker.returncode, 0, worker.stderr.decode())
+                    self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
+                    self.assertEqual(unframe(worker.stdout[1:])['status'], status)
             for source in prepared.rglob('*.bend'):
                 self.assertNotIn('alice-token', source.read_text())
                 self.assertNotIn('bob-token', source.read_text())

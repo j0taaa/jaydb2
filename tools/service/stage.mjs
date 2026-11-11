@@ -191,10 +191,6 @@ def generated_oracle_sound(r, ctx):
 def checked_oracle() -> Evidence.Checked<C.config()>:
   Evidence.Checked{admit, admit, {==}, generated_oracle_sound}
 
-law checked_oracle_is_actual:
-  {Evidence.oracle(C.config(), checked_oracle()) == admit : Gate.Oracle()}
-def checked_oracle_is_actual(): {==}
-
 `;
 }
 
