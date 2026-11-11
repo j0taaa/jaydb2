@@ -8,6 +8,8 @@ if [[ $# -gt 1 || ( "$mode" != smoke && "$mode" != full ) ]]; then
   exit 2
 fi
 cd "$root"
+# Reuse the caller's locked open file description for externally locked
+# make smoke/check-release runs; reopening the path would deadlock.
 if [[ -n ${JAYDB_HEAVY_LOCK_FD:-} ]]; then
   [[ $(readlink "/proc/self/fd/$JAYDB_HEAVY_LOCK_FD") == /tmp/jaydb2-experiments-heavy.lock ]]
   exec 9>&"$JAYDB_HEAVY_LOCK_FD"

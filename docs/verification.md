@@ -61,9 +61,11 @@ GitHub Actions. It installs the pinned tools into a fresh checkout. It validates
 the selected revision; it does not publish a package, create a release, or deploy
 anything.
 
-Both check modes take `/tmp/jaydb2-experiments-heavy.lock` once. Do not wrap them
-in another `flock` of that lock. Individual `make` targets do not acquire it;
-when running heavy targets directly, acquire the lock at the outermost command.
+Both check modes take `/tmp/jaydb2-experiments-heavy.lock` once. An externally
+locked run must set `JAYDB_HEAVY_LOCK_FD` to the inherited descriptor holding
+that lock, so the wrapper reuses its open file description; reopening the path
+would deadlock. Individual `make` targets do not acquire the lock; when running
+heavy targets directly, acquire it at the outermost command.
 The wrapper creates a short private TMPDIR for Unix socket tests and removes it
 afterward. GitHub's job logs contain command output; local runs report directly
 to the terminal and can be captured with normal shell redirection.
