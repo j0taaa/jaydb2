@@ -391,7 +391,9 @@ def derive(data):
         v=r['stats'];k=r['scale']
         markdown.append(f"| {r['metric']} | {r['unit']} | {v['median']/k:,.3f} [{v['qone']/k:,.3f}, {v['qthree']/k:,.3f}] | {min(r['session_medians'])/k:,.3f}–{max(r['session_medians'])/k:,.3f} | {v['n']} |")
     (OUT/'final-headlines.md').write_text('\n'.join(markdown)+'\n')
+    v=data['verification']
     details=['# Final controlled JayDB2 thesis evidence',
+        '', 'Branch: `'+data['scaling']['metadata']['branch']+'`. Engine source SHA-256: `'+data['scaling']['metadata']['source_sha256']+'`; executable SHA-256: `'+data['scaling']['metadata']['binary_sha256']+'`. Raw metadata retain each invocation commit; all four new latency datasets must have identical engine fingerprints.',
         '', 'E1–E3: three fresh sessions per condition. E5: one session, one service per storage mode reused across all sizes. Governor/EPP performance; turbo disabled; nominal 3.6 GHz. No CPU pinning. Inclusive quartiles; no outlier removal.',
         '', 'E3 uses 10 and 1,104 total rows in all engines; owner rows are divided equally between Alice and Bob. SQLite is unconstrained. E4 wall times are retained historical successful runs under powersave/turbo; only source sizes were collected anew.',
         '', 'All latency rows below use milliseconds. Session spread is min–max of session medians; E5 has only one session. Throughput rows use calls/s.', '',*markdown,
@@ -405,12 +407,12 @@ def derive(data):
         for label,phases in [('Checking',('primary_check','bendtt_translate_check')),('C generation/build',('c_emission','c_compilation')),('Worker',('ordinary_worker',))]:
             ns=[sum(x['phases_ns'][p] for p in phases) for x in r['samples']]
             z=quartiles(ns)
-            details.append(f"| {PROGRAMS[r['program']]} | {label} | {z['median']/1e6:.2f} [{z['qone']/1e6:.2f}, {z['qthree']/1e6:.2f}] | {len(ns)} |")
+            details.append(f"| {PROGRAMS[r['program']]} | {label} | {z['median']/1e6:,.2f} [{z['qone']/1e6:,.2f}, {z['qthree']/1e6:,.2f}] | {len(ns)} |")
     details += ['', '## Preparation break-even', '', '| Program | Calls |', '|---|---|']
     for p in PROGRAMS:details.append(f"| {PROGRAMS[p]} | {MACROS['BreakEven'+PROGRAMS[p]+'Calls'][0]} |")
     details += ['', '## Retained verification times', '', '| Command | Seconds | n | Exit |', '|---|---|---|---|']
     for r in v['commands']:details.append(f"| {r['command']} | {r['elapsed_ns']/1e9:.3f} | 1 | {r['returncode']} |")
-    details += ['', 'Quartiles and session spread are undefined for these single historical command observations.', '', '## Source inventory', '', sizes['definition'], '', '| Area | Program / production lines | Proof / test lines | Proof/program ratio |', '|---|---|---|---|',f"| Rust host | {sizes['rust_production_lines']} | {sizes['rust_test_lines']} | — |"]
+    details += ['', 'Quartiles and session spread are undefined for these single historical command observations.', '', '## Source inventory', '', sizes['definition'], '', '| Area | Program / production lines | Proof / test lines | Proof/program ratio |', '|---|---|---|---|',f"| Rust host | {sizes['rust_production_lines']:,} | {sizes['rust_test_lines']:,} | — |"]
     for app in ('indexed','voucher'):
         a=sizes['applications'][app]
         details.append(f"| {app.title()} | {a['client_lines']} | {a['proof_lines']} | {a['proof_lines']/a['client_lines']:.3f} |")
@@ -419,17 +421,22 @@ def derive(data):
     details += ['', '## New macro contract', '', '| Macro | Value | Unit |', '|---|---|---|']
     for name in names:
         value,_,unit=MACROS[name]
-        details.append(f"| `\\{name}` | {value if isinstance(value,str) else format(value,'.6g')} | {unit} |")
+        details.append(f"| `\\{name}` | {value if isinstance(value,str) else format(value,',') if isinstance(value,int) else format(value,'.6g')} | {unit} |")
     small=next(r for r in scaling['records'] if r['rows']==10 and not r['persistent'])
     hundred=next(r for r in scaling['records'] if r['rows']==100 and not r['persistent'])
     low=summary([x for x in small['samples'] if x['workload']=='read'])['median']/1e6
     high=summary([x for x in hundred['samples'] if x['workload']=='read'])['median']/1e6
     details += ['', '## Observations and limits', '',f'Fixed-clock volatile last-key read is {low:.3f} ms at 10 rows and {high:.3f} ms at 100 rows ({high/low:.3f}×). Compare the earlier powersave measurements in performance-report.txt; the fresh data are not pooled with that historical run.']
+    max_record=next(r for r in scaling['records'] if r['rows']==scaling['max_rows'] and not r['persistent'])
+    first=summary(max_record['first_key_samples'])['median']/1e6
+    last=summary([x for x in max_record['samples'] if x['workload']=='read'])['median']/1e6
+    details += ['',f'At {scaling["max_rows"]:,} rows, volatile first-key read is {first:.3f} ms versus {last:.3f} ms for last-key read. Their similar costs show that lookup position does not account for most observed scaling. Complete-state transfer, decoding, validation and publication remain inside the timing boundary; this comparison does not isolate copying alone.']
     r=next(r for r in data['prepared']['records'] if r['program']=='indexed' and r['persistent'])
     totals=[statistics.median(x['elapsed_ns'] for x in z['samples'])/1e6 for z in r['sessions']]
     pubs=[statistics.median(x['phases_ns']['publication'] for x in z['samples'])/1e6 for z in r['sessions']]
     workers=[statistics.median(x['phases_ns']['prepared_worker'] for x in z['samples'])/1e6 for z in r['sessions']]
     details += ['', 'Durable Indexed session medians (ms): '+', '.join(f'{v:.3f}' for v in totals)+'. Publication phase medians: '+', '.join(f'{v:.3f}' for v in pubs)+'. Worker phase medians: '+', '.join(f'{v:.3f}' for v in workers)+'. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.']
+    details += ['', '## Run note', '', 'The E3/E5 measurement commands and both state-limit probes completed successfully. Their outer shell wrapper then exited 127 because its source was edited while Bash was executing it, causing Bash to read stray trailing text after the command returned. The EXIT trap restored and verified all original CPU settings. The finalized wrapper was subsequently checked with normal exit, failure, INT, TERM and HUP; no measured session was removed or replaced.']
     restoration=ROOT/'paper/evidence/cpu-restoration.json'
     if restoration.exists():
         restored=json.loads(restoration.read_text())
@@ -472,6 +479,6 @@ def main():
     data=load();derive(data)
     for name in ('final-summary.json','final-headlines.md','final-report.md'):
         (ROOT/'paper/evidence'/name).write_text((OUT/name).read_text())
-    print(f'Validated {len(FILES)} fresh evidence files; generated {len(MACROS)} macros and tables in {OUT}')
+    print(f'Validated {len(FILES)} evidence files; generated {len(MACROS)} macros and tables in {OUT}')
 
 if __name__=='__main__':main()

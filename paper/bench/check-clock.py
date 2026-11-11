@@ -20,7 +20,7 @@ def main():
         path=min(originals,key=lambda p:json.loads(p.read_text())['utc'])
         subprocess.run(['sudo','-n','python3','-B',str(ROOT/'paper/bench/frequency.py'),'restore',str(path)],check=True)
     tests=[]
-    for label,command,status in [('failure','exit 7',7),('INT','kill -INT "$PPID"',130),('TERM','kill -TERM "$PPID"',143),('HUP','kill -HUP "$PPID"',129)]:
+    for label,command,status in [('success','exit 0',0),('failure','exit 7',7),('INT','kill -INT "$PPID"',130),('TERM','kill -TERM "$PPID"',143),('HUP','kill -HUP "$PPID"',129)]:
         result=subprocess.run([str(ROOT/'paper/bench/fixed-clock.sh'),'bash','-c',command],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         current=observe()
         verified=current['settings']==original['settings']
@@ -38,7 +38,7 @@ def main():
     assert receipt['verified']
     (ROOT/'paper/evidence/cpu-restoration.json').write_text(json.dumps(receipt,indent=2)+'\n')
     for path,value in final['settings'].items():print(path+' = '+value)
-    print('Verified all original CPU settings and failure/INT/TERM/HUP restoration')
+    print('Verified all original CPU settings and success/failure/INT/TERM/HUP restoration')
 
 
 if __name__=='__main__':main()
