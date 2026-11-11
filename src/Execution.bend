@@ -4,7 +4,6 @@ import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
 import ../contract/Semantics.bend as S
 import ./Core.bend as N
-import ./Input.bend as Input
 import ./Transport.bend as T
 import ./Gate.bend as Gate
 
@@ -20,14 +19,6 @@ type Iteration is Type:
 def start(program: S.Program, context: D.Context, arguments: D.Value,
   +initial: D.State) -> StateExecution:
   StateExecution{initial, N.start(program, context, arguments, initial)}
-
-# Auxiliary pure adapter for authenticated inputs, retained for its proofs.
-# The native entry uses Worker/Gate to obtain the context by authentication.
-def launch(program: Unit -> S.Program, input: Input.Analysis) -> Maybe<&1, (Unit -> StateExecution)>:
-  match input:
-    case Input.Received{state, P.Request{credential, code, arguments, proof}, context}:
-      Some{u => start(program(Unit{}), context, arguments, state)}
-    case _: None{}
 
 def packet_ready(bytes: Maybe<&2, List<&2, U32>>) -> Iteration:
   match bytes:
@@ -87,11 +78,11 @@ def advance(state: StateExecution, configuration: S.Configuration) -> Iteration:
     case StateExecution{initial, N.Stopped{w, events, response}}:
       result(Gate.finish(S.Final{w, events, response}, configuration, initial))
 
-law refusal_negative_emits_state_for_publication:
+law refusal_emits_keep:
   for -state: D.State
   for -value: D.Value
   for -bytes: List<&2, U32>
   {conclude(N.Conclusion{state, S.Response{S.Refusal{}, value}, bytes}) ==
     FinishOutput{Con{0, bytes}} : Iteration}
-def refusal_negative_emits_state_for_publication(state, value, bytes):
+def refusal_emits_keep(state, value, bytes):
   {==}

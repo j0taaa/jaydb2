@@ -12,10 +12,9 @@ import ./Gate.bend as Gate
 import ./Input.bend as Input
 import ./Resolve.bend as Resolve
 import ./Transport.bend as T
-import ./Reification.bend as Reification
+import ./ControlBridge.bend as ControlBridge
+import ./Control.bend as Control
 import ./Dispatch.bend as Dispatch
-import ./Codec.bend as Codec
-import ./State.bend as State
 
 def entered(entry: Gate.Entry, initial: D.State) -> X.Iteration:
   match entry:
@@ -60,34 +59,37 @@ def root(~c: S.Configuration, state: Maybe<&2, D.State>, body: List<&2, U32>,
         case None{}: ingress(c, s, body, admit)
         case Some{registry}: registered(c, s, Dispatch.execution(Dispatch.received(S.limits(c), body, s)), registry, admit)
 
-def state_value(~c: S.Configuration, value: Codec.Outcome, body: List<&2, U32>,
-  entries: Maybe<&2, List<&2, Registry.Entry>>, admit: Gate.Oracle()) -> X.Iteration:
-  match value:
-    case Codec.Decoded{v}: root(c, State.decode(v, S.schema(c)), body, entries, admit)
-    case _: X.Inconsistent{}
-
-def state_limit(~c: S.Configuration, limit: Maybe<&2, B.Number64>, state: List<&2, U32>,
-  body: List<&2, U32>, entries: Maybe<&2, List<&2, Registry.Entry>>, admit: Gate.Oracle()) -> X.Iteration:
-  match limit:
-    case None{}: X.Inconsistent{}
-    case Some{n}: state_value(c, Codec.decode(state, n), body, entries, admit)
-
 def private_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>,
   entries: Maybe<&2, List<&2, Registry.Entry>>, admit: Gate.Oracle()) -> X.Iteration:
   match parts:
     case None{}: X.Inconsistent{}
     case Some{T.Parts{state, body}}:
-      state_limit(c, B.nat64(R.limit_state(S.limits(c))), state, body, entries, admit)
+      root(c, Dispatch.read_root(state, S.schema(c), S.limits(c)), body, entries, admit)
 
 def packet(~c: S.Configuration, bytes: List<&2, U32>, admit: Gate.Oracle()) -> X.Iteration:
   private_parts(c, T.separate(bytes), None{}, admit)
 
-# The private host supplies the exact live registration's handle separately
-# from the unmodified request. Source/proof are immutable checked declarations.
+# The registry is the opaque checked controller result, never a host-selected
+# handle. An absent/malformed registry supplies no execution authority.
+def registry_entries(registry: Maybe<&2, Control.Registry>) -> List<&2, Registry.Entry>:
+  match registry:
+    case None{}: Nil{}
+    case Some{r}: Control.entries(r)
+
+# Bind the resolved tuple to the immutable artifact before its oracle can run.
+def artifact_verdict(matches: Bool, c: S.Configuration, r: P.Request, ctx: D.Context,
+  admit: Gate.Oracle()) -> Gate.Verdict:
+  match matches:
+    case False{}: Gate.ToolFailure{}
+    case True{}: admit(c, r, ctx)
+
+def artifact_oracle(+code: String, +proof: String, admit: Gate.Oracle()) -> Gate.Oracle():
+  c => +r => ctx => artifact_verdict(String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof), c, r, ctx, admit)
+
 def registered_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: String,
   proof: String, admit: Gate.Oracle()) -> X.Iteration:
   match parts:
     case None{}: X.Inconsistent{}
-    case Some{T.Parts{handle, packet}}:
+    case Some{T.Parts{registry, packet}}:
       private_parts(c, T.separate(packet),
-        Some{[Registry.Entry{S.environment(c), Reification.text(handle), code, proof, False{}, ""}]}, admit)
+        Some{registry_entries(ControlBridge.decode_registry(registry))}, artifact_oracle(code, proof, admit))

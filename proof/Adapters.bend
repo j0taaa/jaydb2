@@ -61,34 +61,6 @@ law adapter_starts_machine_correct:
 def adapter_starts_machine_correct(p, ctx, args, s):
   {==}
 
-# This is the selector called by the generated entry, including suspension of
-# the program and ownership of the received snapshot/context/arguments.
-law adapter_launches_exactly_the_received_call:
-  for -program: Unit -> S.Program
-  for -state: D.State
-  for -credential: String
-  for -code: String
-  for -arguments: D.Value
-  for -proof: String
-  for -context: D.Context
-  {X.launch(program, E.Received{state, P.Request{credential, code, arguments, proof}, context}) ==
-    Some{u => X.start(program(Unit{}), context, arguments, state)} : Maybe<&1, (Unit -> X.StateExecution)>}
-def adapter_launches_exactly_the_received_call(program, state, credential, code, arguments, proof, context):
-  {==}
-
-law adapter_rejects_a_failed_analysis_without_launching:
-  for -program: Unit -> S.Program
-  for -status: S.Status
-  {X.launch(program, E.Rejected{status}) == None{} : Maybe<&1, (Unit -> X.StateExecution)>}
-def adapter_rejects_a_failed_analysis_without_launching(program, status):
-  {==}
-
-law adapter_rejects_invalid_transport_without_launching:
-  for -program: Unit -> S.Program
-  {X.launch(program, E.TransportInvalid{}) == None{} : Maybe<&1, (Unit -> X.StateExecution)>}
-def adapter_rejects_invalid_transport_without_launching(program):
-  {==}
-
 def snapshot_of_iteration(i: X.Iteration) -> Maybe<&2, S.Trace>:
   match i:
     case X.Continue{X.StateExecution{s, m}}:

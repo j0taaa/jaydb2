@@ -19,6 +19,8 @@ import ../src/Worker.bend as W
 import ../src/Dispatch.bend as Dispatch
 import ../src/Execution.bend as X
 import ./ExecutionAdapter.bend as A
+import ../src/Transport.bend as Transport
+import ../src/ControlBridge.bend as ControlBridge
 
 def reference(~c: S.Configuration, s: D.State, n: Nat, entry: Gate.Entry) -> X.Iteration:
   match entry:
@@ -219,3 +221,44 @@ def selected_oracle(selection: Resolve.Selection, -c: S.Configuration,
   match selection:
     case Resolve.Selected{r}: sound(r)
     case Resolve.Denied{status}: Unit{}
+
+# The actual private packet's decoded registry is used in its entirety.
+law native_prepared_packet_enters_real_registry:
+  for ~c: S.Configuration
+  for +registry: List<&2, U32>
+  for +packet: List<&2, U32>
+  for code: String
+  for proof: String
+  for admit: Gate.Oracle()
+  {W.registered_packet(c, Some{Transport.Parts{registry, packet}}, code, proof, admit) ==
+    W.private_parts(c, Transport.separate(packet),
+      Some{W.registry_entries(ControlBridge.decode_registry(registry))}, W.artifact_oracle(code, proof, admit)) : X.Iteration}
+def native_prepared_packet_enters_real_registry(c, registry, packet, code, proof, admit): {==}
+
+law prepared_packet_equals_real_registry_selection:
+  for ~c: S.Configuration
+  for +registry_bytes: List<&2, U32>
+  for +packet: List<&2, U32>
+  for +state_bytes: List<&2, U32>
+  for +body: List<&2, U32>
+  for +s: D.State
+  for +raw: P.Request
+  for code: String
+  for proof: String
+  for -admit: Gate.Oracle()
+  for parts: {Transport.separate(packet) == Some{Transport.Parts{state_bytes, body}} : Maybe<&2, Transport.Parts>}
+  for root: {Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)) == Some{s} : Maybe<&2, D.State>}
+  for received: {Dispatch.execution(Dispatch.received(S.limits(c), body, s)) == Input.InputReady{s, raw} : Input.PreAuthentication}
+  {W.registered_packet(c, Some{Transport.Parts{registry_bytes, packet}}, code, proof, admit) ==
+    W.unified(c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw},
+      W.artifact_oracle(code, proof, admit)) : X.Iteration}
+def prepared_packet_equals_real_registry_selection(c, registry_bytes, packet, state_bytes, body, s, raw, code, proof, admit, parts, root, received):
+  %Equal.sym(Maybe<&2, Transport.Parts>, Transport.separate(packet), Some{Transport.Parts{state_bytes, body}}, parts) :
+    {W.private_parts(c, _, Some{W.registry_entries(ControlBridge.decode_registry(registry_bytes))}, W.artifact_oracle(code, proof, admit)) ==
+      W.unified(c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, W.artifact_oracle(code, proof, admit)) : X.Iteration}
+  %Equal.sym(Maybe<&2, D.State>, Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)), Some{s}, root) :
+    {W.root(c, _, body, Some{W.registry_entries(ControlBridge.decode_registry(registry_bytes))}, W.artifact_oracle(code, proof, admit)) ==
+      W.unified(c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, W.artifact_oracle(code, proof, admit)) : X.Iteration}
+  Equal.cong(Input.PreAuthentication, X.Iteration,
+    input => W.registered(c, s, input, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), W.artifact_oracle(code, proof, admit)),
+    Dispatch.execution(Dispatch.received(S.limits(c), body, s)), Input.InputReady{s, raw}, received)

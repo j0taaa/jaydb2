@@ -17,6 +17,9 @@ import ./WorkerBridge.bend as Bridge
 import ./ExecutionAdapter.bend as A
 import ./Ingress.bend as Ingress
 import ./OracleEvidence.bend as Evidence
+import ../src/ControlBridge.bend as ControlBridge
+import ../src/Dispatch.bend as Dispatch
+import ../src/Transport.bend as Transport
 
 def ingress(~c: S.Configuration, ~admit: Gate.Oracle(), k: T.Clause,
   +s: D.State, +body: List<&2, U32>, +n: Nat,
@@ -104,3 +107,56 @@ def checked_unified_core(~c: S.Configuration, k: T.Clause,
     case Evidence.Checked{admit, bridge, same, sound}:
       Ingress.unified(k, c, s, entries, input, admit, configured, valid,
         Bridge.selected_oracle(Resolve.select(S.environment(c), s, entries, input), c, admit, sound))
+
+# A false artifact binding cannot accept a program. A true binding preserves
+# exactly the generated oracle's checked evidence.
+def artifact_sound(matches: Bool, -c: S.Configuration, -r: P.Request, -ctx: D.Context,
+  -admit: Gate.Oracle(), sound: T.VerdictSound(admit(c, r, ctx), c, r, ctx)) ->
+  T.VerdictSound(W.artifact_verdict(matches, c, r, ctx, admit), c, r, ctx):
+  match matches:
+    case False{}: Unit{}
+    case True{}: sound
+
+def artifact_checked(-c: S.Configuration, +code: String, +proof: String,
+  checked: Evidence.Checked<c>) -> Evidence.Checked<c>:
+  match checked:
+    case Evidence.Checked{admit, bridge, same, sound}:
+      Evidence.Checked{W.artifact_oracle(code, proof, admit), W.artifact_oracle(code, proof, bridge),
+        Equal.cong(Gate.Oracle(), Gate.Oracle(), a => W.artifact_oracle(code, proof, a), bridge, admit, same),
+        +r => +ctx => artifact_sound(String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof), c, r, ctx, admit, sound(r, ctx))}
+
+# The literal native packet, actual decoded opaque registry and exact root/body
+# feed the same UnifiedCore instance and finite worker composition.
+def checked_prepared(~c: S.Configuration, k: T.Clause, +s: D.State,
+  +bytes: List<&2, U32>, +registry_bytes: List<&2, U32>, +packet: List<&2, U32>, +state_bytes: List<&2, U32>, +body: List<&2, U32>,
+  +raw: P.Request, +n: Nat, +code: String, +proof: String, checked: Evidence.Checked<c>,
+  outer: {Transport.separate(bytes) == Some{Transport.Parts{registry_bytes, packet}} : Maybe<&2, Transport.Parts>},
+  parts: {Transport.separate(packet) == Some{Transport.Parts{state_bytes, body}} : Maybe<&2, Transport.Parts>},
+  root: {Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)) == Some{s} : Maybe<&2, D.State>},
+  received: {Dispatch.execution(Dispatch.received(S.limits(c), body, s)) == Input.InputReady{s, raw} : Input.PreAuthentication},
+  configured: {R.configuration_is_valid(c) == True{} : Bool}, valid: R.Valid(c, s),
+  complete: Bridge.SelectedComplete(c, s, n,
+    Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+    W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) ->
+  L.E<T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw},
+      W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
+    {A.drive(c, Succ{n}, W.registered_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+      Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+        W.artifact_oracle(code, proof, Evidence.oracle(c, checked))) : X.Iteration}>:
+  match checked:
+    case Evidence.Checked{admit, bridge, same, sound}:
+      %Equal.sym(Maybe<&2, Transport.Parts>, Transport.separate(bytes), Some{Transport.Parts{registry_bytes, packet}}, outer) :
+        L.E<T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, W.artifact_oracle(code, proof, admit)),
+          {A.drive(c, Succ{n}, W.registered_packet(c, _, code, proof, admit)) == Bridge.selection_reference(c, s, n,
+            Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+            W.artifact_oracle(code, proof, admit)) : X.Iteration}>
+      %Equal.sym(X.Iteration,
+        W.registered_packet(c, Some{Transport.Parts{registry_bytes, packet}}, code, proof, admit),
+        W.unified(c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, W.artifact_oracle(code, proof, admit)),
+        Bridge.prepared_packet_equals_real_registry_selection(c, registry_bytes, packet, state_bytes, body, s, raw, code, proof, admit, parts, root, received)) :
+        L.E<T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, W.artifact_oracle(code, proof, admit)),
+          {A.drive(c, Succ{n}, _) == Bridge.selection_reference(c, s, n,
+            Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+            W.artifact_oracle(code, proof, admit)) : X.Iteration}>
+      checked_unified(c, k, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, n,
+        configured, valid, artifact_checked(c, code, proof, Evidence.Checked{admit, bridge, same, sound}), complete)

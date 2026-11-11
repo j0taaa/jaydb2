@@ -33,8 +33,13 @@ checked source/context/arguments bindings to staging.
 The generated entry calls `Worker.packet` (ordinary) or
 `Worker.registered_packet` (prepared). Both decode the private published root
 and retain it on early errors. Ordinary bodies use `Input.read_message`.
-Prepared execution receives the actual live registration handle separately
-from the original body and calls `Resolve.select`, then the same `Gate.begin`.
+Prepared execution receives the opaque current registry returned by the checked
+controller separately from the original body, decodes it with
+`ControlBridge.decode_registry`, and calls `Resolve.select` over all live entries.
+The resolved source/proof must match the artifact's frozen bindings before its
+oracle can accept; missing, removed, malformed or mismatched entries emit a fixed
+denial with Keep. Rust's map only locates the executable file. Selection then
+reaches the same `Gate.begin`.
 The gate authenticates against this root and invokes the generated admission
 oracle. It starts exactly the admitted program with that authenticated context
 and the actual arguments, or calls `Gate.early` without constructing a program.
@@ -155,6 +160,12 @@ for any final reference trace, finite unrolling of the actual worker adapter
 produces exactly the Gate composition's output. It reuses
 `ExecutionAdapter.finite_execution_reaches_exact_adapter_result`;
 `worker_unified_equals_gate_composition` covers actual Resolve selection.
+`DispatchBridge.dispatch_denials_equal_ingress_unified_early` proves that every
+Dispatch tag-0 reply has the exact bounded early-response bytes and unchanged
+root in the Ingress/Unified composition. Dispatch and Worker share private-root
+and body decoding. `CertifiedWorker.checked_prepared` covers the literal prepared
+packet and its real registry; `WorkerDecision.completion_emits_exact_decision` states exact
+Keep/Commit correspondence with the publication path and next root/bytes.
 Halted paths use `Gate.early` and cannot resume. The generated checked Book
 also proves its literal entry and Native iteration conversion/step equations.
 Core's progress witness supplies the finite index; production has no fuel
@@ -171,7 +182,7 @@ loop. The remaining T3 plumbing obligations are:
 1. Freeze the checked configuration, dependency/tool bytes and valid initial
    root; keep private root bytes separate from client inputs.
 2. Frame complete original bodies with the specified bounds/EOF ordering;
-   supply exactly one current root and the live registration/artifact binding.
+   supply exactly one current root and the current opaque checked registry.
 3. Admit the exact checked tuple, compile the same immutable Book, validate
    artifact provenance and run a fresh worker with only its private proposal.
 4. Collect complete output, reap workers and finish rollback-capable cleanup
@@ -185,6 +196,16 @@ loop. The remaining T3 plumbing obligations are:
 7. Preserve FIFO root feeding and timing/inspection noninterference. Optional
    durable storage and artifact cleanup retain their physical ordering and
    recovery obligations; prepared handles remain in memory.
+
+8. Host maps admission failure codes to response statuses as follows: `IMPORT`,
+   `IMPORT_CYCLE`, `DEPENDENCY`, `PARSE`, `META`, `UNSAFE`, `FOREIGN`, `IO`, `OPEN_LAW`,
+   `SHADOW`, `REDEFINITION`, `PRIMARY_CHECK`, `BENDTT_CHECK`, `TARGET`,
+   `SOURCE_BINDING`, `HOST_CAPTURE`, `KERNEL_CAPTURE`
+   map to `certificate`; every other code maps to `failure`. Failed proof
+   admission rejects the whole Book before Gate executes. When the worker Book
+   fails, `compile.mjs` runs pure admission: its failure code is preserved, while
+   successful pure admission followed by worker/C failure is `HOST_COMPILE`.
+   These host decisions are not covered by Gate's checked Reject branch.
 
 `make test` rebuilds before native/integration tests. `make verify-contract`
 and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/
