@@ -1,0 +1,330 @@
+JayDB2 performance investigation
+
+Branch: t3/diagnose-prepared-latency
+Code and all E1-E5 reruns: f2c174c461295d1913ca24a9f225864a4a08da31
+Baseline evidence snapshot: 1cffed6083893da610e0945e9f7eb72061384ebc
+After executable SHA-256: b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585
+After source SHA-256: e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57
+
+FINDINGS
+
+1. Volatile latency variability is explained by CPU frequency regimes, not an observed fixed transport wait. In one unchanged 100-row native artifact, process CPU medians were 2.379 ms at >4 GHz (n=5) and 13.476 ms below 900 MHz (n=4). Corresponding wall times were 2.380 and 13.508 ms. Minor faults stayed near 324; median major faults and voluntary context switches were zero. Input writes of 6431 and 8958 bytes completed in about 12-13 microseconds in the trace. The powersave/balance_performance policy was left unchanged. perf was unavailable because perf_event_paranoid=4.
+
+2. Every successful Commit previously created .snapshot.tmp, wrote a full image, fsynced the file, renamed it over snapshot, and fsynced the database directory. The image is 16-byte magic, 64-byte environment identity, four u64 fields (message/state/response limits and state length), canonical state, and 32-byte SHA-256: 144 bytes plus state. A 10-row point state is 898 bytes, so a read rewrote 1042 bytes. The trace measured roughly 10.6 ms for the two fsyncs; E2 read publication had an 11.714 ms median. Separate last-response, request-sequence and prepared-registry records are not in the image. Optional administrator timing/stderr logs still write, but are not request-synchronized database images.
+
+DIRECT UNTRACED MUTATOR CONFIRMATION
+
+These diagnostic observations use the same admitted program in each session. Inputs alternate the indexed Boolean or use fresh equal-length voucher IDs, with checked retirements to bound state. Endpoint frequency is sampled sysfs data, not an integrated cycle counter. strace context-switch counts include tracer stops; the following counts are untraced.
+
+indexed / fast, n=57: CPU 2.086 [2.069, 2.109] ms; wall 2.087 [2.070, 2.112] ms; endpoint kHz medians 4600000/4600000; median major faults 0, voluntary switches 0.
+indexed / slow, n=74: CPU 11.848 [11.758, 11.952] ms; wall 11.881 [11.778, 11.991] ms; endpoint kHz medians 800007/800000; median major faults 0, voluntary switches 0.
+voucher / fast, n=40: CPU 2.296 [2.270, 2.321] ms; wall 2.299 [2.271, 2.322] ms; endpoint kHz medians 4600000/4600000; median major faults 0, voluntary switches 0.
+voucher / slow, n=28: CPU 13.015 [12.926, 13.129] ms; wall 13.048 [12.949, 13.166] ms; endpoint kHz medians 800008/800000; median major faults 0, voluntary switches 0.
+
+Traced fast-frequency prepared-worker CPU medians grow from 2.438 ms at 100 rows to 17.745 ms at 1000 and 19.136 ms at 1105. The near-flat original wall-time curve is confounded by the 100-row slow-frequency regime, not evidence of constant-time state processing.
+
+Post-fix syscall windows: all seven sampled workload windows contain zero fsync calls. The persistent read window contains six identical-state requests (one warmup plus five samples), versus twelve fsync calls for six corresponding baseline persistent reads. Changed-state durable execution remains covered by the persistent E2/E3/E5 groups and the crash/error tests.
+
+SAFE CHANGE
+
+A Commit with byte-identical canonical state reuses the current durable image; the exact new root/response pair is still published in RAM. Environment and limits are immutable, and all other image fields are deterministic, so this condition means the complete persisted image is byte-identical. Every changed state still completes file fsync, rename and directory fsync before RAM publication and reply. Application idempotency receipts are ordinary state rows, so new receipts still take the full durable path.
+
+Recovery now fsyncs the validated authoritative file and directory once before serving. This is necessary because the previous process may have died after rename but before directory synchronization. It establishes the durable-current-state invariant before any equal-state shortcut. The root/last-response pair and allocated-handle history still obey T3 in RAM; they were never persisted as separate fields. proof/README.md clarifies this scope without changing a T3 duty, Bend semantics, wire bytes or theorem statements.
+
+REGRESSIONS AND VALIDATION
+
+The Rust publication regression checks that equal state with a changed response updates the RAM pair without replacing the snapshot inode. The lost-acknowledgment recovery test now holds and checks the durable inode across receipt replay and later reads. All existing crash and disk-error boundaries passed. The missing make prepared target was added as an alias for the existing prepared-program native suite.
+
+make verify-contract: PASS (exit 0, 23.641 s); .build/paper-bench/validation/verify-contract.log
+make test: PASS (exit 0, 475.487 s); .build/paper-bench/validation/test.log
+make test-persistence: PASS (exit 0, 607.241 s); .build/paper-bench/validation/test-persistence.log
+make test-idempotency-recovery: PASS (exit 0, 89.099 s); .build/paper-bench/validation/test-idempotency-recovery.log
+make test-accessories-native: PASS (exit 0, 603.316 s); .build/paper-bench/validation/test-accessories-native.log
+make prepared: PASS (exit 0, 81.764 s); .build/paper-bench/validation/prepared.log
+make smoke: PASS (exit 0, 12.565 s); .build/paper-bench/validation/smoke.log
+
+All build, test, benchmark and diagnostic execution used flock /tmp/jaydb2-experiments-heavy.lock and ulimit -s unlimited. make smoke already opens this lock internally; its nested flock 9 was treated as already held using an exported shell function inside the externally locked runner. The outer exclusive lock remained held throughout; tools/ci/check.sh was not modified.
+
+All E1-E5 reruns passed. paper/evidence.py regenerated 78 macros/tables; all 13 test_evidence tests passed. E4 contains another complete verify-contract/verify/test observation on the same committed code.
+
+MEASUREMENT LIMITS
+
+All headline samples use the original harness boundaries, official Bend 2.0.39/BendTT, literal emitted C, Clang 19 and one native worker thread. No CPU governor or affinity was forced. Quartiles below are inclusive Q1 and Q3, with no outlier removal. Frequency changes confound before/after differences beyond eliminated image IO: do not attribute the full 28.398-to-3.092 ms read reduction solely to fsync. The native observer and syscall-traced measurements are separate diagnostics, not headline samples.
+
+Registration n=3 is independent one-time preparation. Ordinary operation n=10, prepared/comparison n=300 and scaling n=50 exclude one warmup. Active throughput has n=10 blocks of 30 calls, excluding maintenance/gaps. Closed-loop throughput is one full batch observation, including voucher retirement. Verification timings are single command wall times (n=1), so quartiles are undefined. SQL/JayDB2 timing boundaries differ as documented in paper/README.md; SQLite is an unconstrained baseline.
+
+BEFORE / AFTER RESULTS
+
+ORDINARY
+Before source commit: 95027beddd57b8f0a647f6980d16610497c3bbf0
+After source commit: f2c174c461295d1913ca24a9f225864a4a08da31
+
+read (s)
+  before: 4.623 [4.597, 4.655], n=10
+  after:  4.609 [4.569, 4.632], n=10
+
+indexed (s)
+  before: 8.084 [8.059, 8.116], n=10
+  after:  8.073 [8.052, 8.128], n=10
+
+voucher (s)
+  before: 8.378 [8.368, 8.402], n=10
+  after:  8.322 [8.317, 8.331], n=10
+
+PREPARED
+Before source commit: f9eea9c66e4d6a4c7e897e1a73724314e919646e
+After source commit: f2c174c461295d1913ca24a9f225864a4a08da31
+
+read/volatile/execute (ms)
+  before: 3.086 [3.041, 3.181], n=300
+  after:  3.070 [3.014, 3.156], n=300
+
+read/volatile/registration (s)
+  before: 5.908 [5.899, 5.916], n=3
+  after:  5.899 [5.892, 5.903], n=3
+
+read/volatile/active-throughput (calls/s)
+  before: 323.700 [322.456, 325.016], n=10
+  after:  326.666 [323.237, 327.870], n=10
+
+read/volatile/closed-loop-throughput (calls/s)
+  before: 306.356, n=1 (quartiles undefined)
+  after:  219.668, n=1 (quartiles undefined)
+
+indexed/volatile/execute (ms)
+  before: 16.499 [9.276, 22.768], n=300
+  after:  14.030 [5.637, 21.124], n=300
+
+indexed/volatile/registration (s)
+  before: 10.083 [10.080, 10.136], n=3
+  after:  10.146 [10.135, 10.160], n=3
+
+indexed/volatile/active-throughput (calls/s)
+  before: 58.597 [52.777, 75.273], n=10
+  after:  67.017 [59.172, 83.437], n=10
+
+indexed/volatile/closed-loop-throughput (calls/s)
+  before: 62.528, n=1 (quartiles undefined)
+  after:  69.191, n=1 (quartiles undefined)
+
+voucher/volatile/execute (ms)
+  before: 11.344 [5.066, 20.311], n=300
+  after:  14.695 [7.530, 22.026], n=300
+
+voucher/volatile/registration (s)
+  before: 9.669 [9.650, 9.710], n=3
+  after:  9.652 [9.645, 9.662], n=3
+
+voucher/volatile/active-throughput (calls/s)
+  before: 77.409 [69.235, 79.597], n=10
+  after:  64.688 [61.642, 68.603], n=10
+
+voucher/volatile/closed-loop-throughput (calls/s)
+  before: 37.683, n=1 (quartiles undefined)
+  after:  32.871, n=1 (quartiles undefined)
+
+read/persistent/execute (ms)
+  before: 28.398 [27.719, 30.512], n=300
+  after:  3.092 [3.033, 3.180], n=300
+
+read/persistent/registration (s)
+  before: 5.911 [5.902, 5.916], n=3
+  after:  5.908 [5.889, 5.918], n=3
+
+read/persistent/active-throughput (calls/s)
+  before: 35.698 [35.124, 36.460], n=10
+  after:  323.210 [320.837, 325.555], n=10
+
+read/persistent/closed-loop-throughput (calls/s)
+  before: 35.478, n=1 (quartiles undefined)
+  after:  206.830, n=1 (quartiles undefined)
+
+indexed/persistent/execute (ms)
+  before: 36.335 [32.568, 39.582], n=300
+  after:  36.719 [33.508, 39.125], n=300
+
+indexed/persistent/registration (s)
+  before: 10.165 [10.128, 10.199], n=3
+  after:  10.176 [10.139, 10.186], n=3
+
+indexed/persistent/active-throughput (calls/s)
+  before: 28.836 [28.344, 29.323], n=10
+  after:  28.833 [28.147, 29.054], n=10
+
+indexed/persistent/closed-loop-throughput (calls/s)
+  before: 28.552, n=1 (quartiles undefined)
+  after:  28.219, n=1 (quartiles undefined)
+
+voucher/persistent/execute (ms)
+  before: 37.533 [30.546, 39.512], n=300
+  after:  37.831 [33.366, 39.991], n=300
+
+voucher/persistent/registration (s)
+  before: 9.651 [9.643, 9.731], n=3
+  after:  9.637 [9.621, 9.640], n=3
+
+voucher/persistent/active-throughput (calls/s)
+  before: 28.313 [27.038, 28.910], n=10
+  after:  27.625 [27.402, 28.456], n=10
+
+voucher/persistent/closed-loop-throughput (calls/s)
+  before: 14.962, n=1 (quartiles undefined)
+  after:  14.078, n=1 (quartiles undefined)
+
+COMPARISON
+Before source commit: f9eea9c66e4d6a4c7e897e1a73724314e919646e
+After source commit: f2c174c461295d1913ca24a9f225864a4a08da31
+
+postgresql/point/read (ms)
+  before: 0.033 [0.032, 0.036], n=300
+  after:  0.032 [0.031, 0.035], n=300
+
+postgresql/point/update (ms)
+  before: 3.342 [2.821, 4.085], n=300
+  after:  3.319 [2.934, 4.121], n=300
+
+sqlite/point/read (ms)
+  before: 0.014 [0.013, 0.014], n=300
+  after:  0.013 [0.013, 0.014], n=300
+
+sqlite/point/update (ms)
+  before: 6.106 [5.689, 6.962], n=300
+  after:  6.474 [4.944, 7.592], n=300
+
+jaydb2/point/read (ms)
+  before: 28.170 [27.309, 30.457], n=300
+  after:  3.003 [2.966, 3.052], n=300
+
+jaydb2/point/read/ordinary (s)
+  before: 4.640 [4.612, 4.655], n=10
+  after:  4.604 [4.568, 4.625], n=10
+
+jaydb2/point/update (ms)
+  before: 30.741 [29.808, 70.917], n=300
+  after:  27.805 [26.536, 29.868], n=300
+
+jaydb2/point/update/ordinary (s)
+  before: 4.762 [4.754, 4.780], n=10
+  after:  4.777 [4.745, 4.816], n=10
+
+postgresql/owner/read (ms)
+  before: 0.032 [0.032, 0.033], n=300
+  after:  0.032 [0.032, 0.037], n=300
+
+postgresql/owner/update (ms)
+  before: 4.074 [2.853, 4.226], n=300
+  after:  3.343 [2.849, 4.079], n=300
+
+sqlite/owner/read (ms)
+  before: 0.013 [0.002, 0.014], n=300
+  after:  0.013 [0.013, 0.014], n=300
+
+sqlite/owner/update (ms)
+  before: 7.290 [4.849, 47.456], n=300
+  after:  6.247 [5.220, 7.557], n=300
+
+jaydb2/owner/read (ms)
+  before: 35.456 [33.218, 37.985], n=300
+  after:  8.824 [4.255, 19.291], n=300
+
+jaydb2/owner/read/ordinary (s)
+  before: 10.679 [10.663, 10.693], n=10
+  after:  10.626 [10.588, 10.635], n=10
+
+jaydb2/owner/update (ms)
+  before: 34.203 [32.514, 36.743], n=300
+  after:  33.124 [29.089, 34.930], n=300
+
+jaydb2/owner/update/ordinary (s)
+  before: 11.993 [11.979, 12.017], n=10
+  after:  11.993 [11.955, 12.019], n=10
+
+SCALING
+Before source commit: f9eea9c66e4d6a4c7e897e1a73724314e919646e
+After source commit: f2c174c461295d1913ca24a9f225864a4a08da31
+
+10/volatile/read (ms)
+  before: 3.139 [3.074, 3.487], n=50
+  after:  3.069 [3.006, 3.138], n=50
+
+10/volatile/update (ms)
+  before: 3.052 [3.013, 3.089], n=50
+  after:  3.050 [2.991, 3.099], n=50
+
+10/persistent/read (ms)
+  before: 27.712 [26.816, 31.849], n=50
+  after:  3.840 [3.068, 15.849], n=50
+
+10/persistent/update (ms)
+  before: 27.833 [27.021, 31.322], n=50
+  after:  27.779 [25.120, 30.234], n=50
+
+100/volatile/read (ms)
+  before: 20.962 [17.513, 26.733], n=50
+  after:  20.643 [12.923, 27.168], n=50
+
+100/volatile/update (ms)
+  before: 21.049 [14.206, 26.154], n=50
+  after:  19.049 [6.731, 25.317], n=50
+
+100/persistent/read (ms)
+  before: 37.364 [30.546, 39.564], n=50
+  after:  19.824 [11.454, 26.482], n=50
+
+100/persistent/update (ms)
+  before: 41.621 [39.652, 42.054], n=50
+  after:  36.221 [28.719, 39.231], n=50
+
+1000/volatile/read (ms)
+  before: 29.517 [26.624, 35.095], n=50
+  after:  29.559 [27.098, 32.812], n=50
+
+1000/volatile/update (ms)
+  before: 29.856 [27.216, 34.194], n=50
+  after:  29.128 [27.621, 33.365], n=50
+
+1000/persistent/read (ms)
+  before: 70.080 [59.172, 92.024], n=50
+  after:  28.783 [26.639, 34.700], n=50
+
+1000/persistent/update (ms)
+  before: 53.817 [48.038, 58.091], n=50
+  after:  40.379 [38.714, 43.700], n=50
+
+1105/volatile/read (ms)
+  before: 30.647 [28.854, 34.642], n=50
+  after:  31.324 [29.316, 35.184], n=50
+
+1105/volatile/update (ms)
+  before: 30.258 [29.435, 31.957], n=50
+  after:  31.969 [30.624, 36.158], n=50
+
+1105/persistent/read (ms)
+  before: 58.365 [51.734, 63.172], n=50
+  after:  30.791 [28.996, 36.049], n=50
+
+1105/persistent/update (ms)
+  before: 56.678 [51.390, 61.179], n=50
+  after:  44.414 [41.433, 48.876], n=50
+
+VERIFICATION
+Before source commit: f9eea9c66e4d6a4c7e897e1a73724314e919646e
+After source commit: f2c174c461295d1913ca24a9f225864a4a08da31
+
+make verify-contract (s)
+  before: 23.666, n=1 (quartiles undefined)
+  after:  23.676, n=1 (quartiles undefined)
+
+make verify (s)
+  before: 595.156, n=1 (quartiles undefined)
+  after:  597.267, n=1 (quartiles undefined)
+
+make test (s)
+  before: 474.426, n=1 (quartiles undefined)
+  after:  472.136, n=1 (quartiles undefined)
+
+NOT CHANGED
+
+CPU power policy, fresh worker lifecycle, artifact-integrity scans, state limits, Bend execution/proofs and wire format were retained. The measured frequency dependence does not justify replacing the transport or changing trusted runtime semantics.
+
+Raw diagnostic observations, observer source, syscall excerpts and post-fix zero-fsync windows: paper/evidence/latency-diagnosis.json. All per-case statistics, provenance and executable/source fingerprints: paper/evidence/performance-summary.json. Raw headline samples: ordinary.json, prepared.json, comparison.json, scaling.json and verification.json in the same directory.

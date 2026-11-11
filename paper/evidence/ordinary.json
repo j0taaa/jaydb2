@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
     "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-    "branch": "t3/tcc-fresh-benchmarks",
-    "utc": "2026-11-11T13:20:06Z",
+    "branch": "t3/diagnose-prepared-latency",
+    "utc": "2026-11-11T15:12:03Z",
     "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
     "logical_cpus": 16,
     "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
@@ -28,16 +28,17 @@
       "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
       "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
     },
-    "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
-    "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+    "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+    "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
     "dirty": [
-      "M server/main.rs",
-      " M tools/admission/index.mjs",
-      " M tools/service/compile.mjs",
-      " M tools/service/stage.mjs",
-      "?? paper/bench/"
+      "M paper/evidence/comparison.json",
+      " M paper/evidence/prepared.json",
+      " M paper/evidence/scaling.json"
     ],
     "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
     "filesystem": "ext4   /dev/sda2 rw,relatime",
     "clock": "time.perf_counter_ns (monotonic wall clock)",
     "lock": "/tmp/jaydb2-experiments-heavy.lock",
@@ -50,7 +51,7 @@
       "n": 10,
       "warmup": [
         {
-          "elapsed_ns": 4639642192,
+          "elapsed_ns": 4562485690,
           "actual": {
             "status": "success",
             "value": 0
@@ -61,26 +62,26 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1636656,
-            "staging": 5615501,
-            "bootstrap_preflight": 102332284,
-            "parse_audit": 201665975,
-            "primary_check": 1166891008,
-            "binding_audit_seal": 228250728,
-            "bendtt_translate_check": 1215177851,
-            "c_emission": 661785652,
-            "c_compilation": 811473242,
-            "admission_total": 4628271333,
-            "ordinary_worker": 9077916,
-            "proposal_cleanup": 546919,
-            "publication": 292
+            "packet_authentication": 1300336,
+            "staging": 5799669,
+            "bootstrap_preflight": 102280904,
+            "parse_audit": 199902731,
+            "primary_check": 1179742067,
+            "binding_audit_seal": 227310710,
+            "bendtt_translate_check": 1165535046,
+            "c_emission": 636589468,
+            "c_compilation": 808902245,
+            "admission_total": 4552331781,
+            "ordinary_worker": 8285170,
+            "proposal_cleanup": 490586,
+            "publication": 517
           },
           "iteration": 0
         }
       ],
       "samples": [
         {
-          "elapsed_ns": 4590906043,
+          "elapsed_ns": 4569074848,
           "actual": {
             "status": "success",
             "value": 0
@@ -91,24 +92,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1544807,
-            "staging": 5628770,
-            "bootstrap_preflight": 102180811,
-            "parse_audit": 204451394,
-            "primary_check": 1186692961,
-            "binding_audit_seal": 230007977,
-            "bendtt_translate_check": 1177726540,
-            "c_emission": 641572624,
-            "c_compilation": 803919368,
-            "admission_total": 4580083433,
-            "ordinary_worker": 8667644,
-            "proposal_cleanup": 494184,
-            "publication": 325
+            "packet_authentication": 2141795,
+            "staging": 5879070,
+            "bootstrap_preflight": 102770130,
+            "parse_audit": 204283673,
+            "primary_check": 1172520682,
+            "binding_audit_seal": 228239051,
+            "bendtt_translate_check": 1167612937,
+            "c_emission": 635256565,
+            "c_compilation": 799426465,
+            "admission_total": 4558520686,
+            "ordinary_worker": 7829639,
+            "proposal_cleanup": 492125,
+            "publication": 491
           },
           "iteration": 1
         },
         {
-          "elapsed_ns": 4620123957,
+          "elapsed_ns": 4618091170,
           "actual": {
             "status": "success",
             "value": 0
@@ -119,24 +120,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1849942,
-            "staging": 5595565,
-            "bootstrap_preflight": 102395269,
-            "parse_audit": 201554405,
-            "primary_check": 1170514585,
-            "binding_audit_seal": 229941113,
-            "bendtt_translate_check": 1207415514,
-            "c_emission": 669028451,
-            "c_compilation": 799416187,
-            "admission_total": 4609814599,
-            "ordinary_worker": 7794599,
-            "proposal_cleanup": 520386,
-            "publication": 318
+            "packet_authentication": 1428221,
+            "staging": 5601289,
+            "bootstrap_preflight": 102987704,
+            "parse_audit": 201766032,
+            "primary_check": 1167914831,
+            "binding_audit_seal": 227359242,
+            "bendtt_translate_check": 1206849729,
+            "c_emission": 665305507,
+            "c_compilation": 798027765,
+            "admission_total": 4605730781,
+            "ordinary_worker": 10184908,
+            "proposal_cleanup": 606266,
+            "publication": 525
           },
           "iteration": 2
         },
         {
-          "elapsed_ns": 4563299416,
+          "elapsed_ns": 4640030211,
           "actual": {
             "status": "success",
             "value": 0
@@ -147,24 +148,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1519204,
-            "staging": 5918291,
-            "bootstrap_preflight": 102809958,
-            "parse_audit": 211678631,
-            "primary_check": 1173846452,
-            "binding_audit_seal": 226168451,
-            "bendtt_translate_check": 1170076388,
-            "c_emission": 631564017,
-            "c_compilation": 807520823,
-            "admission_total": 4553318727,
-            "ordinary_worker": 7825061,
-            "proposal_cleanup": 523589,
-            "publication": 349
+            "packet_authentication": 1672198,
+            "staging": 5597506,
+            "bootstrap_preflight": 104579440,
+            "parse_audit": 202502757,
+            "primary_check": 1165645711,
+            "binding_audit_seal": 229491313,
+            "bendtt_translate_check": 1218379666,
+            "c_emission": 671341925,
+            "c_compilation": 795623402,
+            "admission_total": 4629943529,
+            "ordinary_worker": 7799412,
+            "proposal_cleanup": 499222,
+            "publication": 351
           },
           "iteration": 3
         },
         {
-          "elapsed_ns": 4546729460,
+          "elapsed_ns": 4632524797,
           "actual": {
             "status": "success",
             "value": 0
@@ -175,24 +176,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1552573,
-            "staging": 5677339,
-            "bootstrap_preflight": 102127251,
-            "parse_audit": 203270988,
-            "primary_check": 1170198635,
-            "binding_audit_seal": 228036977,
-            "bendtt_translate_check": 1167504648,
-            "c_emission": 638134363,
-            "c_compilation": 798297245,
-            "admission_total": 4535766634,
-            "ordinary_worker": 8447176,
-            "proposal_cleanup": 849434,
-            "publication": 443
+            "packet_authentication": 1515626,
+            "staging": 5790632,
+            "bootstrap_preflight": 101490383,
+            "parse_audit": 202785517,
+            "primary_check": 1180473014,
+            "binding_audit_seal": 229833751,
+            "bendtt_translate_check": 1206447977,
+            "c_emission": 668060740,
+            "c_compilation": 799814333,
+            "admission_total": 4622553608,
+            "ordinary_worker": 7754922,
+            "proposal_cleanup": 575549,
+            "publication": 586
           },
           "iteration": 4
         },
         {
-          "elapsed_ns": 4668864679,
+          "elapsed_ns": 4599439664,
           "actual": {
             "status": "success",
             "value": 0
@@ -203,24 +204,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1902111,
-            "staging": 5622272,
-            "bootstrap_preflight": 105593199,
-            "parse_audit": 200728237,
-            "primary_check": 1175035143,
-            "binding_audit_seal": 227446992,
-            "bendtt_translate_check": 1170101098,
-            "c_emission": 693152828,
-            "c_compilation": 849227311,
-            "admission_total": 4658541297,
-            "ordinary_worker": 7799232,
-            "proposal_cleanup": 532458,
-            "publication": 299
+            "packet_authentication": 1474542,
+            "staging": 5668478,
+            "bootstrap_preflight": 101917142,
+            "parse_audit": 201919443,
+            "primary_check": 1215773486,
+            "binding_audit_seal": 228345584,
+            "bendtt_translate_check": 1169367513,
+            "c_emission": 637422484,
+            "c_compilation": 807152633,
+            "admission_total": 4589043855,
+            "ordinary_worker": 8289091,
+            "proposal_cleanup": 488212,
+            "publication": 446
           },
           "iteration": 5
         },
         {
-          "elapsed_ns": 4675095996,
+          "elapsed_ns": 4630880952,
           "actual": {
             "status": "success",
             "value": 0
@@ -231,24 +232,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1394473,
-            "staging": 5776327,
-            "bootstrap_preflight": 106493715,
-            "parse_audit": 203143502,
-            "primary_check": 1181885011,
-            "binding_audit_seal": 229497033,
-            "bendtt_translate_check": 1219350097,
-            "c_emission": 687899166,
-            "c_compilation": 799642563,
-            "admission_total": 4665251825,
-            "ordinary_worker": 7839786,
-            "proposal_cleanup": 480000,
-            "publication": 359
+            "packet_authentication": 1486606,
+            "staging": 5748461,
+            "bootstrap_preflight": 119153519,
+            "parse_audit": 202463958,
+            "primary_check": 1161722988,
+            "binding_audit_seal": 228038337,
+            "bendtt_translate_check": 1204709460,
+            "c_emission": 666604381,
+            "c_compilation": 802608531,
+            "admission_total": 4621150052,
+            "ordinary_worker": 7654594,
+            "proposal_cleanup": 505449,
+            "publication": 371
           },
           "iteration": 6
         },
         {
-          "elapsed_ns": 4657416118,
+          "elapsed_ns": 4562998340,
           "actual": {
             "status": "success",
             "value": 0
@@ -259,24 +260,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1666141,
-            "staging": 5667549,
-            "bootstrap_preflight": 104693236,
-            "parse_audit": 203413552,
-            "primary_check": 1199179174,
-            "binding_audit_seal": 229834406,
-            "bendtt_translate_check": 1210194043,
-            "c_emission": 667825313,
-            "c_compilation": 800269850,
-            "admission_total": 4647286161,
-            "ordinary_worker": 7857809,
-            "proposal_cleanup": 522999,
-            "publication": 339
+            "packet_authentication": 1374388,
+            "staging": 5609963,
+            "bootstrap_preflight": 105192996,
+            "parse_audit": 200649318,
+            "primary_check": 1173916953,
+            "binding_audit_seal": 227062116,
+            "bendtt_translate_check": 1166081319,
+            "c_emission": 638522564,
+            "c_compilation": 798146603,
+            "admission_total": 4553187543,
+            "ordinary_worker": 7785024,
+            "proposal_cleanup": 529648,
+            "publication": 563
           },
           "iteration": 7
         },
         {
-          "elapsed_ns": 4625111397,
+          "elapsed_ns": 4633791909,
           "actual": {
             "status": "success",
             "value": 0
@@ -287,24 +288,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1621130,
-            "staging": 5629656,
-            "bootstrap_preflight": 101958739,
-            "parse_audit": 200332075,
-            "primary_check": 1167348580,
-            "binding_audit_seal": 230591086,
-            "bendtt_translate_check": 1212289312,
-            "c_emission": 661528372,
-            "c_compilation": 799410691,
-            "admission_total": 4614992547,
-            "ordinary_worker": 7913458,
-            "proposal_cleanup": 476478,
-            "publication": 350
+            "packet_authentication": 1311947,
+            "staging": 5634253,
+            "bootstrap_preflight": 105367300,
+            "parse_audit": 205157236,
+            "primary_check": 1172848449,
+            "binding_audit_seal": 228422269,
+            "bendtt_translate_check": 1209394776,
+            "c_emission": 669449956,
+            "c_compilation": 798794511,
+            "admission_total": 4620925940,
+            "ordinary_worker": 10737811,
+            "proposal_cleanup": 698226,
+            "publication": 688
           },
           "iteration": 8
         },
         {
-          "elapsed_ns": 4617227659,
+          "elapsed_ns": 4570471137,
           "actual": {
             "status": "success",
             "value": 0
@@ -315,24 +316,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1585696,
-            "staging": 5822535,
-            "bootstrap_preflight": 102186865,
-            "parse_audit": 202206768,
-            "primary_check": 1165592127,
-            "binding_audit_seal": 229505632,
-            "bendtt_translate_check": 1214587326,
-            "c_emission": 668045409,
-            "c_compilation": 797980034,
-            "admission_total": 4607361229,
-            "ordinary_worker": 7699630,
-            "proposal_cleanup": 472965,
-            "publication": 287
+            "packet_authentication": 2559712,
+            "staging": 5731609,
+            "bootstrap_preflight": 101999335,
+            "parse_audit": 202557860,
+            "primary_check": 1179454387,
+            "binding_audit_seal": 229310406,
+            "bendtt_translate_check": 1165322063,
+            "c_emission": 639742462,
+            "c_compilation": 802322072,
+            "admission_total": 4557334503,
+            "ordinary_worker": 9950481,
+            "proposal_cleanup": 502103,
+            "publication": 487
           },
           "iteration": 9
         },
         {
-          "elapsed_ns": 4647253397,
+          "elapsed_ns": 4557091945,
           "actual": {
             "status": "success",
             "value": 0
@@ -343,19 +344,19 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 1505059,
-            "staging": 5700612,
-            "bootstrap_preflight": 102093353,
-            "parse_audit": 202759373,
-            "primary_check": 1179970545,
-            "binding_audit_seal": 232532674,
-            "bendtt_translate_check": 1214629917,
-            "c_emission": 669054977,
-            "c_compilation": 799215081,
-            "admission_total": 4632136203,
-            "ordinary_worker": 11911326,
-            "proposal_cleanup": 1453006,
-            "publication": 992
+            "packet_authentication": 1405928,
+            "staging": 5730366,
+            "bootstrap_preflight": 102093215,
+            "parse_audit": 202925250,
+            "primary_check": 1182822022,
+            "binding_audit_seal": 226597176,
+            "bendtt_translate_check": 1169558613,
+            "c_emission": 632808487,
+            "c_compilation": 796189643,
+            "admission_total": 4547176611,
+            "ordinary_worker": 7842513,
+            "proposal_cleanup": 580694,
+            "publication": 396
           },
           "iteration": 10
         }
@@ -366,7 +367,7 @@
       "n": 10,
       "warmup": [
         {
-          "elapsed_ns": 8143717764,
+          "elapsed_ns": 8052647452,
           "actual": {
             "status": "success",
             "value": false
@@ -377,26 +378,26 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2199347,
-            "staging": 7711777,
-            "bootstrap_preflight": 105985135,
-            "parse_audit": 333122686,
-            "primary_check": 1362980259,
-            "binding_audit_seal": 406950944,
-            "bendtt_translate_check": 2194752396,
-            "c_emission": 1903341841,
-            "c_compilation": 1461705537,
-            "admission_total": 8128267734,
-            "ordinary_worker": 12572706,
-            "proposal_cleanup": 590383,
-            "publication": 360
+            "packet_authentication": 2072403,
+            "staging": 7178368,
+            "bootstrap_preflight": 102683414,
+            "parse_audit": 339645832,
+            "primary_check": 1366229965,
+            "binding_audit_seal": 411215662,
+            "bendtt_translate_check": 2186189404,
+            "c_emission": 1798670981,
+            "c_compilation": 1455917392,
+            "admission_total": 8035288181,
+            "ordinary_worker": 14571009,
+            "proposal_cleanup": 627615,
+            "publication": 457
           },
           "iteration": 0
         }
       ],
       "samples": [
         {
-          "elapsed_ns": 8075060942,
+          "elapsed_ns": 8300846877,
           "actual": {
             "status": "success",
             "value": true
@@ -407,24 +408,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2621791,
-            "staging": 7304772,
-            "bootstrap_preflight": 106425675,
-            "parse_audit": 336746916,
-            "primary_check": 1386171230,
-            "binding_audit_seal": 409240640,
-            "bendtt_translate_check": 2174801535,
-            "c_emission": 1814210741,
-            "c_compilation": 1463590539,
-            "admission_total": 8058029035,
-            "ordinary_worker": 13446795,
-            "proposal_cleanup": 796862,
-            "publication": 408
+            "packet_authentication": 2303925,
+            "staging": 6981729,
+            "bootstrap_preflight": 103242235,
+            "parse_audit": 336698675,
+            "primary_check": 1379739222,
+            "binding_audit_seal": 410091894,
+            "bendtt_translate_check": 2279583555,
+            "c_emission": 1942970960,
+            "c_compilation": 1458328476,
+            "admission_total": 8285538164,
+            "ordinary_worker": 12262129,
+            "proposal_cleanup": 629347,
+            "publication": 505
           },
           "iteration": 1
         },
         {
-          "elapsed_ns": 8179536161,
+          "elapsed_ns": 8085157541,
           "actual": {
             "status": "success",
             "value": false
@@ -435,24 +436,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 3326973,
-            "staging": 7083282,
-            "bootstrap_preflight": 106760255,
-            "parse_audit": 337031892,
-            "primary_check": 1389500988,
-            "binding_audit_seal": 410267036,
-            "bendtt_translate_check": 2195128563,
-            "c_emission": 1880707067,
-            "c_compilation": 1456341000,
-            "admission_total": 8156640857,
-            "ordinary_worker": 18504366,
-            "proposal_cleanup": 944883,
-            "publication": 394
+            "packet_authentication": 2343297,
+            "staging": 7127697,
+            "bootstrap_preflight": 105874719,
+            "parse_audit": 335599709,
+            "primary_check": 1379867662,
+            "binding_audit_seal": 413955637,
+            "bendtt_translate_check": 2174229817,
+            "c_emission": 1831681337,
+            "c_compilation": 1453781237,
+            "admission_total": 8066836362,
+            "ordinary_worker": 15160412,
+            "proposal_cleanup": 663616,
+            "publication": 525
           },
           "iteration": 2
         },
         {
-          "elapsed_ns": 8092903115,
+          "elapsed_ns": 8037783718,
           "actual": {
             "status": "success",
             "value": true
@@ -463,24 +464,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2534315,
-            "staging": 7081042,
-            "bootstrap_preflight": 103529987,
-            "parse_audit": 337678615,
-            "primary_check": 1400792462,
-            "binding_audit_seal": 409015745,
-            "bendtt_translate_check": 2179733959,
-            "c_emission": 1802403875,
-            "c_compilation": 1475205697,
-            "admission_total": 8077337406,
-            "ordinary_worker": 12337907,
-            "proposal_cleanup": 584950,
-            "publication": 365
+            "packet_authentication": 2439022,
+            "staging": 7077418,
+            "bootstrap_preflight": 103160297,
+            "parse_audit": 333490587,
+            "primary_check": 1386632031,
+            "binding_audit_seal": 412716555,
+            "bendtt_translate_check": 2175878599,
+            "c_emission": 1785920919,
+            "c_compilation": 1455819033,
+            "admission_total": 8021876295,
+            "ordinary_worker": 12696862,
+            "proposal_cleanup": 645308,
+            "publication": 201
           },
           "iteration": 3
         },
         {
-          "elapsed_ns": 8058488385,
+          "elapsed_ns": 8142370878,
           "actual": {
             "status": "success",
             "value": false
@@ -491,24 +492,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2431829,
-            "staging": 7266572,
-            "bootstrap_preflight": 103161892,
-            "parse_audit": 333033789,
-            "primary_check": 1353825353,
-            "binding_audit_seal": 413675155,
-            "bendtt_translate_check": 2189424858,
-            "c_emission": 1817010433,
-            "c_compilation": 1457933567,
-            "admission_total": 8041581416,
-            "ordinary_worker": 13685157,
-            "proposal_cleanup": 675647,
-            "publication": 443
+            "packet_authentication": 2632190,
+            "staging": 7262723,
+            "bootstrap_preflight": 106199997,
+            "parse_audit": 332547409,
+            "primary_check": 1368065066,
+            "binding_audit_seal": 423430278,
+            "bendtt_translate_check": 2176308656,
+            "c_emission": 1890591884,
+            "c_compilation": 1466118673,
+            "admission_total": 8126556792,
+            "ordinary_worker": 12423978,
+            "proposal_cleanup": 621709,
+            "publication": 490
           },
           "iteration": 4
         },
         {
-          "elapsed_ns": 8097776582,
+          "elapsed_ns": 8061331866,
           "actual": {
             "status": "success",
             "value": true
@@ -519,24 +520,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2480832,
-            "staging": 9402793,
-            "bootstrap_preflight": 106115555,
-            "parse_audit": 346660427,
-            "primary_check": 1380496115,
-            "binding_audit_seal": 409070750,
-            "bendtt_translate_check": 2192271901,
-            "c_emission": 1809891175,
-            "c_compilation": 1461099887,
-            "admission_total": 8081930771,
-            "ordinary_worker": 12614608,
-            "proposal_cleanup": 620846,
-            "publication": 435
+            "packet_authentication": 2456413,
+            "staging": 7020738,
+            "bootstrap_preflight": 107476856,
+            "parse_audit": 336673802,
+            "primary_check": 1355913870,
+            "binding_audit_seal": 411692696,
+            "bendtt_translate_check": 2186678780,
+            "c_emission": 1808433742,
+            "c_compilation": 1465793803,
+            "admission_total": 8045614641,
+            "ordinary_worker": 12464401,
+            "proposal_cleanup": 629798,
+            "publication": 508
           },
           "iteration": 5
         },
         {
-          "elapsed_ns": 8122197053,
+          "elapsed_ns": 8144509086,
           "actual": {
             "status": "success",
             "value": false
@@ -547,24 +548,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2443797,
-            "staging": 7064168,
-            "bootstrap_preflight": 105459712,
-            "parse_audit": 334620876,
-            "primary_check": 1380719033,
-            "binding_audit_seal": 411503636,
-            "bendtt_translate_check": 2182894497,
-            "c_emission": 1852930415,
-            "c_compilation": 1467762522,
-            "admission_total": 8106391946,
-            "ordinary_worker": 12497461,
-            "proposal_cleanup": 681452,
-            "publication": 503
+            "packet_authentication": 2293830,
+            "staging": 7076910,
+            "bootstrap_preflight": 107084971,
+            "parse_audit": 332420158,
+            "primary_check": 1383178605,
+            "binding_audit_seal": 411553778,
+            "bendtt_translate_check": 2191120999,
+            "c_emission": 1879935196,
+            "c_compilation": 1463635671,
+            "admission_total": 8127169405,
+            "ordinary_worker": 14254252,
+            "proposal_cleanup": 664835,
+            "publication": 468
           },
           "iteration": 6
         },
         {
-          "elapsed_ns": 8058752098,
+          "elapsed_ns": 8053029556,
           "actual": {
             "status": "success",
             "value": true
@@ -575,24 +576,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2750127,
-            "staging": 7073642,
-            "bootstrap_preflight": 104214602,
-            "parse_audit": 334266115,
-            "primary_check": 1372062378,
-            "binding_audit_seal": 411806736,
-            "bendtt_translate_check": 2174115757,
-            "c_emission": 1814696976,
-            "c_compilation": 1456825386,
-            "admission_total": 8042706364,
-            "ordinary_worker": 12444951,
-            "proposal_cleanup": 723855,
-            "publication": 432
+            "packet_authentication": 4488591,
+            "staging": 7184965,
+            "bootstrap_preflight": 106113334,
+            "parse_audit": 334914192,
+            "primary_check": 1366736852,
+            "binding_audit_seal": 408507428,
+            "bendtt_translate_check": 2176172141,
+            "c_emission": 1805749540,
+            "c_compilation": 1456880006,
+            "admission_total": 8035516175,
+            "ordinary_worker": 12278331,
+            "proposal_cleanup": 632499,
+            "publication": 456
           },
           "iteration": 7
         },
         {
-          "elapsed_ns": 8060188943,
+          "elapsed_ns": 8051604323,
           "actual": {
             "status": "success",
             "value": false
@@ -603,24 +604,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2643631,
-            "staging": 7263953,
-            "bootstrap_preflight": 103672511,
-            "parse_audit": 333487062,
-            "primary_check": 1355519528,
-            "binding_audit_seal": 414335236,
-            "bendtt_translate_check": 2192071496,
-            "c_emission": 1825857915,
-            "c_compilation": 1454693403,
-            "admission_total": 8043446610,
-            "ordinary_worker": 12769014,
-            "proposal_cleanup": 1132931,
-            "publication": 445
+            "packet_authentication": 2564172,
+            "staging": 7023595,
+            "bootstrap_preflight": 102888645,
+            "parse_audit": 334992477,
+            "primary_check": 1371223589,
+            "binding_audit_seal": 410414354,
+            "bendtt_translate_check": 2181808723,
+            "c_emission": 1799125537,
+            "c_compilation": 1459728947,
+            "admission_total": 8035726378,
+            "ordinary_worker": 12535196,
+            "proposal_cleanup": 656321,
+            "publication": 503
           },
           "iteration": 8
         },
         {
-          "elapsed_ns": 8307488511,
+          "elapsed_ns": 8013549778,
           "actual": {
             "status": "success",
             "value": true
@@ -631,24 +632,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2712421,
-            "staging": 7145228,
-            "bootstrap_preflight": 102954035,
-            "parse_audit": 346875537,
-            "primary_check": 1604698828,
-            "binding_audit_seal": 409856034,
-            "bendtt_translate_check": 2197419144,
-            "c_emission": 1791929566,
-            "c_compilation": 1468138502,
-            "admission_total": 8291546191,
-            "ordinary_worker": 12419113,
-            "proposal_cleanup": 628471,
-            "publication": 399
+            "packet_authentication": 2391762,
+            "staging": 7102079,
+            "bootstrap_preflight": 105465083,
+            "parse_audit": 332844484,
+            "primary_check": 1361053482,
+            "binding_audit_seal": 403976063,
+            "bendtt_translate_check": 2175282120,
+            "c_emission": 1794876344,
+            "c_compilation": 1459276600,
+            "admission_total": 7997822789,
+            "ordinary_worker": 12552673,
+            "proposal_cleanup": 611909,
+            "publication": 460
           },
           "iteration": 9
         },
         {
-          "elapsed_ns": 8054598484,
+          "elapsed_ns": 8083714082,
           "actual": {
             "status": "success",
             "value": false
@@ -659,19 +660,19 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2471116,
-            "staging": 7431376,
-            "bootstrap_preflight": 103295234,
-            "parse_audit": 334084556,
-            "primary_check": 1360225408,
-            "binding_audit_seal": 409302515,
-            "bendtt_translate_check": 2176348095,
-            "c_emission": 1817873804,
-            "c_compilation": 1454954078,
-            "admission_total": 8034208389,
-            "ordinary_worker": 17126251,
-            "proposal_cleanup": 630590,
-            "publication": 376
+            "packet_authentication": 2295926,
+            "staging": 7018401,
+            "bootstrap_preflight": 105707006,
+            "parse_audit": 336806958,
+            "primary_check": 1400244930,
+            "binding_audit_seal": 410164533,
+            "bendtt_translate_check": 2182564623,
+            "c_emission": 1803048118,
+            "c_compilation": 1466355934,
+            "admission_total": 8068247587,
+            "ordinary_worker": 12442070,
+            "proposal_cleanup": 601391,
+            "publication": 469
           },
           "iteration": 10
         }
@@ -682,7 +683,7 @@
       "n": 10,
       "warmup": [
         {
-          "elapsed_ns": 8386082714,
+          "elapsed_ns": 8343285737,
           "actual": {
             "status": "success",
             "value": "v:r0000"
@@ -693,26 +694,26 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2132525,
-            "staging": 6846235,
-            "bootstrap_preflight": 107092162,
-            "parse_audit": 229269082,
-            "primary_check": 1963725469,
-            "binding_audit_seal": 268485515,
-            "bendtt_translate_check": 1821745852,
-            "c_emission": 2148775725,
-            "c_compilation": 1558314067,
-            "admission_total": 8369642950,
-            "ordinary_worker": 13593333,
-            "proposal_cleanup": 599041,
-            "publication": 458
+            "packet_authentication": 2224755,
+            "staging": 6833188,
+            "bootstrap_preflight": 104749759,
+            "parse_audit": 227729086,
+            "primary_check": 1947831627,
+            "binding_audit_seal": 271778237,
+            "bendtt_translate_check": 1815371097,
+            "c_emission": 2153871355,
+            "c_compilation": 1528076884,
+            "admission_total": 8325919934,
+            "ordinary_worker": 13982727,
+            "proposal_cleanup": 978431,
+            "publication": 484
           },
           "iteration": 0
         }
       ],
       "samples": [
         {
-          "elapsed_ns": 8402564821,
+          "elapsed_ns": 8318852587,
           "actual": {
             "status": "success",
             "value": "v:r0001"
@@ -723,24 +724,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2463269,
-            "staging": 7125286,
-            "bootstrap_preflight": 104769768,
-            "parse_audit": 234605306,
-            "primary_check": 1999013422,
-            "binding_audit_seal": 269049005,
-            "bendtt_translate_check": 1812320465,
-            "c_emission": 2160154848,
-            "c_compilation": 1525048259,
-            "admission_total": 8386070363,
-            "ordinary_worker": 13362200,
-            "proposal_cleanup": 591090,
-            "publication": 416
+            "packet_authentication": 2981719,
+            "staging": 7124025,
+            "bootstrap_preflight": 107426129,
+            "parse_audit": 225767024,
+            "primary_check": 1934721437,
+            "binding_audit_seal": 267173503,
+            "bendtt_translate_check": 1816861542,
+            "c_emission": 2151779025,
+            "c_compilation": 1522789937,
+            "admission_total": 8301683786,
+            "ordinary_worker": 13471641,
+            "proposal_cleanup": 628687,
+            "publication": 410
           },
           "iteration": 1
         },
         {
-          "elapsed_ns": 8472912706,
+          "elapsed_ns": 8326014016,
           "actual": {
             "status": "success",
             "value": "v:r0002"
@@ -751,24 +752,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2758139,
-            "staging": 10061866,
-            "bootstrap_preflight": 106674144,
-            "parse_audit": 226998554,
-            "primary_check": 2040005753,
-            "binding_audit_seal": 268533396,
-            "bendtt_translate_check": 1820078280,
-            "c_emission": 2157644616,
-            "c_compilation": 1552000256,
-            "admission_total": 8449269757,
-            "ordinary_worker": 19967042,
-            "proposal_cleanup": 780274,
-            "publication": 605
+            "packet_authentication": 2330525,
+            "staging": 6953076,
+            "bootstrap_preflight": 106163841,
+            "parse_audit": 226191997,
+            "primary_check": 1931360776,
+            "binding_audit_seal": 270488530,
+            "bendtt_translate_check": 1819376033,
+            "c_emission": 2145232109,
+            "c_compilation": 1528424600,
+            "admission_total": 8307781731,
+            "ordinary_worker": 14201032,
+            "proposal_cleanup": 1573578,
+            "publication": 512
           },
           "iteration": 2
         },
         {
-          "elapsed_ns": 8310537940,
+          "elapsed_ns": 8287423826,
           "actual": {
             "status": "success",
             "value": "v:r0003"
@@ -779,24 +780,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 3660550,
-            "staging": 10043431,
-            "bootstrap_preflight": 104634183,
-            "parse_audit": 228604994,
-            "primary_check": 1931391723,
-            "binding_audit_seal": 267653361,
-            "bendtt_translate_check": 1808237440,
-            "c_emission": 2119726701,
-            "c_compilation": 1539554818,
-            "admission_total": 8290803769,
-            "ordinary_worker": 15376427,
-            "proposal_cleanup": 600345,
-            "publication": 360
+            "packet_authentication": 2678872,
+            "staging": 7094600,
+            "bootstrap_preflight": 104098844,
+            "parse_audit": 227289437,
+            "primary_check": 1926095783,
+            "binding_audit_seal": 268606078,
+            "bendtt_translate_check": 1820054653,
+            "c_emission": 2122535336,
+            "c_compilation": 1524572883,
+            "admission_total": 8269395248,
+            "ordinary_worker": 14659830,
+            "proposal_cleanup": 584181,
+            "publication": 442
           },
           "iteration": 3
         },
         {
-          "elapsed_ns": 8355542841,
+          "elapsed_ns": 8316448364,
           "actual": {
             "status": "success",
             "value": "v:r0004"
@@ -807,24 +808,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2547701,
-            "staging": 10113965,
-            "bootstrap_preflight": 108291291,
-            "parse_audit": 227814351,
-            "primary_check": 1965158044,
-            "binding_audit_seal": 272363329,
-            "bendtt_translate_check": 1822968466,
-            "c_emission": 2126175755,
-            "c_compilation": 1533746902,
-            "admission_total": 8335998866,
-            "ordinary_worker": 15971159,
-            "proposal_cleanup": 861932,
-            "publication": 553
+            "packet_authentication": 2437814,
+            "staging": 6856570,
+            "bootstrap_preflight": 103706298,
+            "parse_audit": 226416343,
+            "primary_check": 1937895311,
+            "binding_audit_seal": 270122230,
+            "bendtt_translate_check": 1847473153,
+            "c_emission": 2112812727,
+            "c_compilation": 1525701854,
+            "admission_total": 8297718636,
+            "ordinary_worker": 15505644,
+            "proposal_cleanup": 655308,
+            "publication": 414
           },
           "iteration": 4
         },
         {
-          "elapsed_ns": 8373278309,
+          "elapsed_ns": 8328186424,
           "actual": {
             "status": "success",
             "value": "v:r0005"
@@ -835,24 +836,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 3465614,
-            "staging": 7098257,
-            "bootstrap_preflight": 107456634,
-            "parse_audit": 228427395,
-            "primary_check": 1931585382,
-            "binding_audit_seal": 269206977,
-            "bendtt_translate_check": 1831647770,
-            "c_emission": 2185772469,
-            "c_compilation": 1521205603,
-            "admission_total": 8352726549,
-            "ordinary_worker": 16326912,
-            "proposal_cleanup": 624429,
-            "publication": 450
+            "packet_authentication": 2501813,
+            "staging": 6885093,
+            "bootstrap_preflight": 103331804,
+            "parse_audit": 226825408,
+            "primary_check": 1937754586,
+            "binding_audit_seal": 270072021,
+            "bendtt_translate_check": 1811543680,
+            "c_emission": 2147785407,
+            "c_compilation": 1538778001,
+            "admission_total": 8308508522,
+            "ordinary_worker": 16478453,
+            "proposal_cleanup": 593402,
+            "publication": 704
           },
           "iteration": 5
         },
         {
-          "elapsed_ns": 8406087544,
+          "elapsed_ns": 8316846609,
           "actual": {
             "status": "success",
             "value": "v:r0006"
@@ -863,24 +864,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2577983,
-            "staging": 6920116,
-            "bootstrap_preflight": 106045541,
-            "parse_audit": 228979386,
-            "primary_check": 1957501500,
-            "binding_audit_seal": 270756396,
-            "bendtt_translate_check": 1843797500,
-            "c_emission": 2173360428,
-            "c_compilation": 1523867678,
-            "admission_total": 8383113532,
-            "ordinary_worker": 18732273,
-            "proposal_cleanup": 1559890,
-            "publication": 493
+            "packet_authentication": 3602985,
+            "staging": 7057651,
+            "bootstrap_preflight": 106442555,
+            "parse_audit": 227963716,
+            "primary_check": 1934498130,
+            "binding_audit_seal": 267115957,
+            "bendtt_translate_check": 1817044090,
+            "c_emission": 2148942127,
+            "c_compilation": 1517011731,
+            "admission_total": 8294696071,
+            "ordinary_worker": 17816465,
+            "proposal_cleanup": 606455,
+            "publication": 588
           },
           "iteration": 6
         },
         {
-          "elapsed_ns": 8372248182,
+          "elapsed_ns": 8339281896,
           "actual": {
             "status": "success",
             "value": "v:r0007"
@@ -891,24 +892,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 3309654,
-            "staging": 7076508,
-            "bootstrap_preflight": 104657505,
-            "parse_audit": 229806190,
-            "primary_check": 1954960057,
-            "binding_audit_seal": 272863249,
-            "bendtt_translate_check": 1819365208,
-            "c_emission": 2154403190,
-            "c_compilation": 1537045583,
-            "admission_total": 8347403219,
-            "ordinary_worker": 19897110,
-            "proposal_cleanup": 1498860,
-            "publication": 564
+            "packet_authentication": 2580281,
+            "staging": 6896509,
+            "bootstrap_preflight": 106451198,
+            "parse_audit": 228552304,
+            "primary_check": 1949574246,
+            "binding_audit_seal": 267812491,
+            "bendtt_translate_check": 1814279965,
+            "c_emission": 2153129263,
+            "c_compilation": 1524155160,
+            "admission_total": 8318027867,
+            "ordinary_worker": 17992106,
+            "proposal_cleanup": 590831,
+            "publication": 485
           },
           "iteration": 7
         },
         {
-          "elapsed_ns": 8398432552,
+          "elapsed_ns": 8354142778,
           "actual": {
             "status": "success",
             "value": "v:r0008"
@@ -919,24 +920,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2770701,
-            "staging": 7124489,
-            "bootstrap_preflight": 108797341,
-            "parse_audit": 229147442,
-            "primary_check": 1955682510,
-            "binding_audit_seal": 269462114,
-            "bendtt_translate_check": 1839482805,
-            "c_emission": 2181610275,
-            "c_compilation": 1526736154,
-            "admission_total": 8376560982,
-            "ordinary_worker": 18367127,
-            "proposal_cleanup": 638460,
-            "publication": 473
+            "packet_authentication": 3837984,
+            "staging": 7092966,
+            "bootstrap_preflight": 106655439,
+            "parse_audit": 229964863,
+            "primary_check": 1943340086,
+            "binding_audit_seal": 267242200,
+            "bendtt_translate_check": 1819828060,
+            "c_emission": 2159713983,
+            "c_compilation": 1524532018,
+            "admission_total": 8329505882,
+            "ordinary_worker": 19981102,
+            "proposal_cleanup": 609486,
+            "publication": 477
           },
           "iteration": 8
         },
         {
-          "elapsed_ns": 8383053153,
+          "elapsed_ns": 8332051979,
           "actual": {
             "status": "success",
             "value": "v:r0009"
@@ -947,24 +948,24 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2845387,
-            "staging": 7492923,
-            "bootstrap_preflight": 111106161,
-            "parse_audit": 227398583,
-            "primary_check": 1970499276,
-            "binding_audit_seal": 268961161,
-            "bendtt_translate_check": 1818600746,
-            "c_emission": 2157574147,
-            "c_compilation": 1528798232,
-            "admission_total": 8360309040,
-            "ordinary_worker": 19207218,
-            "proposal_cleanup": 562024,
-            "publication": 442
+            "packet_authentication": 2649378,
+            "staging": 7033103,
+            "bootstrap_preflight": 106550525,
+            "parse_audit": 228972321,
+            "primary_check": 1936774287,
+            "binding_audit_seal": 267924716,
+            "bendtt_translate_check": 1819748031,
+            "c_emission": 2153962133,
+            "c_compilation": 1523146373,
+            "admission_total": 8308310993,
+            "ordinary_worker": 20081331,
+            "proposal_cleanup": 913779,
+            "publication": 525
           },
           "iteration": 9
         },
         {
-          "elapsed_ns": 8367153895,
+          "elapsed_ns": 8300049532,
           "actual": {
             "status": "success",
             "value": "v:r0010"
@@ -975,19 +976,19 @@
           },
           "checked": true,
           "phases_ns": {
-            "packet_authentication": 2776266,
-            "staging": 7073389,
-            "bootstrap_preflight": 106615620,
-            "parse_audit": 227753648,
-            "primary_check": 1961847420,
-            "binding_audit_seal": 267635409,
-            "bendtt_translate_check": 1823302945,
-            "c_emission": 2160662956,
-            "c_compilation": 1523127244,
-            "admission_total": 8342831039,
-            "ordinary_worker": 20700652,
-            "proposal_cleanup": 723244,
-            "publication": 548
+            "packet_authentication": 3379391,
+            "staging": 7011005,
+            "bootstrap_preflight": 107178287,
+            "parse_audit": 228606338,
+            "primary_check": 1922066723,
+            "binding_audit_seal": 267322625,
+            "bendtt_translate_check": 1815763263,
+            "c_emission": 2146164779,
+            "c_compilation": 1520813160,
+            "admission_total": 8275769216,
+            "ordinary_worker": 20186961,
+            "proposal_cleanup": 589796,
+            "publication": 502
           },
           "iteration": 10
         }

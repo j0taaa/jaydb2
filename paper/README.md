@@ -8,8 +8,8 @@ microtype, natbib, booktabs, hyperref, Beamer and PGF.
 
 ## Reproducing the fresh evidence
 
-The benchmark targets the `thesis-2026` source (95027be) with opt-in timing
-instrumentation. It uses the real serial Rust host, official Bend 2.0.39 and
+Each benchmark JSON records its exact source commit and executable/source
+fingerprints. The harness uses the real serial Rust host, official Bend 2.0.39 and
 BendTT, literal emitted C, Clang 19, and one native worker thread. No mock
 engine, alternate verifier, concurrent read batches, or historical executable
 is measured. All output values are checked. Initialization and warmups are
@@ -192,3 +192,9 @@ the syscall trace; initialization/registration and idle pipe waits are outside
 that window. No governor, affinity or power setting is changed by the harness.
 Persistent equal-state successes now reuse their durable image; changed state,
 including new receipt rows, still follows file sync/rename/directory sync.
+
+The performance follow-up is recorded in `paper/evidence/performance-report.txt`
+and `performance-summary.json`, including before/after medians, inclusive
+quartiles, sample counts, validation and fingerprints for all E1–E5 cases.
+`latency-diagnosis.json` retains separate observer samples and syscall excerpts;
+these diagnostic timings are not inputs to the headline tables.
