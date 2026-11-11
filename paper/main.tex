@@ -6,14 +6,18 @@
 \usepackage[left=3cm,right=2cm,top=3cm,bottom=2cm]{geometry}
 \usepackage{amsmath,amssymb,amsthm,booktabs,array,microtype}
 \usepackage[round,authoryear]{natbib}
+\usepackage{xcolor,tikz,pgfplots,longtable}
+\usetikzlibrary{arrows.meta,positioning}
+\pgfplotsset{compat=1.18}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
 \urlstyle{same}
 \hypersetup{pdftitle={JayDB2: Proof-Carrying Transactions under Administrator-Defined Laws},
 pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carrying code, Bend, TCC}}
-\input{../.build/tcc/numbers.tex}
+\newcommand{\pending}[1]{\textcolor{red}{[#1]}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\jay}{JayDB2}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newtheorem{proposition}{Proposition}
 \newtheorem{definition}{Definition}
 \setlength{\parindent}{1.25cm}
@@ -29,604 +33,812 @@ pdfauthor={Gabriel Jota Lizardo},pdflang={en},pdfkeywords={databases, proof-carr
 \begin{document}
 \maketitle
 \begin{abstract}
-Application policies can constrain both the final database state and the
-observations made while a transaction runs. This article studies a transaction
-interface in which clients submit Bend 2 programs with proofs of
-administrator-defined propositions. The prototype, \jay{}, binds admission to
-the actual program, authenticated context and arguments, executes a private
-proposal, and separates publication from response delivery. The contribution is
-an executable case study connecting these mechanisms to an eight-law service
-specification. Checked source proofs establish the ordinary serial service
-model under explicit toolchain and integration premises; the full executable
-and the additional prepared-control law remain unproved. Evaluation combines
-policy-preserving application certificates, deliberately invalid variants,
-native execution and selected recovery faults. A retained experiment compares
-one and two prepared read workers under the same two-core budget. Across seven
-paired rounds, median throughput ratios are \TinyRatio{} and \HeavyRatio{} for
-two small-state workloads, with increased sampled memory. These observations
-are complemented by a ten-fixture comparison showing substantially higher
-durable point-operation latencies through the evaluated JayDB2 path, with
-different application constraints and deployment costs. The results establish
-feasibility for the studied cases, rather than lower proof-authoring cost or
-superiority to established databases. Complete-state transfer, manual
-proofs and the trusted source-to-executable bridge limit the result.
+A transaction policy can constrain both the observations made during execution
+and the state eventually published. This article presents \jay{}, an
+experimental database written in Bend~2 with a Rust host. Clients submit pure
+programs, credentials, arguments and proofs of administrator-defined laws.
+Admission binds the certificate to the exact program and authenticated inputs.
+Theorems over the executable gate, interpreter, finalizer and prepared-program
+controller establish authenticated admission, law safety at every execution
+prefix, exact publication and responses, accepted logical progress and validity
+through serial runs. Each generated worker proves its own admission oracle
+sound. A trusted computing base separates checker and source binding, compiler
+and runtime preservation, and physical host plumbing. Two certified applications
+combine ownership with exact index maintenance and with voucher receipts.
+Evaluation examines ordinary admission, prepared reuse, point operations against
+PostgreSQL~16 and SQLite, verification effort and state-size scaling. Numerical
+results are \pending{EvaluationSummary}. The case study connects transaction
+certificates to the code that decides execution and publication, and makes the
+remaining system assumptions explicit.
 \end{abstract}
 \noindent\textbf{Keywords:} proof-carrying code; databases; dependent types;
 transaction policies; formal verification; Bend.
 
 \section{Introduction}
-Consider an availability service with a primary row and a secondary-index table
-for each user. Changing availability requires several writes; a successful
-commit must restore agreement between the two tables. A query must also avoid
-reading another user's index, even if it eventually returns no rows or refuses.
-The implemented \code{applications/indexed} example \citep{artifact} makes this distinction
-explicit: ownership constrains every execution prefix, whereas exact index
-consistency constrains stable states and successful completion. A final-state
-invariant alone does not express both requirements.
+Consider an availability service in which Alice and Bob each have a primary row
+and a secondary-index table. Changing Alice's availability requires removing an
+old index entry, inserting its replacement and updating the primary row. Every
+access must concern Alice's own tables, and a successful publication must leave
+the index equal to the primary-row projection. The index may be incomplete
+between writes. Conversely, a query that reads Bob's index has already violated
+ownership even if it returns no rows or eventually refuses. Permission concerns
+the execution path; index consistency concerns the publication boundary.
 
-Transactions, integrity constraints, row policies and controlled application
-entry points are established ways to address such requirements. This study asks
-what changes when a client supplies a proof about the complete submitted
-transaction. It investigates that interface without assuming that existing
-database mechanisms are unable to implement equivalent application behavior.
+\jay{} \citep{artifact} explores a transaction interface in which the client provides a proof
+covering both requirements. The administrator fixes the schema and application
+laws. The client submits a pure Bend program with a credential, arguments and a
+certificate. The database authenticates against the current published state,
+admits the exact program and inputs, executes on a private working state and
+publishes the complete result on success. Laws are propositions over stable
+states, execution prefixes and closed requests, so they can express access
+restrictions as well as relationships between tables.
 
-\jay{} is an experimental database for that question. An administrator fixes
-the schema and laws. A client submits a pure Bend program, a credential,
-arguments and a proof. The program describes database effects through a restricted
-action language. The service authenticates against published state, checks a
-certificate for the actual program and inputs, executes on a private proposal,
-and publishes only a complete accepted result. A refusal discards provisional
-changes. The caller cannot pass an arbitrary native pointer or directly inspect
-the database state.
+This design raises a systems question beyond certificate checking: how does the
+proof constrain the program that actually runs and the state that actually
+becomes visible? \jay{} answers with theorems over its executable Bend gate,
+interpreter and finalizer. The native worker uses those functions to produce a
+typed decision, \code{Commit} or \code{Keep}, which the Rust host obeys. Prepared
+programs reuse a universal certificate and compiled artifact while authenticating
+each invocation anew. Their controller and registry transitions are also Bend
+functions with checked witnesses.
 
-Three research questions delimit the study:
+The study addresses three research questions:
 \begin{enumerate}
-\item \textbf{RQ1:} Under which explicit premises can certified transaction
-execution establish the fixed eight-law ordinary service contract?
-\item \textbf{RQ2:} Can concrete application certificates express both access
-restrictions during execution and publication invariants, with controls that
-fail at the intended obligations?
-\item \textbf{RQ3:} For the retained prepared-read workloads, how does a second
-certified read worker affect complete-request throughput, latency and sampled
-memory under a fixed CPU budget?
+\item \textbf{RQ1:} Which guarantees follow from theorems over the executing
+code, and under which trusted computing base do they apply to the native service?
+\item \textbf{RQ2:} Can application certificates combine access restrictions
+at every prefix with publication invariants, with invalid controls failing at
+the intended obligation?
+\item \textbf{RQ3:} What does certification cost in the current executable,
+and how does prepared reuse change that cost?
 \end{enumerate}
 
-The contribution is the combination of a transaction certificate over actual
-execution prefixes, exact binding of admission targets, and a checked
-composition into the ordinary service contract, accompanied by executable
-application and operational evidence. The indexed and receipt examples show
-how application abstractions can remain ordinary tables governed by explicit
-policies. The operational experiments examine prepared-read concurrency and
-durable point-operation costs through three engine adapters. Their different
-application constraints limit interpretation of the latter comparison.
-Neither proof-carrying code, verified query structures, nor a general
-database performance advantage is claimed as a new result.
+The contributions are:
+\begin{itemize}
+\item A transaction interface coupling client programs with proofs of all
+installed administrator laws over execution and publication.
+\item An inhabited, non-vacuous theorem contract over the executable Bend
+functions, including generated admission-oracle proofs and an explicit trusted base.
+\item An architecture that places transaction and prepared-control decisions
+in checked Bend and leaves process, byte and publication plumbing to Rust.
+\item Certified ownership/index and voucher/receipt applications with targeted
+negative controls, together with an evaluation protocol for certification cost.
+\end{itemize}
 
-\section{Foundations and Related Work}
-Proof-carrying code lets the producer of a program supply a machine-checkable
-argument that the program respects a consumer's safety policy
-\citep{necula1996}. \jay{} applies that general idea to transactions and
-administrator propositions. Its certificates target the semantics of Bend
-actions rather than an independently verified machine-code semantics. The
-difference determines the trusted boundary: source proof acceptance still
-requires a correct translation and execution path.
+\section{Background and Related Work}
+Proof-carrying code allows a producer to accompany a program with a checkable
+argument that it respects a consumer's policy \citep{necula1996}. Here the
+consumer is a database administrator, and the admitted object is a transaction
+program. Its policy includes observations and provisional changes as well as
+successful publication. The certificate targets the source action semantics.
+The architecture therefore couples proof checking with exact source binding and
+a specified path from those actions to native execution.
 
-Dependent types let specifications refer to program values. Ynot demonstrates
-reasoning about higher-order imperative programs using a dependently typed
-setting and an explicit axiomatic extension \citep{ynot2008}. \jay{} expresses
-propositions as Bend types and exposes database effects through an action
-interpreter. Ynot's logical results do not establish the soundness of this
-different toolchain. A directly relevant database antecedent is the Coq/Ynot
-prototype of \citet{malecha2010}: it verifies relational algebra, B+ tree
-implementations and selected query optimizations. Its focus on functional
-database internals differs from this study's admission of client programs
-against administrator-defined transaction propositions.
+Ynot combines dependent types with reasoning about higher-order imperative
+programs \citep{ynot2008}. Its treatment of effects and logical specifications
+provides context for presenting a database program as explicit actions with
+continuations. \citet{malecha2010} use Coq and Ynot to verify relational algebra,
+B+ trees and query optimizations in a database prototype. Their work verifies
+database internals. \jay{} concentrates on admitting externally supplied
+transactions against administrator-defined propositions.
 
-Fiat refines abstract data type specifications, including relational query
-structures, into implementations with a proof trail \citep{fiat2015}. Its
-verified query structures and index-directed refinements are relevant
-antecedents. \jay{} instead studies admission of externally submitted programs
-against a fixed live configuration; it does not provide Fiat's automated
-synthesis pipeline.
+Fiat derives implementations from abstract data type specifications through
+proof-preserving refinement, including relational query structures
+\citep{fiat2015}. Both approaches use proofs to connect data operations to a
+specification. Fiat emphasizes deductive synthesis and refinement of an
+implementation; \jay{} accepts a client-authored implementation and certificate
+for a fixed live database configuration. Its optional library provides ordinary
+actions and proof helpers for queries, index maintenance and receipts.
 
-PostgreSQL supplies row policies restricting normal row access and
-modification, along with integrity constraints \citep{postgresrls,postgresconstraints}.
-These mechanisms are valuable alternatives. A logical comparison is whether
-the policy appears as runtime predicates or as a proposition certified for a
-whole submitted transaction. This is not a measured claim about their relative
-security, expressiveness in every setting, or performance. PostgreSQL has a much
-broader storage, optimization and operational feature set.
+PostgreSQL offers integrity constraints and row security policies
+\citep{postgresconstraints,postgresrls}. Constraints express admissible stored
+data, while row policies restrict which rows normal queries and modifications
+may access. These mechanisms provide established ways to implement the
+motivating application's requirements. \jay{} places the proof obligation on
+the whole submitted transaction, including intermediate observations and its
+final publication. The evaluation compares an owner-only policy in both systems
+as a concrete common requirement.
 
-Bend 2 supplies the source language and official checking/compilation tools
-\citep{bend}. The prototype pins version 2.0.39 and hashes of its sources and
-executables. Pinning makes the evaluated object identifiable. It is not a proof
-of the checker, compiler, runtime, or hardware. Later upstream releases and
-different environments are outside the measured artifact.
+Bend~2 supplies the dependent source language, official checker modes and native
+compiler/runtime used by the prototype \citep{bend}. The evaluated toolchain is
+Bend~2.0.39, with official \code{--check-only} and BendTT \code{--verdict}
+checking. A checked collection of definitions is called a \emph{Book}; admission
+checks the same Book that proceeds to C compilation. The host coordinates this
+process through Node and compiles the literal emitted C with Clang~19.
 
-\section{Research Method and Evidence}
-This is an artifact-based systems case study combining deductive source
-reasoning with controlled execution. RQ1 concerns a theorem of an explicit
-model; RQ2 concerns representative policy constructions and their executable
-counterparts; RQ3 concerns measured behavior. Passing an execution test is not
-used as a premise establishing a universal theorem.
-
-The executable statements in \code{contract/Theorems.bend} are the criterion
-for RQ1. Inhabited Init, Core, Ingress, UnifiedCore, Fold and wire theorems
-concern the actual gate, interpreter and finisher. Both official
-\code{--check-only} and \code{--verdict} modes check their witnesses. T1 binds
-admission to exact source and checked Book; T2 assumes compiler/runtime
-preservation; T3 specifies physical host plumbing. Historical benchmark records identify their earlier artifact.
-
-For RQ2, positive application certificates are checked against the installed
-policy and actual interpreter. Negative variants omit a required invariant or
-alter a protected access. A useful negative control must fail at that obligation,
-while its unchanged premises still check; a missing dependency is not an adequate
-rejection. The actual host then exercises ordinary requests, checks responses
-and subsequent state, and tests selected faults around worker completion,
-publication and reopening. Application examples are deliberately small and
-author-constructed, rather than a sample of independently developed deployments.
-
-For RQ3, the experimental factor is one versus two read workers; the two
-workloads, total CPU budget, fixture, request arguments and expected results are
-held equal within each pair. Warmup, alternating run order, timing boundaries
-and descriptive statistics are specified in Section~\ref{sec:read-experiment}.
-No estimate of proof-authoring effort, isolated compiler cost or production
-database performance is inferred from this experiment.
-
-A complementary exploratory comparison measures point reads and updates on ten
-fixtures per engine through JayDB2, PostgreSQL and SQLite adapters. It uses
-durable settings and one client, but deliberately different application
-constraints and deployment paths. Section~\ref{sec:database-comparison} reports
-its protocol and limitations separately from the read-worker experiment.
-
-Evidence provenance is part of the protocol. The retained main-review directory
-\citep{artifact} identifies source revision
-\code{00d973e58217dbb589e4fdd0a48815a623faae9a}, exact controller and toolchain
-identities, commands, application/test outcomes, and raw benchmark records.
-The directory remains in Git history. Its validation record distinguishes the aggregate proof run from the final
-JavaScript-only guard change and repeated runtime gates; the Bend inputs were
-unchanged between them. Later model-proof and prepared-extension checks are
-summarized separately in review records in Git history; they are not new
-timing measurements. This article reuses and reanalyzes the retained dataset.
-The accompanying \code{paper/evidence.py} checks unique burst identities,
-response counts and elapsed-time throughput. It recomputes the quantitative
-tables from retained samples and the paired medians from read-worker bursts.
+Verified systems distinguish the proved program from the components trusted to
+execute its meaning. CompCert's semantic-preservation approach
+\citep{leroy2009} illustrates the compiler part of this distinction. \jay{}
+makes its corresponding boundary explicit as T1--T3 in
+Section~\ref{sec:tcb}: checker and binding, compilation and runtime, and host
+plumbing. This organization lets the source guarantees be stated as ordinary
+conditional theorems with identifiable implementation obligations.
 
 \section{Data and Transaction Model}
-The data model contains schemas, named tables, rows, typed values and a user
-registry. Configuration contains schema, laws and technical environment; users
-are mutable data. Values distinguish missing rows, optional absence and actual
-values. Integer payloads use two 32-bit words representing signed two's-complement
-64-bit values. Canonical encoding uses explicit tags, big-endian lengths, valid
-UTF-8 and ordered record fields. These rules give the specified interface a
-canonical representation; the host must implement the same encoding and decoding
-semantics for source proofs to apply to actual bytes.
+\subsection{Configuration, state and observations}
+A fixed configuration $C$ contains the schema, installed laws, their admitted
+dependencies, the environment identity and three canonical byte limits: message,
+state and response. Published state $s$ contains finite tables and a user
+registry. Tables have unique textual primary keys and typed columns. Cell values
+are Unicode text, booleans or signed 64-bit integers, with explicit optional
+absence. A missing row differs from an absent optional value. Writes supply
+complete explicit values and obey the schema.
 
-Let $C$ denote the fixed configuration, $s$ published state, $c$ an authenticated
-context, $v$ request arguments, $\sigma$ the program's source string and $p$ the
-corresponding pure client program. The program produces
-an action, not a state transformer supplied with unrestricted access to $s$.
-Actions describe explicit operations and typed continuations. The interpreter
-alone supplies database results. A write returns a unit value, so a caller does
-not learn prior row contents or existence through the write result.
+The registry contains user identifiers, kinds and credentials. Authentication
+against the current published registry produces a context $c$ with the user's
+identifier and kind. Credentials are nonempty and unambiguous in published
+state. Schema and laws remain fixed while data and users can change. The
+administrator supplies the meaning of ownership and business permissions as
+laws; the data model grants no implicit right to inspect a row or the registry.
 
-Administrator propositions receive situations corresponding to stable state,
-an executing prefix, or a closed request. The same complete law list applies in
-every phase; phase-sensitive conditions belong inside each proposition. A law
-can therefore forbid a foreign-table read even if the program later refuses.
-Rollback cannot erase a disclosure that already occurred during an unlawful
-prefix. Likewise, a collection helper must justify every actual access and
-continuation, not merely its final returned list.
+A program observes data through cell reads and explicit metadata operations,
+including row existence, counts and key enumeration. Enumeration follows UTF-8
+key order. A write returns unit without revealing whether a row previously
+existed or what it contained. Reading and changing are separate permissions.
+Query helpers must justify reads of entries later filtered from their result.
+Replacing an opaque value without inspecting it does not expose its predecessor.
+
+Canonical values have explicit tags and lengths, valid UTF-8 and uniquely
+ordered record fields. The public channel carries a big-endian unsigned 64-bit
+body length followed by the body. An ordinary request has exactly
+\code{arguments}, \code{code}, \code{credential} and \code{proof}. A response
+has \code{status} and \code{value}. Size limits count canonical bodies, excluding
+the outer eight-byte header, and permit equality with the ceiling.
+
+\subsection{Programs as actions}
+A request is $r=(k,\sigma,a,\pi)$: credential $k$, source text $\sigma$,
+arguments $a$ and proof source $\pi$. Its elaborated pure program $p$ maps an
+authenticated context and arguments to an action. Actions either finish with a
+value, refuse with a value, or request a database operation with a continuation.
+The interpreter supplies the operation's actual result to that continuation.
+Client code receives actions and observations rather than unrestricted state.
+
+Execution begins with working state $w=s$. Operations modify only $w$, and
+later reads observe earlier writes in the same execution. A logical trace
+records operations and their effects, including observations on paths that
+later refuse or encounter a data error. The trace is a proof object describing
+execution, rather than a required stored event log. A successful proposal is
+subject to structural and size finalization before publication. Refusal keeps
+the original root and can return an application value.
+
+\subsection{Laws and certificates}
+Each installed law is a proposition about a \emph{situation}. A stable situation
+contains published state. An executing situation additionally contains the
+initial state, authenticated context, source, arguments, working state and
+operation prefix. A closed situation adds the final response. Every installed
+law participates in the conjunction at each applicable situation; a
+phase-sensitive law states its own condition for each phase.
+
+For the motivating example, ownership constrains executing and closed
+situations, including accesses before refusal. Exact index consistency applies
+to stable state and successful closure. The resulting certificate permits a
+partially maintained private index while requiring restoration before success.
 
 \begin{definition}[Transaction certificate]
-Using abbreviations for the source definitions, the certificate target is
+Let $\tau_n$ be the result of the actual source interpreter for $p,C,s,c,a$ at
+observation depth $n$. Abbreviating \code{Requirements.Certifies},
 \[
 \begin{aligned}
-\operatorname{Certifies}(C,\sigma,p,c,v) \equiv {}&
-\forall s.\;\operatorname{Valid}(C,s)\to\operatorname{Present}(s,c)\to{}\\
-&\forall n.\;\operatorname{SafeTrace}(\tau_n(s),C,s,c,\sigma,v).
+\operatorname{Certifies}(C,\sigma,p,c,a)\equiv {}&
+\forall s.\ \operatorname{Valid}(C,s)\to\operatorname{Present}(s,c)\to{}\\
+&\forall n.\ \operatorname{SafetyTrace}(\tau_n,C,s,c,\sigma,a).
 \end{aligned}
 \]
-Here $n$ is an observation depth and $\tau_n(s)$ is the actual source
-interpreter result for $p$, the schema of $C$, $s$, $c$ and $v$ at that depth.
-A prefix must satisfy the installed laws in
-its executing situation and in a technical-failure closure; a completed trace
-must additionally satisfy its finalized closed situation and establish validity
-if finalization permits successful publication. Termination is a separate
-mandatory obligation.
+Validity includes structural validity, the state limit and all stable-state
+laws. Presence means that $c$ is a current registry context. For a prefix,
+\code{SafetyTrace} requires the executing laws and their technical-failure
+closure. For a final trace it also requires all laws at the finalized closure
+and validity of any successfully published working state.
 \end{definition}
-Here \(\operatorname{Valid}\) includes structural validity, the state-size limit
-and the stable-state laws; \(\operatorname{Present}\) is the actual authenticated
-context's presence in the registry. The notation abbreviates
-\code{Requirements.Certifies}; the Bend definition remains normative.
-The quantification over states prevents a client
-from obtaining a proof by assuming a convenient private snapshot. The proof
-need not reveal that snapshot to the client compiler.
 
-\subsection{Application case: ownership and an exact index}
-The implemented availability example has two fixed principals, Alice and Bob.
-Each has one Boolean availability row and a separate index table mapping
-\code{ready}/\code{busy} to that row's key. A \code{set} transaction removes
-the old index entry, writes its replacement, and writes the business row.
-A \code{query} enumerates and reads index entries, returning matching targets.
-An explicit \code{rebuild} reconstructs the index from the business value.
+The certificate quantifies over every valid initial state compatible with the
+context, so proving it requires no private snapshot. A separate termination
+obligation establishes a finite final trace for every starting state at the
+admitted inputs. Prepared admission strengthens certification to
+$\forall c,a.\operatorname{Certifies}(C,\sigma,p,c,a)$ and uses termination
+universal over states, contexts and arguments.
 
-Two independent administrator propositions express the intended policy.
-\code{Policy.Rule} restricts each actual access to the authenticated
-principal's tables and preserves the fixed user/business layout.
-\code{Policy.IndexRule} requires the index to equal the business-row projection
-in stable states and successful closed situations. Intermediate index rows may
-be stale while maintenance is incomplete. Thus a certificate must justify the
-read of every enumerated entry, including nonmatches, and restore the exact
-projection before successful publication. It need not establish index
-consistency after each provisional write.
+\section{Architecture}
+\subsection{Request path and publication}
+Figure~\ref{fig:architecture} shows the ordinary request path. The service uses
+standard input/output and processes complete requests serially in FIFO order.
+The Rust host owns the published root, processes and pipes. Its approximately
+3.4 thousand source lines implement this physical coordination. Node stages
+admission and compilation. Bend implements decoding, authentication, dispatch,
+execution, finalization and prepared controls.
 
-This separates two testable errors. Omitting maintenance or forging its value
-can preserve access permissions while violating the terminal projection
-equality. Reading Bob's index as Alice violates a prefix permission even if
-the result would later be discarded. The example's negative controls preserve
-the former variants' independent permission proofs so that the full certificate
-fails specifically at the index equality. The host rejects these variants and
-subsequent queries check that the publication is unchanged. This demonstrates
-the selected policies, not automatic certification of arbitrary indexes.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[font=\small,>=Stealth,
+ block/.style={draw,rounded corners=2pt,align=center,minimum height=1cm,text width=3.55cm},
+ node distance=8mm and 9mm]
+\node[block] (client) {Client\\program, credential, arguments, proof};
+\node[block,right=of client] (host) {Rust host\\frame and current root};
+\node[block,right=of host] (admit) {Admission and compilation\\both checkers, exact Book};
+\node[block,below=13mm of admit] (worker) {Native Bend worker\\\code{Gate.begin}, interpreter,\\\code{Gate.finish} / \code{early}};
+\node[block,left=of worker] (decision) {Checked decision\\\code{Commit(root, bytes)}\\or \code{Keep(bytes)}};
+\node[block,left=of decision] (publish) {Rust publication\\cleanup, replace root,\\deliver exact bytes};
+\draw[->] (client) -- (host);
+\draw[->] (host) -- (admit);
+\draw[->] (admit) -- (worker);
+\draw[->] (worker) -- (decision);
+\draw[->] (decision) -- (publish);
+\end{tikzpicture}
+\caption{Ordinary requests. Prepared invocations reuse admission and the compiled
+artifact, then enter the same checked gate and publication path.}
+\label{fig:architecture}
+\end{figure}
 
-\section{Architecture and the Eight Laws}
-Administrator propositions are application-specific and may constrain state,
-accesses or complete workflows. The eight service laws in Table~\ref{tab:laws}
-are a separate, fixed specification of how the database receives, authenticates,
-admits, executes and publishes requests under those propositions.
+A checked native dispatcher decodes the complete original body, authenticates
+against the published root and selects ordinary admission or a prepared
+operation. Admission freezes the source and dependency closure and constructs
+certificate and termination targets for the selected program. Both official
+checker modes check the pure declarations and executable Book. That exact Book
+feeds the official Bend-to-C compiler. Ordinary requests use Clang \code{-O0}
+to reduce compilation latency; reusable prepared workers use \code{-O2}.
 
-The prototype separates a pure Bend kernel from a Rust host, Node-based source
-staging and official-tool invocation, and a small native effect adapter. The
-service speaks binary frames on standard input/output. It is not itself a
-network database daemon. An optional TypeScript client or web adapter handles
-that interface without replacing admission.
+The worker uses a generated oracle for admission. It returns
+\code{Reject}, \code{ToolFailure} or \code{Accept(program)}. It compares the
+resolved source and proof with frozen bindings. Concrete admission additionally
+matches the authenticated context and structural arguments. Its sole accepting
+branch constructs the checked client program. Every generated Book includes a
+law named \code{generated\_oracle\_sound}, checked in both modes on each
+admission, proving this actual oracle's
+\code{OracleSoundness} premise. The oracle packages an already checked result;
+it does not elaborate fresh client source while running the transaction.
 
-Reception checks framing and declared sizes. Authentication uses the current
-published registry before the request's program can run. Staging freezes public
-configuration and dependencies, constructs targets for the actual source,
-context and arguments, checks policy and termination, then compiles the checked
-program. Execution occurs in fresh native workers using the private snapshot.
-Complete output, child success and cleanup precede acceptance of the proposal.
-The host then performs the sole publication and sends the response. An
-unsuccessful or incomplete worker cannot supply a complete accepted proposal.
+\code{Gate.begin} authenticates against the supplied current state before
+invoking that oracle. Acceptance starts precisely the admitted program with
+the actual context and arguments. The worker advances the checked interpreter
+incrementally. Stopping calls \code{Gate.finish}; early errors call
+\code{Gate.early}. The finisher computes the finalized response, selected root
+and framed bytes. \code{Execution.decision} emits a typed \code{Commit} or
+\code{Keep}. The WorkerBridge and WorkerDecision proofs connect this worker
+path to the gate theorems and exact emitted decision.
+
+Rust collects complete output, waits for child exit and completes cleanup before
+obeying the decision. Commit carries the whole selected root and paired response;
+Keep preserves the prior root. A successful read can commit a root equal to the
+starting root. The host writes the returned response bytes and starts the next
+request with the resulting published state.
+
+\subsection{Prepared programs and the controller}
+Preparation checks a universal certificate and compiles once, returning an
+instance-local handle. Each invocation supplies a fresh credential and arguments.
+Checked registered selection authenticates first, resolves the handle within
+the instance and selects the original source/proof tuple. The worker specializes
+the universal certificate to its current context and arguments. Handle reuse
+runs neither checker nor compiler, while retaining fresh native authentication
+and execution processes and artifact-integrity checks.
+
+\code{Control.control} implements preparation and invalidation as a checked
+plan followed by a registry delta. Preparation compares the exact universal
+admission tuple supplied after T1 checking, validates the handle's shape and
+rejects every previously allocated candidate. It encodes and bounds the receipt
+before installing a delta. Invalidation removes the scoped entry and retains
+allocation history. Control receipts are metadata: they preserve the database
+root and last published transaction response.
+
+The host forwards the latest controller-emitted registry bytes unchanged to the
+worker, which decodes them and performs checked lookup. The ControlRegistryBytes
+proof relates that serialization to the worker's decoder. The mixed service fold
+tracks transaction roots and registry history together, and no-revival preserves
+the absence of an allocated, removed handle. A handle supplies a program
+reference, while each caller retains their own current authenticated identity.
+Handles and allocation history last for the service instance and disappear at
+restart.
+
+\subsection{Persistence and result delivery}
+The default published state resides in RAM. Optional persistence writes and
+synchronizes a complete temporary image, replaces the authoritative image and
+synchronizes its directory before publishing in RAM and replying. Opening checks
+the same frozen environment and does not evaluate a seed. Missing, corrupt or
+incompatible images stop startup.
+
+A recoverable technical failure before commit keeps the prior root. Publication
+uncertainty stops service without claiming rollback. A delivery failure after
+commit retains the committed root, so the client may lack knowledge of the
+outcome. The receipt application in Section~\ref{sec:vouchers} addresses that
+last case at the application level.
+
+\section{Executable Guarantees}
+\subsection{Theorem contract}
+The public statements in \path{contract/Theorems.bend} refer directly to the
+functions used by the worker and controller. Table~\ref{tab:theorems} summarizes
+their witnesses. All four Core clauses share valid configuration, valid initial
+state and sound admission for the exact selected request. Finite-run results
+compose actual computed transitions and derive validity of subsequent roots.
+
+{\small
+\begin{longtable}{@{}L{.20\linewidth}L{.51\linewidth}L{.23\linewidth}@{}}
+\caption{Executable guarantees and witness modules in \code{proof/}.
+Public theorem names omit the suffix \code{Theorem} where applicable.}
+\label{tab:theorems}\\
+\toprule
+Theorem & Plain-language statement & Witness module\\
+\midrule
+\endfirsthead
+\toprule Theorem & Plain-language statement & Witness module\\\midrule
+\endhead
+\bottomrule
+\endfoot
+Startup & Executed initialization checks configuration/identity and encodes the
+exact admitted seed. Recovery checks the same configuration/identity without a
+seed. & Configuration\\[3pt]
+Init & Abstract seed-admission helper accepts exactly the supplied valid seed;
+it supplies the starting premise for Fold. & Init\\[3pt]
+Core: Admitted & Starts use current authenticated identity, exact oracle
+acceptance and exact machine/arguments. Halts have bounded framed replies and
+preserve the root. & CoreClauses\\[3pt]
+Core: Safe & Every actual machine prefix satisfies every installed law,
+including technical-failure closures. & CoreClauses\\[3pt]
+Core: Completed & Every final trace has the exact finisher, publication, valid
+next root and bounded response bytes, with no generic logical failure. & CoreClauses\\[3pt]
+Core: Progressing & Accepted machines reach a final trace and completion.
+A success/refusal proposal preserved by finalization yields that outcome. & CoreClauses\\[3pt]
+Ingress & Complete ordinary-body decoding preserves the root and applies Core
+to the decoded request, or emits a bounded denial. & Ingress\\[3pt]
+UnifiedCore & Checked direct/registered selection applies Core to the exact
+selected request or gives a bounded denial. & Ingress\\[3pt]
+Fold & From an Init-accepted seed, every reached root is valid and every
+transaction step satisfies Core. & Iteration\\[3pt]
+CodecRoundtrip; CodecCanonical & Successfully encoded values decode identically
+within representable bounds; accepted bytes re-encode exactly. & WireTheorems\\[3pt]
+FramingRoundtrip & Successful private two-block joins separate into the
+original valid octet blocks. & WireTheorems\\[3pt]
+Control & Current authentication, exact admission-tuple comparison, handle
+freshness, bounded receipts before deltas, and root/last-response preservation.
+& ControlClauses\\[3pt]
+ServiceFold & Mixed transactions and controls preserve root validity, exact
+registry history and universal certification of live registered sources.
+& ControlHistory\\[3pt]
+RegistryLookup & A live tracked lookup selects a universally certified source.
+& ControlHistory\\[3pt]
+RegistryInvalidation & Scoped removal clears the lookup and preserves allocated
+history. & ControlHistory\\[3pt]
+ServiceLifetime & A previously allocated handle remains allocated and every
+later preparation refuses to reuse it. & ControlHistory\\[3pt]
+ServiceNoRevival & An allocated handle absent from the registry remains absent
+at every later position of a mixed run. & ControlHistory\\
+\end{longtable}}
+
+Bridge witnesses connect these statements to the worker interface.
+\code{WorkerBridge} equates finite worker execution with Gate/Ingress/Unified
+composition, including the prepared packet's decoded registry.
+\code{CertifiedWorker} consumes the generated checked oracle to establish that
+composition for the actual worker. \code{WorkerDecision} proves that Keep is
+exactly the non-success publication path and Commit carries the exact next root
+and response bytes. \code{DispatchBridge} equates tag-zero dispatcher denials
+with the gate's early replies. Controller replies use Control's own theorem.
+
+\subsection{Formal Core statement}
+Write $A(C,r)$ for the executable oracle, and let $e$ be the computed result of
+\code{Gate.begin}. An accepting verdict is sound when it supplies both
+certification and termination of the exact accepted program:
+\[
+\begin{aligned}
+\operatorname{Sound}(C,r,A)\equiv\forall c,p.\quad
+&A(C,r,c)=\operatorname{Accept}(p)\ \Longrightarrow{}\\
+&\operatorname{Certifies}(C,\sigma,p,c,a)\ \land{}\\
+&\forall s.\operatorname{Terminates}(p,C,s,c,a).
+\end{aligned}
+\]
+This abbreviates the dependent \code{OracleSoundness} and \code{Accepted}
+definitions, with $\sigma$ and $a$ projected from $r$.
+\begin{proposition}[Core]
+For every configuration $C$, state $s$, request $r$ and oracle $A$, configuration
+validity, $\operatorname{Valid}(C,s)$ and $\operatorname{Sound}(C,r,A)$ imply
+all four clauses of $\operatorname{EntryCore}(e,C,s,r,A)$, where
+$e=\operatorname{Gate.begin}(C,s,r,A)$.
+\end{proposition}
+
+If $e$ starts, Admitted identifies a context $c$ obtained by current-state
+authentication and a program $p$ with the exact Accept verdict and exact
+\code{Core.start(p,c,a,s)} machine. Safe requires
+$\forall n.\operatorname{SafetyTrace}(\operatorname{traverse}(n),C,s,c,\sigma,a)$
+for that same machine. Completed gives, for every final trace $(w,\tau,q)$,
+an actual conclusion $(s',q',b)$ with
+\[
+\begin{aligned}
+q'&=\operatorname{finalize}(q,C,w), &
+s'&=\operatorname{publish}(q',s,w),\\
+b&=\operatorname{frame}(\operatorname{responseValue}(q')), &
+&\operatorname{Valid}(C,s').
+\end{aligned}
+\]
+The conclusion also establishes the response limit and excludes a generic
+\code{failure}. Publication selects $w$ exactly on success and $s$ otherwise.
+Progressing supplies a finite final trace and its completion. If
+\code{WithinLimits} holds---a success/refusal proposal unchanged by
+finalization---the completed response is success/refusal. A safe terminating
+program can still encounter a data error. For a halted entry, Admitted instead
+establishes the computed rejection and exact bounded early reply with root $s$.
+
+\subsection{Non-vacuity and negative controls}
+An earlier contract described service events through an abstract environment
+relation. A trivial environment admitting no meaningful executions could satisfy
+its implications. That formulation failed to force the behavior the database
+was intended to provide. The present statements eliminate that free relation:
+entry is the computed \code{Gate.begin}, safety concerns its actual machine,
+and progress requires an actual final trace after acceptance. Finite runs record
+those computed gate, interpreter and finisher equations rather than assuming
+that every reached state is valid.
+
+The positive tasks fixture uses the real policy, program, certificate and seed.
+It proves current authentication, the exact sound-oracle premise, an accepted
+machine start and a successful publication whose root differs from the seed.
+Checked refutations show that spoofed identity, uncertified execution,
+publication on refusal and rejecting an oracle-accepted program violate the
+relevant clauses. This supplies both a useful inhabitant and concrete excluded
+behaviors.
+
+Hundreds of negative fixtures under \path{tests/proof/rejected/} exercise false
+claims. Each must fail in both official checker modes at a definition named
+exactly \code{false}. A syntax error, missing import or additional helper
+co-failure invalidates the control. Application controls similarly isolate
+permission and publication obligations. Together these checks make the intended
+statement and rejection cause inspectable.
+
+\subsection{Trusted computing base}
+\label{sec:tcb}
+The native service result is conditional on the following trusted base, as
+specified in \path{proof/README.md}.
+
+\paragraph{T1: checking, exact binding and purity.}
+The official checkers are sound. Source/target and purity audits bind the client
+certificate, termination proof, frozen configuration and dependencies to the
+actual elaborated program, exclude host effects and pass the very checked Book
+to compilation. The generated \code{generated\_oracle\_sound} law discharges
+the logical admission premise, including structural matching and universal
+specialization. Startup additionally requires admission of the exact closed
+\code{Requirements.Valid(configuration(), state())} seed declaration before
+initialization. The runtime initializer consumes no proof value.
+
+\paragraph{T2: compiler and runtime preservation.}
+The Bend-to-C compiler, native ABI, runtime and fixed foreign loop preserve the
+proved pure transitions, integer/Unicode behavior and observation ordering for
+the exact admitted artifact.
+
+\paragraph{T3: physical host plumbing.}
+The proof guide specifies eleven duties:
+\begin{enumerate}
+\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}
+\item Freeze configuration, source/tool bytes and the valid initial root.
+\item Supply bounded complete frames, specified EOF behavior, original bodies
+and one current private snapshot, counting prepared prefix bytes.
+\item Preserve the exact admitted tuple and compile/load its immutable checked Book.
+\item Run a fresh private worker through the checked gate and finalizer, with
+no publication capability and with logical observations preserved on interruption.
+\item Collect complete results and finish rollback-capable cleanup before
+commit. Recoverable pre-commit technical failures keep the prior root.
+\item Atomically install exactly Commit's root/response pair, otherwise keep
+the prior root, and feed the resulting root to the next transaction.
+\item Forward the latest controller registry bytes unchanged, supply the exact
+T1 universal-admission tuple, install only the checked transition, retain
+allocation history and manage its corresponding artifact. Preserve the
+root/last-response pair; receipt loss does not undo a control.
+\item Deliver exact returned bytes. After post-commit delivery failure, retain
+publication and stop/close appropriately. EOF between requests ends the channel.
+\item Implement the specified admission-error-code to status table.
+Proof/source admission codes map to \code{certificate}; other tool codes map
+to \code{failure}. Failed certificates reject whole-Book admission before Gate.
+\item On a missing prepared artifact, preserve the root and send the fixed
+failure frame. A missing artifact for a live entry is an availability failure.
+\item On prepared artifact-integrity failure, preserve the root and send the
+same fixed failure frame before execution.
+\end{enumerate}
+The last two Rust-only replies are tested byte-for-byte against a checked
+worker not-found denial. T3.9's exact code table is given in the proof guide.
+
+Registry bytes are canonical but unauthenticated. Handle-to-program
+correspondence and revocation require T3's unchanged forwarding of the latest
+bytes; universal certification of an executed program still follows from T1 and
+generated matching. This obligation makes precise the connection between the
+mixed service fold and physical handle execution. Section~\ref{sec:limitations}
+collects the resulting scope and other limitations.
+
+\section{Certified Applications}
+\subsection{Ownership and an exact index}
+The availability application has two fixed principals with one Boolean business
+row each. Their separate ordinary index tables map \code{ready}/\code{busy}
+to the business key. \code{set} removes the old entry, inserts the exact
+replacement and changes the business row. \code{query} enumerates entries and
+returns matching targets; \code{rebuild} reconstructs the index from the actual
+business value.
+
+Two independent laws divide the obligations. \code{Policy.Rule} preserves the
+fixed layout and confines every actual access to the authenticated principal's
+business and index tables. \code{Policy.IndexRule} uses
+\code{TableLaws.OnStable} to require exact projection equality in stable states
+and successful closure. During execution it permits transient index rows.
+The action proof uses weakest-precondition reasoning over the real
+\code{Data.operate} results, with terminal index equalities. Its certificate
+quantifies over all valid states, inputs and observation depths.
 
 \begin{table}[htbp]\centering\small
-\caption{Fixed obligations and their principal source proof components.}
-\label{tab:laws}
-\begin{tabular}{>{\raggedright\arraybackslash}p{0.07\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}>{\raggedright\arraybackslash}p{0.41\linewidth}}\toprule
-Law & Required behavior & Representative source proof \\\midrule
-1 & Valid startup and fixed configuration & \code{Init}, \code{Iteration} \\
-2 & Canonical bytes and exact operations & \code{WireTheorems}, \code{Machine} \\
-3 & Current authenticated identity & \code{CoreClauses}, \code{Gate} \\
-4 & Exact admitted machine start & \code{CoreClauses}, T1 binding \\
-5 & Every-prefix law safety and fidelity & \code{CoreClauses}, \code{Machine} \\
-6 & Valid publication and serial fold & \code{CoreClauses}, \code{Iteration} \\
-7 & Exact finalized responses and bytes & \code{CoreClauses}, \code{Ingress} \\
-8 & Accepted execution progress & \code{CoreClauses} \\
+\caption{Independent obligations in the indexed application.}
+\begin{tabular}{@{}L{.35\linewidth}L{.25\linewidth}L{.32\linewidth}@{}}
+\toprule Variant & Prefix permission & Publication obligation\\\midrule
+Correct maintenance & Own tables & Exact index restored\\
+Omitted maintenance & Independently proved & Fails exact index equality\\
+Forged index value & Independently proved & Fails exact index equality\\
+Read Bob's index as Alice & Fails first foreign access & Cannot be admitted\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Meaning of the checked result}
-\code{CoreClauses.core\_theorem} inhabits \code{CoreTheorem}, indexed by
-Admitted, Safe, Completed and Progressing. All clauses require valid
-configuration, valid starting state and sound admission for the exact request.
-They establish actual authentication/admission/start, law safety at every
-prefix, exact valid finalization/publication/bytes, and accepted execution
-termination. Success/refusal additionally requires \code{WithinLimits} of the
-computed final trace; data errors remain possible.
+The negative variants retain the real operation/layout reasoning and, for
+omitted and forged maintenance, independently checked permission proofs. Their
+full certificates fail at the intended terminal equality. The foreign-read
+variant fails at its first permission obligation. Native checks reject these
+requests and query the subsequent state. The two-principal layout makes the
+distinction between prefix safety and publication exactness concrete.
 
-\code{Ingress} composes complete ordinary bodies and exact direct/registered
-selection with Core. \code{Iteration.fold\_theorem} derives every reached
-root's validity from an Init-accepted seed and computed finite-run steps.
-The numbered host obligations and T1--T3 trusted base are recorded in
-\code{proof/README.md}.
-Checker adequacy, OS progress and physical availability are external to these
-source theorems. Logical progress is proved after acceptance.
+\subsection{Vouchers and retained receipts}
+\label{sec:vouchers}
+The voucher application binds a caller request ID to an operation, exact input
+and retained result. A fresh issue writes voucher \code{v:request-1} and receipt
+\code{r:request-1} in the authenticated principal's ordinary table, returning the
+voucher key. Repeating the same operation and input returns that result after
+checking current permission. Conflicting input or cancellation flags refuse.
+Cancellation performs both provisional writes and then refuses, so neither row
+publishes. Explicit retirement removes both rows and ends that ID's lifetime.
 
-\subsection{Limits and failures}
-The contract has exactly three canonical sizes: message, state and response.
-They count encoded bytes and include the boundary value. External frame bytes
-are separate. A temporary working state exceeding the final state limit does
-not alone justify an early state-size rejection. Finalization determines
-whether the completed proposal fits. These limits do not bound the memory of
-the complete process tree, compiler work or total execution time.
+The key prefixes are disjoint and injective within each principal table. Input
+encoding preserves exact text and the cancellation flag. Ownership laws govern
+all receipt and business accesses. An additional \code{ReceiptLaws.Rule}
+requires actual prefixes to refine a frozen reference protocol and requires its
+completed success before publication. Stable-state validity constructively
+witnesses reachability from receipt-free tables through complete reference calls.
+The witness is erased proof, with ordinary table data holding the live receipt.
 
-Response causes distinguish authentication, certificate, refusal, logical
-limits and real technical failures. A technical failure cannot substitute for
-an arbitrary policy rejection. If delivery fails after publication, the state
-remains committed and the caller may not know the result. Fatal uncertainty
-must not be represented as a guaranteed rollback. This distinction is crucial
-for both durable storage and client retry behavior.
-
-\section{Reusable Programs and Optional Features}
-\subsection{Prepared programs and their proof boundary}
-Ordinary admission checks and compiles submitted source for each call. Prepared
-programs instead establish a certificate universal over contexts and arguments,
-compile once, and return an instance-local handle. Execution authenticates
-against current published state and specializes the universal certificate to
-fresh inputs. Restart loses handles; the sealed source and native artifacts
-must still match the registration at the actual call.
-
-This extension has a distinct raw protocol. Prepared bodies begin with tag~7,
-whereas an ordinary request is a canonical record encoded with tag~6. Checked
-\code{PreparedPrograms} exclusion lemmas prove canonical ordinary encodings
-cannot start with tag~7.
-
-The unified selection theorem, \code{UnifiedCoreTheorem}, applies Core to the
-exact request returned by executable scoped selection, which authenticates first
-and preserves credential and arguments. Cached universal admission specialized
-at current context/arguments belongs to T1's exact program/artifact binding.
-\code{PreparedProtocol} and \code{PreparedWire} retain physical envelope and
-receipt encoding facts. Prepare/invalidate host controllers and physical
-receipt-before-mutation ordering remain integration obligations. Historical
-prepared-read measurements below describe their recorded executable.
-
-\subsection{Persistence and concurrent reads}
-Optional persistence stores complete committed images and requires the exact
-frozen environment on reopening. The host commits the durable image before
-acknowledging success. Recovery depends on a protected publication origin and
-exact bytes; a checksum alone cannot establish policy validity. Corrupt, missing or
-incompatible storage must not silently become an empty database. An uncertain
-commit stops dispatch. Cross-build migration and compatibility are outside the
-prototype's scope.
-
-Serial FIFO service is the default. Optional read batches overlap only whole
-programs with a separate read-only certificate covering their continuations.
-Writes and prepared control operations remain barriers. Readers share the
-appropriate published snapshot and responses preserve FIFO order. A source
-read-only proof supports this refinement, but the Rust scheduler still needs
-its concrete queueing and synchronization contract. More readers can also
-increase simultaneous snapshot and worker memory.
-
-\subsection{Receipt application}
-The voucher example addresses an observable publication problem: the host may
-commit an operation and lose its response. Repeating the business action can
-then duplicate its effect. The example stores voucher \code{v:request-1} and
-receipt \code{r:request-1} in the authenticated principal's table in the same
-transaction. A receipt binds the request ID to the exact operation, inputs and
-retained result. Reusing the ID with identical inputs returns the retained
-result after current authorization; conflicting reuse refuses. Cancellation
-performs both provisional writes and then refuses, publishing neither.
-Explicit retirement removes both rows and ends protection for that ID.
-
-These are ordinary table operations, with no privileged receipt store or
-implicit retry. The administrator's law requires the actual execution to refine
-the specified voucher protocol, including successful completion before
-publication. A retained lost-response test kills the service after durable
-publication and before reply, reopens without a seed, and retries the same ID.
-An independent native trace check distinguishes a receipt hit with no repeated
-business writes from a fresh issue with writes. This establishes the tested
-recovery path under the stated storage assumptions; it does not guarantee
-unbounded deduplication after retirement or storage loss.
+Lifetime proofs establish the bidirectional business/receipt invariant, exact
+live-hit reads and results, conflict refusal, cancellation rollback and
+retirement. Negative proof controls challenge these obligations. Native tests
+also exercise permission changes and a lost-response scenario: kill after
+durable publication, reopen without a seed, then repeat identical and conflicting
+requests. A native trace check confirms that the retained hit performs no new
+business or receipt writes. Receipts thus express application-level repeat
+protection through the same law and action interface.
 
 \section{Evaluation}
-\subsection{Source and operational evidence}
-For RQ1, the retained integration roots checked in both official modes. The
-source-level result has the exact eight-law target and the five premise groups
-described above. Eight aggregate negative controls exercised missing identity,
-false byte correspondence, omitted policy, invalid publication, unguarded
-allocation length, swapped reification, authentication/preprocessing order and
-a hidden write in a purported read-only program. Their intended rejections
-support the specificity of those obligations; they neither prove checker
-soundness nor discharge the integration premises.
+\label{sec:evaluation}
+The evaluation combines deductive evidence for RQ1, application controls for RQ2
+and five experiments for RQ3. This section fixes the protocol and result
+structure for measurements on the current executable. Red fields reserve values
+for the new runs; no quantitative conclusion depends on an unfilled field.
 
-For RQ2, the retained final-source record reports 25 indexed durable requests
-and 43 voucher requests, including refusal and protected-access behavior.
-The indexed certificate and causal maintenance controls distinguish prefix
-permissions from successful-boundary consistency. The voucher case exercises
-exact-input receipt reuse, conflict and cancellation. These are finite native
-checks paired with general source certificates, not a demonstration that every
-business requirement has been specified.
+\subsection{Common protocol}
+Record the machine, operating system, storage, toolchain and database versions,
+CPU affinity and native thread budget with the samples. Use a single client,
+serial requests and identical expected logical results within each comparison.
+Separate initialization and registration from steady-state calls. Report warmup,
+independent round count, calls per round and fixture sizes:
+\pending{RunProtocol}. Alternate comparison order across rounds and retain all
+measured observations, including explicitly classified failures.
 
-Operational suites exercise framing and source admission, native effects,
-worker completion, interrupted response delivery and persistence recovery.
-Fault cases check survival of acknowledged writes, service termination after an
-uncertain commit, and a receipt-protected retry after a lost reply. They cover
-selected injected faults and schedules. They do not exhaust filesystem,
-operating-system or hardware failure behavior. Later prepared-control model
-checks and regressions are recorded separately from this retained source run.
-The ordinary theorem's premises and the unproved prepared-control refinement
-therefore remain material limitations despite these passing cases.
+Measure client latency from transmission of the pre-encoded complete request to
+receipt and decoding of the complete response, and check the result outside
+that interval. Report median and nearest-rank p95, with per-round summaries so
+repeated calls in one service instance remain identifiable. Throughput is
+completed checked calls divided by the corresponding elapsed interval. Service
+timing separately begins at selection of a complete frame and ends after cleanup
+and publication, before delivery; it excludes queue waiting and delivery.
+These boundaries distinguish client cost from internal work.
 
-\subsection{Read-batch experiment}
-\label{sec:read-experiment}
-The retained comparison uses an Intel Core i7-11700K, Linux x86-64 and two
-distinct physical cores. Both configurations receive the same total native
-thread budget of two. They differ in one versus two certified read workers.
-The client and sampler avoid the service cores and their SMT siblings where
-available. Each burst contains eight requests submitted in one pipe write.
-There is one warmup burst and seven measured paired rounds per workload and
-configuration, giving 256 checked responses including warmup. Across paired
-rounds, configuration order alternates between one-first and two-first; the
-comparison is paired but not randomized.
+\subsection{E1: ordinary admission and phase cost}
+Submit a trivial read, indexed \code{set} and voucher issue through ordinary
+admission. Alternate update values and use fresh voucher IDs so calls exercise
+the intended path. Table~\ref{tab:ordinary} reports full client latency.
+Table~\ref{tab:phases} separates both checker modes, C compilation and worker
+execution. Attribute staging, Bend C emission, authentication and publication to
+separate recorded residual phases rather than forcing their sum into execution.
 
-Both configurations execute the same registered prepared read program. Proof
-checking and compilation occur during registration, outside the measured bursts;
-the experiment therefore measures neither ordinary full-source admission nor
-its amortization. Both workloads use a small state containing two users and no
-application tables. The tiny workload returns after reading its own credential;
-the heavier workload also
-computes a runtime-input recurrence with base $10^8$ dependent U32 updates per
-request, alternating $10^8$ and $10^8+1$ across paired rounds. Different seeds
-within each burst prevent substituting a single cached result.
-An independent arithmetic oracle checks every complete response. Neither
-persistence nor timing logs are enabled.
-
-Each response latency starts immediately before transmission of the already
-encoded burst and ends at receipt of that complete response. Burst elapsed time
-ends after all eight responses have been received and checked. These boundaries
-include queueing, authentication, artifact checks, worker startup, execution,
-cleanup and pipe delivery; burst throughput also includes client response
-validation. Client encoding, expected-result computation and preparation are
-separate. The recorded setup cost includes service initialization and registration,
-so it cannot be labeled
-as isolated compilation or proof-checking time.
+Each full-Book check includes \code{generated\_oracle\_sound}. Record its
+presence and successful checking as \pending{OracleCheckResult}, along with the
+generated Book. Its proof checking belongs inside the checker intervals, so it
+must not be added again as a separate runtime cost. Reconcile phase intervals
+with total service time and identify any nested timings.
 
 \begin{table}[htbp]\centering\small
-\caption{Retained read-batch measurements. Throughput is the median across seven
-bursts. p95 pools measured response latencies. Peak RSS is sampled summed
-process-tree RSS, not a memory bound.}
-\label{tab:results}
-\input{../.build/tcc/table.tex}
+\caption{E1: ordinary client latency, seconds.}\label{tab:ordinary}
+\begin{tabular}{@{}lcc@{}}\toprule
+Program & Median & p95\\\midrule
+Trivial read & \pending{OrdReadMedS} & \pending{OrdReadP95S}\\
+Indexed set & \pending{OrdIndexMedS} & \pending{OrdIndexP95S}\\
+Voucher issue & \pending{OrdVoucherMedS} & \pending{OrdVoucherP95S}\\
+\bottomrule\end{tabular}
+\end{table}
+\begin{table}[htbp]\centering\small
+\caption{E1: median phase wall time, seconds. Both checks include the generated
+oracle law. Residual phases remain separately identifiable in the run data.}
+\label{tab:phases}
+\begin{tabular}{@{}lccc@{}}\toprule
+Phase & Read & Indexed set & Voucher issue\\\midrule
+\code{--check-only} & \pending{ReadCheckS} & \pending{IndexCheckS} & \pending{VoucherCheckS}\\
+\code{--verdict} & \pending{ReadVerdictS} & \pending{IndexVerdictS} & \pending{VoucherVerdictS}\\
+C compilation & \pending{ReadCompileS} & \pending{IndexCompileS} & \pending{VoucherCompileS}\\
+Worker execution & \pending{ReadWorkerS} & \pending{IndexWorkerS} & \pending{VoucherWorkerS}\\
+\bottomrule\end{tabular}
 \end{table}
 
-For each measured round $j$, burst throughput is $q_j=8/T_j$, where $T_j$
-is complete burst elapsed time in seconds. The reported paired statistic is
-$\operatorname{median}_j(q_{j,2}/q_{j,1})$, yielding \TinyRatio{} for tiny
-reads and \HeavyRatio{} for heavier reads. This differs from dividing two
-separately computed medians. The p95 uses the nearest-rank value among the 56
-measured response latencies per workload/configuration; responses in a burst
-are not independent samples. For tiny reads, the largest paired ratio is
-about 3.81, indicating substantial runtime variation. Seven rounds do not
-establish a stable population confidence interval or a universal speedup.
-The experiment supports overlapping independent requests on this hardware.
-It does not show that one serial recurrence becomes faster.
+\subsection{E2: prepared reuse and break-even}
+Use a universally certified program to measure one-time registration and repeated
+invocation with current arguments and credentials. Report volatile and persistent
+profiles separately, with service initialization excluded from registration.
+For a like-for-like ordinary/prepared pair, fix program, laws, arguments, seed
+and response validation. Report the program used in \pending{PreparedWorkload}.
+Prepared reuse retains fresh process startup, state transfer and integrity checks.
 
-The second reader increases observed memory: the maximum sampled process-tree
-RSS rises from approximately 7.05 to 13.71 MiB for tiny reads and from 6.51 to
-14.21 MiB for heavier reads. Sampling every 10 ms can miss brief peaks, and
-summing RSS double-counts shared pages. Large states, mixed writes, sustained
-load and disk behavior require separate experiments. The experiment alone does
-not determine the best worker count for those conditions.
-
-\subsection{Exploratory durable point-operation comparison}
-\label{sec:database-comparison}
-A separate retained run \citep{artifact} on 6 November 2026 exercised ten fixtures on each of
-JayDB2, PostgreSQL 16.15 and SQLite 3.53.1, on the same CPU model as the read-worker
-experiment. All 30 engine/fixture records report checked operation results and
-successful final-data comparisons after reopening. The table summarizes two
-operations with matching observed results: reading one existing integer cell
-by key and updating one integer cell. Each project/engine/operation has one
-warmup and seven measured samples; the reported value is the unweighted median
-of the ten per-fixture sample medians, in milliseconds.
+Let $R$ be registration time, $O$ the median ordinary call time and $P$ the
+median prepared call time for the same profile. Preparation pays for itself
+when $R+NP\leq NO$. For $O>P$, the estimated break-even count is
+$\lceil R/(O-P)\rceil$; if $O\leq P$, report no finite break-even. This is an
+estimate from measured medians; a cumulative timing curve can check the estimate
+against repeated complete sequences.
 
 \begin{table}[htbp]\centering\small
-\caption{Durable local adapter-call latency. Each entry is an unweighted median
-of ten fixture medians, each based on seven checked samples. The engines enforce
-different application constraints and use different execution paths.}
-\label{tab:database-comparison}
-\input{../.build/tcc/database-comparison-table.tex}
+\caption{E2: preparation and steady-state reuse. Times are seconds; throughput
+is completed calls per second.}\label{tab:prepared}
+\begin{tabular}{@{}lcc@{}}\toprule
+Measure & Volatile & Persistent\\\midrule
+Registration & \pending{PrepVolRegS} & \pending{PrepDurRegS}\\
+Ordinary median & \pending{PrepVolOrdS} & \pending{PrepDurOrdS}\\
+Prepared median & \pending{PrepVolCallS} & \pending{PrepDurCallS}\\
+Prepared p95 & \pending{PrepVolP95S} & \pending{PrepDurP95S}\\
+Prepared calls/s & \pending{PrepVolRps} & \pending{PrepDurRps}\\
+Break-even calls & \pending{PrepVolBreakEven} & \pending{PrepDurBreakEven}\\
+\bottomrule\end{tabular}
 \end{table}
 
-One client reuses warmed instances; engine order rotates across fixtures.
-Timing covers the Python adapter call through the decoded result, including
-encoding and transport where present, while preparation, compilation,
-expected-result calculation and validation reads are outside timed samples.
-JayDB2 uses prepared programs, one native worker, the default single-reader
-path and complete-image durable publication even for unchanged reads.
-PostgreSQL uses a local Unix socket with synchronous commits; SQLite uses an
-in-process connection with WAL and full synchronization. These are complete
-adapter costs, including unlike worker, transport and persistence mechanisms,
-rather than isolated storage-engine instruction costs or equal-resource trials.
+\subsection{E3: PostgreSQL and SQLite point operations}
+Compare two profiles against PostgreSQL~16 and SQLite. The first measures durable
+point read/update with the same key, value, result and acknowledged persistence
+requirement. Record JayDB2's complete-image mode and the SQL engines' journal,
+transaction and synchronization settings in \pending{DurableSettings}. Use
+prepared JayDB2 calls after separately measured registration and reusable SQL
+statements/connections. Updates must survive close/reopen checks. Record exact
+engine versions as \pending{DatabaseVersions}.
 
-The JayDB2 fixture installs zero administrator application laws. Authentication,
-type checks, certificate admission and technical publication checks remain, but
-relationship and ownership invariants are not certified here. In the probes,
-JayDB2 accepts all nine tested orphan references and replaces existing IDs in
-all ten fixtures; both SQL adapters reject those references and duplicate
-inserts. The additional SUM/JOIN workflows use nine/seventeen JayDB2 calls
-versus one SQL query and lack a shared snapshot under competing writes; they
-are excluded from this table. Thus the higher JayDB2 latencies characterize the
-implemented paths under these conditions, not the cost of equivalent policy
-enforcement or an intrinsic limit on certified queries.
+The second profile enforces owner-only read/update in JayDB2 and PostgreSQL.
+Install the ownership law in JayDB2. Enable and \code{FORCE ROW LEVEL SECURITY}
+in PostgreSQL with read and update policies, including the new-row check, and
+run the client without superuser or \code{BYPASSRLS} privileges
+\citep{postgresrls}. Attempt cross-user reads and writes before timing, verify
+that no foreign value is disclosed or changed, and retain the observed outcomes:
+\pending{CrossUserChecks}. SQL may filter a denied row while JayDB2 refuses the
+application operation; validate the common access property and record the
+respective response. SQLite is an unconstrained baseline in this profile.
 
-The measured controller is identified by its binary and 228 recorded input hashes,
-not the later checkout alone. The original manifest's final inventory guard
-failed after new contract modules appeared. A separate retained audit reconstructs
-all ten frozen environment identities and preserves the original failed status
-and unchanged measurements. The three linked files are
-\code{raw-result.json}, \code{provenance-audit.json} and \code{results.json}
-under \code{paper/evidence/}. The raw manifest SHA-256
-begins \code{fbce76fdafe3}; the derived analysis input begins
-\code{355fd9b197d9}. This auditable historical scope does not make the run a
-measurement of the current optional interfaces.
+\begin{table}[htbp]\centering\small
+\caption{E3: median client latency in milliseconds. The policy profile compares
+owner-only behavior in JayDB2 and PostgreSQL; SQLite has no corresponding policy.}
+\label{tab:comparison}
+\begin{tabular}{@{}lccc@{}}\toprule
+Profile and operation & JayDB2 & PostgreSQL 16 & SQLite\\\midrule
+Durable read & \pending{DbJayReadMs} & \pending{DbPgReadMs} & \pending{DbSqReadMs}\\
+Durable update & \pending{DbJayWriteMs} & \pending{DbPgWriteMs} & \pending{DbSqWriteMs}\\
+Owner-only read & \pending{OwnerJayReadMs} & \pending{OwnerPgReadMs} & \pending{OwnerSqReadMs}\\
+Owner-only update & \pending{OwnerJayWriteMs} & \pending{OwnerPgWriteMs} & \pending{OwnerSqWriteMs}\\
+\bottomrule\end{tabular}
+\end{table}
 
-\section{Discussion and Threats to Validity}
-RQ1 is answered by the inhabited executable gate theorems. Certificates over
-actual prefixes and finalization yield valid publication; the finite-run fold
-derives validity from the accepted seed through successive computed steps.
-Source/Book binding, compiler/runtime preservation and physical plumbing are
-T1--T3. Prepared controls and persistent publication require additional host
-obligations.
+\subsection{E4: verification time and source size}
+Measure wall time for \code{make verify-contract} and \code{make verify},
+reporting cache state, thread settings and repeated-run summaries in
+\pending{VerifyProtocol}. Both modes must check positive witnesses and the
+causal negative fixtures. Count maintained implementation, proof and application
+source under explicit directory and line-count rules, excluding generated and
+vendored code. Table~\ref{tab:verification} separates time from size.
 
-For RQ2, the indexed case demonstrates separate access and consistency
-properties; its negative controls show why permission alone is insufficient for
-correct maintenance. The voucher case demonstrates explicit retry semantics
-around a lost response. Both require application-specific laws and hand-written
-proofs. Their limited layouts and fixed principals leave scalability of policy
-construction and proof effort unresolved. Policy adequacy is also a separate
-question: an accepted proof establishes the installed proposition, which may
-still omit a user's intended requirement.
+\begin{table}[htbp]\centering\small
+\caption{E4: verification cost and source-size facts.}\label{tab:verification}
+\begin{tabular}{@{}lc@{}}\toprule Measure & Result\\\midrule
+\code{make verify-contract}, seconds & \pending{VerifyContractS}\\
+\code{make verify}, seconds & \pending{VerifyAllS}\\
+Bend implementation lines & \pending{BendImplLines}\\
+Bend proof lines & \pending{BendProofLines}\\
+Application source/proof lines & \pending{ApplicationLines}\\
+Rust host lines & \pending{RustHostLines}\\
+Rejected proof fixtures & \pending{NegativeFixtures}\\
+\bottomrule\end{tabular}
+\end{table}
 
-For RQ3, the descriptive result supports overlapping independent prepared
-requests on the measured hardware at increased memory cost. The heavy program
-is a synthetic recurrence rather than a representative business query. The
-small fixture, burst traffic, volatile state, seven paired rounds and one machine
-limit external validity. Alternating order reduces one order effect but does
-not control every source of runtime variation. The additional durable comparison
-provides checked point-operation adapter latencies, but its application laws,
-deployment paths and I/O work differ across engines. It does not compare
-equivalent complete application policies or establish a relative security or
-general throughput result.
+\subsection{E5: scaling with complete state size}
+Grow a valid fixture while preserving the timed operation's logical work: a
+single prepared point read or update. Report actual canonical state bytes and
+rows, use several sizes up to the configured state limit, and validate every
+result. Record the size grid, state ceiling, storage mode and native thread
+budget in \pending{ScalingProtocol}. Exclude registration from call latency.
+Plot read and update medians with round-level dispersion in
+Figure~\ref{fig:scaling}; report limit rejection separately from successful
+latency. The complete root crosses process boundaries even when the logical
+operation concerns one row, making state size a direct architectural variable.
 
-Transaction-policy compliance also differs from functional correctness of every
-helper. A lawful read can select the wrong authorized row, and lawful arithmetic
-can compute the wrong business result. Optional helper proofs establish named
-properties such as structural equality, signed-word order and roundtrip of the
-public composite-key encoder/decoder. Word-level arithmetic contracts and finite
-oracle tests do not supply
-a general interpretation theorem over mathematical integers, particularly for
-multiplication and division. Broader query and business specifications need
-additional proofs. Module import coverage measures what was checked, not what
-was specified.
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}
+\begin{axis}[width=.88\linewidth,height=5.5cm,
+xmin=0,xmax=1,ymin=0,ymax=1,xtick=\empty,ytick=\empty,
+xlabel={Canonical state size (bytes)},ylabel={Median call latency (seconds)},
+axis lines=left,legend style={at={(.02,.98)},anchor=north west,draw=none},
+clip=false]
+\addlegendimage{blue,mark=*}\addlegendentry{Prepared read}
+\addlegendimage{black,mark=square*}\addlegendentry{Prepared update}
+\node[align=center] at (axis description cs:.55,.48)
+{\pending{StateScalingSeries}\\Measured coordinates and dispersion pending};
+\end{axis}
+\end{tikzpicture}
+\caption{E5 result structure. The axes carry no numerical ticks or fabricated
+samples while measurements are pending.}
+\label{fig:scaling}
+\end{figure}
 
-Internal validity depends on correspondence between the checked and executed
-objects. The retained benchmark identifies the executable against a fresh build
-and records source, fixture and toolchain hashes; the number generator checks
-raw-record consistency. These checks identify and audit the measured object,
-but do not verify the compiler. The trusted boundary includes the official
-checker and translations, native runtime, host integration, processes, pipes,
-storage assumptions, operating system and hardware. Both checker modes share
-this trust. Current proofs cannot make historical timing results measurements
-of a later executable.
+\section{Discussion, Limitations and Threats to Validity}
+\label{sec:limitations}
+The theorem contract answers RQ1 at the executable Bend level under T1--T3.
+It covers both ordinary and registered execution, checked controls, exact
+responses and serial composition. Storage durability and crash recovery,
+operating-system failures, physical resource availability and checker
+completeness/adequacy lie outside those theorems. Persistence transition lemmas
+and injected-fault tests concern selected transitions and recovered bytes;
+device durability needs a separate specification and proof. The two checker
+modes share a toolchain, so their agreement is not independent evidence of
+logical soundness. Compiler/runtime preservation and the numbered host duties
+remain trusted.
 
-The threat model additionally trusts the administrator and protected host
-files. An attacker controlling the same operating-system identity is outside
-this boundary. Credential provisioning, network authentication, side channels,
-resource budgets, migration and production operations are not established by
-the transaction certificate. Complete-state transfer and complete-image
-persistence also impose costs not evaluated by the small read fixture.
+The interface enforces the installed laws. An administrator can omit a desired
+policy, or write incompatible laws that permit no useful program. The useful
+positive fixture and refutations rule out the former relational contract's
+empty-execution loophole; they do not establish completeness of an application's
+requirements. Prefix safety governs logical observations. Timing, physical
+resource consumption and other side channels are outside this confidentiality
+model.
 
-The most direct next evaluation would extend the permissive point-operation
-comparison to equivalent ownership/index or receipt workflows, increasing state
-sizes and mixed reads/writes, reporting admission and proof construction as
-separate costs. Strengthening the concrete refinement and establishing the
-prepared-control law would address a different gap: extending the theorem to
-the actual optional interfaces rather than merely extending test coverage.
+For RQ2, the indexed and voucher cases show distinct combinations of access and
+publication obligations, supported by causal failures. Their proofs are manually
+constructed, and the indexed application uses two fixed principals and one
+Boolean business row each. They provide no population estimate of certificate
+authoring effort. Voucher protection lasts while the receipt is retained and
+authoritative state survives; retirement explicitly ends it. Reference
+reachability in an erased proof describes allowable states, rather than an
+observed physical request history.
 
-\section{Conclusion}
+For RQ3, ordinary admission includes checking and compilation, while prepared
+reuse moves those costs to registration. The ordinary and prepared paths also
+use different C optimization levels, so their latency difference measures the
+supported service profiles rather than proof checking alone. Complete-state
+transfer, fresh processes and complete-image persistence add work beyond the
+logical point operation. A successful read follows Commit even for an unchanged
+root, including durable publication when enabled. These costs affect comparison
+with SQL engines that use different storage and execution paths.
+
+The planned experiments use one local deployment, selected small programs and
+a single serial client. Cache state, storage synchronization, CPU placement and
+measurement overhead can change latency. Repeated calls within a run are
+correlated. Owner-only checks align a concrete policy, while PostgreSQL filtering
+and JayDB2 refusal remain different observable interfaces. SQLite's unconstrained
+profile supplies a cost baseline. Source-line counts depend on counting rules
+and do not measure proof coverage or maintainability. Pending fields must be
+filled before quantitative claims or submission.
+
+\section{Conclusion and Future Work}
 \jay{} implements proof-carrying transactions whose certificates constrain
-administrator-defined situations throughout execution and at publication. The
-principal formal result is the inhabited executable Init/Core/Ingress/UnifiedCore/
-Fold and wire theorems under the explicit T1--T3 trusted base.
-Ownership/index and voucher/receipt applications demonstrate selected policies,
-with controls and fault cases exercising their executable boundaries.
+observations at every prefix and state at publication. Its contract speaks
+about the executable gate, interpreter, finalizer and controller. Generated
+oracle soundness links admission to the exact checked program, and worker
+bridges carry the result to a typed Commit/Keep decision. Serial folds preserve
+root validity and prepared-registry history, including permanent invalidation
+within an instance. The ownership/index and voucher/receipt applications
+illustrate how ordinary tables can support these obligations.
 
-The retained prepared-read experiment reports median paired throughput ratios
-of \TinyRatio{} and \HeavyRatio{} for two versus one read worker under the same
-two-core budget, accompanied by increased sampled memory. It concerns small
-volatile states after registration, and the complete prepared-control
-refinement remains unproved. The result is a scoped feasibility case for
-transactions that justify deliberate policy proofs. The separate durable
-comparison records much higher JayDB2 point-operation latencies through the
-evaluated adapter and persistence path; unequal constraints preclude attributing
-the difference to proof enforcement alone. Neither experiment establishes that
-manual proof construction, complete-state processing and the trusted
-implementation boundary are preferable to established database alternatives.
+The evaluation characterizes certification cost through ordinary admission,
+prepared reuse, SQL point-operation comparisons, verification effort and state
+scaling. Its quantitative outcome is \pending{EvaluationSummary}. Future work
+will prove crash-durability behavior, reduce T3 by checking more of the physical
+host boundary, and improve ordinary admission performance. Reducing complete-state
+transfer and developing reusable certificate construction are further steps
+toward larger applications.
 
-\raggedright
 \begin{thebibliography}{99}\small
 \bibitem[Necula and Lee(1996)]{necula1996}
 NECULA, G. C.; LEE, P. \textbf{Proof-carrying code}. Pittsburgh: Carnegie Mellon
@@ -638,41 +850,39 @@ NANEVSKI, A.; MORRISETT, G.; SHINNAR, A.; GOVEREAU, P.; BIRKEDAL, L.
 Ynot: dependent types for imperative programs. In: \textbf{ICFP}, 2008,
 p. 229--240. DOI: \href{https://doi.org/10.1145/1411203.1411237}{10.1145/1411203.1411237}.
 
+\bibitem[Malecha et al.(2010)]{malecha2010}
+MALECHA, G.; MORRISETT, G.; SHINNAR, A.; WISNESKY, R.
+Toward a verified relational database management system.
+In: \textbf{POPL}, 2010, p. 237--248.
+DOI: \href{https://doi.org/10.1145/1706299.1706329}{10.1145/1706299.1706329}.
+
 \bibitem[Delaware et al.(2015)]{fiat2015}
 DELAWARE, B.; PIT-CLAUDEL, C.; GROSS, J.; CHLIPALA, A.
 Fiat: deductive synthesis of abstract data types in a proof assistant.
 In: \textbf{POPL}, 2015.
 \url{https://hdl.handle.net/1721.1/91993.2}.
 
-\bibitem[Malecha et al.(2010)]{malecha2010}
-MALECHA, G.; MORRISETT, G.; SHINNAR, A.; WISNESKY, R.
-Toward a verified relational database management system.
-In: \textbf{POPL}, 2010, p. 237--248.
-DOI: \href{https://doi.org/10.1145/1706299.1706329}{10.1145/1706299.1706329}.
-\url{https://dash.harvard.edu/entities/publication/73120378-8571-6bd4-e053-0100007fdf3b}.
+\bibitem[Leroy(2009)]{leroy2009}
+LEROY, X. Formal verification of a realistic compiler.
+\textbf{Communications of the ACM}, v. 52, n. 7, p. 107--115, 2009.
+DOI: \href{https://doi.org/10.1145/1538788.1538814}{10.1145/1538788.1538814}.
 
 \bibitem[PostgreSQL Global Development Group(2026a)]{postgresrls}
-POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 18 documentation:
-row security policies}. 2026.
-\url{https://www.postgresql.org/docs/18/ddl-rowsecurity.html}.
-Accessed: 6 Nov. 2026.
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+row security policies}. \url{https://www.postgresql.org/docs/16/ddl-rowsecurity.html}.
+Accessed: 11 Nov. 2026.
 
 \bibitem[PostgreSQL Global Development Group(2026b)]{postgresconstraints}
-POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 18 documentation:
-constraints}. 2026. \url{https://www.postgresql.org/docs/18/ddl-constraints.html}.
-Accessed: 6 Nov. 2026.
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textbf{PostgreSQL 16 documentation:
+constraints}. \url{https://www.postgresql.org/docs/16/ddl-constraints.html}.
+Accessed: 11 Nov. 2026.
 
 \bibitem[Bend contributors(2026)]{bend}
-BEND CONTRIBUTORS. \textbf{Bend}. Source distribution; evaluated toolchain
-version 2.0.39, pinned by the JayDB2 admission manifest.
-\url{https://github.com/bendlang/bend}. Accessed: 6 Nov. 2026.
+BEND CONTRIBUTORS. \textbf{Bend}. Source distribution, version 2.0.39.
+\url{https://github.com/bendlang/bend}.
 
 \bibitem[Lizardo(2026)]{artifact}
-LIZARDO, G. J. \textbf{JayDB2: source, specification and experimental evidence}.
-2026. \url{https://github.com/j0taaa/jaydb2}.
-Retained source and measurements: revision \code{00d973e}.
-Retained measurements: \path{paper/evidence/benchmark.json}.
-Later proof scope: review records in Git history.
-
+LIZARDO, G. J. \textbf{JayDB2: source, specification and applications}. 2026.
+\url{https://github.com/j0taaa/jaydb2}.
 \end{thebibliography}
 \end{document}
