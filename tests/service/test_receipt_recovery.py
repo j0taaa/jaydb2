@@ -116,6 +116,11 @@ class ReceiptRecoveryTests(unittest.TestCase):
                         pending.process.wait(timeout=10)
                     self.assertEqual(pending.process.stdout.read(), b'', 'no acknowledgement or later response may escape')
             image = (storage/'snapshot').read_bytes()
+            # Hold the old inode live so an accidental rewrite cannot hide
+            # behind inode-number reuse. Recovery and receipt hits reuse it.
+            durable_file = (storage/'snapshot').open('rb')
+            self.addCleanup(durable_file.close)
+            durable_inode = os.fstat(durable_file.fileno()).st_ino
             tables = {table['name']: table['rows'] for table in decode(committed)['tables']}
             self.assertEqual({r['id'] for r in tables['alice']}, {'permission','r:lost','v:lost'})
             self.assertEqual({r['id'] for r in tables['bob']}, {'permission'})
@@ -140,6 +145,8 @@ class ReceiptRecoveryTests(unittest.TestCase):
             self.assertEqual(retry.call(code, proof, 'alice-token', ['inspect','later']),
                              dict(status='success', value=None))
             self.assertEqual(state_bytes(storage), committed)
+            self.assertEqual((storage/'snapshot').stat().st_ino, durable_inode,
+                             'receipt hits and reads must reuse the durable image')
             retry.finish()
 
 

@@ -129,10 +129,19 @@ persistence is enabled explicitly:
 
 Create requires a new directory with an existing parent; open requires the
 authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
-Every successful state proposal writes and synchronizes a complete temporary
-image, atomically replaces the authoritative image, and synchronizes the
-directory before RAM publication and response delivery. Errors from replacement
-onward stop the instance with no response, since rollback may be false. Missing,
+Every successful proposal whose canonical state bytes differ from the current
+published state writes and synchronizes a complete temporary image, atomically
+replaces the authoritative image, and synchronizes the directory before RAM
+publication and response delivery. An identical state reuses the already durable
+image; it still publishes the checked Commit root/response pair in RAM. The image
+contains the immutable environment identity, limits, canonical state and checksum,
+with no separate per-request response, sequence or prepared registry. Application
+idempotency receipts are ordinary rows within that state, so creating or changing
+a receipt still requires the full durable commit. The last response and allocated
+handle history are instance-local and are not recovered after restart. Open
+synchronizes the validated authoritative file and directory once: the previous
+process may have died between rename and directory synchronization. Errors from
+replacement onward stop the instance with no response, since rollback may be false. Missing,
 corrupt or incompatible images stop startup; no seed or older image is used as
 fallback. Users and all tables survive; prepared handles do not.
 

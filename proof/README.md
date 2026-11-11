@@ -172,3 +172,14 @@ logical termination is conditional on T1; acceptance of every mathematical
 proof requires a separate adequacy assumption. Syscall progress and scheduling
 require host/runtime assumptions. The pure persistence lemmas concern supplied
 transitions and recovered bytes, not device durability.
+
+The optional durable host stores canonical state, immutable environment binding
+and limits, plus a checksum. It does not persist the instance-local last response
+or prepared registry/allocation history. T3.6 and T3.7 still require the exact
+root/response pair in RAM, including on equal-root successful transactions and
+controls. A byte-identical state Commit may reuse an already durable complete
+image while publishing its new paired response. Create establishes durability;
+open synchronizes the validated authoritative file and directory before serving;
+every changed state (including an application receipt row) completes file sync,
+replacement and directory sync before publication. This optimization changes no
+T3 duty and adds no response-replay promise across restart.

@@ -1,0 +1,1588 @@
+{
+  "format": "jaydb2-performance-before-after-v1",
+  "quartiles": "inclusive; no outlier removal",
+  "experiments": {
+    "ordinary": {
+      "before_metadata": {
+        "commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/tcc-fresh-benchmarks",
+        "utc": "2026-11-11T13:20:06Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+        "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+        "dirty": [
+          "M server/main.rs",
+          " M tools/admission/index.mjs",
+          " M tools/service/compile.mjs",
+          " M tools/service/stage.mjs",
+          "?? paper/bench/"
+        ],
+        "threads": 1,
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "after_metadata": {
+        "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/diagnose-prepared-latency",
+        "utc": "2026-11-11T15:12:03Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+        "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+        "dirty": [
+          "M paper/evidence/comparison.json",
+          " M paper/evidence/prepared.json",
+          " M paper/evidence/scaling.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "metrics": {
+        "read": {
+          "before": {
+            "unit": "s",
+            "median": 4.622617677,
+            "q1": 4.5974864470000005,
+            "q3": 4.65487543775,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 4.608765417,
+            "q1": 4.569423920249999,
+            "q3": 4.63211383575,
+            "n": 10
+          }
+        },
+        "indexed": {
+          "before": {
+            "unit": "s",
+            "median": 8.0839820285,
+            "q1": 8.05911130925,
+            "q3": 8.116091935250001,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 8.072522974,
+            "q1": 8.05196063125,
+            "q3": 8.12806754375,
+            "n": 10
+          }
+        },
+        "voucher": {
+          "before": {
+            "unit": "s",
+            "median": 8.378165731,
+            "q1": 8.36842746675,
+            "q3": 8.40153175375,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 8.3224333015,
+            "q1": 8.31654792525,
+            "q3": 8.33108559025,
+            "n": 10
+          }
+        }
+      }
+    },
+    "prepared": {
+      "before_metadata": {
+        "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/tcc-fresh-benchmarks",
+        "utc": "2026-11-11T13:24:37Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+        "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+        "dirty": [
+          "M paper/bench/fixtures.py",
+          " M paper/bench/run.py",
+          " M paper/bench/workloads.py",
+          " M paper/evidence.py",
+          " M paper/test_evidence.py",
+          "?? paper/evidence/ordinary.json"
+        ],
+        "threads": 1,
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "after_metadata": {
+        "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/diagnose-prepared-latency",
+        "utc": "2026-11-11T14:56:37Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+        "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+        "dirty": [],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "metrics": {
+        "read/volatile/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 3.0864469999999997,
+            "q1": 3.04126625,
+            "q3": 3.18122125,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.06955,
+            "q1": 3.0136457500000002,
+            "q3": 3.1561519999999996,
+            "n": 300
+          }
+        },
+        "read/volatile/registration": {
+          "before": {
+            "unit": "s",
+            "median": 5.908283725,
+            "q1": 5.8992174435,
+            "q3": 5.9155436560000005,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 5.899174667,
+            "q1": 5.892265662,
+            "q3": 5.9030307635,
+            "n": 3
+          }
+        },
+        "read/volatile/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 323.7004176116727,
+            "q1": 322.4557181017407,
+            "q3": 325.0156701205931,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 326.6660422933286,
+            "q1": 323.23682296956173,
+            "q3": 327.870159467572,
+            "n": 10
+          }
+        },
+        "read/volatile/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 306.35634767452206,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 219.66830063173322,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "indexed/volatile/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 16.4990175,
+            "q1": 9.2761315,
+            "q3": 22.76833075,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 14.030347,
+            "q1": 5.6368427500000005,
+            "q3": 21.123821749999998,
+            "n": 300
+          }
+        },
+        "indexed/volatile/registration": {
+          "before": {
+            "unit": "s",
+            "median": 10.083127986,
+            "q1": 10.079789043,
+            "q3": 10.1357065625,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 10.14582355,
+            "q1": 10.134640424499999,
+            "q3": 10.159767229,
+            "n": 3
+          }
+        },
+        "indexed/volatile/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 58.59699059230174,
+            "q1": 52.77677388502912,
+            "q3": 75.27269227440902,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 67.01742998683775,
+            "q1": 59.17198059331712,
+            "q3": 83.43660701526159,
+            "n": 10
+          }
+        },
+        "indexed/volatile/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 62.52797551125688,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 69.1913462796511,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "voucher/volatile/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 11.3439825,
+            "q1": 5.0660507500000005,
+            "q3": 20.310908750000003,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 14.694746,
+            "q1": 7.530237,
+            "q3": 22.02599325,
+            "n": 300
+          }
+        },
+        "voucher/volatile/registration": {
+          "before": {
+            "unit": "s",
+            "median": 9.668964825,
+            "q1": 9.649745272499999,
+            "q3": 9.7099070085,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 9.652139903,
+            "q1": 9.6452789615,
+            "q3": 9.662325588,
+            "n": 3
+          }
+        },
+        "voucher/volatile/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 77.40922124185639,
+            "q1": 69.23526015057305,
+            "q3": 79.59687960139219,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 64.68767271271035,
+            "q1": 61.64225856253695,
+            "q3": 68.60307773947955,
+            "n": 10
+          }
+        },
+        "voucher/volatile/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 37.68287688567,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 32.87144169478816,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "read/persistent/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 28.397969500000002,
+            "q1": 27.718646749999998,
+            "q3": 30.51168325,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.091686,
+            "q1": 3.0328615,
+            "q3": 3.1804517500000005,
+            "n": 300
+          }
+        },
+        "read/persistent/registration": {
+          "before": {
+            "unit": "s",
+            "median": 5.910662328,
+            "q1": 5.9016219875,
+            "q3": 5.915561064,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 5.907848511,
+            "q1": 5.889365029,
+            "q3": 5.917746531500001,
+            "n": 3
+          }
+        },
+        "read/persistent/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 35.69772353500618,
+            "q1": 35.123658234634874,
+            "q3": 36.4597797766229,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 323.2101955321508,
+            "q1": 320.83679831267455,
+            "q3": 325.55461799408954,
+            "n": 10
+          }
+        },
+        "read/persistent/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 35.4778136689474,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 206.83018619361474,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "indexed/persistent/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 36.3354085,
+            "q1": 32.568411499999996,
+            "q3": 39.58221875,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 36.718503,
+            "q1": 33.5076805,
+            "q3": 39.12486225,
+            "n": 300
+          }
+        },
+        "indexed/persistent/registration": {
+          "before": {
+            "unit": "s",
+            "median": 10.165326159,
+            "q1": 10.127834117999999,
+            "q3": 10.199094042999999,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 10.175896667,
+            "q1": 10.139135756,
+            "q3": 10.185899122999999,
+            "n": 3
+          }
+        },
+        "indexed/persistent/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 28.835539699702345,
+            "q1": 28.34365523383194,
+            "q3": 29.322640241549248,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 28.832540518881476,
+            "q1": 28.146603128181017,
+            "q3": 29.05363973643191,
+            "n": 10
+          }
+        },
+        "indexed/persistent/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 28.552142102499886,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 28.218805939717505,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "voucher/persistent/execute": {
+          "before": {
+            "unit": "ms",
+            "median": 37.532573,
+            "q1": 30.5463405,
+            "q3": 39.51165725,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 37.831307,
+            "q1": 33.36613625,
+            "q3": 39.9906905,
+            "n": 300
+          }
+        },
+        "voucher/persistent/registration": {
+          "before": {
+            "unit": "s",
+            "median": 9.65138596,
+            "q1": 9.6430435985,
+            "q3": 9.7311976725,
+            "n": 3
+          },
+          "after": {
+            "unit": "s",
+            "median": 9.637111921,
+            "q1": 9.6205898125,
+            "q3": 9.6399113115,
+            "n": 3
+          }
+        },
+        "voucher/persistent/active-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 28.312710892283793,
+            "q1": 27.0384321052933,
+            "q3": 28.910469314795865,
+            "n": 10
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 27.624859494785404,
+            "q1": 27.402312988653055,
+            "q3": 28.455741291870652,
+            "n": 10
+          }
+        },
+        "voucher/persistent/closed-loop-throughput": {
+          "before": {
+            "unit": "calls/s",
+            "median": 14.96216406031136,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "calls/s",
+            "median": 14.077763771596306,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        }
+      }
+    },
+    "comparison": {
+      "before_metadata": {
+        "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/tcc-fresh-benchmarks",
+        "utc": "2026-11-11T13:29:23Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+        "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+        "dirty": [
+          "M paper/README.md",
+          " M paper/bench/fixtures.py",
+          " M paper/bench/run.py",
+          " M paper/bench/workloads.py",
+          " M paper/evidence.py",
+          " M paper/test_evidence.py",
+          "?? paper/evidence/ordinary.json",
+          "?? paper/evidence/prepared.json"
+        ],
+        "threads": 1,
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "after_metadata": {
+        "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/diagnose-prepared-latency",
+        "utc": "2026-11-11T15:04:53Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+        "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+        "dirty": [
+          "M paper/evidence/prepared.json",
+          " M paper/evidence/scaling.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "metrics": {
+        "postgresql/point/read": {
+          "before": {
+            "unit": "ms",
+            "median": 0.0327055,
+            "q1": 0.032106,
+            "q3": 0.036227,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 0.032064499999999996,
+            "q1": 0.03147,
+            "q3": 0.03537675,
+            "n": 300
+          }
+        },
+        "postgresql/point/update": {
+          "before": {
+            "unit": "ms",
+            "median": 3.342423,
+            "q1": 2.820695,
+            "q3": 4.084714,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.318544,
+            "q1": 2.934337,
+            "q3": 4.12119825,
+            "n": 300
+          }
+        },
+        "sqlite/point/read": {
+          "before": {
+            "unit": "ms",
+            "median": 0.0135775,
+            "q1": 0.0134415,
+            "q3": 0.013853,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 0.013420000000000001,
+            "q1": 0.013263,
+            "q3": 0.013704,
+            "n": 300
+          }
+        },
+        "sqlite/point/update": {
+          "before": {
+            "unit": "ms",
+            "median": 6.105595,
+            "q1": 5.689318,
+            "q3": 6.96228775,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 6.474285999999999,
+            "q1": 4.943793,
+            "q3": 7.59207375,
+            "n": 300
+          }
+        },
+        "jaydb2/point/read": {
+          "before": {
+            "unit": "ms",
+            "median": 28.1701325,
+            "q1": 27.309158749999998,
+            "q3": 30.45695675,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.0030514999999998,
+            "q1": 2.96608175,
+            "q3": 3.05245525,
+            "n": 300
+          }
+        },
+        "jaydb2/point/read/ordinary": {
+          "before": {
+            "unit": "s",
+            "median": 4.6400331095,
+            "q1": 4.61229883675,
+            "q3": 4.6552184795,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 4.6041329300000005,
+            "q1": 4.5682939375,
+            "q3": 4.624855932,
+            "n": 10
+          }
+        },
+        "jaydb2/point/update": {
+          "before": {
+            "unit": "ms",
+            "median": 30.7409495,
+            "q1": 29.80750075,
+            "q3": 70.91731875,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 27.805215,
+            "q1": 26.536053,
+            "q3": 29.868264250000003,
+            "n": 300
+          }
+        },
+        "jaydb2/point/update/ordinary": {
+          "before": {
+            "unit": "s",
+            "median": 4.762255242,
+            "q1": 4.75435116125,
+            "q3": 4.77959597625,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 4.777463447500001,
+            "q1": 4.7454760425,
+            "q3": 4.81614141425,
+            "n": 10
+          }
+        },
+        "postgresql/owner/read": {
+          "before": {
+            "unit": "ms",
+            "median": 0.0323355,
+            "q1": 0.03199475,
+            "q3": 0.032970250000000006,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 0.0323585,
+            "q1": 0.031822,
+            "q3": 0.037324500000000004,
+            "n": 300
+          }
+        },
+        "postgresql/owner/update": {
+          "before": {
+            "unit": "ms",
+            "median": 4.073582999999999,
+            "q1": 2.852609,
+            "q3": 4.22626275,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.3427395,
+            "q1": 2.84916575,
+            "q3": 4.0790310000000005,
+            "n": 300
+          }
+        },
+        "sqlite/owner/read": {
+          "before": {
+            "unit": "ms",
+            "median": 0.0134915,
+            "q1": 0.00239925,
+            "q3": 0.013836000000000001,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 0.013412,
+            "q1": 0.01327175,
+            "q3": 0.013612750000000002,
+            "n": 300
+          }
+        },
+        "sqlite/owner/update": {
+          "before": {
+            "unit": "ms",
+            "median": 7.290274500000001,
+            "q1": 4.8489265,
+            "q3": 47.456297,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 6.2467025,
+            "q1": 5.220127,
+            "q3": 7.556797750000001,
+            "n": 300
+          }
+        },
+        "jaydb2/owner/read": {
+          "before": {
+            "unit": "ms",
+            "median": 35.456070499999996,
+            "q1": 33.21790025,
+            "q3": 37.984986500000005,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 8.823738500000001,
+            "q1": 4.2552525,
+            "q3": 19.29122575,
+            "n": 300
+          }
+        },
+        "jaydb2/owner/read/ordinary": {
+          "before": {
+            "unit": "s",
+            "median": 10.6794506535,
+            "q1": 10.6631885585,
+            "q3": 10.69349474,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 10.626252599,
+            "q1": 10.587707382249999,
+            "q3": 10.6347592045,
+            "n": 10
+          }
+        },
+        "jaydb2/owner/update": {
+          "before": {
+            "unit": "ms",
+            "median": 34.2027755,
+            "q1": 32.5144535,
+            "q3": 36.742827,
+            "n": 300
+          },
+          "after": {
+            "unit": "ms",
+            "median": 33.124299,
+            "q1": 29.088871750000003,
+            "q3": 34.930128,
+            "n": 300
+          }
+        },
+        "jaydb2/owner/update/ordinary": {
+          "before": {
+            "unit": "s",
+            "median": 11.993001358499999,
+            "q1": 11.97903151,
+            "q3": 12.017489371749999,
+            "n": 10
+          },
+          "after": {
+            "unit": "s",
+            "median": 11.993406047,
+            "q1": 11.95542348775,
+            "q3": 12.018624399999998,
+            "n": 10
+          }
+        }
+      }
+    },
+    "scaling": {
+      "before_metadata": {
+        "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/tcc-fresh-benchmarks",
+        "utc": "2026-11-11T14:00:00Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+        "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+        "dirty": [
+          "M paper/README.md",
+          " M paper/bench/fixtures.py",
+          " M paper/bench/run.py",
+          " M paper/bench/workloads.py",
+          " M paper/evidence.py",
+          " M paper/test_evidence.py",
+          "?? paper/evidence/comparison.json",
+          "?? paper/evidence/ordinary.json",
+          "?? paper/evidence/prepared.json",
+          "?? paper/evidence/scaling-seed-attempt.json",
+          "?? paper/evidence/scaling.json",
+          "?? paper/evidence/verification.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "after_metadata": {
+        "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/diagnose-prepared-latency",
+        "utc": "2026-11-11T15:01:18Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+        "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+        "dirty": [
+          "M paper/evidence/prepared.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "metrics": {
+        "10/volatile/read": {
+          "before": {
+            "unit": "ms",
+            "median": 3.1388365,
+            "q1": 3.07371525,
+            "q3": 3.4867545,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.0686400000000003,
+            "q1": 3.005978,
+            "q3": 3.1379845,
+            "n": 50
+          }
+        },
+        "10/volatile/update": {
+          "before": {
+            "unit": "ms",
+            "median": 3.051979,
+            "q1": 3.01314575,
+            "q3": 3.088723,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.0497035,
+            "q1": 2.99138325,
+            "q3": 3.09924075,
+            "n": 50
+          }
+        },
+        "10/persistent/read": {
+          "before": {
+            "unit": "ms",
+            "median": 27.711606000000003,
+            "q1": 26.815594,
+            "q3": 31.84916875,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 3.8401829999999997,
+            "q1": 3.06805725,
+            "q3": 15.84920125,
+            "n": 50
+          }
+        },
+        "10/persistent/update": {
+          "before": {
+            "unit": "ms",
+            "median": 27.8330365,
+            "q1": 27.021246,
+            "q3": 31.32200975,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 27.779286499999998,
+            "q1": 25.1199205,
+            "q3": 30.233854750000003,
+            "n": 50
+          }
+        },
+        "100/volatile/read": {
+          "before": {
+            "unit": "ms",
+            "median": 20.9617415,
+            "q1": 17.5133345,
+            "q3": 26.73282675,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 20.6429255,
+            "q1": 12.9229275,
+            "q3": 27.16788175,
+            "n": 50
+          }
+        },
+        "100/volatile/update": {
+          "before": {
+            "unit": "ms",
+            "median": 21.049234499999997,
+            "q1": 14.20603975,
+            "q3": 26.1542825,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 19.049373,
+            "q1": 6.73108275,
+            "q3": 25.31699325,
+            "n": 50
+          }
+        },
+        "100/persistent/read": {
+          "before": {
+            "unit": "ms",
+            "median": 37.363862499999996,
+            "q1": 30.54620075,
+            "q3": 39.563862,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 19.823877,
+            "q1": 11.45353075,
+            "q3": 26.482271,
+            "n": 50
+          }
+        },
+        "100/persistent/update": {
+          "before": {
+            "unit": "ms",
+            "median": 41.621194,
+            "q1": 39.651553,
+            "q3": 42.05408425,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 36.221472500000004,
+            "q1": 28.7193225,
+            "q3": 39.231057500000006,
+            "n": 50
+          }
+        },
+        "1000/volatile/read": {
+          "before": {
+            "unit": "ms",
+            "median": 29.5169405,
+            "q1": 26.6237975,
+            "q3": 35.094881,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 29.559302,
+            "q1": 27.09834925,
+            "q3": 32.811622,
+            "n": 50
+          }
+        },
+        "1000/volatile/update": {
+          "before": {
+            "unit": "ms",
+            "median": 29.855587,
+            "q1": 27.21626475,
+            "q3": 34.193978,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 29.127629499999998,
+            "q1": 27.620634,
+            "q3": 33.36487425,
+            "n": 50
+          }
+        },
+        "1000/persistent/read": {
+          "before": {
+            "unit": "ms",
+            "median": 70.08028949999999,
+            "q1": 59.171788750000005,
+            "q3": 92.02374425,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 28.7831475,
+            "q1": 26.6391885,
+            "q3": 34.7000955,
+            "n": 50
+          }
+        },
+        "1000/persistent/update": {
+          "before": {
+            "unit": "ms",
+            "median": 53.8174665,
+            "q1": 48.03814675,
+            "q3": 58.09099725,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 40.3789455,
+            "q1": 38.7137505,
+            "q3": 43.69956200000001,
+            "n": 50
+          }
+        },
+        "1105/volatile/read": {
+          "before": {
+            "unit": "ms",
+            "median": 30.6471145,
+            "q1": 28.853710749999998,
+            "q3": 34.6423435,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 31.324225499999997,
+            "q1": 29.316102,
+            "q3": 35.18406525,
+            "n": 50
+          }
+        },
+        "1105/volatile/update": {
+          "before": {
+            "unit": "ms",
+            "median": 30.258387499999998,
+            "q1": 29.434804500000002,
+            "q3": 31.95692475,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 31.968792,
+            "q1": 30.62356675,
+            "q3": 36.157868750000006,
+            "n": 50
+          }
+        },
+        "1105/persistent/read": {
+          "before": {
+            "unit": "ms",
+            "median": 58.365050499999995,
+            "q1": 51.734187,
+            "q3": 63.17220575,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 30.7908975,
+            "q1": 28.996029,
+            "q3": 36.04896275,
+            "n": 50
+          }
+        },
+        "1105/persistent/update": {
+          "before": {
+            "unit": "ms",
+            "median": 56.677597,
+            "q1": 51.39044975,
+            "q3": 61.178996500000004,
+            "n": 50
+          },
+          "after": {
+            "unit": "ms",
+            "median": 44.413972,
+            "q1": 41.43311025,
+            "q3": 48.8762295,
+            "n": 50
+          }
+        }
+      },
+      "before_supplemental_run": {
+        "rows": [
+          1105
+        ],
+        "metadata": {
+          "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+          "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+          "branch": "t3/tcc-fresh-benchmarks",
+          "utc": "2026-11-11T14:07:13Z",
+          "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+          "logical_cpus": 16,
+          "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "sqlite": "3.45.1",
+          "node": "v24.19.0",
+          "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+          "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+          "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+          "bend": "2.0.39",
+          "toolchain": {
+            "version": "2.0.39",
+            "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+            "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+            "files": {
+              "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+              "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+              "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+              "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+              "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+            },
+            "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+            "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+          },
+          "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+          "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+          "dirty": [
+            "M paper/README.md",
+            " M paper/bench/fixtures.py",
+            " M paper/bench/run.py",
+            " M paper/bench/workloads.py",
+            " M paper/evidence.py",
+            " M paper/test_evidence.py",
+            "?? paper/evidence/comparison.json",
+            "?? paper/evidence/ordinary.json",
+            "?? paper/evidence/prepared.json",
+            "?? paper/evidence/scaling-seed-attempt.json",
+            "?? paper/evidence/scaling.json",
+            "?? paper/evidence/verification.json"
+          ],
+          "threads": 1,
+          "ordinary_optimization": "-O0",
+          "prepared_optimization": "-O2",
+          "gpu": "off",
+          "filesystem": "ext4   /dev/sda2 rw,relatime",
+          "clock": "time.perf_counter_ns (monotonic wall clock)",
+          "lock": "/tmp/jaydb2-experiments-heavy.lock",
+          "warmups": 1
+        },
+        "reason": "Re-measured both maximum-size groups after replacing an affine-invalid boundary probe with the already admitted population program; smaller groups retained."
+      }
+    },
+    "verification": {
+      "before_metadata": {
+        "commit": "f9eea9c66e4d6a4c7e897e1a73724314e919646e",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/tcc-fresh-benchmarks",
+        "utc": "2026-11-11T13:41:46Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "cb7d173e9c83fd7700373eaac984be3523380135304a47c5e195bec00336bd3a",
+        "source_sha256": "61e7242ad15b5394c914c53751df8df707ea8ad45be487314b6248438ba56d3c",
+        "dirty": [
+          "M paper/README.md",
+          " M paper/bench/fixtures.py",
+          " M paper/bench/run.py",
+          " M paper/bench/workloads.py",
+          " M paper/evidence.py",
+          " M paper/test_evidence.py",
+          "?? paper/evidence/comparison.json",
+          "?? paper/evidence/ordinary.json",
+          "?? paper/evidence/prepared.json",
+          "?? paper/evidence/scaling.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "after_metadata": {
+        "commit": "f2c174c461295d1913ca24a9f225864a4a08da31",
+        "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+        "branch": "t3/diagnose-prepared-latency",
+        "utc": "2026-11-11T15:16:33Z",
+        "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+        "logical_cpus": 16,
+        "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "sqlite": "3.45.1",
+        "node": "v24.19.0",
+        "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+        "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+        "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+        "bend": "2.0.39",
+        "toolchain": {
+          "version": "2.0.39",
+          "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+          "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+          "files": {
+            "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+            "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+            "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+            "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+            "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+          },
+          "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+          "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+        },
+        "binary_sha256": "b30d99e6d2bc048a73d3860ed56cdfa8c4ae951b208a6d431bcb44d1b6d6c585",
+        "source_sha256": "e5e13df066a2fc071bfaebaa8326846fd561bb7ba16dc709012fa14479eecb57",
+        "dirty": [
+          "M paper/evidence/comparison.json",
+          " M paper/evidence/ordinary.json",
+          " M paper/evidence/prepared.json",
+          " M paper/evidence/scaling.json"
+        ],
+        "threads": 1,
+        "ordinary_optimization": "-O0",
+        "prepared_optimization": "-O2",
+        "gpu": "off",
+        "filesystem": "ext4   /dev/sda2 rw,relatime",
+        "clock": "time.perf_counter_ns (monotonic wall clock)",
+        "lock": "/tmp/jaydb2-experiments-heavy.lock",
+        "warmups": 1
+      },
+      "metrics": {
+        "make verify-contract": {
+          "before": {
+            "unit": "s",
+            "median": 23.665980686,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "s",
+            "median": 23.67563327,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "make verify": {
+          "before": {
+            "unit": "s",
+            "median": 595.15607799,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "s",
+            "median": 597.26661469,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        },
+        "make test": {
+          "before": {
+            "unit": "s",
+            "median": 474.425882229,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          },
+          "after": {
+            "unit": "s",
+            "median": 472.135511138,
+            "q1": null,
+            "q3": null,
+            "n": 1
+          }
+        }
+      }
+    }
+  },
+  "validation": [
+    {
+      "command": "make verify-contract",
+      "returncode": 0,
+      "elapsed_seconds": 23.640612363815308,
+      "log": ".build/paper-bench/validation/verify-contract.log"
+    },
+    {
+      "command": "make test",
+      "returncode": 0,
+      "elapsed_seconds": 475.4868941307068,
+      "log": ".build/paper-bench/validation/test.log"
+    },
+    {
+      "command": "make test-persistence",
+      "returncode": 0,
+      "elapsed_seconds": 607.2405681610107,
+      "log": ".build/paper-bench/validation/test-persistence.log"
+    },
+    {
+      "command": "make test-idempotency-recovery",
+      "returncode": 0,
+      "elapsed_seconds": 89.09872794151306,
+      "log": ".build/paper-bench/validation/test-idempotency-recovery.log"
+    },
+    {
+      "command": "make test-accessories-native",
+      "returncode": 0,
+      "elapsed_seconds": 603.3161125183105,
+      "log": ".build/paper-bench/validation/test-accessories-native.log"
+    },
+    {
+      "command": "make prepared",
+      "returncode": 0,
+      "elapsed_seconds": 81.76413369178772,
+      "log": ".build/paper-bench/validation/prepared.log"
+    },
+    {
+      "command": "make smoke",
+      "returncode": 0,
+      "elapsed_seconds": 12.564672946929932,
+      "log": ".build/paper-bench/validation/smoke.log"
+    }
+  ],
+  "limitations": [
+    "CPU governor and frequency were not fixed. Before/after differences outside removed image IO are not isolated causal estimates.",
+    "Verification entries are one observed command wall time each; Q1/Q3 are undefined."
+  ],
+  "baseline_evidence_commit": "1cffed6083893da610e0945e9f7eb72061384ebc"
+}

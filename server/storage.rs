@@ -208,10 +208,18 @@ impl Storage {
             return Err(storage_error("oversized authoritative snapshot"));
         }
         let mut bytes = Vec::new();
-        file.take(maximum.saturating_add(1))
+        (&file)
+            .take(maximum.saturating_add(1))
             .read_to_end(&mut bytes)
             .map_err(storage_error)?;
-        decode_image(&bytes, environment, limits)
+        let state = decode_image(&bytes, environment, limits)?;
+        // A previous process may have died after rename but before directory
+        // sync. Establish durability once on open before identical-state
+        // Commits may reuse this image without another write.
+        file.sync_all()
+            .and_then(|()| self.directory.sync_all())
+            .map_err(storage_error)?;
+        Ok(state)
     }
 
     pub fn persist(
