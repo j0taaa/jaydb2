@@ -114,6 +114,8 @@ def decode_registry(bytes: List<&2, U32>) -> Maybe<&2, C.Registry>:
 def run(~c: S.Configuration, root: Maybe<&2, D.State>, registry: Maybe<&2, C.Registry>,
   metadata: Codec.Outcome, body: List<&2, U32>) -> List<&2, U32>:
   match root registry metadata:
+    case Some{s} Some{reg} Codec.Decoded{D.VText{code}}:
+      output(C.host_error(code, s, Nil{}, reg))
     case Some{s} Some{+reg} Codec.Decoded{D.VList{D.VText{h}, D.VList{D.VText{mode}, D.VList{D.VText{code}, D.VList{D.VText{proof}, D.VListEmpty{}}}}}}:
       output(C.control(c, s, Nil{}, reg, body, admission(String.eq(mode, "universal"), S.environment(c), code, proof), h))
     case _ _ _: [2]

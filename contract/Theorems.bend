@@ -5,6 +5,8 @@
 # proof/ControlHistory (ServiceFold, lookup, invalidation and lifetime).
 import Base
 import ../src/Control.bend as Control
+import ../src/ControlBridge.bend as ControlBridge
+import ./HostErrors.bend as HostErrors
 import ../src/Dispatch.bend as Dispatch
 import ./PreparedProtocol.bend as PreparedProtocol
 import ./Logic.bend as L
@@ -627,3 +629,29 @@ def ServiceFoldTheorem() -> Type:
       L.E<ServiceAt(j, c, root, Control.ControlRegistry{Nil{}, Nil{}}, run),
         L.E<RegistryLookupTheorem(), L.E<RegistryInvalidationTheorem(),
           L.E<ServiceLifetimeTheorem(), ServiceNoRevivalTheorem()>>>>
+
+# Exact private code -> checked denial, including admission failures, artifact
+# misses and integrity failures. No assumption about certificate soundness is
+# needed to deny; this does not prove the host observed the right failure.
+def HostErrorReply(+code: String, -c: S.Configuration, +root: D.State,
+  +last: List<&2, U32>, +reg: Control.Registry) -> Type:
+  L.E<{Control.host_error(code, root, last, reg) ==
+      Control.ControlResult{root, last, reg, Control.ControlTransaction{S.response_error(HostErrors.status(code))}} : Control.Transition},
+    L.E<Early(c, root, S.response_error(HostErrors.status(code))),
+      {ControlBridge.output(Control.host_error(code, root, Nil{}, reg)) ==
+        ControlBridge.output(Control.ControlResult{root, last, reg,
+          Control.ControlTransaction{S.response_error(HostErrors.status(code))}}) : List<&2, U32>}>>
+
+def HostErrorReplyTheorem() -> Type:
+  @code: String -> @c: S.Configuration -> @root: D.State ->
+    @last: List<&2, U32> -> @reg: Control.Registry ->
+      {R.limits_all_valid(S.limits(c)) == True{} : Bool} -> HostErrorReply(code, c, root, last, reg)
+
+# Both prepared host failures use the exact same technical denial. Detection
+# and stopping before the artifact runs are physical host obligations.
+def PreparedHostErrorsTheorem() -> Type:
+  @root: D.State -> @last: List<&2, U32> -> @reg: Control.Registry ->
+    L.E<{Control.host_error("HANDLE", root, last, reg) ==
+        Control.ControlResult{root, last, reg, Control.ControlTransaction{S.response_error(S.Failure{})}} : Control.Transition},
+      {Control.host_error("PREPARED_INTEGRITY", root, last, reg) ==
+        Control.ControlResult{root, last, reg, Control.ControlTransaction{S.response_error(S.Failure{})}} : Control.Transition}>

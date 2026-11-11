@@ -101,6 +101,24 @@ class PreparedTests(unittest.TestCase):
                     capture_output=True, timeout=30)
                 self.assertEqual(result.returncode, 0, result.stderr.decode())
                 return result.stdout
+            # Native text ingress: the checked controller owns the full table,
+            # including technical defaults and both formerly Rust-only replies.
+            certificate_codes = (
+                'IMPORT', 'IMPORT_CYCLE', 'DEPENDENCY', 'PARSE', 'META', 'UNSAFE',
+                'FOREIGN', 'IO', 'OPEN_LAW', 'SHADOW', 'REDEFINITION',
+                'PRIMARY_CHECK', 'BENDTT_CHECK', 'TARGET', 'SOURCE_BINDING',
+                'HOST_CAPTURE', 'KERNEL_CAPTURE')
+            for error_code in (*certificate_codes, 'HOST_COMPILE', 'HANDLE',
+                               'PREPARED_INTEGRITY', 'NATIVE', '', 'parse', 'FUTURE_CODE'):
+                with self.subTest(error_code=error_code):
+                    result = subprocess.run(
+                        [str(control), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                        input=block(encode(error_code), block(b'', block(control_root))),
+                        capture_output=True, timeout=30)
+                    self.assertEqual(result.returncode, 0, result.stderr.decode())
+                    status = 'certificate' if error_code in certificate_codes else 'failure'
+                    expected = encode({'status': status, 'value': None})
+                    self.assertEqual(result.stdout, b'\0' + block(expected))
             def split_control(data):
                 size = int.from_bytes(data[:8], 'big')
                 return data[8:8+size], data[8+size:]
@@ -176,9 +194,9 @@ class PreparedTests(unittest.TestCase):
                     self.assertEqual(worker.returncode, 0, worker.stderr.decode())
                     self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
                     self.assertEqual(unframe(worker.stdout[1:])['status'], status)
-            # Compare exact public bytes at the same published root. Rust's
-            # map-miss and seal checks bypass the worker, so they are explicit
-            # T3 obligations rather than consequences of the worker theorem.
+            # Compare exact public bytes at the same published root. Map-miss
+            # and integrity detection remain physical host duties; their denial
+            # bytes now come from the separately checked native controller.
             current_root = encode({'tables': [], 'users': [
                 {'credential': 'alice-final', 'id': 'alice', 'kind': 'user'},
                 {'credential': 'bob-new', 'id': 'bob', 'kind': 'user'}]})

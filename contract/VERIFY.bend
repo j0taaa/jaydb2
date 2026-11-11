@@ -17,3 +17,4 @@ import ../proof/Iteration.bend as FoldWitness
 import ../proof/ControlClauses.bend as ControlWitness
 import ../proof/Configuration.bend as StartupWitness
 import ../proof/ControlHistory.bend as ServiceFoldWitness
+import ../proof/HostErrors.bend as HostErrorWitness

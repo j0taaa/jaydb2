@@ -15,6 +15,16 @@ Artifact IO and delivery of T1 admission tokens remain host obligations.
 The native worker executes the checked `Gate`/interpreter/finalizer path;
 compiler/runtime preservation and physical host plumbing remain T2/T3.
 
+`HostErrorReplyTheorem` covers the native controller's total exact error-code
+classification and canonical response construction, preserving the published
+root, last response and prepared registry. `contract/HostErrors.bend` specifies
+the certificate-code table; every other code, including `HANDLE` and
+`PREPARED_INTEGRITY`, produces `failure`. Rust forwards the observed code and
+returned bytes. Physical artifact lookup/integrity, detection of actual failures
+and preventing execution after a failed integrity check remain host duties.
+If the denial executable/transport itself fails, the host retains the existing
+fixed technical failure fallback. Successful calls use the same execution path.
+
 # Database concept
 
 An instance contains tables and users. A request presents a credential, a program, its arguments, and a proof. The database authenticates the request, checks whether the proof establishes the required obligations for that program, and executes the program when admitted. The program may query data, compute a result, and propose changes.

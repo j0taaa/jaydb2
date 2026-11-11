@@ -88,7 +88,15 @@ supplies the exact source/proof and certificate mode from completed admission
 prepare request and immutable instance. Rust stores the returned registry bytes,
 keeps/deletes the named artifacts and copies the returned receipt (T3).
 No registry/certificate/receipt decision is inferred from public status text.
-Artifact integrity and physical cleanup remain host obligations.
+The same executable accepts canonical private text error codes. Rust supplies
+`HANDLE` on an artifact-map miss and `PREPARED_INTEGRITY` on a byte-integrity
+failure; `Control.host_error` computes their canonical `failure` replies.
+`HostErrorReplyTheorem` proves unchanged root/last response/registry and bounded
+framing. Rust forwards the bytes. Map availability and physical integrity
+observations, correct code delivery, and stopping before artifact execution
+remain host obligations. If the denial executable/transport fails, the existing
+fixed host technical fallback applies. Healthy prepared calls run no extra
+process or admission check. Artifact integrity and physical cleanup remain host obligations.
 
 ## Proof target and capture boundary
 

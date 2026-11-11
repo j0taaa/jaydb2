@@ -1,7 +1,8 @@
 # JayDB executable contract
 
 Start with [`Theorems.bend`](Theorems.bend). Its statements concern the actual
-executable gate, interpreter, finalizer, decoder and scoped prepared resolver.
+executable gate, interpreter, finalizer, decoder, scoped prepared resolver and
+private error-code denial.
 Every public theorem type has an inhabited witness checked by official Bend
 2.0.39 and BendTT. The [proof guide](../proof/README.md) maps each theorem to
 its witness, non-vacuity evidence and trusted base T1–T3.
@@ -11,7 +12,7 @@ compiler/runtime preservation and physical host plumbing remain T2/T3.
 
 | Module | Purpose |
 | --- | --- |
-| `Theorems.bend` | Executed startup/recovery; abstract Init; four Core clauses (admission, safety, completion, progress); ordinary ingress; unified direct/registered selection; finite transaction and mixed service folds; prepared-control clauses; codec/framing statements. |
+| `Theorems.bend` | Executed startup/recovery; abstract Init; four Core clauses (admission, safety, completion, progress); ordinary ingress; unified direct/registered selection; finite transaction and mixed service folds; prepared-control clauses; host-error replies; codec/framing statements. |
 | `Requirements.bend` | Valid configuration/state, full client certification, prefix/failure/final safety and exact logical finalization. |
 | `Semantics.bend` | Closed program/action interface, operations, working states, traces, responses and publication. |
 | `Data.bend` | Schema, values, users, current-state authentication and reference operations. |
@@ -19,6 +20,7 @@ compiler/runtime preservation and physical host plumbing remain T2/T3.
 | `Bytes.bend`, `Protocol.bend` | Unicode/octets, uint64 lengths, canonical value/request/response encoding and public frames. |
 | `PreparedProtocol.bend` | Prepared envelope prefixes/dispatch and exact control receipt encoding. |
 | `PreparedRegistry.bend` | Scoped entries and lookup used by `src/Resolve.bend`. |
+| `HostErrors.bend` | Total exact error-code classification: the 17 admission refusals are `certificate`, every other string is `failure`. Executed by the native controller. |
 | `PreparedHandles.bend` | Canonical 64-character lowercase hexadecimal handle shape used by allocator proofs. |
 | `Resources.bend` | Pure reception, logical message bounds and channel disposition rules. |
 | `ReadOnlyContract.bend` | Whole-program read predicate retained for public query libraries and applications. |
@@ -45,6 +47,14 @@ live-source certification, scoped removal and allocation history.
 any later mixed run. `ControlTheorem` needs no
 admission-soundness premise for its structural checks; the mixed fold needs
 that premise to derive universal certification of registered sources.
+`HostErrorReplyTheorem` covers private error-code replies executed by
+`ControlBridge.run` (via `HostErrors.native_error_branch`): exact classification,
+bounded canonical denial bytes and
+unchanged root/last-response/registry. `HostErrors` witnesses check every named
+certificate row and the default, including prepared map/integrity failures.
+The host still detects failures, forwards the actual code/current snapshot,
+and prevents execution after an integrity failure. Failure of the denial
+executable/transport retains a fixed host technical fallback.
 Artifact IO, admission-token delivery, physical IO and atomic root replacement
 remain host obligations. The proof guide numbers the required host
 plumbing; compiler/runtime preservation is T2. Durability, OS failures and

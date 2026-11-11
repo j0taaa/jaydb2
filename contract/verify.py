@@ -44,8 +44,8 @@ def main() -> int:
         "secondary_kernel_requested": args.verdict,
         "native_implementation_included": False,
         "native_contract_proved": False,
-        "scope": "Statement/definition types; included lemmas and closed examples; inhabited executed Startup/recovery, abstract Init, prepared Control, mixed ServiceFold, all four Core clauses, ordinary/prepared ingress, the finite-run fold and independent wire theorems.",
-        "executable_witnesses": ["Configuration.startup_theorem", "Init.init_theorem", "ControlClauses.control_theorem", "ControlHistory.service_fold_theorem", "ControlHistory.service_lifetime_theorem", "ControlHistory.service_no_revival_theorem", "ControlHistory.registry_lookup_theorem", "ControlHistory.registry_invalidation_theorem", "CoreClauses.core_theorem", "Ingress.ingress_theorem", "Ingress.unified_core_theorem", "Iteration.fold_theorem", "WireTheorems.codec_roundtrip",
+        "scope": "Statement/definition types; included lemmas and closed examples; inhabited executed Startup/recovery, abstract Init, prepared Control, mixed ServiceFold, all four Core clauses, ordinary/prepared ingress, the finite-run fold, checked host-error replies and independent wire theorems.",
+        "executable_witnesses": ["HostErrors.host_error_reply_theorem", "HostErrors.prepared_host_errors_theorem", "Configuration.startup_theorem", "Init.init_theorem", "ControlClauses.control_theorem", "ControlHistory.service_fold_theorem", "ControlHistory.service_lifetime_theorem", "ControlHistory.service_no_revival_theorem", "ControlHistory.registry_lookup_theorem", "ControlHistory.registry_invalidation_theorem", "CoreClauses.core_theorem", "Ingress.ingress_theorem", "Ingress.unified_core_theorem", "Iteration.fold_theorem", "WireTheorems.codec_roundtrip",
                                  "WireTheorems.codec_canonical", "WireTheorems.framing_roundtrip"],
         "pending_theorems": [],
         "sources": [{"file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
@@ -54,7 +54,7 @@ def main() -> int:
     (root / args.report).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
-    print("Scope: inhabited Startup/Init/Core/Ingress/UnifiedCore/Fold/Control/ServiceFold/wire theorems; native worker executes Gate under T2/T3.")
+    print("Scope: inhabited Startup/Init/Core/Ingress/UnifiedCore/Fold/Control/ServiceFold/HostErrorReply/wire theorems; native worker executes Gate under T2/T3.")
     return exit_code
 
 

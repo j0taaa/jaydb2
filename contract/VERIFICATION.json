@@ -28,9 +28,18 @@
   "secondary_kernel_requested": true,
   "native_implementation_included": false,
   "native_contract_proved": false,
-  "scope": "Statement/definition types; included lemmas and closed examples; inhabited Init, all four Core clauses, ordinary/prepared ingress, the finite-run fold and independent wire theorems.",
+  "scope": "Statement/definition types; included lemmas and closed examples; inhabited executed Startup/recovery, abstract Init, prepared Control, mixed ServiceFold, all four Core clauses, ordinary/prepared ingress, the finite-run fold, checked host-error replies and independent wire theorems.",
   "executable_witnesses": [
+    "HostErrors.host_error_reply_theorem",
+    "HostErrors.prepared_host_errors_theorem",
+    "Configuration.startup_theorem",
     "Init.init_theorem",
+    "ControlClauses.control_theorem",
+    "ControlHistory.service_fold_theorem",
+    "ControlHistory.service_lifetime_theorem",
+    "ControlHistory.service_no_revival_theorem",
+    "ControlHistory.registry_lookup_theorem",
+    "ControlHistory.registry_invalidation_theorem",
     "CoreClauses.core_theorem",
     "Ingress.ingress_theorem",
     "Ingress.unified_core_theorem",
@@ -55,6 +64,11 @@
       "file": "DataExamples.bend",
       "sha256": "05a0ad30846c6f5b88e9192d96e4936ca06cfbb81a63641b55f28c8177faa7fc",
       "lines": 52
+    },
+    {
+      "file": "HostErrors.bend",
+      "sha256": "1a13e662af873aceb087346571269d47c26656576076c53753f901b18da47256",
+      "lines": 24
     },
     {
       "file": "Logic.bend",
@@ -113,13 +127,13 @@
     },
     {
       "file": "Theorems.bend",
-      "sha256": "10cd7fdca351f2538f2659a1ab09a9b6dd09c5e98805cdd5bf8f2c5e6d49d781",
-      "lines": 333
+      "sha256": "b71b34b08ca29abc681fa58412ce72fc773c0cf9db8cc056563abdd4d71539f2",
+      "lines": 657
     },
     {
       "file": "VERIFY.bend",
-      "sha256": "f4d5c3049f45cf40368ee58db14d1ae31bd223b0fbd0e4c60fccdef4ca2d9cbb",
-      "lines": 16
+      "sha256": "8e044ffb11438364beeb91073f43d1eca977008a3c46db052715b44095ad1298",
+      "lines": 20
     }
   ]
 }

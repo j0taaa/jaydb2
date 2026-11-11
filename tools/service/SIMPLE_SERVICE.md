@@ -190,49 +190,52 @@ the source/purity audit.
 T2 remains preservation by the official compiler, native runtime and foreign
 loop. The remaining T3 plumbing obligations are:
 
-1. Freeze the checked configuration, dependency/tool bytes and valid initial
-   root; keep private root bytes separate from client inputs.
-2. Frame complete original bodies with the specified bounds/EOF ordering;
-   supply exactly one current root and exactly the latest controller-emitted
-   registry bytes unchanged. The bytes
-   are unauthenticated: "invalidated means not executable" and the correspondence
-   between a handle and its registered program depend on this forwarding obligation.
-   Executed programs remain universally certified under T1 and generated
-   source/proof matching even if stale or fabricated bytes are supplied.
-3. Admit the exact checked tuple, compile the same immutable Book, validate
-   artifact provenance and run a fresh worker with only its private proposal.
-4. Collect complete output, reap workers and finish rollback-capable cleanup
-   before publication; actual precommit technical failures keep the old root.
-5. Obey Commit/Keep exactly, atomically publish the paired root/response, and
-   write the returned bytes; delivery failure cannot undo a committed root.
-6. Supply controls the unchanged current root, complete body, exact T1
-   universal-admission tuple and latest unchanged registry bytes. Store only the
-   returned delta/registry, retain allocated history, manage the corresponding artifact
-   and write exactly the returned receipt; keep the root/response pair.
-7. Preserve FIFO root feeding and timing/inspection noninterference. Optional
-   durable storage and artifact cleanup retain their physical ordering and
-   recovery obligations; prepared handles remain in memory.
+1. Freeze checked configuration, dependency/tool bytes and the checked initial
+   root; keep private state separate from client input.
+2. Frame bounded complete original bodies with the specified EOF ordering;
+   supply the current root to the checked decoder/controller.
+3. Admit exactly the tuple selected by checked dispatch; compile and load the
+   same immutable checked Book and preserve its context, arguments and proof.
+4. Run a fresh private worker through the checked gate/advance/finalizer and
+   native loop, without publication capability.
+5. Collect complete output, reap children and finish rollback-capable cleanup.
+   Forward the observed error code/current snapshot to the checked controller;
+   denial-executable/transport failure retains the fixed technical fallback.
+6. Obey Commit/Keep exactly and atomically publish the paired root/response;
+   feed the resulting root to the next request.
+7. Forward the latest controller-emitted registry bytes unchanged, supply the
+   exact T1 admission tuple to controls, install only checked deltas, preserve
+   allocation history, and manage the matching artifacts. Physical map/integrity
+   checks must prevent execution of an unavailable or changed artifact.
+8. Deliver exactly the returned bytes; delivery failure cannot undo a commit.
+   EOF/shutdown between requests closes the channel without a transaction.
 
-8. Host maps admission failure codes to response statuses as follows: `IMPORT`,
-   `IMPORT_CYCLE`, `DEPENDENCY`, `PARSE`, `META`, `UNSAFE`, `FOREIGN`, `IO`, `OPEN_LAW`,
-   `SHADOW`, `REDEFINITION`, `PRIMARY_CHECK`, `BENDTT_CHECK`, `TARGET`,
-   `SOURCE_BINDING`, `HOST_CAPTURE`, `KERNEL_CAPTURE`
-   map to `certificate`; every other code maps to `failure`. Failed proof
-   admission rejects the whole Book before Gate executes. When the worker Book
-   fails, `compile.mjs` runs pure admission: its failure code is preserved, while
-   successful pure admission followed by worker/C failure is `HOST_COMPILE`.
-   These host decisions are not covered by Gate's checked Reject branch.
+FIFO scheduling and timing/inspection must preserve these obligations.
+Durability and recovery retain their separate physical assumptions; handles
+remain in memory. Registry bytes are unauthenticated: stale or fabricated
+bytes can break invalidation and handle/program correspondence. Universally
+certified execution under T1 and generated source/proof matching still applies.
 
-9. For an authenticated execute request with empty proof, a missing artifact
-   (`HANDLE`, including unknown/invalidated handles) keeps the root and emits
-   the fixed `failure` frame, equal to the checked not-found denial when the
-   registry lookup is absent. A missing artifact for a live entry is a host
-   availability failure. This Rust-only reply remains a T3 obligation.
-10. A prepared seal/artifact-integrity failure (`PREPARED_INTEGRITY`) keeps the
-    root and emits that same fixed `failure` frame before execution. This
-    Rust-only check/reply remains a T3 obligation, not a worker verdict or a
-    mathematical certificate rejection. Tests assert byte equality of both
-    host replies with the checked worker's not-found denial for the same root.
+Error-code classification and response construction execute in the existing
+checked native controller. Its private metadata is a canonical text value
+containing the exact observed error code, distinct from the four-text prepare
+metadata list; the remaining packet contains the latest registry and current
+root, with an empty body. `ControlBridge.run` calls `Control.host_error`, which
+uses the total table in `contract/HostErrors.bend` and `Control.finish`'s denial.
+`HostErrorReplyTheorem` proves bounded canonical framing and preservation of
+root/last-response/registry. The 17 named admission codes map to `certificate`;
+all other strings map to `failure`, including `HOST_COMPILE`, `HANDLE` and
+`PREPARED_INTEGRITY`. Pure admission's failure code is preserved; a worker/C
+failure after successful pure admission remains `HOST_COMPILE`.
+
+Rust sends the code unchanged and forwards only a checked Keep response.
+Physical failure detection, correct code/snapshot forwarding and preventing
+execution of an integrity-failed prepared artifact remain host duties. If the
+controller executable or denial transport itself fails, Rust keeps the root
+and uses the existing fixed technical fallback. This is the T3 physical-failure
+boundary, with no recursive denial attempt. Ordinary success and healthy
+prepared calls launch no extra child and perform no extra checks. The proof
+guide's canonical T3 inventory now has eight duties.
 
 Prepare/invalidate replies come from the controller under `ControlTheorem`,
 not the worker's denial branch. The Dispatch bridge compares tag-0 output to

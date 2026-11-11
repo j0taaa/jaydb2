@@ -8,7 +8,12 @@ if [[ $# -gt 1 || ( "$mode" != smoke && "$mode" != full ) ]]; then
   exit 2
 fi
 cd "$root"
-exec 9>/tmp/jaydb2-experiments-heavy.lock
+if [[ -n ${JAYDB_HEAVY_LOCK_FD:-} ]]; then
+  [[ $(readlink "/proc/self/fd/$JAYDB_HEAVY_LOCK_FD") == /tmp/jaydb2-experiments-heavy.lock ]]
+  exec 9>&"$JAYDB_HEAVY_LOCK_FD"
+else
+  exec 9>/tmp/jaydb2-experiments-heavy.lock
+fi
 flock 9
 if [[ "$mode" == full ]]; then
   # The production launcher needs this too; do not replace the official runtime.

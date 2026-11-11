@@ -9,6 +9,7 @@ import ../contract/PreparedRegistry.bend as G
 import ../contract/PreparedHandles.bend as Handles
 import ../contract/Requirements.bend as R
 import ../contract/Semantics.bend as S
+import ../contract/HostErrors.bend as Errors
 import ./Dispatch.bend as Dispatch
 import ./Input.bend as Input
 import ./Gate.bend as Gate
@@ -169,3 +170,8 @@ def finish(plan: Plan, root: D.State, last: List<&2, U32>, registry: Registry) -
 def control(c: S.Configuration, +root: D.State, last: List<&2, U32>, +registry: Registry,
   body: List<&2, U32>, a: Admission, h: String) -> Transition:
   finish(plan(c, root, registry, body, a, h), root, last, registry)
+
+# A private tool failure cannot execute a program or apply a metadata delta.
+# The exact code table and canonical response construction are checked Bend.
+def host_error(code: String, root: D.State, last: List<&2, U32>, registry: Registry) -> Transition:
+  finish(ControlDenied{Errors.status(code)}, root, last, registry)

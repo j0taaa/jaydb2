@@ -58,33 +58,6 @@ impl Error {
             message: message.into(),
         }
     }
-
-    fn response(&self) -> Vec<u8> {
-        let refused = [
-            "IMPORT",
-            "IMPORT_CYCLE",
-            "DEPENDENCY",
-            "PARSE",
-            "META",
-            "UNSAFE",
-            "FOREIGN",
-            "IO",
-            "OPEN_LAW",
-            "SHADOW",
-            "REDEFINITION",
-            "PRIMARY_CHECK",
-            "BENDTT_CHECK",
-            "TARGET",
-            "SOURCE_BINDING",
-            "HOST_CAPTURE",
-            "KERNEL_CAPTURE",
-        ];
-        error_frame(if refused.contains(&self.code.as_str()) {
-            "certificate"
-        } else {
-            "failure"
-        })
-    }
 }
 
 impl From<io::Error> for Error {
@@ -341,18 +314,14 @@ struct Published {
 }
 
 impl Published {
-    fn finish(&mut self, proposal: Result<Decision>) -> Vec<u8> {
+    fn finish(&mut self, proposal: Decision) -> Vec<u8> {
         match proposal {
-            Ok(Decision::Commit { state, response }) => {
+            Decision::Commit { state, response } => {
                 // Both values and all cleanup are complete before this store.
                 *self = Self { state, response };
                 self.response.clone()
             }
-            Ok(Decision::Keep { response }) => response,
-            Err(error) => {
-                diagnostic(format_args!("{}: {}", error.code, error.message));
-                error.response()
-            }
+            Decision::Keep { response } => response,
         }
     }
 }
@@ -663,17 +632,31 @@ impl Database {
                     .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
             }
         }
-        let diagnostic = proposal
+        let error_metadata = proposal
             .as_ref()
             .err()
             .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
-        let response = self.published.finish(proposal);
+        let decision = match proposal {
+            Ok(decision) => decision,
+            Err(error) => {
+                diagnostic(format_args!("{}: {}", error.code, error.message));
+                // Forward the exact code; checked Bend chooses status and bytes.
+                // A broken denial executable/transport is itself a T3.5 physical
+                // failure, for which the existing fixed technical reply remains.
+                let response = self.checked_error(&error.code).unwrap_or_else(|failure| {
+                    diagnostic(format_args!("{}: {}", failure.code, failure.message));
+                    error_frame("failure")
+                });
+                Decision::Keep { response }
+            }
+        };
+        let response = self.published.finish(decision);
         bench_mark(&mut bench, "publication");
         result_ready();
         storage::fault_point("after_publish")
             .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
         advance_inspection_sequence(&mut self.inspection_sequence);
-        self.inspect(serde_json::json!({"event": "completed", "diagnostic": diagnostic}));
+        self.inspect(serde_json::json!({"event": "completed", "diagnostic": error_metadata}));
         Ok(response)
     }
 
@@ -814,6 +797,29 @@ impl Database {
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
         Ok(proposal)
+    }
+
+    fn checked_error(&self, code: &str) -> Result<Vec<u8>> {
+        // Canonical Value text, distinct from preparation's four-field list.
+        // No entropy, checker, compiler or prepared artifact runs on this path.
+        let mut metadata = vec![4];
+        metadata.extend_from_slice(&(code.len() as u64).to_be_bytes());
+        metadata.extend_from_slice(code.as_bytes());
+        let input = packet(
+            &metadata,
+            &packet(&self.registry, &packet(&self.published.state, &[])),
+        );
+        let output = self.control.run(&input, self.threads)?;
+        if output.first() != Some(&0) {
+            return Err(Error::new(
+                "HOST_TRANSPORT",
+                "invalid checked denial result",
+            ));
+        }
+        match parse_decision(&output, &self.limits)? {
+            Decision::Keep { response } => Ok(response),
+            Decision::Commit { .. } => unreachable!("denial tag checked above"),
+        }
     }
 
     fn run_control(
@@ -1293,14 +1299,6 @@ mod tests {
                 "00000000000000370600000000000000020400000000000000067374617475730400000000000000076661696c75726504000000000000000576616c756500"
             )
         );
-        assert_eq!(
-            Error::new("PRIMARY_CHECK", "proof rejected").response(),
-            error_frame("certificate")
-        );
-        assert_eq!(
-            Error::new("NATIVE", "child exited").response(),
-            error_frame("failure")
-        );
         assert!(split(&[0; 7]).is_err());
         assert!(split(&8u64.to_be_bytes()).is_err());
     }
@@ -1351,12 +1349,12 @@ mod tests {
         };
         let success = [vec![1], packet(b"new", &error_frame("success"))].concat();
         assert_eq!(
-            published.finish(parse_decision(&success, &limits)),
+            published.finish(parse_decision(&success, &limits).unwrap()),
             error_frame("success")
         );
         let refusal = [vec![0], error_frame("refusal")].concat();
         assert_eq!(
-            published.finish(parse_decision(&refusal, &limits)),
+            published.finish(parse_decision(&refusal, &limits).unwrap()),
             error_frame("refusal")
         );
         for invalid in [
@@ -1373,17 +1371,10 @@ mod tests {
             ]
             .concat(),
         ] {
-            assert_eq!(
-                published.finish(parse_decision(&invalid, &limits)),
-                error_frame("failure")
-            );
+            assert!(parse_decision(&invalid, &limits).is_err());
             assert_eq!(published.state, b"new");
             assert_eq!(published.response, error_frame("success"));
         }
-        assert_eq!(
-            published.finish(Err(Error::new("PRIMARY_CHECK", "rejected"))),
-            error_frame("certificate")
-        );
         assert_eq!(published.state, b"new");
     }
 
@@ -1407,10 +1398,10 @@ mod tests {
             &mut BrokenOutput,
             4,
             |_| {
-                Ok(published.finish(Ok(Decision::Commit {
+                Ok(published.finish(Decision::Commit {
                     state: b"new".to_vec(),
                     response: error_frame("success"),
-                })))
+                }))
             },
         );
         assert!(result.is_err());
@@ -1533,6 +1524,66 @@ mod tests {
             b"new"
         );
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+
+        // The host must forward the controller's bytes, even when a test
+        // executable returns a different status from the old Rust table.
+        use std::os::unix::fs::PermissionsExt;
+        let executable = db.directory.path.join("denial");
+        let script = b"#!/bin/sh\ncat > \"$0.input\"\ncat \"$0.reply\"\n";
+        fs::write(&executable, script).unwrap();
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+        db.control = Program {
+            path: executable.clone(),
+            sha256: format!("{:x}", Sha256::digest(script)),
+        };
+        let forwarded = error_frame("opaque-denial");
+        fs::write(
+            executable.with_extension("reply"),
+            [vec![0], forwarded.clone()].concat(),
+        )
+        .unwrap();
+        for code in ["PRIMARY_CHECK", "HANDLE", "PREPARED_INTEGRITY"] {
+            assert_eq!(
+                db.publish(Err(Error::new(code, "test failure"))).unwrap(),
+                forwarded
+            );
+            assert_eq!(db.published.state, b"new");
+            assert_eq!(db.published.response, response);
+            let input = fs::read(executable.with_extension("input")).unwrap();
+            let (metadata, rest) = split(&input).unwrap();
+            let mut expected = vec![4];
+            expected.extend_from_slice(&(code.len() as u64).to_be_bytes());
+            expected.extend_from_slice(code.as_bytes());
+            assert_eq!(metadata, expected);
+            let (registry, rest) = split(rest).unwrap();
+            assert_eq!(registry, db.registry);
+            let (root, body) = split(rest).unwrap();
+            assert_eq!(root, b"new");
+            assert!(body.is_empty());
+            assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+        }
+        // A broken denial ABI cannot introduce a Commit. Failure of the
+        // denial machinery itself uses the existing technical fallback.
+        fs::write(
+            executable.with_extension("reply"),
+            [vec![1], packet(b"bad", &response)].concat(),
+        )
+        .unwrap();
+        assert_eq!(
+            db.publish(Err(Error::new("HANDLE", "missing"))).unwrap(),
+            error_frame("failure")
+        );
+        assert_eq!(db.published.state, b"new");
+        assert_eq!(db.published.response, response);
+        assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
+        fs::remove_file(&executable).unwrap();
+        assert_eq!(
+            db.publish(Err(Error::new("PRIMARY_CHECK", "rejected")))
+                .unwrap(),
+            error_frame("failure")
+        );
+        assert_eq!(db.published.state, b"new");
+        assert_eq!(db.published.response, response);
     }
 
     #[test]
