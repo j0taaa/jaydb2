@@ -496,7 +496,9 @@ def derive_compute(data):
         if run['backend']=='cuda':
             macro('GpuSmallCudaNativeMs',statistics.median(run['records'][0]['native_worker_ms']),'Small focused CUDA native worker median; includes process/device startup','ms')
     def ms_cell(row,locale='en',ranges=True):
-        if row['status']=='timeout':return (r'\textit{timeout} ' if locale=='en' else r'\textit{timeout} ')+decimal(row['timeout_s'],0)+r' s'
+        if row['status']=='timeout':
+            seconds=decimal(row['timeout_s'],0)
+            return r'\textit{timeout} '+seconds+r' s' if locale=='en' else r'\textit{tempo esgotado} ('+seconds+r' s)'
         if row['status']=='not run':return r'\textit{not run}' if locale=='en' else r'\textit{não executado}'
         values=row['samples_ms']
         def number(v):
@@ -508,7 +510,7 @@ def derive_compute(data):
         rows=[['Paths $\\times$ steps' if locale=='en' else 'Caminhos $\\times$ passos','CPU-1','CPU-16','CUDA','PostgreSQL','SQLite']]
         for size in sim['sizes']:
             records=[next(r for r in sim['records'] if r['backend']==backend and r['depth']==size['depth'] and r['steps']==size['steps']) for backend in backends]
-            n=lambda x:fmt(x) if locale=='en' else str(x) # compact ungrouped slide dimensions
+            n=lambda x:fmt(x) if locale=='en' else fmt(x).replace('{,}',r'\,')
             rows.append([n(size['paths'])+r' $\times$ '+n(size['steps'])]+[ms_cell(r,locale,ranges=False) for r in records])
         table('simulation-table-'+locale+'.tex','@{}lrrrrr@{}',rows)
     # Full ranges remain separately available without crowding the six-column table.

@@ -80,9 +80,9 @@ Ao publicar, o índice deve ser a projeção exata da linha principal.
 \begin{tabular}{@{}L{.13\linewidth}L{.79\linewidth}@{}}
 \textbf{RQ1} & Quais garantias decorrem do código executável, sob qual base de confiança?\\\addlinespace[2mm]
 \textbf{RQ2} & Certificados combinam acesso em cada prefixo e invariantes de publicação?\\\addlinespace[2mm]
-\textbf{RQ3} & Quanto custa o executável certificado atual e quanto o reuso preparado reduz esse custo?\\
+\textbf{RQ3} & Quanto custa o executável certificado atual e quanto o reuso preparado e a CUDA opcional alteram esse custo?\\
 \end{tabular}
-\note{A primeira pergunta exige teoremas sobre as funções que realmente decidem admissão, execução e publicação. A segunda trata da expressão de leis de aplicação, com controles inválidos que falham na obrigação correta. A terceira mede o custo do caminho ordinário e o que muda quando um programa preparado reutiliza a certificação. O método combina provas, controles negativos, execução nativa e experimentos com fronteiras de medição definidas. Provas e testes dão a evidência de correção; experimentos conferidos dão a de desempenho.}
+\note{A primeira pergunta exige teoremas sobre as funções que realmente decidem admissão, execução e publicação. A segunda trata da expressão de leis de aplicação, com controles inválidos que falham na obrigação correta. A terceira mede o custo do caminho ordinário e o que muda com a reutilização da certificação e a CUDA opcional. O método combina provas, controles negativos, execução nativa e experimentos com fronteiras de medição definidas. Provas e testes dão a evidência de correção; experimentos conferidos dão a de desempenho.}
 \end{frame}
 
 \begin{frame}{Posicionamento: por que provas?}
@@ -193,7 +193,7 @@ Rust obedece à decisão tipada produzida em Bend.
 \begin{tabular}{@{}L{.09\linewidth}L{.55\linewidth}L{.29\linewidth}@{}}
 \toprule & Confiança & Tamanho\\\midrule
 \textbf{T1} & Verificadores externos; pureza; recibos, selos e hashes do Book & \intpt{\ToolsNonblankLines} em \texttt{tools/}\\\addlinespace[2mm]
-\textbf{T2} & Compilador/runtime Bend e Clang & Ferramentas externas\\\addlinespace[2mm]
+\textbf{T2} & Compilador/runtime Bend e Clang (+ CUDA/NVRTC/driver/GPU no modo GPU) & Ferramentas externas\\\addlinespace[2mm]
 \textbf{T3} & Host Rust: \HostDutyCount{} deveres reagrupados de processos e publicação & \intpt{\RustProductionLines} linhas\\\bottomrule
 \end{tabular}
 \gap
@@ -223,16 +223,16 @@ Um identificador revogado permanece ausente na instância.
 \begin{frame}{Execução GPU opcional e confiança}
 \small
 \begin{itemize}
-\item CPU por padrão; \texttt{-{}-gpu MiB} ativa chamadas \texttt{f!(x)}.
+\item CPU por padrão; chamadas bang \texttt{f!(x)} solicitam avaliação paralela.
 \item Ambos os verificadores aceitam o mesmo Book selado antes de compilar CUDA.
-\item Hashes ligam C, executável e cubin; mudança ou recompilação invalida a proposta.
-\item Bang solicitado sem fallback; execução CUDA serial por instância.
+\item Hashes ligam C, executável e binário CUDA (cubin); mudança ou recompilação invalida a proposta.
+\item Chamada bang solicitada nunca recai para a CPU; CUDA serial por instância.
 \end{itemize}
 \par\vspace{3mm}
 \textbf{Mesmas obrigações:} certificado, terminação, acesso e publicação.\\
 \textbf{T2 ampliada:} runtime CUDA do Bend, NVRTC, driver, memória gerenciada e GPU.
 \source{Bibliotecas CUDA registradas, sem pinning. Testes diferenciais são evidência, não prova de CUDA.}
-\note{A opção GPU muda o backend das chamadas bang explícitas. Autenticação, inicialização e controlador permanecem na CPU. Diferentemente do caminho CPU sobreposto, CUDA espera ambos os verificadores antes de emitir e compilar C e preparar o cubin. O host confere os artefatos antes de executar e aceitar a proposta; programas preparados também preservam bytes exatos. Mudanças, recompilações e falhas descartam a proposta. As provas continuam sobre a semântica do Book, sob T1 a T3, com T2 ampliada. Não há nova permissão nem axioma de validade CUDA.\par\textbf{Se perguntarem:} bibliotecas e cabeçalhos CUDA são do ambiente; caminhos e hashes das bibliotecas são registrados, não fixados como Bend. Sem dispositivo utilizável a preparação falha. A memória solicitada não limita todo consumo do driver. Não há workers persistentes nem coordenação de instâncias. Fonte: tools/service/SIMPLE_SERVICE.md.}
+\note{A opção GPU muda o backend das chamadas bang explícitas. NVRTC é a biblioteca de compilação em tempo de execução da NVIDIA. A opção -{}-gpu MiB, de 64 a 4096, define o pool de memória do dispositivo, chamado corpus. Autenticação, inicialização e controlador permanecem na CPU. Diferentemente do caminho CPU sobreposto, CUDA espera ambos os verificadores antes de emitir e compilar C e preparar o cubin. O host confere os artefatos antes de executar e aceitar a proposta; programas preparados também preservam bytes exatos. Mudanças, recompilações e falhas descartam a proposta. As provas continuam sobre a semântica do Book, sob T1 a T3, com T2 ampliada. Não há nova permissão nem axioma de validade CUDA.\par\textbf{Se perguntarem:} bibliotecas e cabeçalhos CUDA são do ambiente; caminhos e hashes das bibliotecas são registrados, não fixados como Bend. Sem dispositivo utilizável a preparação falha. A memória solicitada não limita todo consumo do driver. Não há workers persistentes nem coordenação de instâncias. Fonte: tools/service/SIMPLE_SERVICE.md.}
 \end{frame}
 
 \begin{frame}{Aplicação: propriedade e índice exato}
@@ -357,7 +357,7 @@ Suíte de provas voucher & \intpt{\VoucherSuiteNonblankLines}\\\bottomrule
 \texttt{proof/src}: \ratiopt{\ProofToImplementationRatio}$\times$; exclui biblioteca e suíte voucher.\\
 \NegativeFixtures{} negativos centrais + \RlsNegativeFixtures{} de RLS, separados.
 \source{Tempos sob clock fixo, uma observação por comando. Linhas incluem comentários.}
-\note{Os alvos passaram sob o mesmo clock fixo, com \ContractTheoremTypes{} tipos de teorema, \ProofTheoremWitnesses{} testemunhas centrais e \PublicTheoremWitnesses{} garantias públicas. Há \NegativeFixtures{} negativos centrais e \RlsNegativeFixtures{} de RLS. A tabela distingue implementação, especificação, provas centrais, biblioteca e suíte voucher. A razão proof/src exclui as duas últimas. Concordância dos dois verificadores não é evidência independente de correção lógica, pois compartilham a ferramenta.\par\textbf{Se perguntarem:} cada comando tem uma observação sob clock fixo, sem quartis. Os checks se ampliaram e o turbo ficou desativado, contribuindo para os tempos maiores sem isolar cada causa. São comandos de desenvolvimento separados da latência de requisição; make test também passou. As contagens excluem documentação, código gerado e dependências externas; a separação de produção e testes Rust usa itens de topo cfg(test). O cliente voucher inclui wrapper e dispatcher; as provas locais excluem biblioteca, propriedade compartilhada e a suíte funcional separada. Não estimam cobertura, dificuldade ou manutenção.}
+\note{Os alvos passaram sob o mesmo clock fixo, com \ContractTheoremTypes{} tipos de teorema, \ProofTheoremWitnesses{} testemunhas centrais e \PublicTheoremWitnesses{} garantias públicas. Há \NegativeFixtures{} negativos centrais e \RlsNegativeFixtures{} de RLS. A tabela distingue implementação, especificação, provas centrais, biblioteca e suíte voucher. A razão proof/src exclui as duas últimas. Concordância dos dois verificadores não é evidência independente de correção lógica, pois compartilham a ferramenta.\par\textbf{Se perguntarem:} cada comando tem uma observação sob clock fixo, sem quartis. A verificação inclui os controles negativos e usa turbo desativado; o experimento não isola o custo de cada verificação. São comandos de desenvolvimento separados da latência de requisição; make test também passou. As contagens excluem documentação, código gerado e dependências externas; a separação de produção e testes Rust usa itens de topo cfg(test). O cliente voucher inclui wrapper e dispatcher; as provas locais excluem biblioteca, propriedade compartilhada e a suíte funcional separada. Não estimam cobertura, dificuldade ou manutenção.}
 \end{frame}
 
 \begin{frame}{E5: escala do estado completo}
@@ -388,22 +388,23 @@ Leitura volátil: \numpt{\ScalingSmallVolatileReadMedianMs} a \numpt{\ScalingMax
 Ajuste linear próximo: intercepto \numpt{\ScalingVolatileReadInterceptMs} ms.\\
 Atualização volátil quase coincide com leitura; marcadores distintos.
 \source{Medianas e Q1--Q3; $n=\ScalingSamples$ por condição, \ScalingSessionCount{} sessão. Teto: \intpt{\StateMaximumRows} linhas.}
-\note{A política de frequência controlada elimina o salto anterior entre populações pequenas. As leituras voláteis crescem suavemente, aproximadamente em proporção ao número de linhas, com intercepto \numpt{\ScalingVolatileReadInterceptMs} ms de custo fixo estimado e inclinação ajustada por mínimos quadrados de \numpt{\ScalingVolatileReadSlopeUsPerRow} microssegundos por linha. A primeira chave custa \numpt{\ScalingFirstKeySmallMs} e \numpt{\ScalingFirstKeyLargeMs} ms nos extremos, muito perto da última chave. A posição da busca explica pouco do crescimento: transferência, decodificação e validação do estado completo dominam esse padrão. Leituras duráveis acompanham as voláteis pela reutilização da imagem. Atualizações duráveis ficam quase constantes nas menores populações e depois crescem com escrita e sincronização da imagem, até \numpt{\ScalingMaximumPersistentUpdateMedianMs} ms. As barras mostram quartis e podem ser menores que os marcadores.\par\textbf{Se perguntarem:} E5 usa \ScalingSessionCount{} sessão, \ScalingSamples{} chamadas por operação, tamanho e modo após aquecimento, e um serviço por modo reutilizado em todos os tamanhos. Preparação e população certificada desde semente vazia ficam fora da latência; o handle de população é invalidado. O ajuste resume esta forma de linha e intervalo, sem provar complexidade assintótica ou isolar cópia. O teto de \intpt{\StateLimitBytes} bytes admite \intpt{\StateMaximumRows} linhas; a tentativa da próxima linha retorna limit e preserva a raiz nos dois modos. Sementes grandes que esgotaram combustível são falhas de inicialização, separadas das operações.}
+\note{Sob política de frequência controlada, as leituras voláteis crescem suavemente, aproximadamente em proporção ao número de linhas, com intercepto \numpt{\ScalingVolatileReadInterceptMs} ms de custo fixo estimado e inclinação ajustada por mínimos quadrados de \numpt{\ScalingVolatileReadSlopeUsPerRow} microssegundos por linha. A primeira chave custa \numpt{\ScalingFirstKeySmallMs} e \numpt{\ScalingFirstKeyLargeMs} ms nos extremos, muito perto da última chave. A posição da busca explica pouco do crescimento: transferência, decodificação e validação do estado completo dominam esse padrão. Leituras duráveis acompanham as voláteis pela reutilização da imagem. Atualizações duráveis ficam quase constantes nas menores populações e depois crescem com escrita e sincronização da imagem, até \numpt{\ScalingMaximumPersistentUpdateMedianMs} ms. As barras mostram quartis e podem ser menores que os marcadores.\par\textbf{Se perguntarem:} E5 usa \ScalingSessionCount{} sessão, \ScalingSamples{} chamadas por operação, tamanho e modo após aquecimento, e um serviço por modo reutilizado em todos os tamanhos. Preparação e população certificada desde semente vazia ficam fora da latência; o handle de população é invalidado. O ajuste resume esta forma de linha e intervalo, sem provar complexidade assintótica ou isolar cópia. O teto de \intpt{\StateLimitBytes} bytes admite \intpt{\StateMaximumRows} linhas; a tentativa da próxima linha retorna limit e preserva a raiz nos dois modos. Sementes grandes que esgotaram combustível são falhas de inicialização, separadas das operações.}
 \end{frame}
 
 \begin{frame}{E6: simulação certificada}
 \small
 Leitura da própria linha de cenário; escrita do próprio resultado.\\
-Certificado universal de acesso e terminação; negativo de escrita alheia.
+Provas de acesso e terminação; negativos de leitura e escrita alheias.
 \par\vspace{3mm}
-{\footnotesize\setlength{\tabcolsep}{3pt}
+{\scriptsize\setlength{\tabcolsep}{2pt}
 \input{../.build/tcc/simulation-table-pt.tex}}
 \par\vspace{2mm}
-Medianas em ms; \SimulationRepeats{} amostras por célula concluída.\\
-Preparação separada, CPU-1/CPU-16/CUDA:\\
+Medianas em ms; CPU-1/CPU-16/CUDA = JayDB2;\\
+\SimulationRepeats{} amostras por célula concluída; preparação separada (ms):\\
 \numpt{\SimulationCpuOnePreparationMs}/\numpt{\SimulationCpuSixteenPreparationMs}/\numpt{\SimulationCudaPreparationMs} ms.
-\source{\GpuDevice{}; corpus \GpuCorpusMiB{} MiB; GPU sem clock fixo. RAM / TEMP / :memory:.}
-\note{O programa lê parâmetros da própria linha, executa caminhadas inteiras e publica agregados no próprio resultado. A prova cobre acesso e terminação, não propriedades estatísticas ou correção CUDA. Oráculos independentes e estados completos conferem os resultados. A tabela compara chamadas completas com PL/pgSQL interpretado e CTE recursiva SQLite. Preparação fica separada. No pequeno, inicializar processo e dispositivo custa caro; CUDA só beneficia a extremidade grande. Timeout é cancelamento real; o tamanho seguinte não é extrapolado. Todos usam armazenamento volátil.\par\textbf{Se perguntarem:} uma sessão e \SimulationWarmups{} aquecimento excluído; SQL sem autenticação ou certificação equivalentes. O tempo JayDB2 inclui codificação, transporte, nova autenticação, hashes, processo e dispositivo novos, publicação e decodificação. SQL inclui leitura dos parâmetros, computação, upsert e retorno. Não há UDF Python. GPU de desktop com clocks não fixados. Driver \GpuDriverVersion{}; biblioteca NVRTC \NvrtcLibraryVersion{}. Fontes: paper/evidence/simulation.json; applications/simulation/README.md.}
+\source{\GpuDevice{}; \texttt{-{}-gpu MiB} (64--4096): pool de memória (corpus); E6: \GpuCorpusMiB{} MiB.\\
+GPU sem clock fixo. RAM / TEMP / :memory:.}
+\note{O programa lê parâmetros da própria linha, executa caminhadas inteiras e publica agregados no próprio resultado. A prova cobre acesso e terminação, não propriedades estatísticas ou correção CUDA. Oráculos independentes e estados completos conferem os resultados. A tabela compara chamadas completas com PL/pgSQL interpretado e CTE recursiva SQLite. Preparação fica separada. No pequeno, inicializar processo e dispositivo custa caro; CUDA só supera CPU-16 na maior carga testada. SQL é mais rápido em quatro caminhos por 32 passos; as estratégias SQL interpretadas crescem mais e esgotam o tempo nas cargas maiores. Timeout é cancelamento real; o tamanho seguinte não é extrapolado. Todos usam armazenamento volátil.\par\textbf{Se perguntarem:} uma sessão e \SimulationWarmups{} aquecimento excluído; SQL sem autenticação ou certificação equivalentes. O tempo JayDB2 inclui codificação, transporte, nova autenticação, hashes, processo e dispositivo novos, publicação e decodificação. SQL inclui leitura dos parâmetros, computação, upsert e retorno. Não há UDF Python. GPU de desktop com clocks não fixados. Driver \GpuDriverVersion{}; biblioteca NVRTC \NvrtcLibraryVersion{}. Fontes: paper/evidence/simulation.json; applications/simulation/README.md.}
 \end{frame}
 
 \begin{frame}{Limitações e ameaças à validade}
@@ -428,14 +429,15 @@ sementes grandes esgotaram combustível; escala acima dele não testada.
 \begin{tabular}{@{}L{.10\linewidth}L{.83\linewidth}@{}}
 \textbf{RQ1} & Admissão autenticada, leis nos prefixos, progresso e resultados exatos; estados seriais válidos sob T1--T3.\\\addlinespace[2mm]
 \textbf{RQ2} & Índice, voucher, RLS e simulação certificam acesso/publicação; negativos causais.\\\addlinespace[2mm]
-\textbf{RQ3} & Preparação amortiza admissão; GPU beneficia computação grande, com custo de inicialização.\\
+\textbf{RQ3} & Preparação amortiza admissão; GPU só supera CPU-16 na maior carga testada, com custo de inicialização.\\
 \end{tabular}
 \par\vspace{3mm}
 Preparação compensada após \BreakEvenReadCalls{} chamadas (modelo de medianas).\\
 Leitura grande: \ratiopt{\LargeJayReadOverPostgres}$\times$ PostgreSQL.
 \par\vspace{3mm}
-\textbf{Próximos passos:} provar durabilidade; reduzir T3 e transferência de estado.
-\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham os prefixos e selecionam o resultado publicado. O controlador preparado participa do fold verificado e as respostas de erro têm construção verificada. RLS acrescenta linhas compartilhadas e diretórios exatos, sob o limite de capacidade agregado. A avaliação quantifica o custo: segundos na admissão ordinária e milissegundos no reuso preparado, com equilíbrio volátil estimado em \BreakEvenReadCalls{} chamadas para leitura. Mesmo preparada, a leitura pontual durável custa \ratiopt{\JayPointReadOverPostgres} vezes PostgreSQL. Os próximos passos incluem prova de durabilidade e recuperação, menos confiança física em T3, admissão mais rápida e menor transferência e publicação de estado completo. As referências completas estão no artigo.}
+\textbf{Próximos passos:} provar durabilidade; reduzir T3 e transferência de estado;\\
+reutilizar workers GPU persistentes.
+\note{A contribuição principal conecta a prova do cliente às funções que iniciam a máquina, acompanham os prefixos e selecionam o resultado publicado. O controlador preparado participa do fold verificado e as respostas de erro têm construção verificada. RLS acrescenta linhas compartilhadas e diretórios exatos, sob o limite de capacidade agregado. A avaliação quantifica o custo: segundos na admissão ordinária e milissegundos no reuso preparado, com equilíbrio volátil estimado em \BreakEvenReadCalls{} chamadas para leitura. Mesmo preparada, a leitura pontual durável custa \ratiopt{\JayPointReadOverPostgres} vezes PostgreSQL. Os próximos passos incluem prova de durabilidade e recuperação, menos confiança física em T3, admissão mais rápida e menor transferência e publicação de estado completo, além de workers GPU persistentes. As referências completas estão no artigo.}
 \end{frame}
 
 \appendix
@@ -522,7 +524,7 @@ Teste guarda inventário Node, sem prova de equivalência.
 \small
 \begin{itemize}
 \item Claude Opus 5.5 (Anthropic, via Claude Code): planejamento,
-orquestração e revisões técnicas e de banca, incluindo revisões independentes de GPU e simulação.
+orquestração, parte da implementação/provas e revisões técnicas e de banca, incluindo revisões independentes de GPU e simulação.
 \item GPT-6.1 Sol (OpenAI, via Codex): código, provas, harness e medições;
 redação e revisão de todas as seções do artigo e dos slides;
 tradução dos slides e formatação LaTeX; implementação GPU/simulação e integração das evidências E6.

@@ -11,10 +11,11 @@
 \usepackage{url}
 \urlstyle{same}
 \input{../.build/tcc/numbers.tex}
-\newcommand{\laten}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=3,1000 sep={,}]{#1}}
-\newcommand{\numen}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=2,1000 sep={,}]{#1}}
+% PGF strips separator braces; mathord suppresses punctuation spacing.
+\newcommand{\laten}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=3,1000 sep={{\mathord{,}}}]{#1}}
+\newcommand{\numen}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=2,1000 sep={{\mathord{,}}}]{#1}}
 
-\newcommand{\ratioen}[1]{\pgfmathprintnumber[fixed,precision=1,1000 sep={,}]{#1}}
+\newcommand{\ratioen}[1]{\pgfmathprintnumber[fixed,precision=1,1000 sep={{\mathord{,}}}]{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\jay}{JayDB2}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -30,36 +31,33 @@ Belo Horizonte -- MG -- Brasil}
 \begin{document}
 \maketitle
 \begin{abstract}
-JayDB2 checks that client transactions obey administrator-defined laws.
-Conditional theorems connect its executable Bend admission, interpreter,
-finalizer and prepared controller. Index, voucher, row-level security and
-simulation applications demonstrate certified access and publication.
-Opt-in CUDA executes explicit bang calls under the same proof obligations,
-with a larger compiler/runtime trusted base. An ordinary read costs
+JayDB2 checks client transactions against administrator-defined laws.
+Conditional theorems connect Bend admission, interpretation, finalization
+and prepared control. Optional CUDA executes explicit Bend bang calls
+(\code{f!(x)}) with the same proofs and a larger trusted base (CUDA runtime,
+NVRTC, driver, GPU). An ordinary read costs
 \numen{\OrdinaryReadMedianSeconds}~s; volatile prepared reuse costs
-\numen{\PreparedReadVolatileMedianMs}~ms, amortizing preparation after
-\BreakEvenReadCalls{} calls in a median-cost model. Durable point operations
-remain slower than PostgreSQL. A volatile simulation comparison with PostgreSQL
-and SQLite shows CUDA benefiting the largest tested computation, with substantial
-startup overhead. Complete-state processing limits scale; crash durability
-and CUDA correctness are outside the proofs.
+\numen{\PreparedReadVolatileMedianMs}~ms and amortizes preparation after
+\BreakEvenReadCalls{} calls (median model). Durable point operations remain
+slower than PostgreSQL. In volatile simulation with PostgreSQL and SQLite,
+CUDA beats CPU-16 only at the largest tested workload, with substantial startup
+overhead. Complete-state processing limits scale; crash durability and CUDA
+correctness are unproved.
 \end{abstract}
 \begin{resumo}
 \selectlanguage{brazilian}
-\newcommand{\numbr}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=2,use comma,1000 sep={.}]{#1}}
-O JayDB2 verifica se transações de clientes respeitam leis do administrador.
+\newcommand{\numbr}[1]{\pgfmathprintnumber[fixed,fixed zerofill,precision=2,use comma,1000 sep={{.}}]{#1}}
+O JayDB2 verifica transações de clientes contra leis definidas pelo administrador.
 Teoremas condicionais conectam admissão, interpretação, finalização e controle
-preparado executáveis em Bend. Aplicações de índice, vouchers, segurança em
-nível de linha e simulação demonstram acesso e publicação certificados.
-CUDA opcional executa chamadas bang sob as mesmas obrigações de prova,
-com uma base confiável de compilação e execução ampliada. Uma leitura ordinária
-custa \numbr{\OrdinaryReadMedianSeconds}~s; o reuso preparado volátil custa
-\numbr{\PreparedReadVolatileMedianMs}~ms, amortizando a preparação após
-\BreakEvenReadCalls{} chamadas em um modelo de medianas. Operações pontuais
-duráveis continuam mais lentas que o PostgreSQL. A comparação de simulação
-volátil com PostgreSQL e SQLite mostra benefício de CUDA na maior carga testada,
-com custo substancial de inicialização. O processamento do estado completo
-limita a escala; durabilidade após falhas e correção de CUDA estão fora das provas.
+preparado em Bend. CUDA opcional executa chamadas bang explícitas
+(\code{f!(x)}) com as mesmas provas e base confiável ampliada (compilação e
+execução CUDA). Uma leitura ordinária custa \numbr{\OrdinaryReadMedianSeconds}~s;
+o reuso preparado volátil custa \numbr{\PreparedReadVolatileMedianMs}~ms e
+amortiza a preparação após \BreakEvenReadCalls{} chamadas (modelo de medianas).
+Operações pontuais duráveis seguem mais lentas que o PostgreSQL. Na simulação
+volátil com PostgreSQL e SQLite, CUDA supera CPU-16 só na maior carga testada,
+com alto custo de inicialização. Processar todo o estado limita a escala;
+durabilidade após falhas e correção CUDA não são provadas.
 \end{resumo}
 \selectlanguage{english}
 
@@ -71,10 +69,11 @@ her exact secondary index at publication while every intermediate access remains
 hers. Reading Bob's index violates ownership even if the program later refuses.
 Combining prefix permissions with publication integrity motivates \jay{} \cite{artifact}.
 
-Administrators fix schema/laws; clients submit pure Bend programs and certificates.
-Checked gate/interpreter/finalizer functions compute typed \code{Commit}/\code{Keep}
-decisions for Rust. Prepared programs reuse universal proofs/artifacts with fresh
-authentication. The systems problem is binding certificates to that execution.
+Administrators define the schema and laws; clients submit pure Bend programs
+and certificates. The checked gate, interpreter and finalizer compute typed
+\code{Commit} or \code{Keep} decisions for Rust. Prepared programs reuse universal
+proofs and compiled artifacts with fresh authentication. The systems problem is
+binding certificates to that execution.
 
 \paragraph{General objective.}
 Implement and evaluate a proof-carrying service connecting certificates to
@@ -92,12 +91,13 @@ explicit assumptions connecting source semantics to native execution.
 These objectives define three research questions: \textbf{RQ1}, which guarantees
 follow from the executing code and under which assumptions;
 \textbf{RQ2}, whether certificates combine prefix access and publication
-invariants; and \textbf{RQ3}, what the executable costs and how preparation changes
-that cost. Contributions are the certificate interface, executable Bend guarantees with
+invariants; and \textbf{RQ3}, what the executable costs and how preparation
+and opt-in CUDA change that cost. Contributions are the certificate interface, executable Bend guarantees with
 generated oracle proofs, checked prepared controls/error replies and certified
 applications, sealed opt-in GPU artifacts and a simulation comparison with
 PostgreSQL/SQLite. Preparation amortizes in \BreakEvenReadCalls{}
-calls (median model). Guarantees are conditional on T1--T3; crash
+calls (median model). Guarantees are conditional on explicit trust assumptions T1--T3
+(checking/binding, compilation/runtime, host plumbing); crash
 durability, concurrent isolation and SQL-level performance are outside the claims.
 
 Sections~\ref{sec:background}--\ref{sec:conclusion} present the literature,
@@ -116,7 +116,7 @@ refinement \cite{fiat2015}. These verify internals or synthesize implementations
 UrFlow statically checks SQL-dependent policies \cite{urflow2010}; Hails uses
 mandatory access control \cite{hails2012}; LWeb mechanizes noninterference
 \cite{lweb2019}; Jacqueline propagates information-flow policies dynamically
-\cite{jacqueline2016}. \jay{} checks prefix/publication propositions without
+\cite{jacqueline2016}. \jay{} checks propositions about prefixes and publication without
 claiming their end-to-end information-flow guarantees.
 
 Table privileges \cite{postgresprivileges} can prevent foreign-table reads.
@@ -126,8 +126,9 @@ bypass it, as do table owners unless FORCE applies. Table constraints
 Triggers \cite{postgrestrigger} can defer cross-table index equality to commit.
 CREATE ASSERTION \cite{postgresunsupported} is unsupported. Reference monitors
 \cite{schneider2000} enforce runtime access. Proofs here combine arbitrary
-propositions, including erased reachability, over all valid states/paths without
-policy aborts, and amortized universal checking. Manual certificates and
+propositions over all valid states and paths without policy aborts, with
+amortized universal checking. These include reachability proofs erased before
+execution, so no event log is required. Manual certificates and
 substantial overhead are the cost.
 
 Verified systems separate proved source behavior from the components trusted to
@@ -140,17 +141,19 @@ This permits conditional guarantees without treating the entire stack as verifie
 \label{sec:methodology}
 Artifact construction, deductive verification and controlled experiments proceed
 from action semantics and phase-sensitive laws to executable functions and their
-proofs, then application certificates/negative controls and native measurements.
+proofs, then application certificates, negative controls and native measurements.
 The artifact provides source, proofs and reproduction commands \cite{artifact}.
 
 \subsection{Tools and reproducibility}
 Bend~2.0.39 supplies the dependent language, official \texttt{-{}-check-only}
 checker, BendTT \texttt{-{}-verdict} mode and C compiler/runtime \cite{bend}.
-A checked collection of definitions is a \emph{Book}; the very checked Book feeds
-native compilation. Rust~1.98.0 implements the physical host \cite{rust};
+A checked collection of definitions is a \emph{Book}; native compilation uses
+that exact checked Book. Rust~1.98.0 implements the physical host \cite{rust};
 Node.js~24.19.0 stages admission \cite{node}; Clang~19.1.1 compiles literal
 emitted C \cite{clang}. Python~3.12.3 drives experiments and evidence validation
-\cite{python}. Psycopg~3.3.8 supplies the SQL driver \cite{psycopg}; comparison
+\cite{python}. NumPy~2.5.4 supplies independent oracles \cite{numpy}; the CUDA
+driver and NVRTC (NVIDIA runtime compilation library) \cite{cuda,nvrtc} serve E6.
+Psycopg~3.3.8 supplies the SQL driver \cite{psycopg}; comparison
 baselines are PostgreSQL~16.15 \cite{postgresrls} and the embedded
 SQLite~3.45.1 \cite{sqlite}.
 Evidence metadata retain the versions. LaTeX and BibTeX typeset the documents
@@ -204,7 +207,8 @@ Finalization checks structure and state/response limits before publication.
 Figure~\ref{fig:architecture} shows the serial FIFO service. Rust owns the
 published root, framing, processes and pipes; Node stages admission/compilation;
 Bend decides decoding, authentication, dispatch, execution and finalization.
-On CPU, after the primary check and Safe translation, BendTT checking overlaps
+On CPU, after the primary check and translation to BendTT for a second check,
+BendTT checking overlaps
 C emission and Clang compilation of the same sealed Book. Receipts release artifacts only
 after both official checkers accept and seals/hashes verify; T1 rests on this
 release barrier, not on cleanup. Clang compiles literal emitted C at \code{-O0}
@@ -250,12 +254,13 @@ carries the exact root/response pair; Keep retains the root. A successful read
 can commit an unchanged root. The next request uses the resulting published state.
 
 \paragraph{Opt-in GPU execution.}
-The default is \code{-{}-gpu off}; Linux/NVIDIA opt-in \code{-{}-gpu MiB}
-enables the official CUDA backend for explicit \code{f!(x)} calls in submitted programs. Initialization,
+The default is \code{-{}-gpu off}. Linux/NVIDIA opt-in \code{-{}-gpu MiB}
+(64--4096) sets the runtime's device memory pool (corpus) and enables CUDA for
+explicit bang calls \code{f!(x)}, Bend's marker for backend-parallel evaluation. Initialization,
 authentication and metadata control stay on CPU. In GPU mode, both official
 checkers must accept the same sealed Book before any C emission, Clang
 compilation or CUDA prebuild. Literal emitted C is compiled with CUDA support;
-the official runtime prebuilds a \code{.gpu} cubin using NVRTC \cite{cuda,nvrtc}.
+the official runtime prebuilds a \code{.gpu} CUDA binary (cubin) using NVRTC \cite{cuda,nvrtc}.
 The private report binds C, executable and cubin hashes. CUDA execution checks
 artifacts before launch and before accepting the proposal; prepared calls also
 compare exact sealed source/proof/artifact bytes. Missing or changed artifacts,
@@ -271,8 +276,9 @@ source/proof tuple; its worker specializes the universal certificate to current
 context and arguments. Reuse runs neither checker nor compiler, but retains fresh
 native processes, full-state transfer and artifact-integrity checks.
 
-\code{Control.control} runs through \code{ControlBridge.packet}. Preparation compares the exact T1 tuple and checks
-handle shape/freshness and receipt bounds before a registry delta. Invalidation
+\code{Control.control} runs through \code{ControlBridge.packet}. Before changing
+the registry, preparation compares the exact T1 tuple, checks the handle's format
+and that it has never been allocated, and bounds the receipt. Invalidation
 removes entries but retains allocation history; control receipts preserve root
 and last response. Rust forwards latest registry bytes unchanged;
 \code{ControlRegistryBytes} connects worker decoding. Mixed folds preserve valid
@@ -373,7 +379,8 @@ managed memory and GPU hardware. Resolved driver/NVRTC library paths/hashes are 
 but host CUDA headers/libraries are not pinned like Bend. Theorems concern the
 checked Book's semantics: GPU programs discharge identical certificate,
 termination, access/RLS, size and publication obligations, with no CUDA validity
-axiom. CPU/GPU differential tests and numerical oracles are evidence of behavior,
+axiom. GPU-program negatives (false result/termination, foreign read) fail
+exactly like CPU ones. CPU/GPU differential tests and numerical oracles are evidence of behavior,
 not proofs of compiler/runtime or hardware correctness.
 
 \paragraph{T3: physical host plumbing.}
@@ -400,7 +407,7 @@ collects the resulting scope and other limitations.
 
 \subsection{Certified applications}
 \label{sec:applications}
-All applications combine prefix permissions with publication laws, with proofs
+All applications combine prefix permissions with publication laws, with proofs (simulation: standard finalization only)
 over actual \code{Data.operate} results for all valid states, inputs and depths.
 Table~\ref{tab:application-laws} separates their obligations and causal controls.
 
@@ -417,7 +424,7 @@ receipt/business pairing & Broken protocol or receipt maintenance\\
 RLS notes & Own namespace; immutable owner; read-only admin & Directory equals
 exactly owned note IDs & Foreign access/owner; shared scan; missing directory entry\\
 Simulation & Own scenario reads; own result writes & Standard structure/size
-finalization & Foreign result write\\\bottomrule
+finalization & Foreign scenario read; foreign result write\\\bottomrule
 \end{tabular}
 \end{table}
 
@@ -463,9 +470,8 @@ compute demonstration, not a calibrated pricing model or statistically validated
 random generator. Its universal certificate allows only own-row scenario reads
 and own-row result writes, including failed operations and refusals. A
 \code{Safe} induction and \code{T.program\_finite} establish a finite Action
-chain; the official checker checks numerical recursion structurally. A foreign
-result-write mutation fails at the installed access obligation in both modes
-and is rejected before compilation/CUDA. Numerical checksums are tested against
+chain; the official checker checks numerical recursion structurally. Foreign scenario-read and result-write mutations fail at the installed access
+obligation in both modes and are rejected before compilation, including CUDA. Numerical checksums are tested against
 independent scalar Python/NumPy, rather than proved by that certificate.
 
 \subsection{Evaluation protocol}
@@ -478,8 +484,10 @@ The \CpuGovernor{} governor and turbo \TurboSetting{} keep active cores near the
 nominal \CpuClockGHz{}~GHz base clock; idle-core endpoint readings can be lower.
 The wrapper saves, restores and verifies CPU settings; no CPU pinning is applied.
 Discarded frequency-scaling runs remain diagnostic evidence. Metadata retain
-source/executable hashes, exact revision and instrumentation. Refreshed E1--E6
-and the focused GPU benchmark share fingerprints and clean measurement metadata. Phase hooks run only in E1/E2; ordinary/prepared C levels differ as above.
+source/executable hashes, exact revision and instrumentation. Refreshed E1--E6 and the focused GPU benchmark share fingerprints and clean
+measurement metadata. The latter uses integer mixing over a balanced tree of
+$2^{\mathrm{depth}}$ leaves. Phase hooks run only in E1 and E2; ordinary and
+prepared calls use the different C optimization levels stated above.
 
 Initialization, operation warmups, response checks and readbacks are outside
 samples. In E1--E3/E5, JayDB2 timing spans sending a pre-encoded frame through reading its
@@ -491,7 +499,7 @@ and ranges of session medians are distinct; full tables, raw samples and command
 remain in \path{paper/evidence/} and \path{paper/README.md}.
 Independent sessions assess repeatability on one deployment. E6 additionally
 uses CPU one/sixteen workers and \GpuDevice{}, driver \GpuDriverVersion{},
-resolved NVRTC library \NvrtcLibraryVersion{}, and a \GpuCorpusMiB{}~MiB corpus.
+resolved NVRTC library \NvrtcLibraryVersion{}, and a \GpuCorpusMiB{}~MiB device memory pool.
 CPU policy is fixed and restored as above; GPU clocks are unfixed and the device
 also drives the desktop. E6 uses \SimulationSessionCount{} session per backend,
 \SimulationWarmups{} excluded warmup and \SimulationRepeats{} samples per completed
@@ -522,8 +530,7 @@ worker execution contributes only \numen{\OrdinaryReadWorkerSharePercent}\%,
 inside admission wall time; their rows are not additive.}\label{tab:phases}
 \input{../.build/tcc/ordinary-phase-summary.tex}
 \end{table}
-Checking and build diagnostics overlap inside admission wall time and must
-not be summed. ``Other'' subtracts admission wall and worker time per call;
+``Other'' subtracts admission wall and worker time per call;
 whole-Book checking includes the generated oracle, without a per-law timer.
 
 \subsection{E2: prepared reuse and break-even}
@@ -566,7 +573,7 @@ Alice's ordinary foreign-table read/update with the unchanged certificate return
 \code{certificate}; explicit PostgreSQL SELECT/UPDATE RETURNING for Bob return
 no rows. Legitimate Bob/admin checks confirm unchanged state. SQLite permits
 both attempts and is reset. These supplied-certificate and SQL controls have
-different refusal/filtering interfaces; SQLite is unconstrained.
+different interfaces for refusal and filtering; SQLite is unconstrained.
 
 \begin{table}[!ht]\centering\small
 \setlength{\tabcolsep}{3pt}
@@ -575,7 +582,8 @@ Prepared JayDB2; SQLite unconstrained; $n=\ComparisonSamples$ per condition.}
 \label{tab:comparison}
 \input{../.build/tcc/database-comparison-table.tex}
 \end{table}
-Prepared JayDB2 is slower throughout. Small point read/update ratios to
+Table~\ref{tab:comparison} shows prepared JayDB2 is slower throughout.
+Small point read and update ratios to
 PostgreSQL are \ratioen{\JayPointReadOverPostgres} and
 \ratioen{\JayPointUpdateOverPostgres}; large ratios reach
 \ratioen{\LargeJayReadOverPostgres} and \ratioen{\LargeJayUpdateOverPostgres}.
@@ -603,7 +611,8 @@ voucher program counts wrapper plus dispatcher. These are syntactic sizes,
 not authoring effort, coverage or difficulty; no developer study was conducted.
 
 \begin{table}[!ht]\centering\small
-\caption{E4: local client program/proof nonblank lines and proof/program ratio.}
+\caption{E4: local client program/proof nonblank lines and proof/program ratio.
+Simulation not counted.}
 \label{tab:client-effort}
 \begin{tabular}{@{}lrrr@{}}\toprule
 Application & Program & Proof & Ratio\\\midrule
@@ -697,8 +706,12 @@ Small CUDA requests cost \numen{\SimulationSmallCudaMs}~ms versus
 \SimulationLargestPaths{} paths and \SimulationLargestSteps{} steps, medians are
 \numen{\SimulationLargeCpuOneMs}, \numen{\SimulationLargeCpuSixteenMs} and
 \numen{\SimulationLargeCudaMs}~ms respectively. GPU benefit appears only at the
-large end of this sweep. The focused bang benchmark separately retains native-worker
-and complete-request trials with independent U32 oracles and identical emitted C;
+largest tested workload relative to CPU-16. SQL engines are fastest at
+$4\times32$, where JayDB2 pays per-request process/device startup, but interpreted
+PL/pgSQL and recursive CTE grow faster and time out at larger sizes; this reflects
+unsuited execution strategies, not general database performance.
+The focused GPU benchmark separately retains native-worker and complete-request
+trials with independent unsigned 32-bit (U32) oracles and identical emitted C;
 its small CUDA native worker costs \numen{\GpuSmallCudaNativeMs}~ms including
 process/device startup. These are fresh-process wall times, not kernel timings.
 
@@ -720,14 +733,16 @@ The RLS aggregate-size ceiling is a logical response channel: chosen note length
 and deterministic \code{limit} replies can reveal others' combined encoded size.
 One user can also exhaust others' capacity. Both lie outside the confidentiality claim.
 
-For RQ3, preparation removes checking/build but ordinary/prepared optimization
-levels differ. Whole-state processing and image synchronization are prototype
+For RQ3, preparation removes checking and compilation, but optimization levels
+differ between ordinary and prepared calls. Whole-state processing and image synchronization are prototype
 costs. Larger states were neither configured nor demonstrated; large seeds
 exhausted checker fuel. Fitted slopes describe only the tested row shape/range.
 One machine, serial correlated calls, cache/CPU placement, storage and E1/E2 hooks
 limit generalization. E4/E5 each have one session/observation. Per-owner table
 privileges more closely resemble the index/E3 layout than benchmark RLS but
-were not measured. SQL filtering/refusal and timing boundaries differ.
+were not measured. SQL filtering and certificate refusal have different
+interfaces; timing boundaries also differ. Slow E1--E5 sessions remain included
+in retained reports.
 
 E6 is a volatile compute comparison: JayDB2 RAM, PostgreSQL TEMP tables
 without table WAL, SQLite \code{:memory:}. SQL has no equivalent proof admission
@@ -738,7 +753,7 @@ a fresh GPU process/device imposes substantial fixed startup. One session,
 strategies limit fairness/generalization. Timeouts supply no extrapolated result.
 CUDA libraries/hardware enlarge T2; artifact checks do not defeat same-UID races.
 No persistent GPU worker, cross-instance scheduling, resource quota or physical
-time bound is provided. Slow E1--E5 sessions remain included in retained reports.
+time bound is provided.
 
 \section{Conclusions and Future Work}
 \label{sec:conclusion}
@@ -752,8 +767,10 @@ For RQ3, an ordinary read costs \numen{\OrdinaryReadMedianSeconds}~s versus
 \numen{\PreparedReadVolatileMedianMs}~ms prepared/volatile, amortizing preparation
 after \BreakEvenReadCalls{} calls in the median model. Durable large-state point reads
 remain \ratioen{\LargeJayReadOverPostgres} times PostgreSQL. Complete-state work
-limits scaling; E6 shows GPU benefit at large numerical workloads, with expanded
-T2 and substantial startup cost, rather than general database acceleration.
+limits scaling. E6 shows GPU benefit only at the largest tested workload
+(\numen{\SimulationLargeCudaMs} vs \numen{\SimulationLargeCpuSixteenMs}~ms on
+CPU-16), with expanded T2 and substantial startup cost. This does not establish
+general database acceleration.
 
 Unlike verified internals \cite{malecha2010} or synthesis \cite{fiat2015},
 certificates target the executing functions; end-to-end noninterference

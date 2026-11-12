@@ -3,7 +3,7 @@
 English SBC conference article by **Gabriel Jota Lizardo, PUC Minas**, with a
 Portuguese Beamer defense and Portuguese speaker notes. The deck retains its
 existing theme and has **22 main frames and seven appendix frames**, including
-a final AI-use disclosure. The article has **16 pages including 31 references**;
+a final AI-use disclosure. The article has **16 pages including 32 references**;
 it contains no appendix. Change text directly in `main.tex` and `slides.tex`.
 
 ## SBC template and build
@@ -22,18 +22,23 @@ A4 page, 3 cm side margins, 3.5 cm top and 2.5 cm bottom margins, template parag
 spacing and captions. There are no manuscript geometry/font/indent overrides.
 Article citations use the template's author/year labels from BibTeX with
 `sbc.bst`; `references.bib` preserves all 21 original references and adds eight
-official tool references and two NVIDIA CUDA/NVRTC references. URLs/DOIs are in `note`/`howpublished` because the original
+official tool references, two NVIDIA CUDA/NVRTC references and NumPy. URLs/DOIs
+are in `note`/`howpublished` because the original
 SBC bibliography style does not print dedicated `url`/`doi` fields. The article
 uses `url` without `hyperref`, avoiding the official style's old hyperlink hook;
 the vendored style remains byte-identical to SBC's archive.
 
 ```sh
 make -C paper
-PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python python3 -B -m unittest discover -s paper -p test_evidence.py -v
-PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python python3 -m pytest paper/test_evidence.py
+PYTHONPATH="$JAYDB2_PY_DEPS" python3 -B -m unittest discover -s paper -p test_evidence.py -v
+PYTHONPATH="$JAYDB2_PY_DEPS" python3 -m pytest paper/test_evidence.py
 pdfinfo .build/tcc/output/jaydb2-tcc.pdf
 pdfinfo .build/tcc/output/jaydb2-defense.pdf
 ```
+
+Set `JAYDB2_PY_DEPS` to the package directory for a Python environment providing
+pytest, NumPy and matplotlib (or leave it empty when those packages are already
+available to `python3`). The retained GPU benchmark records NumPy 2.5.4.
 
 Requires Python 3 with NumPy (independent GPU/E6 oracle validation), pdfLaTeX and BibTeX, plus standard Times/PSNFSS, fontenc/inputenc,
 Babel (English and Brazilian Portuguese), AMS, caption, titlesec, etoolbox,
@@ -67,10 +72,11 @@ maps to the required roles in this order:
 | III — Methodology | Section 3: construction steps, cited/versioned tools, model, architecture diagram, executable guarantees, trusted base, applications and evaluation protocol |
 | IV — Results with analysis | Section 4: E1–E6 latency, reuse, SQL comparison, verification, state scaling and certified CPU/CUDA simulation, with generated tables/PGFPlots; Section 5 discusses limitations |
 | V — Conclusions and future work | Section 6: contributions, main results, explicit comparison with literature and future directions |
-| VI — References | 31 BibTeX references using `sbc.bst` |
+| VI — References | 32 BibTeX references using `sbc.bst` |
 
 Both the English abstract and faithful Portuguese **Resumo** appear on the first
-page. The unnumbered **Use of Artificial Intelligence** note before the references
+page, each with ten rendered lines, within SBC's guidance. The unnumbered
+**Use of Artificial Intelligence** note before the references
 states tools/models/vendors, purposes, contribution to all article sections and
 slides, author responsibility and executed-data provenance (Arts. 6–9). Its source
 comment `% AUTHOR: review and adjust this declaration` marks it for author review.
@@ -89,8 +95,8 @@ are evidence, not proof. E1–E5 remain GPU-disabled. E6 is a volatile simulatio
 comparison with separately reported admission, explicit SQL timeouts and no
 equivalent SQL proof/authentication claim.
 
-For Art. 18, the **22 main slides** have approximately **2,212 spoken words**, or
-**17.0 minutes at 130 words/minute**, leaving room for transitions within the
+For Art. 18, the **22 main slides** have approximately **2,267 spoken words**, or
+**17.4 minutes at 130 words/minute**, leaving room for transitions within the
 20-minute maximum. Count only notes before `\appendix`, stop each note at
 **Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` cues. Strip formatting
 commands; each numerical macro counts as one spoken token. The seven appendix
@@ -198,7 +204,7 @@ SQLite gets a fresh connection/database; JayDB2 gets a fresh service and durable
 database for each E1–E3 session. The complete refresh is:
 
 ```sh
-export PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python
+export PYTHONPATH="$JAYDB2_PY_DEPS"
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/refresh.py'
 python3 -B paper/evidence.py
 # Optional standalone figures (Matplotlib):
