@@ -22,6 +22,7 @@ from tests.service.test_end_to_end import Server
 from tests.service.test_gpu import PROOF, StateFeed
 from tools.client import encode, prepared_frame, unframe
 from paper.bench.frequency import observe
+from paper.bench.run import metadata
 
 CODE = (ROOT/'experiments/gpu/HeavyClient.bend').read_text()
 
@@ -100,7 +101,8 @@ def main():
             value = ((value ^ (value >> 16))*1664525 + 1013904223) & 0xffffffff
         scalar = (scalar + value) & 0xffffffff
     assert reference[2] == scalar
-    output = dict(revision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+    output = dict(metadata=metadata(1),
+        revision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         dirty=subprocess.check_output(['git', 'status', '--porcelain'], text=True).splitlines(),
         utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), frequency=observe(),
         frequency_original=json.loads(Path(os.environ['JAYDB_BENCH_FREQUENCY_ORIGINAL']).read_text()),
