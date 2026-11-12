@@ -32,7 +32,7 @@ Belo Horizonte -- MG -- Brasil}
 \begin{abstract}
 JayDB2 checks proofs that client transactions obey administrator-defined laws.
 Conditional theorems cover its executable Bend gate, interpreter, finalizer and
-prepared controller, including host error replies. Index, voucher and row-level
+prepared controller, including construction of host error replies. Index, voucher and row-level
 security applications combine prefix access safety with publication invariants.
 An ordinary read costs
 \numen{\OrdinaryReadMedianSeconds}~s; volatile prepared reuse costs
@@ -49,7 +49,7 @@ administrador. Teoremas condicionais cobrem suas funções executáveis de admis
 interpretação, finalização e controle de programas preparados em Bend.
 Aplicações de índice, vouchers e segurança em nível de linha combinam segurança
 de acesso nos prefixos e invariantes de publicação. Respostas de erro do host
-também são verificadas em Bend. Uma leitura ordinária custa
+também são construídas por código Bend verificado. Uma leitura ordinária custa
 \numbr{\OrdinaryReadMedianSeconds}~s; o reuso preparado volátil custa
 \numbr{\PreparedReadVolatileMedianMs}~ms e amortiza a preparação após
 \BreakEvenReadCalls{} chamadas em um modelo de medianas. Leituras duráveis
@@ -130,8 +130,8 @@ withholding \code{SELECT} on Bob's index prevents Alice's read, absent inherited
 or public grants. RLS normally filters unauthorized rows instead of rejecting
 the attempt \cite{postgresrls}. Superusers and \code{BYPASSRLS} roles bypass RLS;
 owners normally do so unless \code{FORCE ROW LEVEL SECURITY} applies. The shared
-notes application below instead refuses programs that could read a foreign row
-before execution, for every valid state, and proves exact per-user directories.
+notes application below instead refuses, before execution, any program that could
+read a foreign row in some valid state, and proves exact per-user directories.
 Table constraints are specified through
 \code{CREATE TABLE} \cite{postgrescreate}, but \code{CHECK} constraints are not
 deferrable \cite{postgresconstraints}. Exact equality between ordinary business
@@ -393,7 +393,7 @@ pure transitions, integer/Unicode behavior and observation order for the exact a
 
 \paragraph{T3: physical host plumbing.}
 Table~\ref{tab:host-duties} summarizes the \HostDutyCount{} numbered duties,
-regrouping the previous obligations. The regrouping does not imply reduced trust;
+regrouping an earlier, finer-grained list. The regrouping does not imply reduced trust;
 the status decision and reply construction have moved into checked Bend.
 \begin{table}[htbp]\centering\small
 \caption{T3 physical duties, using the proof guide's regrouped numbering.}
@@ -532,7 +532,6 @@ Table~\ref{tab:phases} identifies whole-Book checking and C work as dominant;
 worker execution contributes only \numen{\OrdinaryReadWorkerSharePercent}\%,
 \numen{\OrdinaryIndexedWorkerSharePercent}\% and
 \numen{\OrdinaryVoucherWorkerSharePercent}\% of individual round trips at the median.
-Thus faster worker execution alone changes little of ordinary latency.
 
 \begin{table}[htbp]\centering\small
 \setlength{\tabcolsep}{3pt}
@@ -540,8 +539,7 @@ Thus faster worker execution alone changes little of ordinary latency.
 inside admission wall time; their rows are not additive.}\label{tab:phases}
 \input{../.build/tcc/ordinary-phase-summary.tex}
 \end{table}
-The faster admission path overlaps BendTT and native build after the primary
-check. Admission wall
+After the primary check, BendTT checking overlaps the native build. Admission wall
 medians are \numen{\OrdinaryReadAdmissionSeconds},
 \numen{\OrdinaryIndexedAdmissionSeconds} and
 \numen{\OrdinaryVoucherAdmissionSeconds}~s. Checking and C diagnostics overlap and
@@ -632,9 +630,7 @@ Each command has one wall-time observation, without quartiles or session spread.
 Contract/full verification take \numen{\VerifyContractSeconds} and
 \numen{\VerifySeconds}~s, checking positive witnesses in both modes; full
 verification also checks import coverage, \NegativeFixtures{} core negative
-fixtures and the separate \RlsNegativeFixtures{} RLS negatives. Expanded checks
-and the non-turbo clock contribute to the refreshed times; this does not isolate
-each contribution. Tests take \numen{\TestSeconds}~s.
+fixtures and the separate \RlsNegativeFixtures{} RLS negatives. Tests take \numen{\TestSeconds}~s.
 
 Nonblank physical sizes are \ProofNonblankLines{} in \code{proof/} and
 \SrcNonblankLines{} in \code{src/}, ratio \ratioen{\ProofToImplementationRatio},
@@ -645,7 +641,7 @@ generated/vendor code. Table~\ref{tab:client-effort} counts certificate/terminat
 files, excluding domain/shared proofs, model/seed and libraries; voucher program
 includes wrapper/dispatcher. Rust production/tests split at top-level
 \code{cfg(test)} items. These are syntactic sizes, not effort, coverage or difficulty
-estimates; all applications were author-constructed, without a developer study.
+estimates; the applications were author-directed and developed with AI assistance (see the declaration), without a developer study.
 
 \begin{table}[htbp]\centering\small
 \caption{E4: local client program/proof nonblank lines and proof/program ratio.}
@@ -767,11 +763,10 @@ without phase hooks, their tail cannot be assigned to publication subphases.
 \jay{} connects client proofs to executable admission, prefix interpretation,
 finalization and prepared controls. Generated oracle soundness and worker bridges
 bind the certified program to exact Commit/Keep decisions; serial folds preserve
-valid roots and handle history under T1--T3 (RQ1). Checked Bend now also
+valid roots and handle history under T1--T3 (RQ1). Checked Bend also
 classifies observed host error codes and constructs exact denials. Index, voucher
 and shared-row RLS certificates combine access and publication laws, including
 exact per-user directories, with invalid controls failing causally (RQ2).
-Shared RLS capacity still leaks aggregate size and allows cross-user exhaustion.
 
 For RQ3, an ordinary read takes \numen{\OrdinaryReadMedianSeconds}~s, versus
 \numen{\PreparedReadVolatileMedianMs}~ms prepared/volatile and
@@ -782,24 +777,20 @@ PostgreSQL at the small state and \ratioen{\LargeJayReadOverPostgres} times at
 \StateMaximumRows{} scaling rows; complete-state work grows with population,
 while verification artifacts substantially exceed implementation size.
 
-Verified internals \cite{malecha2010} differ from this admission of external
-programs; synthesis \cite{fiat2015} derives implementations. Here client proofs
-are tied to executing functions.
-It combines prefix/publication propositions without the end-to-end noninterference
-of information-flow systems \cite{urflow2010,lweb2019}. Differing workloads preclude
-numerical comparison with these prototypes; SQL experiments establish cost.
-Future directions are crash-durability/recovery proofs, a smaller trusted host
-boundary, capacity isolation, further admission improvements, less complete-state
-transfer and reusable certificate
-construction for larger applications.
+Unlike verified internals \cite{malecha2010} or synthesis \cite{fiat2015}, client
+proofs here are tied to the executing functions, without the end-to-end
+noninterference of information-flow systems \cite{urflow2010,lweb2019}; differing
+workloads preclude numerical comparison with these prototypes.
+Future work: crash-durability proofs, a smaller host boundary, capacity
+isolation, less complete-state transfer and reusable certificates.
 
 % AUTHOR: review and adjust this declaration
 \section*{Use of Artificial Intelligence}
 The author directed the work and used AI coding agents extensively in its final
-phase. Claude Opus 5.5 (Anthropic; model identifier \texttt{claude-opus-5-5},
-via Claude Code) assisted with planning, orchestration, technical review and
-examiner-style reviews of the text. GPT-6.1 Sol (OpenAI, via Codex) assisted with
-code implementation and proof restructuring, the benchmark harness and
+phase. Claude Opus 5.5 (Anthropic, \texttt{claude-opus-5-5}, via Claude Code)
+assisted with planning, orchestration, reviews of code and text, and implemented
+some code and proofs (e.g., the core-theorem split and the row-level security app). GPT-6.1 Sol (OpenAI, via Codex) assisted with
+code and proof implementation, the benchmark harness and
 measurements, drafting and revising the article and slides, translating the
 slides into Portuguese, and LaTeX formatting. AI contributed to drafting and
 revision in every section of the article and to the slides. The author reviewed
