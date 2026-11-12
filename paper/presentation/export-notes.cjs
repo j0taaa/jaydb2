@@ -1,0 +1,18 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+if(process.argv.length<5)throw Error('Usage: node export-notes.cjs EVIDENCE_JSON NOTES_HTML SLIDES_JSON');
+const notesPath=path.resolve(process.argv[3]);
+const context={window:{JAYDB2_EVIDENCE:JSON.parse(fs.readFileSync(process.argv[2],'utf8')),JAYDB2_SCALING:[]}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'content.js'),'utf8'),context);
+const slides=context.window.JAYDB2_SLIDES;
+const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+let elapsed=0;
+const content=slides.map((s,i)=>{
+ const time=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');elapsed+=s.seconds;
+ const index=s.backup?'Apêndice '+(i-20):'Slide '+(i+1);
+ return `<section><p class="meta">${index}${s.backup?' · perguntas':` · ${s.seconds} s · início previsto ${time}`}</p><h2>${escape(s.title)}</h2><p>${escape(s.notes)}</p><ul>${s.sources.map(t=>`<li><a href="${escape(t.url)}">${escape(t.label)}</a></li>`).join('')}</ul></section>`;
+}).join('\n');
+fs.writeFileSync(notesPath,`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JayDB2 · roteiro da defesa</title><style>body{max-width:780px;margin:45px auto;padding:0 22px;font:18px/1.75 Georgia,serif;color:#183b42;background:#f7f5ed}h1,h2,.meta{font-family:Arial,sans-serif}h1{font-size:30px;line-height:1.2}h2{font-size:23px;line-height:1.3}.meta{font-size:13px;color:#087869}section{border-top:1px solid #ccd5c8;margin-top:35px;padding-top:20px}a{color:#087869}ul{font:13px/1.7 Arial,sans-serif}nav{font:14px Arial,sans-serif;margin-bottom:25px}@media print{body{background:white;margin:0;font-size:12pt}section{break-inside:avoid}nav{display:none}}</style></head><body><nav><a href="jaydb2-defense.html">Abrir apresentação</a> · <a href="jaydb2-tcc.pdf">Ler artigo</a></nav><h1>JayDB2: roteiro da defesa</h1><p>21 slides principais, quatro slides para perguntas. Alocação sugerida: 16min55s. O roteiro principal tem aproximadamente 2.100 palavras. A duração real depende do ritmo de fala e das pausas.</p>${content}</body></html>`);
+fs.writeFileSync(process.argv[4],JSON.stringify(slides.map(({id,title,backup,seconds})=>({id,title,backup:!!backup,seconds})),null,2));
+console.log('Built speaker notes and slide metadata.');
