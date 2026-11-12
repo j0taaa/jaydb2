@@ -1,23 +1,21 @@
-# Checked specialization of the common frozen byte ceiling. The fallback is
-# the unchanged non-truncating reference conversion, including u64 overflow.
+# A cached word carries its checked reference equality. Keep the selector
+# generic so neither frontend normalizes a closed large Nat during rewriting.
 import Base
 import ../contract/Bytes.bend as B
 import ../proof/Foundations.bend as F
 import ../proof/LimitLiteral.bend as Literal
 
-def common() -> B.Number64:
-  B.Number64{0, 65536}
-
-def select(matches: Bool, n: Nat) -> Maybe<&2, B.Number64>:
+def select(number: B.Number64, matches: Bool, n: Nat) -> Maybe<&2, B.Number64>:
   match matches:
-    case True{}: Some{B.Number64{0, 65536}}
+    case True{}: Some{number}
     case False{}: B.nat64(n)
 
-def convert(+n: Nat) -> Maybe<&2, B.Number64>:
-  select(Nat.is_eq(n, Nat.mul(256n, 256n)), n)
+def convert(+n: Nat, +ceiling: Nat, number: B.Number64,
+  -represented: {B.nat64(ceiling) == Some{number} : Maybe<&2, B.Number64>}) -> Maybe<&2, B.Number64>:
+  select(number, Nat.is_eq(n, ceiling), n)
 
-# The product is exactly 65,536, using small literals that also fit the
-# default admission stack. Its closed u64 witness uses checked addition.
+# A compact Nat expression avoids Safe's deep Peano expansion of a literal.
+# It is exactly 65,536 and is native constant multiplication at execution.
 law common_literal_exact:
   {B.nat64(Nat.mul(256n, 256n)) == Some{B.Number64{0, 65536}} : Maybe<&2, B.Number64>}
 def common_literal_exact():
@@ -31,17 +29,21 @@ def natural_equal(+a: Nat, +b: Nat, same: {Nat.is_eq(a, b) == True{} : Bool}) ->
     case 1n+p 1n+q:
       Equal.cong(Nat, Nat, x => 1n+x, p, q, natural_equal(p, q, same))
 
-def select_exact(matches: Bool, +n: Nat, same: {Nat.is_eq(n, Nat.mul(256n, 256n)) == matches : Bool}) ->
-  {select(matches, n) == B.nat64(n) : Maybe<&2, B.Number64>}:
+def select_exact(matches: Bool, +n: Nat, +ceiling: Nat, +number: B.Number64,
+  represented: {B.nat64(ceiling) == Some{number} : Maybe<&2, B.Number64>},
+  same: {Nat.is_eq(n, ceiling) == matches : Bool}) ->
+  {select(number, matches, n) == B.nat64(n) : Maybe<&2, B.Number64>}:
   match matches:
     case False{}: {==}
     case True{}:
-      %Equal.sym(Nat, n, Nat.mul(256n, 256n), natural_equal(n, Nat.mul(256n, 256n), same)) :
-        {Some{B.Number64{0, 65536}} == B.nat64(_) : Maybe<&2, B.Number64>}
-      Equal.sym(Maybe<&2, B.Number64>, B.nat64(Nat.mul(256n, 256n)), Some{B.Number64{0, 65536}}, common_literal_exact())
+      Equal.sym(Maybe<&2, B.Number64>, B.nat64(n), Some{number},
+        Literal.measured_equal(n, ceiling, number, natural_equal(n, ceiling, same), represented))
 
 law convert_equals_reference:
   for +n: Nat
-  {convert(n) == B.nat64(n) : Maybe<&2, B.Number64>}
-def convert_equals_reference(n):
-  select_exact(Nat.is_eq(n, Nat.mul(256n, 256n)), n, {==})
+  for +ceiling: Nat
+  for +number: B.Number64
+  for represented: {B.nat64(ceiling) == Some{number} : Maybe<&2, B.Number64>}
+  {convert(n, ceiling, number, represented) == B.nat64(n) : Maybe<&2, B.Number64>}
+def convert_equals_reference(n, ceiling, number, represented):
+  select_exact(Nat.is_eq(n, ceiling), n, ceiling, number, represented, {==})

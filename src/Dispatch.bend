@@ -84,7 +84,7 @@ def received_fits(fits: Bool, body: List<&2, U32>, s: D.State,
 
 def received(+limits: S.Limits, +body: List<&2, U32>, s: D.State) -> Routed:
   received_fits(Nat.is_le(B.length(body), R.limit_message(limits)), body, s,
-    LimitWords.convert(R.limit_message(limits)))
+    LimitWords.convert(R.limit_message(limits), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()))
 
 # Decode the private snapshot once, using exactly the worker's root decoder.
 def root_value(value: Codec.Outcome, schema: D.Schema) -> Maybe<&2, D.State>:
@@ -98,7 +98,7 @@ def root_limit(limit: Maybe<&2, B.Number64>, state: List<&2, U32>, schema: D.Sch
     case Some{n}: root_value(Codec.decode(state, n), schema)
 
 def read_root(state: List<&2, U32>, schema: D.Schema, limits: S.Limits) -> Maybe<&2, D.State>:
-  root_limit(LimitWords.convert(R.limit_state(limits)), state, schema)
+  root_limit(LimitWords.convert(R.limit_state(limits), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()), state, schema)
 
 def rooted(root: Maybe<&2, D.State>, body: List<&2, U32>, limits: S.Limits) -> Routed:
   match root:

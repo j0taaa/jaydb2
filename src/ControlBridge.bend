@@ -137,7 +137,7 @@ def root_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>, registry: Maybe<&
   metadata: Codec.Outcome) -> List<&2, U32>:
   match parts:
     case Some{T.Parts{state, body}}:
-      root_limit(c, LimitWords.convert(R.limit_state(S.limits(c))), state, registry, metadata, body)
+      root_limit(c, LimitWords.convert(R.limit_state(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()), state, registry, metadata, body)
     case _: [2]
 
 def registry_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>, metadata: Codec.Outcome) -> List<&2, U32>:
