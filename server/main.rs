@@ -5,6 +5,7 @@ use capture::capture;
 mod scheduling;
 use scheduling::FrameInput;
 use scheduling::{FrameQueue, PollInput, QueueBounds};
+mod prepared_route;
 mod storage;
 mod timing;
 use serde_json::Value;
@@ -677,6 +678,11 @@ impl Database {
     fn propose(&mut self, body: &[u8], attempt: &mut Option<Attempt>) -> Result<Decision> {
         let mut bench = bench_start();
         let input = packet(&self.published.state, body);
+        if let Some(handle) = prepared_route::candidate(body, self.limits.message)
+            && let Some(proposal) = self.tentative_prepared(handle, &input, attempt, &mut bench)
+        {
+            return Ok(proposal);
+        }
         // Input.analyze decodes before authenticating and preserves decode
         // errors. A separate decode child would repeat that entire pass.
         // The worker decodes this same packet and enters through Gate.begin.
@@ -722,7 +728,9 @@ impl Database {
                 .program
                 .run(&packet(&self.registry, &input), self.threads)?;
             bench_mark(&mut bench, "prepared_worker");
-            return parse_decision(&output, &self.limits);
+            let checked = prepared_route::checked(&output)
+                .ok_or_else(|| Error::new("HOST_TRANSPORT", "invalid prepared result envelope"))?;
+            return parse_decision(checked.decision, &self.limits);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -800,6 +808,44 @@ impl Database {
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
         Ok(proposal)
+    }
+
+    // This route has no authentication or publication authority. On missing
+    // artifacts, integrity/transport failure, or checked identity mismatch,
+    // discard the candidate result and retry through original checked dispatch.
+    fn tentative_prepared(
+        &mut self,
+        handle: &str,
+        input: &[u8],
+        attempt: &mut Option<Attempt>,
+        bench: &mut Option<std::time::Instant>,
+    ) -> Option<Decision> {
+        let prepared = self.prepared.get(handle)?;
+        bench_mark(bench, "prepared_integrity");
+        let output = prepared
+            .program
+            .run(&packet(&self.registry, input), self.threads)
+            .ok()?;
+        bench_mark(bench, "prepared_worker");
+        let checked = prepared_route::checked(&output)?;
+        if !checked.accepts_candidate(handle, &self.environment) {
+            diagnostic(format_args!(
+                "prepared candidate mismatch; retrying checked dispatch"
+            ));
+            return None;
+        }
+        let proposal = parse_decision(checked.decision, &self.limits).ok()?;
+        if let (Some(attempt), Some(principal)) = (attempt, checked.principal) {
+            attempt.authenticated(principal);
+        }
+        if self.inspector.is_some() && checked.principal.is_some() {
+            self.inspect(serde_json::json!({
+                "event": "prepared-resolved", "handle": handle,
+                "original_code": String::from_utf8_lossy(&prepared.original_code),
+                "universal_proof": String::from_utf8_lossy(&prepared.universal_proof)
+            }));
+        }
+        Some(proposal)
     }
 
     fn checked_error(&mut self, code: &str) -> Result<Vec<u8>> {

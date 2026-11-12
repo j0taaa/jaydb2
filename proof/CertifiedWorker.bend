@@ -20,6 +20,7 @@ import ./OracleEvidence.bend as Evidence
 import ../src/ControlBridge.bend as ControlBridge
 import ../src/Dispatch.bend as Dispatch
 import ../src/Transport.bend as Transport
+import ../src/WorkerResult.bend as Result
 
 def ingress(~c: S.Configuration, ~admit: Gate.Oracle(), k: T.Clause,
   +s: D.State, +body: List<&2, U32>, +n: Nat,
@@ -125,6 +126,17 @@ def artifact_checked(-c: S.Configuration, +code: String, +proof: String,
         Equal.cong(Gate.Oracle(), Gate.Oracle(), a => W.artifact_oracle(code, proof, a), bridge, admit, same),
         +r => +ctx => artifact_sound(String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof), c, r, ctx, admit, sound(r, ctx))}
 
+# A shared guard bit preserves the generated oracle's universal soundness.
+# WorkerBridge separately proves that the actual bit is exactly the selected
+# source/proof comparison and that its Gate entry equals the original guard.
+def matched_checked(-c: S.Configuration, +matches: Bool,
+  checked: Evidence.Checked<c>) -> Evidence.Checked<c>:
+  match checked:
+    case Evidence.Checked{admit, bridge, same, sound}:
+      Evidence.Checked{W.matched_oracle(matches, admit), W.matched_oracle(matches, bridge),
+        Equal.cong(Gate.Oracle(), Gate.Oracle(), a => W.matched_oracle(matches, a), bridge, admit, same),
+        +r => +ctx => artifact_sound(matches, c, r, ctx, admit, sound(r, ctx))}
+
 # The literal native packet, actual decoded registry bytes and exact root/body
 # feed the same UnifiedCore instance and finite worker composition.
 def checked_prepared(~c: S.Configuration, k: T.Clause, +s: D.State,
@@ -160,3 +172,50 @@ def checked_prepared(~c: S.Configuration, k: T.Clause, +s: D.State,
             W.artifact_oracle(code, proof, admit)) : X.Iteration}>
       checked_unified(c, k, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}, n,
         configured, valid, artifact_checked(c, code, proof, Evidence.Checked{admit, bridge, same, sound}), complete)
+
+# Map only the finite emission proof while retaining its exact Core clause.
+def lift_emission(-clause: Type, -old: Type, -new: Type,
+  result: L.E<clause, old>, lift: old -> new) -> L.E<clause, new>:
+  match result:
+    case L.Both{core, finished}: L.Both{core, lift(finished)}
+
+# The actual metadata-bearing prepared entry retains the same UnifiedCore
+# clause and exact finite result, with checked route/principal projections.
+# The generated checked_oracle package is closed, like C.config/Client.program;
+# reopening it avoids duplicating a captured linear oracle. The original
+# checked_prepared theorem above remains unrestricted.
+def checked_routed_prepared(~c: S.Configuration, ~checked: Evidence.Checked<c>, k: T.Clause, +s: D.State,
+  +bytes: List<&2, U32>, +registry_bytes: List<&2, U32>, +packet: List<&2, U32>, +state_bytes: List<&2, U32>, +body: List<&2, U32>,
+  +raw: P.Request, +n: Nat, +code: String, +proof: String,
+  +outer: {Transport.separate(bytes) == Some{Transport.Parts{registry_bytes, packet}} : Maybe<&2, Transport.Parts>},
+  +parts: {Transport.separate(packet) == Some{Transport.Parts{state_bytes, body}} : Maybe<&2, Transport.Parts>},
+  +root: {Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)) == Some{s} : Maybe<&2, D.State>},
+  +received: {Dispatch.execution(Dispatch.received(S.limits(c), body, s)) == Input.InputReady{s, raw} : Input.PreAuthentication},
+  configured: {R.configuration_is_valid(c) == True{} : Bool}, valid: R.Valid(c, s),
+  complete: Bridge.SelectedComplete(c, s, n,
+    Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+    W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) ->
+  L.E<T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw},
+      W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
+    {Bridge.result_drive(c, Succ{n}, W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+      Result.attach(Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof), Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+        W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) : Result.Iteration}>:
+  lift_emission(
+    T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw},
+      W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
+    {A.drive(c, Succ{n}, W.registered_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+      Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+        W.artifact_oracle(code, proof, Evidence.oracle(c, checked))) : X.Iteration},
+    {Bridge.result_drive(c, Succ{n}, W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+      Result.attach(Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
+        Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+          W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) : Result.Iteration},
+    checked_prepared(c, k, s, bytes, registry_bytes, packet, state_bytes, body, raw, n, code, proof,
+      checked, outer, parts, root, received, configured, valid, complete),
+    finished => Bridge.lifted_finite_result(c, Succ{n},
+    Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
+    W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked)),
+    W.registered_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked)),
+    Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
+      W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
+    Bridge.routed_packet_lifts_registered(c, bytes, registry_bytes, packet, state_bytes, body, s, raw, code, proof, Evidence.oracle(c, checked), outer, parts, root, received), finished))

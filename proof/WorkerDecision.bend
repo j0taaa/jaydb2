@@ -8,6 +8,15 @@ import ../contract/Logic.bend as L
 import ../src/Core.bend as Core
 import ../src/Execution.bend as X
 import ../src/Gate.bend as Gate
+import ../src/Messages.bend as Messages
+
+# The prepared metadata envelope projects the identical publication decision;
+# neither route identity nor principal changes Keep/Commit or its root/bytes.
+law prepared_envelope_projects_exact_decision:
+  for metadata: Messages.WorkerMetadata
+  for bytes: List<&2, U32>
+  {Messages.worker_decision(Messages.WorkerResult{metadata, bytes}) == bytes : List<&2, U32>}
+def prepared_envelope_projects_exact_decision(metadata, bytes): {==}
 
 def status(r: S.Response) -> S.Status:
   S.Response{status, value} = r

@@ -21,8 +21,8 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `IngressTheorem` | Complete ordinary body decoding keeps the exact root and applies Core to the decoded request, or produces a bounded framed denial; it cannot produce a private transport error. | `Ingress.ingress_theorem`, `Ingress.bend` |
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
-| `WorkerBridge` | Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
-| `CertifiedWorker` | The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
+| `WorkerBridge` | `result_driver_preserves_exact_execution` and `routed_packet_lifts_registered` lift the original exact decision into the checked route/principal envelope; metadata is derived from the same fresh authentication and complete registry selection. Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
+| `CertifiedWorker` | `checked_routed_prepared` covers the actual metadata-bearing entry with its closed generated oracle package, preserving the same UnifiedCore clause and exact decision. The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
 | `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
 | `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `HostErrorReply` states exact emitted bytes independent of root/last/registry, justifying a memo keyed by exact observed code; both prepared codes are prefilled at startup. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
@@ -131,9 +131,22 @@ they are OS assumptions, not new checked Bend theorems.
 2. Read one bounded outer u64 frame with the specified EOF behavior. Supply
    the complete original body and one current-root snapshot to the checked
    decoder/controller; count prepared opcode bytes in the input limit.
-3. Admit only the tuple selected by checked authentication/dispatch. Compile
-   and load its exact checked program and gate with immutable dependencies;
-   preserve context, arguments and proof between checking and launch.
+3. Ordinary admission and preparation admit only the tuple selected by checked
+   authentication/dispatch; controls retain checked Dispatch/Control routing.
+   Prepared execution may tentatively locate
+   an already admitted artifact with the bounded total host envelope parser;
+   this is routing, not authentication or authoritative registry selection.
+   Forward the complete original body, current root and latest registry unchanged.
+   Before accepting any candidate proposal, parse its checked result envelope,
+   require the returned environment to equal the frozen instance environment, the
+   raw handle to equal the candidate, the selected registration's source/proof
+   to match that artifact, and the original authentication metadata to be ready.
+   On parser doubt, missing artifact, integrity/transport/worker failure or identity mismatch, discard the
+   candidate and run the original checked-dispatch path before publication.
+   This retry is required for routing completeness: the artifact guard alone
+   does not establish observational equivalence of a wrong candidate. Compile
+   and load the exact selected checked program and gate with immutable
+   dependencies; preserve context, arguments and proof between checking and launch.
 4. Run a fresh private worker through the checked gate/advance/finalizer using
    the trusted native loop. Give it no publication capability. A worker may
    be pre-executed, but is single-use: deliver no state, registry, credentials
@@ -145,14 +158,16 @@ they are OS assumptions, not new checked Bend theorems.
    Refill owns no publication authority and does not change serial publication.
    Preserve the logical observation trace on interruption.
 5. Collect the complete result/response and finish rollback-capable cleanup
-   before publication. An actual pre-commit tool/process/transport failure keeps
+   before publication. Discarded tentative candidates retry under duty 3;
+   their intermediate results are neither published nor delivered. An actual
+   tool/process/transport failure on the final authoritative path keeps
    the prior root and emits the fixed failure frame when possible; fatal loss
    may stop the process without a reply. Supply admission/other observed error
    codes, current root and registry to the checked controller and forward its
    denial; a memo hit forwards the checked bytes for that exact observed code.
    If that executable or transport itself fails, the fixed technical fallback
    remains host plumbing; it cannot produce a certificate rejection.
-6. Atomically publish exactly the checked Commit root and paired response;
+6. Atomically publish exactly the accepted checked Commit root and paired response;
    otherwise preserve the prior root. Send no reply before this decision.
    Start the next transaction with the resulting root.
 7. Supply prepared execution exactly the latest controller-emitted registry
@@ -186,6 +201,30 @@ they are OS assumptions, not new checked Bend theorems.
 8. Deliver exactly the returned bytes. After a post-commit delivery failure,
    retain the committed root and stop/close as appropriate. EOF or shutdown
    between requests terminates the channel rather than creating a transaction.
+
+`WorkerBridge.prepared_readiness_is_same_fresh_dispatch_authentication` also
+binds a checked readiness flag to the original `Messages.authentication` output.
+Tag 2 (including `Generate.instance` or metadata-frame failure) is not ready;
+the host must discard that candidate and use the original path. This preserves
+technical metadata failure behavior without an unproved claim that argument
+reification always succeeds. It retains that checked metadata computation inside
+the worker, while eliminating the separate root decode/process. Principal
+metadata from an unready candidate is never accepted for logging.
+
+The prepared-worker envelope adds explicit T3 parsing/comparison and retry
+obligations to duty 3 and explicitly scopes duty 5's final technical failure
+policy after tentative retries; it adds no host authentication or status authority.
+`Messages.worker_principal_is_authenticated_id`, the WorkerBridge metadata
+laws and DispatchBridge's proof-validation law bind the logged principal to the
+same current-root authentication as selection. The selected source/proof
+comparison is shared with the actual oracle guard; WorkerBridge proves its Gate
+entry equals the original artifact guard and `CertifiedWorker.matched_checked`
+retains universal oracle soundness for that bit. An authenticated empty ID is
+`Some{""}`. Timing/inspection remain trusted effects: only accept a candidate's
+principal with its complete checked result. A technical candidate failure first
+retries the original authenticator path, retaining that authenticator's principal
+even if the fallback worker also crashes. Retry can run two private workers;
+neither may publish until the final accepted decision. See SERVICE_TIMING.md.
 
 The status table and construction of admission, handle-miss and integrity
 replies moved from Rust into checked Bend under `HostErrorReplyTheorem`.

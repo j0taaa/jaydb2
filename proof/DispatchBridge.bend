@@ -22,6 +22,31 @@ import ../src/Generate.bend as Generate
 import ./CoreClauses.bend as Clauses
 import ./Preparation.bend as Preparation
 import ./Ingress.bend as Ingress
+import ../src/WorkerResult.bend as Result
+
+# The worker's principal follows exactly the Dispatch validation boundary.
+# In particular a valid credential plus nonempty raw proof still logs null.
+def proof_principal(empty: Bool, state: D.State, request: P.Request, context: D.Context) -> Maybe<&2, String>:
+  match empty:
+    case False{}: None{}
+    case True{}: Some{Messages.principal(context)}
+
+law worker_principal_obeys_dispatch_proof_validation:
+  for empty: Bool
+  for +state: D.State
+  for +request: P.Request
+  for +context: D.Context
+  {Messages.authenticated_principal(Dispatch.proof_checked(empty, Input.Received{state, request, context})) ==
+    proof_principal(empty, state, request, context) : Maybe<&2, String>}
+def worker_principal_obeys_dispatch_proof_validation(empty, state, request, context):
+  match empty:
+    case False{}: {==}
+    case True{}: {==}
+
+law denied_worker_principal_is_absent:
+  for status: S.Status
+  {Messages.authenticated_principal(Input.Rejected{status}) == None{} : Maybe<&2, String>}
+def denied_worker_principal_is_absent(status): {==}
 
 # On all public envelopes a ready route has a nonzero, recognized tag.
 type Tag<-tag: U32> is Type:
@@ -367,3 +392,47 @@ def dispatch_denials_equal_ingress_unified_early(c, s, state_bytes, packet, body
   +limits = config_limits(c, configured)
   routed(c, s, entries, Dispatch.received(S.limits(c), body, s), admit,
     measured(Nat.is_le(B.length(body), R.limit_message(S.limits(c))), body, s, S.limits(c), limits), limits)
+
+# The metadata ABI retains the exact tag-0 Keep payload and its early/root
+# guarantees. WorkerBridge separately connects the actual execute-only entry
+# to this lift; direct/prepare/invalidate routing still belongs to Dispatch.
+def EnvelopeReply(output: List<&2, U32>, -c: S.Configuration, -s: D.State,
+  -metadata: Messages.WorkerMetadata, -ref: Result.Iteration) -> Type:
+  match output:
+    case Con{0, bytes}:
+      &status: S.Status -> L.E<T.Early(c, s, S.response_error(status)),
+        L.E<{P.frame(S.response_value(S.response_error(status))) == Some{bytes} : Maybe<&2, List<&2, U32>>},
+          {ref == Result.FinishOutput{Messages.worker_result(Messages.WorkerResult{metadata, Con{0, bytes}})} : Result.Iteration}>>
+    case _: Unit
+
+def lift_fixed_denial(-c: S.Configuration, -s: D.State,
+  +metadata: Messages.WorkerMetadata, -ref: X.Iteration, +bytes: List<&2, U32>,
+  reply: Reply(Con{0, bytes}, c, s, ref)) ->
+  EnvelopeReply(Con{0, bytes}, c, s, metadata, Result.attach(metadata, ref)):
+  match reply:
+    case (status, L.Both{early, L.Both{framed, exact}}):
+      (status, L.Both{early, L.Both{framed,
+        Equal.cong(X.Iteration, Result.Iteration, i => Result.attach(metadata, i),
+          ref, X.FinishOutput{Con{0, bytes}}, exact)}})
+
+law dispatch_denials_equal_prepared_envelope:
+  for ~c: S.Configuration
+  for +s: D.State
+  for +state_bytes: List<&2, U32>
+  for +packet: List<&2, U32>
+  for +body: List<&2, U32>
+  for +entries: List<&2, Registry.Entry>
+  for metadata: Messages.WorkerMetadata
+  for admit: Gate.Oracle()
+  for parts: {Transport.separate(packet) == Some{Transport.Parts{state_bytes, body}} : Maybe<&2, Transport.Parts>}
+  for root: {Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)) == Some{s} : Maybe<&2, D.State>}
+  for configured: {R.configuration_is_valid(c) == True{} : Bool}
+  for +bytes: List<&2, U32>
+  for denial: {Dispatch.authentication(packet, S.schema(c), S.limits(c)) == Con{0, bytes} : List<&2, U32>}
+  EnvelopeReply(Con{0, bytes}, c, s, metadata,
+    Result.attach(metadata, reference(c, s, entries, Dispatch.received(S.limits(c), body, s), admit)))
+def dispatch_denials_equal_prepared_envelope(c, s, state_bytes, packet, body, entries, metadata, admit, parts, root, configured, bytes, denial):
+  lift_fixed_denial(c, s, metadata,
+    reference(c, s, entries, Dispatch.received(S.limits(c), body, s), admit), bytes,
+    (%denial : Reply(_, c, s, reference(c, s, entries, Dispatch.received(S.limits(c), body, s), admit))
+      dispatch_denials_equal_ingress_unified_early(c, s, state_bytes, packet, body, entries, admit, parts, root, configured)))
