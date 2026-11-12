@@ -25,7 +25,9 @@ def main():
     ax.grid(True, which='major', alpha=.2)
     ax.legend()
     fig.text(.01, -.035, f"Median and sample range; 1 warmup + {data['repeats']} samples. Gray ×: SQL timeout. GPU clock unfixed.", fontsize=9)
-    fig.savefig(root/'paper/evidence/simulation.svg', bbox_inches='tight')
+    output = root/'paper/evidence/simulation.svg'
+    fig.savefig(output, bbox_inches='tight')
+    output.write_text('\n'.join(line.rstrip() for line in output.read_text().splitlines())+'\n')
     plt.close(fig)
 
 

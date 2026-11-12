@@ -1,0 +1,10 @@
+{
+  "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
+  "hasBangs": true,
+  "launches": 20,
+  "synchronizations": 12,
+  "emitted_bangs": 1,
+  "log": ".build/simulation/validation/test-gpu.log",
+  "log_sha256": "63e42b64188cb9714f68b191698503d748c452880080e174b9952a15142b56c5",
+  "benchmark_artifacts_identical": true
+}
