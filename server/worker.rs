@@ -340,6 +340,29 @@ pub(crate) mod tests {
 
     #[test]
     fn invalidation_and_shutdown_reap_idle_children_and_close_pipes() {
+        const CHILD: &str = "JAYDB_ISOLATED_POOL_CLEANUP_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            // Other parallel tests may be between fork and exec, temporarily
+            // inheriting a CLOEXEC pipe reader. Isolate the EPIPE assertion:
+            // only this subprocess can create/inherit its inner pool pipes.
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "worker::tests::invalidation_and_shutdown_reap_idle_children_and_close_pipes",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            assert!(String::from_utf8_lossy(&output.stdout).contains("1 passed"));
+            return;
+        }
         let image = image();
         let pool = Pool::new(image, 1).unwrap();
         let pid = ready(&pool);
