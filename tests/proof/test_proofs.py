@@ -67,7 +67,12 @@ def positive_bindings():
     for function, module in (('code', 'Client'), ('proof_source', 'ClientProof')):
         literal = re.search(r'def ' + function + r'\(\) -> String:\n  ("(?:[^"\\]|\\.)*")', bindings)
         assert literal and json.loads(literal[1]) == (package / (module + '.bend')).read_text(), function
-    print('OK tasks source/proof literal bindings', flush=True)
+    simulation = (ROOT/'applications/simulation/Configuration.bend').read_text()
+    simulation = simulation.replace('import ./Data.bend', 'import ../../contract/Data.bend').replace(
+        'import ./Semantics.bend', 'import ../../contract/Semantics.bend').replace(
+        'import ./Environment.bend as E\n', '').replace('E.identity()', '"simulation-proof"')
+    assert (ROOT/'tests/proof/SimulationPolicy.bend').read_text() == simulation, 'Simulation policy fixture drift'
+    print('OK tasks and simulation source bindings', flush=True)
 
 
 def only_false_fails(output):
@@ -94,7 +99,7 @@ def main():
     compiler = executable()
     count = 0
     rejected = Path(__file__).with_name('rejected')
-    for name in ('GpuFalseResult', 'GpuUnauthorizedRead', 'GpuFalseTermination'):
+    for name in ('GpuFalseResult', 'GpuUnauthorizedRead', 'GpuFalseTermination', 'SimulationUnauthorizedWrite'):
         assert (rejected / (name + '.bend')).is_file(), 'Missing GPU negative: ' + name
     for path in sorted(rejected.glob('*.bend')):
         for mode in ('--check-only', '--verdict'):

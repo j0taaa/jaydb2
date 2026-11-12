@@ -51,7 +51,7 @@ verify:
 	python3 -B tests/proof/test_proofs.py
 	python3 -B applications/rls/check.py --proof-only
 
-test: build test-admission test-native test-host test-integration test-rls
+test: build test-simulation test-admission test-native test-host test-integration test-rls
 
 test-host:
 	cargo test --locked
@@ -132,3 +132,11 @@ test-gpu:
 
 benchmark-gpu:
 	bash tools/service/gpu-check.sh benchmark
+
+# CPU-only certified simulation; no CUDA device needed. Caller holds the lock.
+.PHONY: test-simulation benchmark-simulation
+test-simulation: build
+	python3 -B applications/simulation/check.py
+
+benchmark-simulation:
+	bash tools/service/gpu-check.sh simulation

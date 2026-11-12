@@ -1,0 +1,70 @@
+[
+  {
+    "command": [
+      "make",
+      "build"
+    ],
+    "returncode": 0,
+    "seconds": 0.020337429945357144,
+    "log": ".build/simulation/validation/build.log",
+    "sha256": "c5892933dcc63637b4233855766d93e8686534cd9045f290cd64fb8ee8457260",
+    "tail": "cargo build --locked --release\n    Finished `release` profile [optimized] target(s) in 0.01s\n"
+  },
+  {
+    "command": [
+      "make",
+      "verify"
+    ],
+    "returncode": 0,
+    "seconds": 703.2643512850045,
+    "log": ".build/simulation/validation/verify.log",
+    "sha256": "82601163792f7de38237ea04833cc16c60feb99dbc3edd2868141cd58f6886ea",
+    "tail": " rejected --check-only: tests/proof/rejected/ValueRecordRecordNestedInvalidAccepted.bend\nOK rejected --verdict: tests/proof/rejected/ValueRecordRecordNestedInvalidAccepted.bend\nOK rejected --check-only: tests/proof/rejected/ValueRecordRecordUncheckedReverse.bend\nOK rejected --verdict: tests/proof/rejected/ValueRecordRecordUncheckedReverse.bend\nOK rejected --check-only: tests/proof/rejected/ValueRecordRecordUnsortedAccepted.bend\nOK rejected --verdict: tests/proof/rejected/ValueRecordRecordUnsortedAccepted.bend\nOK rejected --check-only: tests/proof/rejected/ValueRecordTextAcceptsSurrogate.bend\nOK rejected --verdict: tests/proof/rejected/ValueRecordTextAcceptsSurrogate.bend\nOK rejected --check-only: tests/proof/rejected/ValueRecordTextRejectsValidUnicode.bend\nOK rejected --verdict: tests/proof/rejected/ValueRecordTextRejectsValidUnicode.bend\nOK rejected --check-only: tests/proof/rejected/WithoutIdentity.bend\nOK rejected --verdict: tests/proof/rejected/WithoutIdentity.bend\nOK rejected --check-only: tests/proof/rejected/WorkerCommitOnRefusal.bend\nOK rejected --verdict: tests/proof/rejected/WorkerCommitOnRefusal.bend\nOK rejected --check-only: tests/proof/rejected/WorkerInvalidatedHandle.bend\nOK rejected --verdict: tests/proof/rejected/WorkerInvalidatedHandle.bend\nOK rejected --check-only: tests/proof/rejected/WorkerSpoofedContext.bend\nOK rejected --verdict: tests/proof/rejected/WorkerSpoofedContext.bend\nOK rejected --check-only: tests/proof/rejected/WorkerWrongArtifact.bend\nOK rejected --verdict: tests/proof/rejected/WorkerWrongArtifact.bend\nOK rejected --check-only: tests/proof/rejected/WorkerWrongProof.bend\nOK rejected --verdict: tests/proof/rejected/WorkerWrongProof.bend\nOK rejected --check-only: tests/proof/rejected/WrongFinalResponse.bend\nOK rejected --verdict: tests/proof/rejected/WrongFinalResponse.bend\nOK rejected --check-only: tests/proof/rejected/WrongFinalValidity.bend\nOK rejected --verdict: tests/proof/rejected/WrongFinalValidity.bend\nOK rejected --check-only: tests/proof/rejected/WrongMachineStart.bend\nOK rejected --verdict: tests/proof/rejected/WrongMachineStart.bend\nOK rejected --check-only: tests/proof/rejected/WrongResponseBytes.bend\nOK rejected --verdict: tests/proof/rejected/WrongResponseBytes.bend\nOK negative controls: 401 fixtures, 802 official-mode rejections\npython3 -B applications/rls/check.py --proof-only\nOK --check-only: applications/rls/.build/positive/Check.bend\nOK --verdict: applications/rls/.build/positive/Check.bend\nOK intended read-bob rejection --check-only at false\nOK intended read-bob rejection --verdict at false\nOK intended existence-bob rejection --check-only at false\nOK intended existence-bob rejection --verdict at false\nOK intended count-all rejection --check-only at false\nOK intended count-all rejection --verdict at false\nOK intended update-bob rejection --check-only at false\nOK intended update-bob rejection --verdict at false\nOK intended insert-bob-owner rejection --check-only at false\nOK intended insert-bob-owner rejection --verdict at false\nOK intended transfer-owner rejection --check-only at false\nOK intended transfer-owner rejection --verdict at false\nOK intended scan-all rejection --check-only at false\nOK intended scan-all rejection --verdict at false\nOK intended read-bob-directory rejection --check-only at false\nOK intended read-bob-directory rejection --verdict at false\nOK intended foreign-id-in-directory rejection --check-only at false\nOK intended foreign-id-in-directory rejection --verdict at false\nOK intended create-without-directory rejection --check-only at false\nOK intended create-without-directory rejection --verdict at false\nOK intended unlist-without-delete rejection --check-only at false\nOK intended unlist-without-delete rejection --verdict at false\nOK intended admin-write rejection --check-only at false\nOK intended admin-write rejection --verdict at false\nOK --check-only: applications/rls/.build/universal/Check.bend\nOK --verdict: applications/rls/.build/universal/Check.bend\n"
+  },
+  {
+    "command": [
+      "make",
+      "test"
+    ],
+    "returncode": 0,
+    "seconds": 593.5822087629931,
+    "log": ".build/simulation/validation/test.log",
+    "sha256": "a173f300665a0b9014b87f0088de75899747062213855638a9156acb9d4eb1ae",
+    "tail": "publication_and_same_binary_reopen (tests.service.test_timing.TimingTests.test_durable_publication_and_same_binary_reopen) ... ok\ntest_queued_credential_exchange_uses_fresh_identity (tests.service.test_timing.TimingTests.test_queued_credential_exchange_uses_fresh_identity) ... ok\ntest_stderr_log_and_terminal_framing_are_outside_service (tests.service.test_timing.TimingTests.test_stderr_log_and_terminal_framing_are_outside_service) ... ok\ntest_timing_is_admin_only_and_preserves_source_and_argument_binding (tests.service.test_timing.TimingTests.test_timing_is_admin_only_and_preserves_source_and_argument_binding) ... ok\ntest_disconnected_inspector_and_failed_stderr_preserve_responses (tests.service.test_observers.ObserverTests.test_disconnected_inspector_and_failed_stderr_preserve_responses) ... ok\ntest_failed_timing_and_stderr_preserve_durable_commit_and_next_response (tests.service.test_observers.ObserverTests.test_failed_timing_and_stderr_preserve_durable_commit_and_next_response) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 381.946s\n\nOK\npython3 -B applications/rls/check.py\nOK --check-only: applications/rls/.build/positive/Check.bend\nOK --verdict: applications/rls/.build/positive/Check.bend\nOK intended read-bob rejection --check-only at false\nOK intended read-bob rejection --verdict at false\nOK intended existence-bob rejection --check-only at false\nOK intended existence-bob rejection --verdict at false\nOK intended count-all rejection --check-only at false\nOK intended count-all rejection --verdict at false\nOK intended update-bob rejection --check-only at false\nOK intended update-bob rejection --verdict at false\nOK intended insert-bob-owner rejection --check-only at false\nOK intended insert-bob-owner rejection --verdict at false\nOK intended transfer-owner rejection --check-only at false\nOK intended transfer-owner rejection --verdict at false\nOK intended scan-all rejection --check-only at false\nOK intended scan-all rejection --verdict at false\nOK intended read-bob-directory rejection --check-only at false\nOK intended read-bob-directory rejection --verdict at false\nOK intended foreign-id-in-directory rejection --check-only at false\nOK intended foreign-id-in-directory rejection --verdict at false\nOK intended create-without-directory rejection --check-only at false\nOK intended create-without-directory rejection --verdict at false\nOK intended unlist-without-delete rejection --check-only at false\nOK intended unlist-without-delete rejection --verdict at false\nOK intended admin-write rejection --check-only at false\nOK intended admin-write rejection --verdict at false\nOK --check-only: applications/rls/.build/universal/Check.bend\nOK --verdict: applications/rls/.build/universal/Check.bend\nOK native read-bob: admission refusal and complete unchanged application state\nOK native existence-bob: admission refusal and complete unchanged application state\nOK native count-all: admission refusal and complete unchanged application state\nOK native update-bob: admission refusal and complete unchanged application state\nOK native insert-bob-owner: admission refusal and complete unchanged application state\nOK native transfer-owner: admission refusal and complete unchanged application state\nOK native scan-all: admission refusal and complete unchanged application state\nOK native read-bob-directory: admission refusal and complete unchanged application state\nOK native foreign-id-in-directory: admission refusal and complete unchanged application state\nOK native create-without-directory: admission refusal and complete unchanged application state\nOK native unlist-without-delete: admission refusal and complete unchanged application state\nOK native admin-write: admission refusal and complete unchanged application state\nOK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication\n"
+  },
+  {
+    "command": [
+      "make",
+      "test-gpu"
+    ],
+    "returncode": 0,
+    "seconds": 279.6743765620049,
+    "log": ".build/simulation/validation/test-gpu.log",
+    "sha256": "63e42b64188cb9714f68b191698503d748c452880080e174b9952a15142b56c5",
+    "tail": "bash tools/service/gpu-check.sh test\nmake[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb'\ncargo build --locked --release\n    Finished `release` profile [optimized] target(s) in 0.05s\nmake[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb'\ntest_bad_proof_never_compiles_or_enters_cuda_or_publishes (tests.service.test_gpu.GpuTests.test_bad_proof_never_compiles_or_enters_cuda_or_publishes) ... ok\ntest_bundle_integrity_real_launches_and_failure_rollback (tests.service.test_gpu.GpuTests.test_bundle_integrity_real_launches_and_failure_rollback) ... CUDA forwarding evidence: {\"sourceSha256\": \"909c2b934a2a247a99ca5455be3d1b3f948069236452de7d54e8a68a35eb91fb\", \"hasBangs\": true, \"allocation_successes\": 1, \"launch_successes\": 5, \"synchronize_successes\": 2}\nHeavyClient forwarding evidence: {\"sourceSha256\": \"919c8644b83d7c85d85bc5f2430468481e1b16b81de70ce2a47ab501e4b71a90\", \"hasBangs\": true, \"launch_successes\": 5, \"synchronize_successes\": 2}\nok\ntest_pipelined_gpu_execution_timing_and_durable_reopen (tests.service.test_gpu.GpuTests.test_pipelined_gpu_execution_timing_and_durable_reopen) ... ok\ntest_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal (tests.service.test_gpu.GpuTests.test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal) ... ok\ntest_unwrapped_unavailable_device_has_no_auto_fallback (tests.service.test_gpu.GpuTests.test_unwrapped_unavailable_device_has_no_auto_fallback) ... ok\ntest_cpu_one_sixteen_and_cuda_identical (tests.service.test_simulation.SimulationGpuTests.test_cpu_one_sixteen_and_cuda_identical) ... ok\ntest_real_launches_and_forbidden_write_before_compilation (tests.service.test_simulation.SimulationGpuTests.test_real_launches_and_forbidden_write_before_compilation) ... Simulation forwarding evidence: {\"sourceSha256\": \"e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888\", \"hasBangs\": true, \"launches\": 20, \"synchronizations\": 12}\nok\n\n----------------------------------------------------------------------\nRan 7 tests in 279.547s\n\nOK\n"
+  },
+  {
+    "command": [
+      "make",
+      "benchmark-simulation"
+    ],
+    "returncode": 0,
+    "seconds": 115.11341065901797,
+    "log": ".build/simulation/validation/benchmark-simulation.log",
+    "sha256": "5f46748b6b624f12ae81c85aabd4c188f4a3a386ffb317c1d80ceb259d4c4740",
+    "tail": "bash tools/service/gpu-check.sh simulation\nmake[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb'\ncargo build --locked --release\n    Finished `release` profile [optimized] target(s) in 0.01s\nmake[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb'\ncpu-1 2 32 6.688721\ncpu-1 10 256 7.059739\ncpu-1 14 1024 35.350177\ncpu-1 16 16384 1805.489216\ncpu-16 2 32 6.938129\ncpu-16 10 256 7.158137\ncpu-16 14 1024 11.231085\ncpu-16 16 16384 245.043079\ncuda 2 32 167.809872\ncuda 10 256 164.804577\ncuda 14 1024 165.423734\ncuda 16 16384 190.958834\npostgresql 2 32 0.119183\npostgresql 10 256 29.438011\npostgresql 14 1024 1848.717821\npostgresql 16 16384 timeout\nsqlite 2 32 0.073688\nsqlite 10 256 161.110739\nsqlite 14 1024 timeout\nCPU settings restored and verified: /home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb/.build/paper-bench/frequency-OXtCXQ/restored.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "paper/test_evidence.py"
+    ],
+    "returncode": 0,
+    "seconds": 16.037689605960622,
+    "log": ".build/simulation/validation/paper-evidence.log",
+    "sha256": "c5f9bdb25e8a7032c5455cab5558837d53ae8fd14e6b8b9fc0d5eeab0273dbb6",
+    "tail": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0\nrootdir: /home/jota/.t3/worktrees/jaydb2/t3-a1468659-904cea9d53feb7eb\ncollected 33 items\n\npaper/test_evidence.py .................................                 [100%]\n\n============================= 33 passed in 15.70s ==============================\n"
+  }
+]

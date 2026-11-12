@@ -1,0 +1,3801 @@
+{
+  "metadata": {
+    "frequency": {
+      "utc": "2026-11-12T18:08:08Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3596280,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599799,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "frequency_original": {
+      "utc": "2026-11-12T18:07:58Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3677622,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4300000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4326203,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4348532,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4369651,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4347689,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3681862,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4333450,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3932349,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "session_count": 1,
+    "commit": "6ef0194eb5bedbdfb9605927b92a45c48b0ee335",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/gpu-simulation-comparison",
+    "utc": "2026-11-12T18:08:08Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "f4c3ffa39d0011aeb90bbfbb38faad5ec94275d6f452c6b474be58d0d37c769b",
+    "source_sha256": "4e7dad4c46702ab21b91b6356fbb06cae5e1380af3e62839cdea1923869afe78",
+    "dirty": [
+      "?? paper/evidence/simulation-development.json",
+      "?? paper/evidence/simulation-validation.json"
+    ],
+    "threads": [
+      1,
+      16
+    ],
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": [
+      "off",
+      "512 MiB"
+    ],
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1
+  },
+  "sizes": [
+    {
+      "depth": 2,
+      "steps": 32,
+      "paths": 4
+    },
+    {
+      "depth": 10,
+      "steps": 256,
+      "paths": 1024
+    },
+    {
+      "depth": 14,
+      "steps": 1024,
+      "paths": 16384
+    },
+    {
+      "depth": 16,
+      "steps": 16384,
+      "paths": 65536
+    }
+  ],
+  "repeats": 3,
+  "warmups": 1,
+  "gpu_mib": 512,
+  "parameters": {
+    "alice": [
+      123456789,
+      0,
+      250
+    ],
+    "bob": [
+      3735928559,
+      3,
+      700
+    ]
+  },
+  "oracle": {
+    "2:32": {
+      "sum": 4001074,
+      "max": 1000666,
+      "above": 3,
+      "paths": 4
+    },
+    "10:256": {
+      "sum": 1024024504,
+      "max": 1007611,
+      "above": 510,
+      "paths": 1024
+    },
+    "14:1024": {
+      "sum": 3494396886,
+      "max": 1016157,
+      "above": 7777,
+      "paths": 16384
+    },
+    "16:16384": {
+      "sum": 792166316,
+      "max": 1072386,
+      "above": 26045,
+      "paths": 65536
+    }
+  },
+  "oracle_method": "Independent scalar Python cross-check plus NumPy uint64, explicit U32 masks, every path and step",
+  "source_sha256": {
+    "applications/simulation/ClientProof.bend": "2d78d3abf72fa08c71fb1fd4f6a9b71efc76da3f3613781c0d3ecdf6d37d092b",
+    "applications/simulation/Configuration.bend": "a3c666a5252ec9540edb53ec848ed7b81e9f12f981479ef997d272d0e6b8aa65",
+    "applications/simulation/Seed.bend": "f48def61b348fff240537b2c27ef7171467afe680f463f2f2a9575b85c84ef17",
+    "applications/simulation/Client.bend": "51fc1d92a5eeb47b2ee6fa2136aed16cb0d5a50d22a4b9a990e31e7651dec2b9",
+    "paper/bench/simulation-postgres.sql": "303a2a27a856906b04b7edcf2ee643ad5d181ae5ab0080aa78ba5d6e975082e0",
+    "paper/bench/simulation-sqlite.sql": "dd908239e09c8e8fcf12e7378999111d2d86567c9f909bdf86369bde28be10f0",
+    "paper/bench/simulation.py": "df82c3576a24c0d82bbdde6acba25e6b886eeba937fc7b46de73d9d6556528c8",
+    "tests/service/test_simulation.py": "f48eb271b920084ae8eef42f235c5ec1be0450b84fffd0f0445f55ddb9a6e9b9"
+  },
+  "settings": {
+    "cuda": {
+      "corpus_mib": 512,
+      "host_threads": 1,
+      "clock_fixed": false,
+      "device": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 3080 Ti, 595.99.02, 12288 MiB\n"
+    },
+    "cpu_threads": [
+      1,
+      16
+    ],
+    "numpy": "1.26.4",
+    "postgresql": {
+      "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+      "fsync": "on",
+      "synchronous_commit": "on",
+      "full_page_writes": "on",
+      "shared_buffers": "128MB",
+      "wal_sync_method": "fdatasync",
+      "role": [
+        "bench_alice",
+        false,
+        false
+      ],
+      "tables": "TEMP",
+      "admission": "none",
+      "psycopg": "3.3.8"
+    },
+    "sqlite": {
+      "version": "3.45.1",
+      "storage": ":memory:",
+      "journal_mode": "memory",
+      "implementation": "recursive CTE; no Python UDF"
+    }
+  },
+  "preparations": [
+    {
+      "backend": "cpu-1",
+      "threads": 1,
+      "elapsed_ms": 8565.895371,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
+        "executableSha256": "4d9865bd94d9519e280346724eb7a4eaefbb87d7957e75283fea0a55c96ee5f2",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34452-0/request-34452-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34452-0/request-34452-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "-lm",
+          "-pthread"
+        ],
+        "backend": "cpu",
+        "emitted_bangs": 1
+      }
+    },
+    {
+      "backend": "cpu-16",
+      "threads": 16,
+      "elapsed_ms": 8636.227065,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
+        "executableSha256": "4d9865bd94d9519e280346724eb7a4eaefbb87d7957e75283fea0a55c96ee5f2",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34795-0/request-34795-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34795-0/request-34795-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "-lm",
+          "-pthread"
+        ],
+        "backend": "cpu",
+        "emitted_bangs": 1
+      }
+    },
+    {
+      "backend": "cuda",
+      "threads": 1,
+      "elapsed_ms": 11928.166777,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
+        "executableSha256": "329bbca4f2b11d27a03ffb2167e8202892dbd21c824568354eb928f7c41b0699",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-35348-0/request-35348-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-35348-0/request-35348-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "-lm",
+          "-pthread",
+          "-DBEND_CUDA=1",
+          "-lcuda",
+          "-lnvrtc"
+        ],
+        "backend": "cuda",
+        "gpuSha256": "47188e2c3a6ca8e833c696b566431eb5407dcc243a2c116353757340fbf14053",
+        "gpuMiB": 512,
+        "cudaLibraries": {
+          "libcuda.so.1": {
+            "path": "/usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02",
+            "sha256": "192d4eedb1b39f0568f2b5423d35227d13b32b9025599e1968a9081982da207d"
+          },
+          "libnvrtc.so.12": {
+            "path": "/usr/lib/x86_64-linux-gnu/libnvrtc.so.12.0.140",
+            "sha256": "d7c32a86aa8321ef60a911b7b0c6655db489cae21481c71e166a684cbd54c62a"
+          }
+        },
+        "hasBangs": true,
+        "emitted_bangs": 1
+      }
+    }
+  ],
+  "records": [
+    {
+      "backend": "cpu-1",
+      "depth": 2,
+      "paths": 4,
+      "steps": 32,
+      "updates": 128,
+      "status": "measured",
+      "samples_ms": [
+        6.890885,
+        6.688721,
+        6.629115
+      ],
+      "warmup_ms": [
+        7.334281
+      ],
+      "median_ms": 6.688721,
+      "range_ms": [
+        6.629115,
+        6.890885
+      ],
+      "result": {
+        "sum": 4001074,
+        "max": 1000666,
+        "above": 3,
+        "paths": 4
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-1",
+      "depth": 10,
+      "paths": 1024,
+      "steps": 256,
+      "updates": 262144,
+      "status": "measured",
+      "samples_ms": [
+        7.19113,
+        6.989882,
+        7.059739
+      ],
+      "warmup_ms": [
+        7.275559
+      ],
+      "median_ms": 7.059739,
+      "range_ms": [
+        6.989882,
+        7.19113
+      ],
+      "result": {
+        "sum": 1024024504,
+        "max": 1007611,
+        "above": 510,
+        "paths": 1024
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-1",
+      "depth": 14,
+      "paths": 16384,
+      "steps": 1024,
+      "updates": 16777216,
+      "status": "measured",
+      "samples_ms": [
+        35.452455,
+        35.350177,
+        35.104389
+      ],
+      "warmup_ms": [
+        35.226703
+      ],
+      "median_ms": 35.350177,
+      "range_ms": [
+        35.104389,
+        35.452455
+      ],
+      "result": {
+        "sum": 3494396886,
+        "max": 1016157,
+        "above": 7777,
+        "paths": 16384
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-1",
+      "depth": 16,
+      "paths": 65536,
+      "steps": 16384,
+      "updates": 1073741824,
+      "status": "measured",
+      "samples_ms": [
+        1803.300679,
+        1807.990471,
+        1805.489216
+      ],
+      "warmup_ms": [
+        1801.94775
+      ],
+      "median_ms": 1805.489216,
+      "range_ms": [
+        1803.300679,
+        1807.990471
+      ],
+      "result": {
+        "sum": 792166316,
+        "max": 1072386,
+        "above": 26045,
+        "paths": 65536
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-16",
+      "depth": 2,
+      "paths": 4,
+      "steps": 32,
+      "updates": 128,
+      "status": "measured",
+      "samples_ms": [
+        7.096173,
+        6.826883,
+        6.938129
+      ],
+      "warmup_ms": [
+        7.866177
+      ],
+      "median_ms": 6.938129,
+      "range_ms": [
+        6.826883,
+        7.096173
+      ],
+      "result": {
+        "sum": 4001074,
+        "max": 1000666,
+        "above": 3,
+        "paths": 4
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-16",
+      "depth": 10,
+      "paths": 1024,
+      "steps": 256,
+      "updates": 262144,
+      "status": "measured",
+      "samples_ms": [
+        7.158137,
+        7.293139,
+        6.935258
+      ],
+      "warmup_ms": [
+        7.140904
+      ],
+      "median_ms": 7.158137,
+      "range_ms": [
+        6.935258,
+        7.293139
+      ],
+      "result": {
+        "sum": 1024024504,
+        "max": 1007611,
+        "above": 510,
+        "paths": 1024
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-16",
+      "depth": 14,
+      "paths": 16384,
+      "steps": 1024,
+      "updates": 16777216,
+      "status": "measured",
+      "samples_ms": [
+        10.779838,
+        11.231085,
+        11.348119
+      ],
+      "warmup_ms": [
+        10.792917
+      ],
+      "median_ms": 11.231085,
+      "range_ms": [
+        10.779838,
+        11.348119
+      ],
+      "result": {
+        "sum": 3494396886,
+        "max": 1016157,
+        "above": 7777,
+        "paths": 16384
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cpu-16",
+      "depth": 16,
+      "paths": 65536,
+      "steps": 16384,
+      "updates": 1073741824,
+      "status": "measured",
+      "samples_ms": [
+        248.30824,
+        236.954978,
+        245.043079
+      ],
+      "warmup_ms": [
+        236.149983
+      ],
+      "median_ms": 245.043079,
+      "range_ms": [
+        236.954978,
+        248.30824
+      ],
+      "result": {
+        "sum": 792166316,
+        "max": 1072386,
+        "above": 26045,
+        "paths": 65536
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cuda",
+      "depth": 2,
+      "paths": 4,
+      "steps": 32,
+      "updates": 128,
+      "status": "measured",
+      "samples_ms": [
+        172.072591,
+        164.97222,
+        167.809872
+      ],
+      "warmup_ms": [
+        151.232298
+      ],
+      "median_ms": 167.809872,
+      "range_ms": [
+        164.97222,
+        172.072591
+      ],
+      "result": {
+        "sum": 4001074,
+        "max": 1000666,
+        "above": 3,
+        "paths": 4
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cuda",
+      "depth": 10,
+      "paths": 1024,
+      "steps": 256,
+      "updates": 262144,
+      "status": "measured",
+      "samples_ms": [
+        164.804577,
+        174.970317,
+        159.265757
+      ],
+      "warmup_ms": [
+        163.078434
+      ],
+      "median_ms": 164.804577,
+      "range_ms": [
+        159.265757,
+        174.970317
+      ],
+      "result": {
+        "sum": 1024024504,
+        "max": 1007611,
+        "above": 510,
+        "paths": 1024
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cuda",
+      "depth": 14,
+      "paths": 16384,
+      "steps": 1024,
+      "updates": 16777216,
+      "status": "measured",
+      "samples_ms": [
+        157.31978,
+        165.423734,
+        169.135018
+      ],
+      "warmup_ms": [
+        171.850284
+      ],
+      "median_ms": 165.423734,
+      "range_ms": [
+        157.31978,
+        169.135018
+      ],
+      "result": {
+        "sum": 3494396886,
+        "max": 1016157,
+        "above": 7777,
+        "paths": 16384
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "cuda",
+      "depth": 16,
+      "paths": 65536,
+      "steps": 16384,
+      "updates": 1073741824,
+      "status": "measured",
+      "samples_ms": [
+        190.958834,
+        172.806252,
+        194.871516
+      ],
+      "warmup_ms": [
+        192.114365
+      ],
+      "median_ms": 190.958834,
+      "range_ms": [
+        172.806252,
+        194.871516
+      ],
+      "result": {
+        "sum": 792166316,
+        "max": 1072386,
+        "above": 26045,
+        "paths": 65536
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "postgresql",
+      "depth": 2,
+      "paths": 4,
+      "steps": 32,
+      "updates": 128,
+      "status": "measured",
+      "samples_ms": [
+        0.194509,
+        0.119183,
+        0.106797
+      ],
+      "warmup_ms": [
+        0.16414
+      ],
+      "median_ms": 0.119183,
+      "range_ms": [
+        0.106797,
+        0.194509
+      ],
+      "result": {
+        "sum": 4001074,
+        "max": 1000666,
+        "above": 3,
+        "paths": 4
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "postgresql",
+      "depth": 10,
+      "paths": 1024,
+      "steps": 256,
+      "updates": 262144,
+      "status": "measured",
+      "samples_ms": [
+        29.37948,
+        29.477702,
+        29.438011
+      ],
+      "warmup_ms": [
+        29.473756
+      ],
+      "median_ms": 29.438011,
+      "range_ms": [
+        29.37948,
+        29.477702
+      ],
+      "result": {
+        "sum": 1024024504,
+        "max": 1007611,
+        "above": 510,
+        "paths": 1024
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "postgresql",
+      "depth": 14,
+      "paths": 16384,
+      "steps": 1024,
+      "updates": 16777216,
+      "status": "measured",
+      "samples_ms": [
+        1848.68928,
+        1855.157867,
+        1848.717821
+      ],
+      "warmup_ms": [
+        1847.855652
+      ],
+      "median_ms": 1848.717821,
+      "range_ms": [
+        1848.68928,
+        1855.157867
+      ],
+      "result": {
+        "sum": 3494396886,
+        "max": 1016157,
+        "above": 7777,
+        "paths": 16384
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "postgresql",
+      "depth": 16,
+      "steps": 16384,
+      "paths": 65536,
+      "status": "timeout",
+      "timeout_s": 10,
+      "completed_samples_ms": [],
+      "warmup_ms": [],
+      "last_verified_updates": 16777216,
+      "diagnostic": "canceling statement due to statement timeout\nCONTEXT:  PL/pgSQL function simulate(text,integer,integer) line 13 at assignment"
+    },
+    {
+      "backend": "sqlite",
+      "depth": 2,
+      "paths": 4,
+      "steps": 32,
+      "updates": 128,
+      "status": "measured",
+      "samples_ms": [
+        0.073346,
+        0.075895,
+        0.073688
+      ],
+      "warmup_ms": [
+        0.080837
+      ],
+      "median_ms": 0.073688,
+      "range_ms": [
+        0.073346,
+        0.075895
+      ],
+      "result": {
+        "sum": 4001074,
+        "max": 1000666,
+        "above": 3,
+        "paths": 4
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "sqlite",
+      "depth": 10,
+      "paths": 1024,
+      "steps": 256,
+      "updates": 262144,
+      "status": "measured",
+      "samples_ms": [
+        160.890217,
+        161.110739,
+        161.379337
+      ],
+      "warmup_ms": [
+        161.153772
+      ],
+      "median_ms": 161.110739,
+      "range_ms": [
+        160.890217,
+        161.379337
+      ],
+      "result": {
+        "sum": 1024024504,
+        "max": 1007611,
+        "above": 510,
+        "paths": 1024
+      },
+      "complete_state_verified": true
+    },
+    {
+      "backend": "sqlite",
+      "depth": 14,
+      "steps": 1024,
+      "paths": 16384,
+      "status": "timeout",
+      "timeout_s": 10,
+      "completed_samples_ms": [],
+      "warmup_ms": [],
+      "last_verified_updates": 262144,
+      "diagnostic": "interrupted"
+    },
+    {
+      "backend": "sqlite",
+      "depth": 16,
+      "steps": 16384,
+      "paths": 65536,
+      "status": "not run",
+      "reason": "not run beyond 262144 updates (earlier SQL timeout)",
+      "timeout_s": 10
+    }
+  ],
+  "published_states": {
+    "cpu-1": [
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      }
+    ],
+    "cpu-16": [
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      }
+    ],
+    "cuda": [
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": []
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 3,
+                "id": "alice",
+                "max": 1000666,
+                "paths": 4,
+                "sum": 4001074
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 510,
+                "id": "alice",
+                "max": 1007611,
+                "paths": 1024,
+                "sum": 1024024504
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 7777,
+                "id": "alice",
+                "max": 1016157,
+                "paths": 16384,
+                "sum": 3494396886
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "results",
+            "rows": [
+              {
+                "above": 26045,
+                "id": "alice",
+                "max": 1072386,
+                "paths": 65536,
+                "sum": 792166316
+              }
+            ]
+          },
+          {
+            "name": "scenarios",
+            "rows": [
+              {
+                "drift": 0,
+                "id": "alice",
+                "seed": 123456789,
+                "volatility": 250
+              },
+              {
+                "drift": 3,
+                "id": "bob",
+                "seed": 3735928559,
+                "volatility": 700
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "credential": "alice-token",
+            "id": "alice",
+            "kind": "user"
+          },
+          {
+            "credential": "bob-token",
+            "id": "bob",
+            "kind": "user"
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "JayDB2 RAM state, PostgreSQL temporary tables (no table WAL), SQLite :memory:; no durability comparison.",
+    "JayDB2 fresh child per request, fresh authentication, integrity checks and complete publication; proof admission timed separately.",
+    "SQL execute/fetch includes parameter reads, simulation, upsert and returning all aggregates; no host-language UDF.",
+    "SQL is an arithmetic baseline without equivalent proof admission or authentication/RLS.",
+    "PostgreSQL PL/pgSQL is interpreted; SQLite recursive CTE is not designed for heavy numerical compute.",
+    "One session, one excluded warmup and at least three samples per measured size; complete state checked outside timing.",
+    "CPU clock policy fixed by wrapper; GPU clock unfixed and device drives desktop; no general speedup claim.",
+    "SQL statement timeout 10s; later sizes not run after first timeout; no extrapolation."
+  ],
+  "sql_controls": [
+    {
+      "backend": "postgresql",
+      "user": "alice",
+      "depth": 0,
+      "steps": 0,
+      "result": {
+        "sum": 1000000,
+        "max": 1000000,
+        "above": 0,
+        "paths": 1
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 1000000,
+              "max": 1000000,
+              "above": 0,
+              "paths": 1
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "postgresql",
+      "user": "alice",
+      "depth": 3,
+      "steps": 17,
+      "result": {
+        "sum": 7998568,
+        "max": 1000713,
+        "above": 3,
+        "paths": 8
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "postgresql",
+      "user": "bob",
+      "depth": 0,
+      "steps": 0,
+      "result": {
+        "sum": 1000000,
+        "max": 1000000,
+        "above": 0,
+        "paths": 1
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            },
+            {
+              "id": "bob",
+              "sum": 1000000,
+              "max": 1000000,
+              "above": 0,
+              "paths": 1
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "postgresql",
+      "user": "bob",
+      "depth": 3,
+      "steps": 17,
+      "result": {
+        "sum": 8000065,
+        "max": 1003030,
+        "above": 4,
+        "paths": 8
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            },
+            {
+              "id": "bob",
+              "sum": 8000065,
+              "max": 1003030,
+              "above": 4,
+              "paths": 8
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "sqlite",
+      "user": "alice",
+      "depth": 0,
+      "steps": 0,
+      "result": {
+        "sum": 1000000,
+        "max": 1000000,
+        "above": 0,
+        "paths": 1
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 1000000,
+              "max": 1000000,
+              "above": 0,
+              "paths": 1
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "sqlite",
+      "user": "alice",
+      "depth": 3,
+      "steps": 17,
+      "result": {
+        "sum": 7998568,
+        "max": 1000713,
+        "above": 3,
+        "paths": 8
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "sqlite",
+      "user": "bob",
+      "depth": 0,
+      "steps": 0,
+      "result": {
+        "sum": 1000000,
+        "max": 1000000,
+        "above": 0,
+        "paths": 1
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            },
+            {
+              "id": "bob",
+              "sum": 1000000,
+              "max": 1000000,
+              "above": 0,
+              "paths": 1
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "sqlite",
+      "user": "bob",
+      "depth": 3,
+      "steps": 17,
+      "result": {
+        "sum": 8000065,
+        "max": 1003030,
+        "above": 4,
+        "paths": 8
+      },
+      "complete_tables": [
+        {
+          "name": "results",
+          "rows": [
+            {
+              "id": "alice",
+              "sum": 7998568,
+              "max": 1000713,
+              "above": 3,
+              "paths": 8
+            },
+            {
+              "id": "bob",
+              "sum": 8000065,
+              "max": 1003030,
+              "above": 4,
+              "paths": 8
+            }
+          ]
+        },
+        {
+          "name": "scenarios",
+          "rows": [
+            {
+              "id": "alice",
+              "seed": 123456789,
+              "drift": 0,
+              "volatility": 250
+            },
+            {
+              "id": "bob",
+              "seed": 3735928559,
+              "drift": 3,
+              "volatility": 700
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
