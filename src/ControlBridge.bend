@@ -2,6 +2,7 @@
 # forwards the latest registry bytes unchanged (T3). Public receipts come
 # from Control.
 import Base
+import ./LimitWords.bend as LimitWords
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
@@ -136,7 +137,7 @@ def root_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>, registry: Maybe<&
   metadata: Codec.Outcome) -> List<&2, U32>:
   match parts:
     case Some{T.Parts{state, body}}:
-      root_limit(c, B.nat64(R.limit_state(S.limits(c))), state, registry, metadata, body)
+      root_limit(c, LimitWords.convert(R.limit_state(S.limits(c))), state, registry, metadata, body)
     case _: [2]
 
 def registry_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>, metadata: Codec.Outcome) -> List<&2, U32>:

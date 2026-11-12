@@ -72,16 +72,23 @@ def state_technical_cases(ok: Bool, fits: Bool, r: S.Response) -> S.Response:
     case True{} True{}:
       r
 
+# A caller may retain this exact canonical encoding for Commit output.
+def finalize_success_encoded(+v: D.Value, c: S.Configuration, +w: D.State,
+  encoded: Maybe<&2, List<&2, U32>>) -> S.Response:
+  S.Configuration{e, ls, +lim, amb} = c
+  state_technical_cases(D.structure(e, w),
+    fits_result(encoded, limit_state(lim)),
+    response_technique_cases(D.value_valid(v),
+      fits(limit_response(lim), S.response_value(S.Response{S.Success{}, v})),
+      S.Response{S.Success{}, v}))
+
 # Final order: proposal structural validity; limits; response preparation.
 # Internal data validation does not deliver data to the program.
 def finalize(r: S.Response, c: S.Configuration, +w: D.State) -> S.Response:
   match r c:
     case S.Response{S.Success{}, +v} S.Configuration{e, ls, +lim, amb}:
-      state_technical_cases(D.structure(e, w),
-        fits(limit_state(lim), D.state_value(w)),
-        response_technique_cases(D.value_valid(v),
-          fits(limit_response(lim), S.response_value(S.Response{S.Success{}, v})),
-          S.Response{S.Success{}, v}))
+      finalize_success_encoded(v, S.Configuration{e, ls, lim, amb}, w,
+        P.encode(D.state_value(w)))
     case S.Response{S.Refusal{}, +v} S.Configuration{e, ls, lim, amb}:
       response_technique_cases(D.value_valid(v),
         fits(limit_response(lim), S.response_value(S.Response{S.Refusal{}, v})),

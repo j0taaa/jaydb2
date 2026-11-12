@@ -1,5 +1,6 @@
 # Clauses for the actual prepare/invalidate transition.
 import Base
+import ../src/LimitWords.bend as LimitWords
 import ../contract/Theorems.bend as T
 import ../contract/Logic.bend as L
 import ../contract/Bytes.bend as B
@@ -182,12 +183,12 @@ def measured(+schema: D.Schema, -laws: S.Laws, +limits: S.Limits, +instance: Str
   +reg: C.Registry, +a: C.Admission, +h: String,
   checked: {Nat.is_le(B.length(body), R.limit_message(limits)) == fits : Bool}) ->
   T.ControlMeasured(C.routed(limits, instance, Dispatch.received_fits(fits, body, s,
-    B.nat64(R.limit_message(limits))), reg, a, h), S.Configuration{schema, laws, limits, instance}, body):
+    LimitWords.convert(R.limit_message(limits))), reg, a, h), S.Configuration{schema, laws, limits, instance}, body):
   match fits:
     case False{}: Unit{}
     case True{}:
       measured_plan(C.routed(limits, instance, Dispatch.received_fits(True{}, body, s,
-        B.nat64(R.limit_message(limits))), reg, a, h), S.Configuration{schema, laws, limits, instance}, body, checked)
+        LimitWords.convert(R.limit_message(limits))), reg, a, h), S.Configuration{schema, laws, limits, instance}, body, checked)
 
 def clause(+schema: D.Schema, -laws: S.Laws, +limits: S.Limits, +instance: String, k: T.ControlClause, +root: D.State, +last: List<&2, U32>,
   +reg: C.Registry, +body: List<&2, U32>, +a: C.Admission, +h: String) ->
@@ -198,7 +199,7 @@ def clause(+schema: D.Schema, -laws: S.Laws, +limits: S.Limits, +instance: Strin
     case T.ControlChecked{}: routed(schema, laws, limits, instance, Dispatch.received(limits, body, root), reg, a, h)
     case T.ControlReception{}:
       L.Both{rooted_fits(Nat.is_le(B.length(body), R.limit_message(limits)), body, root,
-        B.nat64(R.limit_message(limits))),
+        LimitWords.convert(R.limit_message(limits))),
         measured(schema, laws, limits, instance, Nat.is_le(B.length(body), R.limit_message(limits)), body, root, reg, a, h, {==})}
 
 def configuration(c: S.Configuration, k: T.ControlClause, +root: D.State, +last: List<&2, U32>,

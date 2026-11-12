@@ -1,6 +1,7 @@
 # Checked public envelope dispatch before the external admission/tool boundary.
 # Private success tags: 1 direct, 3 prepare, 4 execute, 5 invalidate.
 import Base
+import ./LimitWords.bend as LimitWords
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
@@ -83,7 +84,7 @@ def received_fits(fits: Bool, body: List<&2, U32>, s: D.State,
 
 def received(+limits: S.Limits, +body: List<&2, U32>, s: D.State) -> Routed:
   received_fits(Nat.is_le(B.length(body), R.limit_message(limits)), body, s,
-    B.nat64(R.limit_message(limits)))
+    LimitWords.convert(R.limit_message(limits)))
 
 # Decode the private snapshot once, using exactly the worker's root decoder.
 def root_value(value: Codec.Outcome, schema: D.Schema) -> Maybe<&2, D.State>:
@@ -97,7 +98,7 @@ def root_limit(limit: Maybe<&2, B.Number64>, state: List<&2, U32>, schema: D.Sch
     case Some{n}: root_value(Codec.decode(state, n), schema)
 
 def read_root(state: List<&2, U32>, schema: D.Schema, limits: S.Limits) -> Maybe<&2, D.State>:
-  root_limit(B.nat64(R.limit_state(limits)), state, schema)
+  root_limit(LimitWords.convert(R.limit_state(limits)), state, schema)
 
 def rooted(root: Maybe<&2, D.State>, body: List<&2, U32>, limits: S.Limits) -> Routed:
   match root:

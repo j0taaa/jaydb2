@@ -15,6 +15,13 @@ Artifact IO and delivery of T1 admission tokens remain host obligations.
 The native worker executes the checked `Gate`/interpreter/finalizer path;
 compiler/runtime preservation and physical host plumbing remain T2/T3.
 
+The worker's checked limit-word specialization equals the original non-truncating
+u64 conversion. It may retain finalization's canonical state encoding and use
+those exact bytes for Commit. `Execution.finish_equals_reference` establishes
+exact equality to the original finalization/publication/serialization path,
+including limits and failures. Success still commits when its root is unchanged;
+these refinements add no trusted host duty or protocol variant.
+
 `HostErrorReplyTheorem` covers the native controller's total exact error-code
 classification and canonical response construction, preserving the published
 root, last response and prepared registry. `contract/HostErrors.bend` specifies

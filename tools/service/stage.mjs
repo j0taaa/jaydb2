@@ -302,6 +302,7 @@ function freeze(workdir, configuration, seed) {
   loadProof('contract/Theorems.bend');
   loadProof('proof/OracleEquality.bend');
   loadProof('proof/OracleEvidence.bend');
+  loadProof('src/LimitWords.bend');
   sources.set('Native.bend', read(path.join(ROOT, 'native/effects.bend')));
   const seedSources = loadAdministrator(configuration, seed, sources), tooling = new Map();
   for (const folder of ['tools/admission', 'tools/verifier']) for (const name of fs.readdirSync(path.join(ROOT, folder)).sort()) {

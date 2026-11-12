@@ -1,6 +1,7 @@
 # Every host early reply is the exact early branch of the shared decoder and
 # Gate/Resolve composition, on the same current root and original body.
 import Base
+import ../src/LimitWords.bend as LimitWords
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
 import ../contract/Semantics.bend as S
@@ -104,10 +105,14 @@ def envelope(e: Dispatch.Envelope, +s: D.State, +limits: S.Limits,
 
 def measured(fits: Bool, +body: List<&2, U32>, +s: D.State, +limits: S.Limits,
   valid: {R.limits_all_valid(limits) == True{} : Bool}) ->
-  Routed(Dispatch.received_fits(fits, body, s, B.nat64(R.limit_message(limits))), s):
+  Routed(Dispatch.received_fits(fits, body, s, LimitWords.convert(R.limit_message(limits))), s):
   match fits:
     case False{}: Unit{}
-    case True{}: envelope(Dispatch.envelope(body), s, limits, envelope_tag(body), valid)
+    case True{}:
+      %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(limits)),
+        B.nat64(R.limit_message(limits)), LimitWords.convert_equals_reference(R.limit_message(limits))) :
+        Routed(Dispatch.received_envelope(Dispatch.envelope(body), s, _), s)
+      envelope(Dispatch.envelope(body), s, limits, envelope_tag(body), valid)
 
 # This is exactly the corresponding decoded Ingress branch (direct/prepare)
 # or Unified selection branch (execute/invalidate) before external admission.

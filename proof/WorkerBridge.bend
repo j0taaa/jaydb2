@@ -3,6 +3,7 @@
 # Here the pure worker result is related to the theorem's exact Gate path.
 # Fuel is a proof index only, never an execution quota or prefix replay.
 import Base
+import ../src/LimitWords.bend as LimitWords
 import ../contract/Bytes.bend as B
 import ../contract/Theorems.bend as Theorems
 import ../contract/Logic.bend as L
@@ -234,7 +235,11 @@ law raw_body_enters_proved_gate:
   for admit: Gate.Oracle()
   {W.ingress(c, s, body, admit) ==
     W.decoded(c, s, Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit) : X.Iteration}
-def raw_body_enters_proved_gate(c, s, body, admit): {==}
+def raw_body_enters_proved_gate(c, s, body, admit):
+  Equal.cong(Maybe<&2, B.Number64>, X.Iteration,
+    limit => W.decoded(c, s, Input.read_message(limit, body, s), admit),
+    LimitWords.convert(R.limit_message(S.limits(c))), B.nat64(R.limit_message(S.limits(c))),
+    LimitWords.convert_equals_reference(R.limit_message(S.limits(c))))
 
 law prepared_enters_proved_selection:
   for ~c: S.Configuration
@@ -288,6 +293,12 @@ law worker_body_equals_ingress_composition:
   {A.drive(c, Succ{n}, W.ingress(c, s, body, admit)) == ingress_reference(c, s, n,
     Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit) : X.Iteration}
 def worker_body_equals_ingress_composition(c, s, body, n, admit, complete):
+  %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(S.limits(c))),
+    B.nat64(R.limit_message(S.limits(c))),
+    LimitWords.convert_equals_reference(R.limit_message(S.limits(c)))) :
+    {A.drive(c, Succ{n}, W.decoded(c, s, Input.read_message(_, body, s), admit)) ==
+      ingress_reference(c, s, n,
+        Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit) : X.Iteration}
   decoded_worker_equals_ingress_composition(c, n, s,
     Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit, complete)
 
