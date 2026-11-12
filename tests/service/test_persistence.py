@@ -253,9 +253,12 @@ class PersistenceTests(unittest.TestCase):
             listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
             env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
         server = self.server(env=env)
+        prepared_artifacts = set()
         if len(token) > 4096:
             prepared = server.prepared(0, self.code, 'alice-token', proof=universal_access_proof(self.proof))
             self.assertEqual(prepared['status'], 'prepared', server.diagnostics())
+            private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
+            prepared_artifacts = set(private.glob('request-*'))
             request = prepared_frame(1, prepared['value'], 'alice-token', token)
         else:
             request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments=token))
@@ -270,10 +273,10 @@ class PersistenceTests(unittest.TestCase):
                 stream, _ = listener.accept()
                 with stream:
                     self.assertEqual(stream.recv(128).decode(), point)
-                    # Ordinary request workers and staging directories are gone
-                    # before the storage protocol is entered.
+                    # Selected-call workers and staging directories are gone
+                    # before storage. Retain pre-existing prepared artifacts.
                     private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
-                    self.assertFalse(list(private.glob('request-*')))
+                    self.assertEqual(set(private.glob('request-*')), prepared_artifacts)
                     self.assertFalse(Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children').read_text().strip())
                     os.kill(server.process.pid, signal.SIGKILL)
                     server.process.wait(timeout=10)
