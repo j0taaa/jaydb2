@@ -68,9 +68,11 @@ compiler; the host retains the last published state.
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
   a universally certified program once, then execute its instance-local handle
   with fresh credentials and arguments. Restart loses handles.
-- **[Complete-image persistence](tools/service/SIMPLE_SERVICE.md):** opt-in
+- **[Complete-state persistence](tools/service/SIMPLE_SERVICE.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
   compares an immutable descriptor of the exact executable/environment bytes.
+  Changed states normally overwrite an initialized alternate slot and call
+  `fdatasync` once; growth uses safe image replacement. See the [storage protocol](docs/durable-storage.md).
   Development databases can be
   recreated after changes; cross-build compatibility and migrations are outside
   scope. Uncertain commit failures stop service rather than promise rollback.

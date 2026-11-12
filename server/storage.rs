@@ -1,9 +1,24 @@
-//! One authoritative complete image, with a single directory owner.
-//! Storage bytes are not a validity proof.
+//! Two alternating, block-aligned complete-state slots; single directory owner.
+//! Routine commits overwrite the older slot and fdatasync the existing inode.
+//! Creation/growth use synced temp + atomic rename + directory fsync. Recovery
+//! requires checksum-valid complete slots with consecutive, correctly placed
+//! sequence numbers (or one valid slot). Nonzero invalid peers are durably
+//! cleared on recovery before their sequence can be reused, preventing stale
+//! failed-candidate resurrection. Bytes are not a validity proof.
+//!
+//! Trusted Linux/ext4 boundary: successful fdatasync persists data and required
+//! metadata; directory fsync persists atomic replacement; errors may have effects.
+//! Previously synced, unmodified filesystem blocks remain intact across a crash.
+//! Slots start/end on 4096-byte filesystem block boundaries. No sector or block
+//! write atomicity is assumed. SHA-256 must detect torn/mixed slot contents;
+//! undetected collisions are excluded. Protected storage excludes malicious
+//! rewriting, unrelated media damage and loss of acknowledged synced writes.
+//! Rust/OS refinement and these assumptions remain outside the Bend proofs.
 use crate::{Error, Limits, Result};
 use sha2::{Digest, Sha256};
 use std::fs::{self, DirBuilder, File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::os::fd::AsRawFd;
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 
@@ -12,6 +27,36 @@ const OVERHEAD: usize = MAGIC.len() + 64 + 4 * 8 + 32;
 const IMAGE: &str = "snapshot";
 const TEMP: &str = ".snapshot.tmp";
 const ENVIRONMENT: &str = "environment";
+const SLOT_MAGIC: &[u8; 16] = b"jaydb2-slot-v2!!";
+const HEADER: usize = 64;
+const BLOCK: u64 = 4096;
+
+fn slot_size_for(image_size: u64) -> Option<u64> {
+    image_size
+        .checked_add(HEADER as u64)?
+        .checked_add(BLOCK - 1)
+        .map(|n| n / BLOCK * BLOCK)
+}
+
+fn encode_slot(sequence: u64, image: &[u8], slot_size: usize) -> io::Result<Vec<u8>> {
+    if slot_size_for(image.len() as u64).is_none_or(|n| n > slot_size as u64) {
+        return Err(io::Error::other("slot size overflow"));
+    }
+    let mut record = Vec::with_capacity(slot_size);
+    record.extend_from_slice(SLOT_MAGIC);
+    record.extend_from_slice(&sequence.to_be_bytes());
+    record.extend_from_slice(&(image.len() as u64).to_be_bytes());
+    record.resize(HEADER, 0);
+    record.extend_from_slice(image);
+    // Bind sequence/length TO the payload: a new header with an untouched old
+    // payload must never pass as a newer publication after an in-place tear.
+    let mut digest = Sha256::new();
+    digest.update(&record[..32]);
+    digest.update(image);
+    record[32..64].copy_from_slice(&digest.finalize());
+    record.resize(slot_size, 0);
+    Ok(record)
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -24,9 +69,12 @@ pub struct Storage {
     directory: File,
     // Never unlink or replace this file: its locked inode identifies ownership.
     _owner: File,
-    temporary: Option<File>,
+    pending: Option<File>,
     creating: bool,
     environment_bound: bool,
+    sequence: Option<u64>,
+    length: u64,
+    poisoned: bool,
 }
 
 #[derive(Debug)]
@@ -118,6 +166,17 @@ impl Storage {
             .map_err(storage_error)?;
         owner.try_lock().map_err(storage_error)?;
         let directory = File::open(path).map_err(storage_error)?;
+        let mut geometry = std::mem::MaybeUninit::<libc::statvfs>::uninit();
+        // SAFETY: live descriptor, writable statvfs output, initialized only
+        // after a successful syscall. Only the filesystem block size is read.
+        if unsafe { libc::fstatvfs(directory.as_raw_fd(), geometry.as_mut_ptr()) } != 0 {
+            return Err(storage_error(io::Error::last_os_error()));
+        }
+        if unsafe { geometry.assume_init() }.f_frsize != BLOCK {
+            return Err(storage_error(
+                "storage requires 4096-byte filesystem blocks",
+            ));
+        }
         if mode == Mode::Create {
             owner
                 .sync_all()
@@ -136,9 +195,12 @@ impl Storage {
             path: path.to_owned(),
             directory,
             _owner: owner,
-            temporary: None,
+            pending: None,
             creating: mode == Mode::Create,
             environment_bound: false,
+            sequence: None,
+            length: 0,
+            poisoned: false,
         })
     }
 
@@ -192,33 +254,43 @@ impl Storage {
         Ok(())
     }
 
-    pub fn recover(&self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
-        if !self.environment_bound {
-            return Err(storage_error(
-                "exact environment descriptor has not been bound",
-            ));
+    pub fn recover(&mut self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
+        if !self.environment_bound || self.poisoned {
+            return Err(storage_error("environment unbound or storage uncertain"));
         }
-        // Bound allocation before reading untrusted/corrupt lengths. There is
-        // exactly one candidate; a leftover temp image is never recovery input.
-        // The logical limit may be u64::MAX. Header overhead must not narrow
-        // that domain or make a small image impossible to reopen.
-        let maximum = limits.state.saturating_add(OVERHEAD as u64);
-        let file = File::open(self.path.join(IMAGE)).map_err(storage_error)?;
-        if file.metadata().map_err(storage_error)?.len() > maximum {
-            return Err(storage_error("oversized authoritative snapshot"));
+        self.poisoned = true;
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(self.path.join(IMAGE))
+            .map_err(storage_error)?;
+        let length = file.metadata().map_err(storage_error)?.len();
+        let (state, sequence, repair) = decode_slots(&mut file, length, environment, limits)?;
+        if let Some(index) = repair {
+            // A failed future candidate can retain its valid checksum/header.
+            // Reusing those bytes at the same next sequence could resurrect it
+            // through a later torn write. Clear an invalid peer DURABLY before
+            // admitting another request. Never modify the selected current slot.
+            file.seek(SeekFrom::Start(index * (length / 2)))
+                .map_err(storage_error)?;
+            let zeroes = vec![0; usize::try_from(length / 2).map_err(storage_error)?];
+            fault_point("before_slot_clear").map_err(storage_error)?;
+            file.write_all(&zeroes[..HEADER + 1])
+                .map_err(storage_error)?;
+            fault_point("during_slot_clear").map_err(storage_error)?;
+            file.write_all(&zeroes[HEADER + 1..])
+                .map_err(storage_error)?;
+            fault_point("after_slot_clear").map_err(storage_error)?;
         }
-        let mut bytes = Vec::new();
-        (&file)
-            .take(maximum.saturating_add(1))
-            .read_to_end(&mut bytes)
-            .map_err(storage_error)?;
-        let state = decode_image(&bytes, environment, limits)?;
-        // A previous process may have died after rename but before directory
-        // sync. Establish durability once on open before identical-state
-        // Commits may reuse this image without another write.
-        file.sync_all()
-            .and_then(|()| self.directory.sync_all())
-            .map_err(storage_error)?;
+        // Stabilize a surviving unsynced slot write/rename
+        // before RAM publication or the identical-state optimization.
+        file.sync_all().map_err(storage_error)?;
+        fault_point("after_recovery_file_sync").map_err(storage_error)?;
+        self.directory.sync_all().map_err(storage_error)?;
+        fault_point("after_recovery_sync").map_err(storage_error)?;
+        self.sequence = Some(sequence);
+        self.length = length;
+        self.poisoned = false;
         Ok(state)
     }
 
@@ -241,10 +313,54 @@ impl Storage {
             uncertain: false,
             cause,
         })?;
-        let result = commit(self, &bytes);
-        // Closing the already synced file requires no further rollback-capable
-        // work. A failed temp is removable before the next attempt, under lock.
-        self.temporary = None;
+        if self.poisoned || (!self.creating && self.sequence.is_none()) {
+            return Err(CommitError {
+                uncertain: true,
+                cause: io::Error::other("storage requires recovery"),
+            });
+        }
+        let sequence = match self.sequence {
+            None => 0,
+            Some(n) => n.checked_add(1).ok_or_else(|| CommitError {
+                uncertain: false,
+                cause: io::Error::other("slot sequence exhausted"),
+            })?,
+        };
+        let needed = slot_size_for(bytes.len() as u64).ok_or_else(|| CommitError {
+            uncertain: false,
+            cause: io::Error::other("slot size overflow"),
+        })?;
+        let grow = self.sequence.is_none() || needed > self.length / 2;
+        let slot_size = if grow { needed } else { self.length / 2 };
+        let slot_size = usize::try_from(slot_size).map_err(|_| CommitError {
+            uncertain: false,
+            cause: io::Error::other("slot exceeds address space"),
+        })?;
+        let record = encode_slot(sequence, &bytes, slot_size).map_err(|cause| CommitError {
+            uncertain: false,
+            cause,
+        })?;
+        let result = if grow {
+            let total = slot_size.checked_mul(2).ok_or_else(|| CommitError {
+                uncertain: false,
+                cause: io::Error::other("slot file overflow"),
+            })?;
+            // Both slots are initialized, allocated and synced at creation or
+            // growth. Only one contains a publication; sequence parity fixes it.
+            let mut image = vec![0; total];
+            let offset = (sequence % 2) as usize * slot_size;
+            image[offset..offset + slot_size].copy_from_slice(&record);
+            commit(self, &image)
+        } else {
+            slot_commit(self, &record)
+        };
+        self.pending = None;
+        if result.is_ok() {
+            self.sequence = Some(sequence);
+            self.length = slot_size as u64 * 2;
+        } else if result.as_ref().is_err_and(|e| e.uncertain) {
+            self.poisoned = true;
+        }
         result
     }
 }
@@ -263,11 +379,11 @@ impl ImageIo for Storage {
             .mode(0o600)
             .open(self.path.join(TEMP))?;
         file.write_all(image)?;
-        self.temporary = Some(file);
+        self.pending = Some(file);
         fault_point("after_write")
     }
     fn sync_temp(&mut self) -> io::Result<()> {
-        self.temporary
+        self.pending
             .as_ref()
             .expect("written temporary image")
             .sync_all()?;
@@ -282,6 +398,125 @@ impl ImageIo for Storage {
         self.directory.sync_all()?;
         fault_point("after_directory_sync")
     }
+}
+
+// Preparation only opens/seeks; the selected older slot is never the latest
+// durable publication. Once writing starts every error is conservatively fatal.
+trait SlotIo {
+    fn prepare_slot(&mut self) -> io::Result<()>;
+    fn write_slot(&mut self, record: &[u8]) -> io::Result<()>;
+    fn sync_slot(&mut self) -> io::Result<()>;
+}
+
+fn slot_commit(io: &mut impl SlotIo, record: &[u8]) -> std::result::Result<(), CommitError> {
+    io.prepare_slot().map_err(|cause| CommitError {
+        uncertain: false,
+        cause,
+    })?;
+    io.write_slot(record)
+        .and_then(|()| io.sync_slot())
+        .map_err(|cause| CommitError {
+            uncertain: true,
+            cause,
+        })
+}
+
+impl SlotIo for Storage {
+    fn prepare_slot(&mut self) -> io::Result<()> {
+        fault_point("before_write")?;
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(self.path.join(IMAGE))?;
+        if file.metadata()?.len() != self.length {
+            return Err(io::Error::other("authoritative slot file length changed"));
+        }
+        let next = self.sequence.expect("recovered slot sequence") + 1;
+        file.seek(SeekFrom::Start((next % 2) * (self.length / 2)))?;
+        self.pending = Some(file);
+        Ok(())
+    }
+    fn write_slot(&mut self, record: &[u8]) -> io::Result<()> {
+        fault_point("before_slot_write")?;
+        let file = self.pending.as_mut().expect("prepared slot");
+        #[cfg(feature = "storage-fault-injection")]
+        {
+            // Stop inside the authoritative header/payload, not just padding.
+            file.write_all(&record[..HEADER + 1])?;
+            fault_point("during_slot_write")?;
+            file.write_all(&record[HEADER + 1..])?;
+        }
+        #[cfg(not(feature = "storage-fault-injection"))]
+        file.write_all(record)?;
+        fault_point("after_slot_write")
+    }
+    fn sync_slot(&mut self) -> io::Result<()> {
+        fault_point("before_data_sync")?;
+        self.pending.as_ref().expect("written slot").sync_data()?;
+        fault_point("after_data_sync")
+    }
+}
+
+fn decode_slot(bytes: &[u8]) -> Option<(u64, &[u8])> {
+    if bytes.len() < HEADER || !bytes.starts_with(SLOT_MAGIC) {
+        return None;
+    }
+    let size = usize::try_from(u64::from_be_bytes(bytes[24..32].try_into().ok()?)).ok()?;
+    let end = HEADER.checked_add(size)?;
+    if size < OVERHEAD || end > bytes.len() {
+        return None;
+    }
+    let mut digest = Sha256::new();
+    digest.update(&bytes[..32]);
+    digest.update(&bytes[HEADER..end]);
+    if digest.finalize()[..] != bytes[32..64] {
+        return None;
+    }
+    Some((
+        u64::from_be_bytes(bytes[16..24].try_into().ok()?),
+        &bytes[HEADER..end],
+    ))
+}
+
+// Shared by OS recovery and arbitrary torn-write tests. Never trusts a length
+// before bounding it by actual file geometry and the logical state ceiling.
+fn decode_slots(
+    file: &mut impl Read,
+    length: u64,
+    environment: &str,
+    limits: &Limits,
+) -> Result<(Vec<u8>, u64, Option<u64>)> {
+    let maximum = slot_size_for(limits.state.saturating_add(OVERHEAD as u64)).unwrap_or(u64::MAX);
+    if length < BLOCK * 2 || length % (BLOCK * 2) != 0 || length / 2 > maximum {
+        return Err(storage_error(
+            "invalid or oversized authoritative slot file",
+        ));
+    }
+    let size = usize::try_from(length / 2).map_err(storage_error)?;
+    let mut candidates = Vec::new();
+    let mut repair = None;
+    for index in 0..2 {
+        let mut bytes = vec![0; size];
+        file.read_exact(&mut bytes).map_err(storage_error)?;
+        if let Some((sequence, image)) = decode_slot(&bytes) {
+            if sequence % 2 != index {
+                return Err(storage_error("ambiguous slot sequence placement"));
+            }
+            // Check every checksum-valid image, including an older one. Never
+            // hide an incompatible valid slot behind a newer publication.
+            candidates.push((sequence, decode_image(image, environment, limits)?));
+        } else if bytes.iter().any(|byte| *byte != 0) {
+            repair = Some(index);
+        }
+    }
+    candidates.sort_by_key(|(sequence, _)| *sequence);
+    if candidates.len() == 2 && candidates[0].0.checked_add(1) != Some(candidates[1].0) {
+        return Err(storage_error("ambiguous or stale slot sequences"));
+    }
+    candidates
+        .pop()
+        .map(|(sequence, state)| (state, sequence, repair))
+        .ok_or_else(|| storage_error("no complete authoritative slot (format or checksum)"))
 }
 
 fn encode_image(environment: &str, limits: &Limits, state: &[u8]) -> io::Result<Vec<u8>> {
@@ -455,7 +690,7 @@ mod tests {
         storage.persist(&environment(), &limits(), b"new").unwrap();
         drop(storage);
         fs::write(path.join(TEMP), b"orphan").unwrap();
-        let storage = bound_storage(&path, Mode::Open);
+        let mut storage = bound_storage(&path, Mode::Open);
         assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"new");
         fs::write(path.join(IMAGE), b"corrupt").unwrap();
         assert!(storage.recover(&environment(), &limits()).is_err());
@@ -474,8 +709,324 @@ mod tests {
         let mut storage = bound_storage(&path, Mode::Create);
         storage.persist(&environment(), &limits, b"small").unwrap();
         drop(storage);
-        let storage = bound_storage(&path, Mode::Open);
+        let mut storage = bound_storage(&path, Mode::Open);
         assert_eq!(storage.recover(&environment(), &limits).unwrap(), b"small");
+    }
+
+    fn record(n: u64, state: &[u8]) -> Vec<u8> {
+        encode_slot(
+            n,
+            &encode_image(&environment(), &limits(), state).unwrap(),
+            BLOCK as usize,
+        )
+        .unwrap()
+    }
+    fn read_slots(bytes: &[u8]) -> Result<(Vec<u8>, u64)> {
+        decode_slots(
+            &mut io::Cursor::new(bytes),
+            bytes.len() as u64,
+            &environment(),
+            &limits(),
+        )
+        .map(|(state, sequence, _)| (state, sequence))
+    }
+
+    #[test]
+    fn every_torn_slot_byte_recovers_old_or_new_and_never_stale() {
+        // Current sequence 1 lives in B; A still has sequence 0. Sequence 2
+        // overwrites A. New header + fully old body MUST fail the combined hash.
+        let stale = record(0, b"stale");
+        let old = record(1, b"old");
+        let new = record(2, b"new");
+        for cut in 0..=new.len() {
+            let mut torn = stale.clone();
+            torn[..cut].copy_from_slice(&new[..cut]);
+            let (state, seq) = read_slots(&[torn, old.clone()].concat()).unwrap();
+            assert!(state == b"old" || state == b"new", "cut {cut}");
+            assert!(seq == 1 || seq == 2);
+        }
+        let mut mixed = stale;
+        mixed[..HEADER].copy_from_slice(&new[..HEADER]);
+        assert_eq!(
+            read_slots(&[mixed, old.clone()].concat()).unwrap().0,
+            b"old"
+        );
+        for i in 0..new.len() {
+            let mut torn = new.clone();
+            torn[i] ^= 1;
+            let (state, _) = read_slots(&[torn, old.clone()].concat()).unwrap();
+            assert!(state == b"old" || state == b"new");
+        }
+        for cut in 0..old.len() * 2 {
+            assert!(read_slots(&[new.clone(), old.clone()].concat()[..cut]).is_err());
+        }
+    }
+
+    #[test]
+    fn multi_block_slots_tolerate_torn_sector_and_block_subsets() {
+        let mut large = limits();
+        large.state = 16384;
+        let slot_size = 12288;
+        let image = |n, state: &[u8]| {
+            encode_slot(
+                n,
+                &encode_image(&environment(), &large, state).unwrap(),
+                slot_size,
+            )
+            .unwrap()
+        };
+        let stale = image(0, &vec![11; 10000]);
+        let old = image(1, b"old");
+        let state = vec![123; 10000];
+        let new = image(2, &state);
+        let check = |torn: Vec<u8>| {
+            let bytes = [torn, old.clone()].concat();
+            let (got, _, _) = decode_slots(
+                &mut io::Cursor::new(&bytes),
+                bytes.len() as u64,
+                &environment(),
+                &large,
+            )
+            .unwrap();
+            assert!(got == b"old" || got == state);
+        };
+        for mask in 0..(1 << (slot_size / 4096)) {
+            let mut torn = stale.clone();
+            for (i, chunk) in new.chunks(4096).enumerate() {
+                if mask & (1 << i) != 0 {
+                    torn[i * 4096..(i + 1) * 4096].copy_from_slice(chunk);
+                }
+            }
+            check(torn);
+        }
+        for i in 0..slot_size / 512 {
+            let mut only = stale.clone();
+            only[i * 512..(i + 1) * 512].copy_from_slice(&new[i * 512..(i + 1) * 512]);
+            check(only);
+            let mut missing = new.clone();
+            missing[i * 512..(i + 1) * 512].copy_from_slice(&stale[i * 512..(i + 1) * 512]);
+            check(missing);
+        }
+    }
+
+    #[test]
+    fn recovery_refuses_stale_tied_misplaced_and_incompatible_slots() {
+        for n in [0, 1, 3, 6, u64::MAX] {
+            assert!(read_slots(&[record(n, b"bad"), record(3, b"old")].concat()).is_err());
+        }
+        let other = encode_image(&"b".repeat(64), &limits(), b"bad").unwrap();
+        assert!(
+            read_slots(&[encode_slot(2, &other, 4096).unwrap(), record(3, b"old")].concat())
+                .is_err()
+        );
+        let mut other_limits = limits();
+        other_limits.message += 1;
+        let other = encode_image(&environment(), &other_limits, b"bad").unwrap();
+        assert!(
+            read_slots(&[encode_slot(2, &other, 4096).unwrap(), record(3, b"old")].concat())
+                .is_err()
+        );
+        assert!(read_slots(&[vec![0; 4096], vec![0; 4096]].concat()).is_err());
+        assert!(read_slots(&vec![0; 4096 * 4]).is_err());
+        assert_eq!(
+            read_slots(&[record(2, b"new"), record(1, b"old")].concat())
+                .unwrap()
+                .0,
+            b"new"
+        );
+        assert_eq!(
+            read_slots(&[vec![0; 4096], record(u64::MAX, b"last")].concat())
+                .unwrap()
+                .1,
+            u64::MAX
+        );
+    }
+
+    #[test]
+    fn real_slots_survive_repeated_overwrites_growth_and_restart() {
+        use std::os::unix::fs::MetadataExt;
+        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-slots").unwrap();
+        let path = parent.path.join("db");
+        let mut large = limits();
+        large.state = 16384;
+        let mut storage = bound_storage(&path, Mode::Create);
+        storage.persist(&environment(), &large, b"old").unwrap();
+        let live = File::open(path.join(IMAGE)).unwrap();
+        let inode = live.metadata().unwrap().ino();
+        for n in 1..=64 {
+            storage
+                .persist(&environment(), &large, n.to_string().as_bytes())
+                .unwrap();
+            assert_eq!(fs::metadata(path.join(IMAGE)).unwrap().ino(), inode);
+            assert_eq!(storage.length, 8192);
+        }
+        let state = vec![12; 9000];
+        storage.persist(&environment(), &large, &state).unwrap();
+        assert_ne!(fs::metadata(path.join(IMAGE)).unwrap().ino(), inode);
+        assert_eq!(storage.length, 24576);
+        assert_eq!(storage.sequence, Some(65));
+        drop(storage);
+        let mut storage = bound_storage(&path, Mode::Open);
+        assert_eq!(storage.recover(&environment(), &large).unwrap(), state);
+        storage.persist(&environment(), &large, b"small").unwrap();
+        assert_eq!(storage.length, 24576); // never shrinks/aliases the latest slot
+        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"small");
+        assert!(
+            !storage
+                .persist(&environment(), &large, &vec![0; large.state as usize + 1])
+                .unwrap_err()
+                .uncertain
+        );
+        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"small");
+        storage.sequence = Some(u64::MAX);
+        assert!(
+            !storage
+                .persist(&environment(), &large, b"next")
+                .unwrap_err()
+                .uncertain
+        );
+        storage.poisoned = true;
+        assert!(
+            storage
+                .persist(&environment(), &large, b"next")
+                .unwrap_err()
+                .uncertain
+        );
+        assert!(storage.recover(&environment(), &large).is_err());
+    }
+
+    #[test]
+    fn recovery_clears_failed_future_slot_before_reusing_its_sequence() {
+        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-slot-clear").unwrap();
+        let path = parent.path.join("db");
+        let mut storage = bound_storage(&path, Mode::Create);
+        storage.persist(&environment(), &limits(), b"seed").unwrap();
+        storage.persist(&environment(), &limits(), b"old").unwrap();
+        drop(storage);
+        let failed_state = vec![0; 900];
+        let failed = record(2, &failed_state);
+        let mut invalid = failed.clone();
+        let missing = HEADER + MAGIC.len() + 64 + 32 + 600;
+        invalid[missing] ^= 128;
+        assert!(decode_slot(&invalid).is_none());
+        // An out-of-order partial zeroing can itself resurrect that earlier
+        // candidate before repair sync. Startup has admitted no request yet.
+        let mut partial_clear = invalid.clone();
+        partial_clear[512..1024].fill(0);
+        assert_eq!(
+            read_slots(&[partial_clear, record(1, b"old")].concat())
+                .unwrap()
+                .0,
+            failed_state
+        );
+        let mut file = OpenOptions::new()
+            .write(true)
+            .open(path.join(IMAGE))
+            .unwrap();
+        file.write_all(&invalid).unwrap();
+        drop(file);
+        let mut storage = bound_storage(&path, Mode::Open);
+        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"old");
+        assert!(
+            fs::read(path.join(IMAGE)).unwrap()[..BLOCK as usize]
+                .iter()
+                .all(|b| *b == 0)
+        );
+        // Without clearing, a later torn write restoring just the missing byte
+        // resurrects the failed future candidate under the SAME next sequence.
+        invalid[missing] = failed[missing];
+        assert_eq!(
+            read_slots(&[invalid, record(1, b"old")].concat())
+                .unwrap()
+                .0,
+            failed_state
+        );
+        // After durable clearing, every next-write prefix can recover only the
+        // current publication or THIS candidate, never the earlier failed one.
+        let next = record(2, b"different");
+        for cut in 0..=next.len() {
+            let mut torn = vec![0; next.len()];
+            torn[..cut].copy_from_slice(&next[..cut]);
+            let state = read_slots(&[torn, record(1, b"old")].concat()).unwrap().0;
+            assert!(state == b"old" || state == b"different");
+        }
+        storage
+            .persist(&environment(), &limits(), b"different")
+            .unwrap();
+        assert_eq!(
+            storage.recover(&environment(), &limits()).unwrap(),
+            b"different"
+        );
+    }
+
+    struct SlotModel {
+        stage: usize,
+        fail: usize,
+        after: bool,
+        written: bool,
+        synced: bool,
+    }
+    impl SlotModel {
+        fn step(&mut self, effect: impl FnOnce(&mut Self)) -> io::Result<()> {
+            self.stage += 1;
+            if self.stage == self.fail && !self.after {
+                return Err(io::Error::from_raw_os_error(28));
+            }
+            effect(self);
+            if self.stage == self.fail {
+                return Err(io::Error::from_raw_os_error(5));
+            }
+            Ok(())
+        }
+    }
+    impl SlotIo for SlotModel {
+        fn prepare_slot(&mut self) -> io::Result<()> {
+            self.step(|_| {})
+        }
+        fn write_slot(&mut self, _: &[u8]) -> io::Result<()> {
+            self.step(|m| m.written = true)
+        }
+        fn sync_slot(&mut self) -> io::Result<()> {
+            self.step(|m| {
+                assert!(m.written);
+                m.synced = true;
+            })
+        }
+    }
+    #[test]
+    fn actual_slot_algorithm_covers_every_fault_and_crash_boundary() {
+        for fail in 0..=3 {
+            for after in [false, true] {
+                let mut m = SlotModel {
+                    stage: 0,
+                    fail,
+                    after,
+                    written: false,
+                    synced: false,
+                };
+                let result = slot_commit(&mut m, b"new");
+                if fail == 0 {
+                    assert!(result.is_ok());
+                    assert!(m.synced);
+                } else {
+                    assert_eq!(result.unwrap_err().uncertain, fail >= 2);
+                }
+                for survives in [false, true] {
+                    let recovered = if m.synced || (m.written && survives) {
+                        b"new"
+                    } else {
+                        b"old"
+                    };
+                    if fail == 0 {
+                        assert_eq!(recovered, b"new");
+                    }
+                    if fail == 1 {
+                        assert_eq!(recovered, b"old");
+                    }
+                    assert!(recovered == b"old" || recovered == b"new");
+                }
+            }
+        }
     }
 
     // A deliberately small power-loss model: file data is persistent after

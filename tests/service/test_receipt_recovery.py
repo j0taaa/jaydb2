@@ -85,7 +85,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
                 path = str(Path(gate)/'socket')
                 with socket.socket(socket.AF_UNIX) as listener:
                     listener.bind(path); listener.listen(1); listener.settimeout(180)
-                    env = dict(os.environ, JAYDB_STORAGE_FAULT='after_directory_sync',
+                    env = dict(os.environ, JAYDB_STORAGE_FAULT='after_data_sync',
                                JAYDB_STORAGE_BARRIER=path)
                     pending = Server(app, binary=BINARY, threads=1, env=env, seed=False,
                         arguments=['--storage', str(storage), '--storage-mode', 'open'])
@@ -102,7 +102,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
                     stream, _ = listener.accept()
                     with stream:
                         stream.settimeout(30)
-                        expected = b'after_directory_sync'; received = bytearray()
+                        expected = b'after_data_sync'; received = bytearray()
                         while len(received) < len(expected):
                             part = stream.recv(len(expected)-len(received))
                             self.assertTrue(part); received.extend(part)

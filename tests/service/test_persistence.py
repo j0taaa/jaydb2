@@ -26,9 +26,21 @@ OVERHEAD = len(MAGIC) + 64 + 32 + 32
 
 def state_bytes(path):
     image = (path/'snapshot').read_bytes()
-    assert hashlib.sha256(image[:-32]).digest() == image[-32:]
-    assert image.startswith(MAGIC)
-    return image[OVERHEAD-32:-32]
+    size = len(image)//2
+    candidates = []
+    for index in range(2):
+        slot = image[index*size:(index+1)*size]
+        if slot[:16] != b'jaydb2-slot-v2!!': continue
+        length = int.from_bytes(slot[24:32], 'big')
+        payload = slot[64:64+length]
+        if hashlib.sha256(slot[:32]+payload).digest() != slot[32:64]: continue
+        assert hashlib.sha256(payload[:-32]).digest() == payload[-32:]
+        assert payload.startswith(MAGIC)
+        sequence = int.from_bytes(slot[16:24], 'big')
+        assert sequence % 2 == index
+        candidates.append((sequence, payload))
+    assert candidates
+    return max(candidates)[1][OVERHEAD-32:-32]
 
 
 class PersistenceTests(unittest.TestCase):
@@ -145,12 +157,14 @@ class PersistenceTests(unittest.TestCase):
         self.assertIn(b'STORAGE', self.open_failure().stderr)
         (self.path/'snapshot').write_bytes(image[:-1])
         self.assertIn(b'STORAGE', self.open_failure().stderr)
-        corrupt = bytearray(image); corrupt[-40] ^= 1
+        corrupt = bytearray(image); corrupt[64+OVERHEAD-33] ^= 1
         (self.path/'snapshot').write_bytes(corrupt)
         self.assertIn(b'checksum', self.open_failure().stderr)
         # A checksum is not a configuration/version certificate.
-        incompatible = bytearray(image); incompatible[len(MAGIC)] ^= 1
-        incompatible[-32:] = hashlib.sha256(incompatible[:-32]).digest()
+        incompatible = bytearray(image); incompatible[64+len(MAGIC)] ^= 1
+        size = int.from_bytes(incompatible[24:32], 'big')
+        incompatible[64+size-32:64+size] = hashlib.sha256(incompatible[64:64+size-32]).digest()
+        incompatible[32:64] = hashlib.sha256(incompatible[:32]+incompatible[64:64+size]).digest()
         (self.path/'snapshot').write_bytes(incompatible)
         self.assertIn(b'incompatible image environment', self.open_failure().stderr)
         (self.path/'snapshot').write_bytes(image)
@@ -208,16 +222,22 @@ class PersistenceTests(unittest.TestCase):
         server = self.server()
         self.assertEqual(self.call(server)['status'], 'refusal')
         (self.path/'.snapshot.tmp').mkdir()
-        self.assertEqual(self.call(server, arguments='not-committed'), {'status': 'failure', 'value': None})
+        # Exceed the original 4 KiB slot so the real growth predicate selects
+        # the replacement protocol (no test-only branch in production logic).
+        token = 'retry-after-repair-' + 'x'*5000
+        self.assertEqual(self.call(server, arguments=token), {'status': 'failure', 'value': None})
         self.assertEqual(state_bytes(self.path), self.initial)
-        self.assertEqual(self.call(server, 'not-committed')['status'], 'authentication')
+        self.assertEqual(self.call(server, token)['status'], 'authentication')
         (self.path/'.snapshot.tmp').rmdir()
-        self.assertEqual(self.call(server, arguments='retry-after-repair'), {'status': 'success', 'value': 'retry-after-repair'})
+        self.assertEqual(self.call(server, arguments=token), {'status': 'success', 'value': token})
         server.finish()
 
     def run_boundary(self, point, kill, expected_new, uncertain):
         path = self.directory/point
         shutil.copytree(self.base, path); self.path = path
+        token = 'new-token'
+        if point in ('after_write', 'after_file_sync', 'before_replace', 'after_replace', 'after_directory_sync'):
+            token += 'x'*5000
         env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
         listener = None
         if kill:
@@ -229,7 +249,7 @@ class PersistenceTests(unittest.TestCase):
             listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
             env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
         server = self.server(env=env)
-        request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments='new-token'))
+        request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments=token))
         # Queue another request. Fatal commits must never produce its response.
         # Keep the queued frame below pipe capacity: the service may stop
         # reading immediately after the first commit. It would authenticate and
@@ -261,30 +281,77 @@ class PersistenceTests(unittest.TestCase):
             # Safe failure allows the next frame; RAM authentication stays old.
             header = server.read(8)
             self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'authentication', 'value': None})
-            self.assertEqual(self.call(server, 'new-token')['status'], 'authentication')
+            self.assertEqual(self.call(server, token)['status'], 'authentication')
             server.finish()
         recovered = self.server()
-        credential = 'new-token' if expected_new else 'alice-token'
+        credential = token if expected_new else 'alice-token'
         self.assertEqual(self.call(recovered, credential), {'status': 'refusal', 'value': 'cancelled'}, recovered.diagnostics())
         self.assertEqual(self.call(recovered, 'bob-token'), {'status': 'refusal', 'value': 'cancelled'})
         recovered.finish()
         if not expected_new:
             self.assertEqual(state_bytes(self.path), self.initial)
 
+    def test_recovery_peer_clearing_faults_and_process_death(self):
+        for point in ('before_slot_clear', 'during_slot_clear', 'after_slot_clear', 'after_recovery_file_sync', 'after_recovery_sync'):
+            for kill in (False, True):
+                with self.subTest(point=point, kill=kill):
+                    self.path = self.directory/(point+str(kill))
+                    shutil.copytree(self.base, self.path)
+                    image = bytearray((self.path/'snapshot').read_bytes())
+                    size = len(image)//2
+                    peer = bytearray(image[:size])
+                    length = int.from_bytes(peer[24:32], 'big')
+                    payload = peer[64:64+length].replace(b'alice-token', b'ghost-token')
+                    self.assertNotEqual(payload, peer[64:64+length])
+                    payload[-32:] = hashlib.sha256(payload[:-32]).digest()
+                    peer[16:24] = (1).to_bytes(8, 'big')
+                    peer[64:64+length] = payload
+                    peer[32:64] = hashlib.sha256(peer[:32]+payload).digest()
+                    peer[64+OVERHEAD-32] ^= 128 # invalid future candidate
+                    image[size:] = peer
+                    (self.path/'snapshot').write_bytes(image)
+                    env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
+                    if kill:
+                        gate = self.enterContext(tempfile.TemporaryDirectory(prefix='jdb-clear-', dir='/tmp'))
+                        socket_path = Path(gate)/'socket'
+                        listener = self.enterContext(socket.socket(socket.AF_UNIX))
+                        listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
+                        env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
+                    server = self.server(env=env)
+                    if kill:
+                        stream, _ = listener.accept()
+                        with stream:
+                            self.assertEqual(stream.recv(128).decode(), point)
+                            os.kill(server.process.pid, signal.SIGKILL)
+                    self.assertNotEqual(server.process.wait(timeout=180), 0)
+                    self.assertEqual(server.process.stdout.read(), b'')
+                    if not kill: self.assertIn('STORAGE', server.diagnostics())
+                    recovered = self.server()
+                    self.assertEqual(self.call(recovered)['status'], 'refusal', recovered.diagnostics())
+                    self.assertEqual(self.call(recovered, 'ghost-token')['status'], 'authentication')
+                    recovered.finish()
+                    self.assertEqual((self.path/'snapshot').read_bytes()[size:], bytes(size))
+
     def test_process_death_at_meaningful_commit_boundaries(self):
         # SIGKILL confirms process recovery, not power-loss safety. The unit
         # fault model additionally admits old/new rename outcomes before fsync.
-        for point, new in [('after_file_sync', False), ('after_replace', True),
-                           ('after_directory_sync', True), ('after_publish', True)]:
+        for point, new in [('before_write', False), ('after_write', False),
+                           ('after_file_sync', False), ('before_replace', False), ('after_replace', True),
+                           ('after_directory_sync', True), ('before_publish', True), ('after_publish', True),
+                           ('before_slot_write', False), ('during_slot_write', False),
+                           ('after_slot_write', True), ('before_data_sync', True), ('after_data_sync', True)]:
             with self.subTest(point=point):
                 self.run_boundary(point, kill=True, expected_new=new, uncertain=True)
 
     def test_disk_errors_and_uncertain_failure_never_emit_false_rollback(self):
         for point, new, uncertain in [('before_write', False, False),
-                                       ('after_file_sync', False, False),
+                                       ('after_write', False, False), ('after_file_sync', False, False),
                                        ('before_replace', False, True),
                                        ('after_replace', True, True),
-                                       ('after_directory_sync', True, True)]:
+                                       ('after_directory_sync', True, True), ('before_publish', True, True),
+                                       ('before_slot_write', False, True), ('during_slot_write', False, True),
+                                       ('after_slot_write', True, True), ('before_data_sync', True, True),
+                                       ('after_data_sync', True, True)]:
             with self.subTest(point=point):
                 self.run_boundary(point, kill=False, expected_new=new, uncertain=uncertain)
 

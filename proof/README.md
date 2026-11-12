@@ -223,3 +223,36 @@ open synchronizes the validated authoritative file and directory before serving;
 every changed state (including an application receipt row) completes file sync,
 replacement and directory sync before publication. This optimization changes no
 T3 duty and adds no response-replay promise across restart.
+
+## Durable slots and physical assumptions
+
+`DurableCommit.bend` retains the four-call replacement model for initialization
+and growth and adds the actual prepare/slot-write/fdatasync transition order.
+`slot_commit_classifies_every_return` proves that acknowledgement requires a
+successful data sync and that safe failure preserves the previous publication;
+errors from slot writing onward are uncertain.
+`every_slot_crash_cut_recovers_a_certified_state` composes each crash choice
+with `History`'s actual certified publication origin. Existing replacement
+theorems and negative controls remain; slot premature acknowledgement and
+unsafe rollback have separate rejection controls.
+
+The [storage protocol](../docs/durable-storage.md) specifies the two initialized,
+4096-byte-aligned slots, parity, consecutive sequences, growth and size bounds.
+Recovery durably zeroes a nonzero invalid peer before reusing its sequence,
+preventing resurrection of an earlier failed candidate by a later torn write.
+`repaired_peer_is_stable_before_sequence_reuse` checks the clear/file-sync/directory-sync
+order; `repair_crash_recovers_previous_or_certified_failed_candidate` requires
+that earlier candidate's actual certified origin, including crashes during clearing.
+These are trusted Rust/OS obligations, tested with exhaustive byte cuts,
+mutations, stale-header/payload combinations, sector/block subsets and real
+process crash/error boundaries. They are not proved by the abstract model.
+New physical assumptions are successful Linux/ext4 `fdatasync` durability,
+isolation of the current slot's synced filesystem blocks during writes to the
+other slot, and detection of torn sequence/payload contents by SHA-256
+(undetected collisions excluded). No sector or block atomicity is assumed.
+Atomic rename/directory fsync remain needed for initialization/growth and after
+recovery; device flush honesty, protected storage and exact environment binding
+remain required. Unrelated media corruption or malicious rewriting is outside
+the crash-only model. A checksum is neither a certificate nor proof of disk
+provenance: corruption of an acknowledged newest slot cannot be distinguished
+from an interrupted peer overwrite under a stronger fault model.

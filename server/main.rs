@@ -521,7 +521,7 @@ impl Database {
         }
         let state = if recovering {
             storage
-                .as_ref()
+                .as_mut()
                 .expect("recovery storage")
                 .recover(&environment, &limits)?
         } else {
@@ -635,7 +635,7 @@ impl Database {
                 }
                 proposal = Err(error.into());
             } else {
-                // Test hook only. Once directory sync succeeds, even a failure
+                // Test hook only. Once the durable protocol succeeds, even a failure
                 // before RAM publication must stop without a rollback response.
                 storage::fault_point("before_publish")
                     .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
@@ -1537,7 +1537,7 @@ mod tests {
         assert_eq!(db.inspection_sequence, 0);
         assert_eq!(
             db.storage
-                .as_ref()
+                .as_mut()
                 .unwrap()
                 .recover(&db.environment, &db.limits)
                 .unwrap(),
