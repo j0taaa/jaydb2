@@ -42,7 +42,14 @@ if (process.argv[1]?.endsWith('/tools/service/compile.mjs')) {
         if (status !== 0) return;
         const binary = args[args.indexOf('-o') + 1];
         // A positive control proves this sentinel detects an actual launch.
-        fs.writeFileSync(binary, '#!/bin/sh\nprintf executed > "' + process.env.JAYDB_TEST_EXECUTED + '"\nexit 99\n', { mode: 0o700 });
+        // The host deliberately admits ELF images only, including fd execution.
+        // Build a separate test-only sentinel instead of substituting a script.
+        const source = '#include <stdio.h>\nint main(void) { FILE *f = fopen(' +
+          JSON.stringify(process.env.JAYDB_TEST_EXECUTED) +
+          ', "w"); if (!f) return 98; fputs("executed", f); fclose(f); return 99; }\n';
+        const sentinel = spawnSync('/usr/bin/clang-19', ['-x', 'c', '-', '-o', binary],
+          { input: source, encoding: 'utf8' });
+        if (sentinel.status !== 0) throw new Error('Cannot build native test sentinel: ' + sentinel.stderr);
         fs.writeFileSync(process.env.JAYDB_TEST_COMPILED, binary);
       });
       return processChild;
