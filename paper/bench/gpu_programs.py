@@ -91,6 +91,14 @@ def main():
     assert not os.environ.get('LD_PRELOAD'), 'measure the unwrapped real runtime'
     depths = [2, args.large_depth]
     reference = {depth: oracle(depth) for depth in depths}
+    # Cross-check vectorized arithmetic with plain Python at the small size.
+    scalar = 0
+    for seed in range(4):
+        value = seed
+        for _ in range(8192):
+            value = ((value ^ (value >> 16))*1664525 + 1013904223) & 0xffffffff
+        scalar = (scalar + value) & 0xffffffff
+    assert reference[2] == scalar
     output = dict(revision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         dirty=subprocess.check_output(['git', 'status', '--porcelain'], text=True).splitlines(),
         utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), frequency=observe(),
@@ -103,6 +111,7 @@ def main():
         binary_sha256=hashlib.sha256((ROOT/'target/release/jaydb2').read_bytes()).hexdigest(),
         fixture_sha256={name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in [
             'experiments/gpu/HeavyClient.bend', 'experiments/gpu/ClientProof.bend', 'paper/bench/gpu_programs.py']},
+        numpy_version=__import__('numpy').__version__, small_scalar_oracle=scalar,
         gpu_mib=512, gpu_worker_cap=1, oracle=reference, oracle_method='Python/NumPy uint32, all seeds and all rounds; uint64 sum reduced modulo 2^32',
         lock='/tmp/jaydb2-experiments-heavy.lock', runs=[])
     for name, threads, gpu in [('cpu-1', 1, False), ('cpu-16', 16, False), ('cuda', 1, True)]:
@@ -164,6 +173,7 @@ def main():
                     artifact=artifact, records=records, full_published_states=published))
             finally:
                 server.close()
+        assert len({run['artifact']['sourceSha256'] for run in output['runs']}) == 1, 'different emitted C'
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(output, indent=2)+'\n')
         print(json.dumps(output['runs'][-1]), flush=True)
