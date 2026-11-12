@@ -130,20 +130,20 @@ persistence is enabled explicitly:
 Create requires a new directory with an existing parent; open requires the
 authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
 Every successful proposal whose canonical state bytes differ from the current
-published state writes and synchronizes a complete temporary image, atomically
-replaces the authoritative image, and synchronizes the directory before RAM
-publication and response delivery. An identical state reuses the already durable
-image; it still publishes the checked Commit root/response pair in RAM. The image
-contains the immutable environment identity, limits, canonical state and checksum,
-with no separate per-request response, sequence or prepared registry. Application
-idempotency receipts are ordinary rows within that state, so creating or changing
-a receipt still requires the full durable commit. The last response and allocated
-handle history are instance-local and are not recovered after restart. Open
-synchronizes the validated authoritative file and directory once: the previous
-process may have died between rename and directory synchronization. Errors from
-replacement onward stop the instance with no response, since rollback may be false. Missing,
-corrupt or incompatible images stop startup; no seed or older image is used as
-fallback. Users and all tables survive; prepared handles do not.
+published state becomes durable before RAM publication and response delivery.
+Changed states normally overwrite the older
+of two initialized, block-aligned complete-state slots in `snapshot` and call
+`fdatasync` once. Initialization/growth retain synced temp, atomic replacement
+and directory fsync. An identical state reuses the durable image while publishing
+the checked Commit root/response pair in RAM. Open checks checksums binding
+sequence AND payload, slot parity, consecutive valid sequences and environment
+bindings, clears any nonzero invalid peer, then synchronizes the file and
+directory before reusing its next sequence. Torn older slots
+cannot displace the current publication. Slot write/sync errors are fatal
+`STORAGE_UNCERTAIN`; no rollback response is emitted. Ambiguous or incompatible
+valid slots fail closed. The last response and prepared handles remain local.
+See the [complete protocol and trusted physical assumptions](../../docs/durable-storage.md),
+including checksum detection of tears, no sector atomicity, size bounds and growth.
 
 Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable

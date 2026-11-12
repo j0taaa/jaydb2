@@ -2,6 +2,10 @@
 # records describe the mathematical origin of published bytes. The OS bridge
 # must establish that recovered bytes came from one such certified publication
 # (or initialization), in the exact same configuration/environment.
+# The host selects that complete payload from the v2 alternating slots.
+# Sequence/payload checksums, slot parity, consecutive sequences and physical
+# fdatasync/growth refinement are T3, not consequences of these byte lemmas.
+# DurableCommit checks both slot overwrite and replacement crash transitions.
 import Base
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
