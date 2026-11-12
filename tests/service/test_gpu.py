@@ -299,14 +299,23 @@ class GpuTests(unittest.TestCase):
 
     def test_unwrapped_unavailable_device_has_no_auto_fallback(self):
         env = dict(os.environ, CUDA_VISIBLE_DEVICES='')
-        server = self.server(env=env)
-        self.assertEqual(server.prepared(0, CODE, 'alice-token', proof=PROOF),
-            {'status': 'failure', 'value': None}, server.diagnostics())
-        self.assertIn('GPU_BUILD', server.diagnostics())
-        # Fresh authentication remains ahead of build/unavailable-device errors.
-        self.assertEqual(server.prepared(0, CODE, 'invalid', proof=PROOF),
-            {'status': 'authentication', 'value': None})
-        server.finish()
+        with tempfile.TemporaryDirectory(prefix='gpu-unavailable-') as tmp:
+            path = Path(tmp)/'admin.sock'
+            feed = StateFeed(path)
+            server = self.server(env=env, options=['--inspect-socket', str(path)])
+            self.assertEqual(server.prepared(0, CODE, 'alice-token', proof=PROOF),
+                {'status': 'failure', 'value': None}, server.diagnostics())
+            self.assertEqual(server.call(CODE, CONCRETE, 'alice-token', 'never-published'),
+                {'status': 'failure', 'value': None}, server.diagnostics())
+            self.assertIn('GPU_BUILD', server.diagnostics())
+            # Fresh authentication remains ahead of unavailable-device errors.
+            self.assertEqual(server.prepared(0, CODE, 'invalid', proof=PROOF),
+                {'status': 'authentication', 'value': None})
+            server.finish()
+            feed.finish()
+            self.assertGreaterEqual(len(feed.states), 4)
+            self.assertTrue(all(state == feed.states[0] for state in feed.states),
+                            'unavailable CUDA device published state')
         cpu = self.server(gpu=False, env=env)
         handle = self.register(cpu)
         self.execute(cpu, handle, 'alice-token', 'x')
