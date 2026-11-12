@@ -57,6 +57,17 @@ def artifact(server, gpu):
     return native, report
 
 
+def publications(feed):
+    published, current = [], None
+    for snapshot, event in zip(feed.states, feed.events):
+        if event['event'] in ('initialized', 'completed'):
+            published.append(snapshot)
+            current = snapshot
+        else:
+            assert snapshot == current, 'metadata event changed published state'
+    return published
+
+
 def exercise(threads, gpu=False, env=None, trace=None, ordinary=False):
     with tempfile.TemporaryDirectory(prefix='simulation-') as tmp:
         feed = StateFeed(Path(tmp)/'admin.sock')
@@ -80,13 +91,15 @@ def exercise(threads, gpu=False, env=None, trace=None, ordinary=False):
                 assert response == dict(status='success', value=reference), (response, server.diagnostics())
                 results['alice'] = reference
                 expected.append(state(results))
-            for args in [None, [-1, 10], [19, 0], [1, 65537]]:
-                assert server.prepared(1, receipt['value'], 'alice-token', args)['status'] == 'refusal'
+            for args, message in [(None, 'expected [depth, steps]'), ([-1, 10], 'expected [depth, steps]'),
+                                  ([19, 0], 'invalid size'), ([1, 65537], 'invalid size')]:
+                assert server.prepared(1, receipt['value'], 'alice-token', args) == dict(status='refusal', value=message)
                 expected.append(state(results))
             server.finish()
             feed.finish()
-            assert feed.states == expected, (feed.states, expected)
-            return feed.states, report
+            published = publications(feed)
+            assert published == expected, (published, expected)
+            return published, report
         finally:
             server.close()
             feed.listener.close()

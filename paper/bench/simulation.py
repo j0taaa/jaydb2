@@ -21,7 +21,7 @@ from paper.bench.run import BUILD, metadata
 from paper.bench.workloads import postgres
 from tests.service.test_end_to_end import Server
 from tests.service.test_gpu import StateFeed
-from tests.service.test_simulation import APP, CODE, PROOF, PARAMETERS, artifact, oracle, state
+from tests.service.test_simulation import APP, CODE, PROOF, PARAMETERS, artifact, oracle, publications, state
 
 SIZES = [(2, 32), (10, 256), (14, 1024), (16, 16384)]
 COLUMNS = ('sum', 'max', 'above', 'paths')
@@ -124,7 +124,9 @@ def main():
     references = {f'{d}:{s}': oracle(d, s, vector=True) for d, s in SIZES}
     for user in PARAMETERS:
         assert oracle(3, 17, user) == oracle(3, 17, user, vector=True)
-    output = dict(metadata=metadata(1), sizes=[dict(depth=d, steps=s, paths=1 << d) for d, s in SIZES],
+    run_metadata = metadata(1)
+    run_metadata.update(threads=[1, 16], gpu=['off', '512 MiB'])
+    output = dict(metadata=run_metadata, sizes=[dict(depth=d, steps=s, paths=1 << d) for d, s in SIZES],
         repeats=args.repeats, warmups=1, gpu_mib=512, parameters=PARAMETERS, oracle=references,
         oracle_method='Independent scalar Python cross-check plus NumPy uint64, explicit U32 masks, every path and step',
         source_sha256={str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in
@@ -173,8 +175,9 @@ def main():
                     save()
                     print(name, depth, steps, statistics.median(samples), flush=True)
                 server.finish(); feed.finish()
-                assert feed.states == expected, 'complete published states differ'
-                output['published_states'][name] = feed.states
+                published = publications(feed)
+                assert published == expected, 'complete published states differ'
+                output['published_states'][name] = published
                 for row in output['records']:
                     if row['backend'] == name: row['complete_state_verified'] = True
             finally:

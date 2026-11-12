@@ -24,7 +24,7 @@ def main():
            ylabel='Complete request / SQL statement (ms)', title='Table-driven integer simulation')
     ax.grid(True, which='major', alpha=.2)
     ax.legend()
-    fig.text(.01, -.035, 'Median and sample range; 1 warmup + 3 samples. Gray ×: SQL timeout. GPU clock unfixed.', fontsize=9)
+    fig.text(.01, -.035, f"Median and sample range; 1 warmup + {data['repeats']} samples. Gray ×: SQL timeout. GPU clock unfixed.", fontsize=9)
     fig.savefig(root/'paper/evidence/simulation.svg', bbox_inches='tight')
     plt.close(fig)
 

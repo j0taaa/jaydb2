@@ -67,15 +67,23 @@ def bounded(ok: Bool, +id: String, depth: U32, steps: U32) -> S.Action:
       S.Access{D.ReadCell{D.Application{"scenarios"}, id, "seed"}, seeded(id, U32.to_nat(depth), U32.to_nat(steps))}
     case False{}: S.Refuse{D.VText{"invalid size"}}
 
-def arguments(id: String, args: D.Value) -> S.Action:
+type Size is Data:
+  Requested{depth: U32, steps: U32}
+  Invalid{}
+
+def analyze(args: D.Value) -> Size:
   match args:
-    case D.VList{D.VInt{0, +d}, D.VList{D.VInt{0, +n}, D.VListEmpty{}}}:
-      bounded(Bool.and(U32.is_lt(d, 19), U32.is_lt(n, 65537)), id, d, n)
-    case _: S.Refuse{D.VText{"expected [depth, steps]"}}
+    case D.VList{D.VInt{0, d}, D.VList{D.VInt{0, n}, D.VListEmpty{}}}: Requested{d, n}
+    case _: Invalid{}
+
+def command(id: String, size: Size) -> S.Action:
+  match size:
+    case Requested{+d, +n}: bounded(Bool.and(U32.is_lt(d, 19), U32.is_lt(n, 65537)), id, d, n)
+    case Invalid{}: S.Refuse{D.VText{"expected [depth, steps]"}}
 
 def start(ctx: D.Context, args: D.Value) -> S.Action:
   D.Context{id, kind} = ctx
-  arguments(id, args)
+  command(id, analyze(args))
 
 def program() -> S.Program:
   S.Program{start}

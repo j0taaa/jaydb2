@@ -100,11 +100,16 @@ def bounded_safe(ok: Bool, +id: String, +kind: String, +depth: U32, +steps: U32)
     case True{}: L.Both{C.Both{{==}, {==}}, r => seeded_safe(id, kind, U32.to_nat(depth), U32.to_nat(steps), r)}
     case False{}: Unit{}
 
-def program_safe(ctx: D.Context, args: D.Value) -> Safe(5n, ctx, S.start(Client.program(), ctx, args)):
-  match ctx args:
-    case D.Context{id, kind} D.VList{D.VInt{0, +d}, D.VList{D.VInt{0, +n}, D.VListEmpty{}}}:
+def command_safe(+id: String, kind: String, size: Client.Size) ->
+  Safe(5n, D.Context{id, kind}, Client.command(id, size)):
+  match size:
+    case Client.Requested{+d, +n}:
       bounded_safe(Bool.and(U32.is_lt(d, 19), U32.is_lt(n, 65537)), id, kind, d, n)
-    case D.Context{id, kind} _: Unit{}
+    case Client.Invalid{}: Unit{}
+
+def program_safe(ctx: D.Context, args: D.Value) -> Safe(5n, ctx, S.start(Client.program(), ctx, args)):
+  D.Context{id, kind} = ctx
+  command_safe(id, kind, Client.analyze(args))
 
 def prefix(-s: D.State, -ctx: D.Context, -code: String, -args: D.Value,
   -w: D.State, -ts: List<&2, S.OperationEvent>, +h: C.AllAllowed(ctx, ts)) ->
