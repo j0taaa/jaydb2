@@ -16,3 +16,4 @@ import ./Instances.bend as ExecutableInstances
 import ./ControlInstances.bend as ControlInstances
 import ./InputLimit.bend as InputLimit
 import ./InputRefusals.bend as InputRefusals
+import ./GpuPrograms.bend as GpuPrograms

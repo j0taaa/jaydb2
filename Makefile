@@ -124,3 +124,11 @@ prepared: build
 .PHONY: test-rls
 test-rls: build
 	python3 -B applications/rls/check.py
+
+# Opt-in real CUDA gates; safely reuse an outer JAYDB_HEAVY_LOCK_FD.
+.PHONY: test-gpu benchmark-gpu
+test-gpu:
+	bash tools/service/gpu-check.sh test
+
+benchmark-gpu:
+	bash tools/service/gpu-check.sh benchmark

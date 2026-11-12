@@ -93,7 +93,10 @@ def main():
     # publishable state, authentication, construction guard, or reification.
     compiler = executable()
     count = 0
-    for path in sorted(Path(__file__).with_name('rejected').glob('*.bend')):
+    rejected = Path(__file__).with_name('rejected')
+    for name in ('GpuFalseResult', 'GpuUnauthorizedRead', 'GpuFalseTermination'):
+        assert (rejected / (name + '.bend')).is_file(), 'Missing GPU negative: ' + name
+    for path in sorted(rejected.glob('*.bend')):
         for mode in ('--check-only', '--verdict'):
             run = subprocess.run([str(compiler), str(path), mode],
                 cwd=ROOT, env=environment(), capture_output=True, text=True, timeout=600)
