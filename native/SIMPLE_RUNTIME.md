@@ -20,7 +20,8 @@ before the host accepts a proposal for publication.
 ## Checked worker path
 
 The generated closed entry calls `Worker.packet` or, for a live prepared
-registration, `Worker.registered_packet`. Private state is decoded once and
+registration, `Worker.routed_packet` (a metadata-preserving lift of
+`Worker.registered_packet`). Private state is decoded once and
 kept through every early-error branch. Ordinary request ingress is
 `Input.read_message`; prepared execution uses `Resolve.select` with the exact
 live registration supplied separately from the original request. Both enter
@@ -38,8 +39,18 @@ function-valued configurations.
 The loop still consumes one `Execution.advance` step at a time, using
 `Core.advance`. The stopped branch now calls `Gate.finish`; early branches call
 `Gate.early`. Checked `Execution.decision` then selects Commit or Keep and
-encodes the exact framed bytes. The unchanged private ABI is
+encodes the exact framed bytes. The underlying private decision ABI remains
 `1 || frame(root) || response` for Commit and `0 || response` for Keep.
+Ordinary workers emit that decision directly. Prepared workers emit
+`6 || frame(environment) || optional(route) || optional(principal) || artifact_match || authentication_ready || decision`,
+where `frame(environment)` is `u64be(utf8_length) || utf8`, and `optional`
+is `0` for None or `1 || u64be(utf8_length) || utf8` for Some,
+and both flags are exactly `0` or `1`. `Some{""}` remains distinct from None.
+`WorkerResult.attach/advance` retain checked metadata beside the unchanged
+Execution state and encode it only at completion. The actual generated
+conversion/step laws use this adapter for prepared workers; the original
+Execution driver remains used for ordinary requests. `WorkerBridge` proves
+finite driver correspondence and exact underlying decision projection.
 Rust obeys this decision after cleanup and optional durable publication.
 `WorkerBridge.worker_body_equals_ingress_composition` and
 `worker_unified_equals_gate_composition` reuse the existing ExecutionAdapter
@@ -47,6 +58,28 @@ proof to connect finite loop results to the theorem's Gate composition.
 The actual generated entry, iteration conversion and step equations are also
 checked in its admitted Book. Fuel belongs only to the proof, not the native
 execution policy.
+
+For a bounded canonical prepared-execute body the host may tentatively locate
+an admitted artifact. Only the worker's checked request decoding, fresh
+current-root authentication and complete live-registry lookup select the logical
+call. Checked metadata includes its frozen environment, raw handle and selected source/proof match;
+Rust must compare the environment/handle and require both flags before accepting
+a proposal. Missing/doubtful candidates,
+integrity failure, malformed output, child failure or checked mismatch discard
+that result and retry the original authenticator/dispatch path. All request/root/
+registry bytes stay unchanged. A candidate worker cannot publish. Retry preserves
+early-denial precedence and the authenticator principal after a worker crash,
+at the cost of potentially running two private workers. Intermediate candidate
+failures are discarded; only the final authoritative result or failure determines
+publication and delivery. T3 explicitly trusts
+metadata framing/comparison and retry-before-publication, not host authentication.
+
+The readiness flag is the checked projection of the original
+`Messages.authentication` result: tags 0/1 are ready, tag 2 is not. This retains
+the original argument reification and metadata-frame failure discriminator
+inside the worker, rather than assuming those computations cannot fail. An
+unready result is discarded before decision parsing/publication and retries the
+original path, regardless of any enclosed decision/principal.
 
 ## Application effects
 
@@ -96,7 +129,9 @@ of the database process can still lose the RAM instance.
 a Unix socket, separate from the client protocol. The host sends JSON metadata
 and canonical published-state bytes, each with an 8-byte length header.
 Initialization includes frozen public sources, the seed, and limits;
-authenticated calls include the actual context and bindings; call completion
+ordinary authenticated calls include the actual context and bindings;
+prepared calls emit checked-resolution metadata only after the candidate result
+passes identity checks (the original fallback emits it before worker launch); call completion
 includes published state and any diagnostic. Workers do not inherit the
 descriptor. Observer failures disable this output without changing the call's
 response or publication.

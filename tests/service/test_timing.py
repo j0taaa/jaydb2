@@ -1,15 +1,57 @@
 """Actual administrator-only elapsed timing; no quota policy."""
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
+from tests.service.test_prepared import universal_access_proof
 from tools.client import frame, unframe
 
 
 class TimingTests(unittest.TestCase):
-    def server(self, folder, stderr=False, storage=None):
+    def test_prepared_worker_principal_and_crash_fallback(self):
+        folder = ROOT/'examples/access'
+        server, log = self.server(folder, env=dict(os.environ, JAYDB_BENCH_TIMING='1'))
+        code = (folder/'Client.bend').read_text()
+        proof = universal_access_proof((folder/'ClientProof.bend').read_text())
+        handle = server.prepared(0, code, 'alice-token', proof=proof)['value']
+        failing = code.replace('S.Finish{value}',
+            'S.Finish{D.VInt{0, U32.from_nat(Nat.mul(16777216n, 16777216n))}}')
+        bad = server.prepared(0, failing, 'alice-token', proof=proof)['value']
+        # The missing path is a causal gate for path-backed executables; phase
+        # markers also cover hosts retaining an immutable admitted image.
+        private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
+        authenticator = next((private/'authenticate').glob('*.program'))
+        offline = authenticator.with_suffix('.offline')
+        authenticator.rename(offline)
+        try:
+            for credential, args, raw_proof, expected in [
+                ('alice-token', 'fresh', '', dict(status='success', value='fresh')),
+                ('fresh', None, '', dict(status='refusal', value='cancelled')),
+                ('alice-token', None, '', dict(status='authentication', value=None)),
+                ('fresh', None, 'nonempty', dict(status='input', value=None))]:
+                before = len(server.diagnostics())
+                self.assertEqual(server.prepared(1, handle, credential, args, raw_proof), expected,
+                    server.diagnostics())
+                phases = server.diagnostics()[before:]
+                self.assertNotIn('"phase":"packet_authentication"', phases)
+                self.assertIn('"phase":"prepared_worker"', phases)
+        finally:
+            offline.rename(authenticator)
+        # A failed candidate is retried through old checked dispatch. Its
+        # authenticator principal survives a second worker crash, as before.
+        self.assertEqual(server.prepared(1, bad, 'fresh', 'unpublished'),
+            dict(status='failure', value=None), server.diagnostics())
+        self.assertEqual(server.prepared(1, 'missing', 'fresh'), dict(status='failure', value=None))
+        self.assertEqual(server.prepared(2, handle, 'fresh'), dict(status='invalidated', value=None))
+        self.assertEqual(server.prepared(1, handle, 'fresh'), dict(status='failure', value=None))
+        server.finish()
+        self.assertEqual([r['principal'] for r in self.receipts(log)],
+            ['alice', 'alice', 'alice', 'alice', None, None, 'alice', 'alice', 'alice', 'alice'])
+
+    def server(self, folder, stderr=False, storage=None, env=None):
         temporary = tempfile.TemporaryDirectory(prefix='jaydb-timing-')
         self.addCleanup(temporary.cleanup)
         log = Path(temporary.name)/'timing.ndjson'
@@ -17,7 +59,7 @@ class TimingTests(unittest.TestCase):
         if storage:
             path, mode = storage
             options += ['--storage', str(path), '--storage-mode', mode]
-        server = Server(folder, threads=1, options=options,
+        server = Server(folder, threads=1, options=options, env=env,
                         seed=not storage or storage[1] != 'open')
         self.addCleanup(server.close)
         return server, log

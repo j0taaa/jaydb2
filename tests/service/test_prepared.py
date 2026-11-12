@@ -18,6 +18,28 @@ def universal_access_proof(proof):
         ).replace('I.context()', 'ctx').replace('I.arguments()', 'args')
 
 
+def checked_worker_result(data):
+    """Decode only the private checked route/principal envelope in tests."""
+    assert data[0] == 6, data[:32]
+    data = data[1:]
+    size = int.from_bytes(data[:8], 'big')
+    environment = data[8:8+size].decode()
+    data = data[8+size:]
+    values = []
+    for _ in range(2):
+        tag, data = data[0], data[1:]
+        assert tag in (0, 1)
+        if tag:
+            size = int.from_bytes(data[:8], 'big')
+            values.append(data[8:8+size].decode())
+            data = data[8+size:]
+        else:
+            values.append(None)
+    assert data[0] in (0, 1) and data[1] in (0, 1)
+    return dict(environment=environment, route=values[0], principal=values[1], matches=bool(data[0]),
+        authentication_ready=bool(data[1]), decision=data[2:])
+
+
 class PreparedTests(unittest.TestCase):
     def server(self, folder, env=None):
         server = Server(folder, env=env)
@@ -152,7 +174,7 @@ class PreparedTests(unittest.TestCase):
             self.assertEqual(unframe(run_control(foreign, 2, candidate)[1:])['status'], 'failure')
             self.assertEqual(unframe(run_control(foreign, 0, code, proof)[1:])['status'], 'failure')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
-            self.assertIn('Worker.registered_packet(', (prepared/'Main.bend').read_text())
+            self.assertIn('Worker.routed_packet(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             # Exercise Resolve/Gate in the compiled worker directly, bypassing
             # Rust's artifact selection. Only the checked registry and the
@@ -192,8 +214,64 @@ class PreparedTests(unittest.TestCase):
                         input=private_packet(registry, private_packet(root, raw)),
                         capture_output=True, timeout=30)
                     self.assertEqual(worker.returncode, 0, worker.stderr.decode())
-                    self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
-                    self.assertEqual(unframe(worker.stdout[1:])['status'], status)
+                    checked = checked_worker_result(worker.stdout)
+                    self.assertEqual(checked['route'], requested)
+                    self.assertTrue(checked['authentication_ready'])
+                    self.assertEqual(checked['matches'], registry not in (wrong_program_registry, wrong_proof_registry))
+                    self.assertEqual(checked['principal'], 'alice' if credential == 'alice-token' and not supplied_proof else None)
+                    decision = checked['decision']
+                    self.assertEqual(decision[0], 0, 'early result must be Keep')
+                    self.assertEqual(unframe(decision[1:])['status'], status)
+            # All tag-0 authenticator outcomes must equal the complete Keep
+            # payload of the prepared worker, including opcode-inclusive bounds.
+            authenticator = next((private/'authenticate').glob('*.program'))
+            cases = [('empty', b''), ('invalid-opcode', b'\x07\xff'),
+                ('truncated-extension', b'\x07'), ('malformed-envelope', b'\x07\x01\xff'),
+                ('over-limit', b'\x07\x01'+bytes(32768))]
+            for label, credential, requested, raw_proof, args, op in [
+                ('valid', 'alice-token', candidate, '', None, 1),
+                ('empty-credential', '', candidate, '', None, 1),
+                ('bad-credential', 'revoked-token', candidate, '', None, 1),
+                ('nonempty-proof', 'alice-token', candidate, 'bad', None, 1),
+                ('bad-credential-proof', 'bad', candidate, 'bad', None, 1),
+                ('unknown-handle', 'alice-token', 'f'*64, '', None, 1),
+                ('malformed-handle', 'alice-token', '?', '', None, 1),
+                ('bad-credential-unknown-handle', 'bad', 'f'*64, '', None, 1),
+                ('invalid-arguments', 'alice-token', candidate, '', [], 1),
+                ('invalidation-control', 'alice-token', candidate, '', None, 2)]:
+                cases.append((label, prepared_frame(op, requested, credential, args, raw_proof)[8:]))
+            early_count = 0
+            for label, raw in cases:
+                with self.subTest(early_matrix=label):
+                    def run_native(program, private_input):
+                        result = subprocess.run([str(program), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                            input=private_input, capture_output=True, timeout=30, check=True)
+                        return result.stdout
+                    authenticated = run_native(authenticator, private_packet(root, raw))
+                    checked = checked_worker_result(run_native(executable,
+                        private_packet(live_registry, private_packet(root, raw))))
+                    self.assertTrue(checked['authentication_ready'])
+                    if authenticated[0] == 0:
+                        early_count += 1
+                        self.assertEqual(checked['decision'], authenticated)
+                        self.assertIsNone(checked['principal'])
+                    if label == 'invalidation-control':
+                        self.assertEqual(authenticated[0], 5)
+                        self.assertIsNone(checked['route'])
+                        self.assertEqual(unframe(checked['decision'][1:])['status'], 'input')
+            self.assertEqual(early_count, 10)
+            for label, users, principal, status in [
+                ('authenticated-empty-id', [dict(credential='alice-token', id='', kind='user')], '', 'refusal'),
+                ('revoked-credential-current-root', [], None, 'authentication')]:
+                with self.subTest(current_identity=label):
+                    current = encode(dict(tables=[], users=users))
+                    raw = prepared_frame(1, candidate, 'alice-token')[8:]
+                    checked = checked_worker_result(run_native(executable,
+                        private_packet(live_registry, private_packet(current, raw))))
+                    self.assertEqual(checked['principal'], principal)
+                    self.assertEqual(checked['decision'][0], 0)
+                    self.assertEqual(unframe(checked['decision'][1:])['status'], status)
+
             # Compare exact public bytes at the same published root. Map-miss
             # and integrity detection remain physical host duties; their denial
             # bytes now come from the separately checked native controller.
@@ -206,9 +284,12 @@ class PreparedTests(unittest.TestCase):
                     input=private_packet(dead_registry, private_packet(current_root, raw)),
                     capture_output=True, timeout=30)
                 self.assertEqual(result.returncode, 0, result.stderr.decode())
-                self.assertEqual(result.stdout[0], 0, 'not-found denial must be Keep')
-                self.assertEqual(unframe(result.stdout[1:]), {'status': 'failure', 'value': None})
-                return result.stdout[1:]
+                checked = checked_worker_result(result.stdout)
+                self.assertEqual(checked['principal'], 'alice')
+                decision = checked['decision']
+                self.assertEqual(decision[0], 0, 'not-found denial must be Keep')
+                self.assertEqual(unframe(decision[1:]), {'status': 'failure', 'value': None})
+                return decision[1:]
             def host_reply(requested):
                 server.process.stdin.write(prepared_frame(1, requested, 'alice-final', 'tampered'))
                 server.process.stdin.flush()

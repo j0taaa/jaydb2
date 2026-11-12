@@ -308,7 +308,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'server/prepared_route.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   // Linux exposes the actual calling controller, not a guessed build path.
@@ -383,8 +383,9 @@ def main() -> IO(Unit):
       'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())')
       .replace('ORACLE_PROOF', oracleProof(purpose === 'prepare'))
       .replace('WORKER_ENTRY', purpose === 'prepare'
-        ? 'Worker.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
+        ? 'Worker.routed_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
         : 'Worker.packet(C.config(), bytes, admit)');
+    if (purpose === 'prepare') main = main.replace('import ./Execution.bend as E', 'import ./WorkerResult.bend as E');
   } else fail('DEPENDENCY', 'Invalid purpose');
   const executing = ['execute', 'prepare'].includes(purpose);
   available.set('Main.bend', Buffer.from(main));

@@ -15,6 +15,8 @@ import ./Transport.bend as T
 import ./ControlBridge.bend as ControlBridge
 import ./Control.bend as Control
 import ./Dispatch.bend as Dispatch
+import ./Messages.bend as Messages
+import ./WorkerResult.bend as Result
 
 def entered(entry: Gate.Entry, initial: D.State) -> X.Iteration:
   match entry:
@@ -86,6 +88,11 @@ def artifact_verdict(matches: Bool, c: S.Configuration, r: P.Request, ctx: D.Con
 def artifact_oracle(+code: String, +proof: String, admit: Gate.Oracle()) -> Gate.Oracle():
   c => +r => ctx => artifact_verdict(String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof), c, r, ctx, admit)
 
+# The routed entry computes the comparison once for its checked metadata and
+# reuses that very Boolean at the selected request's oracle call.
+def matched_oracle(matches: Bool, admit: Gate.Oracle()) -> Gate.Oracle():
+  c => r => ctx => artifact_verdict(matches, c, r, ctx, admit)
+
 def registered_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: String,
   proof: String, admit: Gate.Oracle()) -> X.Iteration:
   match parts:
@@ -93,3 +100,56 @@ def registered_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: Stri
     case Some{T.Parts{registry, packet}}:
       private_parts(c, T.separate(packet),
         Some{registry_entries(ControlBridge.decode_registry(registry))}, artifact_oracle(code, proof, admit))
+
+# Routing is advisory until this checked selection and artifact comparison.
+# Early denials do not depend on an artifact. A selected mismatch is returned
+# before publication; the guarded oracle still prevents any client execution.
+def selection_matches(selection: Resolve.Selection, code: String, proof: String) -> Bool:
+  match selection:
+    case Resolve.Denied{status}: True{}
+    case Resolve.Selected{+r}: String.eq(Gate.code(r), code) && String.eq(Resolve.proof(r), proof)
+
+def ready_metadata(environment: String, +s: D.State, +raw: P.Request, code: String, proof: String,
+  authentication: Maybe<&2, D.Context>, selection: Resolve.Selection) -> Messages.WorkerMetadata:
+  Messages.worker_metadata(environment, Some{Gate.code(raw)}, selection_matches(selection, code, proof),
+    Dispatch.validated(4, Input.identity(authentication, s, raw)))
+
+def routed_ready(~c: S.Configuration, +s: D.State, +raw: P.Request,
+  entries: List<&2, Registry.Entry>, +code: String, +proof: String,
+  admit: Gate.Oracle(), +authentication: Maybe<&2, D.Context>) -> Result.Iteration:
+  +selection = Resolve.authenticated(authentication, S.environment(c), entries, raw)
+  +metadata = ready_metadata(S.environment(c), s, raw, code, proof, authentication, selection)
+  Result.attach(metadata,
+    selected(selection, c, s, matched_oracle(Messages.worker_matches(metadata), admit)))
+
+def routed_input(~c: S.Configuration, +initial: D.State, input: Input.PreAuthentication,
+  entries: List<&2, Registry.Entry>, code: String, proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  match input:
+    case Input.InputReady{+s, +raw}:
+      routed_ready(c, s, raw, entries, code, proof, admit, D.authenticate(s, Gate.credential(raw)))
+    case Input.ErrorMessage{+status}:
+      Result.attach(Messages.worker_metadata(S.environment(c), None{}, True{}, Input.Rejected{status}),
+        decoded(c, initial, Input.ErrorMessage{status}, admit))
+    case Input.ErrorTransport{}: Result.Inconsistent{}
+
+def routed_root(~c: S.Configuration, state: Maybe<&2, D.State>, body: List<&2, U32>,
+  entries: List<&2, Registry.Entry>, code: String, proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  match state:
+    case None{}: Result.Inconsistent{}
+    case Some{+s}: routed_input(c, s, Dispatch.execution(Dispatch.received(S.limits(c), body, s)), entries, code, proof, admit)
+
+def routed_parts(~c: S.Configuration, parts: Maybe<&2, T.Parts>,
+  entries: List<&2, Registry.Entry>, code: String, proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  match parts:
+    case None{}: Result.Inconsistent{}
+    case Some{T.Parts{state, body}}:
+      routed_root(c, Dispatch.read_root(state, S.schema(c), S.limits(c)), body, entries, code, proof, admit)
+
+# Literal prepared entry: decode the current root/registry once, authenticate
+# freshly, and carry checked route/principal metadata through the native loop.
+def routed_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: String,
+  proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  match parts:
+    case None{}: Result.Inconsistent{}
+    case Some{T.Parts{registry, packet}}:
+      routed_parts(c, T.separate(packet), registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit)

@@ -23,7 +23,7 @@ universal certificate and compiles once, then reuses an instance-local native
 executable in fresh processes with current authentication, state, and arguments. Its controls and
 receipts have a separate protocol boundary from the ordinary path below.
 
-The framing reader queues complete original bodies. The checked native
+The framing reader queues complete original bodies. Except for tentative prepared-execute routing below, the checked native
 `Dispatch.authentication` classifies ordinary versus prepared envelopes,
 checks the full body length (including extension bytes), decodes before
 fresh authentication, and enforces the empty handle-proof rule. Its tagged
@@ -31,7 +31,7 @@ metadata selects external admission or a prepared artifact; Rust copies the
 checked source/context/arguments bindings to staging.
 
 The generated entry calls `Worker.packet` (ordinary) or
-`Worker.registered_packet` (prepared). Both decode the private published root
+`Worker.routed_packet` (prepared, lifting the original `registered_packet` decision). Both decode the private published root
 and retain it on early errors. Ordinary bodies use `Input.read_message`.
 Prepared execution receives the latest unchanged registry bytes from the
 checked controller separately from the original body, decodes it with
@@ -42,6 +42,18 @@ integrity guard before that oracle can accept. Missing, removed, malformed or
 mismatched entries emit a fixed denial with Keep. Rust's map locates the
 executable file and can reject missing artifacts before the worker runs. Selection then
 reaches the same `Gate.begin`.
+For exact bounded prepared-execute envelopes, a total host parser may locate
+a candidate without the separate authenticator. Its output has no identity or
+status authority. The prepared worker carries checked raw-handle, optional
+principal and artifact-match metadata through its loop. Rust compares the frozen environment/route and
+requires both match and readiness flags before accepting any Commit/Keep; all doubt, missing/integrity failures,
+worker/transport failures and mismatches retry original checked dispatch before
+publication. The complete body/root/latest registry remain unchanged. The
+artifact guard alone is not a routing-completeness proof. Prepared controls and
+ordinary admission keep their existing paths. Failure retry also preserves the
+fallback authenticator's principal on an authenticated worker crash; see
+[SERVICE_TIMING.md](SERVICE_TIMING.md).
+
 The gate authenticates against this root and invokes the generated admission
 oracle. It starts exactly the admitted program with that authenticated context
 and the actual arguments, or calls `Gate.early` without constructing a program.

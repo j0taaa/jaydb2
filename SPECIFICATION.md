@@ -340,13 +340,41 @@ arguments while substituting the registration's exact original source/proof
 identity. The universal certificate specializes to that resolved logical call.
 All program observations, administrator laws, private execution, size checks
 and atomic publication continue to apply. No checker or compiler is needed on
-reuse. An unavailable or altered registration produces a technical/control
+reuse. For exact prepared-execute envelopes, a bounded total host parser may
+locate a candidate artifact without running the separate authenticator. This
+parser supplies no identity, error status or authority. The checked worker
+receives the original complete body, one current root and latest controller
+registry unchanged. It returns the checked frozen environment and raw handle, source/proof artifact
+match and original-authentication-readiness flags, and an optional principal beside its unchanged Commit/Keep decision.
+Before publication the host must compare the frozen environment and handle and require both the
+artifact-match and authentication-readiness flags.
+Parser doubt, missing artifacts, integrity/worker/transport failure or a checked
+mismatch discards the candidate and retries the existing checked dispatch path.
+The checked readiness projection evaluates the original authentication
+metadata computation in the worker. If that computation would return private
+tag 2 (including argument reification or metadata framing failure), the candidate
+must fall back too. This avoids assuming metadata generation is total and does
+not add a separate authentication process. The artifact guard alone does not
+establish routing completeness. A discarded
+tentative attempt's intermediate technical failure does not itself end the call:
+only the final authoritative path supplies the accepted result or final failure.
+No intermediate result is published or delivered. Retry can repeat private work;
+all attempts remain checked and receive no publication capability. Ordinary
+admission, preparation and invalidation retain their existing paths. An unavailable or altered registration produces a technical/control
 failure before execution; it does not establish that a valid proof is false.
 
 The canonical Request in the pure transaction model denotes this resolved
 logical call. Its ordinary byte-origin theorem is not a theorem equating a raw
 handle envelope with source bytes. `UnifiedCoreTheorem` applies Core to the exact result of executable selection.
-Physical prefix dispatch, registry/artifact integrity and control receipts
+The principal projection uses the same fresh authentication as checked
+selection and follows Dispatch's validation order: malformed input, failed
+credentials and nonempty raw prepared proof report no principal; an authenticated
+missing handle retains the ID, including an empty ID. A candidate crash produces
+no accepted metadata. The host then runs the original authenticator path, so its
+principal is retained even if the fallback worker crashes. Timing/inspection are
+administrator observations outside the core pure theorem; retry may add work
+and delay those observations. Physical exact-envelope parsing, checked identity
+comparison, retry-before-publication, registry/artifact integrity and control receipts
 belong to the T1/T3 integration boundary.
 
 # Implementation obligation
