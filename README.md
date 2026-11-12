@@ -81,7 +81,9 @@ compiler; the host retains the last published state.
 Requests are processed serially. `--threads N` selects 1–128 native CPU workers
 per process.
 
-These capabilities do not add GPU execution, a Bend host replacement or quotas.
+The CPU capabilities above do not require CUDA. This experimental checkout
+adds opt-in GPU programs as described below; it adds no Bend host replacement
+or quotas.
 The database contract has three canonical size limits: message, state and
 response. There is no total-process memory guarantee or custom per-stage
 deadline. A fatal failure can terminate an instance; volatile data is then lost.
@@ -92,11 +94,10 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 and TCC sources. SQL/Drizzle is an application layer;
 it does not replace the engine or change its core laws.
 
-[`experiment-integration`](https://github.com/j0taaa/jaydb2/tree/experiment-integration)
-is the combined experimental branch. It follows main and adds opt-in GPU
-execution. New GPU work stays there and on `experiment-gpu` until separately
-accepted for main. The Bend controller replacement remains isolated on
-`experiment-bend-host`; quota enforcement remains excluded from integration.
+The optional GPU implementation in this checkout ports the archived
+`archive/experiment-gpu` and `archive/experiment-integration` designs onto the
+current service. It remains experimental and separate from accepted main.
+The Bend controller replacement and quota enforcement are outside this work.
 
 ## Checks
 
