@@ -142,3 +142,9 @@ trusted integration components supported by tests.
 Official Bend/BendTT tool sources and executable hashes are pinned in
 [toolchain.lock.json](tools/admission/toolchain.lock.json). JayDB2 uses the
 official frontend, checker, compiler, runtime and emitted C unchanged.
+
+Experimental GPU programs use the official CUDA backend for explicit `!` calls:
+pass `--gpu 512` for a 512 MiB corpus (CPU remains `--gpu off`). Both official
+checkers and the existing certificate/termination/access obligations still
+apply; CUDA implementation correctness remains trusted. See the
+[GPU guide](experiments/gpu/README.md) and [evidence](paper/evidence/gpu-programs.md).

@@ -137,3 +137,11 @@ of the eight laws in both official checkers; `make test` exercises the real
 integration. Known official runtime limitations are documented in
 [SIMPLE_RUNTIME.md](native/SIMPLE_RUNTIME.md). The proof scope and integration
 contracts are described in [proof guide](proof/README.md).
+
+Experimental CUDA execution is opt-in with `--gpu 512` (64–4096 MiB). It needs
+a Linux NVIDIA device with concurrent managed memory, CUDA driver and NVRTC
+headers/libraries visible to `/usr/bin/clang-19` (`cuda.h`, `nvrtc.h`, `-lcuda`,
+`-lnvrtc`); the measured system installs these under `/usr`, with no
+`/usr/local/cuda` requirement. Official `--gpu-build` prebuilds each device
+bundle after proof admission. A requested bang fails without a usable device;
+CPU default remains available. See [GPU usage](experiments/gpu/README.md).

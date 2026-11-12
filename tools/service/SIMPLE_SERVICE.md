@@ -153,7 +153,7 @@ development database explicitly after changing its frozen environment. Process d
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
-receive the official `--threads N --gpu off` options. CPU workers default to
+receive the official `--threads N --gpu off` options by default. CPU workers default to
 the host's available parallelism, capped at 128 (one if detection fails).
 The host's `--threads N` option accepts 1–128 and applies to all native stages,
 including prepared execution. Each native process uses the selected budget.
@@ -340,3 +340,68 @@ round trip to infer an exclusive remainder. Child completion can be observed
 after synchronous C emission yields the Node event loop. `admission_total`
 remains the inclusive wall time of admission/build. Staging, worker, cleanup
 and publication hooks retain their original boundaries.
+
+## Experimental GPU programs
+
+Opt in on Linux/NVIDIA with `--gpu 512`: integer corpus MiB from 64 through
+4096; the default remains `--gpu off`. Initialization, authentication and the
+checked metadata controller always use CPU. CUDA executions are exclusive and
+serial per service instance, including read-only programs; administrators must
+coordinate separate instances. The corpus setting does not change the three
+canonical byte limits, and does not cap total device/driver memory.
+
+Programs and proofs use the ordinary request or prepared protocol unchanged.
+Use explicit `tree!(...)` calls in the client; parallel lets inside the called
+function use the official device backend. The same bang program with `--gpu off
+--threads 16` uses Bend's CPU worker pool. Without reachable bangs, opting in
+does not establish that a kernel launched. A requested bang requires a usable
+CUDA device and concurrent managed memory; a missing device fails, with no
+silent CPU fallback.
+
+GPU admission waits for **both** official checkers on the sealed Book before
+C emission, Clang or CUDA use. It compiles literal C with `/usr/bin/clang-19`,
+`-DBEND_CUDA=1 -lcuda -lnvrtc`, using system headers in `/usr/include` and
+libraries in `/lib/x86_64-linux-gnu` on the measured machine. It invokes the
+official executable with `+RTS --gpu-build -RTS` before releasing a report or
+registration; `nvcc` is not needed. The report binds source, executable and
+`.gpu` hashes, backend and corpus setting. Private executable/cubin files
+must be regular files and match before each run and before accepting output;
+prepared execution rechecks all exact sealed bytes after the child exits too.
+An official `bend: compiling the GPU program` notice fails even if rebuilt
+bytes happen to match. Substitution, removal, incompatible artifacts and device
+errors discard the proposal, preserving the current published/durable root.
+Fresh preparation is required after incompatible device/toolchain changes.
+
+For example, under the shared heavy lock after `make build`:
+
+```sh
+python3 tools/client.py --code experiments/gpu/Client.bend \
+  --proof examples/access/ClientProof.bend --credential alice-token --arguments '"abc"' |
+  ./jaydb2 --configuration examples/access/Configuration.bend \
+    --seed examples/access/Seed.bend --threads 1 --gpu 512 |
+  python3 tools/client.py --decode
+```
+
+For preparation, pass `--prepare --proof experiments/gpu/ClientProof.bend` to
+the client and keep the same server session open; execute the returned handle
+with `--handle HANDLE --credential alice-token --arguments '"abc"'`. Handles
+are instance-local and disappear on restart. An exact Python session is in
+[the GPU experiment guide](../../experiments/gpu/README.md).
+
+`make test-gpu` tests real launches through a forwarding test-only interposer,
+unwrapped CPU/GPU results and complete state, bad proofs before compilation,
+missing/substituted bundles, runtime rebuild/change, device/allocation/launch/
+synchronization failures, unavailable devices and durable reopen. The test
+interposer never supplies synthetic successful results and is absent from
+production and benchmarks. `make benchmark-gpu` uses the heavy lock and
+`paper/bench/fixed-clock.sh`; both targets reuse an inherited
+`JAYDB_HEAVY_LOCK_FD` to avoid nested-lock deadlock.
+
+The proof concerns the checked Book's semantics, with the same obligations
+and checked Gate/finisher path for CPU and GPU; no CUDA validity axiom exists.
+T2 now also trusts the official emitted runtime's CUDA path, NVRTC, CUDA driver,
+managed memory and GPU hardware. Differential testing is evidence, not proof.
+Host artifact checks assume protected tools/files and do not defeat a hostile
+same-UID file-use race. There are no persistent GPU workers, execution timeout,
+multi-GPU selection, portability guarantee or general performance claim.
+See [raw measurements and limits](../../paper/evidence/gpu-programs.md).

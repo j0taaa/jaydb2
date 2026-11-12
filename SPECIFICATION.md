@@ -52,7 +52,25 @@ Read control covers information inspected by the program even when it is not ret
 
 The kernel defines no record ownership, role hierarchy, private fields, self-promotion ban, balance conservation, cross-table relationships, application cryptography, or authorization necessarily based on prior state. Administrator laws may express all of these. Reading and changing are independent permissions.
 
-The service processes requests serially over standard input/output, using native CPU Bend in a fresh child process per call. The host retains published state in RAM; the child receives a private proposal and does not publish directly. Schema and laws remain fixed for the instance; data and users may change. Without opt-in complete-image persistence, exiting loses the data. Persistence reopening checks the frozen configuration without evaluating a seed; durability remains outside the pure source theorems.
+The service processes requests serially over standard input/output, using native CPU Bend in a fresh child process per call. CPU is the default (`--gpu off`). The experimental `--gpu MiB` option enables the official CUDA backend for explicit `f!(x)` calls inside submitted programs, with one executing worker per instance. Initialization, authentication and metadata control remain on CPU. The host retains published state in RAM; the child receives a private proposal and does not publish directly. Schema and laws remain fixed for the instance; data and users may change. Without opt-in complete-image persistence, exiting loses the data. Persistence reopening checks the frozen configuration without evaluating a seed; durability remains outside the pure source theorems.
+
+GPU programs have exactly the same certificate, termination, access/RLS and
+canonical-size obligations as CPU programs. Both official checkers (`--check-only`
+and BendTT `--verdict`) must accept the same sealed Book before GPU C emission,
+compilation or device prebuild. The executable uses the literal C emitted from
+that Book; its executable and official prebuilt `.gpu` cubin are hash-bound in
+the private artifact report, checked before execution and before accepting its
+proposal. Prepared registrations additionally retain exact artifact/source/proof
+bytes. Missing or changed artifacts, an official runtime rebuild notice, or GPU
+failure discard the proposal. Requested bang execution never falls back to CPU.
+The existing checked Gate, worker finisher and validation/publication path still
+make the decision. No GPU permission or validity axiom is added.
+
+These theorems concern the checked Book's semantics. With CUDA enabled, trusted
+base T2 additionally includes the official CUDA path in the emitted runtime,
+NVRTC, the CUDA driver, managed memory and GPU hardware. Differential tests are
+evidence of implementation behavior, not a proof of compiler/runtime or GPU
+correctness. See [GPU evidence and limits](paper/evidence/gpu-programs.md).
 
 Outside this version: a network database daemon, distribution, guaranteed parallel request execution, dynamic schema changes, migrations, configurable indexes, history, auditing, sessions, password recovery, preinstalled programs, mandatory caching, automatic retries, and request deduplication. The database does not generate or repair proofs.
 

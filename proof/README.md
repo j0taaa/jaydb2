@@ -118,6 +118,20 @@ now checked propositions, rather than additional admission assumptions.
 Book, native ABI and runtime preserve the proved pure transitions, values,
 integer/Unicode behavior and observation ordering. The process boundary and
 executable provenance are part of this bridge. Compiler preservation is trusted.
+With experimental CUDA enabled, T2 grows to include the official CUDA code
+path in the emitted runtime, NVRTC, the CUDA driver, managed memory, and GPU
+hardware. No Bend compiler, runtime or emitted C is patched. CPU and GPU
+programs must discharge identical certificate, termination, access/RLS and size
+obligations on the same sealed Book, through both official checkers. CUDA
+compilation/prebuild begins only after both accept. The checked Gate/finisher
+and publication validation are unchanged; no GPU-specific permission or
+validity axiom is introduced. Executable and prebuilt cubin hashes are bound in
+the artifact report and rechecked before execution and accepting results;
+prepared programs additionally compare exact sealed bytes. Runtime rebuilds
+and artifact changes fail with no publication. These checks are T1/T3 bridge
+obligations, not a proof of T2. CPU/GPU differential tests and independent
+numeric oracles provide evidence, not proof of CUDA implementation correctness.
+See [measured scope and limitations](../paper/evidence/gpu-programs.md).
 
 **T3 — host plumbing for the serial in-memory service.**
 
