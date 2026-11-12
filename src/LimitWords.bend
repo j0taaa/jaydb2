@@ -10,9 +10,22 @@ def select(number: B.Number64, matches: Bool, n: Nat) -> Maybe<&2, B.Number64>:
     case True{}: Some{number}
     case False{}: B.nat64(n)
 
+# Expose the variable before comparing the closed ceiling. This keeps proof
+# conversion from expanding the entire closed Nat in a stuck branch.
+def matches(+n: Nat, +ceiling: Nat) -> Bool:
+  match n:
+    case 0n: Nat.is_eq(0n, ceiling)
+    case 1n+p: Nat.is_eq(1n+p, ceiling)
+
+def matches_exact(+n: Nat, +ceiling: Nat) ->
+  {Nat.is_eq(n, ceiling) == matches(n, ceiling) : Bool}:
+  match n:
+    case 0n: {==}
+    case 1n+p: {==}
+
 def convert(+n: Nat, +ceiling: Nat, number: B.Number64,
   -represented: {B.nat64(ceiling) == Some{number} : Maybe<&2, B.Number64>}) -> Maybe<&2, B.Number64>:
-  select(number, Nat.is_eq(n, ceiling), n)
+  select(number, matches(n, ceiling), n)
 
 # A compact Nat expression avoids Safe's deep Peano expansion of a literal.
 # It is exactly 65,536 and is native constant multiplication at execution.
@@ -46,4 +59,4 @@ law convert_equals_reference:
   for represented: {B.nat64(ceiling) == Some{number} : Maybe<&2, B.Number64>}
   {convert(n, ceiling, number, represented) == B.nat64(n) : Maybe<&2, B.Number64>}
 def convert_equals_reference(n, ceiling, number, represented):
-  select_exact(Nat.is_eq(n, ceiling), n, ceiling, number, represented, {==})
+  select_exact(matches(n, ceiling), n, ceiling, number, represented, matches_exact(n, ceiling))
