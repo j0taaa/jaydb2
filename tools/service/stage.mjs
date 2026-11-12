@@ -439,14 +439,14 @@ function command(program, args) {
   const result = spawnSync(program, args, { stdio: ['ignore', 2, 2] });
   if (result.error || result.signal || result.status !== 0) fail('HELPER', `${path.basename(program)}: ${result.error?.message ?? result.signal ?? result.status}`);
 }
-function compile(environment, directory, purpose, sourceDir, kernelPath, metadata, runtimeRoot) {
+function compile(environment, directory, purpose, sourceDir, kernelPath, metadata, runtimeRoot, gpuMiB = 0) {
   const timing = process.env.JAYDB_BENCH_TIMING;
   const started = timing ? process.hrtime.bigint() : null;
   stage(environment, directory, purpose, metadata);
   if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'staging', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
   const source = path.join(directory, 'checked.c');
   try { command(process.execPath, ['--stack_size=65536', path.join(runtimeRoot, 'tools/service/compile.mjs'), path.join(directory, 'manifest.json'), source, sourceDir, kernelPath,
-    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : [])]); }
+    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : ['']), String(gpuMiB)]); }
   catch (e) {
     const errorPath = source + '.error.json';
     if (fs.existsSync(errorPath)) {
@@ -461,7 +461,9 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   if (Object.keys(limits).sort().join(',') !== 'message,response,state' || Object.values(limits).some(x => !/^(0|[1-9][0-9]*)$/.test(x))) fail('CONFIGURATION', 'Expected three natural logical limits');
   const executable = path.join(directory, report.cSha256 + '.program');
   const artifact = JSON.parse(utf8(read(executable + '.json')));
-  if (artifact.sourceSha256 !== report.cSha256 || artifact.executableSha256 !== digest(read(executable)))
+  if (artifact.sourceSha256 !== report.cSha256 || artifact.executableSha256 !== digest(read(executable))
+      || artifact.backend !== (gpuMiB ? 'cuda' : 'cpu')
+      || (gpuMiB && (artifact.gpuMiB !== gpuMiB || artifact.gpuSha256 !== digest(read(executable + '.gpu')))))
     fail('SOURCE_IO', 'Native artifact differs from the checked C');
 
   return { program: executable, limits, certificateMode: report.admission.certificateMode };
@@ -489,8 +491,9 @@ export function recover(workdir, configuration, sourceDir, kernelPath) {
   }
   return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
 }
-export function execute(workdir, directory, metadata, sourceDir, kernelPath, purpose = 'execute') {
-  return compile(reopen(workdir), path.resolve(directory), purpose, sourceDir, kernelPath, metadata, path.join(workdir, 'runtime'));
+export function execute(workdir, directory, metadata, sourceDir, kernelPath, purpose = 'execute', gpuMiB = 0) {
+  if (!Number.isInteger(gpuMiB) || (gpuMiB !== 0 && (gpuMiB < 64 || gpuMiB > 4096))) fail('USAGE', 'GPU MiB must be 0 or 64..4096');
+  return compile(reopen(workdir), path.resolve(directory), purpose, sourceDir, kernelPath, metadata, path.join(workdir, 'runtime'), gpuMiB);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -499,8 +502,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
     else if (operation === 'recover' && args.length === 4) result = recover(...args);
-    else if (['execute', 'prepare'].includes(operation) && args.length === 5) result = execute(...args, operation);
-    else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
+    else if (['execute', 'prepare'].includes(operation) && [5, 6].includes(args.length)) result = execute(...args.slice(0, 5), operation, Number(args[5] ?? 0));
+    else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {
     process.stderr.write(JSON.stringify({ code: error.code ?? 'STAGING', message: error.message }) + '\n');

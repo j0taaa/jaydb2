@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { admitSubmission, admitKernel, compileSubmission, compileKernel, emitC, configurationLimits, preflight } from '../admission/index.mjs';
 import { sha256 } from '../admission/bootstrap.mjs';
 
-const [manifestFile, outputFile, sourceDir, kernelPath, pureManifestFile] = process.argv.slice(2);
+const [manifestFile, outputFile, sourceDir, kernelPath, pureManifestFile, gpuOption = '0'] = process.argv.slice(2);
 let pureAccepted = false;
 const provisionalFiles = [];
 function write(file, bytes) {
@@ -14,6 +14,9 @@ function write(file, bytes) {
   provisionalFiles.push(file);
 }
 try {
+  const gpuMiB = Number(gpuOption);
+  if (!Number.isInteger(gpuMiB) || (gpuMiB !== 0 && (gpuMiB < 64 || gpuMiB > 4096))) throw new Error('Invalid GPU MiB');
+  const cuda = gpuMiB !== 0;
   const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
   const toolchain = { sourceDir, kernelPath };
   let pure;
@@ -47,6 +50,7 @@ try {
     if (fs.existsSync(executable)) throw new Error('Native artifact already exists');
     provisionalFiles.push(executable);
     const flags = ['-std=gnu11', manifest.nativeOptimization, '-w', '--no-default-config', outputFile, '-o', executable, '-lm', '-pthread'];
+    if (cuda) flags.push('-DBEND_CUDA=1', '-lcuda', '-lnvrtc');
     const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
     const result = await new Promise(resolve => {
       const compilerChild = spawn(compiler, flags, { stdio: ['ignore', 2, 2] });
@@ -58,13 +62,38 @@ try {
     if (result.error || result.signal || result.status !== 0)
       throw new Error('clang-19: ' + (result.error?.message ?? result.signal ?? result.status));
     if (!fs.readFileSync(outputFile).equals(original)) throw new Error('Checked C changed during compilation');
+    let gpuSha256;
+    if (cuda) {
+      const device = executable + '.gpu';
+      provisionalFiles.push(device);
+      const build = await new Promise(resolve => {
+        const child = spawn(executable, ['+RTS', '--gpu-build', '-RTS'], {
+          env: { ...process.env, BENDRTS: '' }, stdio: ['ignore', 'ignore', 'pipe'] });
+        let error, stderr = '';
+        child.stderr.on('data', bytes => { stderr += bytes; });
+        child.once('error', cause => { error = cause; });
+        child.once('close', (status, signal) => resolve({ error, stderr, status, signal }));
+      });
+      // Official --gpu-build can exit zero without a device. Require a cubin.
+      if (build.error || build.signal || build.status !== 0 || !fs.existsSync(device)
+          || !fs.lstatSync(device).isFile() || fs.statSync(device).size <= 8)
+        throw new Error('GPU_BUILD: GPU prebuild failed: ' + (build.stderr || build.error?.message || 'no artifact'));
+      gpuSha256 = sha256(fs.readFileSync(device));
+    }
     return { executable, report: { format: 'jaydb-official-c-v1', sourceSha256: sha256(original),
-      executableSha256: sha256(fs.readFileSync(executable)), compiler, compilerSha256: sha256(fs.readFileSync(compiler)), flags } };
+      executableSha256: sha256(fs.readFileSync(executable)), compiler, compilerSha256: sha256(fs.readFileSync(compiler)), flags,
+      backend: cuda ? 'cuda' : 'cpu',
+      ...(cuda ? { gpuSha256, gpuMiB, hasBangs: /^#define\s+BANGS\s+[1-9]/m.test(original.toString()) } : {}) } };
   };
   if (manifest.nativeOptimization !== undefined && !['-O0', '-O2'].includes(manifest.nativeOptimization))
     throw new Error('Invalid native optimization level');
   try {
-    if (manifest.nativeOptimization) {
+    if (cuda) {
+      // CUDA is never entered before BOTH official checkers accept the sealed
+      // Book. Keep the default CPU concurrent-check/build pipeline unchanged.
+      admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
+      native = await build(emitC(admitted));
+    } else if (manifest.nativeOptimization) {
       const built = await (manifest.purpose ? compileKernel : compileSubmission)({ ...manifest, toolchain }, build);
       admitted = built.admitted; native = built.artifact;
     } else admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
@@ -87,7 +116,8 @@ try {
     // The builder's C bytes were emitted from the sealed Book. No successful
     // report or native receipt exists until both official checkers accepted.
     c = fs.readFileSync(outputFile);
-    if (sha256(c) !== native.report.sourceSha256 || sha256(fs.readFileSync(native.executable)) !== native.report.executableSha256)
+    if (sha256(c) !== native.report.sourceSha256 || sha256(fs.readFileSync(native.executable)) !== native.report.executableSha256
+        || (cuda && sha256(fs.readFileSync(native.executable + '.gpu')) !== native.report.gpuSha256))
       throw new Error('Provisional artifact changed before admission completed');
     write(native.executable + '.json', JSON.stringify(native.report));
   } else {
