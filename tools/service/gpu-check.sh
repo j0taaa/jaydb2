@@ -19,7 +19,8 @@ export TMPDIR="$gpu_tmp"
 export PYTHONPATH="$PWD"
 make build
 case ${1:-test} in
-  test) python3 -B -m unittest tests.service.test_gpu -v ;;
+  test) python3 -B -m unittest tests.service.test_gpu tests.service.test_simulation.SimulationGpuTests -v ;;
   benchmark) bash paper/bench/fixed-clock.sh python3 -B paper/bench/gpu_programs.py --output paper/evidence/gpu-programs.json ;;
+  simulation) bash paper/bench/fixed-clock.sh python3 -B paper/bench/simulation.py --output paper/evidence/simulation.json ;;
   *) exit 2 ;;
 esac

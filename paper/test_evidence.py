@@ -305,4 +305,69 @@ class EvidenceTests(unittest.TestCase):
                     if row['metric'].startswith(('E1','E2','E3')):self.assertEqual(len(row['session_medians']),3)
         finally:evidence.OUT=previous
 
+
+
+class SimulationEvidenceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import json
+        cls.data = json.loads((Path(__file__).parent/'evidence/simulation.json').read_text())
+
+    def test_simulation_samples_and_explicit_caps(self):
+        data = self.data
+        self.assertGreaterEqual(data['repeats'], 3)
+        self.assertEqual(data['warmups'], 1)
+        self.assertEqual(len(data['records']), 5*len(data['sizes']))
+        for backend in ('cpu-1', 'cpu-16', 'cuda', 'postgresql', 'sqlite'):
+            rows = [r for r in data['records'] if r['backend'] == backend]
+            self.assertEqual([(r['depth'], r['steps']) for r in rows],
+                             [(s['depth'], s['steps']) for s in data['sizes']])
+            capped = False
+            for row in rows:
+                if row['status'] == 'measured':
+                    self.assertFalse(capped)
+                    self.assertEqual(len(row['samples_ms']), data['repeats'])
+                    self.assertEqual(len(row['warmup_ms']), 1)
+                    self.assertTrue(all(t > 0 for t in row['samples_ms']))
+                    self.assertEqual(row['median_ms'], statistics.median(row['samples_ms']))
+                    self.assertEqual(row['range_ms'], [min(row['samples_ms']), max(row['samples_ms'])])
+                    self.assertEqual(row['result'], data['oracle'][f"{row['depth']}:{row['steps']}"])
+                    self.assertTrue(row['complete_state_verified'])
+                else:
+                    self.assertIn(backend, ('postgresql', 'sqlite'))
+                    self.assertIn(row['status'], ('timeout', 'not run'))
+                    self.assertGreater(row['timeout_s'], 0)
+                    if row['status'] == 'not run': self.assertTrue(capped)
+                    capped = True
+
+    def test_simulation_complete_publication_and_artifacts(self):
+        from tests.service.test_simulation import state
+        data = self.data
+        expected = [state({})]*3
+        for size in data['sizes']:
+            result = data['oracle'][f"{size['depth']}:{size['steps']}"]
+            expected.extend([state({'alice': result})]*(data['repeats']+1))
+        for backend in ('cpu-1', 'cpu-16', 'cuda'):
+            self.assertEqual(data['published_states'][backend], expected)
+        preparations = data['preparations']
+        self.assertEqual(len(preparations), 3)
+        self.assertEqual(len({p['artifact']['sourceSha256'] for p in preparations}), 1)
+        for prep in preparations:
+            self.assertGreater(prep['elapsed_ms'], 0)
+            self.assertGreater(prep['artifact']['emitted_bangs'], 0)
+            if prep['backend'] == 'cuda': self.assertTrue(prep['artifact']['hasBangs'])
+            self.assertEqual(prep['artifact']['backend'], 'cuda' if prep['backend'] == 'cuda' else 'cpu')
+
+    def test_simulation_scalar_oracle_and_sql_implementation(self):
+        from tests.service.test_simulation import oracle
+        size = self.data['sizes'][0]
+        self.assertEqual(oracle(size['depth'], size['steps']),
+                         self.data['oracle'][f"{size['depth']}:{size['steps']}"])
+        self.assertIn('recursive CTE', self.data['settings']['sqlite']['implementation'])
+        self.assertEqual(self.data['settings']['postgresql']['tables'], 'TEMP')
+        self.assertEqual(len(self.data['sql_controls']), 8)
+        for control in self.data['sql_controls']:
+            self.assertEqual(control['result'], oracle(control['depth'], control['steps'], control['user']))
+
+
 if __name__=='__main__':unittest.main(verbosity=2)
