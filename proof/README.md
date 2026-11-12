@@ -56,7 +56,7 @@ BendTT default fuel in `worker_body_equals_ingress_composition.qv_1`.
 The checked worker also specializes the common 65,536-byte ceiling through
 `LimitWords.convert_equals_reference`, with a canonical `Number64` literal
 witness derived from the existing checked u64-addition proof in bounded steps.
-The comparison peels bounded Nat blocks, avoiding intermediate u64 values and
+The comparison peels bounded Nat blocks, avoiding intermediate u64 values.
 `common_guard_hits` proves that the cached branch is taken at 65,536; block
 soundness and `convert_equals_reference` cover every Nat. This avoids closed
 large-Nat expansion during proof conversion. Other ceilings use the
