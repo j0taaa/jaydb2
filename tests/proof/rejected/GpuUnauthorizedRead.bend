@@ -12,5 +12,5 @@ law false:
   R.SafetyPrefix(GPU.configuration(), X.seed(), X.context(), "gpu", D.VAbsent{}, X.seed(),
     S.events_execution_trace(S.execute(1n, GPU.program(), D.Schema{Nil{}}, X.seed(), X.context(), D.VAbsent{})))
 def false():
-  L.Both{L.Both{GPU.Pair{{==}, Unit{}}, Unit{}},
-    L.Both{GPU.Pair{{==}, Unit{}}, Unit{}}}
+  L.Both{L.Both{GPU.AccessPair{{==}, Unit{}}, Unit{}},
+    L.Both{GPU.AccessPair{{==}, Unit{}}, Unit{}}}

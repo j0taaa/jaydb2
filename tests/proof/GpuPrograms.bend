@@ -41,10 +41,10 @@ def all_allowed(+ctx: D.Context, ts: List<&2, S.OperationEvent>) -> Type:
     case Nil{}: Unit
     case Con{S.OperationEvent{op, effect}, rest}:
       # Local pair keeps this fixture independent of the example's relocation.
-      Pair<allowed(ctx, op), all_allowed(ctx, rest)>
+      AccessPair<allowed(ctx, op), all_allowed(ctx, rest)>
 
-type Pair<-A: Type, -B: Type> is Type:
-  Pair{left: A, right: B}
+type AccessPair<-A: Type, -B: Type> is Type:
+  AccessPair{left: A, right: B}
 
 def accesses(h: S.Situation) -> Type:
   match h:
