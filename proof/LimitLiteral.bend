@@ -1,6 +1,6 @@
 # Checked 65,536-byte u64 literal, with compact Nat indices. Safe expands
 # small Nat literals as Peano constructors; keep every literal here <=256.
-# Nat.mul(256,256) is the exact guard and compiles as native multiplication.
+# Nat.mul(256,256) is the compact exact index for the cached word.
 # All witness arithmetic is checked by the existing u64-addition theorem.
 import Base
 import ../contract/Bytes.bend as B

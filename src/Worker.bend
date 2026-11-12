@@ -42,7 +42,7 @@ def decoded(~c: S.Configuration, initial: D.State, input: Input.PreAuthenticatio
 
 def ingress(~c: S.Configuration, +s: D.State, body: List<&2, U32>,
   admit: Gate.Oracle()) -> X.Iteration:
-  decoded(c, s, Input.read_message(LimitWords.convert(R.limit_message(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()), body, s), admit)
+  decoded(c, s, Input.read_message(LimitWords.convert(R.limit_message(S.limits(c))), body, s), admit)
 
 def registered(~c: S.Configuration, initial: D.State, input: Input.PreAuthentication,
   entries: List<&2, Registry.Entry>, admit: Gate.Oracle()) -> X.Iteration:

@@ -76,8 +76,8 @@ law raw_body_enters_proved_gate:
 def raw_body_enters_proved_gate(c, s, body, admit):
   Equal.cong(Maybe<&2, B.Number64>, X.Iteration,
     limit => W.decoded(c, s, Input.read_message(limit, body, s), admit),
-    LimitWords.convert(R.limit_message(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()), B.nat64(R.limit_message(S.limits(c))),
-    LimitWords.convert_equals_reference(R.limit_message(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()))
+    LimitWords.convert(R.limit_message(S.limits(c))), B.nat64(R.limit_message(S.limits(c))),
+    LimitWords.convert_equals_reference(R.limit_message(S.limits(c))))
 
 law prepared_enters_proved_selection:
   for ~c: S.Configuration
@@ -131,9 +131,9 @@ law worker_body_equals_ingress_composition:
   {A.drive(c, Succ{n}, W.ingress(c, s, body, admit)) == ingress_reference(c, s, n,
     Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit) : X.Iteration}
 def worker_body_equals_ingress_composition(c, s, body, n, admit, complete):
-  %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()),
+  %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(S.limits(c))),
     B.nat64(R.limit_message(S.limits(c))),
-    LimitWords.convert_equals_reference(R.limit_message(S.limits(c)), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact())) :
+    LimitWords.convert_equals_reference(R.limit_message(S.limits(c)))) :
     {A.drive(c, Succ{n}, W.decoded(c, s, Input.read_message(_, body, s), admit)) ==
       ingress_reference(c, s, n,
         Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit) : X.Iteration}

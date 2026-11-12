@@ -80,12 +80,12 @@ def envelope(e: Dispatch.Envelope, +s: D.State, +limits: S.Limits,
 
 def measured(fits: Bool, +body: List<&2, U32>, +s: D.State, +limits: S.Limits,
   valid: {R.limits_all_valid(limits) == True{} : Bool}) ->
-  Routed(Dispatch.received_fits(fits, body, s, LimitWords.convert(R.limit_message(limits), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact())), s):
+  Routed(Dispatch.received_fits(fits, body, s, LimitWords.convert(R.limit_message(limits))), s):
   match fits:
     case False{}: Unit{}
     case True{}:
-      %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(limits), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact()),
-        B.nat64(R.limit_message(limits)), LimitWords.convert_equals_reference(R.limit_message(limits), Nat.mul(256n, 256n), B.Number64{0, 65536}, LimitWords.common_literal_exact())) :
+      %Equal.sym(Maybe<&2, B.Number64>, LimitWords.convert(R.limit_message(limits)),
+        B.nat64(R.limit_message(limits)), LimitWords.convert_equals_reference(R.limit_message(limits))) :
         Routed(Dispatch.received_envelope(Dispatch.envelope(body), s, _), s)
       envelope(Dispatch.envelope(body), s, limits, envelope_tag(body), valid)
 
