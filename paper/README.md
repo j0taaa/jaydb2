@@ -2,7 +2,7 @@
 
 English SBC conference article by **Gabriel Jota Lizardo, PUC Minas**, with a
 Portuguese Beamer defense and Portuguese speaker notes. The deck retains its
-existing theme and has **19 main frames and seven appendix frames**, including
+existing theme and has **20 main frames and seven appendix frames**, including
 a final AI-use disclosure. The article has **16 pages including 29 references**;
 it contains no appendix. Change text directly in `main.tex` and `slides.tex`.
 
@@ -77,17 +77,26 @@ the title slide. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasi
 No email, committee member or defense date is invented.
 
 To fit the page limit, the article condenses the model, architecture, related work,
-application descriptions and repeated results prose. The eleven T3 duties are
-grouped in a compact table; the full normative list remains in `proof/README.md`
-and is cited via the repository reference. The full theorem inventory is similarly
+application descriptions and repeated results prose. The `\HostDutyCount` numbered
+T3 duties regroup the previous obligations in a compact table, without implying
+reduced trust. Checked Bend now decides the
+error status and constructs reply bytes; detection, exact-code passing, cache
+forwarding and the technical fallback remain trusted. The normative list is in
+`proof/README.md` and is cited via the repository reference. The full theorem inventory is similarly
 referenced while the certificate/Core statements remain explicit. Separate
 throughput, session-spread, registration-detail, source-inventory and scaling-detail
 tables remain generated repository evidence; the article retains the architecture,
 application controls, essential latency tables and scaling figure. There is no
-article appendix.
+article appendix. The shared application table includes indexed ownership,
+voucher receipts and shared-row RLS. RLS has no fixed note-slot count; its stable
+directory law holds at every published root. Its aggregate-size response channel
+and cross-user capacity exhaustion are explicitly outside the confidentiality
+claim. The new main RLS slide keeps the capacity explanation in **Se perguntarem:**.
+The AI-use declaration already covers implementation/proof restructuring and
+revision of all article sections and slides, including these improvements.
 
-For Art. 18, the **19 main slides** have approximately **2,008 spoken words**, or
-**15.4 minutes at 130 words/minute**, leaving room for transitions within the
+For Art. 18, the **20 main slides** have approximately **2,238 spoken words**, or
+**17.2 minutes at 130 words/minute**, leaving room for transitions within the
 20-minute maximum. Count only the notes before `\appendix`, stop each note at
 **Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` repository cues.
 Formatting commands are stripped and numerical macros count as spoken tokens;
@@ -301,6 +310,12 @@ overlap: their diagnostic durations must not be summed as exclusive wall time.
 The ordinary `OtherSeconds` macros subtract admission wall time and worker
 time from the round trip; they include the remaining host/communication work. The oracle-soundness law's share is
 included in whole-Book checking: the pinned APIs expose no per-law timer.
+Successful C/native receipts are withheld until both official checkers accept
+the same sealed Book and seals/artifact hashes verify. `stage.mjs` checks those
+hashes before releasing a path. T1 relies on this release barrier independently
+of cleanup. This overlap applies to ordinary admission and preparation.
+`integration-validation.json` was removed: it was a validation receipt, not a
+measurement input consumed by `evidence.py`. Measurement JSON is unchanged.
 Timing hooks never change protocol bytes or admission decisions. The existing
 service timer also writes raw sidecars under the ignored build directory.
 
@@ -342,8 +357,8 @@ No macro name contains digits. Integers use `{,}` grouping for English article t
 | `\StateLimitBytes` | Configured canonical state ceiling | bytes |
 | `\StateMaximumRows` | Largest analytically fitting population of this row shape | rows |
 | `\LargeSeedFuelFailures` | Retained large direct-seed initialization attempts exhausted official BendTT fuel | attempts |
-| `\OrdinaryReadCheckingSeconds`, `\OrdinaryIndexedCheckingSeconds`, `\OrdinaryVoucherCheckingSeconds` | Median of the per-call sum of primary and BendTT whole-Book checking | s |
-| `\OrdinaryReadCompilationSeconds`, `\OrdinaryIndexedCompilationSeconds`, `\OrdinaryVoucherCompilationSeconds` | Median of the per-call sum of C emission and compilation | s |
+| `\OrdinaryReadCheckingSeconds`, `\OrdinaryIndexedCheckingSeconds`, `\OrdinaryVoucherCheckingSeconds` | Median of primary + BendTT diagnostics per call; overlaps native build, not additive with it | s |
+| `\OrdinaryReadCompilationSeconds`, `\OrdinaryIndexedCompilationSeconds`, `\OrdinaryVoucherCompilationSeconds` | Median of C emission + compilation per call; overlaps BendTT checking | s |
 | `\OrdinaryReadWorkerMs`, `\OrdinaryIndexedWorkerMs`, `\OrdinaryVoucherWorkerMs` | Median worker phase wall time | ms |
 | `\OrdinaryReadOtherSeconds`, `\OrdinaryIndexedOtherSeconds`, `\OrdinaryVoucherOtherSeconds` | Median per-call round trip minus admission wall time and worker; includes remaining host work/communication | s |
 | `\OrdinaryReadWorkerSharePercent`, `\OrdinaryIndexedWorkerSharePercent`, `\OrdinaryVoucherWorkerSharePercent` | Median of per-call worker/round-trip shares | % |
