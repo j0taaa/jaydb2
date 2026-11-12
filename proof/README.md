@@ -118,6 +118,11 @@ now checked propositions, rather than additional admission assumptions.
 Book, native ABI and runtime preserve the proved pure transitions, values,
 integer/Unicode behavior and observation ordering. The process boundary and
 executable provenance are part of this bridge. Compiler preservation is trusted.
+The dynamic loader, libc, libm, loader configuration and inherited loader
+variables remain trusted as before; the old per-call executable/source checks
+also did not protect these dependencies. Kernel memfd seal enforcement and
+/proc/self/fd execution now explicitly enforce admitted-image immutability;
+they are OS assumptions, not new checked Bend theorems.
 
 **T3 — host plumbing for the serial in-memory service.**
 
@@ -130,8 +135,15 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    and load its exact checked program and gate with immutable dependencies;
    preserve context, arguments and proof between checking and launch.
 4. Run a fresh private worker through the checked gate/advance/finalizer using
-   the trusted native loop. Give it no publication capability. Preserve the
-   logical observation trace on interruption.
+   the trusted native loop. Give it no publication capability. A worker may
+   be pre-executed, but is single-use: deliver no state, registry, credentials
+   or request until selection, and supply only that call's current packet.
+   Keep each idle process bound to its exact admitted image and runtime policy;
+   asynchronously refill at most one idle slot per live prepared image and one
+   for the authenticator. Reap a dead idle child and fall back to fresh spawn;
+   kill/reap idle children and join refill work on invalidation and shutdown.
+   Refill owns no publication authority and does not change serial publication.
+   Preserve the logical observation trace on interruption.
 5. Collect the complete result/response and finish rollback-capable cleanup
    before publication. An actual pre-commit tool/process/transport failure keeps
    the prior root and emits the fixed failure frame when possible; fatal loss
@@ -154,9 +166,19 @@ executable provenance are part of this bridge. Compiler preservation is trusted.
    universal-admission tuple, original body, current root and latest registry;
    install only the checked registry delta and manage the matching artifact.
    Preserve allocated history and the root/last-response pair. Receipt delivery
-   never rolls back a control. Keep the physical artifact-map lookup and exact
-   byte-integrity checks; never execute an artifact whose integrity check failed.
-   Those observations and fail-before-execution ordering remain trusted. Cache
+   never rolls back a control. Keep the physical artifact-map lookup. At load,
+   copy the released ELF into an owned CLOEXEC memfd, install and verify
+   F_SEAL_WRITE/GROW/SHRINK/SEAL, then hash the sealed contents against the
+   admitted executableSha256. Fail closed on any mismatch/seal failure and
+   execute that exact retained fd. The trust changes from rereading/comparing
+   physical artifacts every call to verification once plus kernel-enforced
+   memfd immutability. Staged source/C/manifest/executable copies are diagnostic
+   after load and may change without affecting an existing worker. Before each
+   future compilation, compare the frozen public/runtime and environment metadata
+   against the original in-memory bytes; both-checker release remains mandatory.
+   Host-owned compilation storage must remain unchanged during validation/use,
+   as at the existing release boundary. Those observations, fd ownership and
+   fail-before-execution ordering remain trusted. Cache
    only controller-emitted bytes by exact observed code, prefilling `HANDLE` and
    `PREPARED_INTEGRITY` separately at startup. `HostErrorReplyTheorem` states
    output independence from root, last response and registry; limits remain

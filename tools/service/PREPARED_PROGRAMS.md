@@ -147,15 +147,17 @@ the compiled body must obtain per-call context/arguments through `S.start`.
 
 ## Stored identity and actual execution
 
-The Rust registration owns its temporary directory, executable path/hash,
-immutable original source bytes, universal proof bytes, and hashes of the
-prepared files and frozen public/runtime environment. The directory retains
-the exact dependencies, manifests, bindings, emitted C and native artifact.
-All sealed existing files must remain regular and byte-identical on reuse;
-missing/changed artifacts return a technical `failure` before execution. An
-artifact integrity failure does not establish that the original certificate
-is mathematically invalid. Original administrator/client
-input paths may change after freezing without affecting the instance.
+The Rust registration owns its temporary diagnostic directory, immutable
+original source/proof bytes and the admitted ELF in an owned sealed memfd.
+At load the host installs and verifies F_SEAL_WRITE/GROW/SHRINK/SEAL and hashes
+the sealed contents against executableSha256 before fd-based execution.
+There are no per-call staging-file checks. Mutating or deleting a staged
+source, manifest, C or executable cannot change the loaded program. A mismatch
+or failed seal at load refuses execution; it says nothing about mathematical
+certificate validity. Future compilations validate the shared frozen
+public/runtime and environment files against original in-memory bytes before
+staging, then pass the unchanged both-checker release gates. Host-owned storage
+must remain stable during that validation/use window.
 
 For raw execute request `r` and registration `p`, the resolved logical request
 is `{code:p.original_code, proof:p.universal_proof,
@@ -177,9 +179,10 @@ with the registration's original source identity.
 No checker, BendTT, Node staging helper, or C compiler runs on prepared
 executions. The existing native authenticator still emits public metadata
 strings; handle calls discard these instead of writing/checking sources.
-Host integrity hashing still runs, and native
-authentication/execution children run normally. The authenticator itself
-decodes first; there is no separate decode child. Both children remain fresh
+The host reuses verified sealed images without rehashing; native
+authentication/execution children remain single-use. The authenticator itself
+decodes first; there is no separate decode child. Each image has at most one idle, pre-executed child with no request data;
+selection supplies current bytes and EOF. Both children remain single-use
 processes, and the execution child retains its own current input analysis.
 The private worker
 proposal is accepted only after complete output, child exit, transport/size
@@ -193,7 +196,7 @@ alive until invalidation or instance exit rather than being deleted per call.
 example's per-user credential read/write law, successive argument/user/state
 changes, refusal/native failure rollback, invalidation and other-instance
 rejection, original-file changes, sealed source/dependency/native/tooling
-tampering, and concrete/invalid proof, captures, foreign capability and missing
+mutation isolation, future-compilation input-tamper rejection, and concrete/invalid proof, captures, foreign capability and missing
 dependency rejection. Its causal gate disables Node after successful real
 preparation: handle executions still work without attempting Node, while an
 ordinary submission reaches that disabled gate and fails. Admission tests
@@ -224,3 +227,8 @@ service fold preserves root validity and accepted-admission lookup provenance.
 Current artifact integrity, T1 admission-result delivery, forwarding the latest registry bytes
 unchanged and physical receipt delivery remain integration obligations. The
 [proof guide](../../proof/README.md) lists T1–T3 and the native worker bridge.
+
+The pool's artifact/process mapping, data-free idle state, current-data delivery,
+dead-child fallback, background refill and invalidation/shutdown cleanup are
+explicit T3 duties in [the proof guide](../../proof/README.md). The dynamic
+loader/libc/libm remain trusted: old per-call hashes did not protect them.

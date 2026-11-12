@@ -80,8 +80,8 @@ class PreparedTests(unittest.TestCase):
             self.assertEqual(server.prepared(1, handle, 'alice-new', 'alice-final'),
                 {'status': 'success', 'value': 'alice-final'}, server.diagnostics())
 
-            # Runtime, admitted source, and admitted dependency tampering all
-            # fail before running a prepared action or publishing anything.
+            # Staging files are diagnostic copies after immutable ELF admission.
+            # The exact memfd continues to execute despite on-disk mutations.
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             # Exercise the checked control executable directly with private
@@ -195,7 +195,7 @@ class PreparedTests(unittest.TestCase):
                     self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
                     self.assertEqual(unframe(worker.stdout[1:])['status'], status)
             # Compare exact public bytes at the same published root. Map-miss
-            # and integrity detection remain physical host duties; their denial
+            # detection remains a physical host duty; its denial
             # bytes now come from the separately checked native controller.
             current_root = encode({'tables': [], 'users': [
                 {'credential': 'alice-final', 'id': 'alice', 'kind': 'user'},
@@ -210,7 +210,7 @@ class PreparedTests(unittest.TestCase):
                 self.assertEqual(unframe(result.stdout[1:]), {'status': 'failure', 'value': None})
                 return result.stdout[1:]
             def host_reply(requested):
-                server.process.stdin.write(prepared_frame(1, requested, 'alice-final', 'tampered'))
+                server.process.stdin.write(prepared_frame(1, requested, 'alice-final', 'alice-final'))
                 server.process.stdin.flush()
                 header = server.read(8)
                 return header + server.read(int.from_bytes(header, 'big'))
@@ -226,33 +226,45 @@ class PreparedTests(unittest.TestCase):
             diagnostic_start = len(server.diagnostics())
             try:
                 self.assertEqual(host_reply('missing-handle'), not_found_reply)
-                for artifact in (next(prepared.glob('*.program')), prepared/'Client.bend', prepared/'Size.bend',
-                                 private/'runtime/tools/service/stage.mjs'):
+                for artifact in (next(prepared.glob('*.program')), next(prepared.glob('*.program.json')),
+                                 next((private/'authenticate').glob('*.program')), prepared/'Client.bend',
+                                 prepared/'Size.bend', private/'runtime/tools/service/stage.mjs'):
                     original = artifact.read_bytes()
                     try:
-                        artifact.write_bytes(original+b'\nchanged')
-                        self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
-                        self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
+                        artifact.write_bytes(b'corrupt staged ELF' if artifact.suffix == '.program'
+                                             else original+b'\nchanged')
+                        # A refill must also execute the admitted fd after this
+                        # destructive mutation, not reopen the staging path.
+                        for _ in range(2):
+                            self.assertEqual(unframe(host_reply(handle)),
+                                {'status': 'success', 'value': 'alice-final'}, server.diagnostics())
+                        if artifact == private/'runtime/tools/service/stage.mjs':
+                            # Future admissions must reject modified shared inputs,
+                            # before invoking even the disabled Node/checker path.
+                            self.assertEqual(server.prepared(0, code, 'alice-final', proof=proof),
+                                {'status': 'failure', 'value': None})
+                            self.assertIn('frozen compilation input changed', server.diagnostics())
+                            self.assertEqual(log.read_bytes(), baseline)
                     finally:
                         artifact.write_bytes(original)
                 self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),
                     {'status': 'success', 'value': 'alice-final'})
                 diagnostics = server.diagnostics()[diagnostic_start:]
                 self.assertEqual(diagnostics.count('checked denial memo hit: HANDLE'), 1)
-                self.assertEqual(diagnostics.count('checked denial memo hit: PREPARED_INTEGRITY'), 4)
+                self.assertEqual(diagnostics.count('checked denial memo hit: PREPARED_INTEGRITY'), 1)
                 self.assertNotIn('launching denial controller', diagnostics,
                     'prepared denials attempted to launch the offline controller')
                 self.assertEqual(log.read_bytes(), baseline, 'prepared route entered node')
-                # An uncached ordinary error does attempt the offline controller
-                # and must explicitly diagnose its non-memoized fallback.
+                # The controller also runs its sealed image after its staging
+                # path is renamed; an uncached error still gets checked bytes.
                 self.assertEqual(server.call(code, (example/'ClientProof.bend').read_text(), 'alice-final'),
                     {'status': 'failure', 'value': None})
                 self.assertNotEqual(log.read_bytes(), baseline, 'causal admission gate was not reached')
                 diagnostics = server.diagnostics()[diagnostic_start:]
                 self.assertIn('admission-disabled', diagnostics)
                 self.assertIn('launching denial controller for exact code: HELPER', diagnostics)
-                self.assertIn('denial controller failed for HELPER:', diagnostics)
-                self.assertIn('using technical failure fallback (not memoized)', diagnostics)
+                self.assertNotIn('denial controller failed for HELPER:', diagnostics)
+                self.assertNotIn('using technical failure fallback (not memoized)', diagnostics)
             finally:
                 offline_control.rename(control)
 

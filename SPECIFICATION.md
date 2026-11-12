@@ -31,6 +31,33 @@ If the denial executable/transport itself fails, the host retains the existing
 fixed technical failure fallback, diagnosed on stderr and never memoized.
 Successful calls use the same execution path.
 
+Executable integrity uses verification once and kernel memfd seals, replacing
+per-call rereads/comparisons of physical artifacts. At load the host copies each
+released ELF into an owned CLOEXEC memfd, adds and verifies
+F_SEAL_WRITE/GROW/SHRINK/SEAL, hashes the sealed image against the admitted
+manifest's executableSha256, and executes that exact retained fd. Any failure
+refuses load. On-disk source/C/manifest/executable staging copies no longer
+authorize execution after load. Future admissions still validate frozen
+public/runtime inputs and environment metadata against original in-memory
+bytes before compilation and pass both official checkers; host-owned storage
+must remain unchanged during that validation/use window. Loader, libc, libm,
+loader configuration and inherited loader variables remain trusted under T2,
+as before: the old artifact checks did not protect them either. Kernel seal
+enforcement, fd ownership and exact fd execution are explicit T3 dependencies.
+
+Each prepared image and the authenticator may own one already-spawned idle
+child, blocked awaiting stdin. These children receive no state, registry,
+credentials or request before selection. Selection binds the exact admitted
+image/runtime policy to the current root, original body and latest registry;
+each process consumes one packet through EOF, exits and is reaped before its
+result may publish. Thus per-call private-process isolation is preserved.
+Refill runs asynchronously without state or publication capability. A dead
+idle child is reaped and replaced with a fresh launch; spawn failures follow
+the existing technical-failure policy. Invalidation and shutdown stop/join
+refill and kill/reap idle children. One slot, three pipe descriptors and one
+refill thread per pooled image bound idle resources per live registration;
+registration count and total RAM remain outside the canonical size limits.
+
 # Database concept
 
 An instance contains tables and users. A request presents a credential, a program, its arguments, and a proof. The database authenticates the request, checks whether the proof establishes the required obligations for that program, and executes the program when admitted. The program may query data, compute a result, and propose changes.
@@ -340,8 +367,8 @@ arguments while substituting the registration's exact original source/proof
 identity. The universal certificate specializes to that resolved logical call.
 All program observations, administrator laws, private execution, size checks
 and atomic publication continue to apply. No checker or compiler is needed on
-reuse. An unavailable or altered registration produces a technical/control
-failure before execution; it does not establish that a valid proof is false.
+reuse. An unavailable registration or an image failing load verification produces a
+technical/control failure before execution; it does not establish that a valid proof is false.
 
 The canonical Request in the pure transaction model denotes this resolved
 logical call. Its ordinary byte-origin theorem is not a theorem equating a raw

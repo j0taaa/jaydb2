@@ -1,4 +1,4 @@
-//! Binary helper transport. Start pipe threads before launching any helper.
+//! Binary helper transport. Start pipe threads before launching fresh helpers.
 use crate::{Error, Result};
 use std::io::{self, Read, Write};
 use std::process::{
@@ -13,7 +13,7 @@ pub(crate) enum Pipe {
     Error,
 }
 
-struct ChildGuard(Option<Child>);
+pub(crate) struct ChildGuard(pub(crate) Option<Child>);
 
 impl ChildGuard {
     fn wait(&mut self) -> io::Result<ExitStatus> {
@@ -40,15 +40,16 @@ fn setup_error(error: io::Error) -> Error {
 }
 
 fn run(
-    command: &mut Command,
+    launch: impl FnOnce() -> Result<ChildGuard>,
     input: &[u8],
     mut before_spawn: impl FnMut(Pipe) -> io::Result<()>,
 ) -> Result<Output> {
     std::thread::scope(|scope| {
         // All senders live INSIDE this closure. Any startup error or unwind
         // disconnects waiting threads before scope exit joins them. In
-        // particular, no helper (or compiler descendant) exists when pipe
-        // thread creation fails. Channels carry exactly one owned pipe each.
+        // particular, no fresh helper (or compiler descendant) is launched on
+        // setup failure; an already selected idle child is killed/reaped by
+        // the launch closure's guard. Channels carry one owned pipe each.
         let (send_input, receive_input) = sync_channel::<ChildStdin>(1);
         let (send_output, receive_output) = sync_channel::<ChildStdout>(1);
         let (send_error, receive_error) = sync_channel::<ChildStderr>(1);
@@ -88,16 +89,10 @@ fn run(
                     })
             })
             .map_err(setup_error)?;
-        // Only launch after all fallible thread starts have succeeded. Retain
-        // direct-child ownership inside the scope for subsequent errors.
-        let mut child = ChildGuard(Some(
-            command
-                .env("BEND_NO_TELEMETRY", "1")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()?,
-        ));
+        // Launch fresh helpers (or acquire the selected idle child) only after
+        // all fallible thread starts succeed. Retain direct-child ownership
+        // inside the scope for subsequent errors.
+        let mut child = launch()?;
         let owned = child.0.as_mut().expect("spawned child");
         send_input
             .send(owned.stdin.take().expect("piped child stdin"))
@@ -135,12 +130,33 @@ fn checked(
     input: &[u8],
     hook: impl FnMut(Pipe) -> io::Result<()>,
 ) -> Result<Output> {
-    let result = run(command, input, hook);
+    let result = run(|| spawn(command), input, hook);
     if let Err(error) = &result
         && error.code == "HOST_PIPE_SETUP"
     {
         // Preserve the fatal thread-startup policy after waiting-thread joins,
         // with no helper launched and no later request selected.
+        panic!("jaydb2: cannot start helper pipe thread: {}", error.message);
+    }
+    result
+}
+
+pub(crate) fn spawn(command: &mut Command) -> Result<ChildGuard> {
+    Ok(ChildGuard(Some(
+        command
+            .env("BEND_NO_TELEMETRY", "1")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?,
+    )))
+}
+
+pub(crate) fn capture_child(child: ChildGuard, input: &[u8]) -> Result<Output> {
+    let result = run(|| Ok(child), input, |_| Ok(()));
+    if let Err(error) = &result
+        && error.code == "HOST_PIPE_SETUP"
+    {
         panic!("jaydb2: cannot start helper pipe thread: {}", error.message);
     }
     result
@@ -228,14 +244,18 @@ mod tests {
             command.arg("30");
             let mut seen = Vec::new();
             let start = Instant::now();
-            let result = run(&mut command, &bytes, |pipe| {
-                seen.push(pipe);
-                if pipe == point {
-                    Err(io::Error::other("injected resource exhaustion"))
-                } else {
-                    Ok(())
-                }
-            });
+            let result = run(
+                || spawn(&mut command),
+                &bytes,
+                |pipe| {
+                    seen.push(pipe);
+                    if pipe == point {
+                        Err(io::Error::other("injected resource exhaustion"))
+                    } else {
+                        Ok(())
+                    }
+                },
+            );
             assert_eq!(result.unwrap_err().code, "HOST_PIPE_SETUP");
             assert_eq!(seen, expected_starts(point), "fault hook was not reached");
             no_helper_launch(&mut observed, start);
@@ -251,11 +271,15 @@ mod tests {
             let mut seen = Vec::new();
             let start = Instant::now();
             let result = catch_unwind(AssertUnwindSafe(|| {
-                run(&mut command, &bytes, |pipe| {
-                    seen.push(pipe);
-                    assert_ne!(pipe, point, "injected unwind");
-                    Ok(())
-                })
+                run(
+                    || spawn(&mut command),
+                    &bytes,
+                    |pipe| {
+                        seen.push(pipe);
+                        assert_ne!(pipe, point, "injected unwind");
+                        Ok(())
+                    },
+                )
             }));
             assert!(result.is_err());
             assert_eq!(seen, expected_starts(point), "unwind hook was not reached");
@@ -280,12 +304,41 @@ mod tests {
     }
 
     #[test]
+    fn selected_idle_child_is_reaped_on_every_pipe_startup_failure() {
+        for point in [Pipe::Input, Pipe::Output, Pipe::Error] {
+            let child = spawn(Command::new("/bin/sleep").arg("30")).unwrap();
+            let pid = child.0.as_ref().unwrap().id();
+            let result = run(
+                || Ok(child),
+                &[0; 8192],
+                |pipe| {
+                    if pipe == point {
+                        Err(io::Error::other("injected startup failure"))
+                    } else {
+                        Ok(())
+                    }
+                },
+            );
+            assert_eq!(result.unwrap_err().code, "HOST_PIPE_SETUP");
+            // SAFETY: WNOHANG cannot block, and no user pointer is supplied.
+            assert_eq!(
+                unsafe { libc::waitpid(pid as i32, std::ptr::null_mut(), libc::WNOHANG) },
+                -1
+            );
+            assert_eq!(
+                io::Error::last_os_error().raw_os_error(),
+                Some(libc::ECHILD)
+            );
+        }
+    }
+
+    #[test]
     fn failed_process_spawn_disconnects_and_joins_all_waiting_threads() {
         let directory = crate::Temporary::new(&std::env::temp_dir(), "jaydb-capture").unwrap();
         let mut seen = Vec::new();
         let start = Instant::now();
         let result = run(
-            &mut Command::new(directory.path.join("missing-executable")),
+            || spawn(&mut Command::new(directory.path.join("missing-executable"))),
             &[0; 8192],
             |point| {
                 seen.push(point);

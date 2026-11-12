@@ -5,7 +5,7 @@ The emitted C is compiled literally by `tools/service/stage.mjs` with Clang 19.
 There is no C rewriting, replacement runtime, custom Nat/Array representation,
 DSO ABI, or derived verifier.
 
-Each call runs that program in a new child process with the official options
+Each call runs that program in a single-use child process with the official options
 `+RTS --threads N --gpu off -RTS`. The host selects its available CPU parallelism
 by default, capped at 128 workers, and falls back to one worker if detection
 fails. The host's `--threads N` option accepts 1–128 to override that selection.
@@ -66,8 +66,44 @@ code receives neither these effects nor the state cell.
 ## Identity and failures
 
 The manifest records SHA-256 of literal C, the executable, and Clang, together
-with the actual compiler arguments. The Rust host checks the executable before
-every call. A child failure preserves published state. The host publishes only
+with the actual compiler arguments. At load the Rust host copies the released
+ELF into a CLOEXEC memfd, installs F_SEAL_WRITE/GROW/SHRINK/SEAL, checks
+F_GET_SEALS and hashes the sealed image against executableSha256. Sealing or
+verification failure refuses load. It owns that fd for the program lifetime
+and launches /proc/self/fd/N with ordinary Command::spawn (no pre_exec, retaining
+posix_spawn). This replaces hash-before-every-call and prepared staging-file
+rereads with verification once and trusted kernel seal enforcement. Staging
+source/C/manifest/executable copies are diagnostic after admission. Future
+compilations still compare all frozen public/runtime inputs and environment
+metadata against in-memory originals before invoking staging; both official
+checkers and existing release gates remain mandatory. Host-owned compilation
+storage remains trusted against changes during validation/use.
+
+The dynamic loader, libc, libm, loader configuration and inherited loader
+variables remain trusted as before; the old per-call checks did not protect
+those inputs either. Static linking was not adopted; compile policy and
+literal official emitted C remain unchanged.
+
+Prepared images and the authenticator each have one idle, already-spawned
+single-use child and a background refill thread. Open stdin leaves the checked
+entry waiting without any state, credential, registry or request. Only selection
+delivers the current packet and EOF. A process is never reused: capture,
+complete output, exit, reaping and publication ordering are unchanged. The
+pool preserves per-call process isolation; it moves startup earlier. Background
+refill receives only the immutable image and fixed runtime thread count and
+cannot publish or change the serial root/registry. It preserves BENDRTS="",
+BEND_NO_TELEMETRY=1 and +RTS --threads N --gpu off -RTS.
+
+A dead idle child is reaped and selection falls back to a fresh spawn. A child
+dying after the liveness check is an ordinary native/transport failure; no
+request is retried after packet delivery. Refill spawn failure leaves the slot
+empty and the next selection attempts a fresh spawn. Invalidation and shutdown
+join refill, kill and reap idle children. Each pooled image retains at most
+one idle child, three pipes, one memfd and one refill thread (plus the selected
+single-use child while active); there is no new global memory quota or handle
+count limit. Native virtual reservations remain those of the pinned runtime.
+
+A child failure preserves published state. The host publishes only
 after receiving and validating complete output and reaping the process.
 
 State and response sizes are checked on the complete proposal; they are not
@@ -80,8 +116,10 @@ of the database process can still lose the RAM instance.
    preserve the exact checked admission tuple and prepared registration.
 2. Supply complete original bodies and one current private root, with outer
    framing bounds and FIFO/EOF behavior preserved.
-3. Run the same admitted Book through a fresh worker and the exact checked
-   step conversion; expose no publication capability to client code.
+3. Run the same admitted Book through a single-use worker and the exact checked
+   step conversion; bind idle children to the exact sealed image/runtime policy,
+   deliver current data only at selection, and clean up/refill as described above.
+   Expose no publication capability to client code.
 4. Collect complete packets, reap children and finish rollback-capable cleanup
    before accepting Commit; technical failures before commit preserve the root.
 5. Physically publish only Commit's exact root/response pair and deliver the

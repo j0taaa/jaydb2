@@ -323,8 +323,10 @@ C, the executable and their hashes are provisional during that overlap.
 Both paths must settle and their children exit before admission returns a
 handle. `compile.mjs` withholds successful C/native receipts until both checkers
 accept and the seal and artifact hashes match. `stage.mjs` validates those
-hashes before releasing a program path; Rust retains its existing artifact
-verification before a fresh worker launch. A
+hashes before releasing a program path; Rust then copies the released ELF into an owned memfd, seals it, verifies
+the seals and hashes those sealed contents before executing that exact fd.
+It relies on kernel immutability thereafter rather than rereading staging files
+on every call (see [native execution](../../native/SIMPLE_RUNTIME.md)). A
 checker/build/binding failure releases no worker. On every reported failure,
 the checking/build paths have settled and provisional files are discarded.
 Uncatchable V8 OOM or a hard kill of the direct child can orphan kernel/Clang

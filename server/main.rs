@@ -1,5 +1,6 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
 mod capture;
+mod worker;
 use capture::capture;
 mod scheduling;
 use scheduling::FrameInput;
@@ -7,7 +8,6 @@ use scheduling::{FrameQueue, PollInput, QueueBounds};
 mod storage;
 mod timing;
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, DirBuilder};
@@ -202,8 +202,8 @@ impl Limits {
 }
 
 struct Program {
-    path: PathBuf,
-    sha256: String,
+    image: Arc<worker::Image>,
+    pool: Option<worker::Pool>,
 }
 
 impl Program {
@@ -215,36 +215,25 @@ impl Program {
                 "invalid official executable manifest",
             ));
         }
-        let program = Self {
-            path,
-            sha256: text(&report, "executableSha256")?.into(),
-        };
-        program.validate()?;
-        Ok(program)
+        Ok(Self {
+            image: Arc::new(worker::Image::load(
+                &path,
+                text(&report, "executableSha256")?,
+            )?),
+            pool: None,
+        })
     }
 
-    fn validate(&self) -> Result<()> {
-        let actual = format!("{:x}", Sha256::digest(fs::read(&self.path)?));
-        if actual != self.sha256 {
-            return Err(Error::new(
-                "HOST_NATIVE",
-                "official executable hash mismatch",
-            ));
-        }
+    fn enable_pool(&mut self, threads: usize) -> Result<()> {
+        self.pool = Some(worker::Pool::new(Arc::clone(&self.image), threads)?);
         Ok(())
     }
 
     fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
-        self.validate()?;
-        let output = capture(
-            Command::new(&self.path)
-                // The host owns runtime policy, including early-exit flags.
-                .env("BENDRTS", "")
-                .args(["+RTS", "--threads"])
-                .arg(threads.to_string())
-                .args(["--gpu", "off", "-RTS"]),
-            input,
-        )?;
+        let output = match &self.pool {
+            Some(pool) => capture::capture_child(pool.take(threads)?, input)?,
+            None => capture(&mut self.image.command(threads), input)?,
+        };
         if !output.status.success() {
             return Err(Error::new(
                 "NATIVE",
@@ -405,6 +394,7 @@ struct Database {
     timing: Option<Arc<Timing>>,
     storage: Option<storage::Storage>,
     environment: String,
+    compilation_inputs: FrozenInputs,
 }
 
 struct PreparedProgram {
@@ -412,12 +402,12 @@ struct PreparedProgram {
     program: Program,
     original_code: Vec<u8>,
     universal_proof: Vec<u8>,
-    // Exact host-owned bytes, not a hash-equality assumption. Rechecking these
-    // snapshots does not invoke admission or change the stored certificate.
-    sealed: Vec<(PathBuf, Vec<u8>)>,
 }
 
-impl PreparedProgram {
+// Retained only for future admissions, never reread on prepared execution.
+struct FrozenInputs(Vec<(PathBuf, Vec<u8>)>);
+
+impl FrozenInputs {
     fn seal(directory: &Path) -> Result<Vec<(PathBuf, Vec<u8>)>> {
         let mut files = Vec::new();
         for entry in fs::read_dir(directory)? {
@@ -429,7 +419,7 @@ impl PreparedProgram {
             } else {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
-                    "nonregular prepared artifact",
+                    "nonregular compilation input",
                 ));
             }
         }
@@ -437,12 +427,11 @@ impl PreparedProgram {
     }
 
     fn validate(&self) -> Result<()> {
-        for (path, expected) in &self.sealed {
-            let metadata = fs::symlink_metadata(path)?;
-            if !metadata.file_type().is_file() || fs::read(path)? != *expected {
+        for (path, expected) in &self.0 {
+            if !fs::symlink_metadata(path)?.file_type().is_file() || fs::read(path)? != *expected {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
-                    "sealed prepared artifact changed",
+                    "frozen compilation input changed",
                 ));
             }
         }
@@ -501,7 +490,7 @@ impl Database {
         let initial = Program::load(
             text(programs, if recovering { "recover" } else { "initialize" })?.into(),
         )?;
-        let authenticate = Program::load(text(programs, "authenticate")?.into())?;
+        let mut authenticate = Program::load(text(programs, "authenticate")?.into())?;
         let control = Program::load(text(programs, "control")?.into())?;
         let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1)
@@ -544,6 +533,13 @@ impl Database {
         if !recovering && let Some(storage) = &mut storage {
             storage.persist(&environment, &limits, &state)?;
         }
+        let mut compilation_inputs = FrozenInputs::seal(&directory.path.join("public"))?;
+        compilation_inputs.extend(FrozenInputs::seal(&directory.path.join("runtime"))?);
+        for name in ["environment.json", "environment.bytes"] {
+            let path = directory.path.join(name);
+            compilation_inputs.push((path.clone(), fs::read(path)?));
+        }
+        authenticate.enable_pool(options.threads)?;
         let mut database = Self {
             directory,
             stage: text(&report, "stagePath")?.into(),
@@ -565,6 +561,7 @@ impl Database {
             timing,
             storage,
             environment,
+            compilation_inputs: FrozenInputs(compilation_inputs),
         };
         // HostErrorReplyTheorem states exact output independent of root, last
         // response and registry. Limits stay immutable. Prefill each prepared
@@ -710,7 +707,6 @@ impl Database {
                 .prepared
                 .get(handle)
                 .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
-            prepared.validate()?;
             bench_mark(&mut bench, "prepared_integrity");
             if self.inspector.is_some() {
                 self.inspect(serde_json::json!({
@@ -748,6 +744,7 @@ impl Database {
         ] {
             fs::write(metadata.join(name), bytes)?;
         }
+        self.compilation_inputs.validate()?;
         let report = json_helper(
             &self.stage,
             &[
@@ -769,9 +766,10 @@ impl Database {
                 "request configuration changed",
             ));
         }
-        let program = Program::load(text(&report, "program")?.into())?;
+        let mut program = Program::load(text(&report, "program")?.into())?;
         bench_mark(&mut bench, "admission_total");
         if operation == 3 {
+            program.enable_pool(self.threads)?;
             let control = self.run_control(body, text(&report, "certificateMode")?, code, proof)?;
             let (handle, registry, response) = match control {
                 ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
@@ -784,9 +782,6 @@ impl Database {
                     return Err(Error::new("HOST_TRANSPORT", "unexpected control removal"));
                 }
             };
-            let mut sealed = PreparedProgram::seal(&request.path)?;
-            sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
-            sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
             self.prepared.insert(
                 handle,
                 PreparedProgram {
@@ -794,7 +789,6 @@ impl Database {
                     program,
                     original_code: code.to_vec(),
                     universal_proof: proof.to_vec(),
-                    sealed,
                 },
             );
             self.registry = registry;
@@ -914,6 +908,7 @@ impl Database {
                 self.registry = registry;
                 match self.prepared.remove(&handle) {
                     Some(mut artifact) => {
+                        drop(artifact.program.pool.take());
                         if let Err(error) = artifact.directory.remove() {
                             diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
                         }
@@ -1156,37 +1151,41 @@ mod tests {
     use std::io::Cursor;
 
     #[test]
-    fn prepared_integrity_keeps_and_checks_exact_original_bytes() {
-        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-sealed-bytes").unwrap();
-        let path = directory.path.join("artifact");
-        let original = b"original prepared artifact";
-        fs::write(&path, original).unwrap();
-        let sealed = PreparedProgram::seal(&directory.path).unwrap();
-        assert_eq!(sealed.len(), 1);
-        assert_eq!(sealed[0].0, path);
-        assert_eq!(sealed[0].1.as_slice(), original);
-        let prepared = PreparedProgram {
-            directory,
-            program: Program {
-                path: PathBuf::new(),
-                sha256: String::new(),
-            },
-            original_code: Vec::new(),
-            universal_proof: Vec::new(),
-            sealed,
-        };
-        prepared.validate().unwrap();
-        let mut changed = original.to_vec();
-        changed[0] ^= 1;
-        fs::write(&path, &changed).unwrap();
-        assert_eq!(prepared.validate().unwrap_err().code, "PREPARED_INTEGRITY");
-        fs::write(&path, original).unwrap();
-        prepared.validate().unwrap();
+    fn future_admission_checks_exact_frozen_inputs() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-inputs").unwrap();
+        let path = directory.path.join("source");
+        fs::write(&path, b"original").unwrap();
+        let inputs = FrozenInputs(FrozenInputs::seal(&directory.path).unwrap());
+        inputs.validate().unwrap();
+        fs::write(&path, b"modified").unwrap();
+        assert_eq!(inputs.validate().unwrap_err().code, "PREPARED_INTEGRITY");
         fs::remove_file(&path).unwrap();
-        let replacement = prepared.directory.path.join("replacement");
-        fs::write(&replacement, original).unwrap();
-        std::os::unix::fs::symlink(&replacement, &path).unwrap();
-        assert_eq!(prepared.validate().unwrap_err().code, "PREPARED_INTEGRITY");
+        let other = directory.path.join("replacement");
+        fs::write(&other, b"original").unwrap();
+        std::os::unix::fs::symlink(other, path).unwrap();
+        assert_eq!(inputs.validate().unwrap_err().code, "PREPARED_INTEGRITY");
+    }
+
+    #[test]
+    fn admitted_image_survives_staging_mutation_and_refuses_wrong_hash() {
+        use sha2::{Digest, Sha256};
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-image").unwrap();
+        let path = directory.path.join("worker");
+        fs::copy(worker::tests::fixture(), &path).unwrap();
+        let manifest = path.with_extension("json");
+        let mut report = serde_json::json!({"format":"jaydb-official-c-v1",
+            "executableSha256":format!("{:x}", Sha256::digest(fs::read(&path).unwrap()))});
+        fs::write(&manifest, report.to_string()).unwrap();
+        let program = Program::load(path.clone()).unwrap();
+        fs::write(&path, b"changed staging copy").unwrap();
+        assert_eq!(
+            program.run(b"original request", 1).unwrap(),
+            b"original request"
+        );
+        fs::copy(worker::tests::fixture(), &path).unwrap();
+        report["executableSha256"] = "00".repeat(32).into();
+        fs::write(manifest, report.to_string()).unwrap();
+        assert_eq!(Program::load(path).err().unwrap().code, "HOST_NATIVE");
     }
 
     fn serve_stream(
@@ -1246,11 +1245,10 @@ mod tests {
 
     #[test]
     fn native_launch_forwards_selected_cpu_workers_with_gpu_disabled() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/service/runtime_policy_worker.sh");
+        let path = worker::tests::fixture();
         let program = Program {
-            sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
-            path,
+            image: Arc::new(worker::Image::load(&path, &worker::tests::hash(&path)).unwrap()),
+            pool: None,
         };
         for count in [1, 8, 128] {
             assert_eq!(
@@ -1282,12 +1280,12 @@ mod tests {
             );
             return;
         }
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/service/runtime_policy_worker.sh");
-        let program = Program {
-            sha256: format!("{:x}", Sha256::digest(fs::read(&path).unwrap())),
-            path,
+        let path = worker::tests::fixture();
+        let mut program = Program {
+            image: Arc::new(worker::Image::load(&path, &worker::tests::hash(&path)).unwrap()),
+            pool: None,
         };
+        program.enable_pool(1).unwrap();
         assert_eq!(
             program.run(&[], 1).unwrap(),
             b"\n+RTS\n--threads\n1\n--gpu\noff\n-RTS\n"
@@ -1468,8 +1466,14 @@ mod tests {
             source: PathBuf::new(),
             kernel: PathBuf::new(),
             authenticate: Program {
-                path: PathBuf::new(),
-                sha256: String::new(),
+                image: Arc::new(
+                    worker::Image::load(
+                        &worker::tests::fixture(),
+                        &worker::tests::hash(&worker::tests::fixture()),
+                    )
+                    .unwrap(),
+                ),
+                pool: None,
             },
             limits,
             published: Published {
@@ -1480,8 +1484,14 @@ mod tests {
             inspection_sequence: u64::MAX,
             prepared: HashMap::new(),
             control: Program {
-                path: PathBuf::new(),
-                sha256: String::new(),
+                image: Arc::new(
+                    worker::Image::load(
+                        &worker::tests::fixture(),
+                        &worker::tests::hash(&worker::tests::fixture()),
+                    )
+                    .unwrap(),
+                ),
+                pool: None,
             },
             registry: Vec::new(),
             error_replies: HashMap::new(),
@@ -1489,6 +1499,7 @@ mod tests {
             timing: None,
             storage: Some(storage),
             environment,
+            compilation_inputs: FrozenInputs(Vec::new()),
         };
         // Equal state with a different response still publishes the pair, but
         // must not replace the durable inode. Keep it open to prevent inode reuse.
@@ -1547,18 +1558,32 @@ mod tests {
 
         // The host must forward the controller's bytes, even when a test
         // executable returns a different status from the old Rust table.
-        use std::os::unix::fs::PermissionsExt;
         let executable = db.directory.path.join("denial");
-        let script = b"#!/bin/sh\ncat > \"$0.input\"\ncat \"$0.reply\"\n";
-        fs::write(&executable, script).unwrap();
-        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+        assert!(
+            Command::new("clang-19")
+                .arg(
+                    Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("tests/service/denial_policy_worker.c")
+                )
+                .arg(format!(
+                    "-DTEST_DIRECTORY={}",
+                    serde_json::to_string(db.directory.path.to_str().unwrap()).unwrap()
+                ))
+                .arg("-o")
+                .arg(&executable)
+                .status()
+                .unwrap()
+                .success()
+        );
         db.control = Program {
-            path: executable.clone(),
-            sha256: format!("{:x}", Sha256::digest(script)),
+            image: Arc::new(
+                worker::Image::load(&executable, &worker::tests::hash(&executable)).unwrap(),
+            ),
+            pool: None,
         };
         let forwarded = error_frame("opaque-denial");
         fs::write(
-            executable.with_extension("reply"),
+            db.directory.path.join("reply"),
             [vec![0], forwarded.clone()].concat(),
         )
         .unwrap();
@@ -1569,7 +1594,7 @@ mod tests {
             );
             assert_eq!(db.published.state, b"new");
             assert_eq!(db.published.response, response);
-            let input = fs::read(executable.with_extension("input")).unwrap();
+            let input = fs::read(db.directory.path.join("input")).unwrap();
             let (metadata, rest) = split(&input).unwrap();
             let mut expected = vec![4];
             expected.extend_from_slice(&(code.len() as u64).to_be_bytes());
@@ -1585,7 +1610,7 @@ mod tests {
         // A broken denial ABI cannot introduce a Commit. Failure of the
         // denial machinery itself uses the existing technical fallback.
         fs::write(
-            executable.with_extension("reply"),
+            db.directory.path.join("reply"),
             [vec![1], packet(b"bad", &response)].concat(),
         )
         .unwrap();
@@ -1601,7 +1626,7 @@ mod tests {
         // entry nor a fallback; only this checked reply is memoized.
         let host_io_reply = error_frame("host-io-specific");
         fs::write(
-            executable.with_extension("reply"),
+            db.directory.path.join("reply"),
             [vec![0], host_io_reply.clone()].concat(),
         )
         .unwrap();
@@ -1609,11 +1634,11 @@ mod tests {
             db.publish(Err(Error::new("HOST_IO", "retry"))).unwrap(),
             host_io_reply
         );
-        let input = fs::read(executable.with_extension("input")).unwrap();
+        let input = fs::read(db.directory.path.join("input")).unwrap();
         let (metadata, _) = split(&input).unwrap();
         assert_eq!(metadata, [vec![4], packet(b"HOST_IO", &[])].concat());
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-        fs::remove_file(&executable).unwrap();
+        fs::remove_file(db.directory.path.join("reply")).unwrap();
         for _ in 0..2 {
             assert_eq!(
                 db.publish(Err(Error::new("UNSEEN_CODE", "rejected")))
