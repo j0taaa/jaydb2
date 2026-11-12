@@ -2,7 +2,199 @@
   "measurement_metadata": {
     "ordinary": {
       "frequency": {
-        "utc": "2026-11-12T03:12:41Z",
+        "utc": "2026-11-12T19:20:37Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3592771,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3594303,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3597094,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600185,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3600000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "frequency_original": {
+        "utc": "2026-11-12T19:20:37Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4669005,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4141332,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4319801,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4680829,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4418738,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4578836,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4373279,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4500000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4677656,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4448342,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4678748,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4529162,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4483945,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4580816,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4610714,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4646264
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "session_count": 3,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T19:20:37Z",
+      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+      "logical_cpus": 16,
+      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "sqlite": "3.45.1",
+      "node": "v24.19.0",
+      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+      "bend": "2.0.39",
+      "toolchain": {
+        "version": "2.0.39",
+        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+        "files": {
+          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+        },
+        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      },
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
+      "threads": 1,
+      "ordinary_optimization": "-O0",
+      "prepared_optimization": "-O2",
+      "gpu": "off",
+      "filesystem": "ext4   /dev/sda2 rw,relatime",
+      "clock": "time.perf_counter_ns (monotonic wall clock)",
+      "lock": "/tmp/jaydb2-experiments-heavy.lock",
+      "warmups": 1
+    },
+    "prepared": {
+      "frequency": {
+        "utc": "2026-11-12T19:35:31Z",
         "settings": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
@@ -40,20 +232,20 @@
         },
         "scaling_cur_freq_khz": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3599280,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3600000,
           "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3588819,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
           "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600201,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3602110,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3602704,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3604347,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3600000,
           "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
         },
         "affinity_cpus": [
@@ -77,7 +269,7 @@
         "pinning": "none; all engines inherit the same harness CPU affinity"
       },
       "frequency_original": {
-        "utc": "2026-11-12T03:12:41Z",
+        "utc": "2026-11-12T19:35:31Z",
         "settings": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
@@ -114,225 +306,22 @@
           "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
         },
         "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4700000,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1100469,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4635570,
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4439679,
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4558947,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4622774,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4592369,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1595153,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
-        },
-        "affinity_cpus": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15
-        ],
-        "pinning": "none; all engines inherit the same harness CPU affinity"
-      },
-      "session_count": 3,
-      "commit": "f9271e461c5c0f42c7ce8c43eed4aa149b7781cc",
-      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-      "branch": "t3/integrate-improvements",
-      "utc": "2026-11-12T03:12:41Z",
-      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
-      "logical_cpus": 16,
-      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
-      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
-      "sqlite": "3.45.1",
-      "node": "v24.19.0",
-      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
-      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
-      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
-      "bend": "2.0.39",
-      "toolchain": {
-        "version": "2.0.39",
-        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
-        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
-        "files": {
-          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
-          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
-          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
-          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
-          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
-        },
-        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
-        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
-      },
-      "binary_sha256": "8848b8348f73a4e0f0731f12500164ca5b31e85cccbcd1b1bdb83a55e716c551",
-      "source_sha256": "5b2021cf8f33b0f21e1f87c3f2a3cc4fbaf940cc01c8482b268f2c721c4a95e8",
-      "dirty": [
-        "M applications/indexed/run_check.py",
-        " M applications/rls/README.md",
-        " M applications/rls/test.py",
-        " M paper/README.md",
-        " M paper/bench/run.py",
-        " M paper/bench/source_sizes.py",
-        " M paper/evidence.py",
-        " M paper/evidence/verification.json",
-        " M paper/test_evidence.py",
-        "?? paper/evidence/validation-attempts.json"
-      ],
-      "threads": 1,
-      "ordinary_optimization": "-O0",
-      "prepared_optimization": "-O2",
-      "gpu": "off",
-      "filesystem": "ext4   /dev/sda2 rw,relatime",
-      "clock": "time.perf_counter_ns (monotonic wall clock)",
-      "lock": "/tmp/jaydb2-experiments-heavy.lock",
-      "warmups": 1
-    },
-    "prepared": {
-      "frequency": {
-        "utc": "2026-11-12T03:27:31Z",
-        "settings": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
-        },
-        "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600128,
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4435178,
           "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600134,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3600000
-        },
-        "affinity_cpus": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15
-        ],
-        "pinning": "none; all engines inherit the same harness CPU affinity"
-      },
-      "frequency_original": {
-        "utc": "2026-11-12T03:12:41Z",
-        "settings": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
-        },
-        "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4700000,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1100469,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4635570,
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4439679,
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4700000,
           "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4558947,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4622774,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4592369,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1595153,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4634600,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4532001,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4558974,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4580041,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4694254,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4691009,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4625663
         },
         "affinity_cpus": [
           0,
@@ -355,10 +344,10 @@
         "pinning": "none; all engines inherit the same harness CPU affinity"
       },
       "session_count": 3,
-      "commit": "f9271e461c5c0f42c7ce8c43eed4aa149b7781cc",
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
       "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-      "branch": "t3/integrate-improvements",
-      "utc": "2026-11-12T03:27:31Z",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T19:35:31Z",
       "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
       "logical_cpus": 16,
       "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
@@ -383,21 +372,9 @@
         "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
         "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
       },
-      "binary_sha256": "8848b8348f73a4e0f0731f12500164ca5b31e85cccbcd1b1bdb83a55e716c551",
-      "source_sha256": "5b2021cf8f33b0f21e1f87c3f2a3cc4fbaf940cc01c8482b268f2c721c4a95e8",
-      "dirty": [
-        "M applications/indexed/run_check.py",
-        " M applications/rls/README.md",
-        " M applications/rls/test.py",
-        " M paper/README.md",
-        " M paper/bench/run.py",
-        " M paper/bench/source_sizes.py",
-        " M paper/evidence.py",
-        " M paper/evidence/ordinary.json",
-        " M paper/evidence/verification.json",
-        " M paper/test_evidence.py",
-        "?? paper/evidence/validation-attempts.json"
-      ],
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
       "threads": 1,
       "ordinary_optimization": "-O0",
       "prepared_optimization": "-O2",
@@ -409,212 +386,7 @@
     },
     "comparison": {
       "frequency": {
-        "utc": "2026-11-12T03:42:02Z",
-        "settings": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
-          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
-          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
-        },
-        "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600566,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
-        },
-        "affinity_cpus": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15
-        ],
-        "pinning": "none; all engines inherit the same harness CPU affinity"
-      },
-      "frequency_original": {
-        "utc": "2026-11-12T03:12:41Z",
-        "settings": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
-          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
-          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
-        },
-        "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4700000,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1100469,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4635570,
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4439679,
-          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4558947,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4622774,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4592369,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1595153,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
-        },
-        "affinity_cpus": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15
-        ],
-        "pinning": "none; all engines inherit the same harness CPU affinity"
-      },
-      "session_count": 3,
-      "commit": "f9271e461c5c0f42c7ce8c43eed4aa149b7781cc",
-      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-      "branch": "t3/integrate-improvements",
-      "utc": "2026-11-12T03:42:02Z",
-      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
-      "logical_cpus": 16,
-      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
-      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
-      "sqlite": "3.45.1",
-      "node": "v24.19.0",
-      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
-      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
-      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
-      "bend": "2.0.39",
-      "toolchain": {
-        "version": "2.0.39",
-        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
-        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
-        "files": {
-          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
-          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
-          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
-          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
-          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
-        },
-        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
-        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
-      },
-      "binary_sha256": "8848b8348f73a4e0f0731f12500164ca5b31e85cccbcd1b1bdb83a55e716c551",
-      "source_sha256": "5b2021cf8f33b0f21e1f87c3f2a3cc4fbaf940cc01c8482b268f2c721c4a95e8",
-      "dirty": [
-        "M applications/indexed/run_check.py",
-        " M applications/rls/README.md",
-        " M applications/rls/test.py",
-        " M paper/README.md",
-        " M paper/bench/run.py",
-        " M paper/bench/source_sizes.py",
-        " M paper/evidence.py",
-        " M paper/evidence/ordinary.json",
-        " M paper/evidence/prepared.json",
-        " M paper/evidence/verification.json",
-        " M paper/test_evidence.py",
-        "?? paper/evidence/validation-attempts.json"
-      ],
-      "threads": 1,
-      "ordinary_optimization": "-O0",
-      "prepared_optimization": "-O2",
-      "gpu": "off",
-      "filesystem": "ext4   /dev/sda2 rw,relatime",
-      "clock": "time.perf_counter_ns (monotonic wall clock)",
-      "lock": "/tmp/jaydb2-experiments-heavy.lock",
-      "warmups": 1
-    },
-    "scaling": {
-      "frequency": {
-        "utc": "2026-11-12T04:12:22Z",
+        "utc": "2026-11-12T19:50:28Z",
         "settings": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
@@ -653,20 +425,20 @@
         "scaling_cur_freq_khz": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3600219,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3604210,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3595483,
           "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3595813
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599795,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
         },
         "affinity_cpus": [
           0,
@@ -689,7 +461,7 @@
         "pinning": "none; all engines inherit the same harness CPU affinity"
       },
       "frequency_original": {
-        "utc": "2026-11-12T03:12:41Z",
+        "utc": "2026-11-12T19:50:25Z",
         "settings": {
           "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
           "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
@@ -726,22 +498,22 @@
           "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
         },
         "scaling_cur_freq_khz": {
-          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4700000,
-          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1100469,
-          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4635570,
-          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4439679,
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3229242,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4591576,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4432007,
           "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
           "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4586139,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3600000,
           "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
-          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4558947,
-          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4622774,
-          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4592369,
-          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1595153,
-          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3473558,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4649650,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4469620,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3405802,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 2979726,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3308509
         },
         "affinity_cpus": [
           0,
@@ -763,11 +535,11 @@
         ],
         "pinning": "none; all engines inherit the same harness CPU affinity"
       },
-      "session_count": 1,
-      "commit": "f9271e461c5c0f42c7ce8c43eed4aa149b7781cc",
+      "session_count": 3,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
       "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-      "branch": "t3/integrate-improvements",
-      "utc": "2026-11-12T04:12:22Z",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T19:50:28Z",
       "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
       "logical_cpus": 16,
       "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
@@ -792,27 +564,787 @@
         "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
         "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
       },
-      "binary_sha256": "8848b8348f73a4e0f0731f12500164ca5b31e85cccbcd1b1bdb83a55e716c551",
-      "source_sha256": "5b2021cf8f33b0f21e1f87c3f2a3cc4fbaf940cc01c8482b268f2c721c4a95e8",
-      "dirty": [
-        "M applications/indexed/run_check.py",
-        " M applications/rls/README.md",
-        " M applications/rls/test.py",
-        " M paper/README.md",
-        " M paper/bench/run.py",
-        " M paper/bench/source_sizes.py",
-        " M paper/evidence.py",
-        " M paper/evidence/comparison.json",
-        " M paper/evidence/ordinary.json",
-        " M paper/evidence/prepared.json",
-        " M paper/evidence/verification.json",
-        " M paper/test_evidence.py",
-        "?? paper/evidence/validation-attempts.json"
-      ],
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
       "threads": 1,
       "ordinary_optimization": "-O0",
       "prepared_optimization": "-O2",
       "gpu": "off",
+      "filesystem": "ext4   /dev/sda2 rw,relatime",
+      "clock": "time.perf_counter_ns (monotonic wall clock)",
+      "lock": "/tmp/jaydb2-experiments-heavy.lock",
+      "warmups": 1
+    },
+    "scaling": {
+      "frequency": {
+        "utc": "2026-11-12T20:20:39Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600072,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3600863,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600036,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "frequency_original": {
+        "utc": "2026-11-12T20:20:37Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4686834,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4630495,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4586612,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4500000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4637745,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4532579,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4707219,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4601697,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4700000,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4304831
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "session_count": 1,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T20:20:39Z",
+      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+      "logical_cpus": 16,
+      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "sqlite": "3.45.1",
+      "node": "v24.19.0",
+      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+      "bend": "2.0.39",
+      "toolchain": {
+        "version": "2.0.39",
+        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+        "files": {
+          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+        },
+        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      },
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
+      "threads": 1,
+      "ordinary_optimization": "-O0",
+      "prepared_optimization": "-O2",
+      "gpu": "off",
+      "filesystem": "ext4   /dev/sda2 rw,relatime",
+      "clock": "time.perf_counter_ns (monotonic wall clock)",
+      "lock": "/tmp/jaydb2-experiments-heavy.lock",
+      "warmups": 1
+    },
+    "verification": {
+      "frequency": {
+        "utc": "2026-11-12T20:23:49Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599845,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "frequency_original": {
+        "utc": "2026-11-12T20:23:49Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4694540,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4555730,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4574397,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4689826,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4600000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4570739,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3840909,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4098111,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4509102,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4684789
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "session_count": 1,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T20:23:49Z",
+      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+      "logical_cpus": 16,
+      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "sqlite": "3.45.1",
+      "node": "v24.19.0",
+      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+      "bend": "2.0.39",
+      "toolchain": {
+        "version": "2.0.39",
+        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+        "files": {
+          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+        },
+        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      },
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
+      "threads": 1,
+      "ordinary_optimization": "-O0",
+      "prepared_optimization": "-O2",
+      "gpu": "off",
+      "filesystem": "ext4   /dev/sda2 rw,relatime",
+      "clock": "time.perf_counter_ns (monotonic wall clock)",
+      "lock": "/tmp/jaydb2-experiments-heavy.lock",
+      "warmups": 1
+    },
+    "gpu-programs": {
+      "frequency": {
+        "utc": "2026-11-12T20:49:59Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3599804,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "frequency_original": {
+        "utc": "2026-11-12T20:49:56Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4430766,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4608214,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4700000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4204575,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4598884,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4646828,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4401219,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4693682,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4605676,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4700000,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "session_count": 1,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T20:49:59Z",
+      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+      "logical_cpus": 16,
+      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "sqlite": "3.45.1",
+      "node": "v24.19.0",
+      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+      "bend": "2.0.39",
+      "toolchain": {
+        "version": "2.0.39",
+        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+        "files": {
+          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+        },
+        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      },
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
+      "threads": 1,
+      "ordinary_optimization": "-O0",
+      "prepared_optimization": "-O2",
+      "gpu": "off",
+      "filesystem": "ext4   /dev/sda2 rw,relatime",
+      "clock": "time.perf_counter_ns (monotonic wall clock)",
+      "lock": "/tmp/jaydb2-experiments-heavy.lock",
+      "warmups": 1
+    },
+    "simulation": {
+      "frequency": {
+        "utc": "2026-11-12T20:52:15Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3598654,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "frequency_original": {
+        "utc": "2026-11-12T20:52:04Z",
+        "settings": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+          "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+        },
+        "scaling_cur_freq_khz": {
+          "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4669672,
+          "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4407382,
+          "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4609055,
+          "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4689110,
+          "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+          "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4618787,
+          "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4039588,
+          "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4642503,
+          "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4565073,
+          "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3903327,
+          "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4705683,
+          "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4448164,
+          "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4447870
+        },
+        "affinity_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "pinning": "none; all engines inherit the same harness CPU affinity"
+      },
+      "session_count": 1,
+      "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+      "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+      "branch": "t3/paper-gpu-simulation",
+      "utc": "2026-11-12T20:52:15Z",
+      "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+      "logical_cpus": 16,
+      "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "sqlite": "3.45.1",
+      "node": "v24.19.0",
+      "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+      "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+      "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+      "bend": "2.0.39",
+      "toolchain": {
+        "version": "2.0.39",
+        "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+        "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+        "files": {
+          "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+          "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+          "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+          "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+          "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+        },
+        "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+        "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+      },
+      "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+      "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+      "dirty": [],
+      "threads": [
+        1,
+        16
+      ],
+      "ordinary_optimization": "-O0",
+      "prepared_optimization": "-O2",
+      "gpu": [
+        "off",
+        "512 MiB"
+      ],
       "filesystem": "ext4   /dev/sda2 rw,relatime",
       "clock": "time.perf_counter_ns (monotonic wall clock)",
       "lock": "/tmp/jaydb2-experiments-heavy.lock",
@@ -824,78 +1356,78 @@
       "program": "read",
       "persistent": false,
       "n": 9,
-      "min_ns": 6670222877,
-      "median_ns": 6735716881,
-      "max_ns": 6848567715,
+      "min_ns": 6746635972,
+      "median_ns": 6763480667,
+      "max_ns": 6869421214,
       "session_medians_ns": [
-        6744643124,
-        6683759099,
-        6735716881
+        6763480667,
+        6765304155,
+        6757793336
       ]
     },
     {
       "program": "indexed",
       "persistent": false,
       "n": 9,
-      "min_ns": 11429629022,
-      "median_ns": 11485952650,
-      "max_ns": 11503707732,
+      "min_ns": 11493643518,
+      "median_ns": 11523037473,
+      "max_ns": 11603503645,
       "session_medians_ns": [
-        11500309725,
-        11470096799,
-        11440030353
+        11530939446,
+        11523037473,
+        11502886644
       ]
     },
     {
       "program": "voucher",
       "persistent": false,
       "n": 9,
-      "min_ns": 10836099114,
-      "median_ns": 10870525053,
-      "max_ns": 10947100060,
+      "min_ns": 10849936842,
+      "median_ns": 10890506013,
+      "max_ns": 11016461912,
       "session_medians_ns": [
-        10843569897,
-        10870525053,
-        10919394265
+        10885673926,
+        10961004651,
+        10867360659
       ]
     },
     {
       "program": "read",
       "persistent": true,
       "n": 9,
-      "min_ns": 6666672615,
-      "median_ns": 6723181989,
-      "max_ns": 6818508698,
+      "min_ns": 6690674492,
+      "median_ns": 6744028902,
+      "max_ns": 6784896830,
       "session_medians_ns": [
-        6733398237,
-        6679806765,
-        6729034826
+        6753258276,
+        6733626205,
+        6730212394
       ]
     },
     {
       "program": "indexed",
       "persistent": true,
       "n": 9,
-      "min_ns": 11438303633,
-      "median_ns": 11498990286,
-      "max_ns": 11576782101,
+      "min_ns": 11498304704,
+      "median_ns": 11530992083,
+      "max_ns": 11603886551,
       "session_medians_ns": [
-        11485615724,
-        11510698160,
-        11498990286
+        11524709336,
+        11531692968,
+        11526494209
       ]
     },
     {
       "program": "voucher",
       "persistent": true,
       "n": 9,
-      "min_ns": 10791244911,
-      "median_ns": 10866190644,
-      "max_ns": 11025424349,
+      "min_ns": 10850051825,
+      "median_ns": 10915909498,
+      "max_ns": 11045080935,
       "session_medians_ns": [
-        10870636862,
-        10851031477,
-        10866190644
+        10938787113,
+        10915909498,
+        10887263904
       ]
     }
   ],
@@ -912,15 +1444,15 @@
       "metric": "E1 Read",
       "stats": {
         "n": 30,
-        "median": 4915381644.0,
-        "qone": 4903753168.75,
-        "qthree": 4938404258.0,
-        "iqr": 34651089.25
+        "median": 4931947018.5,
+        "qone": 4920046802.75,
+        "qthree": 4943550955.75,
+        "iqr": 23504153.0
       },
       "session_medians": [
-        4909480908.0,
-        4915381644.0,
-        4920928551.0
+        4933274199.5,
+        4938015502.0,
+        4924770040.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -929,15 +1461,15 @@
       "metric": "E1 Indexed",
       "stats": {
         "n": 30,
-        "median": 8846436155.0,
-        "qone": 8832264540.0,
-        "qthree": 8866540861.5,
-        "iqr": 34276321.5
+        "median": 8888188800.5,
+        "qone": 8868920827.25,
+        "qthree": 8955455819.0,
+        "iqr": 86534991.75
       },
       "session_medians": [
-        8846550297.5,
-        8838316215.5,
-        8866044428.0
+        8908630521.0,
+        8900321406.0,
+        8875382585.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -946,15 +1478,15 @@
       "metric": "E1 Voucher",
       "stats": {
         "n": 30,
-        "median": 9129699658.0,
-        "qone": 9107457212.75,
-        "qthree": 9151513290.0,
-        "iqr": 44056077.25
+        "median": 9154453946.5,
+        "qone": 9125668830.0,
+        "qthree": 9182381864.5,
+        "iqr": 56713034.5
       },
       "session_medians": [
-        9139442323.5,
-        9129699658.0,
-        9113620899.0
+        9155336305.0,
+        9165637078.0,
+        9148035090.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -963,15 +1495,15 @@
       "metric": "E2 Read / volatile",
       "stats": {
         "n": 900,
-        "median": 3912814.5,
-        "qone": 3871677.25,
-        "qthree": 3953205.5,
-        "iqr": 81528.25
+        "median": 3915863.0,
+        "qone": 3867288.0,
+        "qthree": 3963204.75,
+        "iqr": 95916.75
       },
       "session_medians": [
-        3911337.0,
-        3911452.0,
-        3913974.5
+        3915652.0,
+        3908679.5,
+        3925980.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -980,15 +1512,15 @@
       "metric": "E2 Read / volatile active throughput",
       "stats": {
         "n": 30,
-        "median": 255.50715755730667,
-        "qone": 254.77490148995935,
-        "qthree": 256.11382955832573,
-        "iqr": 1.3389280683663856
+        "median": 254.99607490198127,
+        "qone": 254.27319028239089,
+        "qthree": 256.1121063707287,
+        "iqr": 1.8389160883378395
       },
       "session_medians": [
-        255.56870559757934,
-        255.93618902009317,
-        255.2977143186909
+        255.47972584658515,
+        255.45641570003232,
+        254.09409020131383
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -997,15 +1529,15 @@
       "metric": "E2 Read / volatile closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 250.6236755546463,
-        "qone": 250.5390570357988,
-        "qthree": 250.8049180771627,
-        "iqr": 0.2658610413639053
+        "median": 250.75097912239323,
+        "qone": 249.04733729200507,
+        "qthree": 250.82457533467567,
+        "iqr": 1.7772380426706036
       },
       "session_medians": [
-        250.6236755546463,
-        250.98616059967915,
-        250.4544385169513
+        250.75097912239323,
+        250.89817154695808,
+        247.34369546161693
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1014,15 +1546,15 @@
       "metric": "E2 Indexed / volatile",
       "stats": {
         "n": 900,
-        "median": 5949790.0,
-        "qone": 5893376.25,
-        "qthree": 6003371.5,
-        "iqr": 109995.25
+        "median": 6014858.5,
+        "qone": 5947195.25,
+        "qthree": 6092511.0,
+        "iqr": 145315.75
       },
       "session_medians": [
-        5957424.5,
-        5931633.5,
-        5956895.0
+        6003484.0,
+        5985114.0,
+        6078931.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1031,15 +1563,15 @@
       "metric": "E2 Indexed / volatile active throughput",
       "stats": {
         "n": 30,
-        "median": 167.87145465545404,
-        "qone": 167.5098054701885,
-        "qthree": 168.5253952137886,
-        "iqr": 1.015589743600117
+        "median": 166.44057553678292,
+        "qone": 165.57849810306507,
+        "qthree": 167.10097743811463,
+        "iqr": 1.5224793350495531
       },
       "session_medians": [
-        167.6302504133759,
-        168.12052073611227,
-        167.88874369157082
+        166.34340574961084,
+        166.74740962022858,
+        165.5847246033282
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1048,15 +1580,15 @@
       "metric": "E2 Indexed / volatile closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 165.47791378419768,
-        "qone": 165.43620285681064,
-        "qthree": 165.69011598623052,
-        "iqr": 0.2539131294198853
+        "median": 164.11556614005647,
+        "qone": 159.59165173113342,
+        "qthree": 164.1323319343026,
+        "iqr": 4.540680203169188
       },
       "session_medians": [
-        165.3944919294236,
-        165.90231818826334,
-        165.47791378419768
+        164.11556614005647,
+        164.14909772854878,
+        155.06773732221035
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1065,15 +1597,15 @@
       "metric": "E2 Voucher / volatile",
       "stats": {
         "n": 900,
-        "median": 6129693.0,
-        "qone": 6079294.25,
-        "qthree": 6187144.25,
-        "iqr": 107850.0
+        "median": 6164913.0,
+        "qone": 6104333.75,
+        "qthree": 6246368.5,
+        "iqr": 142034.75
       },
       "session_medians": [
-        6137053.0,
-        6115621.5,
-        6136647.5
+        6183241.0,
+        6152635.5,
+        6161826.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1082,15 +1614,15 @@
       "metric": "E2 Voucher / volatile active throughput",
       "stats": {
         "n": 30,
-        "median": 162.85518339851964,
-        "qone": 162.58418671445435,
-        "qthree": 163.41896976354957,
-        "iqr": 0.8347830490952219
+        "median": 162.35221080712665,
+        "qone": 160.5471243824108,
+        "qthree": 162.62124632797216,
+        "iqr": 2.074121945561359
       },
       "session_medians": [
-        162.8125003447425,
-        163.2940861687834,
-        162.6907978998696
+        162.01746177069938,
+        162.57750775115517,
+        161.76389963558813
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1099,15 +1631,15 @@
       "metric": "E2 Voucher / volatile closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 80.25801799209212,
-        "qone": 80.23143323967128,
-        "qthree": 80.40868785270796,
-        "iqr": 0.17725461303668055
+        "median": 78.04987884123483,
+        "qone": 77.11479797993061,
+        "qthree": 78.86728075790978,
+        "iqr": 1.7524827779791678
       },
       "session_medians": [
-        80.25801799209212,
-        80.55935771332379,
-        80.20484848725042
+        76.1797171186264,
+        79.68468267458472,
+        78.04987884123483
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1116,15 +1648,15 @@
       "metric": "E2 Read / durable",
       "stats": {
         "n": 900,
-        "median": 3896812.0,
-        "qone": 3856468.75,
-        "qthree": 3946677.5,
-        "iqr": 90208.75
+        "median": 3918865.5,
+        "qone": 3874821.75,
+        "qthree": 3961557.5,
+        "iqr": 86735.75
       },
       "session_medians": [
-        3898114.5,
-        3884753.0,
-        3906664.5
+        3910843.5,
+        3917239.5,
+        3925099.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1133,15 +1665,15 @@
       "metric": "E2 Read / durable active throughput",
       "stats": {
         "n": 30,
-        "median": 256.0766266586315,
-        "qone": 255.43003550138152,
-        "qthree": 256.7743994662944,
-        "iqr": 1.344363964912901
+        "median": 254.74787532747678,
+        "qone": 253.97054997943047,
+        "qthree": 255.48995071990126,
+        "iqr": 1.519400740470786
       },
       "session_medians": [
-        255.97566605626525,
-        256.73378065987873,
-        255.75733241827137
+        254.48576340525122,
+        255.0850104026803,
+        254.5325587098444
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1150,15 +1682,15 @@
       "metric": "E2 Read / durable closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 251.42093706294582,
-        "qone": 251.05695222178832,
-        "qthree": 251.78595833393132,
-        "iqr": 0.7290061121429972
+        "median": 250.33033653792128,
+        "qone": 250.24146992025024,
+        "qthree": 250.38571253514766,
+        "iqr": 0.14424261489742207
       },
       "session_medians": [
-        251.42093706294582,
-        252.15097960491678,
-        250.6929673806308
+        250.1526033025792,
+        250.441088532374,
+        250.33033653792128
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1167,15 +1699,15 @@
       "metric": "E2 Indexed / durable",
       "stats": {
         "n": 900,
-        "median": 16971186.5,
-        "qone": 16185614.25,
-        "qthree": 18333279.75,
-        "iqr": 2147665.5
+        "median": 17161914.0,
+        "qone": 15408823.0,
+        "qthree": 18366808.5,
+        "iqr": 2957985.5
       },
       "session_medians": [
-        17168717.0,
-        17526184.5,
-        16777155.0
+        17145507.5,
+        17445510.5,
+        17204285.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1184,15 +1716,15 @@
       "metric": "E2 Indexed / durable active throughput",
       "stats": {
         "n": 30,
-        "median": 58.690075819072646,
-        "qone": 57.059742067672914,
-        "qthree": 59.222854275902996,
-        "iqr": 2.163112208230082
+        "median": 58.768650417110564,
+        "qone": 57.83489757668495,
+        "qthree": 59.38356020702217,
+        "iqr": 1.548662630337219
       },
       "session_medians": [
-        57.2015231352409,
-        58.07685526522306,
-        59.31869185890193
+        58.639672925298015,
+        57.56613799978987,
+        59.48233392703521
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1201,15 +1733,15 @@
       "metric": "E2 Indexed / durable closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 57.39550956309163,
-        "qone": 48.9641842566954,
-        "qthree": 58.16198129956972,
-        "iqr": 9.19779704287432
+        "median": 58.08285032173885,
+        "qone": 57.5850621141592,
+        "qthree": 58.58074571513375,
+        "iqr": 0.9956836009745516
       },
       "session_medians": [
-        40.532858950299165,
-        57.39550956309163,
-        58.92845303604781
+        57.087273906579554,
+        58.08285032173885,
+        59.07864110852865
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1218,15 +1750,15 @@
       "metric": "E2 Voucher / durable",
       "stats": {
         "n": 900,
-        "median": 18702372.0,
-        "qone": 17901828.5,
-        "qthree": 19593481.75,
-        "iqr": 1691653.25
+        "median": 18183857.0,
+        "qone": 17046074.25,
+        "qthree": 48242010.25,
+        "iqr": 31195936.0
       },
       "session_medians": [
-        18408106.0,
-        19335336.0,
-        18524291.0
+        17212468.5,
+        18164763.5,
+        56043255.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1235,15 +1767,15 @@
       "metric": "E2 Voucher / durable active throughput",
       "stats": {
         "n": 30,
-        "median": 53.34881446138617,
-        "qone": 51.12340659553807,
-        "qthree": 55.31265955920524,
-        "iqr": 4.189252963667165
+        "median": 55.1716131789385,
+        "qone": 20.643336641332272,
+        "qthree": 58.08018294267576,
+        "iqr": 37.43684630134349
       },
       "session_medians": [
-        54.299620916240656,
-        51.33652783177555,
-        53.917220803840834
+        58.070247792265846,
+        55.1716131789385,
+        16.89216137027565
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1252,15 +1784,15 @@
       "metric": "E2 Voucher / durable closed-loop throughput",
       "stats": {
         "n": 3,
-        "median": 28.830993157112925,
-        "qone": 28.790863549570247,
-        "qthree": 28.89558065561625,
-        "iqr": 0.10471710604600304
+        "median": 28.536212026730915,
+        "qone": 18.581695243626903,
+        "qthree": 28.5877657370709,
+        "iqr": 10.006070493443996
       },
       "session_medians": [
-        28.75073394202757,
-        28.96016815411958,
-        28.830993157112925
+        28.639319447410884,
+        28.536212026730915,
+        8.627178460522893
       ],
       "scale": 1,
       "unit": "calls/s"
@@ -1269,15 +1801,15 @@
       "metric": "E3 10 Point PostgreSQL Read",
       "stats": {
         "n": 900,
-        "median": 41578.5,
-        "qone": 41119.75,
-        "qthree": 42333.0,
-        "iqr": 1213.25
+        "median": 41746.0,
+        "qone": 41173.5,
+        "qthree": 42550.5,
+        "iqr": 1377.0
       },
       "session_medians": [
-        41779.5,
-        41373.5,
-        41565.5
+        41567.5,
+        41456.5,
+        42157.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1286,15 +1818,15 @@
       "metric": "E3 10 Point PostgreSQL Update",
       "stats": {
         "n": 900,
-        "median": 3316049.5,
-        "qone": 2236165.25,
-        "qthree": 3547359.75,
-        "iqr": 1311194.5
+        "median": 2418216.5,
+        "qone": 2194624.75,
+        "qthree": 3548250.25,
+        "iqr": 1353625.5
       },
       "session_medians": [
-        2302952.0,
-        2672543.5,
-        3437508.5
+        3398387.0,
+        2241015.0,
+        2833128.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1303,15 +1835,15 @@
       "metric": "E3 10 Point SQLite Read",
       "stats": {
         "n": 900,
-        "median": 3023.0,
-        "qone": 2978.75,
-        "qthree": 3066.0,
-        "iqr": 87.25
+        "median": 3045.0,
+        "qone": 3006.75,
+        "qthree": 3101.0,
+        "iqr": 94.25
       },
       "session_medians": [
-        3047.5,
-        3010.0,
-        2988.5
+        3027.0,
+        3081.0,
+        3027.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1320,15 +1852,15 @@
       "metric": "E3 10 Point SQLite Update",
       "stats": {
         "n": 900,
-        "median": 6732200.5,
-        "qone": 4451659.25,
-        "qthree": 7099180.25,
-        "iqr": 2647521.0
+        "median": 6752084.5,
+        "qone": 4590293.25,
+        "qthree": 7203644.25,
+        "iqr": 2613351.0
       },
       "session_medians": [
-        6012542.5,
-        5547912.5,
-        6797203.5
+        6998107.0,
+        6059014.5,
+        5898331.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1337,15 +1869,15 @@
       "metric": "E3 10 Point JayDB2 Read",
       "stats": {
         "n": 900,
-        "median": 3838671.0,
-        "qone": 3798510.5,
-        "qthree": 3887441.5,
-        "iqr": 88931.0
+        "median": 3854967.5,
+        "qone": 3812074.75,
+        "qthree": 3921390.75,
+        "iqr": 109316.0
       },
       "session_medians": [
-        3835609.5,
-        3835293.5,
-        3847186.0
+        3884447.5,
+        3858364.5,
+        3835967.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1354,15 +1886,15 @@
       "metric": "E3 10 Point JayDB2 Update",
       "stats": {
         "n": 900,
-        "median": 15707171.0,
-        "qone": 12771171.5,
-        "qthree": 17302898.5,
-        "iqr": 4531727.0
+        "median": 14643737.0,
+        "qone": 13719153.75,
+        "qthree": 15863484.25,
+        "iqr": 2144330.5
       },
       "session_medians": [
-        14971201.5,
-        15084524.0,
-        17248260.5
+        14831237.5,
+        14337545.5,
+        14688129.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1371,15 +1903,15 @@
       "metric": "E3 10 Owner PostgreSQL Read",
       "stats": {
         "n": 900,
-        "median": 41777.5,
-        "qone": 41260.5,
-        "qthree": 42415.0,
-        "iqr": 1154.5
+        "median": 42096.5,
+        "qone": 41640.25,
+        "qthree": 42750.25,
+        "iqr": 1110.0
       },
       "session_medians": [
-        41842.5,
-        42174.5,
-        41155.5
+        42113.0,
+        41963.5,
+        42182.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1388,15 +1920,15 @@
       "metric": "E3 10 Owner PostgreSQL Update",
       "stats": {
         "n": 900,
-        "median": 3269266.0,
-        "qone": 2251403.5,
-        "qthree": 3493605.0,
-        "iqr": 1242201.5
+        "median": 3260386.5,
+        "qone": 2220819.25,
+        "qthree": 3445936.75,
+        "iqr": 1225117.5
       },
       "session_medians": [
-        3424230.0,
-        3224245.0,
-        3290355.5
+        2950701.5,
+        2978007.0,
+        3284622.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1405,15 +1937,15 @@
       "metric": "E3 10 Owner SQLite Read",
       "stats": {
         "n": 900,
-        "median": 3183.0,
-        "qone": 3152.0,
-        "qthree": 3227.0,
-        "iqr": 75.0
+        "median": 3208.0,
+        "qone": 3165.0,
+        "qthree": 3259.0,
+        "iqr": 94.0
       },
       "session_medians": [
-        3192.0,
-        3158.5,
-        3193.0
+        3184.5,
+        3185.5,
+        3241.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1422,15 +1954,15 @@
       "metric": "E3 10 Owner SQLite Update",
       "stats": {
         "n": 900,
-        "median": 5814230.0,
-        "qone": 4455129.25,
-        "qthree": 7004884.75,
-        "iqr": 2549755.5
+        "median": 5659315.0,
+        "qone": 4637971.75,
+        "qthree": 6729683.5,
+        "iqr": 2091711.75
       },
       "session_medians": [
-        5965492.5,
-        6753064.0,
-        5743696.0
+        5615762.0,
+        5669302.0,
+        5732096.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1439,15 +1971,15 @@
       "metric": "E3 10 Owner JayDB2 Read",
       "stats": {
         "n": 900,
-        "median": 5054168.5,
-        "qone": 5007550.25,
-        "qthree": 5099794.25,
-        "iqr": 92244.0
+        "median": 5072067.5,
+        "qone": 5019645.5,
+        "qthree": 5119556.75,
+        "iqr": 99911.25
       },
       "session_medians": [
-        5046132.5,
-        5063156.0,
-        5049684.5
+        5075711.0,
+        5062368.5,
+        5074852.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1456,15 +1988,15 @@
       "metric": "E3 10 Owner JayDB2 Update",
       "stats": {
         "n": 900,
-        "median": 16438309.5,
-        "qone": 14466780.5,
-        "qthree": 18167863.75,
-        "iqr": 3701083.25
+        "median": 15903052.0,
+        "qone": 14679322.25,
+        "qthree": 17463611.75,
+        "iqr": 2784289.5
       },
       "session_medians": [
-        16072439.5,
-        16558793.0,
-        18607077.5
+        15745275.0,
+        15883870.5,
+        16837861.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1473,15 +2005,15 @@
       "metric": "E3 1,104 Point PostgreSQL Read",
       "stats": {
         "n": 900,
-        "median": 41940.0,
-        "qone": 41497.5,
-        "qthree": 42691.5,
-        "iqr": 1194.0
+        "median": 42018.0,
+        "qone": 41519.0,
+        "qthree": 42822.75,
+        "iqr": 1303.75
       },
       "session_medians": [
-        41998.5,
-        42294.0,
-        41509.0
+        42019.5,
+        42530.0,
+        41557.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1490,15 +2022,15 @@
       "metric": "E3 1,104 Point PostgreSQL Update",
       "stats": {
         "n": 900,
-        "median": 2745059.0,
-        "qone": 2179120.0,
-        "qthree": 3453979.25,
-        "iqr": 1274859.25
+        "median": 3058234.5,
+        "qone": 2268683.75,
+        "qthree": 3465643.75,
+        "iqr": 1196960.0
       },
       "session_medians": [
-        3268737.5,
-        2994616.5,
-        2603947.5
+        3087640.0,
+        2637294.5,
+        3274879.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1507,15 +2039,15 @@
       "metric": "E3 1,104 Point SQLite Read",
       "stats": {
         "n": 900,
-        "median": 3227.0,
-        "qone": 3185.0,
-        "qthree": 3291.0,
-        "iqr": 106.0
+        "median": 3242.0,
+        "qone": 3208.0,
+        "qthree": 3292.0,
+        "iqr": 84.0
       },
       "session_medians": [
-        3239.0,
-        3225.5,
-        3214.5
+        3245.5,
+        3237.0,
+        3239.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1524,15 +2056,15 @@
       "metric": "E3 1,104 Point SQLite Update",
       "stats": {
         "n": 900,
-        "median": 2954854.5,
-        "qone": 2139864.25,
-        "qthree": 3437284.0,
-        "iqr": 1297419.75
+        "median": 2526818.5,
+        "qone": 2078587.25,
+        "qthree": 3306922.0,
+        "iqr": 1228334.75
       },
       "session_medians": [
-        3195202.0,
-        3166802.0,
-        2939942.5
+        2851232.5,
+        2526818.5,
+        2820644.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1541,15 +2073,15 @@
       "metric": "E3 1,104 Point JayDB2 Read",
       "stats": {
         "n": 900,
-        "median": 36779291.0,
-        "qone": 36617141.75,
-        "qthree": 36942727.5,
-        "iqr": 325585.75
+        "median": 36862591.5,
+        "qone": 36708616.75,
+        "qthree": 37041860.5,
+        "iqr": 333243.75
       },
       "session_medians": [
-        36795285.5,
-        36774951.5,
-        36770929.5
+        36812943.5,
+        36892291.0,
+        36911421.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1558,15 +2090,15 @@
       "metric": "E3 1,104 Point JayDB2 Update",
       "stats": {
         "n": 900,
-        "median": 48943233.5,
-        "qone": 47803783.25,
-        "qthree": 50071746.75,
-        "iqr": 2267963.5
+        "median": 48862434.5,
+        "qone": 47761363.75,
+        "qthree": 49890440.5,
+        "iqr": 2129076.75
       },
       "session_medians": [
-        48839898.5,
-        49044847.5,
-        48946381.0
+        48931792.5,
+        48979539.0,
+        48677266.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1575,15 +2107,15 @@
       "metric": "E3 1,104 Owner PostgreSQL Read",
       "stats": {
         "n": 900,
-        "median": 42322.5,
-        "qone": 41938.0,
-        "qthree": 42950.75,
-        "iqr": 1012.75
+        "median": 42818.0,
+        "qone": 42361.75,
+        "qthree": 43531.0,
+        "iqr": 1169.25
       },
       "session_medians": [
-        42323.0,
-        42383.0,
-        42250.0
+        43053.5,
+        42918.5,
+        42423.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1592,15 +2124,15 @@
       "metric": "E3 1,104 Owner PostgreSQL Update",
       "stats": {
         "n": 900,
-        "median": 3258580.5,
-        "qone": 2239612.75,
-        "qthree": 3447554.25,
-        "iqr": 1207941.5
+        "median": 3324083.5,
+        "qone": 2228912.0,
+        "qthree": 3468476.25,
+        "iqr": 1239564.25
       },
       "session_medians": [
-        3281469.0,
-        3323497.5,
-        3253886.0
+        3004383.5,
+        3331443.0,
+        2959448.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1609,15 +2141,15 @@
       "metric": "E3 1,104 Owner SQLite Read",
       "stats": {
         "n": 900,
-        "median": 3377.0,
-        "qone": 3339.0,
-        "qthree": 3445.0,
-        "iqr": 106.0
+        "median": 3351.0,
+        "qone": 3307.0,
+        "qthree": 3415.0,
+        "iqr": 108.0
       },
       "session_medians": [
-        3360.0,
-        3375.0,
-        3402.0
+        3326.0,
+        3368.0,
+        3356.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1626,15 +2158,15 @@
       "metric": "E3 1,104 Owner SQLite Update",
       "stats": {
         "n": 900,
-        "median": 3163117.0,
-        "qone": 2076311.75,
-        "qthree": 3314457.5,
-        "iqr": 1238145.75
+        "median": 2955751.5,
+        "qone": 2130256.25,
+        "qthree": 3442845.0,
+        "iqr": 1312588.75
       },
       "session_medians": [
-        3249085.5,
-        3098891.5,
-        2524385.0
+        3158342.0,
+        2951362.5,
+        2545299.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1643,15 +2175,15 @@
       "metric": "E3 1,104 Owner JayDB2 Read",
       "stats": {
         "n": 900,
-        "median": 37856663.0,
-        "qone": 37706949.25,
-        "qthree": 38057944.75,
-        "iqr": 350995.5
+        "median": 37876127.5,
+        "qone": 37703304.0,
+        "qthree": 38061838.25,
+        "iqr": 358534.25
       },
       "session_medians": [
-        37796622.5,
-        37973859.0,
-        37849400.5
+        37887235.5,
+        37792180.0,
+        37956391.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1660,15 +2192,15 @@
       "metric": "E3 1,104 Owner JayDB2 Update",
       "stats": {
         "n": 900,
-        "median": 50131294.5,
-        "qone": 48895041.25,
-        "qthree": 52015837.25,
-        "iqr": 3120796.0
+        "median": 50503336.5,
+        "qone": 49026376.25,
+        "qthree": 57073157.25,
+        "iqr": 8046781.0
       },
       "session_medians": [
-        81830388.0,
-        49423352.0,
-        49534835.5
+        49585189.5,
+        95332925.5,
+        49776589.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1677,13 +2209,13 @@
       "metric": "E5 10 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 3854488.0,
-        "qone": 3808748.5,
-        "qthree": 3925599.25,
-        "iqr": 116850.75
+        "median": 3871462.0,
+        "qone": 3838645.25,
+        "qthree": 3901480.0,
+        "iqr": 62834.75
       },
       "session_medians": [
-        3854488.0
+        3871462.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1692,13 +2224,13 @@
       "metric": "E5 10 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 3843373.5,
-        "qone": 3811723.75,
-        "qthree": 3896594.5,
-        "iqr": 84870.75
+        "median": 3896972.5,
+        "qone": 3865530.25,
+        "qthree": 3933909.25,
+        "iqr": 68379.0
       },
       "session_medians": [
-        3843373.5
+        3896972.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1707,13 +2239,13 @@
       "metric": "E5 10 / volatile first-key Read",
       "stats": {
         "n": 50,
-        "median": 3850528.0,
-        "qone": 3813247.25,
-        "qthree": 3914342.5,
-        "iqr": 101095.25
+        "median": 3901916.0,
+        "qone": 3854228.0,
+        "qthree": 3935523.25,
+        "iqr": 81295.25
       },
       "session_medians": [
-        3850528.0
+        3901916.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1722,13 +2254,13 @@
       "metric": "E5 30 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 4470712.0,
-        "qone": 4420532.5,
-        "qthree": 4505544.25,
-        "iqr": 85011.75
+        "median": 4483699.0,
+        "qone": 4452368.0,
+        "qthree": 4524669.25,
+        "iqr": 72301.25
       },
       "session_medians": [
-        4470712.0
+        4483699.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1737,13 +2269,13 @@
       "metric": "E5 30 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 4484808.0,
-        "qone": 4447377.25,
-        "qthree": 4535453.5,
-        "iqr": 88076.25
+        "median": 4527674.5,
+        "qone": 4484340.75,
+        "qthree": 4569724.25,
+        "iqr": 85383.5
       },
       "session_medians": [
-        4484808.0
+        4527674.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1752,13 +2284,13 @@
       "metric": "E5 100 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 6553824.0,
-        "qone": 6495464.5,
-        "qthree": 6607513.0,
-        "iqr": 112048.5
+        "median": 6565832.0,
+        "qone": 6479186.5,
+        "qthree": 6629395.5,
+        "iqr": 150209.0
       },
       "session_medians": [
-        6553824.0
+        6565832.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1767,13 +2299,13 @@
       "metric": "E5 100 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 6556014.5,
-        "qone": 6518307.0,
-        "qthree": 6598208.5,
-        "iqr": 79901.5
+        "median": 6612169.5,
+        "qone": 6561447.5,
+        "qthree": 6655535.25,
+        "iqr": 94087.75
       },
       "session_medians": [
-        6556014.5
+        6612169.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1782,13 +2314,13 @@
       "metric": "E5 300 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 12506450.5,
-        "qone": 12424692.0,
-        "qthree": 12582887.0,
-        "iqr": 158195.0
+        "median": 12545444.5,
+        "qone": 12457556.75,
+        "qthree": 12690232.75,
+        "iqr": 232676.0
       },
       "session_medians": [
-        12506450.5
+        12545444.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1797,13 +2329,13 @@
       "metric": "E5 300 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 12748511.5,
-        "qone": 12638500.75,
-        "qthree": 12814653.5,
-        "iqr": 176152.75
+        "median": 12731953.5,
+        "qone": 12658508.25,
+        "qthree": 12847043.25,
+        "iqr": 188535.0
       },
       "session_medians": [
-        12748511.5
+        12731953.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1812,13 +2344,13 @@
       "metric": "E5 600 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 21548285.0,
-        "qone": 21458966.5,
-        "qthree": 21676671.5,
-        "iqr": 217705.0
+        "median": 21696523.5,
+        "qone": 21575772.75,
+        "qthree": 21838312.5,
+        "iqr": 262539.75
       },
       "session_medians": [
-        21548285.0
+        21696523.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1827,13 +2359,13 @@
       "metric": "E5 600 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 21897392.5,
-        "qone": 21793697.5,
-        "qthree": 22025318.0,
-        "iqr": 231620.5
+        "median": 21988148.0,
+        "qone": 21901692.5,
+        "qthree": 22183655.0,
+        "iqr": 281962.5
       },
       "session_medians": [
-        21897392.5
+        21988148.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1842,13 +2374,13 @@
       "metric": "E5 1,000 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 33608078.5,
-        "qone": 33457330.25,
-        "qthree": 33767683.75,
-        "iqr": 310353.5
+        "median": 33863599.0,
+        "qone": 33657612.0,
+        "qthree": 33988117.25,
+        "iqr": 330505.25
       },
       "session_medians": [
-        33608078.5
+        33863599.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1857,13 +2389,13 @@
       "metric": "E5 1,000 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 34239062.0,
-        "qone": 34016944.0,
-        "qthree": 34385582.75,
-        "iqr": 368638.75
+        "median": 34262493.0,
+        "qone": 34167954.5,
+        "qthree": 34482549.25,
+        "iqr": 314594.75
       },
       "session_medians": [
-        34239062.0
+        34262493.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1872,13 +2404,13 @@
       "metric": "E5 1,105 / volatile Read",
       "stats": {
         "n": 50,
-        "median": 36954677.0,
-        "qone": 36749508.0,
-        "qthree": 37087696.5,
-        "iqr": 338188.5
+        "median": 37053715.5,
+        "qone": 36905262.25,
+        "qthree": 37253410.25,
+        "iqr": 348148.0
       },
       "session_medians": [
-        36954677.0
+        37053715.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1887,13 +2419,13 @@
       "metric": "E5 1,105 / volatile Update",
       "stats": {
         "n": 50,
-        "median": 37483889.5,
-        "qone": 37298179.5,
-        "qthree": 37642464.25,
-        "iqr": 344284.75
+        "median": 37703054.5,
+        "qone": 37477789.25,
+        "qthree": 37896176.5,
+        "iqr": 418387.25
       },
       "session_medians": [
-        37483889.5
+        37703054.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1902,13 +2434,13 @@
       "metric": "E5 1,105 / volatile first-key Read",
       "stats": {
         "n": 50,
-        "median": 36916844.0,
-        "qone": 36746478.75,
-        "qthree": 37097590.25,
-        "iqr": 351111.5
+        "median": 37000520.0,
+        "qone": 36851065.5,
+        "qthree": 37170563.0,
+        "iqr": 319497.5
       },
       "session_medians": [
-        36916844.0
+        37000520.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1917,13 +2449,13 @@
       "metric": "E5 10 / durable Read",
       "stats": {
         "n": 50,
-        "median": 3820463.5,
-        "qone": 3791944.5,
-        "qthree": 3862908.5,
-        "iqr": 70964.0
+        "median": 3881943.5,
+        "qone": 3847247.75,
+        "qthree": 3932118.75,
+        "iqr": 84871.0
       },
       "session_medians": [
-        3820463.5
+        3881943.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1932,13 +2464,13 @@
       "metric": "E5 10 / durable Update",
       "stats": {
         "n": 50,
-        "median": 16489240.5,
-        "qone": 11931548.25,
-        "qthree": 16938738.0,
-        "iqr": 5007189.75
+        "median": 14574186.5,
+        "qone": 14407804.25,
+        "qthree": 14691499.5,
+        "iqr": 283695.25
       },
       "session_medians": [
-        16489240.5
+        14574186.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1947,13 +2479,13 @@
       "metric": "E5 10 / durable first-key Read",
       "stats": {
         "n": 50,
-        "median": 3819216.0,
-        "qone": 3763989.5,
-        "qthree": 3866776.25,
-        "iqr": 102786.75
+        "median": 3867422.0,
+        "qone": 3824433.75,
+        "qthree": 3938579.5,
+        "iqr": 114145.75
       },
       "session_medians": [
-        3819216.0
+        3867422.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1962,13 +2494,13 @@
       "metric": "E5 30 / durable Read",
       "stats": {
         "n": 50,
-        "median": 4523488.5,
-        "qone": 4482296.5,
-        "qthree": 4552659.25,
-        "iqr": 70362.75
+        "median": 4498649.5,
+        "qone": 4457996.0,
+        "qthree": 4555364.75,
+        "iqr": 97368.75
       },
       "session_medians": [
-        4523488.5
+        4498649.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1977,13 +2509,13 @@
       "metric": "E5 30 / durable Update",
       "stats": {
         "n": 50,
-        "median": 15808365.5,
-        "qone": 13785032.75,
-        "qthree": 16388280.0,
-        "iqr": 2603247.25
+        "median": 15594621.0,
+        "qone": 13875412.25,
+        "qthree": 25726539.0,
+        "iqr": 11851126.75
       },
       "session_medians": [
-        15808365.5
+        15594621.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -1992,13 +2524,13 @@
       "metric": "E5 100 / durable Read",
       "stats": {
         "n": 50,
-        "median": 6599032.5,
-        "qone": 6522565.75,
-        "qthree": 6678429.5,
-        "iqr": 155863.75
+        "median": 6584023.0,
+        "qone": 6515631.25,
+        "qthree": 6630247.25,
+        "iqr": 114616.0
       },
       "session_medians": [
-        6599032.5
+        6584023.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2007,13 +2539,13 @@
       "metric": "E5 100 / durable Update",
       "stats": {
         "n": 50,
-        "median": 17767854.0,
-        "qone": 14499687.25,
-        "qthree": 19560208.5,
-        "iqr": 5060521.25
+        "median": 17559250.5,
+        "qone": 15830289.25,
+        "qthree": 18418323.25,
+        "iqr": 2588034.0
       },
       "session_medians": [
-        17767854.0
+        17559250.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2022,13 +2554,13 @@
       "metric": "E5 300 / durable Read",
       "stats": {
         "n": 50,
-        "median": 12578473.0,
-        "qone": 12499340.25,
-        "qthree": 12641359.0,
-        "iqr": 142018.75
+        "median": 12552696.5,
+        "qone": 12482536.75,
+        "qthree": 12654086.75,
+        "iqr": 171550.0
       },
       "session_medians": [
-        12578473.0
+        12552696.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2037,13 +2569,13 @@
       "metric": "E5 300 / durable Update",
       "stats": {
         "n": 50,
-        "median": 23688293.5,
-        "qone": 21789389.0,
-        "qthree": 25607134.25,
-        "iqr": 3817745.25
+        "median": 23592637.5,
+        "qone": 20827049.25,
+        "qthree": 25460260.5,
+        "iqr": 4633211.25
       },
       "session_medians": [
-        23688293.5
+        23592637.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2052,13 +2584,13 @@
       "metric": "E5 600 / durable Read",
       "stats": {
         "n": 50,
-        "median": 21638451.0,
-        "qone": 21564813.5,
-        "qthree": 21749585.25,
-        "iqr": 184771.75
+        "median": 21586180.5,
+        "qone": 21469217.5,
+        "qthree": 21719973.75,
+        "iqr": 250756.25
       },
       "session_medians": [
-        21638451.0
+        21586180.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2067,13 +2599,13 @@
       "metric": "E5 600 / durable Update",
       "stats": {
         "n": 50,
-        "median": 32904668.5,
-        "qone": 31712511.5,
-        "qthree": 34005701.5,
-        "iqr": 2293190.0
+        "median": 33455076.0,
+        "qone": 31914965.5,
+        "qthree": 34306906.0,
+        "iqr": 2391940.5
       },
       "session_medians": [
-        32904668.5
+        33455076.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2082,13 +2614,13 @@
       "metric": "E5 1,000 / durable Read",
       "stats": {
         "n": 50,
-        "median": 33689019.0,
-        "qone": 33546566.75,
-        "qthree": 33826396.5,
-        "iqr": 279829.75
+        "median": 33848946.5,
+        "qone": 33730846.25,
+        "qthree": 33974284.75,
+        "iqr": 243438.5
       },
       "session_medians": [
-        33689019.0
+        33848946.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2097,13 +2629,13 @@
       "metric": "E5 1,000 / durable Update",
       "stats": {
         "n": 50,
-        "median": 45333817.5,
-        "qone": 44508372.0,
-        "qthree": 46284029.75,
-        "iqr": 1775657.75
+        "median": 45789876.5,
+        "qone": 44690289.25,
+        "qthree": 46968176.5,
+        "iqr": 2277887.25
       },
       "session_medians": [
-        45333817.5
+        45789876.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2112,13 +2644,13 @@
       "metric": "E5 1,105 / durable Read",
       "stats": {
         "n": 50,
-        "median": 36969829.5,
-        "qone": 36840088.5,
-        "qthree": 37193752.0,
-        "iqr": 353663.5
+        "median": 37023127.0,
+        "qone": 36831110.25,
+        "qthree": 37227115.5,
+        "iqr": 396005.25
       },
       "session_medians": [
-        36969829.5
+        37023127.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2127,13 +2659,13 @@
       "metric": "E5 1,105 / durable Update",
       "stats": {
         "n": 50,
-        "median": 49053301.0,
-        "qone": 48234864.5,
-        "qthree": 50335327.0,
-        "iqr": 2100462.5
+        "median": 49275004.0,
+        "qone": 47906558.0,
+        "qthree": 50179848.75,
+        "iqr": 2273290.75
       },
       "session_medians": [
-        49053301.0
+        49275004.0
       ],
       "scale": 1000000.0,
       "unit": "ms"
@@ -2142,16 +2674,1372 @@
       "metric": "E5 1,105 / durable first-key Read",
       "stats": {
         "n": 50,
-        "median": 37152464.5,
-        "qone": 36929514.5,
-        "qthree": 37299151.75,
-        "iqr": 369637.25
+        "median": 37122011.5,
+        "qone": 36952600.0,
+        "qthree": 37241548.5,
+        "iqr": 288948.5
       },
       "session_medians": [
-        37152464.5
+        37122011.5
       ],
       "scale": 1000000.0,
       "unit": "ms"
     }
-  ]
+  ],
+  "compute": {
+    "simulation": {
+      "settings": {
+        "cuda": {
+          "corpus_mib": 512,
+          "host_threads": 1,
+          "clock_fixed": false,
+          "device": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 3080 Ti, 595.99.02, 12288 MiB\n"
+        },
+        "cpu_threads": [
+          1,
+          16
+        ],
+        "numpy": "2.5.4",
+        "postgresql": {
+          "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+          "fsync": "on",
+          "synchronous_commit": "on",
+          "full_page_writes": "on",
+          "shared_buffers": "128MB",
+          "wal_sync_method": "fdatasync",
+          "role": [
+            "bench_alice",
+            false,
+            false
+          ],
+          "tables": "TEMP",
+          "admission": "none",
+          "psycopg": "3.3.8"
+        },
+        "sqlite": {
+          "version": "3.45.1",
+          "storage": ":memory:",
+          "journal_mode": "memory",
+          "implementation": "recursive CTE; no Python UDF"
+        }
+      },
+      "preparations": [
+        {
+          "backend": "cpu-1",
+          "threads": 1,
+          "elapsed_ms": 8651.317064,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+            "executableSha256": "3348a1f351b5718fd50ad985d0c4d622147b0d975483a9688c1fd65e933e6f6c",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-377808-0/request-377808-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-377808-0/request-377808-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
+              "-lm",
+              "-pthread"
+            ],
+            "backend": "cpu",
+            "emitted_bangs": 1
+          }
+        },
+        {
+          "backend": "cpu-16",
+          "threads": 16,
+          "elapsed_ms": 8615.029503,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+            "executableSha256": "3348a1f351b5718fd50ad985d0c4d622147b0d975483a9688c1fd65e933e6f6c",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-378298-0/request-378298-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-378298-0/request-378298-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
+              "-lm",
+              "-pthread"
+            ],
+            "backend": "cpu",
+            "emitted_bangs": 1
+          }
+        },
+        {
+          "backend": "cuda",
+          "threads": 1,
+          "elapsed_ms": 11764.10799,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+            "executableSha256": "05ff2d9df0734f126827b88c0c90d24dab8b9c79e561f2d2565ee6e6bb5ad1b6",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-378825-0/request-378825-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-378825-0/request-378825-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
+              "-lm",
+              "-pthread",
+              "-DBEND_CUDA=1",
+              "-lcuda",
+              "-lnvrtc"
+            ],
+            "backend": "cuda",
+            "gpuSha256": "6a1011047b5ce22d6ded68c00ae319d1fab42ceb73d4a5e5373d5ad190198254",
+            "gpuMiB": 512,
+            "cudaLibraries": {
+              "libcuda.so.1": {
+                "path": "/usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02",
+                "sha256": "192d4eedb1b39f0568f2b5423d35227d13b32b9025599e1968a9081982da207d"
+              },
+              "libnvrtc.so.12": {
+                "path": "/usr/lib/x86_64-linux-gnu/libnvrtc.so.12.0.140",
+                "sha256": "d7c32a86aa8321ef60a911b7b0c6655db489cae21481c71e166a684cbd54c62a"
+              }
+            },
+            "hasBangs": true,
+            "emitted_bangs": 1
+          }
+        }
+      ],
+      "records": [
+        {
+          "backend": "cpu-1",
+          "depth": 2,
+          "paths": 4,
+          "steps": 32,
+          "updates": 128,
+          "status": "measured",
+          "samples_ms": [
+            6.964333,
+            6.67753,
+            6.587596
+          ],
+          "warmup_ms": [
+            7.623051
+          ],
+          "median_ms": 6.67753,
+          "range_ms": [
+            6.587596,
+            6.964333
+          ],
+          "result": {
+            "sum": 4001074,
+            "max": 1000666,
+            "above": 3,
+            "paths": 4
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-1",
+          "depth": 10,
+          "paths": 1024,
+          "steps": 256,
+          "updates": 262144,
+          "status": "measured",
+          "samples_ms": [
+            7.185263,
+            7.108356,
+            7.143958
+          ],
+          "warmup_ms": [
+            7.343427
+          ],
+          "median_ms": 7.143958,
+          "range_ms": [
+            7.108356,
+            7.185263
+          ],
+          "result": {
+            "sum": 1024024504,
+            "max": 1007611,
+            "above": 510,
+            "paths": 1024
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-1",
+          "depth": 14,
+          "paths": 16384,
+          "steps": 1024,
+          "updates": 16777216,
+          "status": "measured",
+          "samples_ms": [
+            34.902848,
+            34.946472,
+            35.179273
+          ],
+          "warmup_ms": [
+            35.012587
+          ],
+          "median_ms": 34.946472,
+          "range_ms": [
+            34.902848,
+            35.179273
+          ],
+          "result": {
+            "sum": 3494396886,
+            "max": 1016157,
+            "above": 7777,
+            "paths": 16384
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-1",
+          "depth": 16,
+          "paths": 65536,
+          "steps": 16384,
+          "updates": 1073741824,
+          "status": "measured",
+          "samples_ms": [
+            1802.404583,
+            1802.072136,
+            1802.22375
+          ],
+          "warmup_ms": [
+            1802.244772
+          ],
+          "median_ms": 1802.22375,
+          "range_ms": [
+            1802.072136,
+            1802.404583
+          ],
+          "result": {
+            "sum": 792166316,
+            "max": 1072386,
+            "above": 26045,
+            "paths": 65536
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-16",
+          "depth": 2,
+          "paths": 4,
+          "steps": 32,
+          "updates": 128,
+          "status": "measured",
+          "samples_ms": [
+            7.182502,
+            6.829548,
+            7.063321
+          ],
+          "warmup_ms": [
+            7.933279
+          ],
+          "median_ms": 7.063321,
+          "range_ms": [
+            6.829548,
+            7.182502
+          ],
+          "result": {
+            "sum": 4001074,
+            "max": 1000666,
+            "above": 3,
+            "paths": 4
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-16",
+          "depth": 10,
+          "paths": 1024,
+          "steps": 256,
+          "updates": 262144,
+          "status": "measured",
+          "samples_ms": [
+            7.150993,
+            7.106651,
+            7.183881
+          ],
+          "warmup_ms": [
+            7.216953
+          ],
+          "median_ms": 7.150993,
+          "range_ms": [
+            7.106651,
+            7.183881
+          ],
+          "result": {
+            "sum": 1024024504,
+            "max": 1007611,
+            "above": 510,
+            "paths": 1024
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-16",
+          "depth": 14,
+          "paths": 16384,
+          "steps": 1024,
+          "updates": 16777216,
+          "status": "measured",
+          "samples_ms": [
+            10.607664,
+            10.789767,
+            10.591399
+          ],
+          "warmup_ms": [
+            10.653556
+          ],
+          "median_ms": 10.607664,
+          "range_ms": [
+            10.591399,
+            10.789767
+          ],
+          "result": {
+            "sum": 3494396886,
+            "max": 1016157,
+            "above": 7777,
+            "paths": 16384
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cpu-16",
+          "depth": 16,
+          "paths": 65536,
+          "steps": 16384,
+          "updates": 1073741824,
+          "status": "measured",
+          "samples_ms": [
+            234.621004,
+            234.767337,
+            234.929549
+          ],
+          "warmup_ms": [
+            235.469856
+          ],
+          "median_ms": 234.767337,
+          "range_ms": [
+            234.621004,
+            234.929549
+          ],
+          "result": {
+            "sum": 792166316,
+            "max": 1072386,
+            "above": 26045,
+            "paths": 65536
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cuda",
+          "depth": 2,
+          "paths": 4,
+          "steps": 32,
+          "updates": 128,
+          "status": "measured",
+          "samples_ms": [
+            169.164371,
+            161.450843,
+            149.428628
+          ],
+          "warmup_ms": [
+            208.237837
+          ],
+          "median_ms": 161.450843,
+          "range_ms": [
+            149.428628,
+            169.164371
+          ],
+          "result": {
+            "sum": 4001074,
+            "max": 1000666,
+            "above": 3,
+            "paths": 4
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cuda",
+          "depth": 10,
+          "paths": 1024,
+          "steps": 256,
+          "updates": 262144,
+          "status": "measured",
+          "samples_ms": [
+            175.474728,
+            155.208502,
+            155.400416
+          ],
+          "warmup_ms": [
+            173.770578
+          ],
+          "median_ms": 155.400416,
+          "range_ms": [
+            155.208502,
+            175.474728
+          ],
+          "result": {
+            "sum": 1024024504,
+            "max": 1007611,
+            "above": 510,
+            "paths": 1024
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cuda",
+          "depth": 14,
+          "paths": 16384,
+          "steps": 1024,
+          "updates": 16777216,
+          "status": "measured",
+          "samples_ms": [
+            168.739792,
+            170.678139,
+            162.294235
+          ],
+          "warmup_ms": [
+            168.046923
+          ],
+          "median_ms": 168.739792,
+          "range_ms": [
+            162.294235,
+            170.678139
+          ],
+          "result": {
+            "sum": 3494396886,
+            "max": 1016157,
+            "above": 7777,
+            "paths": 16384
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "cuda",
+          "depth": 16,
+          "paths": 65536,
+          "steps": 16384,
+          "updates": 1073741824,
+          "status": "measured",
+          "samples_ms": [
+            181.845147,
+            177.822261,
+            178.204287
+          ],
+          "warmup_ms": [
+            187.315989
+          ],
+          "median_ms": 178.204287,
+          "range_ms": [
+            177.822261,
+            181.845147
+          ],
+          "result": {
+            "sum": 792166316,
+            "max": 1072386,
+            "above": 26045,
+            "paths": 65536
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "postgresql",
+          "depth": 2,
+          "paths": 4,
+          "steps": 32,
+          "updates": 128,
+          "status": "measured",
+          "samples_ms": [
+            0.260681,
+            0.182925,
+            0.115334
+          ],
+          "warmup_ms": [
+            0.212416
+          ],
+          "median_ms": 0.182925,
+          "range_ms": [
+            0.115334,
+            0.260681
+          ],
+          "result": {
+            "sum": 4001074,
+            "max": 1000666,
+            "above": 3,
+            "paths": 4
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "postgresql",
+          "depth": 10,
+          "paths": 1024,
+          "steps": 256,
+          "updates": 262144,
+          "status": "measured",
+          "samples_ms": [
+            29.323205,
+            29.338996,
+            29.438152
+          ],
+          "warmup_ms": [
+            29.279144
+          ],
+          "median_ms": 29.338996,
+          "range_ms": [
+            29.323205,
+            29.438152
+          ],
+          "result": {
+            "sum": 1024024504,
+            "max": 1007611,
+            "above": 510,
+            "paths": 1024
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "postgresql",
+          "depth": 14,
+          "paths": 16384,
+          "steps": 1024,
+          "updates": 16777216,
+          "status": "measured",
+          "samples_ms": [
+            1845.224665,
+            1847.874933,
+            1850.113513
+          ],
+          "warmup_ms": [
+            1848.605529
+          ],
+          "median_ms": 1847.874933,
+          "range_ms": [
+            1845.224665,
+            1850.113513
+          ],
+          "result": {
+            "sum": 3494396886,
+            "max": 1016157,
+            "above": 7777,
+            "paths": 16384
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "postgresql",
+          "depth": 16,
+          "steps": 16384,
+          "paths": 65536,
+          "status": "timeout",
+          "timeout_s": 10,
+          "completed_samples_ms": [],
+          "warmup_ms": [],
+          "last_verified_updates": 16777216,
+          "diagnostic": "canceling statement due to statement timeout\nCONTEXT:  PL/pgSQL function simulate(text,integer,integer) line 14 at assignment"
+        },
+        {
+          "backend": "sqlite",
+          "depth": 2,
+          "paths": 4,
+          "steps": 32,
+          "updates": 128,
+          "status": "measured",
+          "samples_ms": [
+            0.07398,
+            0.074224,
+            0.071863
+          ],
+          "warmup_ms": [
+            0.080606
+          ],
+          "median_ms": 0.07398,
+          "range_ms": [
+            0.071863,
+            0.074224
+          ],
+          "result": {
+            "sum": 4001074,
+            "max": 1000666,
+            "above": 3,
+            "paths": 4
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "sqlite",
+          "depth": 10,
+          "paths": 1024,
+          "steps": 256,
+          "updates": 262144,
+          "status": "measured",
+          "samples_ms": [
+            161.234591,
+            162.434587,
+            162.77777
+          ],
+          "warmup_ms": [
+            160.991287
+          ],
+          "median_ms": 162.434587,
+          "range_ms": [
+            161.234591,
+            162.77777
+          ],
+          "result": {
+            "sum": 1024024504,
+            "max": 1007611,
+            "above": 510,
+            "paths": 1024
+          },
+          "complete_state_verified": true
+        },
+        {
+          "backend": "sqlite",
+          "depth": 14,
+          "steps": 1024,
+          "paths": 16384,
+          "status": "timeout",
+          "timeout_s": 10,
+          "completed_samples_ms": [],
+          "warmup_ms": [],
+          "last_verified_updates": 262144,
+          "diagnostic": "interrupted"
+        },
+        {
+          "backend": "sqlite",
+          "depth": 16,
+          "steps": 16384,
+          "paths": 65536,
+          "status": "not run",
+          "reason": "not run beyond 262144 updates (earlier SQL timeout)",
+          "timeout_s": 10
+        }
+      ]
+    },
+    "gpu": {
+      "runs": [
+        {
+          "backend": "cpu-1",
+          "threads": 1,
+          "first_preparation_ms": 8139.449895,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+            "executableSha256": "0ed397e5d481463f814b5cda5f0f1131e3d8843c82398db7a7d231b66ba6da6d",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-376136-0/request-376136-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-376136-0/request-376136-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
+              "-lm",
+              "-pthread"
+            ],
+            "backend": "cpu"
+          },
+          "records": [
+            {
+              "depth": 2,
+              "leaves": 4,
+              "rounds_per_leaf": 8192,
+              "total_mixing_rounds": 32768,
+              "result": 1321445589,
+              "native_worker_ms": [
+                3.407443,
+                3.312248,
+                3.289665
+              ],
+              "complete_request_ms": [
+                5.749535,
+                5.563293,
+                5.657503
+              ],
+              "median_native_worker_ms": 3.312248,
+              "median_complete_request_ms": 5.657503
+            },
+            {
+              "depth": 16,
+              "leaves": 65536,
+              "rounds_per_leaf": 65536,
+              "total_mixing_rounds": 4294967296,
+              "result": 3867567763,
+              "native_worker_ms": [
+                7179.940654,
+                7179.926094,
+                7179.799813
+              ],
+              "complete_request_ms": [
+                7182.740854,
+                7182.451324,
+                7183.980212
+              ],
+              "median_native_worker_ms": 7179.926094,
+              "median_complete_request_ms": 7182.740854
+            }
+          ],
+          "full_published_states": [
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "backend": "cpu-16",
+          "threads": 16,
+          "first_preparation_ms": 8102.88749,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+            "executableSha256": "0ed397e5d481463f814b5cda5f0f1131e3d8843c82398db7a7d231b66ba6da6d",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-376599-0/request-376599-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-376599-0/request-376599-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
+              "-lm",
+              "-pthread"
+            ],
+            "backend": "cpu"
+          },
+          "records": [
+            {
+              "depth": 2,
+              "leaves": 4,
+              "rounds_per_leaf": 8192,
+              "total_mixing_rounds": 32768,
+              "result": 1321445589,
+              "native_worker_ms": [
+                3.637598,
+                3.758053,
+                3.725421
+              ],
+              "complete_request_ms": [
+                6.296355,
+                6.370937,
+                6.037456
+              ],
+              "median_native_worker_ms": 3.725421,
+              "median_complete_request_ms": 6.296355
+            },
+            {
+              "depth": 16,
+              "leaves": 65536,
+              "rounds_per_leaf": 65536,
+              "total_mixing_rounds": 4294967296,
+              "result": 3867567763,
+              "native_worker_ms": [
+                499.232055,
+                472.148376,
+                499.361344
+              ],
+              "complete_request_ms": [
+                475.28526,
+                502.027444,
+                496.305097
+              ],
+              "median_native_worker_ms": 499.232055,
+              "median_complete_request_ms": 496.305097
+            }
+          ],
+          "full_published_states": [
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "backend": "cuda",
+          "threads": 1,
+          "first_preparation_ms": 11201.489402,
+          "artifact": {
+            "format": "jaydb-official-c-v1",
+            "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+            "executableSha256": "c4a99a6cea46bff23d55bf33169264969843ed759ab8f518e31eb1e013968412",
+            "compiler": "/usr/bin/clang-19",
+            "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+            "flags": [
+              "-std=gnu11",
+              "-O2",
+              "-w",
+              "--no-default-config",
+              "/tmp/jaydb2-377350-0/request-377350-1/checked.c",
+              "-o",
+              "/tmp/jaydb2-377350-0/request-377350-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
+              "-lm",
+              "-pthread",
+              "-DBEND_CUDA=1",
+              "-lcuda",
+              "-lnvrtc"
+            ],
+            "backend": "cuda",
+            "gpuSha256": "d557d3e836530ab885f4a7703b95d80bdfb3aaa2eb0b1cafee54a75567798a24",
+            "gpuMiB": 512,
+            "cudaLibraries": {
+              "libcuda.so.1": {
+                "path": "/usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02",
+                "sha256": "192d4eedb1b39f0568f2b5423d35227d13b32b9025599e1968a9081982da207d"
+              },
+              "libnvrtc.so.12": {
+                "path": "/usr/lib/x86_64-linux-gnu/libnvrtc.so.12.0.140",
+                "sha256": "d7c32a86aa8321ef60a911b7b0c6655db489cae21481c71e166a684cbd54c62a"
+              }
+            },
+            "hasBangs": true
+          },
+          "records": [
+            {
+              "depth": 2,
+              "leaves": 4,
+              "rounds_per_leaf": 8192,
+              "total_mixing_rounds": 32768,
+              "result": 1321445589,
+              "native_worker_ms": [
+                175.133109,
+                180.017615,
+                171.021125
+              ],
+              "complete_request_ms": [
+                148.233011,
+                160.458305,
+                159.884551
+              ],
+              "median_native_worker_ms": 175.133109,
+              "median_complete_request_ms": 159.884551
+            },
+            {
+              "depth": 16,
+              "leaves": 65536,
+              "rounds_per_leaf": 65536,
+              "total_mixing_rounds": 4294967296,
+              "result": 3867567763,
+              "native_worker_ms": [
+                216.248039,
+                209.999917,
+                217.305362
+              ],
+              "complete_request_ms": [
+                209.965799,
+                205.350223,
+                205.836501
+              ],
+              "median_native_worker_ms": 216.248039,
+              "median_complete_request_ms": 205.836501
+            }
+          ],
+          "full_published_states": [
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "alice-token",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            },
+            {
+              "tables": [],
+              "users": [
+                {
+                  "credential": "xxxxxxxxxxxxxxxx",
+                  "id": "alice",
+                  "kind": "user"
+                },
+                {
+                  "credential": "bob-token",
+                  "id": "bob",
+                  "kind": "user"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

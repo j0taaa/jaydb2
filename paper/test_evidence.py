@@ -306,6 +306,113 @@ class EvidenceTests(unittest.TestCase):
         finally:evidence.OUT=previous
 
 
+    def test_compute_derivation_preserves_raw_units_and_caps(self):
+        previous=evidence.OUT
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder);macros=evidence.derive(self.data)
+                sim=self.data['simulation']
+                table=(Path(folder)/'simulation-table-en.tex').read_text()
+                self.assertIn('timeout',table)
+                self.assertIn('not run',table)
+                for r in sim['records']:
+                    if r['status']=='measured':self.assertIn(evidence.decimal(statistics.median(r['samples_ms']),3),table)
+                self.assertEqual(macros['SimulationRepeats'][0],sim['repeats'])
+                self.assertEqual(macros['SimulationMeasuredSamples'][0],sum(len(r.get('samples_ms',[])) for r in sim['records']))
+                for backend,label in [('cpu-1','CpuOne'),('cpu-16','CpuSixteen'),('cuda','Cuda')]:
+                    prep=next(p for p in sim['preparations'] if p['backend']==backend)
+                    self.assertEqual(macros['Simulation'+label+'PreparationMs'][0],prep['elapsed_ms'])
+                    rows=[r for r in sim['records'] if r['backend']==backend]
+                    self.assertEqual(macros['SimulationLarge'+label+'Ms'][0],statistics.median(rows[-1]['samples_ms']))
+                for backend in ('postgresql','sqlite'):
+                    lines=(Path(folder)/('simulation-'+backend+'.dat')).read_text().splitlines()[1:]
+                    rows=[r for r in sim['records'] if r['backend']==backend and r['status']=='measured']
+                    self.assertEqual(len(lines),len(rows))
+                    for line,row in zip(lines,rows):
+                        count,median,lower,upper=map(float,line.split())
+                        self.assertEqual(count,row['updates'])
+                        self.assertAlmostEqual(median-lower,min(row['samples_ms']),places=5)
+                        self.assertAlmostEqual(median+upper,max(row['samples_ms']),places=5)
+        finally:evidence.OUT=previous
+
+    def test_compute_mixed_fingerprints(self):
+        for name in ('gpu-programs','simulation'):
+            with self.subTest(name=name):
+                self.corrupt(lambda d:d[name]['metadata'].update(binary_sha256='0'*64),'Mixed engine fingerprints')
+
+    def test_compute_dirty_measurement(self):
+        for name in ('ordinary','simulation','gpu-programs'):
+            with self.subTest(name=name):
+                self.corrupt(lambda d:d[name]['metadata'].update(dirty=['M server/main.rs']),'Dirty measurement')
+
+    def test_compute_fixture_fingerprint(self):
+        self.corrupt(lambda d:d['simulation']['source_sha256'].update({'paper/bench/simulation.py':'0'*64}),'fixture fingerprint')
+
+    def test_gpu_corrupt_raw_summary(self):
+        self.corrupt(lambda d:d['gpu-programs']['runs'][0]['records'][0].update(median_complete_request_ms=1),'GPU raw summary')
+
+    def test_gpu_corrupt_oracle(self):
+        self.corrupt(lambda d:d['gpu-programs']['oracle'].update({'2':0}),'GPU oracle')
+
+    def test_gpu_missing_native_sample(self):
+        self.corrupt(lambda d:d['gpu-programs']['runs'][0]['records'][0]['native_worker_ms'].pop(),'Invalid GPU samples')
+
+    def test_gpu_changed_published_state(self):
+        self.corrupt(lambda d:d['gpu-programs']['runs'][0]['full_published_states'][-1]['users'][1].update(credential='changed'),'GPU complete published state')
+
+    def test_gpu_missing_cubin_hash(self):
+        self.corrupt(lambda d:d['gpu-programs']['runs'][-1]['artifact'].pop('gpuSha256'),'GPU artifact hash')
+
+    def test_gpu_missing_library_provenance(self):
+        self.corrupt(lambda d:d['simulation']['preparations'][-1]['artifact'].pop('cudaLibraries'),'CUDA library provenance')
+
+    def test_gpu_backend_and_source_binding(self):
+        self.corrupt(lambda d:d['simulation']['preparations'][-1]['artifact'].update(sourceSha256='0'*64),'emitted C differs')
+        self.corrupt(lambda d:d['simulation']['preparations'][-1]['artifact'].update(backend='cpu'),'artifact backend')
+
+    def test_simulation_missing_backend(self):
+        self.corrupt(lambda d:d['simulation']['records'].pop(),'backend coverage')
+
+    def test_simulation_oracle_recomputed_at_all_sizes(self):
+        self.corrupt(lambda d:d['simulation']['oracle']['16:16384'].update(sum=0),'Simulation oracle')
+
+    def test_simulation_result_checked_without_trusting_flag(self):
+        self.corrupt(lambda d:d['simulation']['records'][0]['result'].update(sum=0),'Simulation oracle|Simulation result')
+
+    def test_simulation_summary_and_finite_samples(self):
+        self.corrupt(lambda d:d['simulation']['records'][0].update(median_ms=1),'raw summary')
+        self.corrupt(lambda d:d['simulation']['records'][0]['samples_ms'].__setitem__(0,float('nan')),'Invalid simulation samples')
+
+    def test_simulation_complete_state_is_checked(self):
+        self.corrupt(lambda d:d['simulation']['records'][0].update(complete_state_verified=False),'unchecked state')
+        self.corrupt(lambda d:d['simulation']['published_states']['cuda'][-1]['users'][1].update(credential='changed'),'complete published state')
+
+    def test_simulation_sql_controls_and_storage(self):
+        self.corrupt(lambda d:d['simulation']['sql_controls'].pop(),'SQL control coverage')
+        self.corrupt(lambda d:d['simulation']['sql_controls'][0]['complete_tables'][1]['rows'][1].update(seed=0),'SQL control state')
+        self.corrupt(lambda d:d['simulation']['settings']['postgresql'].update(tables='permanent'),'volatile SQL settings')
+
+    def test_simulation_timeout_cannot_be_reported_as_measurement(self):
+        def edit(d):
+            r=next(r for r in d['simulation']['records'] if r['status']=='timeout')
+            r.update(median_ms=10000)
+        self.corrupt(edit,'fabricated timeout result')
+
+    def test_simulation_skip_requires_preceding_timeout(self):
+        def edit(d):
+            row=next(r for r in d['simulation']['records'] if r['backend']=='sqlite')
+            row.update(status='not run',timeout_s=10)
+            row.pop('median_ms');row.pop('result')
+        self.corrupt(edit,'skipped before timeout')
+
+    def test_simulation_oracle_distinguishes_boolean_from_integer(self):
+        self.corrupt(lambda d:d['simulation']['sql_controls'][0]['result'].update(paths=True),'SQL control oracle')
+
+    def test_compute_frequency_policy(self):
+        self.corrupt(lambda d:d['simulation']['metadata']['frequency']['settings'].clear(),'CPU frequency policy')
+
+
+
 
 class SimulationEvidenceTests(unittest.TestCase):
     @classmethod

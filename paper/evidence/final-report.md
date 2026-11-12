@@ -1,6 +1,6 @@
 # Final controlled JayDB2 thesis evidence
 
-Branch: `t3/integrate-improvements`. Engine source SHA-256: `5b2021cf8f33b0f21e1f87c3f2a3cc4fbaf940cc01c8482b268f2c721c4a95e8`; executable SHA-256: `8848b8348f73a4e0f0731f12500164ca5b31e85cccbcd1b1bdb83a55e716c551`. Raw metadata retain each invocation commit; all refreshed E1–E5 datasets must have identical engine fingerprints.
+Branch: `t3/paper-gpu-simulation`. Engine source SHA-256: `21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b`; executable SHA-256: `d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c`. Raw metadata retain each invocation commit; all refreshed E1–E6 datasets and the focused GPU benchmark must have identical engine fingerprints.
 
 E1–E3: three fresh sessions per condition. E5: one session, one service per storage mode reused across all sizes. Governor/EPP performance; turbo disabled; nominal 3.6 GHz. No CPU pinning. Inclusive quartiles; no outlier removal.
 
@@ -10,111 +10,111 @@ All latency rows below use milliseconds. Session spread is min–max of session 
 
 | Metric | Unit | Pooled median [Q1, Q3] | Session median min–max | n |
 |---|---|---|---|---|
-| E1 Read | ms | 4,915.382 [4,903.753, 4,938.404] | 4,909.481–4,920.929 | 30 |
-| E1 Indexed | ms | 8,846.436 [8,832.265, 8,866.541] | 8,838.316–8,866.044 | 30 |
-| E1 Voucher | ms | 9,129.700 [9,107.457, 9,151.513] | 9,113.621–9,139.442 | 30 |
-| E2 Read / volatile | ms | 3.913 [3.872, 3.953] | 3.911–3.914 | 900 |
-| E2 Read / volatile active throughput | calls/s | 255.507 [254.775, 256.114] | 255.298–255.936 | 30 |
-| E2 Read / volatile closed-loop throughput | calls/s | 250.624 [250.539, 250.805] | 250.454–250.986 | 3 |
-| E2 Indexed / volatile | ms | 5.950 [5.893, 6.003] | 5.932–5.957 | 900 |
-| E2 Indexed / volatile active throughput | calls/s | 167.871 [167.510, 168.525] | 167.630–168.121 | 30 |
-| E2 Indexed / volatile closed-loop throughput | calls/s | 165.478 [165.436, 165.690] | 165.394–165.902 | 3 |
-| E2 Voucher / volatile | ms | 6.130 [6.079, 6.187] | 6.116–6.137 | 900 |
-| E2 Voucher / volatile active throughput | calls/s | 162.855 [162.584, 163.419] | 162.691–163.294 | 30 |
-| E2 Voucher / volatile closed-loop throughput | calls/s | 80.258 [80.231, 80.409] | 80.205–80.559 | 3 |
-| E2 Read / durable | ms | 3.897 [3.856, 3.947] | 3.885–3.907 | 900 |
-| E2 Read / durable active throughput | calls/s | 256.077 [255.430, 256.774] | 255.757–256.734 | 30 |
-| E2 Read / durable closed-loop throughput | calls/s | 251.421 [251.057, 251.786] | 250.693–252.151 | 3 |
-| E2 Indexed / durable | ms | 16.971 [16.186, 18.333] | 16.777–17.526 | 900 |
-| E2 Indexed / durable active throughput | calls/s | 58.690 [57.060, 59.223] | 57.202–59.319 | 30 |
-| E2 Indexed / durable closed-loop throughput | calls/s | 57.396 [48.964, 58.162] | 40.533–58.928 | 3 |
-| E2 Voucher / durable | ms | 18.702 [17.902, 19.593] | 18.408–19.335 | 900 |
-| E2 Voucher / durable active throughput | calls/s | 53.349 [51.123, 55.313] | 51.337–54.300 | 30 |
-| E2 Voucher / durable closed-loop throughput | calls/s | 28.831 [28.791, 28.896] | 28.751–28.960 | 3 |
-| E3 10 Point PostgreSQL Read | ms | 0.042 [0.041, 0.042] | 0.041–0.042 | 900 |
-| E3 10 Point PostgreSQL Update | ms | 3.316 [2.236, 3.547] | 2.303–3.438 | 900 |
+| E1 Read | ms | 4,931.947 [4,920.047, 4,943.551] | 4,924.770–4,938.016 | 30 |
+| E1 Indexed | ms | 8,888.189 [8,868.921, 8,955.456] | 8,875.383–8,908.631 | 30 |
+| E1 Voucher | ms | 9,154.454 [9,125.669, 9,182.382] | 9,148.035–9,165.637 | 30 |
+| E2 Read / volatile | ms | 3.916 [3.867, 3.963] | 3.909–3.926 | 900 |
+| E2 Read / volatile active throughput | calls/s | 254.996 [254.273, 256.112] | 254.094–255.480 | 30 |
+| E2 Read / volatile closed-loop throughput | calls/s | 250.751 [249.047, 250.825] | 247.344–250.898 | 3 |
+| E2 Indexed / volatile | ms | 6.015 [5.947, 6.093] | 5.985–6.079 | 900 |
+| E2 Indexed / volatile active throughput | calls/s | 166.441 [165.578, 167.101] | 165.585–166.747 | 30 |
+| E2 Indexed / volatile closed-loop throughput | calls/s | 164.116 [159.592, 164.132] | 155.068–164.149 | 3 |
+| E2 Voucher / volatile | ms | 6.165 [6.104, 6.246] | 6.153–6.183 | 900 |
+| E2 Voucher / volatile active throughput | calls/s | 162.352 [160.547, 162.621] | 161.764–162.578 | 30 |
+| E2 Voucher / volatile closed-loop throughput | calls/s | 78.050 [77.115, 78.867] | 76.180–79.685 | 3 |
+| E2 Read / durable | ms | 3.919 [3.875, 3.962] | 3.911–3.925 | 900 |
+| E2 Read / durable active throughput | calls/s | 254.748 [253.971, 255.490] | 254.486–255.085 | 30 |
+| E2 Read / durable closed-loop throughput | calls/s | 250.330 [250.241, 250.386] | 250.153–250.441 | 3 |
+| E2 Indexed / durable | ms | 17.162 [15.409, 18.367] | 17.146–17.446 | 900 |
+| E2 Indexed / durable active throughput | calls/s | 58.769 [57.835, 59.384] | 57.566–59.482 | 30 |
+| E2 Indexed / durable closed-loop throughput | calls/s | 58.083 [57.585, 58.581] | 57.087–59.079 | 3 |
+| E2 Voucher / durable | ms | 18.184 [17.046, 48.242] | 17.212–56.043 | 900 |
+| E2 Voucher / durable active throughput | calls/s | 55.172 [20.643, 58.080] | 16.892–58.070 | 30 |
+| E2 Voucher / durable closed-loop throughput | calls/s | 28.536 [18.582, 28.588] | 8.627–28.639 | 3 |
+| E3 10 Point PostgreSQL Read | ms | 0.042 [0.041, 0.043] | 0.041–0.042 | 900 |
+| E3 10 Point PostgreSQL Update | ms | 2.418 [2.195, 3.548] | 2.241–3.398 | 900 |
 | E3 10 Point SQLite Read | ms | 0.003 [0.003, 0.003] | 0.003–0.003 | 900 |
-| E3 10 Point SQLite Update | ms | 6.732 [4.452, 7.099] | 5.548–6.797 | 900 |
-| E3 10 Point JayDB2 Read | ms | 3.839 [3.799, 3.887] | 3.835–3.847 | 900 |
-| E3 10 Point JayDB2 Update | ms | 15.707 [12.771, 17.303] | 14.971–17.248 | 900 |
-| E3 10 Owner PostgreSQL Read | ms | 0.042 [0.041, 0.042] | 0.041–0.042 | 900 |
-| E3 10 Owner PostgreSQL Update | ms | 3.269 [2.251, 3.494] | 3.224–3.424 | 900 |
+| E3 10 Point SQLite Update | ms | 6.752 [4.590, 7.204] | 5.898–6.998 | 900 |
+| E3 10 Point JayDB2 Read | ms | 3.855 [3.812, 3.921] | 3.836–3.884 | 900 |
+| E3 10 Point JayDB2 Update | ms | 14.644 [13.719, 15.863] | 14.338–14.831 | 900 |
+| E3 10 Owner PostgreSQL Read | ms | 0.042 [0.042, 0.043] | 0.042–0.042 | 900 |
+| E3 10 Owner PostgreSQL Update | ms | 3.260 [2.221, 3.446] | 2.951–3.285 | 900 |
 | E3 10 Owner SQLite Read | ms | 0.003 [0.003, 0.003] | 0.003–0.003 | 900 |
-| E3 10 Owner SQLite Update | ms | 5.814 [4.455, 7.005] | 5.744–6.753 | 900 |
-| E3 10 Owner JayDB2 Read | ms | 5.054 [5.008, 5.100] | 5.046–5.063 | 900 |
-| E3 10 Owner JayDB2 Update | ms | 16.438 [14.467, 18.168] | 16.072–18.607 | 900 |
-| E3 1,104 Point PostgreSQL Read | ms | 0.042 [0.041, 0.043] | 0.042–0.042 | 900 |
-| E3 1,104 Point PostgreSQL Update | ms | 2.745 [2.179, 3.454] | 2.604–3.269 | 900 |
+| E3 10 Owner SQLite Update | ms | 5.659 [4.638, 6.730] | 5.616–5.732 | 900 |
+| E3 10 Owner JayDB2 Read | ms | 5.072 [5.020, 5.120] | 5.062–5.076 | 900 |
+| E3 10 Owner JayDB2 Update | ms | 15.903 [14.679, 17.464] | 15.745–16.838 | 900 |
+| E3 1,104 Point PostgreSQL Read | ms | 0.042 [0.042, 0.043] | 0.042–0.043 | 900 |
+| E3 1,104 Point PostgreSQL Update | ms | 3.058 [2.269, 3.466] | 2.637–3.275 | 900 |
 | E3 1,104 Point SQLite Read | ms | 0.003 [0.003, 0.003] | 0.003–0.003 | 900 |
-| E3 1,104 Point SQLite Update | ms | 2.955 [2.140, 3.437] | 2.940–3.195 | 900 |
-| E3 1,104 Point JayDB2 Read | ms | 36.779 [36.617, 36.943] | 36.771–36.795 | 900 |
-| E3 1,104 Point JayDB2 Update | ms | 48.943 [47.804, 50.072] | 48.840–49.045 | 900 |
-| E3 1,104 Owner PostgreSQL Read | ms | 0.042 [0.042, 0.043] | 0.042–0.042 | 900 |
-| E3 1,104 Owner PostgreSQL Update | ms | 3.259 [2.240, 3.448] | 3.254–3.323 | 900 |
+| E3 1,104 Point SQLite Update | ms | 2.527 [2.079, 3.307] | 2.527–2.851 | 900 |
+| E3 1,104 Point JayDB2 Read | ms | 36.863 [36.709, 37.042] | 36.813–36.911 | 900 |
+| E3 1,104 Point JayDB2 Update | ms | 48.862 [47.761, 49.890] | 48.677–48.980 | 900 |
+| E3 1,104 Owner PostgreSQL Read | ms | 0.043 [0.042, 0.044] | 0.042–0.043 | 900 |
+| E3 1,104 Owner PostgreSQL Update | ms | 3.324 [2.229, 3.468] | 2.959–3.331 | 900 |
 | E3 1,104 Owner SQLite Read | ms | 0.003 [0.003, 0.003] | 0.003–0.003 | 900 |
-| E3 1,104 Owner SQLite Update | ms | 3.163 [2.076, 3.314] | 2.524–3.249 | 900 |
-| E3 1,104 Owner JayDB2 Read | ms | 37.857 [37.707, 38.058] | 37.797–37.974 | 900 |
-| E3 1,104 Owner JayDB2 Update | ms | 50.131 [48.895, 52.016] | 49.423–81.830 | 900 |
-| E5 10 / volatile Read | ms | 3.854 [3.809, 3.926] | 3.854–3.854 | 50 |
-| E5 10 / volatile Update | ms | 3.843 [3.812, 3.897] | 3.843–3.843 | 50 |
-| E5 10 / volatile first-key Read | ms | 3.851 [3.813, 3.914] | 3.851–3.851 | 50 |
-| E5 30 / volatile Read | ms | 4.471 [4.421, 4.506] | 4.471–4.471 | 50 |
-| E5 30 / volatile Update | ms | 4.485 [4.447, 4.535] | 4.485–4.485 | 50 |
-| E5 100 / volatile Read | ms | 6.554 [6.495, 6.608] | 6.554–6.554 | 50 |
-| E5 100 / volatile Update | ms | 6.556 [6.518, 6.598] | 6.556–6.556 | 50 |
-| E5 300 / volatile Read | ms | 12.506 [12.425, 12.583] | 12.506–12.506 | 50 |
-| E5 300 / volatile Update | ms | 12.749 [12.639, 12.815] | 12.749–12.749 | 50 |
-| E5 600 / volatile Read | ms | 21.548 [21.459, 21.677] | 21.548–21.548 | 50 |
-| E5 600 / volatile Update | ms | 21.897 [21.794, 22.025] | 21.897–21.897 | 50 |
-| E5 1,000 / volatile Read | ms | 33.608 [33.457, 33.768] | 33.608–33.608 | 50 |
-| E5 1,000 / volatile Update | ms | 34.239 [34.017, 34.386] | 34.239–34.239 | 50 |
-| E5 1,105 / volatile Read | ms | 36.955 [36.750, 37.088] | 36.955–36.955 | 50 |
-| E5 1,105 / volatile Update | ms | 37.484 [37.298, 37.642] | 37.484–37.484 | 50 |
-| E5 1,105 / volatile first-key Read | ms | 36.917 [36.746, 37.098] | 36.917–36.917 | 50 |
-| E5 10 / durable Read | ms | 3.820 [3.792, 3.863] | 3.820–3.820 | 50 |
-| E5 10 / durable Update | ms | 16.489 [11.932, 16.939] | 16.489–16.489 | 50 |
-| E5 10 / durable first-key Read | ms | 3.819 [3.764, 3.867] | 3.819–3.819 | 50 |
-| E5 30 / durable Read | ms | 4.523 [4.482, 4.553] | 4.523–4.523 | 50 |
-| E5 30 / durable Update | ms | 15.808 [13.785, 16.388] | 15.808–15.808 | 50 |
-| E5 100 / durable Read | ms | 6.599 [6.523, 6.678] | 6.599–6.599 | 50 |
-| E5 100 / durable Update | ms | 17.768 [14.500, 19.560] | 17.768–17.768 | 50 |
-| E5 300 / durable Read | ms | 12.578 [12.499, 12.641] | 12.578–12.578 | 50 |
-| E5 300 / durable Update | ms | 23.688 [21.789, 25.607] | 23.688–23.688 | 50 |
-| E5 600 / durable Read | ms | 21.638 [21.565, 21.750] | 21.638–21.638 | 50 |
-| E5 600 / durable Update | ms | 32.905 [31.713, 34.006] | 32.905–32.905 | 50 |
-| E5 1,000 / durable Read | ms | 33.689 [33.547, 33.826] | 33.689–33.689 | 50 |
-| E5 1,000 / durable Update | ms | 45.334 [44.508, 46.284] | 45.334–45.334 | 50 |
-| E5 1,105 / durable Read | ms | 36.970 [36.840, 37.194] | 36.970–36.970 | 50 |
-| E5 1,105 / durable Update | ms | 49.053 [48.235, 50.335] | 49.053–49.053 | 50 |
-| E5 1,105 / durable first-key Read | ms | 37.152 [36.930, 37.299] | 37.152–37.152 | 50 |
+| E3 1,104 Owner SQLite Update | ms | 2.956 [2.130, 3.443] | 2.545–3.158 | 900 |
+| E3 1,104 Owner JayDB2 Read | ms | 37.876 [37.703, 38.062] | 37.792–37.956 | 900 |
+| E3 1,104 Owner JayDB2 Update | ms | 50.503 [49.026, 57.073] | 49.585–95.333 | 900 |
+| E5 10 / volatile Read | ms | 3.871 [3.839, 3.901] | 3.871–3.871 | 50 |
+| E5 10 / volatile Update | ms | 3.897 [3.866, 3.934] | 3.897–3.897 | 50 |
+| E5 10 / volatile first-key Read | ms | 3.902 [3.854, 3.936] | 3.902–3.902 | 50 |
+| E5 30 / volatile Read | ms | 4.484 [4.452, 4.525] | 4.484–4.484 | 50 |
+| E5 30 / volatile Update | ms | 4.528 [4.484, 4.570] | 4.528–4.528 | 50 |
+| E5 100 / volatile Read | ms | 6.566 [6.479, 6.629] | 6.566–6.566 | 50 |
+| E5 100 / volatile Update | ms | 6.612 [6.561, 6.656] | 6.612–6.612 | 50 |
+| E5 300 / volatile Read | ms | 12.545 [12.458, 12.690] | 12.545–12.545 | 50 |
+| E5 300 / volatile Update | ms | 12.732 [12.659, 12.847] | 12.732–12.732 | 50 |
+| E5 600 / volatile Read | ms | 21.697 [21.576, 21.838] | 21.697–21.697 | 50 |
+| E5 600 / volatile Update | ms | 21.988 [21.902, 22.184] | 21.988–21.988 | 50 |
+| E5 1,000 / volatile Read | ms | 33.864 [33.658, 33.988] | 33.864–33.864 | 50 |
+| E5 1,000 / volatile Update | ms | 34.262 [34.168, 34.483] | 34.262–34.262 | 50 |
+| E5 1,105 / volatile Read | ms | 37.054 [36.905, 37.253] | 37.054–37.054 | 50 |
+| E5 1,105 / volatile Update | ms | 37.703 [37.478, 37.896] | 37.703–37.703 | 50 |
+| E5 1,105 / volatile first-key Read | ms | 37.001 [36.851, 37.171] | 37.001–37.001 | 50 |
+| E5 10 / durable Read | ms | 3.882 [3.847, 3.932] | 3.882–3.882 | 50 |
+| E5 10 / durable Update | ms | 14.574 [14.408, 14.691] | 14.574–14.574 | 50 |
+| E5 10 / durable first-key Read | ms | 3.867 [3.824, 3.939] | 3.867–3.867 | 50 |
+| E5 30 / durable Read | ms | 4.499 [4.458, 4.555] | 4.499–4.499 | 50 |
+| E5 30 / durable Update | ms | 15.595 [13.875, 25.727] | 15.595–15.595 | 50 |
+| E5 100 / durable Read | ms | 6.584 [6.516, 6.630] | 6.584–6.584 | 50 |
+| E5 100 / durable Update | ms | 17.559 [15.830, 18.418] | 17.559–17.559 | 50 |
+| E5 300 / durable Read | ms | 12.553 [12.483, 12.654] | 12.553–12.553 | 50 |
+| E5 300 / durable Update | ms | 23.593 [20.827, 25.460] | 23.593–23.593 | 50 |
+| E5 600 / durable Read | ms | 21.586 [21.469, 21.720] | 21.586–21.586 | 50 |
+| E5 600 / durable Update | ms | 33.455 [31.915, 34.307] | 33.455–33.455 | 50 |
+| E5 1,000 / durable Read | ms | 33.849 [33.731, 33.974] | 33.849–33.849 | 50 |
+| E5 1,000 / durable Update | ms | 45.790 [44.690, 46.968] | 45.790–45.790 | 50 |
+| E5 1,105 / durable Read | ms | 37.023 [36.831, 37.227] | 37.023–37.023 | 50 |
+| E5 1,105 / durable Update | ms | 49.275 [47.907, 50.180] | 49.275–49.275 | 50 |
+| E5 1,105 / durable first-key Read | ms | 37.122 [36.953, 37.242] | 37.122–37.122 | 50 |
 
 ## Registration (nine observations per condition)
 
 | Program / storage | Min (s) | Median (s) | Max (s) | Session median min–max (s) | n |
 |---|---|---|---|---|---|
-| Read / volatile | 6.67 | 6.74 | 6.85 | 6.68–6.74 | 9 |
-| Indexed / volatile | 11.43 | 11.49 | 11.50 | 11.44–11.50 | 9 |
-| Voucher / volatile | 10.84 | 10.87 | 10.95 | 10.84–10.92 | 9 |
-| Read / durable | 6.67 | 6.72 | 6.82 | 6.68–6.73 | 9 |
-| Indexed / durable | 11.44 | 11.50 | 11.58 | 11.49–11.51 | 9 |
-| Voucher / durable | 10.79 | 10.87 | 11.03 | 10.85–10.87 | 9 |
+| Read / volatile | 6.75 | 6.76 | 6.87 | 6.76–6.77 | 9 |
+| Indexed / volatile | 11.49 | 11.52 | 11.60 | 11.50–11.53 | 9 |
+| Voucher / volatile | 10.85 | 10.89 | 11.02 | 10.87–10.96 | 9 |
+| Read / durable | 6.69 | 6.74 | 6.78 | 6.73–6.75 | 9 |
+| Indexed / durable | 11.50 | 11.53 | 11.60 | 11.52–11.53 | 9 |
+| Voucher / durable | 10.85 | 10.92 | 11.05 | 10.89–10.94 | 9 |
 
 ## Ordinary phases
 
 | Program | Phase | Median [Q1,Q3] (ms) | n |
 |---|---|---|---|
-| Read | Admission wall | 4,902.89 [4,891.20, 4,925.59] | 30 |
-| Read | Checking (overlaps build) | 2,946.81 [2,939.82, 2,953.10] | 30 |
-| Read | C generation/build (overlaps checking) | 1,972.25 [1,969.02, 1,980.94] | 30 |
-| Read | Worker | 9.95 [9.90, 9.99] | 30 |
-| Indexed | Admission wall | 8,826.82 [8,812.15, 8,846.83] | 30 |
-| Indexed | Checking (overlaps build) | 5,443.76 [5,418.40, 5,457.10] | 30 |
-| Indexed | C generation/build (overlaps checking) | 4,364.81 [4,353.06, 4,379.47] | 30 |
-| Indexed | Worker | 15.80 [15.73, 15.88] | 30 |
-| Voucher | Admission wall | 9,102.07 [9,082.17, 9,129.50] | 30 |
-| Voucher | Checking (overlaps build) | 6,047.32 [6,024.68, 6,074.25] | 30 |
-| Voucher | C generation/build (overlaps checking) | 4,760.70 [4,730.68, 4,777.82] | 30 |
-| Voucher | Worker | 21.47 [19.00, 23.72] | 30 |
+| Read | Admission wall | 4,919.11 [4,907.50, 4,931.24] | 30 |
+| Read | Checking (overlaps build) | 2,956.76 [2,945.25, 2,969.25] | 30 |
+| Read | C generation/build (overlaps checking) | 1,976.00 [1,971.82, 1,980.99] | 30 |
+| Read | Worker | 9.93 [9.88, 10.00] | 30 |
+| Indexed | Admission wall | 8,868.65 [8,849.32, 8,935.78] | 30 |
+| Indexed | Checking (overlaps build) | 5,469.82 [5,445.66, 5,501.22] | 30 |
+| Indexed | C generation/build (overlaps checking) | 4,389.29 [4,378.50, 4,402.94] | 30 |
+| Indexed | Worker | 15.89 [15.79, 15.98] | 30 |
+| Voucher | Admission wall | 9,126.19 [9,099.53, 9,158.15] | 30 |
+| Voucher | Checking (overlaps build) | 6,066.39 [6,043.11, 6,106.11] | 30 |
+| Voucher | C generation/build (overlaps checking) | 4,766.16 [4,726.87, 4,780.08] | 30 |
+| Voucher | Worker | 21.35 [18.89, 23.80] | 30 |
 
 ## Preparation break-even
 
@@ -128,18 +128,18 @@ All latency rows below use milliseconds. Session spread is min–max of session 
 
 | Policy / operation | Median [Q1,Q3] (s) | n |
 |---|---|---|
-| Point / read | 4.908 [4.899, 4.916] | 30 |
-| Point / update | 5.119 [5.100, 5.142] | 30 |
-| Owner / read | 10.495 [10.481, 10.511] | 30 |
-| Owner / update | 12.287 [12.267, 12.304] | 30 |
+| Point / read | 4.923 [4.915, 4.935] | 30 |
+| Point / update | 5.140 [5.122, 5.187] | 30 |
+| Owner / read | 10.502 [10.481, 10.524] | 30 |
+| Owner / update | 12.298 [12.275, 12.316] | 30 |
 
 ## Fixed-clock verification times
 
 | Command | Seconds | n | Exit |
 |---|---|---|---|
-| make verify-contract | 63.108 | 1 | 0 |
-| make verify | 788.312 | 1 | 0 |
-| make test | 677.565 | 1 | 0 |
+| make verify-contract | 62.879 | 1 | 0 |
+| make verify | 794.372 | 1 | 0 |
+| make test | 710.082 | 1 | 0 |
 
 Quartiles and session spread are undefined for these single fixed-clock command observations. Checking and C generation/build diagnostics overlap inside admission wall time; they must not be added to it or to each other.
 
@@ -147,7 +147,7 @@ Quartiles and session spread are undefined for these single fixed-clock command 
 
 | Fact | Count |
 |---|---|
-| NegativeFixtures | 397 |
+| NegativeFixtures | 402 |
 | ContractTheoremTypes | 15 |
 | ProofLawDeclarations | 1,142 |
 | ProofDefinitions | 2,221 |
@@ -165,7 +165,7 @@ Nonblank physical lines, including comments/imports/attributes. Rust: server/*.r
 
 | Area | Program / production lines | Proof / test lines | Proof/program ratio |
 |---|---|---|
-| Rust host | 1,971 | 1,435 | — |
+| Rust host | 2,047 | 1,519 | — |
 | Indexed | 46 | 404 | 8.783 |
 | Voucher | 119 | 205 | 1.723 |
 | Rls | 126 | 355 | 2.817 |
@@ -175,8 +175,8 @@ Nonblank physical lines, including comments/imports/attributes. Rust: server/*.r
 | Src | 22 | 2,058 |
 | Contract | 19 | 2,671 |
 | Proof | 142 | 28,486 |
-| Server | 5 | 3,406 |
-| Tools | 9 | 1,428 |
+| Server | 5 | 3,566 |
+| Tools | 9 | 1,483 |
 | Native | 2 | 93 |
 | Rls | 9 | 1,268 |
 
@@ -188,8 +188,8 @@ Nonblank physical lines, including comments/imports/attributes. Rust: server/*.r
 | `\CpuClockGHz` | 3.6 | GHz |
 | `\TurboSetting` | disabled | text |
 | `\SessionCount` | 3 | sessions |
-| `\RustProductionLines` | 1,971 | lines |
-| `\RustTestLines` | 1,435 | lines |
+| `\RustProductionLines` | 2,047 | lines |
+| `\RustTestLines` | 1,519 | lines |
 | `\IndexedClientLines` | 46 | lines |
 | `\IndexedProofLines` | 404 | lines |
 | `\IndexedProofRatio` | 8.78261 | ratio |
@@ -204,35 +204,118 @@ Nonblank physical lines, including comments/imports/attributes. Rust: server/*.r
 | `\RlsNativeResponses` | 253 | responses |
 | `\HostDutyCount` | 8 | duties |
 | `\ComparisonLargeRows` | 1,104 | rows |
-| `\ScalingFirstKeySmallMs` | 3.85053 | ms |
-| `\ScalingFirstKeyLargeMs` | 36.9168 | ms |
-| `\LargeJayReadMs` | 36.7793 | ms |
-| `\LargeJayWriteMs` | 48.9432 | ms |
-| `\LargePgReadMs` | 0.04194 | ms |
-| `\LargePgWriteMs` | 2.74506 | ms |
-| `\LargeSqReadMs` | 0.003227 | ms |
-| `\LargeSqWriteMs` | 2.95485 | ms |
-| `\LargeOwnerJayReadMs` | 37.8567 | ms |
-| `\LargeOwnerJayWriteMs` | 50.1313 | ms |
-| `\LargeOwnerPgReadMs` | 0.0423225 | ms |
-| `\LargeOwnerPgWriteMs` | 3.25858 | ms |
-| `\LargeOwnerSqReadMs` | 0.003377 | ms |
-| `\LargeOwnerSqWriteMs` | 3.16312 | ms |
+| `\ScalingFirstKeySmallMs` | 3.90192 | ms |
+| `\ScalingFirstKeyLargeMs` | 37.0005 | ms |
+| `\LargeJayReadMs` | 36.8626 | ms |
+| `\LargeJayWriteMs` | 48.8624 | ms |
+| `\LargePgReadMs` | 0.042018 | ms |
+| `\LargePgWriteMs` | 3.05823 | ms |
+| `\LargeSqReadMs` | 0.003242 | ms |
+| `\LargeSqWriteMs` | 2.52682 | ms |
+| `\LargeOwnerJayReadMs` | 37.8761 | ms |
+| `\LargeOwnerJayWriteMs` | 50.5033 | ms |
+| `\LargeOwnerPgReadMs` | 0.042818 | ms |
+| `\LargeOwnerPgWriteMs` | 3.32408 | ms |
+| `\LargeOwnerSqReadMs` | 0.003351 | ms |
+| `\LargeOwnerSqWriteMs` | 2.95575 | ms |
 
 ## Observations and limits
 
-Fixed-clock volatile last-key read is 3.854 ms at 10 rows and 6.554 ms at 100 rows (1.700×). Compare the earlier powersave measurements in performance-report.txt; the fresh data are not pooled with that historical run.
+Fixed-clock volatile last-key read is 3.871 ms at 10 rows and 6.566 ms at 100 rows (1.696×). Compare the earlier powersave measurements in performance-report.txt; the fresh data are not pooled with that historical run.
 
-At 1,105 rows, volatile first-key read is 36.917 ms versus 36.955 ms for last-key read. Their similar costs show that lookup position does not account for most observed scaling. Complete-state transfer, decoding, validation and publication remain inside the timing boundary; this comparison does not isolate copying alone.
+At 1,105 rows, volatile first-key read is 37.001 ms versus 37.054 ms for last-key read. Their similar costs show that lookup position does not account for most observed scaling. Complete-state transfer, decoding, validation and publication remain inside the timing boundary; this comparison does not isolate copying alone.
 
-Durable Indexed session medians (ms): 17.169, 17.526, 16.777. Publication phase medians: 10.697, 11.327, 10.556. Worker phase medians: 3.718, 3.689, 3.691. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.
+Durable Indexed session medians (ms): 17.146, 17.446, 17.204. Publication phase medians: 10.824, 10.807, 11.020. Worker phase medians: 3.700, 3.699, 3.687. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.
 
 ## Run note
 
-All E1–E5 datasets were refreshed after integrating checked host error replies, overlapped admission/build and unbounded RLS. E1–E3 retain three independent sessions; E5 retains its one-session scaling protocol. Complete command output and exact CPU restoration receipts are retained.
+All E1–E6 datasets and the focused GPU benchmark were refreshed on the frozen opt-in GPU/simulation engine. E1–E3 retain three independent sessions; E5 retains its one-session scaling protocol. Complete command output and exact CPU restoration receipts are retained.
 
-The initial aggregate test failed because its RLS diagnostic counter also counted checked-denial memo/controller logs. The counter now matches actual PRIMARY_CHECK error headers and requires exactly one false-proof location per negative. The failed command/output is retained in validation-attempts.json; the successful rerun supplies the E4 test wall time.
+Historical validation-attempts.json retains an earlier RLS diagnostic-counter failure and its output. That development record does not supply the current E4 timings; all three current commands were freshly executed on the frozen engine.
 
 ## CPU restoration
 
 Final observed values (all 16 CPUs): governor `powersave`; EPP `balance_performance`; `intel_pstate/no_turbo=0`. Exact saved settings and final sampled frequencies are in `cpu-restoration.json`. Verified: True.
+
+## E6 certified simulation
+
+Measured revision `2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec`; `dirty: []`.
+Engine source SHA-256 `21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b`; executable SHA-256 `d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c`.
+
+Generated by `paper/evidence.py` from retained raw samples after validation. E6 and E1–E5 share engine fingerprints with the focused GPU benchmark.
+
+[Application arithmetic and certificate](../../applications/simulation/README.md); [timing harness](../bench/simulation.py).
+
+The universal certificate confines scenario reads and result writes to the authenticated user and proves finite Action execution; structural checking covers numerical recursion. It does not prove numeric/statistical properties or CUDA correctness. A foreign-result-write negative fails the installed access obligation in both official modes.
+
+Complete request/query wall time in milliseconds: median (min–max), 1 excluded warmup and 3 measured samples per completed cell. Preparation is separate.
+
+| Paths × steps | JayDB2 CPU-1 | JayDB2 CPU-16 | JayDB2 CUDA | PostgreSQL PL/pgSQL | SQLite CTE |
+|---|---:|---:|---:|---:|---:|
+| 4 × 32 | 6.678 (6.588–6.964) | 7.063 (6.830–7.183) | 161.451 (149.429–169.164) | 0.183 (0.115–0.261) | 0.074 (0.072–0.074) |
+| 1,024 × 256 | 7.144 (7.108–7.185) | 7.151 (7.107–7.184) | 155.400 (155.209–175.475) | 29.339 (29.323–29.438) | 162.435 (161.235–162.778) |
+| 16,384 × 1,024 | 34.946 (34.903–35.179) | 10.608 (10.591–10.790) | 168.740 (162.294–170.678) | 1847.875 (1845.225–1850.114) | timeout 10 s |
+| 65,536 × 16,384 | 1802.224 (1802.072–1802.405) | 234.767 (234.621–234.930) | 178.204 (177.822–181.845) | timeout 10 s | not run |
+
+## Preparation (one observation, excluded above)
+
+| Backend | ms |
+|---|---:|
+| cpu-1 | 8651.317 |
+| cpu-16 | 8615.030 |
+| cuda | 11764.108 |
+
+## Protocol and limitations
+
+- JayDB2 RAM state, PostgreSQL temporary tables (no table WAL), SQLite :memory:; no durability comparison.
+- JayDB2 fresh child per request, fresh authentication, integrity checks and complete publication; proof admission timed separately.
+- SQL execute/fetch includes parameter reads, simulation, upsert and returning all aggregates; no host-language UDF.
+- SQL is an arithmetic baseline without equivalent proof admission or authentication/RLS.
+- PostgreSQL PL/pgSQL is interpreted; SQLite recursive CTE is not designed for heavy numerical compute.
+- One session, one excluded warmup and at least three samples per measured size; complete state checked outside timing.
+- CPU clock policy fixed by wrapper; GPU clock unfixed and device drives desktop; no general speedup claim.
+- SQL statement timeout 10s; later sizes not run after first timeout; no extrapolation.
+
+CPU restoration is verified after every benchmark and in `cpu-restoration.json`/`refresh-log.json`. GPU clocks are unfixed. Artifact reports retain resolved CUDA library paths/hashes, not pinned library guarantees.
+
+Independent scalar/NumPy oracles check every completed size and complete state. SQL controls exercise both users; timeouts retain cancellation diagnostics and rollback is checked by the harness. Timeouts and subsequent unrun sizes supply neither results nor extrapolated timing.
+
+[Raw evidence](simulation.json); [standalone figure](simulation.svg). Historical launch/development logs in `simulation-launch.json`, `simulation-validation.json` and `simulation-development.json` describe earlier revisions; they are not fresh E6 timings.
+
+## Focused GPU benchmark
+
+Measured revision `2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec`; `dirty: []`.
+Engine source SHA-256 `21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b`; executable SHA-256 `d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c`.
+
+Generated by `paper/evidence.py` from the current raw JSON, sharing engine fingerprints with E1–E6. CPU is the default; explicit bang calls opt into official Bend CUDA execution.
+
+Both official checkers accept the same sealed Book before CUDA C emission/compilation/prebuild. Proofs concern that Book’s semantics, under identical certificate, termination, access/RLS, size and publication obligations. No GPU validity axiom is introduced.
+
+T2 additionally trusts Bend’s emitted CUDA runtime, NVRTC, CUDA driver, managed memory and GPU hardware. CUDA headers/libraries come from the host environment; resolved library paths/hashes are recorded, not pinned. Differential tests/oracles are implementation evidence, not proof of CUDA correctness.
+
+Reports bind emitted C, executable and cubin hashes. CUDA execution rechecks artifacts before launch and accepting output; prepared calls compare exact sealed bytes. Artifact changes, rebuild notices and device errors discard the proposal. Requested bangs have no CPU fallback. Execution is serial per instance.
+
+Native-worker and complete-request columns are separate trials, not additive phases. Each excludes one warmup and retains 3 samples. Worker times include fresh process/device startup and exit; requests also include authentication, integrity checking, publication/inspector emission and decoding.
+
+| Depth / mixing rounds | Backend | Native worker median (range), ms | Complete request median (range), ms |
+|---|---|---:|---:|
+| 2 / 32,768 | cpu-1 | 3.312 (3.290–3.407) | 5.658 (5.563–5.750) |
+| 16 / 4,294,967,296 | cpu-1 | 7179.926 (7179.800–7179.941) | 7182.741 (7182.451–7183.980) |
+| 2 / 32,768 | cpu-16 | 3.725 (3.638–3.758) | 6.296 (6.037–6.371) |
+| 16 / 4,294,967,296 | cpu-16 | 499.232 (472.148–499.361) | 496.305 (475.285–502.027) |
+| 2 / 32,768 | cuda | 175.133 (171.021–180.018) | 159.885 (148.233–160.458) |
+| 16 / 4,294,967,296 | cuda | 216.248 (210.000–217.305) | 205.837 (205.350–209.966) |
+
+## Separate preparation
+
+| Backend | ms (one observation) |
+|---|---:|
+| cpu-1 | 8139.450 |
+| cpu-16 | 8102.887 |
+| cuda | 11201.489 |
+
+The independent Python/NumPy U32 oracle performs every seed/round and a small scalar cross-check. Every native proposal and complete published state is checked, including Bob’s unchanged credential. All modes emit identical C. Benchmarks use the unwrapped real driver.
+
+CPU policy is fixed and restored after each benchmark; GPU clock is unfixed and the device drives the desktop. Fresh process/device costs dominate small work. No kernel-only latency, general speedup, timeout/resource quota, persistent worker, cross-instance scheduling or portability guarantee follows. The corpus does not cap total driver memory, and integrity checks do not defeat hostile same-UID file-use races.
+
+[Raw samples and artifact/library hashes](gpu-programs.json); [standalone figure](gpu-programs.svg). Historical implementation/launch validation is retained in `gpu-validation.json` and `gpu-validation-rerun.json`; those records identify their own earlier revisions and are not current paper measurements.

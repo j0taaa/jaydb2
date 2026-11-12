@@ -2,8 +2,8 @@
 
 English SBC conference article by **Gabriel Jota Lizardo, PUC Minas**, with a
 Portuguese Beamer defense and Portuguese speaker notes. The deck retains its
-existing theme and has **20 main frames and seven appendix frames**, including
-a final AI-use disclosure. The article has **16 pages including 29 references**;
+existing theme and has **22 main frames and seven appendix frames**, including
+a final AI-use disclosure. The article has **16 pages including 31 references**;
 it contains no appendix. Change text directly in `main.tex` and `slides.tex`.
 
 ## SBC template and build
@@ -22,19 +22,20 @@ A4 page, 3 cm side margins, 3.5 cm top and 2.5 cm bottom margins, template parag
 spacing and captions. There are no manuscript geometry/font/indent overrides.
 Article citations use the template's author/year labels from BibTeX with
 `sbc.bst`; `references.bib` preserves all 21 original references and adds eight
-official tool references. URLs/DOIs are in `note`/`howpublished` because the original
+official tool references and two NVIDIA CUDA/NVRTC references. URLs/DOIs are in `note`/`howpublished` because the original
 SBC bibliography style does not print dedicated `url`/`doi` fields. The article
 uses `url` without `hyperref`, avoiding the official style's old hyperlink hook;
 the vendored style remains byte-identical to SBC's archive.
 
 ```sh
 make -C paper
-python3 -B -m unittest discover -s paper -p test_evidence.py -v
+PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python python3 -B -m unittest discover -s paper -p test_evidence.py -v
+PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python python3 -m pytest paper/test_evidence.py
 pdfinfo .build/tcc/output/jaydb2-tcc.pdf
 pdfinfo .build/tcc/output/jaydb2-defense.pdf
 ```
 
-Requires Python 3, pdfLaTeX and BibTeX, plus standard Times/PSNFSS, fontenc/inputenc,
+Requires Python 3 with NumPy (independent GPU/E6 oracle validation), pdfLaTeX and BibTeX, plus standard Times/PSNFSS, fontenc/inputenc,
 Babel (English and Brazilian Portuguese), AMS, caption, titlesec, etoolbox,
 microtype, booktabs, array, url, Beamer, Latin Modern, Helvetica, hyperref (slides),
 TikZ/PGF and PGFPlots packages. Verified with TeX Live 2026. The article build is
@@ -49,7 +50,8 @@ All build products are ignored under `.build/tcc/`; the deliverables are:
 
 The evidence builder validates the retained experiments and generates all measured
 values, table fragments and plot data. No measurement is copied into the article
-or slides source. The current evidence refresh reruns E1–E5 under the fixed-clock protocol below;
+or slides source. The current refresh reruns E1–E6 and the focused GPU benchmark on one frozen
+engine under the fixed-clock protocol below;
 the builder regenerates the derived evidence reports from the retained JSON.
 
 ## Course-regulation compliance
@@ -63,9 +65,9 @@ maps to the required roles in this order:
 | I — Introduction | Section 1: context, motivation/justification, problem, general objective paragraph, specific-objective bullets, research questions, synthesis/results and roadmap |
 | II — Theoretical background and literature review | Section 2: PCC, verified databases, policy systems, SQL mechanisms and trust boundaries |
 | III — Methodology | Section 3: construction steps, cited/versioned tools, model, architecture diagram, executable guarantees, trusted base, applications and evaluation protocol |
-| IV — Results with analysis | Section 4: E1–E5 latency, reuse, SQL comparison, verification and state scaling, with tables/PGFPlots; Section 5 discusses limitations |
+| IV — Results with analysis | Section 4: E1–E6 latency, reuse, SQL comparison, verification, state scaling and certified CPU/CUDA simulation, with generated tables/PGFPlots; Section 5 discusses limitations |
 | V — Conclusions and future work | Section 6: contributions, main results, explicit comparison with literature and future directions |
-| VI — References | 29 BibTeX references using `sbc.bst` |
+| VI — References | 31 BibTeX references using `sbc.bst` |
 
 Both the English abstract and faithful Portuguese **Resumo** appear on the first
 page. The unnumbered **Use of Artificial Intelligence** note before the references
@@ -76,32 +78,43 @@ The advisor, Gabriel Barbosa da Fonseca, appears in the SBC author block and on
 the title slide. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasil.
 No email, committee member or defense date is invented.
 
-To fit the page limit, the article condenses the model, architecture, related work,
-application descriptions and repeated results prose. The `\HostDutyCount` numbered
-T3 duties regroup the previous obligations in a compact table, without implying
-reduced trust. Checked Bend now decides the
-error status and constructs reply bytes; detection, exact-code passing, cache
-forwarding and the technical fallback remain trusted. The normative list is in
-`proof/README.md` and is cited via the repository reference. The full theorem inventory is similarly
-referenced while the certificate/Core statements remain explicit. Separate
-throughput, session-spread, registration-detail, source-inventory and scaling-detail
-tables remain generated repository evidence; the article retains the architecture,
-application controls, essential latency tables and scaling figure. There is no
-article appendix. The shared application table includes indexed ownership,
-voucher receipts and shared-row RLS. RLS has no fixed note-slot count; its stable
-directory law holds at every published root. Its aggregate-size response channel
-and cross-user capacity exhaustion are explicitly outside the confidentiality
-claim. The new main RLS slide keeps the capacity explanation in **Se perguntarem:**.
-The AI-use declaration already covers implementation/proof restructuring and
-revision of all article sections and slides, including these improvements.
+To fit the page limit, the article condenses background, model, controller,
+application and repeated result prose; the full theorem inventory and numbered
+T3 duties remain in `proof/README.md`. Guarantees, the formal certificate/Core
+statements, all required sections and limitations remain explicit. The article
+has no appendix. GPU mode keeps the same proof obligations on the sealed Book;
+T2 additionally trusts Bend's CUDA runtime path, NVRTC, driver, managed memory
+and GPU hardware. CUDA libraries are recorded, not pinned. Differential tests
+are evidence, not proof. E1–E5 remain GPU-disabled. E6 is a volatile simulation
+comparison with separately reported admission, explicit SQL timeouts and no
+equivalent SQL proof/authentication claim.
 
-For Art. 18, the **20 main slides** have approximately **2,238 spoken words**, or
-**17.2 minutes at 130 words/minute**, leaving room for transitions within the
-20-minute maximum. Count only the notes before `\appendix`, stop each note at
-**Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` repository cues.
-Formatting commands are stripped and numerical macros count as spoken tokens;
-actual delivery and numerical pronunciation vary, so the author should rehearse.
-The seven appendix frames and their notes are for questions and are not timed.
+For Art. 18, the **22 main slides** have approximately **2,212 spoken words**, or
+**17.0 minutes at 130 words/minute**, leaving room for transitions within the
+20-minute maximum. Count only notes before `\appendix`, stop each note at
+**Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` cues. Strip formatting
+commands; each numerical macro counts as one spoken token. The seven appendix
+frames are untimed. Rehearsal remains necessary because numerical pronunciation
+and delivery vary. The main defense adds GPU admission/trust and E6 comparison;
+the AI appendix names GPU/simulation implementation, orchestration and independent reviews.
+
+The count is reproducible from the source (run at repository root):
+
+```sh
+python3 -B - <<'PYCODE'
+from pathlib import Path
+import re
+main = Path('paper/slides.tex').read_text().split('\\appendix', 1)[0]
+notes = re.findall(r'\\note\{(.*?)\}\s*\\end\{frame\}', main, re.S)
+words = 0
+for note in notes:
+    note = re.split(r'Se perguntarem:|Fontes?:', note)[0]
+    note = re.sub(r'\\(?:par|textbf|texttt|numpt|latpt|intpt|ratiopt)\b', ' ', note)
+    note = re.sub(r'\\([A-Za-z]+)', r' \1 ', note)
+    words += len(re.sub(r'[{}~$\\]', ' ', note).split())
+print(len(notes), words, round(words / 130, 1))
+PYCODE
+```
 
 Before submission, the advisor reviews the article, and the author rehearses the
 defense. No committee member or defense date is assumed.
@@ -122,7 +135,7 @@ or overfull boxes. Count references with `rg -c '^\\bibitem' .build/tcc/main.bbl
 ## Reproducing the fresh evidence
 
 Each benchmark JSON records its exact source commit and executable/source
-fingerprints. E1–E5 (including the verification commands) must share the same
+fingerprints. E1–E6 and the focused GPU benchmark (including verification commands) must share the same
 engine source and executable fingerprints; the historical direct-seed attempt
 is retained separately. The harness uses the real serial Rust host, official Bend 2.0.39 and
 BendTT, literal emitted C, Clang 19, and one native worker thread. The final protocol uses independent sessions at the nominal base clock with
@@ -130,7 +143,7 @@ the performance governor and turbo disabled. E5 uses one session with
 log-spaced populations and a first-key variant. Historical frequency-scaling
 measurements are excluded from the final latency evaluation. No mock engine or alternate verifier
 is measured. All output values are checked. Initialization and warmups are
-outside the operation samples. JSON files include raw nanoseconds, outputs,
+outside the operation samples. JSON files include raw nanoseconds (E1–E5) or milliseconds (GPU/E6), outputs,
 CPU/kernel/toolchain/commit metadata and executable/source fingerprints.
 JayDB2 round trips start with sending a pre-encoded frame and end after the
 complete framed response is read; decoding/checking are outside that interval.
@@ -182,17 +195,59 @@ Run the commands under the common heavy-work lock, with unlimited stack and
 uses a new private cluster and local Unix socket for **every engine/condition/
 session**, starts and stops with the harness, and never uses a system service.
 SQLite gets a fresh connection/database; JayDB2 gets a fresh service and durable
-database for each E1–E3 session. The full final reproduction is:
+database for each E1–E3 session. The complete refresh is:
 
 ```sh
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh bash -c "python3 -B paper/bench/run.py latency && python3 -B paper/bench/run.py prepared && python3 -B paper/bench/run.py comparison && python3 -B paper/bench/run.py scaling"'
-# E4: collect fresh verification/test wall times under the same fixed policy:
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B paper/bench/run.py verification'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B -m paper.bench.source_sizes --update'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && python3 -B paper/bench/check-clock.py'
+export PYTHONPATH=/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/gpu/python
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B paper/bench/refresh.py'
 python3 -B paper/evidence.py
+# Optional standalone figures (Matplotlib):
+python3 -B paper/bench/gpu_chart.py
+python3 -B paper/bench/simulation_chart.py
 python3 -B -m unittest discover -s paper -p test_evidence.py -v
+python3 -m pytest paper/test_evidence.py
+make -C paper
 ```
+
+`refresh.py` requires a clean worktree, runs `make build`, then runs each of the
+following under `paper/bench/fixed-clock.sh`, still holding the outer heavy lock:
+
+| Evidence | Command inside fixed-clock wrapper |
+|---|---|
+| E1 | `python3 -B paper/bench/run.py latency` |
+| E2 | `python3 -B paper/bench/run.py prepared` |
+| E3 | `python3 -B paper/bench/run.py comparison` |
+| E5 | `python3 -B paper/bench/run.py scaling` |
+| E4 | `python3 -B paper/bench/run.py verification` |
+| Source inventory | `python3 -B -m paper.bench.source_sizes --update` |
+| Focused GPU | `python3 -B paper/bench/gpu_programs.py --output paper/evidence/gpu-programs.json` |
+| E6 | `python3 -B paper/bench/simulation.py --output paper/evidence/simulation.json` |
+
+After every command it reads back all CPU settings, requiring `powersave`,
+`balance_performance`, and `no_turbo=0`. Any harness/gate failure stops the refresh.
+It retains per-command logs, durations, source revision, raw-file hashes and CPU
+readbacks under `.build/paper-bench/refresh-*`. Outputs are staged there and each
+tracked evidence path restored to HEAD before the next measurement, so every
+metadata block starts with `dirty: []`. Nothing is committed between measurements.
+The legacy `base_commit` field identifies the harness origin; `commit` records
+the measured revision (the current frozen engine was branched from `685bb67`).
+The inventory is merged into the fresh E4 timings after collection. Only after
+all commands and `python3 -B paper/bench/check-clock.py` pass are the staged raw
+JSON files published together; `paper/evidence/refresh-log.json` retains the audit.
+The first integrated refresh used this same output-staging procedure, with its
+source-inventory invocation collected after the other benchmarks on the same
+clean revision. Historical `scaling-seed-attempt.json` is retained separately.
+
+The direct GPU scripts above do not acquire a nested lock. If using the nested
+make targets (`benchmark-gpu`, `benchmark-simulation`, `test-gpu`, `smoke`) instead:
+
+```sh
+bash -c 'exec 9>/tmp/jaydb2-experiments-heavy.lock; flock 9; ulimit -s unlimited; export JAYDB_HEAVY_LOCK_FD=9; make test-gpu'
+```
+
+Never export an empty `JAYDB_HEAVY_LOCK_FD`. Use the same nonempty inherited
+file descriptor for nested targets. Default E1–E5 metadata say GPU off; focused
+GPU settings are in each run's backend/threads/artifact, and E6 records all modes.
 
 `ordinary.json` measures ten calls per program in each of three independent
 sessions (30 pooled), after one excluded warmup per session. Program order
@@ -286,6 +341,31 @@ voucher functional theorem suite; they are scoped client integration costs,
 not complete application correctness-proof sizes. `detailed_sizes` lists every
 included file and its count. Counts of `law` declarations, proof definitions
 and named theorem witnesses remain distinct syntactic facts.
+
+E6 (`simulation.json`) compares the certified application on CPU-1, CPU-16 and
+CUDA with PostgreSQL PL/pgSQL and SQLite recursive CTE, without Python UDFs.
+Runtime arguments vary paths/steps while all engines store identical Alice/Bob
+parameter rows. It has one session per backend, one excluded warmup and three
+measured samples per completed size. Preparation (both checkers, compilation and
+optional cubin prebuild) is a separate single observation. JayDB2 includes
+encoding/transport, fresh authentication, integrity checks, fresh process/device
+startup, simulation, publication, decoding and inspector emission; SQL includes
+execute/fetch, in-database reads/computation/upsert. Complete states/tables and
+scalar Python/NumPy oracles are checked outside timing. SQL cancellations are
+retained as timeouts; later sizes are not run, never extrapolated. RAM/TEMP/
+`:memory:` storage makes this a volatile compute comparison, with no equivalent
+SQL admission/authentication or durability claim. GPU clocks are unfixed; device,
+driver and resolved NVRTC library versions/hashes come from retained artifacts.
+
+The focused GPU benchmark retains separate native-worker and complete-request
+trials (not additive phases), both with one excluded warmup and three samples.
+Its independent U32 oracle evaluates every seed/round; complete published states
+are checked. The evidence builder recomputes GPU and E6 oracles at every measured
+size, checks complete state histories and SQL controls, raw medians/ranges,
+backend/size/sample coverage, fixed CPU policy, fixture and shared engine
+fingerprints, cubin/library provenance and timeout ordering. Corruption tests
+exercise these checks. NumPy is required for this validation; matplotlib is
+optional for standalone figures. Build/report paths remain ignored.
 
 Statistics use inclusive quartiles, without outlier removal. Tables report
 pooled median [Q1,Q3] and a separate min–max of the three session medians in
@@ -482,3 +562,31 @@ original registration/persistent spelling.
 | `\HostDutyCount` | Numbered T3 duties read from proof/README.md; eight regrouped items do not reduce the previous eleven trust obligations |
 | `\OrdinaryReadAdmissionSeconds`, `\OrdinaryIndexedAdmissionSeconds`, `\OrdinaryVoucherAdmissionSeconds` | Admission wall time, including overlapping checker/native-build phases (s) |
 | `\RlsNonblankLines` | All maintained top-level RLS Bend source lines, including schema/laws/seed and domain proofs; generated .build packages excluded |
+
+### GPU and E6 macro contract
+
+All values and table cells come from validated raw evidence; medians are not kernel times.
+
+| Macro | Meaning | Unit |
+|---|---|---|
+| `\GpuDevice` | Measured CUDA device | text |
+| `\GpuDriverVersion` | Recorded NVIDIA driver version | version |
+| `\NvrtcLibraryVersion` | Resolved libnvrtc shared-library version (not pinned) | version |
+| `\GpuCorpusMiB` | Requested CUDA managed-memory corpus | MiB |
+| `\SimulationRepeats` | E6 measured calls per completed backend/size | samples |
+| `\SimulationWarmups` | E6 excluded warmups per backend/size | calls |
+| `\SimulationSessionCount` | E6 sessions per backend | sessions |
+| `\SimulationLargestPaths` | Largest E6 path count | paths |
+| `\SimulationLargestSteps` | Largest E6 steps per path | steps |
+| `\SimulationMeasuredSamples` | E6 completed measured samples across all backends | samples |
+| `\GpuRepeats` | Focused GPU samples per size/backend/timing boundary | samples |
+| `\SimulationCpuOnePreparationMs` | E6 single preparation observation; excluded from call times | ms |
+| `\SimulationCpuSixteenPreparationMs` | E6 single preparation observation; excluded from call times | ms |
+| `\SimulationCudaPreparationMs` | E6 single preparation observation; excluded from call times | ms |
+| `\SimulationSmallCpuOneMs` | E6 small complete cpu-1 request median | ms |
+| `\SimulationLargeCpuOneMs` | E6 large complete cpu-1 request median | ms |
+| `\SimulationSmallCpuSixteenMs` | E6 small complete cpu-16 request median | ms |
+| `\SimulationLargeCpuSixteenMs` | E6 large complete cpu-16 request median | ms |
+| `\SimulationSmallCudaMs` | E6 small complete cuda request median | ms |
+| `\SimulationLargeCudaMs` | E6 large complete cuda request median | ms |
+| `\GpuSmallCudaNativeMs` | Small focused CUDA native worker median; includes process/device startup | ms |

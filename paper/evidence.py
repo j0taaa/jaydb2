@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Validate fresh checked samples and derive LaTeX/plot data (no benchmarks)."""
 import json
+import functools
 import math
 from pathlib import Path
 import re
 import statistics
+import sys
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
 OUT=ROOT/'.build/tcc'
-FILES=('ordinary','prepared','comparison','verification','scaling','scaling-seed-attempt')
+FILES=('ordinary','prepared','comparison','verification','scaling','scaling-seed-attempt','gpu-programs','simulation')
 PROGRAMS={'read':'Read','indexed':'Indexed','voucher':'Voucher'}
 MACROS={}
 
@@ -59,9 +62,16 @@ def validate(data):
         for key in ('cpu','kernel','python','node','clang','rust','cargo','bend','toolchain','commit','binary_sha256','source_sha256'):
             if not meta.get(key): raise ValueError('Missing metadata: '+key)
         if not re.fullmatch('[0-9a-f]{40}',meta['commit']): raise ValueError('Invalid commit')
+        for key in ('binary_sha256','source_sha256'):
+            if not re.fullmatch('[0-9a-f]{64}',meta[key]):raise ValueError('Invalid engine fingerprint: '+key)
     for key in ('binary_sha256','source_sha256'):
-        if len({data[name]['metadata'][key] for name in ('ordinary','prepared','comparison','scaling','verification')})!=1:
+        if len({data[name]['metadata'][key] for name in ('ordinary','prepared','comparison','scaling','verification','gpu-programs','simulation')})!=1:
             raise ValueError('Mixed engine fingerprints: '+key)
+    for name in ('ordinary','prepared','comparison','scaling','verification','gpu-programs','simulation'):
+        if data[name]['metadata'].get('dirty')!=[]:raise ValueError('Dirty measurement: '+name)
+        validate_frequency(data[name]['metadata'])
+        if canonical(data[name]['metadata']['toolchain'])!=canonical(data['ordinary']['metadata']['toolchain']):raise ValueError('Mixed toolchain metadata')
+    validate_compute(data)
     if {r['program'] for r in data['ordinary']['records']}!=set(PROGRAMS) or len(data['ordinary']['records'])!=3:
         raise ValueError('Ordinary program coverage')
     for r in data['ordinary']['records']:
@@ -130,7 +140,10 @@ def validate(data):
             if any(z['settings'].get('rls')!=[True,True] for z in record['sessions']):raise ValueError('PostgreSQL durability/RLS settings')
     validate_frequency(data['verification']['metadata'])
     if 'size_collection_metadata' in data['verification']:
-        validate_frequency(data['verification']['size_collection_metadata'])
+        inventory=data['verification']['size_collection_metadata']
+        validate_frequency(inventory)
+        if inventory.get('dirty')!=[] or any(inventory[k]!=data['verification']['metadata'][k] for k in ('binary_sha256','source_sha256','commit')):
+            raise ValueError('Source inventory measurement provenance')
     commands=data['verification']['commands']
     if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
     for row in commands:
@@ -210,6 +223,164 @@ def validate_sessions(record,name):
     if canonical(pooled)!=canonical(raw):raise ValueError('Pooled samples disagree with independent sessions')
 
 
+# To be integrated in paper/evidence.py after the clean evidence refresh.
+def positive_ms(values, count, label):
+    if len(values)!=count or any(type(v) not in (float,int) or not math.isfinite(v) or v<=0 for v in values):
+        raise ValueError('Invalid '+label+' samples')
+
+
+def validate_artifacts(preparations, gpu_mib, emitted_bangs=False):
+    if len(preparations)!=3 or {p['backend'] for p in preparations}!={'cpu-1','cpu-16','cuda'}:
+        raise ValueError('GPU preparation coverage')
+    if len({p['artifact']['sourceSha256'] for p in preparations})!=1:
+        raise ValueError('CPU/CUDA emitted C differs')
+    for p in preparations:
+        artifact=p['artifact'];cuda=p['backend']=='cuda'
+        if artifact.get('format')!='jaydb-official-c-v1':raise ValueError('GPU artifact format')
+        if artifact.get('backend')!=('cuda' if cuda else 'cpu'):
+            raise ValueError('GPU artifact backend')
+        for key in ('sourceSha256','executableSha256','compilerSha256')+(('gpuSha256',) if cuda else ()):
+            if not re.fullmatch('[a-f0-9]{64}',artifact.get(key,'')):raise ValueError('GPU artifact hash: '+key)
+        if emitted_bangs and (type(artifact.get('emitted_bangs')) is not int or artifact['emitted_bangs']<=0):
+            raise ValueError('Missing emitted bangs')
+        if cuda:
+            if artifact.get('hasBangs') is not True or artifact.get('gpuMiB')!=gpu_mib:
+                raise ValueError('GPU artifact bang/corpus')
+            libraries=artifact.get('cudaLibraries',{})
+            if set(libraries)!={'libcuda.so.1','libnvrtc.so.12'}:raise ValueError('Missing CUDA library provenance')
+            for lib in libraries.values():
+                if not lib.get('path','').startswith('/') or not re.fullmatch('[a-f0-9]{64}',lib.get('sha256','')):
+                    raise ValueError('Invalid CUDA library provenance')
+
+
+@functools.lru_cache(maxsize=None)
+def gpu_oracle(depth):
+    # Independent arithmetic oracle from the benchmark; evaluated at every size.
+    from paper.bench.gpu_programs import oracle
+    return oracle(depth)
+
+
+@functools.lru_cache(maxsize=None)
+def simulation_oracle(depth, steps, user='alice', vector=True):
+    from tests.service.test_simulation import oracle
+    return oracle(depth, steps, user, vector=vector)
+
+
+def validate_compute(data):
+    import hashlib
+    from tests.service.test_simulation import state as simulation_state, PARAMETERS
+    from paper.bench.gpu_programs import state as gpu_state
+    gpu=data['gpu-programs'];sim=data['simulation']
+    expected_fixtures={'experiments/gpu/HeavyClient.bend','experiments/gpu/ClientProof.bend','paper/bench/gpu_programs.py'}
+    expected_simulation={str(p.relative_to(ROOT)) for p in (ROOT/'applications/simulation').glob('*.bend')} | {'paper/bench/simulation.py','paper/bench/simulation-postgres.sql','paper/bench/simulation-sqlite.sql','tests/service/test_simulation.py'}
+    if set(gpu['fixture_sha256'])!=expected_fixtures or set(sim['source_sha256'])!=expected_simulation:
+        raise ValueError('Compute fixture fingerprint coverage')
+    for d,field in ((gpu,'fixture_sha256'),(sim,'source_sha256')):
+        for name,digest in d[field].items():
+            if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest:
+                raise ValueError('Compute fixture fingerprint: '+name)
+    if gpu['revision']!=gpu['metadata']['commit'] or gpu['dirty']!=[] or gpu['binary_sha256']!=gpu['metadata']['binary_sha256'] or canonical(gpu['toolchain'])!=canonical(gpu['metadata']['toolchain']):
+        raise ValueError('GPU metadata disagrees')
+    validate_frequency(gpu)
+    if gpu['gpu_mib']!=512 or gpu['gpu_worker_cap']!=1 or gpu['warmups']!=1 or gpu['repeats']<3:
+        raise ValueError('GPU measurement protocol')
+    validate_artifacts(gpu['runs'],gpu['gpu_mib'])
+    depths=None
+    for run in gpu['runs']:
+        positive_ms([run['first_preparation_ms']],1,'GPU preparation')
+        if run['threads']!=(16 if run['backend']=='cpu-16' else 1):
+            raise ValueError('GPU preparation/threads')
+        current=[r['depth'] for r in run['records']]
+        if len(current)!=2 or current[0]!=2 or not 3<=current[1]<=16 or (depths is not None and current!=depths):
+            raise ValueError('GPU size coverage')
+        depths=current
+        expected=[gpu_state('alice-token')]*3
+        for row in run['records']:
+            depth=row['depth'];reference=gpu_oracle(depth)
+            if (row['leaves'],row['rounds_per_leaf'],row['total_mixing_rounds'])!=(1<<depth,depth*4096,(1<<depth)*depth*4096):
+                raise ValueError('GPU workload dimensions')
+            if row['result']!=reference or gpu['oracle'][str(depth)]!=reference:
+                raise ValueError('GPU oracle disagrees')
+            for field in ('native_worker','complete_request'):
+                values=row[field+'_ms'];positive_ms(values,gpu['repeats'],'GPU')
+                if row['median_'+field+'_ms']!=statistics.median(values):raise ValueError('GPU raw summary disagrees')
+            expected.extend([gpu_state('x'*depth)]*(gpu['repeats']+1))
+        if run['full_published_states']!=expected:raise ValueError('GPU complete published state')
+    scalar=0
+    for seed in range(4):
+        value=seed
+        for _ in range(8192):value=((value^(value>>16))*1664525+1013904223)&0xffffffff
+        scalar=(scalar+value)&0xffffffff
+    if gpu['small_scalar_oracle']!=scalar or scalar!=gpu_oracle(2):raise ValueError('GPU scalar oracle')
+    sizes=sim['sizes'];identities=[(s['depth'],s['steps']) for s in sizes]
+    from paper.bench.simulation import SIZES
+    if identities!=SIZES:raise ValueError('Simulation size coverage')
+    if len(identities)!=4 or len(set(identities))!=4 or any(s['paths']!=1<<s['depth'] for s in sizes):
+        raise ValueError('Simulation size coverage')
+    if canonical(sim['parameters'])!=canonical({k:list(v) for k,v in PARAMETERS.items()}) or sim['warmups']!=1 or sim['repeats']<3 or sim['gpu_mib']!=512:
+        raise ValueError('Simulation measurement protocol')
+    if sim['settings']['cuda']['clock_fixed'] is not False or sim['settings']['cpu_threads']!=[1,16] or sim['settings']['cuda']['corpus_mib']!=sim['gpu_mib'] or sim['settings']['cuda']['host_threads']!=1 or sim['metadata']['threads']!=[1,16] or sim['metadata']['session_count']!=1:
+        raise ValueError('Simulation clock/threads')
+    if sim['settings']['postgresql']['tables']!='TEMP' or sim['settings']['sqlite']['storage']!=':memory:':
+        raise ValueError('Simulation volatile SQL settings')
+    references={}
+    for depth,steps in identities:
+        key=f'{depth}:{steps}';references[key]=simulation_oracle(depth,steps)
+        if canonical(sim['oracle'][key])!=canonical(references[key]):raise ValueError('Simulation oracle disagrees')
+    for user in PARAMETERS:
+        if simulation_oracle(3,17,user)!=simulation_oracle(3,17,user,False):raise ValueError('Simulation scalar/vector oracle')
+    validate_artifacts(sim['preparations'],sim['gpu_mib'],emitted_bangs=True)
+    for prep in sim['preparations']:
+        if prep['threads']!=(16 if prep['backend']=='cpu-16' else 1):raise ValueError('Simulation preparation threads')
+        positive_ms([prep['elapsed_ms']],1,'simulation preparation')
+    backends=('cpu-1','cpu-16','cuda','postgresql','sqlite')
+    if len(sim['records'])!=len(backends)*len(sizes):raise ValueError('Simulation backend coverage')
+    for backend in backends:
+        rows=[r for r in sim['records'] if r['backend']==backend]
+        if [(r['depth'],r['steps']) for r in rows]!=identities:raise ValueError('Simulation backend/size coverage')
+        capped=False;last=None
+        for row in rows:
+            if row['paths']!=1<<row['depth']:raise ValueError('Simulation path count')
+            if row['status']=='measured':
+                if capped:raise ValueError('Simulation measured beyond timeout')
+                positive_ms(row['samples_ms'],sim['repeats'],'simulation')
+                positive_ms(row['warmup_ms'],1,'simulation warmup')
+                if row['median_ms']!=statistics.median(row['samples_ms']) or row['range_ms']!=[min(row['samples_ms']),max(row['samples_ms'])]:
+                    raise ValueError('Simulation raw summary disagrees')
+                if row['updates']!=row['paths']*row['steps'] or canonical(row['result'])!=canonical(references[f"{row['depth']}:{row['steps']}"]):
+                    raise ValueError('Simulation result disagrees')
+                if row['complete_state_verified'] is not True:raise ValueError('Simulation unchecked state')
+                last=row['updates']
+            elif backend in ('postgresql','sqlite') and row['status'] in ('timeout','not run'):
+                if row.get('median_ms') is not None or row.get('result') is not None or row['timeout_s']<=0:
+                    raise ValueError('Simulation fabricated timeout result')
+                if row['status']=='not run' and not capped:raise ValueError('Simulation skipped before timeout')
+                if row['status']=='timeout':
+                    if capped or row['last_verified_updates']!=last or not row.get('diagnostic'):
+                        raise ValueError('Simulation timeout provenance')
+                capped=True
+            else:raise ValueError('Simulation invalid status')
+        if backend in backends[:3]:
+            expected=[simulation_state({})]*3
+            for reference in references.values():expected.extend([simulation_state({'alice':reference})]*(sim['repeats']+1))
+            if canonical(sim['published_states'][backend])!=canonical(expected):raise ValueError('Simulation complete published state')
+    gpu_artifact=next(p['artifact'] for p in gpu['runs'] if p['backend']=='cuda')
+    sim_artifact=next(p['artifact'] for p in sim['preparations'] if p['backend']=='cuda')
+    if canonical(gpu_artifact['cudaLibraries'])!=canonical(sim_artifact['cudaLibraries']) or gpu['gpu']!=sim['settings']['cuda']['device']:
+        raise ValueError('Mixed CUDA environment')
+    controls=sim['sql_controls']
+    expected_controls={(e,u,d,s) for e in backends[3:] for u in PARAMETERS for d,s in ((0,0),(3,17))}
+    if len(controls)!=len(expected_controls) or {(c['backend'],c['user'],c['depth'],c['steps']) for c in controls}!=expected_controls:
+        raise ValueError('Simulation SQL control coverage')
+    states={e:{} for e in backends[3:]}
+    for c in controls:
+        result=simulation_oracle(c['depth'],c['steps'],c['user'],False)
+        if canonical(c['result'])!=canonical(result):raise ValueError('Simulation SQL control oracle')
+        states[c['backend']][c['user']]=result
+        if canonical(c['complete_tables'])!=canonical(simulation_state(states[c['backend']])['tables']):
+            raise ValueError('Simulation SQL control state')
+
+
 def load():
     return validate({n:json.loads((ROOT/'paper/evidence'/f'{n}.json').read_text()) for n in FILES})
 
@@ -247,8 +418,117 @@ def source_inventory(directory):
         bool(line.strip()) for path in files for line in path.read_text().splitlines()))
 
 
+def write_compute_reports(data):
+    gpu=data['gpu-programs'];sim=data['simulation']
+    columns=('cpu-1','cpu-16','cuda','postgresql','sqlite')
+    def timed(values):return f'{statistics.median(values):.3f} ({min(values):.3f}–{max(values):.3f})'
+    header=['# E6: certified table-driven simulation','',
+        f"Measured revision `{sim['metadata']['commit']}`; `dirty: {sim['metadata']['dirty']}`.",
+        f"Engine source SHA-256 `{sim['metadata']['source_sha256']}`; executable SHA-256 `{sim['metadata']['binary_sha256']}`.",
+        '', 'Generated by `paper/evidence.py` from retained raw samples after validation. E6 and E1–E5 share engine fingerprints with the focused GPU benchmark.',
+        '', '[Application arithmetic and certificate](../../applications/simulation/README.md); [timing harness](../bench/simulation.py).',
+        '', 'The universal certificate confines scenario reads and result writes to the authenticated user and proves finite Action execution; structural checking covers numerical recursion. It does not prove numeric/statistical properties or CUDA correctness. A foreign-result-write negative fails the installed access obligation in both official modes.',
+        '', f"Complete request/query wall time in milliseconds: median (min–max), {sim['warmups']} excluded warmup and {sim['repeats']} measured samples per completed cell. Preparation is separate.",
+        '', '| Paths × steps | JayDB2 CPU-1 | JayDB2 CPU-16 | JayDB2 CUDA | PostgreSQL PL/pgSQL | SQLite CTE |','|---|---:|---:|---:|---:|---:|']
+    compact=['| Paths × steps | CPU-1 | CPU-16 | CUDA | PostgreSQL | SQLite |','|---|---:|---:|---:|---:|---:|']
+    for size in sim['sizes']:
+        cells=[];medians=[]
+        for backend in columns:
+            r=next(r for r in sim['records'] if r['backend']==backend and r['depth']==size['depth'] and r['steps']==size['steps'])
+            if r['status']=='measured':cells.append(timed(r['samples_ms']));medians.append(f"{statistics.median(r['samples_ms']):.3f}")
+            else:
+                label=f"timeout {r['timeout_s']:g} s" if r['status']=='timeout' else 'not run'
+                cells.append(label);medians.append(label)
+        prefix=f"| {size['paths']:,} × {size['steps']:,} | "
+        header.append(prefix+' | '.join(cells)+' |');compact.append(prefix+' | '.join(medians)+' |')
+    header+=['','## Preparation (one observation, excluded above)','', '| Backend | ms |','|---|---:|']
+    for p in sim['preparations']:header.append(f"| {p['backend']} | {p['elapsed_ms']:.3f} |")
+    header+=['','## Protocol and limitations','',*['- '+limitation for limitation in sim['limitations']],
+        '', 'CPU restoration is verified after every benchmark and in `cpu-restoration.json`/`refresh-log.json`. GPU clocks are unfixed. Artifact reports retain resolved CUDA library paths/hashes, not pinned library guarantees.',
+        '', 'Independent scalar/NumPy oracles check every completed size and complete state. SQL controls exercise both users; timeouts retain cancellation diagnostics and rollback is checked by the harness. Timeouts and subsequent unrun sizes supply neither results nor extrapolated timing.',
+        '', '[Raw evidence](simulation.json); [standalone figure](simulation.svg). Historical launch/development logs in `simulation-launch.json`, `simulation-validation.json` and `simulation-development.json` describe earlier revisions; they are not fresh E6 timings.']
+    (OUT/'simulation.md').write_text('\n'.join(header)+'\n')
+    (OUT/'simulation-rendered.md').write_text('\n'.join(compact)+'\n')
+    report=['# Focused GPU program evidence','',f"Measured revision `{gpu['metadata']['commit']}`; `dirty: {gpu['metadata']['dirty']}`.",
+        f"Engine source SHA-256 `{gpu['metadata']['source_sha256']}`; executable SHA-256 `{gpu['metadata']['binary_sha256']}`.",
+        '', 'Generated by `paper/evidence.py` from the current raw JSON, sharing engine fingerprints with E1–E6. CPU is the default; explicit bang calls opt into official Bend CUDA execution.',
+        '', 'Both official checkers accept the same sealed Book before CUDA C emission/compilation/prebuild. Proofs concern that Book’s semantics, under identical certificate, termination, access/RLS, size and publication obligations. No GPU validity axiom is introduced.',
+        '', 'T2 additionally trusts Bend’s emitted CUDA runtime, NVRTC, CUDA driver, managed memory and GPU hardware. CUDA headers/libraries come from the host environment; resolved library paths/hashes are recorded, not pinned. Differential tests/oracles are implementation evidence, not proof of CUDA correctness.',
+        '', 'Reports bind emitted C, executable and cubin hashes. CUDA execution rechecks artifacts before launch and accepting output; prepared calls compare exact sealed bytes. Artifact changes, rebuild notices and device errors discard the proposal. Requested bangs have no CPU fallback. Execution is serial per instance.',
+        '', f"Native-worker and complete-request columns are separate trials, not additive phases. Each excludes one warmup and retains {gpu['repeats']} samples. Worker times include fresh process/device startup and exit; requests also include authentication, integrity checking, publication/inspector emission and decoding.",
+        '', '| Depth / mixing rounds | Backend | Native worker median (range), ms | Complete request median (range), ms |','|---|---|---:|---:|']
+    for run in gpu['runs']:
+        for row in run['records']:
+            report.append(f"| {row['depth']} / {row['total_mixing_rounds']:,} | {run['backend']} | {timed(row['native_worker_ms'])} | {timed(row['complete_request_ms'])} |")
+    report+=['','## Separate preparation','', '| Backend | ms (one observation) |','|---|---:|']
+    for run in gpu['runs']:report.append(f"| {run['backend']} | {run['first_preparation_ms']:.3f} |")
+    report+=['','The independent Python/NumPy U32 oracle performs every seed/round and a small scalar cross-check. Every native proposal and complete published state is checked, including Bob’s unchanged credential. All modes emit identical C. Benchmarks use the unwrapped real driver.',
+        '', 'CPU policy is fixed and restored after each benchmark; GPU clock is unfixed and the device drives the desktop. Fresh process/device costs dominate small work. No kernel-only latency, general speedup, timeout/resource quota, persistent worker, cross-instance scheduling or portability guarantee follows. The corpus does not cap total driver memory, and integrity checks do not defeat hostile same-UID file-use races.',
+        '', '[Raw samples and artifact/library hashes](gpu-programs.json); [standalone figure](gpu-programs.svg). Historical implementation/launch validation is retained in `gpu-validation.json` and `gpu-validation-rerun.json`; those records identify their own earlier revisions and are not current paper measurements.']
+    (OUT/'gpu-programs.md').write_text('\n'.join(report)+'\n')
+
+
+def derive_compute(data):
+    gpu=data['gpu-programs'];sim=data['simulation']
+    device,driver,_=sim['settings']['cuda']['device'].splitlines()[1].split(', ')
+    artifact=next(p['artifact'] for p in sim['preparations'] if p['backend']=='cuda')
+    nvrtc=Path(artifact['cudaLibraries']['libnvrtc.so.12']['path']).name.split('.so.')[1]
+    for name,value,meaning,unit in [
+        ('GpuDevice',device,'Measured CUDA device','text'),
+        ('GpuDriverVersion',driver,'Recorded NVIDIA driver version','version'),
+        ('NvrtcLibraryVersion',nvrtc,'Resolved libnvrtc shared-library version (not pinned)','version'),
+        ('GpuCorpusMiB',sim['gpu_mib'],'Requested CUDA managed-memory corpus','MiB'),
+        ('SimulationRepeats',sim['repeats'],'E6 measured calls per completed backend/size','samples'),
+        ('SimulationWarmups',sim['warmups'],'E6 excluded warmups per backend/size','calls'),
+        ('SimulationSessionCount',sim['metadata']['session_count'],'E6 sessions per backend','sessions'),
+        ('SimulationLargestPaths',sim['sizes'][-1]['paths'],'Largest E6 path count','paths'),
+        ('SimulationLargestSteps',sim['sizes'][-1]['steps'],'Largest E6 steps per path','steps'),
+        ('SimulationMeasuredSamples',sum(len(r.get('samples_ms',[])) for r in sim['records']),'E6 completed measured samples across all backends','samples'),
+        ('GpuRepeats',gpu['repeats'],'Focused GPU samples per size/backend/timing boundary','samples')]:macro(name,value,meaning,unit)
+    labels={'cpu-1':'CpuOne','cpu-16':'CpuSixteen','cuda':'Cuda'}
+    for prep in sim['preparations']:
+        macro('Simulation'+labels[prep['backend']]+'PreparationMs',prep['elapsed_ms'],'E6 single preparation observation; excluded from call times','ms')
+    for backend,label in labels.items():
+        records=[r for r in sim['records'] if r['backend']==backend]
+        for row,size in ((records[0],'Small'),(records[-1],'Large')):
+            macro('Simulation'+size+label+'Ms',statistics.median(row['samples_ms']),'E6 '+size.lower()+' complete '+backend+' request median','ms')
+    for run in gpu['runs']:
+        if run['backend']=='cuda':
+            macro('GpuSmallCudaNativeMs',statistics.median(run['records'][0]['native_worker_ms']),'Small focused CUDA native worker median; includes process/device startup','ms')
+    def ms_cell(row,locale='en',ranges=True):
+        if row['status']=='timeout':return (r'\textit{timeout} ' if locale=='en' else r'\textit{timeout} ')+decimal(row['timeout_s'],0)+r' s'
+        if row['status']=='not run':return r'\textit{not run}' if locale=='en' else r'\textit{não executado}'
+        values=row['samples_ms']
+        def number(v):
+            s=decimal(v,3)
+            return s if locale=='en' else s.replace('{,}',r'\,').replace('.',',')
+        return number(statistics.median(values))+(r' ['+number(min(values))+', '+number(max(values))+']' if ranges else '')
+    backends=('cpu-1','cpu-16','cuda','postgresql','sqlite')
+    for locale in ('en','pt'):
+        rows=[['Paths $\\times$ steps' if locale=='en' else 'Caminhos $\\times$ passos','CPU-1','CPU-16','CUDA','PostgreSQL','SQLite']]
+        for size in sim['sizes']:
+            records=[next(r for r in sim['records'] if r['backend']==backend and r['depth']==size['depth'] and r['steps']==size['steps']) for backend in backends]
+            n=lambda x:fmt(x) if locale=='en' else str(x) # compact ungrouped slide dimensions
+            rows.append([n(size['paths'])+r' $\times$ '+n(size['steps'])]+[ms_cell(r,locale,ranges=False) for r in records])
+        table('simulation-table-'+locale+'.tex','@{}lrrrrr@{}',rows)
+    # Full ranges remain separately available without crowding the six-column table.
+    rows=[['Paths $\\times$ steps','Backend','ms: median [min, max]']]
+    for r in sim['records']:
+        rows.append([fmt(r['paths'])+r' $\times$ '+fmt(r['steps']),r['backend'],ms_cell(r)])
+    table('simulation-ranges.tex','l lr',rows)
+    for backend in backends:
+        lines=['updates median_ms lower_ms upper_ms']
+        for r in sim['records']:
+            if r['backend']==backend and r['status']=='measured':
+                values=r['samples_ms'];median=statistics.median(values)
+                lines.append(f"{r['updates']} {median:.12g} {median-min(values):.12g} {max(values)-median:.12g}")
+        (OUT/('simulation-'+backend+'.dat')).write_text('\n'.join(lines)+'\n')
+
+
 def derive(data):
     MACROS.clear();OUT.mkdir(parents=True,exist_ok=True)
+    derive_compute(data)
+    write_compute_reports(data)
     for prefix,count in [('Ordinary',30),('Prepared',900),('Registration',9),('Comparison',900),('Scaling',50)]:
         macro(prefix+'Samples',count,prefix.lower()+' measured samples per program/mode/operation','samples')
     macro('CpuGovernor','performance','Linux CPU scaling governor and EPP on all 16 CPUs','text')
@@ -470,16 +750,18 @@ def derive(data):
          decimal(r['stats']['median']/1e6,3),
          decimal(min(r['session_medians'])/1e6,3)+'--'+decimal(max(r['session_medians'])/1e6,3),r['stats']['n']]
         for r in selected])
-    report=dict(measurement_metadata={name:data[name]['metadata'] for name in ('ordinary','prepared','comparison','scaling')},registration=[dict(program=r['program'],persistent=r['persistent'],n=len(r['registrations']),min_ns=min(x['elapsed_ns'] for x in r['registrations']),median_ns=statistics.median(x['elapsed_ns'] for x in r['registrations']),max_ns=max(x['elapsed_ns'] for x in r['registrations']),session_medians_ns=[statistics.median(x['elapsed_ns'] for x in z['registrations']) for z in r['sessions']]) for r in data['prepared']['records']],protocol=dict(sessions=3,scaling_sessions=1,governor='performance',epp='performance',no_turbo=1,nominal_ghz=3.6),headline=headline)
+    report=dict(measurement_metadata={name:data[name]['metadata'] for name in ('ordinary','prepared','comparison','scaling','verification','gpu-programs','simulation')},registration=[dict(program=r['program'],persistent=r['persistent'],n=len(r['registrations']),min_ns=min(x['elapsed_ns'] for x in r['registrations']),median_ns=statistics.median(x['elapsed_ns'] for x in r['registrations']),max_ns=max(x['elapsed_ns'] for x in r['registrations']),session_medians_ns=[statistics.median(x['elapsed_ns'] for x in z['registrations']) for z in r['sessions']]) for r in data['prepared']['records']],protocol=dict(sessions=3,scaling_sessions=1,governor='performance',epp='performance',no_turbo=1,nominal_ghz=3.6),headline=headline)
+    report['compute']=dict(simulation=dict(settings=data['simulation']['settings'],preparations=data['simulation']['preparations'],records=data['simulation']['records']),gpu=dict(runs=data['gpu-programs']['runs']))
     (OUT/'final-summary.json').write_text(json.dumps(report,indent=2)+'\n')
     markdown=['| Metric | Unit | Pooled median [Q1, Q3] | Session median min–max | n |','|---|---|---|---|---|']
     for r in headline:
         v=r['stats'];k=r['scale']
         markdown.append(f"| {r['metric']} | {r['unit']} | {v['median']/k:,.3f} [{v['qone']/k:,.3f}, {v['qthree']/k:,.3f}] | {min(r['session_medians'])/k:,.3f}–{max(r['session_medians'])/k:,.3f} | {v['n']} |")
-    (OUT/'final-headlines.md').write_text('\n'.join(markdown)+'\n')
+    compute_headline=['','## E6 complete-request/query medians (ms)','','Ranges are in simulation.md; timeouts are observed cancellations.','',*(OUT/'simulation-rendered.md').read_text().splitlines()]
+    (OUT/'final-headlines.md').write_text('\n'.join(markdown+compute_headline)+'\n')
     v=data['verification']
     details=['# Final controlled JayDB2 thesis evidence',
-        '', 'Branch: `'+data['scaling']['metadata']['branch']+'`. Engine source SHA-256: `'+data['scaling']['metadata']['source_sha256']+'`; executable SHA-256: `'+data['scaling']['metadata']['binary_sha256']+'`. Raw metadata retain each invocation commit; all refreshed E1–E5 datasets must have identical engine fingerprints.',
+        '', 'Branch: `'+data['scaling']['metadata']['branch']+'`. Engine source SHA-256: `'+data['scaling']['metadata']['source_sha256']+'`; executable SHA-256: `'+data['scaling']['metadata']['binary_sha256']+'`. Raw metadata retain each invocation commit; all refreshed E1–E6 datasets and the focused GPU benchmark must have identical engine fingerprints.',
         '', 'E1–E3: three fresh sessions per condition. E5: one session, one service per storage mode reused across all sizes. Governor/EPP performance; turbo disabled; nominal 3.6 GHz. No CPU pinning. Inclusive quartiles; no outlier removal.',
         '', 'E3 uses 10 and 1,104 total rows in all engines; owner rows are divided equally between Alice and Bob. SQLite is unconstrained. E4 commands were rerun under the same fixed-clock policy; each wall time is one observation.',
         '', 'All latency rows below use milliseconds. Session spread is min–max of session medians; E5 has only one session. Throughput rows use calls/s.', '',*markdown,
@@ -534,14 +816,15 @@ def derive(data):
     pubs=[statistics.median(x['phases_ns']['publication'] for x in z['samples'])/1e6 for z in r['sessions']]
     workers=[statistics.median(x['phases_ns']['prepared_worker'] for x in z['samples'])/1e6 for z in r['sessions']]
     details += ['', 'Durable Indexed session medians (ms): '+', '.join(f'{v:.3f}' for v in totals)+'. Publication phase medians: '+', '.join(f'{v:.3f}' for v in pubs)+'. Worker phase medians: '+', '.join(f'{v:.3f}' for v in workers)+'. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.']
-    details += ['', '## Run note', '', 'All E1–E5 datasets were refreshed after integrating checked host error replies, overlapped admission/build and unbounded RLS. E1–E3 retain three independent sessions; E5 retains its one-session scaling protocol. Complete command output and exact CPU restoration receipts are retained.']
+    details += ['', '## Run note', '', 'All E1–E6 datasets and the focused GPU benchmark were refreshed on the frozen opt-in GPU/simulation engine. E1–E3 retain three independent sessions; E5 retains its one-session scaling protocol. Complete command output and exact CPU restoration receipts are retained.']
     attempts=ROOT/'paper/evidence/validation-attempts.json'
     if attempts.exists():
-        details += ['', 'The initial aggregate test failed because its RLS diagnostic counter also counted checked-denial memo/controller logs. The counter now matches actual PRIMARY_CHECK error headers and requires exactly one false-proof location per negative. The failed command/output is retained in validation-attempts.json; the successful rerun supplies the E4 test wall time.']
+        details += ['', 'Historical validation-attempts.json retains an earlier RLS diagnostic-counter failure and its output. That development record does not supply the current E4 timings; all three current commands were freshly executed on the frozen engine.']
     restoration=ROOT/'paper/evidence/cpu-restoration.json'
     if restoration.exists():
         restored=json.loads(restoration.read_text())
         details += ['', '## CPU restoration', '', 'Final observed values (all 16 CPUs): governor `powersave`; EPP `balance_performance`; `intel_pstate/no_turbo=0`. Exact saved settings and final sampled frequencies are in `cpu-restoration.json`. Verified: '+str(restored['verified'])+'.']
+    details += ['', '## E6 certified simulation', '', *(OUT/'simulation.md').read_text().splitlines()[2:], '', '## Focused GPU benchmark', '', *(OUT/'gpu-programs.md').read_text().splitlines()[2:]]
     (OUT/'final-report.md').write_text('\n'.join(details)+'\n')
     # Beamer's existing pgf number helpers require plain numeric tokens. The
     # English article receives grouped integer text that also works in math.
@@ -578,7 +861,7 @@ def report_rows(data):
 
 def main():
     data=load();derive(data)
-    for name in ('final-summary.json','final-headlines.md','final-report.md'):
+    for name in ('final-summary.json','final-headlines.md','final-report.md','gpu-programs.md','simulation.md'):
         (ROOT/'paper/evidence'/name).write_text((OUT/name).read_text())
     print(f'Validated {len(FILES)} evidence files; generated {len(MACROS)} macros and tables in {OUT}')
 
