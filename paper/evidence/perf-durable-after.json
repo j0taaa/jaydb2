@@ -1,0 +1,6836 @@
+{
+  "metadata": {
+    "frequency": {
+      "utc": "2026-11-12T13:09:15Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3594950,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600087,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600150,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3594019,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "frequency_original": {
+      "utc": "2026-11-12T13:09:15Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4602023,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1348383,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4700000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4593248,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4100000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4100000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4655742,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "session_count": 3,
+    "commit": "0d3e3d987fd37c69599aca767ceeed590ee70ca6",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/durable-commit-log",
+    "utc": "2026-11-12T13:09:15Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "a40156b1e8cb3e4db7199d5afb5fcde993499d6dadeac723350558991adf68b2",
+    "source_sha256": "71160ffe721abc4042efc3c08ffbdd5dc388f8ea35f1ae472ebbdb066e52e0b8",
+    "dirty": [],
+    "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1,
+    "measured_binary": "/home/jota/.t3/worktrees/jaydb2/t3-2672690a-0ab73859b54f24e2/target/release/jaydb2",
+    "trace_host": false
+  },
+  "records": [
+    {
+      "session": 1,
+      "persistent": false,
+      "samples": [
+        {
+          "elapsed_ns": 4123477,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3875441,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3907509,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3823172,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3762522,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3805346,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3769679,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3900860,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3897093,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3769920,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3943534,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3858550,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3764113,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3898802,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3969819,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3844711,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3862274,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3781504,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3994815,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3860410,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3925797,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3880881,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 4027103,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3992980,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3849782,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3943392,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3856840,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3749614,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3835683,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3921847,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3799228,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3910727,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3839991,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3771148,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3761730,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3937221,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3791107,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3945630,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3832623,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3834959,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3728246,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3751346,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3876333,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3955262,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3767220,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3865783,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3836706,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3838646,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3823451,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3850548,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3848262,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3805891,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3867547,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3843781,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3853938,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3775870,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3833070,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3757840,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3842860,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3910683,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    },
+    {
+      "session": 1,
+      "persistent": true,
+      "samples": [
+        {
+          "elapsed_ns": 7227229,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6979546,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5623753,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5733615,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5801986,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5809493,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6858852,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6840366,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7032165,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7365622,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5778455,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5761476,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5809007,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5794238,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6870538,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7071224,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7215487,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7023083,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5646194,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5615734,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5680986,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5731217,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7056462,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7060199,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7041973,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7534574,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5768946,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5599387,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6881340,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6910695,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7199943,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6906859,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5622409,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5721210,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5741722,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5826952,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6968965,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6922287,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7160634,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6986928,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5676814,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5622650,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5719648,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5707385,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6870499,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6998718,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7142885,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6931132,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5703958,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5653039,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5650706,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5744038,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6970138,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6944654,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7036887,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7049946,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5562652,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5635822,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5686423,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5579832,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    },
+    {
+      "session": 2,
+      "persistent": true,
+      "samples": [
+        {
+          "elapsed_ns": 5907749,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6870945,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6896768,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7022252,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6947804,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5630895,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5671305,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5786518,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5804714,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7008980,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6978021,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7172698,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6909103,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5665589,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5716740,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5651972,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5658656,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7017684,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7073833,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7192082,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7038641,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6193036,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6172226,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6210631,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6280079,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7024846,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6941822,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7037288,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6818657,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5894962,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5782968,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5907991,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6100676,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7044910,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7005663,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6963208,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7100179,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5736313,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5898210,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5798556,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5848458,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6958429,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7061244,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7034189,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6898089,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6041277,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5806707,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5925337,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5856123,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7067092,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6964588,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7064792,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7031085,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5876815,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5716053,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6101991,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6136912,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7001485,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6934502,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7146603,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    },
+    {
+      "session": 2,
+      "persistent": false,
+      "samples": [
+        {
+          "elapsed_ns": 3979265,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3898204,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3830716,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3796451,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3726356,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3881919,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3812510,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3914061,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3859448,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3741227,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3845469,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3816761,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3911025,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3813130,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3769065,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3845231,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3782143,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3945841,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3877478,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3962970,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3785127,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3811782,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3748910,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3961616,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 4020818,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3971291,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3885806,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3976646,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3867421,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3902598,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3782588,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3801448,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3915806,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3833819,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3878218,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3815145,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3804215,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 4064517,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3884084,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3900312,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3866651,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3904234,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3830119,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3922497,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3791198,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3927389,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3875963,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3794170,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 4036635,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3968761,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3793904,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3926191,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3869200,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3911207,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3840030,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3791178,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3827650,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3767355,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3746273,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3892259,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    },
+    {
+      "session": 3,
+      "persistent": false,
+      "samples": [
+        {
+          "elapsed_ns": 3918583,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3895881,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3889877,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3847689,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3828338,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3863650,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3871868,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3855219,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3920899,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3850513,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3859869,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3797389,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3710982,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3892630,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3812230,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3710047,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3910331,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3800361,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3751276,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3840049,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3816788,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3766849,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3761024,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3835926,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3805185,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3871322,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3853772,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3839903,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3880856,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3841499,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3881017,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3873840,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3797775,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3874997,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3830960,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3814272,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3726992,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3764721,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3925181,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3846706,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3789024,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3872932,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3864346,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3838404,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3851223,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3833953,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3919226,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3816461,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3957613,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3843152,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3802134,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3773816,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3793347,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3911503,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3893750,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3838323,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3851491,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3910361,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3816188,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 3880613,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    },
+    {
+      "session": 3,
+      "persistent": true,
+      "samples": [
+        {
+          "elapsed_ns": 5781486,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5795119,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5734525,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5884799,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6970944,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7240370,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7318494,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7225924,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5691754,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5787862,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5879534,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5966924,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6877668,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7190111,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7298755,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7291688,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5855802,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5737888,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5888865,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5819058,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6863251,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7422685,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7366281,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7248117,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5673839,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5749677,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5763525,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5970424,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6965481,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7105357,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7384208,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7283735,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5705716,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5797734,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5886511,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5990141,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6924866,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7186248,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7281852,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7022073,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5649989,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5769331,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5761122,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 5807274,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7026021,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7229895,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7251189,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7128745,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6925111,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7042946,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7018123,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6918713,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7114994,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7007572,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7194089,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 7086724,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6647393,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6550802,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6553648,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        },
+        {
+          "elapsed_ns": 6535497,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {}
+        }
+      ]
+    }
+  ],
+  "io": [
+    {
+      "kind": "replace",
+      "write_ns": 11291,
+      "sync_ns": 6477111,
+      "rename_ns": 65342,
+      "directory_sync_ns": 5434717,
+      "total_ns": 11988461
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9928,
+      "sync_ns": 4090611,
+      "rename_ns": 54114,
+      "directory_sync_ns": 5267112,
+      "total_ns": 9421765
+    },
+    {
+      "kind": "replace",
+      "write_ns": 11060,
+      "sync_ns": 6810073,
+      "rename_ns": 53540,
+      "directory_sync_ns": 5303624,
+      "total_ns": 12178297
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10127,
+      "sync_ns": 4297670,
+      "rename_ns": 54846,
+      "directory_sync_ns": 5300637,
+      "total_ns": 9663280
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10575,
+      "sync_ns": 6760770,
+      "rename_ns": 52885,
+      "directory_sync_ns": 5361188,
+      "total_ns": 12185418
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9957,
+      "sync_ns": 4259458,
+      "rename_ns": 54031,
+      "directory_sync_ns": 5384862,
+      "total_ns": 9708308
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10044,
+      "sync_ns": 6815750,
+      "rename_ns": 52305,
+      "directory_sync_ns": 5395687,
+      "total_ns": 12273786
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9957,
+      "sync_ns": 4396263,
+      "rename_ns": 52786,
+      "directory_sync_ns": 5348540,
+      "total_ns": 9807546
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10112,
+      "sync_ns": 6871076,
+      "rename_ns": 59299,
+      "directory_sync_ns": 5429230,
+      "total_ns": 12369717
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10418,
+      "sync_ns": 4246839,
+      "rename_ns": 53226,
+      "directory_sync_ns": 5175297,
+      "total_ns": 9485780
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10081,
+      "sync_ns": 6788928,
+      "rename_ns": 53860,
+      "directory_sync_ns": 5683364,
+      "total_ns": 12536233
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9978,
+      "sync_ns": 4872071,
+      "rename_ns": 51798,
+      "directory_sync_ns": 5612071,
+      "total_ns": 10545918
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10084,
+      "sync_ns": 6835764,
+      "rename_ns": 52632,
+      "directory_sync_ns": 5351911,
+      "total_ns": 12250391
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9911,
+      "sync_ns": 4305547,
+      "rename_ns": 52637,
+      "directory_sync_ns": 5253764,
+      "total_ns": 9621859
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9925,
+      "sync_ns": 6809664,
+      "rename_ns": 52521,
+      "directory_sync_ns": 5385900,
+      "total_ns": 12258010
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9934,
+      "sync_ns": 4240632,
+      "rename_ns": 53382,
+      "directory_sync_ns": 5287272,
+      "total_ns": 9591220
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9977,
+      "sync_ns": 6831120,
+      "rename_ns": 58789,
+      "directory_sync_ns": 5385816,
+      "total_ns": 12285702
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9870,
+      "sync_ns": 4282956,
+      "rename_ns": 53553,
+      "directory_sync_ns": 5328800,
+      "total_ns": 9675179
+    },
+    {
+      "kind": "replace",
+      "write_ns": 11236,
+      "sync_ns": 6766086,
+      "rename_ns": 61214,
+      "directory_sync_ns": 5350321,
+      "total_ns": 12188857
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10599,
+      "sync_ns": 4212556,
+      "rename_ns": 53392,
+      "directory_sync_ns": 5329631,
+      "total_ns": 9606178
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10130,
+      "sync_ns": 6805504,
+      "rename_ns": 52897,
+      "directory_sync_ns": 5429849,
+      "total_ns": 12298380
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10283,
+      "sync_ns": 4298688,
+      "rename_ns": 53076,
+      "directory_sync_ns": 5389615,
+      "total_ns": 9751662
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10274,
+      "sync_ns": 6750198,
+      "rename_ns": 55326,
+      "directory_sync_ns": 5409896,
+      "total_ns": 12225694
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9929,
+      "sync_ns": 4376132,
+      "rename_ns": 52886,
+      "directory_sync_ns": 5316905,
+      "total_ns": 9755852
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10270,
+      "sync_ns": 6848552,
+      "rename_ns": 53141,
+      "directory_sync_ns": 5276386,
+      "total_ns": 12188349
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9963,
+      "sync_ns": 4284560,
+      "rename_ns": 53022,
+      "directory_sync_ns": 5172624,
+      "total_ns": 9520169
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10167,
+      "sync_ns": 6848137,
+      "rename_ns": 59865,
+      "directory_sync_ns": 5391266,
+      "total_ns": 12309435
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9987,
+      "sync_ns": 4365740,
+      "rename_ns": 52975,
+      "directory_sync_ns": 5293965,
+      "total_ns": 9722667
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10389,
+      "sync_ns": 6796663,
+      "rename_ns": 53919,
+      "directory_sync_ns": 5396193,
+      "total_ns": 12257164
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10035,
+      "sync_ns": 4384383,
+      "rename_ns": 60284,
+      "directory_sync_ns": 5343543,
+      "total_ns": 9798245
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9890,
+      "sync_ns": 6844741,
+      "rename_ns": 52649,
+      "directory_sync_ns": 5322456,
+      "total_ns": 12229736
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9868,
+      "sync_ns": 4388565,
+      "rename_ns": 53275,
+      "directory_sync_ns": 5348934,
+      "total_ns": 9800642
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9990,
+      "sync_ns": 6894149,
+      "rename_ns": 54187,
+      "directory_sync_ns": 5322741,
+      "total_ns": 12281067
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9979,
+      "sync_ns": 4314421,
+      "rename_ns": 54634,
+      "directory_sync_ns": 5401262,
+      "total_ns": 9780296
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10230,
+      "sync_ns": 6923021,
+      "rename_ns": 54349,
+      "directory_sync_ns": 5773770,
+      "total_ns": 12761370
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9962,
+      "sync_ns": 4992988,
+      "rename_ns": 54201,
+      "directory_sync_ns": 5716128,
+      "total_ns": 10773279
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10267,
+      "sync_ns": 6966109,
+      "rename_ns": 52763,
+      "directory_sync_ns": 5502516,
+      "total_ns": 12531655
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9955,
+      "sync_ns": 4400343,
+      "rename_ns": 54410,
+      "directory_sync_ns": 5465676,
+      "total_ns": 9930384
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10055,
+      "sync_ns": 6944208,
+      "rename_ns": 52418,
+      "directory_sync_ns": 5492079,
+      "total_ns": 12498760
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10278,
+      "sync_ns": 4489793,
+      "rename_ns": 52940,
+      "directory_sync_ns": 5458175,
+      "total_ns": 10011186
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10221,
+      "sync_ns": 7065360,
+      "rename_ns": 53398,
+      "directory_sync_ns": 5390917,
+      "total_ns": 12519896
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10337,
+      "sync_ns": 4425420,
+      "rename_ns": 53253,
+      "directory_sync_ns": 5411123,
+      "total_ns": 9900133
+    },
+    {
+      "kind": "replace",
+      "write_ns": 11061,
+      "sync_ns": 6948414,
+      "rename_ns": 59322,
+      "directory_sync_ns": 5466927,
+      "total_ns": 12485724
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10011,
+      "sync_ns": 4382583,
+      "rename_ns": 54066,
+      "directory_sync_ns": 5550013,
+      "total_ns": 9996673
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10273,
+      "sync_ns": 6955515,
+      "rename_ns": 52999,
+      "directory_sync_ns": 5507654,
+      "total_ns": 12526441
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10190,
+      "sync_ns": 4502167,
+      "rename_ns": 52647,
+      "directory_sync_ns": 5479686,
+      "total_ns": 10044690
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10265,
+      "sync_ns": 7023194,
+      "rename_ns": 53265,
+      "directory_sync_ns": 5412421,
+      "total_ns": 12499145
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9918,
+      "sync_ns": 4419577,
+      "rename_ns": 53233,
+      "directory_sync_ns": 5429620,
+      "total_ns": 9912348
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9936,
+      "sync_ns": 6940814,
+      "rename_ns": 52903,
+      "directory_sync_ns": 5426294,
+      "total_ns": 12429947
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10268,
+      "sync_ns": 4506664,
+      "rename_ns": 53016,
+      "directory_sync_ns": 5521929,
+      "total_ns": 10091877
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10248,
+      "sync_ns": 7065931,
+      "rename_ns": 52934,
+      "directory_sync_ns": 5533808,
+      "total_ns": 12662921
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10442,
+      "sync_ns": 4547104,
+      "rename_ns": 52823,
+      "directory_sync_ns": 5593086,
+      "total_ns": 10203455
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10553,
+      "sync_ns": 7075199,
+      "rename_ns": 54292,
+      "directory_sync_ns": 5597006,
+      "total_ns": 12737050
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10195,
+      "sync_ns": 4436549,
+      "rename_ns": 54027,
+      "directory_sync_ns": 5575656,
+      "total_ns": 10076427
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10189,
+      "sync_ns": 7071375,
+      "rename_ns": 52663,
+      "directory_sync_ns": 5612521,
+      "total_ns": 12746748
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10208,
+      "sync_ns": 4457350,
+      "rename_ns": 53954,
+      "directory_sync_ns": 5415808,
+      "total_ns": 9937320
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10366,
+      "sync_ns": 7089216,
+      "rename_ns": 52823,
+      "directory_sync_ns": 5415522,
+      "total_ns": 12567927
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9991,
+      "sync_ns": 4419780,
+      "rename_ns": 52966,
+      "directory_sync_ns": 5595534,
+      "total_ns": 10078271
+    },
+    {
+      "kind": "replace",
+      "write_ns": 9987,
+      "sync_ns": 6786829,
+      "rename_ns": 52707,
+      "directory_sync_ns": 5646714,
+      "total_ns": 12496237
+    },
+    {
+      "kind": "replace",
+      "write_ns": 10203,
+      "sync_ns": 5059850,
+      "rename_ns": 52527,
+      "directory_sync_ns": 5565740,
+      "total_ns": 10688320
+    },
+    {
+      "kind": "append",
+      "write_ns": 13850,
+      "sync_ns": 4391414,
+      "rename_ns": 595,
+      "directory_sync_ns": 75,
+      "total_ns": 4405934
+    },
+    {
+      "kind": "append",
+      "write_ns": 13233,
+      "sync_ns": 5491921,
+      "rename_ns": 564,
+      "directory_sync_ns": 72,
+      "total_ns": 5505790
+    },
+    {
+      "kind": "append",
+      "write_ns": 12778,
+      "sync_ns": 6800669,
+      "rename_ns": 572,
+      "directory_sync_ns": 71,
+      "total_ns": 6814090
+    },
+    {
+      "kind": "append",
+      "write_ns": 12783,
+      "sync_ns": 5533443,
+      "rename_ns": 586,
+      "directory_sync_ns": 72,
+      "total_ns": 5546884
+    },
+    {
+      "kind": "append",
+      "write_ns": 12713,
+      "sync_ns": 4324775,
+      "rename_ns": 572,
+      "directory_sync_ns": 74,
+      "total_ns": 4338134
+    },
+    {
+      "kind": "append",
+      "write_ns": 12649,
+      "sync_ns": 5554222,
+      "rename_ns": 576,
+      "directory_sync_ns": 71,
+      "total_ns": 5567518
+    },
+    {
+      "kind": "append",
+      "write_ns": 12680,
+      "sync_ns": 6780967,
+      "rename_ns": 566,
+      "directory_sync_ns": 73,
+      "total_ns": 6794286
+    },
+    {
+      "kind": "append",
+      "write_ns": 13278,
+      "sync_ns": 5450267,
+      "rename_ns": 575,
+      "directory_sync_ns": 72,
+      "total_ns": 5464192
+    },
+    {
+      "kind": "append",
+      "write_ns": 12960,
+      "sync_ns": 4298297,
+      "rename_ns": 569,
+      "directory_sync_ns": 72,
+      "total_ns": 4311898
+    },
+    {
+      "kind": "append",
+      "write_ns": 12799,
+      "sync_ns": 5453831,
+      "rename_ns": 576,
+      "directory_sync_ns": 74,
+      "total_ns": 5467280
+    },
+    {
+      "kind": "append",
+      "write_ns": 12631,
+      "sync_ns": 6815000,
+      "rename_ns": 586,
+      "directory_sync_ns": 74,
+      "total_ns": 6828291
+    },
+    {
+      "kind": "append",
+      "write_ns": 12700,
+      "sync_ns": 5602656,
+      "rename_ns": 607,
+      "directory_sync_ns": 71,
+      "total_ns": 5616034
+    },
+    {
+      "kind": "append",
+      "write_ns": 12918,
+      "sync_ns": 4422362,
+      "rename_ns": 585,
+      "directory_sync_ns": 73,
+      "total_ns": 4435938
+    },
+    {
+      "kind": "append",
+      "write_ns": 12698,
+      "sync_ns": 5561630,
+      "rename_ns": 578,
+      "directory_sync_ns": 74,
+      "total_ns": 5574980
+    },
+    {
+      "kind": "append",
+      "write_ns": 13043,
+      "sync_ns": 6927693,
+      "rename_ns": 589,
+      "directory_sync_ns": 72,
+      "total_ns": 6941397
+    },
+    {
+      "kind": "append",
+      "write_ns": 12756,
+      "sync_ns": 5904197,
+      "rename_ns": 575,
+      "directory_sync_ns": 74,
+      "total_ns": 5917602
+    },
+    {
+      "kind": "append",
+      "write_ns": 12721,
+      "sync_ns": 4341371,
+      "rename_ns": 583,
+      "directory_sync_ns": 72,
+      "total_ns": 4354747
+    },
+    {
+      "kind": "append",
+      "write_ns": 12650,
+      "sync_ns": 5525099,
+      "rename_ns": 575,
+      "directory_sync_ns": 76,
+      "total_ns": 5538400
+    },
+    {
+      "kind": "append",
+      "write_ns": 12911,
+      "sync_ns": 6820250,
+      "rename_ns": 569,
+      "directory_sync_ns": 72,
+      "total_ns": 6833802
+    },
+    {
+      "kind": "append",
+      "write_ns": 12900,
+      "sync_ns": 5440709,
+      "rename_ns": 577,
+      "directory_sync_ns": 70,
+      "total_ns": 5454256
+    },
+    {
+      "kind": "append",
+      "write_ns": 12689,
+      "sync_ns": 4341950,
+      "rename_ns": 577,
+      "directory_sync_ns": 72,
+      "total_ns": 4355288
+    },
+    {
+      "kind": "append",
+      "write_ns": 13363,
+      "sync_ns": 5346431,
+      "rename_ns": 586,
+      "directory_sync_ns": 75,
+      "total_ns": 5360455
+    },
+    {
+      "kind": "append",
+      "write_ns": 12776,
+      "sync_ns": 6775716,
+      "rename_ns": 575,
+      "directory_sync_ns": 75,
+      "total_ns": 6789142
+    },
+    {
+      "kind": "append",
+      "write_ns": 12695,
+      "sync_ns": 5581482,
+      "rename_ns": 579,
+      "directory_sync_ns": 75,
+      "total_ns": 5594831
+    },
+    {
+      "kind": "append",
+      "write_ns": 12654,
+      "sync_ns": 4340803,
+      "rename_ns": 565,
+      "directory_sync_ns": 74,
+      "total_ns": 4354096
+    },
+    {
+      "kind": "append",
+      "write_ns": 12700,
+      "sync_ns": 5529682,
+      "rename_ns": 572,
+      "directory_sync_ns": 72,
+      "total_ns": 5543026
+    },
+    {
+      "kind": "append",
+      "write_ns": 12729,
+      "sync_ns": 6883534,
+      "rename_ns": 587,
+      "directory_sync_ns": 73,
+      "total_ns": 6896923
+    },
+    {
+      "kind": "append",
+      "write_ns": 12702,
+      "sync_ns": 5600687,
+      "rename_ns": 563,
+      "directory_sync_ns": 74,
+      "total_ns": 5614026
+    },
+    {
+      "kind": "append",
+      "write_ns": 12712,
+      "sync_ns": 4214452,
+      "rename_ns": 592,
+      "directory_sync_ns": 72,
+      "total_ns": 4227828
+    },
+    {
+      "kind": "append",
+      "write_ns": 12808,
+      "sync_ns": 5542029,
+      "rename_ns": 563,
+      "directory_sync_ns": 73,
+      "total_ns": 5555473
+    },
+    {
+      "kind": "append",
+      "write_ns": 12760,
+      "sync_ns": 6826620,
+      "rename_ns": 580,
+      "directory_sync_ns": 71,
+      "total_ns": 6840031
+    },
+    {
+      "kind": "append",
+      "write_ns": 12751,
+      "sync_ns": 5523775,
+      "rename_ns": 572,
+      "directory_sync_ns": 77,
+      "total_ns": 5537175
+    },
+    {
+      "kind": "append",
+      "write_ns": 13007,
+      "sync_ns": 4241933,
+      "rename_ns": 572,
+      "directory_sync_ns": 74,
+      "total_ns": 4255586
+    },
+    {
+      "kind": "append",
+      "write_ns": 12801,
+      "sync_ns": 5556916,
+      "rename_ns": 610,
+      "directory_sync_ns": 75,
+      "total_ns": 5570402
+    },
+    {
+      "kind": "append",
+      "write_ns": 13692,
+      "sync_ns": 6906214,
+      "rename_ns": 585,
+      "directory_sync_ns": 73,
+      "total_ns": 6920564
+    },
+    {
+      "kind": "append",
+      "write_ns": 12854,
+      "sync_ns": 5504986,
+      "rename_ns": 593,
+      "directory_sync_ns": 74,
+      "total_ns": 5518507
+    },
+    {
+      "kind": "append",
+      "write_ns": 12948,
+      "sync_ns": 4387680,
+      "rename_ns": 580,
+      "directory_sync_ns": 75,
+      "total_ns": 4401283
+    },
+    {
+      "kind": "append",
+      "write_ns": 12845,
+      "sync_ns": 5481870,
+      "rename_ns": 597,
+      "directory_sync_ns": 74,
+      "total_ns": 5495386
+    },
+    {
+      "kind": "append",
+      "write_ns": 13091,
+      "sync_ns": 6801857,
+      "rename_ns": 573,
+      "directory_sync_ns": 75,
+      "total_ns": 6815596
+    },
+    {
+      "kind": "append",
+      "write_ns": 12813,
+      "sync_ns": 5488704,
+      "rename_ns": 577,
+      "directory_sync_ns": 73,
+      "total_ns": 5502167
+    },
+    {
+      "kind": "append",
+      "write_ns": 12989,
+      "sync_ns": 4199557,
+      "rename_ns": 601,
+      "directory_sync_ns": 76,
+      "total_ns": 4213223
+    },
+    {
+      "kind": "append",
+      "write_ns": 12907,
+      "sync_ns": 5374475,
+      "rename_ns": 585,
+      "directory_sync_ns": 72,
+      "total_ns": 5388039
+    },
+    {
+      "kind": "append",
+      "write_ns": 13120,
+      "sync_ns": 6975906,
+      "rename_ns": 584,
+      "directory_sync_ns": 74,
+      "total_ns": 6989684
+    },
+    {
+      "kind": "append",
+      "write_ns": 12985,
+      "sync_ns": 5766905,
+      "rename_ns": 587,
+      "directory_sync_ns": 72,
+      "total_ns": 5780549
+    },
+    {
+      "kind": "append",
+      "write_ns": 13031,
+      "sync_ns": 4896842,
+      "rename_ns": 599,
+      "directory_sync_ns": 71,
+      "total_ns": 4910543
+    },
+    {
+      "kind": "append",
+      "write_ns": 13014,
+      "sync_ns": 5676610,
+      "rename_ns": 595,
+      "directory_sync_ns": 71,
+      "total_ns": 5690290
+    },
+    {
+      "kind": "append",
+      "write_ns": 12999,
+      "sync_ns": 6783702,
+      "rename_ns": 591,
+      "directory_sync_ns": 71,
+      "total_ns": 6797363
+    },
+    {
+      "kind": "append",
+      "write_ns": 13119,
+      "sync_ns": 5518209,
+      "rename_ns": 582,
+      "directory_sync_ns": 75,
+      "total_ns": 5531985
+    },
+    {
+      "kind": "append",
+      "write_ns": 13220,
+      "sync_ns": 4173384,
+      "rename_ns": 578,
+      "directory_sync_ns": 73,
+      "total_ns": 4187255
+    },
+    {
+      "kind": "append",
+      "write_ns": 12803,
+      "sync_ns": 5453822,
+      "rename_ns": 575,
+      "directory_sync_ns": 74,
+      "total_ns": 5467274
+    },
+    {
+      "kind": "append",
+      "write_ns": 12841,
+      "sync_ns": 6797644,
+      "rename_ns": 573,
+      "directory_sync_ns": 72,
+      "total_ns": 6811130
+    },
+    {
+      "kind": "append",
+      "write_ns": 13209,
+      "sync_ns": 5434654,
+      "rename_ns": 594,
+      "directory_sync_ns": 73,
+      "total_ns": 5448530
+    },
+    {
+      "kind": "append",
+      "write_ns": 12596,
+      "sync_ns": 4116419,
+      "rename_ns": 577,
+      "directory_sync_ns": 75,
+      "total_ns": 4129667
+    },
+    {
+      "kind": "append",
+      "write_ns": 12946,
+      "sync_ns": 5361904,
+      "rename_ns": 585,
+      "directory_sync_ns": 71,
+      "total_ns": 5375506
+    },
+    {
+      "kind": "append",
+      "write_ns": 13369,
+      "sync_ns": 6763693,
+      "rename_ns": 570,
+      "directory_sync_ns": 71,
+      "total_ns": 6777703
+    },
+    {
+      "kind": "append",
+      "write_ns": 12993,
+      "sync_ns": 5475500,
+      "rename_ns": 577,
+      "directory_sync_ns": 73,
+      "total_ns": 5489143
+    },
+    {
+      "kind": "append",
+      "write_ns": 12798,
+      "sync_ns": 4188444,
+      "rename_ns": 570,
+      "directory_sync_ns": 72,
+      "total_ns": 4201884
+    },
+    {
+      "kind": "append",
+      "write_ns": 13101,
+      "sync_ns": 5297526,
+      "rename_ns": 575,
+      "directory_sync_ns": 71,
+      "total_ns": 5311273
+    },
+    {
+      "kind": "append",
+      "write_ns": 13086,
+      "sync_ns": 6884614,
+      "rename_ns": 580,
+      "directory_sync_ns": 75,
+      "total_ns": 6898355
+    },
+    {
+      "kind": "append",
+      "write_ns": 12864,
+      "sync_ns": 5432880,
+      "rename_ns": 570,
+      "directory_sync_ns": 74,
+      "total_ns": 5446388
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 13122,
+      "sync_ns": 6719449,
+      "rename_ns": 593,
+      "directory_sync_ns": 75,
+      "total_ns": 6733239
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12053,
+      "sync_ns": 5226211,
+      "rename_ns": 592,
+      "directory_sync_ns": 70,
+      "total_ns": 5238926
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12209,
+      "sync_ns": 4098313,
+      "rename_ns": 594,
+      "directory_sync_ns": 72,
+      "total_ns": 4111188
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12105,
+      "sync_ns": 5380028,
+      "rename_ns": 612,
+      "directory_sync_ns": 73,
+      "total_ns": 5392818
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12052,
+      "sync_ns": 6860295,
+      "rename_ns": 593,
+      "directory_sync_ns": 73,
+      "total_ns": 6873013
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 18440,
+      "sync_ns": 5417406,
+      "rename_ns": 589,
+      "directory_sync_ns": 71,
+      "total_ns": 5436506
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12158,
+      "sync_ns": 4165251,
+      "rename_ns": 611,
+      "directory_sync_ns": 72,
+      "total_ns": 4178092
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12292,
+      "sync_ns": 5497818,
+      "rename_ns": 606,
+      "directory_sync_ns": 73,
+      "total_ns": 5510789
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12350,
+      "sync_ns": 6839717,
+      "rename_ns": 597,
+      "directory_sync_ns": 73,
+      "total_ns": 6852737
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12046,
+      "sync_ns": 5405912,
+      "rename_ns": 604,
+      "directory_sync_ns": 71,
+      "total_ns": 5418633
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12065,
+      "sync_ns": 4133447,
+      "rename_ns": 608,
+      "directory_sync_ns": 72,
+      "total_ns": 4146192
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12152,
+      "sync_ns": 5496036,
+      "rename_ns": 599,
+      "directory_sync_ns": 71,
+      "total_ns": 5508858
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11238,
+      "sync_ns": 6818437,
+      "rename_ns": 611,
+      "directory_sync_ns": 74,
+      "total_ns": 6830360
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12024,
+      "sync_ns": 5361463,
+      "rename_ns": 602,
+      "directory_sync_ns": 72,
+      "total_ns": 5374161
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12138,
+      "sync_ns": 4198247,
+      "rename_ns": 598,
+      "directory_sync_ns": 74,
+      "total_ns": 4211057
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12183,
+      "sync_ns": 5346901,
+      "rename_ns": 611,
+      "directory_sync_ns": 71,
+      "total_ns": 5359766
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11993,
+      "sync_ns": 6903673,
+      "rename_ns": 595,
+      "directory_sync_ns": 72,
+      "total_ns": 6916333
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11966,
+      "sync_ns": 5478952,
+      "rename_ns": 607,
+      "directory_sync_ns": 71,
+      "total_ns": 5491596
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12110,
+      "sync_ns": 4110272,
+      "rename_ns": 587,
+      "directory_sync_ns": 72,
+      "total_ns": 4123041
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12043,
+      "sync_ns": 5431157,
+      "rename_ns": 595,
+      "directory_sync_ns": 70,
+      "total_ns": 5443865
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12793,
+      "sync_ns": 6752339,
+      "rename_ns": 596,
+      "directory_sync_ns": 75,
+      "total_ns": 6765803
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12282,
+      "sync_ns": 5317277,
+      "rename_ns": 608,
+      "directory_sync_ns": 74,
+      "total_ns": 5330241
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12129,
+      "sync_ns": 4131753,
+      "rename_ns": 603,
+      "directory_sync_ns": 75,
+      "total_ns": 4144560
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12160,
+      "sync_ns": 5430373,
+      "rename_ns": 600,
+      "directory_sync_ns": 73,
+      "total_ns": 5443206
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11980,
+      "sync_ns": 6888234,
+      "rename_ns": 594,
+      "directory_sync_ns": 73,
+      "total_ns": 6900881
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11990,
+      "sync_ns": 5396875,
+      "rename_ns": 591,
+      "directory_sync_ns": 74,
+      "total_ns": 5409530
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12337,
+      "sync_ns": 4207474,
+      "rename_ns": 594,
+      "directory_sync_ns": 72,
+      "total_ns": 4220477
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12177,
+      "sync_ns": 5453387,
+      "rename_ns": 582,
+      "directory_sync_ns": 74,
+      "total_ns": 5466220
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12284,
+      "sync_ns": 6680180,
+      "rename_ns": 654,
+      "directory_sync_ns": 73,
+      "total_ns": 6693191
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12098,
+      "sync_ns": 5823567,
+      "rename_ns": 579,
+      "directory_sync_ns": 71,
+      "total_ns": 5836315
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12463,
+      "sync_ns": 4837579,
+      "rename_ns": 602,
+      "directory_sync_ns": 74,
+      "total_ns": 4850718
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11288,
+      "sync_ns": 5917740,
+      "rename_ns": 597,
+      "directory_sync_ns": 75,
+      "total_ns": 5929700
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12242,
+      "sync_ns": 6779161,
+      "rename_ns": 600,
+      "directory_sync_ns": 73,
+      "total_ns": 6792076
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12016,
+      "sync_ns": 5457327,
+      "rename_ns": 607,
+      "directory_sync_ns": 75,
+      "total_ns": 5470025
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12188,
+      "sync_ns": 4203002,
+      "rename_ns": 594,
+      "directory_sync_ns": 74,
+      "total_ns": 4215858
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12682,
+      "sync_ns": 5215063,
+      "rename_ns": 594,
+      "directory_sync_ns": 70,
+      "total_ns": 5228409
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12273,
+      "sync_ns": 6735571,
+      "rename_ns": 597,
+      "directory_sync_ns": 71,
+      "total_ns": 6748512
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12179,
+      "sync_ns": 5419328,
+      "rename_ns": 592,
+      "directory_sync_ns": 75,
+      "total_ns": 5432174
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12016,
+      "sync_ns": 4217024,
+      "rename_ns": 587,
+      "directory_sync_ns": 74,
+      "total_ns": 4229701
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12143,
+      "sync_ns": 5499191,
+      "rename_ns": 581,
+      "directory_sync_ns": 71,
+      "total_ns": 5511986
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12206,
+      "sync_ns": 6783092,
+      "rename_ns": 588,
+      "directory_sync_ns": 72,
+      "total_ns": 6795958
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12153,
+      "sync_ns": 5238133,
+      "rename_ns": 586,
+      "directory_sync_ns": 72,
+      "total_ns": 5250944
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12307,
+      "sync_ns": 4216496,
+      "rename_ns": 622,
+      "directory_sync_ns": 77,
+      "total_ns": 4229502
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11238,
+      "sync_ns": 5440283,
+      "rename_ns": 618,
+      "directory_sync_ns": 79,
+      "total_ns": 5452218
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12293,
+      "sync_ns": 6894903,
+      "rename_ns": 609,
+      "directory_sync_ns": 77,
+      "total_ns": 6907882
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12054,
+      "sync_ns": 5453857,
+      "rename_ns": 594,
+      "directory_sync_ns": 99,
+      "total_ns": 5466604
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12172,
+      "sync_ns": 3966111,
+      "rename_ns": 590,
+      "directory_sync_ns": 116,
+      "total_ns": 3978989
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12055,
+      "sync_ns": 5465223,
+      "rename_ns": 582,
+      "directory_sync_ns": 72,
+      "total_ns": 5477932
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11950,
+      "sync_ns": 6869399,
+      "rename_ns": 593,
+      "directory_sync_ns": 71,
+      "total_ns": 6882013
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12406,
+      "sync_ns": 5410153,
+      "rename_ns": 584,
+      "directory_sync_ns": 70,
+      "total_ns": 5423213
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12374,
+      "sync_ns": 4082437,
+      "rename_ns": 591,
+      "directory_sync_ns": 73,
+      "total_ns": 4095475
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11581,
+      "sync_ns": 5232525,
+      "rename_ns": 609,
+      "directory_sync_ns": 72,
+      "total_ns": 5244787
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12268,
+      "sync_ns": 6762761,
+      "rename_ns": 586,
+      "directory_sync_ns": 71,
+      "total_ns": 6775686
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 11889,
+      "sync_ns": 5428143,
+      "rename_ns": 595,
+      "directory_sync_ns": 71,
+      "total_ns": 5440698
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12085,
+      "sync_ns": 4218374,
+      "rename_ns": 596,
+      "directory_sync_ns": 74,
+      "total_ns": 4231129
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12119,
+      "sync_ns": 5495649,
+      "rename_ns": 599,
+      "directory_sync_ns": 71,
+      "total_ns": 5508438
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12142,
+      "sync_ns": 6857839,
+      "rename_ns": 598,
+      "directory_sync_ns": 72,
+      "total_ns": 6870651
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12406,
+      "sync_ns": 5440134,
+      "rename_ns": 591,
+      "directory_sync_ns": 72,
+      "total_ns": 5453203
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12013,
+      "sync_ns": 4154797,
+      "rename_ns": 603,
+      "directory_sync_ns": 74,
+      "total_ns": 4167487
+    },
+    {
+      "kind": "preallocated",
+      "write_ns": 12421,
+      "sync_ns": 5455976,
+      "rename_ns": 595,
+      "directory_sync_ns": 71,
+      "total_ns": 5469063
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9503,
+      "sync_ns": 1955129,
+      "rename_ns": 593,
+      "directory_sync_ns": 72,
+      "total_ns": 1965297
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8957,
+      "sync_ns": 2003951,
+      "rename_ns": 601,
+      "directory_sync_ns": 75,
+      "total_ns": 2013584
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8892,
+      "sync_ns": 3145578,
+      "rename_ns": 655,
+      "directory_sync_ns": 74,
+      "total_ns": 3155199
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9220,
+      "sync_ns": 3243281,
+      "rename_ns": 595,
+      "directory_sync_ns": 75,
+      "total_ns": 3253171
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8962,
+      "sync_ns": 3406504,
+      "rename_ns": 612,
+      "directory_sync_ns": 75,
+      "total_ns": 3416153
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9089,
+      "sync_ns": 3261210,
+      "rename_ns": 592,
+      "directory_sync_ns": 71,
+      "total_ns": 3270962
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9547,
+      "sync_ns": 1913673,
+      "rename_ns": 592,
+      "directory_sync_ns": 73,
+      "total_ns": 1923885
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8994,
+      "sync_ns": 1920942,
+      "rename_ns": 600,
+      "directory_sync_ns": 72,
+      "total_ns": 1930608
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9000,
+      "sync_ns": 1969342,
+      "rename_ns": 600,
+      "directory_sync_ns": 74,
+      "total_ns": 1979016
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9020,
+      "sync_ns": 1965161,
+      "rename_ns": 597,
+      "directory_sync_ns": 72,
+      "total_ns": 1974850
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8828,
+      "sync_ns": 3262182,
+      "rename_ns": 599,
+      "directory_sync_ns": 75,
+      "total_ns": 3271684
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9065,
+      "sync_ns": 3258689,
+      "rename_ns": 595,
+      "directory_sync_ns": 72,
+      "total_ns": 3268421
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9080,
+      "sync_ns": 3375964,
+      "rename_ns": 582,
+      "directory_sync_ns": 71,
+      "total_ns": 3385697
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9266,
+      "sync_ns": 3233372,
+      "rename_ns": 605,
+      "directory_sync_ns": 72,
+      "total_ns": 3243315
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8986,
+      "sync_ns": 1960863,
+      "rename_ns": 603,
+      "directory_sync_ns": 75,
+      "total_ns": 1970527
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9101,
+      "sync_ns": 1952216,
+      "rename_ns": 590,
+      "directory_sync_ns": 70,
+      "total_ns": 1961977
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9609,
+      "sync_ns": 1914389,
+      "rename_ns": 598,
+      "directory_sync_ns": 73,
+      "total_ns": 1924669
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9218,
+      "sync_ns": 1968110,
+      "rename_ns": 595,
+      "directory_sync_ns": 70,
+      "total_ns": 1977993
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9166,
+      "sync_ns": 3201007,
+      "rename_ns": 606,
+      "directory_sync_ns": 76,
+      "total_ns": 3210855
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9206,
+      "sync_ns": 3249108,
+      "rename_ns": 590,
+      "directory_sync_ns": 71,
+      "total_ns": 3258975
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9180,
+      "sync_ns": 3375927,
+      "rename_ns": 604,
+      "directory_sync_ns": 76,
+      "total_ns": 3385787
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9079,
+      "sync_ns": 3161985,
+      "rename_ns": 599,
+      "directory_sync_ns": 71,
+      "total_ns": 3171734
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9687,
+      "sync_ns": 1935933,
+      "rename_ns": 587,
+      "directory_sync_ns": 71,
+      "total_ns": 1946278
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9532,
+      "sync_ns": 1973807,
+      "rename_ns": 601,
+      "directory_sync_ns": 76,
+      "total_ns": 1984016
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9255,
+      "sync_ns": 1969513,
+      "rename_ns": 605,
+      "directory_sync_ns": 70,
+      "total_ns": 1979443
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9411,
+      "sync_ns": 1929614,
+      "rename_ns": 604,
+      "directory_sync_ns": 75,
+      "total_ns": 1939704
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9377,
+      "sync_ns": 3228387,
+      "rename_ns": 606,
+      "directory_sync_ns": 71,
+      "total_ns": 3238441
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9474,
+      "sync_ns": 3244062,
+      "rename_ns": 599,
+      "directory_sync_ns": 71,
+      "total_ns": 3254206
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9327,
+      "sync_ns": 3338632,
+      "rename_ns": 591,
+      "directory_sync_ns": 75,
+      "total_ns": 3348625
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9511,
+      "sync_ns": 3199472,
+      "rename_ns": 598,
+      "directory_sync_ns": 71,
+      "total_ns": 3209652
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9233,
+      "sync_ns": 2362267,
+      "rename_ns": 605,
+      "directory_sync_ns": 73,
+      "total_ns": 2372178
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8804,
+      "sync_ns": 2346815,
+      "rename_ns": 596,
+      "directory_sync_ns": 73,
+      "total_ns": 2356288
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8865,
+      "sync_ns": 2393771,
+      "rename_ns": 601,
+      "directory_sync_ns": 73,
+      "total_ns": 2403310
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8847,
+      "sync_ns": 2341012,
+      "rename_ns": 604,
+      "directory_sync_ns": 71,
+      "total_ns": 2350534
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8915,
+      "sync_ns": 3259212,
+      "rename_ns": 601,
+      "directory_sync_ns": 73,
+      "total_ns": 3268801
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8870,
+      "sync_ns": 3231588,
+      "rename_ns": 592,
+      "directory_sync_ns": 71,
+      "total_ns": 3241121
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8946,
+      "sync_ns": 3358989,
+      "rename_ns": 603,
+      "directory_sync_ns": 73,
+      "total_ns": 3368611
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8979,
+      "sync_ns": 3231949,
+      "rename_ns": 595,
+      "directory_sync_ns": 73,
+      "total_ns": 3241596
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9030,
+      "sync_ns": 1958750,
+      "rename_ns": 594,
+      "directory_sync_ns": 73,
+      "total_ns": 1968447
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8998,
+      "sync_ns": 1975672,
+      "rename_ns": 594,
+      "directory_sync_ns": 72,
+      "total_ns": 1985336
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9018,
+      "sync_ns": 1964351,
+      "rename_ns": 600,
+      "directory_sync_ns": 72,
+      "total_ns": 1974041
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8988,
+      "sync_ns": 2005305,
+      "rename_ns": 602,
+      "directory_sync_ns": 72,
+      "total_ns": 2014967
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8953,
+      "sync_ns": 3256504,
+      "rename_ns": 605,
+      "directory_sync_ns": 72,
+      "total_ns": 3266134
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9093,
+      "sync_ns": 3241422,
+      "rename_ns": 586,
+      "directory_sync_ns": 72,
+      "total_ns": 3251173
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9108,
+      "sync_ns": 3390058,
+      "rename_ns": 588,
+      "directory_sync_ns": 72,
+      "total_ns": 3399826
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9613,
+      "sync_ns": 8308289,
+      "rename_ns": 597,
+      "directory_sync_ns": 75,
+      "total_ns": 8318574
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9088,
+      "sync_ns": 1955039,
+      "rename_ns": 597,
+      "directory_sync_ns": 73,
+      "total_ns": 1964797
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8741,
+      "sync_ns": 1927547,
+      "rename_ns": 593,
+      "directory_sync_ns": 75,
+      "total_ns": 1936956
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8776,
+      "sync_ns": 1922843,
+      "rename_ns": 600,
+      "directory_sync_ns": 71,
+      "total_ns": 1932290
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8633,
+      "sync_ns": 2002045,
+      "rename_ns": 600,
+      "directory_sync_ns": 76,
+      "total_ns": 2011354
+    },
+    {
+      "kind": "existing",
+      "write_ns": 9102,
+      "sync_ns": 3195199,
+      "rename_ns": 594,
+      "directory_sync_ns": 72,
+      "total_ns": 3204967
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8944,
+      "sync_ns": 3225224,
+      "rename_ns": 599,
+      "directory_sync_ns": 75,
+      "total_ns": 3234842
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8832,
+      "sync_ns": 3371894,
+      "rename_ns": 590,
+      "directory_sync_ns": 73,
+      "total_ns": 3381389
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8852,
+      "sync_ns": 3223538,
+      "rename_ns": 604,
+      "directory_sync_ns": 74,
+      "total_ns": 3233068
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8950,
+      "sync_ns": 2057708,
+      "rename_ns": 602,
+      "directory_sync_ns": 76,
+      "total_ns": 2067336
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8760,
+      "sync_ns": 1963261,
+      "rename_ns": 594,
+      "directory_sync_ns": 73,
+      "total_ns": 1972688
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8842,
+      "sync_ns": 1968871,
+      "rename_ns": 594,
+      "directory_sync_ns": 73,
+      "total_ns": 1978380
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8800,
+      "sync_ns": 1999005,
+      "rename_ns": 586,
+      "directory_sync_ns": 77,
+      "total_ns": 2008468
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8958,
+      "sync_ns": 3248830,
+      "rename_ns": 591,
+      "directory_sync_ns": 73,
+      "total_ns": 3258452
+    },
+    {
+      "kind": "existing",
+      "write_ns": 8757,
+      "sync_ns": 3191700,
+      "rename_ns": 593,
+      "directory_sync_ns": 74,
+      "total_ns": 3201124
+    }
+  ]
+}
