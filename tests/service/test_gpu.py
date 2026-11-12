@@ -16,13 +16,14 @@ from tools.client import prepared_frame, unframe
 CODE = (ROOT/'experiments/gpu/Client.bend').read_text()
 PROOF = (ROOT/'experiments/gpu/ClientProof.bend').read_text()
 CONCRETE = (ROOT/'examples/access/ClientProof.bend').read_text()
+HEAVY = (ROOT/'experiments/gpu/HeavyClient.bend').read_text()
 
 
-def oracle(depth):
+def oracle(depth, rounds=64):
     total = 0
     for seed in range(1 << depth):
         x = seed
-        for _ in range(64):
+        for _ in range(rounds):
             x = ((x ^ (x >> 16))*1664525 + 1013904223) & 0xffffffff
         total = (total + x) & 0xffffffff
     return total
@@ -277,6 +278,23 @@ class GpuTests(unittest.TestCase):
             self.assertIn('GPU_BUILD', server.diagnostics())
             fault.unlink()
             self.execute(server, handle, 'abc', 'abc')
+            # Attest the benchmark's HeavyClient too, using a small scalar oracle.
+            receipt = server.prepared(0, HEAVY, 'abc', proof=PROOF)
+            self.assertEqual(receipt['status'], 'prepared', server.diagnostics())
+            heavy_native, = [candidate for candidate in private.glob('request-*/*.program')
+                             if (candidate.parent/'Client.bend').read_text() == HEAVY]
+            heavy_report = json.loads(Path(str(heavy_native)+'.json').read_text())
+            self.assertTrue(heavy_report['hasBangs'])
+            trace.write_text('')
+            self.assertEqual(server.prepared(1, receipt['value'], 'abc', 'xx'),
+                             {'status': 'success', 'value': oracle(2, 8192)}, server.diagnostics())
+            heavy_events = trace.read_text().splitlines()
+            self.assertIn('launch 0', heavy_events)
+            self.assertIn('sync 0', heavy_events)
+            print('HeavyClient forwarding evidence: ' + json.dumps({
+                'sourceSha256': heavy_report['sourceSha256'], 'hasBangs': True,
+                'launch_successes': heavy_events.count('launch 0'),
+                'synchronize_successes': heavy_events.count('sync 0')}), flush=True)
             server.finish()
 
     def test_unwrapped_unavailable_device_has_no_auto_fallback(self):
