@@ -40,7 +40,7 @@ class TimingPersistenceTests(unittest.TestCase):
                                    '--timing-log', str(log)])
                     try:
                         first = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token))
-                        later = frame(dict(code=code, proof=proof, credential='alice-token', arguments='must-not-run'))
+                        later = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token+'-later'))
                         server.process.stdin.write(first+later)
                         server.process.stdin.close()
                         if point in ('before_write', 'after_file_sync'):
