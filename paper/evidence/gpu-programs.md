@@ -110,6 +110,25 @@ interposed CUDA calls forward to the installed real driver. Unwrapped runs and
 tests and benchmark (not the production host) require it to be true and
 inspect nonzero `#define BANGS` in the official emitted C.
 
+## Post-review fixes and rerun
+
+An independent review (Claude Opus 5.5) found no soundness blocker and five
+should-fix items, all addressed in `ca9bbf7`: the default CPU worker path again
+has only its original pre-run artifact check (post-run rechecks are CUDA-only);
+CUDA build failures are compile-phase errors with no redundant pure re-check;
+a pre-existing cubin is refused; resolved `libcuda`/`libnvrtc` paths and hashes
+are recorded (not pinned); device-requirement, trusted-base and evidence wording
+were corrected. On `ca9bbf7`, under the heavy lock: `cargo fmt --check`,
+`make build`, `verify-contract` (50 s), `verify` (683 s), `test` (553 s),
+`test-rls` (94 s), `test-persistence` (542 s), `test-idempotency-recovery`
+(81 s), `prepared` (72 s), `test-demo-web` (138 s), `test-admission` (74 s),
+`test-gpu` (184 s), `benchmark-gpu` (140 s) and `pytest paper/test_evidence.py`
+(30 passed) all passed. `test-accessories-native` and `smoke` first failed in
+that worktree only because its npm dependencies were not installed
+(`drizzle-orm` / `tsc` not found); after `npm ci` both passed under the heavy
+lock on the same revision: `test-accessories-native` (557 s) and `smoke` (13 s,
+including strict Clippy and fmt).
+
 ## GPU proof fixtures
 
 `tests/proof/GpuPrograms.bend` defines a program whose terminal value uses a
@@ -126,7 +145,7 @@ exercised at service level by `make test-gpu`.
 
 ## Focused fixed-clock measurements
 
-Measured code revision `2c5c2f3b8d7bdf937fa0513e713db7ed84ee70b8`. Raw samples, complete states, artifact hashes, frequency settings and toolchain metadata: [gpu-programs.json](gpu-programs.json).
+Measured code revision `ca9bbf785249707d3315ca6a2cd60cfaa7bd2605` (post-review; clean tree). Raw samples, complete states, artifact hashes (including the recorded `libcuda`/`libnvrtc` paths and SHA-256), frequency settings and toolchain metadata: [gpu-programs.json](gpu-programs.json).
 
 Native-worker and complete-request columns are **separate trials** (different
 processes and device initializations), not nested phases; this is why a CUDA
@@ -134,18 +153,27 @@ complete-request median can be below its native-worker median.
 
 | Workload | Backend / CPU workers | Native worker median (range), ms | Complete request median (range), ms |
 | --- | --- | ---: | ---: |
-| Depth 2, 32,768 rounds | cpu-1 / 1 | 3.261 (3.231–3.398) | 6.883 (6.621–7.100) |
-| Depth 16, 4,294,967,296 rounds | cpu-1 / 1 | 7179.807 (7179.792–7185.904) | 7184.437 (7183.585–7184.679) |
-| Depth 2, 32,768 rounds | cpu-16 / 16 | 3.699 (3.680–3.703) | 7.195 (7.124–7.401) |
-| Depth 16, 4,294,967,296 rounds | cpu-16 / 16 | 496.948 (474.888–498.926) | 503.068 (501.066–503.701) |
-| Depth 2, 32,768 rounds | cuda / 1 | 176.742 (174.087–179.532) | 169.866 (157.615–204.569) |
-| Depth 16, 4,294,967,296 rounds | cuda / 1 | 214.895 (210.357–216.807) | 206.227 (193.472–206.646) |
+| Depth 2, 32,768 rounds | cpu-1 / 1 | 3.238 (3.208–4.378) | 5.779 (5.654–6.109) |
+| Depth 16, 4,294,967,296 rounds | cpu-1 / 1 | 7181.015 (7180.967–7181.637) | 7203.371 (7190.814–7222.371) |
+| Depth 2, 32,768 rounds | cpu-16 / 16 | 4.096 (3.848–4.528) | 6.798 (6.613–7.529) |
+| Depth 16, 4,294,967,296 rounds | cpu-16 / 16 | 530.453 (529.508–599.220) | 568.448 (557.944–569.818) |
+| Depth 2, 32,768 rounds | cuda / 1 | 263.571 (258.702–277.842) | 218.787 (213.694–221.357) |
+| Depth 16, 4,294,967,296 rounds | cuda / 1 | 272.773 (269.050–275.674) | 226.995 (226.080–263.754) |
+
+An earlier run of the same harness at revision `2c5c2f3` (before the review
+fixes, which do not touch the measured worker computation) observed the same
+ordering with lower CUDA fixed overhead: CUDA 176.742 / 214.895 ms native
+worker (small / large), cpu-16 496.948 ms and cpu-1 7179.807 ms on the large
+size. The roughly 90 ms difference in the CUDA small-size cost between runs is
+run-to-run device/process startup variation; GPU clocks are not fixed and the
+GPU also drives the desktop. Treat the CUDA figures as observations, not
+stable constants.
 
 [Standalone timing figure](gpu-programs.svg). The successful benchmark restored
 and verified powersave / EPP balance_performance / no_turbo=0 before releasing
 the heavy lock; see [restoration record](gpu-frequency-restoration.json).
 
-Preparation, including both checkers, compilation and optional official cubin prebuild, was measured separately: cpu-1 8081.797 ms, cpu-16 8099.373 ms, cuda 10906.620 ms.
+Preparation, including both checkers, compilation and optional official cubin prebuild, was measured separately (one sample each): cpu-1 8126.341 ms, cpu-16 10531.017 ms, cuda 13547.955 ms.
 
 Both workload checksums come from the independent Python/NumPy oracle: depth 2: 1,321,445,589, depth 16: 3,867,567,763. Small arithmetic also matches a plain Python scalar loop. Every native proposal and every complete published state matches the independent full-state specification. All three modes emitted the same exact C hash.
 
