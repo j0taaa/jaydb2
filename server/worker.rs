@@ -134,9 +134,10 @@ impl Pool {
                     }
                     match child {
                         Ok(child) => slot.idle = Some(child),
-                        Err(error) => diagnostic(format_args!(
-                            "idle worker spawn: {error:?}; next call uses fresh spawn"
-                        )),
+                        // Leave an empty slot; selection can still spawn fresh.
+                        // Speculative failures must not block refill/shutdown
+                        // on administrator stderr or become this call's error.
+                        Err(_) => {}
                     }
                     // A selection during spawn already has a fresh child. This
                     // completed spawn fills its one idle slot; do not spawn again.
@@ -164,7 +165,7 @@ impl Pool {
             match child.0.as_mut().expect("owned idle child").try_wait() {
                 Ok(None) => return Ok(child),
                 Ok(Some(_)) => {} // Reaped; discard and launch this call fresh.
-                Err(error) => diagnostic(format_args!("idle worker status: {error}")),
+                Err(_) => {}      // Guard cleanup precedes a fresh selected launch.
             }
             drop(child); // Kill/reap on status error as well.
         }
