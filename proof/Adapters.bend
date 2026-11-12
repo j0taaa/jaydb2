@@ -93,15 +93,15 @@ def adapter_in_progress_advances_exactly_one_action(initial, w, action, ts, c):
   {==}
 
 law adapter_stopped_only_prepares_and_concludes:
-  for -initial: D.State
-  for -w: D.State
-  for -ts: List<&2, S.OperationEvent>
-  for -r: S.Response
-  for -c: S.Configuration
+  for +initial: D.State
+  for +w: D.State
+  for +ts: List<&2, S.OperationEvent>
+  for +r: S.Response
+  for c: S.Configuration
   {X.advance(X.StateExecution{initial, N.Stopped{w, ts, r}}, c) ==
     X.prepared(N.prepare(N.Stopped{w, ts, r}, c), initial) : X.Iteration}
 def adapter_stopped_only_prepares_and_concludes(initial, w, ts, r, c):
-  {==}
+  X.finish_equals_reference(r, c, w, ts, initial)
 
 # The private zero marker prevents the controller from publishing even an
 # identical copy of the old state on refusal/error. No state is serialized.
