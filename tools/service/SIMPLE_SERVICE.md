@@ -228,8 +228,10 @@ uses the total table in `contract/HostErrors.bend` and `Control.finish`'s denial
 `HostErrorReplyTheorem` proves bounded canonical framing and preservation of
 root/last-response/registry. The 17 named admission codes map to `certificate`;
 all other strings map to `failure`, including `HOST_COMPILE`, `HANDLE` and
-`PREPARED_INTEGRITY`. Pure admission's failure code is preserved; a worker/C
-failure after successful pure admission remains `HOST_COMPILE`.
+`PREPARED_INTEGRITY`. Pure admission's failure code is preserved; a worker-check
+failure after successful pure admission remains `HOST_COMPILE`. Native-build
+errors (`phase: compile`) follow acceptance by both checkers, skip pure
+rechecking and report `HELPER` (also `failure`).
 
 Rust sends each exact observed code unchanged and memoizes only checked Keep
 response bytes by that code. Startup prefills `HANDLE` and `PREPARED_INTEGRITY`
@@ -297,8 +299,44 @@ Host diagnostics are best-effort. A failed timing or inspection sink is disabled
 before attempting its diagnostic, and failed stderr writes cannot suppress an
 ordinary response, undo publication or turn an observer error into a panic.
 
+## Admission and artifact release
+
 The compiler preflights the import-only pure root and verifies that every pure
 module has exactly the executable Book's bytes, role and policy. A successful
-full Book checks all these declarations in both official modes once. If the
-worker fails, the separate pure check still distinguishes a rejected client
-certificate from a host wrapper failure; no successful declaration is skipped.
+full Book checks all these declarations in both official modes once. If worker
+checking fails, the separate pure check distinguishes a rejected client
+certificate from a host wrapper failure. Native-build failures need no recheck.
+
+Service compilation overlaps only independent work. The primary checker first
+elaborates every declaration, then the official Safe translator consumes those
+checked trees and fixes the complete BendTT input. The original BendTT process
+runs concurrently with C emission from that same private Book and Clang
+(`-O0` for ordinary requests, `-O2` for reusable/startup workers). The semantic
+seal is checked after translation immediately before C emission; it covers
+checked runtime bodies as well as source terms. The official emitter transforms
+its input Book under T2. A second seal covers its resulting private state and
+is checked before admission returns, detecting subsequent edits. No client
+source is reread, no verdict is cached, and Safe's permitted symbolic constants
+retain the existing treatment. The foreign C snapshot is validated before use.
+
+C, the executable and their hashes are provisional during that overlap.
+Both paths must settle and their children exit before admission returns a
+handle. `compile.mjs` withholds successful C/native receipts until both checkers
+accept and the seal and artifact hashes match. `stage.mjs` validates those
+hashes before releasing a program path; Rust retains its existing artifact
+verification before a fresh worker launch. A
+checker/build/binding failure releases no worker. On every reported failure,
+the checking/build paths have settled and provisional files are discarded.
+Uncatchable V8 OOM or a hard kill of the direct child can orphan kernel/Clang
+processes or leave provisional files. T1 rests on withheld receipts and seal/hash
+checks, not on cleanup. Checker and seal failures take precedence over a
+simultaneous build failure. Public response statuses and publication behavior
+are unchanged.
+
+With `JAYDB_BENCH_TIMING`, `bendtt_translate_check` records the observed wall
+span of translation and the kernel child; it overlaps `c_emission` and
+`c_compilation` and must not be added to them or subtracted with them from the
+round trip to infer an exclusive remainder. Child completion can be observed
+after synchronous C emission yields the Node event loop. `admission_total`
+remains the inclusive wall time of admission/build. Staging, worker, cleanup
+and publication hooks retain their original boundaries.

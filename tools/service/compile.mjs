@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 // Check and emit the exact private Book with the unmodified official compiler.
 import fs from 'node:fs';
-import { admitSubmission, admitKernel, emitC, configurationLimits, preflight } from '../admission/index.mjs';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { admitSubmission, admitKernel, compileSubmission, compileKernel, emitC, configurationLimits, preflight } from '../admission/index.mjs';
 import { sha256 } from '../admission/bootstrap.mjs';
 
 const [manifestFile, outputFile, sourceDir, kernelPath, pureManifestFile] = process.argv.slice(2);
 let pureAccepted = false;
+const provisionalFiles = [];
+function write(file, bytes) {
+  fs.writeFileSync(file, bytes, { flag: 'wx', mode: 0o600 });
+  provisionalFiles.push(file);
+}
 try {
   const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
   const toolchain = { sourceDir, kernelPath };
@@ -31,30 +38,73 @@ try {
     if (plan.records.get(pure.entry).body.trim() !== '' || plan.records.has(manifest.kernel.module) || plan.records.has(manifest.entry))
       throw new Error('Expected an import-only pure root without the runtime kernel');
   }
-  let admitted;
+  let admitted, native;
+  const build = async c => {
+    write(outputFile, c);
+    const original = Buffer.from(c), compiler = '/usr/bin/clang-19';
+    const executable = path.join(path.dirname(outputFile), sha256(original) + '.program');
+    // A request directory is private; still refuse to replace an existing file.
+    if (fs.existsSync(executable)) throw new Error('Native artifact already exists');
+    provisionalFiles.push(executable);
+    const flags = ['-std=gnu11', manifest.nativeOptimization, '-w', '--no-default-config', outputFile, '-o', executable, '-lm', '-pthread'];
+    const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
+    const result = await new Promise(resolve => {
+      const compilerChild = spawn(compiler, flags, { stdio: ['ignore', 2, 2] });
+      let error;
+      compilerChild.once('error', cause => { error = cause; });
+      compilerChild.once('close', (status, signal) => resolve({ error, status, signal }));
+    });
+    if (started !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_compilation', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
+    if (result.error || result.signal || result.status !== 0)
+      throw new Error('clang-19: ' + (result.error?.message ?? result.signal ?? result.status));
+    if (!fs.readFileSync(outputFile).equals(original)) throw new Error('Checked C changed during compilation');
+    return { executable, report: { format: 'jaydb-official-c-v1', sourceSha256: sha256(original),
+      executableSha256: sha256(fs.readFileSync(executable)), compiler, compilerSha256: sha256(fs.readFileSync(compiler)), flags } };
+  };
+  if (manifest.nativeOptimization !== undefined && !['-O0', '-O2'].includes(manifest.nativeOptimization))
+    throw new Error('Invalid native optimization level');
   try {
-    admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
+    if (manifest.nativeOptimization) {
+      const built = await (manifest.purpose ? compileKernel : compileSubmission)({ ...manifest, toolchain }, build);
+      admitted = built.admitted; native = built.artifact;
+    } else admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
   } catch (workerError) {
-    // Only a failed worker needs the separate pure check to distinguish a bad
-    // client certificate from a host-wrapper/compiler failure. Successful Books
-    // already checked the same pure declarations, and need no second proof run.
-    if (pure) {
+    if (workerError.phase === 'compile') {
+      // Both checkers accepted every pure declaration. Preserve the build error
+      // without risking a redundant pure check's infrastructure failure.
+      pureAccepted = Boolean(pure);
+    } else if (pure) {
+      // A failed worker check needs pure admission to distinguish a rejected
+      // client certificate from a host-wrapper failure.
       await (pure.purpose ? admitKernel : admitSubmission)({ ...pure, toolchain });
       pureAccepted = true;
     }
     throw workerError;
   }
   pureAccepted = Boolean(pure);
-  const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
-  const c = emitC(admitted);
-  if (started !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_emission', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
-  fs.writeFileSync(outputFile, c, { flag: 'wx', mode: 0o600 });
-  fs.writeFileSync(outputFile + '.json', JSON.stringify({ cSha256: sha256(c),
+  let c;
+  if (native) {
+    // The builder's C bytes were emitted from the sealed Book. No successful
+    // report or native receipt exists until both official checkers accepted.
+    c = fs.readFileSync(outputFile);
+    if (sha256(c) !== native.report.sourceSha256 || sha256(fs.readFileSync(native.executable)) !== native.report.executableSha256)
+      throw new Error('Provisional artifact changed before admission completed');
+    write(native.executable + '.json', JSON.stringify(native.report));
+  } else {
+    const started = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
+    c = emitC(admitted);
+    if (started !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_emission', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
+    write(outputFile, c);
+  }
+  write(outputFile + '.json', JSON.stringify({ cSha256: sha256(c),
     backend: 'official-bend-c', admission: admitted.report,
-    limits: configurationLimits(admitted) }), { flag: 'wx', mode: 0o600 });
+    limits: configurationLimits(admitted) }));
 } catch (e) {
+  // On every reported failure, admission has awaited the checking/build paths.
+  // Discard provisional output before writing the error; hard kills can bypass this.
+  for (const file of provisionalFiles.reverse()) fs.rmSync(file, { force: true });
   fs.writeFileSync(outputFile + '.error.json', JSON.stringify({
-    code: pureAccepted ? 'HOST_COMPILE' : e.code ?? 'HOST_COMPILE',
+    code: e.phase === 'compile' ? 'HELPER' : pureAccepted ? 'HOST_COMPILE' : e.code ?? 'HOST_COMPILE',
     phase: e.phase ?? 'host', message: pureAccepted && e.code ? `${e.code}: ${e.message}` : e.message }));
   process.exitCode = 2;
 }

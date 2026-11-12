@@ -390,7 +390,8 @@ def main() -> IO(Unit):
   available.set('Main.bend', Buffer.from(main));
   const entries = executing ? ['Main.bend', 'RequestFacts.bend'] : ['Main.bend'];
   const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
-  const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [] };
+  const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [],
+    nativeOptimization: purpose === 'execute' ? '-O0' : '-O2' };
   for (const [name, original] of selected) {
     const data = name === 'Native.bend' && !executing ? original.subarray(0, original.indexOf('\ntype Iteration')) : original;
     write(path.join(directory, name), data);
@@ -458,15 +459,11 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   if (digest(original) !== report.cSha256) fail('SOURCE_IO', 'C differs from the checked Book');
   const limits = report.limits;
   if (Object.keys(limits).sort().join(',') !== 'message,response,state' || Object.values(limits).some(x => !/^(0|[1-9][0-9]*)$/.test(x))) fail('CONFIGURATION', 'Expected three natural logical limits');
-  const executable = path.join(directory, report.cSha256 + '.program'), clang = '/usr/bin/clang-19';
-  // Ordinary calls pay compilation per request; reusable workers amortize -O2.
-  const optimization = purpose === 'execute' ? '-O0' : '-O2';
-  const flags = ['-std=gnu11', optimization, '-w', '--no-default-config', source, '-o', executable, '-lm', '-pthread'];
-  const clangStarted = timing ? process.hrtime.bigint() : null;
-  command(clang, flags);
-  if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_compilation', ns: String(process.hrtime.bigint() - clangStarted)}) + '\n'); } catch {}
-  if (!read(source).equals(original)) fail('SOURCE_IO', 'Checked C changed during compilation');
-  json(executable + '.json', { format: 'jaydb-official-c-v1', sourceSha256: digest(original), executableSha256: digest(read(executable)), compiler: clang, compilerSha256: digest(read(clang)), flags });
+  const executable = path.join(directory, report.cSha256 + '.program');
+  const artifact = JSON.parse(utf8(read(executable + '.json')));
+  if (artifact.sourceSha256 !== report.cSha256 || artifact.executableSha256 !== digest(read(executable)))
+    fail('SOURCE_IO', 'Native artifact differs from the checked C');
+
   return { program: executable, limits, certificateMode: report.admission.certificateMode };
 }
 

@@ -32,17 +32,59 @@ export function checkKernelFile(input, info) {
     try { got = child.spawnSync(info.kernelPath, [input], { stdio: ['ignore', fd, fd] }); }
     finally { fs.closeSync(fd); }
     const out = fs.readFileSync(log, 'utf8').trim();
-    if (got.error || got.signal || got.status === null) throw new VerifierInfrastructure(got.error?.message ?? 'Verifier terminated by ' + got.signal);
-    if (got.status === 0 && out === 'ALL PROOFS CHECK') return { why: null };
-    if (got.status === 1 && out.startsWith('SOME PROOFS FAIL\n')) {
-      const why = out.slice('SOME PROOFS FAIL\n'.length);
-      // Book.check prefixes the original checker's exhaustion with its def.
-      // A stopped check establishes no mathematical rejection of the proof.
-      if (/^(?:In [^\r\n]+:\n)?out of fuel$/.test(why)) throw new VerifierInfrastructure(why);
-      return { why };
-    }
-    throw new VerifierInfrastructure(out || 'Verifier exited without a verdict: ' + got.status);
+    return kernelVerdict(got, out);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+}
+
+function kernelVerdict(got, out) {
+  if (got.error || got.signal || got.status === null) throw new VerifierInfrastructure(got.error?.message ?? 'Verifier terminated by ' + got.signal);
+  if (got.status === 0 && out === 'ALL PROOFS CHECK') return { why: null };
+  if (got.status === 1 && out.startsWith('SOME PROOFS FAIL\n')) {
+    const why = out.slice('SOME PROOFS FAIL\n'.length);
+    // Book.check prefixes the original checker's exhaustion with its def.
+    // A stopped check establishes no mathematical rejection of the proof.
+    if (/^(?:In [^\r\n]+:\n)?out of fuel$/.test(why)) throw new VerifierInfrastructure(why);
+    return { why };
+  }
+  throw new VerifierInfrastructure(out || 'Verifier exited without a verdict: ' + got.status);
+}
+
+/** Start the original kernel after fixing its entire translated input. The
+ * caller must await the verdict before releasing any speculative artifact. */
+export function startBookCheck(S, book, info) {
+  const started = process.hrtime.bigint();
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jaydb-verifier-'));
+  let fd;
+  try {
+    const input = path.join(directory, 'in.bendtt');
+    const oos = S.safe_emit(book, input);
+    const inputSha256 = sha256(fs.readFileSync(input));
+    if (oos.length) throw new VerifierInfrastructure('Official BendTT representation out of scope:\n' + oos.join(''));
+    if (info.kernelSha256 !== pin.kernelSha256 || sha256(fs.readFileSync(info.kernelPath)) !== pin.kernelSha256)
+      throw new VerifierInfrastructure('Official BendTT binary hash mismatch');
+    const log = path.join(directory, 'out');
+    fd = fs.openSync(log, 'w', 0o600);
+    const worker = child.spawn(info.kernelPath, [input], { stdio: ['ignore', fd, fd] });
+    fs.closeSync(fd); fd = undefined;
+    // Resolve failures as data immediately: C emission/Clang may block this
+    // event loop, and a failed kernel must never become an unhandled rejection.
+    return new Promise(resolve => {
+      let error;
+      worker.once('error', cause => { error = cause; });
+      worker.once('close', (status, signal) => {
+        try {
+          const out = fs.readFileSync(log, 'utf8').trim();
+          resolve({ value: { ...kernelVerdict({ error, status, signal }, out), inputSha256 },
+            durationNs: String(process.hrtime.bigint() - started) });
+        } catch (error) { resolve({ error, durationNs: String(process.hrtime.bigint() - started) }); }
+        finally { fs.rmSync(directory, { recursive: true, force: true }); }
+      });
+    });
+  } catch (error) {
+    if (fd !== undefined) fs.closeSync(fd);
+    fs.rmSync(directory, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 /** The official translator serializes the same Book checked by Bend. */

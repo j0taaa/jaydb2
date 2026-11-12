@@ -8,7 +8,8 @@ const admitted = await admitSubmission(hostManifest);
 const c = emitC(admitted);
 ```
 
-The public handle exposes `sources` and `report`. The checked Book stays private and is the same object passed to the official compiler. There is no API for changing declarations after checking. `configurationLimits(admitted)` reads the three logical sizes for the service.
+The public handle exposes `sources` and `report`. The checked Book stays private and is the same object passed to the official compiler. There is no API for changing declarations after checking. Emission rechecks the
+semantic seal, including checked runtime bodies. `configurationLimits(admitted)` reads the three logical sizes for the service.
 
 ## Official tools
 
@@ -45,3 +46,15 @@ checkers, source binding, purity policy and checked-Book compilation.
 Use the commands in the root README. There is no derived verifier installation, stack addon, physical budget, or per-request deadline. The official tools' own limitations remain unchanged. Admission soundness and exact source/Book binding form T1; compiler/runtime preservation and numbered host plumbing are T2/T3 in the [proof guide](../../proof/README.md).
 
 The launcher uses the public `node --stack_size=65536` option for official Safe. The profile requires an unlimited Linux hard stack limit and raises the soft limit to unlimited before executing Node. This is a helper execution setting; Bend and V8 sources are unchanged.
+
+
+The trusted host APIs `compileSubmission(options, build)` and
+`compileKernel(options, build)` allow speculative native builds. After primary
+checking and Safe translation, `build(c)` receives provisional C emitted from
+the sealed private Book while the original BendTT child runs. The callback may
+compile C but must never load/execute its worker or publish an artifact receipt.
+The API returns `{ admitted, artifact }` only on success. The
+[service release boundary](../service/SIMPLE_SERVICE.md#admission-and-artifact-release)
+specifies the seals, receipts, failure precedence and cleanup limits.
+Primary/translation failures never call the builder.
+The ordinary admission APIs remain available without speculative compilation.

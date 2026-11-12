@@ -3,7 +3,7 @@ import path from 'node:path';
 import { AdmissionError, loadToolchain, sha256 } from './bootstrap.mjs';
 import { preflight } from './preflight.mjs';
 import { prepareKernel, auditLoopCalls, validateKernelEntry, validateForeignSnapshot, removeForeignSnapshot } from './kernel.mjs';
-import { checkBook } from '../verifier/check.mjs';
+import { checkBook, startBookCheck } from '../verifier/check.mjs';
 
 export { AdmissionError, bootstrapInfo } from './bootstrap.mjs';
 export { preflight } from './preflight.mjs';
@@ -250,7 +250,19 @@ export async function admitKernel(options) {
   return admit(options, true);
 }
 
-async function admit(options, kernelOnly) {
+/** Trusted host builder: C is provisional until this promise succeeds. The
+ * builder may compile it, but must never load or execute the resulting worker. */
+export async function compileSubmission(options, build) {
+  if (typeof build !== 'function') throw new TypeError('A trusted build callback is required');
+  return admit(options, false, build);
+}
+
+export async function compileKernel(options, build) {
+  if (typeof build !== 'function') throw new TypeError('A trusted build callback is required');
+  return admit(options, true, build);
+}
+
+async function admit(options, kernelOnly, build) {
   let stamp = process.env.JAYDB_BENCH_TIMING ? process.hrtime.bigint() : null;
   const timed = phase => {
     if (stamp === null) return;
@@ -263,7 +275,7 @@ async function admit(options, kernelOnly) {
   const tc = await loadToolchain(options.toolchain);
   const { B, S } = tc;
   timed('bootstrap_preflight');
-  let state, foreignSnapshot;
+  let state, foreignSnapshot, built;
   try {
     try {
       const base = fs.readFileSync(B.BASE_BEND);
@@ -300,11 +312,37 @@ async function admit(options, kernelOnly) {
     auditLoopCalls(B, state);
     if (!kernelOnly) assertBindings(B, state.book, plan, false);
     assertInitialization(B, state.book, plan);
-    const changedDefinition = bookSeal(B, state.book);
+    let changedDefinition = bookSeal(B, state.book);
     timed('binding_audit_seal');
+    let buildError;
     try {
-      state.verifier = checkBook(S, state.book, tc.info.verifier);
-      timed('bendtt_translate_check');
+      if (build) {
+        // Safe consumes the primary checker's elaborated trees. Translation
+        // finishes before C emission; only the independent native kernel runs
+        // concurrently. Neither path rereads submission sources.
+        const checking = startBookCheck(S, state.book, tc.info.verifier);
+        try {
+          const changed = changedDefinition();
+          if (changed !== null) throw new AdmissionError('BENDTT_INFRASTRUCTURE', 'bendtt', 'Official Safe changed a checked definition: ' + changed);
+          validateForeignSnapshot(foreignSnapshot);
+          const started = process.hrtime.bigint();
+          state.c = tc.C.compile_book(state.book);
+          // The official emitter transforms its input Book under T2. Seal its
+          // resulting private state as well, so later edits cannot be released.
+          changedDefinition = bookSeal(B, state.book);
+          if (stamp !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'c_emission', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
+          built = await build(state.c);
+        } catch (cause) { buildError = { cause }; }
+        // Always reap the kernel, even if emission/build failed. A checker
+        // failure wins over a simultaneous compiler failure, as before.
+        const checked = await checking;
+        if (stamp !== null) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'bendtt_translate_check', ns: checked.durationNs}) + '\n'); } catch {}
+        if (checked.error) throw checked.error;
+        state.verifier = checked.value;
+      } else {
+        state.verifier = checkBook(S, state.book, tc.info.verifier);
+        timed('bendtt_translate_check');
+      }
       // The source Book has already passed the primary checker. A negative
       // result for its translated payload establishes pipeline disagreement,
       // not absence of a derivation for the original source certificate.
@@ -315,6 +353,13 @@ async function admit(options, kernelOnly) {
       const changed = changedDefinition();
       if (changed !== null) {
         throw new Error('Official Safe changed a checked definition: ' + changed);
+      }
+      // A seal violation must not be hidden by a simultaneous build failure.
+      if (buildError) {
+        const { cause } = buildError;
+        if (cause instanceof AdmissionError) throw cause;
+        throw new AdmissionError('COMPILE', 'compile',
+          cause instanceof Error ? cause.message : 'Native builder failed', { cause });
       }
     } catch (cause) {
       if (cause instanceof AdmissionError) throw cause;
@@ -335,9 +380,10 @@ async function admit(options, kernelOnly) {
       sources: Object.freeze(sources.map(({ text, ...r }) => Object.freeze(r))),
       targets: Object.freeze(Object.keys(plan.openTargets)), clientClosureSize: closure.size });
     const result = Object.freeze({ sources, report });
-    admittedBooks.set(result, { tc, book: state.book, foreignSnapshot });
+    if (state.c !== undefined) { removeForeignSnapshot(foreignSnapshot); foreignSnapshot = null; }
+    admittedBooks.set(result, { tc, book: state.book, foreignSnapshot, changedDefinition, c: state.c });
     if (foreignSnapshot) sourceCleanup.register(result, foreignSnapshot, result);
-    return result;
+    return build ? { admitted: result, artifact: built } : result;
   } catch (e) { removeForeignSnapshot(foreignSnapshot); throw e; }
 }
 
@@ -402,9 +448,12 @@ export function configurationLimits(admitted) {
 export function emitC(admitted) {
   const s = checkedState(admitted);
   try {
+    const changed = s.changedDefinition();
+    if (changed !== null) throw new Error('Book changed after checking: ' + changed);
     if (s.c !== undefined) return s.c;
     validateForeignSnapshot(s.foreignSnapshot);
     s.c = s.tc.C.compile_book(s.book);
+    s.changedDefinition = bookSeal(s.tc.B, s.book);
     removeForeignSnapshot(s.foreignSnapshot);
     sourceCleanup.unregister(admitted);
     return s.c;

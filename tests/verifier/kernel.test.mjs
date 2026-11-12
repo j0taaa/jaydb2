@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import child from 'node:child_process';
-import { validateVerifier, checkBook, checkKernelFile, VerifierInfrastructure } from '../../tools/verifier/check.mjs';
+import { validateVerifier, checkBook, checkKernelFile, startBookCheck, VerifierInfrastructure } from '../../tools/verifier/check.mjs';
 
 const info = validateVerifier();
 function input(t, text) {
@@ -55,4 +55,34 @@ test('official fuel exhaustion is infrastructure, not a false certificate', t =>
       } else assert.equal(checkKernelFile(file, info).why, why);
     }
   } finally { child.spawnSync = spawn; }
+});
+
+
+// The concurrent path retains exact verdict parsing and reaps/cleans children.
+test('asynchronous kernel checks the fixed payload and removes its private input', async () => {
+  for (const [term, accepted] of [['ok', true], ['wrong', false]]) {
+    let input;
+    const translator = { safe_emit(_book, file) {
+      input = file;
+      fs.writeFileSync(file, `unit : <ok> = .${term}\n`);
+      return [];
+    } };
+    const result = await startBookCheck(translator, {}, info);
+    assert.equal(result.error, undefined);
+    assert.equal(result.value.why === null, accepted);
+    assert.equal(fs.existsSync(path.dirname(input)), false);
+  }
+});
+
+test('asynchronous kernel spawn failure is infrastructure and cleans its input', async t => {
+  const kernel = input(t, '');
+  fs.writeFileSync(kernel, fs.readFileSync(info.kernelPath));
+  fs.chmodSync(kernel, 0o600); // Correct pinned bytes, deliberately not executable.
+  let translated;
+  const result = await startBookCheck({ safe_emit(_book, file) {
+    translated = file; fs.writeFileSync(file, 'unit : <ok> = .ok\n'); return [];
+  } }, {}, { ...info, kernelPath: kernel });
+  assert.ok(result.error instanceof VerifierInfrastructure);
+  assert.match(result.error.message, /EACCES/);
+  assert.equal(fs.existsSync(path.dirname(translated)), false);
 });

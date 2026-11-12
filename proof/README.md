@@ -99,7 +99,11 @@ matching uses proved String/context/structural-value equality; universal
 certificates specialize at the current context and arguments. T1 still trusts
 the soundness of both pinned official checkers, the source/target/purity audit
 (including isolation from host effects), and that the very checked Book is the
-Book passed to C compilation and bound to the loaded artifact. Initialization
+Book passed to C compilation and bound to the loaded artifact. The
+[service release boundary](../tools/service/SIMPLE_SERVICE.md#admission-and-artifact-release)
+describes concurrent checking/building, seals and receipt/hash gates. T1 rests
+on those gates, not on cleanup; on every reported failure provisional files
+are discarded, while hard kills or uncatchable OOM can bypass cleanup. Initialization
 validity uses `assertInitialization`: it requires a filled checked declaration
 with exactly `Requirements.Valid(configuration(), state())` and closed pure
 configuration/seed definitions before the startup Book can run. The initializer
@@ -172,7 +176,9 @@ the technical fallback remain trusted, folded into duties 5 and 7.
 `PRIMARY_CHECK`, `BENDTT_CHECK`, `TARGET`, `SOURCE_BINDING`, `HOST_CAPTURE`,
 `KERNEL_CAPTURE` as `certificate`; all other exact strings map to `failure`.
 `compile.mjs` preserves a failed pure-admission code; successful pure admission
-followed by worker Book/C compilation failure reports `HOST_COMPILE`.
+followed by a worker-check failure reports `HOST_COMPILE`. Native-build errors
+(`phase: compile`) occur only after both checkers accept, skip pure rechecking
+and report `HELPER`; both map to `failure`.
 These failures reject before the request's Gate runs. The host supplies the
 actual observed code; checked code does not prove the tool produced it.
 The 17-code certificate table is a contract specification. Nothing proves
