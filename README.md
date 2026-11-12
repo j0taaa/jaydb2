@@ -63,8 +63,8 @@ expose the database directly to a browser or add a network security policy.
 
 Requests are FIFO and serial by default. The host bounds queued work and applies
 pipe backpressure. Each call uses single-use native workers emitted by the official
-compiler; prepared programs and the authenticator keep one data-free idle child
-ahead of selection. Verified sealed memfds preserve admitted executable bytes.
+compiler; up to eight images process-wide, including the authenticator, keep
+one data-free idle child ahead of selection. Further registrations spawn fresh. Verified sealed memfds preserve admitted executable bytes.
 The host retains the last published state; see [native execution](native/SIMPLE_RUNTIME.md).
 
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile

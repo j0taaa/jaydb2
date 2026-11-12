@@ -135,7 +135,9 @@ fn checked(
         && error.code == "HOST_PIPE_SETUP"
     {
         // Preserve the fatal thread-startup policy after waiting-thread joins,
-        // with no helper launched and no later request selected.
+        // with no helper launched and no later request selected. The checked
+        // denial transport needs these same threads, so exhaustion cannot
+        // reliably produce a recoverable response (T3 duty 5).
         panic!("jaydb2: cannot start helper pipe thread: {}", error.message);
     }
     result
@@ -157,6 +159,7 @@ pub(crate) fn capture_child(child: ChildGuard, input: &[u8]) -> Result<Output> {
     if let Err(error) = &result
         && error.code == "HOST_PIPE_SETUP"
     {
+        // Same fatal resource policy as checked(), after selected-child cleanup.
         panic!("jaydb2: cannot start helper pipe thread: {}", error.message);
     }
     result

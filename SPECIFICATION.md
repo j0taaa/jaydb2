@@ -51,9 +51,18 @@ must remain unchanged during that validation/use window. Loader, libc, libm,
 loader configuration and inherited loader variables remain trusted under T2,
 as before: the old artifact checks did not protect them either. Kernel seal
 enforcement, fd ownership and exact fd execution are explicit T3 dependencies.
+The launch wrapper borrows the Image through spawn/capture. The host requests
+MFD_EXEC, retries without that flag only on EINVAL for older kernels, requires
+at least all four seals (additional F_SEAL_EXEC is allowed), and refuses a
+non-executable memfd. vm.memfd_noexec=1 is supported with MFD_EXEC; enforced
+policy 2 may prohibit execution and fails closed with a clear HOST_NATIVE error.
+See [Linux memfd policy](https://www.kernel.org/doc/html/latest/userspace-api/mfd_noexec.html).
 
-Each prepared image and the authenticator may own one already-spawned idle
-child, blocked awaiting stdin. These children receive no state, registry,
+At most eight images process-wide (including the authenticator), allocated
+first-come, may each own one already-spawned idle child blocked awaiting stdin.
+Registrations beyond that pool cap use fresh selected spawns; pool thread-start
+failure also falls back to fresh spawning. Capacity returns after pool cleanup.
+These children receive no state, registry,
 credentials or request before selection. Selection binds the exact admitted
 image/runtime policy to the current root, original body and latest registry;
 each process consumes one packet through EOF, exits and is reaped before its
@@ -62,8 +71,12 @@ Refill runs asynchronously without state or publication capability. A dead
 idle child is reaped and replaced with a fresh launch; spawn failures follow
 the existing technical-failure policy. Invalidation and shutdown stop/join
 refill and kill/reap idle children. One slot, three pipe descriptors and one
-refill thread per pooled image bound idle resources per live registration;
-registration count and total RAM remain outside the canonical size limits.
+refill thread per pooled image bound idle resources under the global cap;
+registration/image count (including their memfds) and total RAM remain outside
+the canonical size limits. Pipe-thread setup exhaustion remains fatal after
+joining waiting threads and reaping any selected child, before packet delivery;
+the denial transport also requires those threads, so a recoverable reply cannot
+be promised under that exhaustion.
 
 # Database concept
 
@@ -392,7 +405,16 @@ not add a separate authentication process. The artifact guard alone does not
 establish routing completeness. A discarded
 tentative attempt's intermediate technical failure does not itself end the call:
 only the final authoritative path supplies the accepted result or final failure.
-No intermediate result is published or delivered. Retry can repeat private work;
+No intermediate result is published or delivered. For original tag 0,
+`DispatchBridge.dispatch_denials_equal_prepared_envelope` proves exact denial
+projection. For tag 4, the same checked handle lookup plus T2 deterministic
+re-execution of the same sealed image connects the accepted candidate to the
+original path. Tag 2 has readiness=false and falls back. This acceptance-safety
+composition is a T2/T3 obligation, not a theorem of the whole Rust host. A tag-2
+candidate may run admitted client code that the old path would never have run;
+its universal certificate covers that current-state execution and all observations,
+its program has no host effects/publication capability, and the host discards its
+result. It can still consume resources and delay service. Retry can repeat private work;
 all attempts remain checked and receive no publication capability. Ordinary
 admission, preparation and invalidation retain their existing paths. An unavailable registration or an image failing load verification produces a
 technical/control failure before execution; it does not establish that a valid proof is false.
@@ -459,27 +481,68 @@ complete candidate file. No periodic compaction or unbounded log is needed.
 Recovery requires valid file geometry and bounds allocation by its actual slot
 size and logical state ceiling. It checks both slots, including bindings of
 any checksum-valid older slot. With two valid slots, their sequences must be
-consecutive and match slot parity; recover the newer. With one valid slot,
-recover it: every protocol write leaves the current publication's blocks
-untouched while writing its older/empty peer. Torn slots are ignored only when
-another complete valid slot exists. Neither valid, wrong placement, stale/gapped
-or tied valid sequences, checksum-valid incompatible images, bad geometry or
-oversized files fail closed. Temporary/backup files never compete, and startup
-never silently reseeds. Recovery synchronizes the authoritative file and
-directory before serving, stabilizing a surviving unacknowledged write/rename.
-A nonzero invalid peer is first overwritten with zeros and that clearing is
-synchronized before any new request: otherwise a later torn write at the same
-next sequence could resurrect an earlier failed candidate's retained checksum.
-A crash during clearing may still recover that earlier unacknowledged candidate;
-no request has been admitted yet, and the current valid slot remains intact.
+consecutive and match slot parity; recover the newer. A valid slot beside an
+all-zero slot is also accepted. **By default any nonzero invalid slot stops
+startup with `STORAGE_INVALID_SLOT`, naming its index (0/A or 1/B) and reason,
+without modifying `snapshot`.** A torn unacknowledged write and corruption of
+the newest acknowledged commit are indistinguishable without extra durable
+state. Silently taking the older slot could lose an acknowledged commit.
+Neither valid, wrong placement, stale/gapped or tied valid sequences,
+checksum-valid incompatible images, bad geometry and oversized files also fail
+closed. Temporary/backup/evidence files never compete, and startup never reseeds.
+Old single-image v1 snapshots fail with `STORAGE_FORMAT` naming format v1 and
+remain byte-identical, even with repair enabled. Explicit recreation is required;
+migration/cross-build compatibility remain outside scope.
+
+An operator who has investigated an interrupted commit after power loss, kernel
+crash or **SIGKILL during a write** may explicitly reopen with:
+
+```sh
+./jaydb2 --configuration CONFIGURATION --storage DATABASE --storage-mode open \
+  --repair-invalid-slot
+```
+
+Use the exact original executable/environment. Before clearing a nonzero invalid
+peer, repair creates a new mode-0600
+`snapshot.invalid-slot-INDEX.SERIAL.evidence` in the storage directory, copies
+**every byte of that slot including padding**, fsyncs that file, then fsyncs the
+directory. Existing evidence is never replaced. Failure at any of those steps
+stops startup before modifying the snapshot. Partial evidence from an interrupted
+copy is retained and a later attempt uses a new name; only the copy whose syncs
+completed authorizes clearing. Evidence is diagnostic, never a recovery candidate.
+**This flag may discard the newest acknowledged commit if invalidity came from
+corruption instead of an interrupted in-flight write.** Preserve the database,
+evidence and logs and assess that loss explicitly; the flag is not automatic
+corruption recovery and never overrides incompatible bindings or bad geometry.
+Evidence copies can accumulate across interrupted operator repairs; retain or
+archive them under operator control.
+
+After evidence sync, repair durably zeroes the invalid peer before its next
+sequence can be reused. Otherwise a later torn write at that sequence could
+resurrect an earlier failed candidate's retained checksum. A crash during clearing
+can itself expose such a complete candidate in the crash-only model; no request
+has been admitted yet and the selected valid slot remains intact. Recovery
+synchronizes the authoritative file and directory before serving (subject to the
+writeback-error caveat below), stabilizing a surviving unacknowledged write/rename.
 There is no tail truncation or search for partially appended records. Prepared
 handles and the last response remain instance-local. Exact immutable environment
-binding and single-owner locking remain required. Old v1 images require explicit
-recreation; migration/cross-build compatibility remain outside scope.
+binding and single-owner locking remain required.
 
-The physical trusted boundary is Linux/ext4 with 4096-byte filesystem blocks
-(checked at open): successful `fdatasync` persists written data and any metadata
-needed to retrieve it; successful file/directory `fsync` and atomic replacement
+SIGKILL is not a guarantee of an untouched slot. The host uses buffered
+seek/write_all (not an atomic whole-slot pwrite); Linux's buffered write loop
+can stop on a pending fatal signal after copying only part of a multi-page write.
+The process then dies without completing write_all. Thus even host-only SIGKILL
+can require explicit repair; a kernel crash or power loss can also tear writes.
+The deterministic `during_slot_write` test splits the write to expose this case;
+it does not measure spontaneous SIGKILL tearing or establish power-loss safety.
+See Linux's [buffered write loop](https://github.com/torvalds/linux/blob/master/mm/filemap.c)
+and [ext4 buffered write path](https://github.com/torvalds/linux/blob/master/fs/ext4/file.c).
+
+The physical trusted boundary assumes Linux/ext4 semantics with 4096-byte
+filesystem blocks. Only the 4096-byte `f_frsize` is checked at open; ext4 and its
+durability semantics are an operator assumption (other filesystems can pass that
+size check). In a healthy writeback epoch, successful `fdatasync` persists
+written data and metadata needed to retrieve it; successful file/directory `fsync` and atomic replacement
 have their documented durability semantics, and the device honors flushes.
 A slot overwrite must not damage previously synchronized blocks in the other
 slot or expose stale allocation contents. No sector, filesystem-block or
@@ -488,15 +551,37 @@ torn-slot detection now explicitly depends on SHA-256 rejecting incomplete or
 mixed sequence/payload contents; undetected collisions are excluded. Checksums
 are neither certificates nor authentication. Protected storage still excludes
 malicious rewriting, unrelated media corruption, and hardware losing acknowledged
-synchronized writes. Recovery cannot distinguish arbitrary later corruption of
-the newest acknowledged slot from an interrupted overwrite under a broader
-fault model. Rust/OS call-by-call refinement, byte framing, slot selection,
+synchronized writes. Strict recovery refuses detected invalid slots even outside that crash-only
+model; explicit repair accepts the acknowledged-commit loss risk described above. Rust/OS call-by-call refinement, byte framing, slot selection,
 allocation and disk provenance remain T3 obligations supported by tests.
+
+## Writeback-error recovery procedure
+
+Linux [errseq](https://www.kernel.org/doc/html/latest/core-api/errseq.html)
+tracks writeback errors using sampled cursors; an error already reported to the
+failed process need not be reported to a newly opened file. After a sync failure,
+a restart without reboot can read checksum-valid page-cache bytes that were never
+persisted, and a later successful fsync need not retry those failed writes.
+Recovery's buffered reads and sync therefore do **not** establish disk provenance
+in that situation. We document this limitation instead of treating advisory
+cache eviction as a durability proof; no O_DIRECT recovery path is implemented.
+
+After EIO or another actual writeback/sync failure causing `STORAGE_UNCERTAIN`
+(or a recovery sync failure), stop service and preserve diagnostics/storage for
+investigation. Fix the device/filesystem fault, reboot to eliminate the suspect
+page-cache epoch, and inspect/recover the on-disk snapshot with the same executable
+and environment before serving again. Reboot does not repair lost bytes: strict
+open may refuse, requiring restoration from a known durable backup or an explicit
+loss decision using `--repair-invalid-slot`. Do not repeatedly restart or use
+that flag to bypass a sync failure. Test-injected EIO at named hooks simulates
+control flow, not a real kernel writeback-error epoch.
 
 `proof/DurableCommit.bend` checks both the four-call replacement model and the
 prepare/slot-write/data-sync model: success forces the candidate, safe failure
 preserves the previous publication, and each modeled crash choice recovers a
-state certified by the actual history transition. It does not prove checksum
+state certified by the actual history transition, conditional on recovery
+returning a state (strict mode may refuse). Its operator-repair model gates clearing
+on explicit authorization and both evidence sync successes. It does not prove checksum
 injectivity, framing, syscalls or hardware behavior. Group commit could amortize
 a sync across several requests if publication were batched and all acknowledgements
 waited for that sync; the current serial host does not batch.

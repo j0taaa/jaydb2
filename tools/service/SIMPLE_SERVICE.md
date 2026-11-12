@@ -149,9 +149,19 @@ of two initialized, block-aligned complete-state slots in `snapshot` and call
 and directory fsync. An identical state reuses the durable image while publishing
 the checked Commit root/response pair in RAM. Open checks checksums binding
 sequence AND payload, slot parity, consecutive valid sequences and environment
-bindings, clears any nonzero invalid peer, then synchronizes the file and
-directory before reusing its next sequence. Torn older slots
-cannot displace the current publication. Slot write/sync errors are fatal
+bindings. By default every nonzero invalid slot stops startup with
+`STORAGE_INVALID_SLOT`, naming the slot and reason, leaving snapshot bytes
+unchanged. Missing, corrupt or incompatible snapshots never fall back to a seed
+or silently serve an older slot. With a valid peer, explicit operator
+`--repair-invalid-slot` first copies the full invalid slot to a new mode-0600
+`*.evidence` file, fsyncs the evidence and directory, then durably clears the
+invalid peer before sequence reuse. Use only after investigating a power loss,
+kernel crash or SIGKILL mid-commit: Linux buffered writes can stop short on fatal
+signals, so host-only SIGKILL can also leave a torn slot. **Repair may discard the
+newest acknowledged commit if the invalid slot was corrupted rather than torn.**
+Evidence is never authoritative and existing copies are never overwritten.
+Open synchronizes the snapshot and directory before serving. Old single-image
+v1 format fails closed with a format/version diagnostic and remains unchanged. Slot write/sync errors are fatal
 `STORAGE_UNCERTAIN`; no rollback response is emitted. Ambiguous or incompatible
 valid slots fail closed. The last response and prepared handles remain local.
 See the [complete protocol and trusted physical assumptions](../../docs/durable-storage.md),
@@ -162,6 +172,14 @@ executable bytes. Protect the storage directory and preserve that executable
 and its sources/tooling. Development databases are disposable; cross-build
 compatibility and migrations are deliberately outside this feature. Recreate a
 development database explicitly after changing its frozen environment. Process death tests do not establish hardware power-loss safety.
+Only 4096-byte filesystem block size is checked; ext4 durability semantics
+remain an operator assumption. After an actual writeback/fsync error, restarting
+without reboot can serve checksum-valid page-cache-only data: Linux may already
+have reported that error and a later sync need not retry it. Stop service,
+preserve diagnostics, fix the device/filesystem, reboot, and assess the on-disk
+snapshot/backup before reopening. Reboot cannot restore lost bytes; explicit
+repair still requires accepting possible acknowledged-commit loss. See the
+[writeback procedure](../../docs/durable-storage.md#writeback-error-recovery-procedure).
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs

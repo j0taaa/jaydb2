@@ -190,7 +190,9 @@ def every_crash_cut_recovers_a_certified_state(c, answers, previous, record, sur
 
 # Preparation opens/seeks the older slot in the existing file. Once writing is attempted,
 # any error is uncertain, including errors returned before a visible effect.
-# The latest slot is untouched. A torn/stale older slot maps to Previous;
+# The latest slot is untouched. Conditional on recovery producing a state
+# (strict recovery may refuse), or explicit operator repair in the crash-only
+# model, a torn/stale older slot maps to Previous;
 # a complete surviving candidate slot maps to Candidate. Checksum binding of
 # sequence AND payload, parity, and consecutive valid sequences remain T3.
 # Successful fdatasync forces Candidate. There is no sector atomicity premise.
@@ -260,7 +262,8 @@ law every_slot_crash_cut_recovers_a_certified_state:
 def every_slot_crash_cut_recovers_a_certified_state(c, answers, previous, record, survives, valid, source):
   origin_preserves_validity(c, crash_origin(phase(slot_commit(answers)), survives), previous, record, valid, source)
 
-# Clearing a nonzero invalid peer before reusing the next sequence. A partial
+# Operator-authorized clearing, AFTER synced evidence, of a nonzero invalid
+# peer before reusing the next sequence. A partial
 # clear may resurrect the previous failed candidate; that candidate's actual
 # certified origin is required below. No request may run before stabilization.
 # Once clearing is file-synced, only the selected previous state can recover.
@@ -327,3 +330,49 @@ law repair_crash_recovers_previous_or_certified_failed_candidate:
   R.Valid(c, recover(repair(answers), previous, History.next(previous, record), survives))
 def repair_crash_recovers_previous_or_certified_failed_candidate(c, answers, previous, record, survives, valid, source):
   origin_preserves_validity(c, crash_origin(phase(repair(answers)), survives), previous, record, valid, source)
+
+# Default recovery refuses any nonzero invalid peer. Only explicit operator
+# repair reaches the clearing model above, after evidence file and directory
+# sync succeed. Evidence bytes/name/fsync refinement are T3, not proved here.
+# The crash-only origin premise above does NOT promise preservation of a
+# corrupted acknowledged newest commit; operator repair can discard it.
+type RecoveryPolicy is Data:
+  StrictRecovery{}
+  RepairInvalidSlot{}
+
+def repair_after_evidence(file_sync: Return, directory_sync: Return, answers: RepairReturns) -> CommitResult:
+  match file_sync directory_sync:
+    case Succeeded{} Succeeded{}: repair(answers)
+    case _ _: CommitFailed{False{}, Old{}}
+
+def operator_repair(policy: RecoveryPolicy, file_sync: Return, directory_sync: Return,
+  answers: RepairReturns) -> CommitResult:
+  match policy:
+    case StrictRecovery{}: CommitFailed{False{}, Old{}}
+    case RepairInvalidSlot{}: repair_after_evidence(file_sync, directory_sync, answers)
+
+law strict_recovery_never_clears:
+  for file_sync: Return
+  for directory_sync: Return
+  for answers: RepairReturns
+  {operator_repair(StrictRecovery{}, file_sync, directory_sync, answers) == CommitFailed{False{}, Old{}} : CommitResult}
+def strict_recovery_never_clears(file_sync, directory_sync, answers): {==}
+
+def EvidenceOutcomeCorrect(file_sync: Return, directory_sync: Return, +answers: RepairReturns) -> Type:
+  match file_sync directory_sync:
+    case Succeeded{} Succeeded{}: Unit
+    case file directory:
+      {operator_repair(RepairInvalidSlot{}, file, directory, answers) == CommitFailed{False{}, Old{}} : CommitResult}
+
+law evidence_failure_never_clears:
+  for file_sync: Return
+  for directory_sync: Return
+  for answers: RepairReturns
+  EvidenceOutcomeCorrect(file_sync, directory_sync, answers)
+def evidence_failure_never_clears(file_sync, directory_sync, answers):
+  match file_sync directory_sync:
+    case Succeeded{} Succeeded{}: Unit{}
+    case FailedBefore{} _: {==}
+    case FailedAfter{} _: {==}
+    case Succeeded{} FailedBefore{}: {==}
+    case Succeeded{} FailedAfter{}: {==}

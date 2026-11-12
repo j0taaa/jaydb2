@@ -177,13 +177,19 @@ The universal certificate specializes to this actual context/arguments/state,
 with the registration's original source identity.
 
 No checker, BendTT, Node staging helper, or C compiler runs on prepared
-executions. The existing native authenticator still emits public metadata
-strings; handle calls discard these instead of writing/checking sources.
-The host reuses verified sealed images without rehashing; native
-authentication/execution children remain single-use. The authenticator itself
-decodes first; there is no separate decode child. Each image has at most one idle, pre-executed child with no request data;
-selection supplies current bytes and EOF. Both children remain single-use
-processes, and the execution child retains its own current input analysis.
+executions. A tentative checked candidate normally performs current-root
+authentication itself and returns checked route/principal metadata; doubts or
+failures fall back to the original authenticator/dispatch path before publication
+(T3 duty 3). The fallback authenticator's generated public metadata strings are
+discarded on handle calls instead of writing/checking sources. The host reuses
+verified sealed images without rehashing; native authentication/execution children
+remain single-use. Up to eight images process-wide, including the authenticator,
+receive first-come pool slots, each with at most one data-free pre-executed child
+and one refill thread. Registrations beyond that cap spawn fresh on selection;
+pool capacity returns after invalidation/shutdown cleanup. Registrations still
+retain their admitted memfds; this is not a total-memory or handle-count quota.
+Selection supplies current bytes and EOF, and the execution child retains its
+own current input analysis.
 The private worker
 proposal is accepted only after complete output, child exit, transport/size
 checks, and the ordinary atomic publication step. A later refusal or native

@@ -90,7 +90,11 @@ The readiness flag is the checked projection of the original
 the original argument reification and metadata-frame failure discriminator
 inside the worker, rather than assuming those computations cannot fail. An
 unready result is discarded before decision parsing/publication and retries the
-original path, regardless of any enclosed decision/principal.
+original path, regardless of any enclosed decision/principal. The candidate
+may already have run admitted client code that the original tag-2 path would
+not have run. Its universal certificate covers that execution and observations;
+client code remains pure, has no host effects or publication capability, and
+the result is discarded. Extra work can still delay or exhaust service.
 
 ## Application effects
 
@@ -112,10 +116,17 @@ code receives neither these effects nor the state cell.
 The manifest records SHA-256 of literal C, the executable, and Clang, together
 with the actual compiler arguments. At load the Rust host copies the released
 ELF into a CLOEXEC memfd, installs F_SEAL_WRITE/GROW/SHRINK/SEAL, checks
-F_GET_SEALS and hashes the sealed image against executableSha256. Sealing or
+F_GET_SEALS for at least those four seals and hashes the sealed image against
+executableSha256. Additional kernel seals, including F_SEAL_EXEC, are permitted.
+Creation requests MFD_EXEC; only EINVAL retries without the flag for older
+kernels. vm.memfd_noexec=1 is supported by explicit MFD_EXEC; policy 2 can forbid
+executable memfds and then fails closed with a HOST_NATIVE policy diagnostic.
+A returned fd without execute permission also refuses load. No kernel policy is
+changed. See [Linux memfd policy](https://www.kernel.org/doc/html/latest/userspace-api/mfd_noexec.html). Sealing or
 verification failure refuses load. It owns that fd for the program lifetime
-and retains it above fd 2 so child standard-pipe setup cannot replace it. It
-launches /proc/self/fd/N with ordinary Command::spawn (no pre_exec, retaining
+and retains it above fd 2 so child standard-pipe setup cannot replace it.
+A borrowed launch wrapper enforces Image lifetime through spawn/capture without
+exposing an extractable Command. It launches /proc/self/fd/N with ordinary Command::spawn (no pre_exec, retaining
 posix_spawn). This replaces hash-before-every-call and prepared staging-file
 rereads with verification once and trusted kernel seal enforcement. Staging
 source/C/manifest/executable copies are diagnostic after admission. Future
@@ -129,8 +140,12 @@ variables remain trusted as before; the old per-call checks did not protect
 those inputs either. Static linking was not adopted; compile policy and
 literal official emitted C remain unchanged.
 
-Prepared images and the authenticator each have one idle, already-spawned
-single-use child and a background refill thread. Open stdin leaves the checked
+At most eight images process-wide, including the authenticator, each have one
+idle, already-spawned single-use child and a background refill thread. Pool
+permits are first-come and released only after join/kill/reap cleanup. Additional
+registrations use fresh selected spawns; refill-thread startup failure also leaves
+the program on that fresh path. This caps pool processes/threads/pipes, while
+registrations still retain their admitted memfds. Open stdin leaves the checked
 entry waiting without any state, credential, registry or request. Only selection
 delivers the current packet and EOF. A process is never reused: capture,
 complete output, exit, reaping and publication ordering are unchanged. The
@@ -141,12 +156,20 @@ BEND_NO_TELEMETRY=1 and +RTS --threads N --gpu off -RTS.
 
 A dead idle child is reaped and selection falls back to a fresh spawn. A child
 dying after the liveness check is an ordinary native/transport failure; no
-request is retried after packet delivery. Refill spawn failure leaves the slot
-empty and the next selection attempts a fresh spawn. Invalidation and shutdown
+request is retried by the pool after packet delivery. [T3 duty 3](../proof/README.md#trusted-base)
+separately requires discarding and retrying a tentative routed candidate before
+publication; that host retry can follow candidate packet delivery or failure.
+Refill spawn failure leaves the slot empty and the next selection attempts a fresh spawn. Invalidation and shutdown
 join refill, kill and reap idle children. Each pooled image retains at most
 one idle child, three pipes, one memfd and one refill thread (plus the selected
-single-use child while active); there is no new global memory quota or handle
-count limit. Native virtual reservations remain those of the pinned runtime.
+single-use child while active), under the eight-image global pool cap. There
+is no total-memory or registration-count quota. Native virtual reservations
+remain those of the pinned runtime. Pipe-thread startup failure remains fatal:
+waiting threads are joined and an already selected idle child is killed/reaped
+before unwinding, with no packet delivered and no new helper launched. Error
+replies use the same thread-dependent transport, so continued service cannot
+reliably report that exhaustion. Fatal host/resource failures already fall
+outside the response guarantee (T3 duty 5).
 
 A child failure preserves published state. The host publishes only
 after receiving and validating complete output and reaping the process.
