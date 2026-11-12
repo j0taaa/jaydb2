@@ -1,0 +1,718 @@
+[
+  {
+    "command": "npm --prefix clients/typescript ci",
+    "exit_code": 0,
+    "duration_seconds": 0.664,
+    "log": "build/gpu/validation/npm---prefix-clients-typescript-ci.log",
+    "output_tail": [
+      "",
+      "added 3 packages, and audited 4 packages in 617ms",
+      "",
+      "found 0 vulnerabilities"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "2621836fd488bc769faf261e1925a9d70ddb20993c92246b214735585bac5be0"
+  },
+  {
+    "command": "npm --prefix clients/sql ci",
+    "exit_code": 0,
+    "duration_seconds": 0.537,
+    "log": "build/gpu/validation/npm---prefix-clients-sql-ci.log",
+    "output_tail": [
+      "",
+      "added 4 packages, and audited 5 packages in 479ms",
+      "",
+      "found 0 vulnerabilities"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "9daa881ad959b93135c2f30a659b9550bf945b4fd5611b72167a65fd12a63c45"
+  },
+  {
+    "command": "make build",
+    "exit_code": 0,
+    "duration_seconds": 0.021,
+    "log": "build/gpu/validation/make-build.log",
+    "output_tail": [
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.01s"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "c5892933dcc63637b4233855766d93e8686534cd9045f290cd64fb8ee8457260"
+  },
+  {
+    "command": "make verify-contract",
+    "exit_code": 0,
+    "duration_seconds": 49.902,
+    "log": "build/gpu/validation/make-verify-contract.log",
+    "output_tail": [
+      "python3 -B tools/check.py",
+      "OK --check-only: contract/VERIFY.bend",
+      "OK --verdict: contract/VERIFY.bend"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "2edbd3fefb8f860cc1b1d77102f603853fb0b73f8a3fc244c3ae03685e4b2aec"
+  },
+  {
+    "command": "make verify",
+    "exit_code": 2,
+    "duration_seconds": 52.331,
+    "log": "build/gpu/validation/make-verify.log",
+    "output_tail": [
+      "python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend",
+      "OK import coverage: contract 17 modules, src 22 modules, proof 142 modules, library 176 modules",
+      "OK --check-only: VERIFY.bend",
+      "OK --verdict: VERIFY.bend",
+      "SOME PROOFS FAIL",
+      "Error:",
+      "- expected : a fresh name (duplicate declaration: Pair)",
+      "- observed : 'Pair'",
+      "Location:",
+      "45 | ",
+      "46>| type Pair<-A: Type, -B: Type> is Type:",
+      "   |      ^^^^",
+      "47 |   Pair{left: A, right: B}",
+      "make: *** [Makefile:50: verify] Error 1"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "a91af134e727a23ecde7d0923887df79bdb1851aeeb58c328952824a7a740da1"
+  },
+  {
+    "command": "make test",
+    "exit_code": 2,
+    "duration_seconds": 49.651,
+    "log": "build/gpu/validation/make-test.log",
+    "output_tail": [
+      "      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {",
+      "    generatedMessage: false,",
+      "    code: 'ERR_ASSERTION',",
+      "    actual: Error: ENOENT: no such file or directory, open '0'",
+      "        at Object.readFileSync (node:fs:484:20)",
+      "        at child.spawnSync (file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/admission/staging.test.mjs:285:55)",
+      "        at command (file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tools/service/stage.mjs:439:18)",
+      "        at compile (file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tools/service/stage.mjs:448:9)",
+      "        at execute (file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tools/service/stage.mjs:496:10)",
+      "        at file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/admission/staging.test.mjs:290:27",
+      "        at getActual (node:assert:611:5)",
+      "        at strict.throws (node:assert:759:24)",
+      "        at TestContext.<anonymous> (file:///home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/admission/staging.test.mjs:290:14)",
+      "        at Test.runInAsyncScope (node:async_hooks:227:14),",
+      "    operator: 'throws',",
+      "    diff: 'simple'",
+      "  }",
+      "make: *** [Makefile:66: test-admission] Error 1"
+    ],
+    "summaries": [
+      "\u2139 tests 47",
+      "\u2139 pass 46",
+      "\u2139 fail 1",
+      "\u2139 duration_ms 49599.763559"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "563750d466c2fd9af37eebfea94b775a0c97a09c5e658736eda85cb78bb5ac62"
+  },
+  {
+    "command": "make test-rls",
+    "exit_code": 0,
+    "duration_seconds": 94.022,
+    "log": "build/gpu/validation/make-test-rls.log",
+    "output_tail": [
+      "OK intended unlist-without-delete rejection --verdict at false",
+      "OK intended admin-write rejection --check-only at false",
+      "OK intended admin-write rejection --verdict at false",
+      "OK --check-only: applications/rls/.build/universal/Check.bend",
+      "OK --verdict: applications/rls/.build/universal/Check.bend",
+      "OK native read-bob: admission refusal and complete unchanged application state",
+      "OK native existence-bob: admission refusal and complete unchanged application state",
+      "OK native count-all: admission refusal and complete unchanged application state",
+      "OK native update-bob: admission refusal and complete unchanged application state",
+      "OK native insert-bob-owner: admission refusal and complete unchanged application state",
+      "OK native transfer-owner: admission refusal and complete unchanged application state",
+      "OK native scan-all: admission refusal and complete unchanged application state",
+      "OK native read-bob-directory: admission refusal and complete unchanged application state",
+      "OK native foreign-id-in-directory: admission refusal and complete unchanged application state",
+      "OK native create-without-directory: admission refusal and complete unchanged application state",
+      "OK native unlist-without-delete: admission refusal and complete unchanged application state",
+      "OK native admin-write: admission refusal and complete unchanged application state",
+      "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+    ],
+    "summaries": [
+      "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "1fe561028ded3ea8ad9a5832d1404644e9afd0ff9a3743504a2725c6f59b4bba"
+  },
+  {
+    "command": "make test-accessories-native",
+    "exit_code": 0,
+    "duration_seconds": 564.425,
+    "log": "build/gpu/validation/make-test-accessories-native.log",
+    "output_tail": [
+      "PASS real crud prepared session, source negatives and unchanged-state followups",
+      "PASS starter crud: both official modes, real execution and source-bound law rejection; logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter/profiles-ou3tje3_/crud/.check",
+      "PASS positive --check-only",
+      "PASS positive --verdict",
+      "PASS forbidden-read --check-only",
+      "PASS forbidden-read --verdict",
+      "PASS forbidden-write --check-only",
+      "PASS forbidden-write --verdict",
+      "PASS real conditional prepared session, source negatives and unchanged-state followups",
+      "PASS starter conditional: both official modes, real execution and source-bound law rejection; logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter/profiles-ou3tje3_/conditional/.check",
+      "PASS both exported profiles; retained proof/service logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter",
+      "python3 -B -m unittest tests.accessories.test_tasks_native -v",
+      "test_saved_tasks_survive_reopen_across_ts_and_python_clients (tests.accessories.test_tasks_native.PersistentTaskWorkflowTests.test_saved_tasks_survive_reopen_across_ts_and_python_clients) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 1 test in 105.366s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "PASS SQL select --check-only",
+      "PASS SQL select --verdict",
+      "PASS SQL select-wide --check-only",
+      "PASS SQL select-wide --verdict",
+      "PASS SQL insert --check-only",
+      "PASS SQL insert --verdict",
+      "PASS SQL insert-two --check-only",
+      "PASS SQL insert-two --verdict",
+      "PASS SQL insert-wide --check-only",
+      "PASS SQL insert-wide --verdict",
+      "PASS SQL insert-two-wide --check-only",
+      "PASS SQL insert-two-wide --verdict",
+      "PASS SQL update --check-only",
+      "PASS SQL update --verdict",
+      "PASS SQL update-wide --check-only",
+      "PASS SQL update-wide --verdict",
+      "PASS SQL delete --check-only",
+      "PASS SQL delete --verdict",
+      "PASS SQL delete-wide --check-only",
+      "PASS SQL delete-wide --verdict",
+      "PASS: 26 real SQL/Drizzle checks; universal proofs, native execution, rollback, isolation, certificate rejection and persistence.",
+      "PASS SQL limits: 31 native checks of byte ceilings, large rows, projection, atomic rollback, continued service and durable recovery.",
+      "PASS SQL stress: 600 seeded random steps, 638 raw SQL and 175 Drizzle comparisons, 176 expected duplicates, 48 durable recovered rows/absences checked.",
+      "PASS: TypeScript client checked 11 real ordinary/prepared responses, fresh identities, refusal rollback, invalidation and instance-local handles.",
+      "PASS starter crud: both official modes, real execution and source-bound law rejection; logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter/profiles-ou3tje3_/crud/.check",
+      "PASS starter conditional: both official modes, real execution and source-bound law rejection; logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter/profiles-ou3tje3_/conditional/.check",
+      "PASS both exported profiles; retained proof/service logs in /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/build/starter",
+      "Ran 1 test in 105.366s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "45592f7cfbeb0a7b3ee2015df0cce413e7f9e8b4dcbf9a8080f7de4e06c40d88"
+  },
+  {
+    "command": "make test-persistence",
+    "exit_code": 0,
+    "duration_seconds": 532.736,
+    "log": "build/gpu/validation/make-test-persistence.log",
+    "output_tail": [
+      "   Compiling sha2 v0.10.9",
+      "   Compiling jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d)",
+      "    Finished `release` profile [optimized] target(s) in 3.96s",
+      "mkdir -p .build/persistence/tmp",
+      "TMPDIR=\"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/persistence/tmp\" JAYDB_PERSISTENCE_BINARY=\"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/persistence/fault/release/jaydb2\" python3 -B -m unittest tests.service.test_persistence -v",
+      "test_acknowledged_restart_credentials_handles_and_seed_free_open (tests.service.test_persistence.PersistenceTests.test_acknowledged_restart_credentials_handles_and_seed_free_open) ... ok",
+      "test_all_application_tables_and_users_survive (tests.service.test_persistence.PersistenceTests.test_all_application_tables_and_users_survive) ... ok",
+      "test_create_open_policy_and_real_owner_contention (tests.service.test_persistence.PersistenceTests.test_create_open_policy_and_real_owner_contention) ... ok",
+      "test_disk_errors_and_uncertain_failure_never_emit_false_rollback (tests.service.test_persistence.PersistenceTests.test_disk_errors_and_uncertain_failure_never_emit_false_rollback) ... ok",
+      "test_exact_descriptor_missing_modified_and_symlinked_are_rejected (tests.service.test_persistence.PersistenceTests.test_exact_descriptor_missing_modified_and_symlinked_are_rejected) ... ok",
+      "test_missing_corrupt_incompatible_and_no_fallback (tests.service.test_persistence.PersistenceTests.test_missing_corrupt_incompatible_and_no_fallback) ... ok",
+      "test_process_death_at_meaningful_commit_boundaries (tests.service.test_persistence.PersistenceTests.test_process_death_at_meaningful_commit_boundaries) ... ok",
+      "test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged (tests.service.test_persistence.PersistenceTests.test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 8 tests in 528.713s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "Ran 8 tests in 528.713s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "8b92cfbb288874563c9cbe064e47d81cfd14e54cad5bc2131c41e9b5a402c5a5"
+  },
+  {
+    "command": "make test-idempotency-recovery",
+    "exit_code": 0,
+    "duration_seconds": 80.994,
+    "log": "build/gpu/validation/make-test-idempotency-recovery.log",
+    "output_tail": [
+      "   Compiling cfg-if v1.0.5",
+      "   Compiling generic-array v0.14.7",
+      "   Compiling crypto-common v0.1.7",
+      "   Compiling block-buffer v0.10.4",
+      "   Compiling digest v0.10.7",
+      "   Compiling sha2 v0.10.9",
+      "   Compiling jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d)",
+      "    Finished `release` profile [optimized] target(s) in 3.59s",
+      "mkdir -p .build/idempotency/tmp",
+      "TMPDIR=\"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/idempotency/tmp\" JAYDB_IDEMPOTENCY_BINARY=\"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/idempotency/fault/release/jaydb2\" python3 -B -m unittest tests.service.test_receipt_recovery -v",
+      "test_lost_response_retries_original_receipt_without_reexecuting_business_writes (tests.service.test_receipt_recovery.ReceiptRecoveryTests.test_lost_response_retries_original_receipt_without_reexecuting_business_writes) ... (node:3737697) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time",
+      "(Use `node --trace-warnings ...` to show where the warning was created)",
+      "ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 1 test in 77.314s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "Ran 1 test in 77.314s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "12011e7369cb8b98e3aa006c1714b9d7d2b5dc3c3f57f920ee36a0ad6beea96f"
+  },
+  {
+    "command": "make prepared",
+    "exit_code": 0,
+    "duration_seconds": 71.899,
+    "log": "build/gpu/validation/make-prepared.log",
+    "output_tail": [
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.01s",
+      "python3 -B -m unittest tests.service.test_prepared -v",
+      "test_preparation_requires_universal_proof_and_pure_capture_free_sources (tests.service.test_prepared.PreparedTests.test_preparation_requires_universal_proof_and_pure_capture_free_sources) ... ok",
+      "test_reuse_current_identity_state_and_sealed_native_without_admission (tests.service.test_prepared.PreparedTests.test_reuse_current_identity_state_and_sealed_native_without_admission) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 2 tests in 71.835s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "Ran 2 tests in 71.835s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "12ee2b7818f34cefa7428f92ceda98b8a52ddf447b349a9532a8f600a3173797"
+  },
+  {
+    "command": "make smoke",
+    "exit_code": 2,
+    "duration_seconds": 0.005,
+    "log": "build/gpu/validation/make-smoke.log",
+    "output_tail": [
+      "bash tools/ci/check.sh smoke",
+      "make: *** [Makefile:41: smoke] Error 1"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "ec952685043c815e3dd780c3ab88476ec2edab327d72e816762a218d25f72a05"
+  },
+  {
+    "command": "make test-demo-web",
+    "exit_code": 0,
+    "duration_seconds": 137.272,
+    "log": "build/gpu/validation/make-test-demo-web.log",
+    "output_tail": [
+      "ok",
+      "test_startup_failure_reports_diagnostic_and_recovers (test_http.DemoHTTPTests.test_startup_failure_reports_diagnostic_and_recovers) ... demo: POST /api/session 503",
+      "demo: POST /api/session 503",
+      "demo: POST /api/session 201",
+      "demo: POST /api/reset 200",
+      "ok",
+      "test_active_leader_cleanup_also_stops_its_descendant (test_lifecycle.DemoLifecycleTests.test_active_leader_cleanup_also_stops_its_descendant) ... ok",
+      "test_close_is_idempotent_and_never_signals_a_reaped_groups_reused_number (test_lifecycle.DemoLifecycleTests.test_close_is_idempotent_and_never_signals_a_reaped_groups_reused_number) ... ok",
+      "test_every_observer_thread_start_failure_closes_the_real_process_group (test_lifecycle.DemoLifecycleTests.test_every_observer_thread_start_failure_closes_the_real_process_group) ... ok",
+      "test_exited_leader_keeps_ownership_until_descendant_cleanup (test_lifecycle.DemoLifecycleTests.test_exited_leader_keeps_ownership_until_descendant_cleanup) ... ok",
+      "test_stalled_active_leader_and_descendant_are_killed_after_grace (test_lifecycle.DemoLifecycleTests.test_stalled_active_leader_and_descendant_are_killed_after_grace) ... ok",
+      "test_full_request_pipe_times_out_and_closes_without_retry (test_transport.DemoTransportTests.test_full_request_pipe_times_out_and_closes_without_retry) ... ok",
+      "test_partial_request_writes_deliver_exact_bytes_to_a_live_reader (test_transport.DemoTransportTests.test_partial_request_writes_deliver_exact_bytes_to_a_live_reader) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 12 tests in 137.145s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "Ran 12 tests in 137.145s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "9a93a15889cd00d7df7549eb7574d5ca83f3a300d0e6ea7a155e52bc5134e622"
+  },
+  {
+    "command": "make test-admission",
+    "exit_code": 0,
+    "duration_seconds": 74.016,
+    "log": "build/gpu/validation/make-test-admission.log",
+    "output_tail": [
+      "\u2714 shared administrator modules and the canonical configuration alias still stage (663.242838ms)",
+      "\u2714 prepared contract dependencies survive the production public staging closure (219.031564ms)",
+      "\u2714 the frozen recovery descriptor retains exact public, tooling and controller bytes without the private seed (1077.672176ms)",
+      "\u2714 concrete and prepared staging check the actual worker oracle and bridge proofs (24845.925727ms)",
+      "\u2714 official kernel accepts a proof and rejects a false one (20.008152ms)",
+      "\u2714 erased fields cannot export a live witness (16.716ms)",
+      "\u2714 unsupported representation is infrastructure (0.619986ms)",
+      "\u2714 official fuel exhaustion is infrastructure, not a false certificate (15.422966ms)",
+      "\u2714 asynchronous kernel checks the fixed payload and removes its private input (19.411019ms)",
+      "\u2714 asynchronous kernel spawn failure is infrastructure and cleans its input (23.909118ms)",
+      "\u2139 tests 47",
+      "\u2139 suites 0",
+      "\u2139 pass 47",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 73981.085005"
+    ],
+    "summaries": [
+      "\u2139 tests 47",
+      "\u2139 pass 47",
+      "\u2139 fail 0",
+      "\u2139 duration_ms 73981.085005"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "d3300cd1aa298046535fcfbf8a5d8ee28ef3d0c2ced7ef272b3775a5551f6b6d"
+  },
+  {
+    "command": "make test-gpu",
+    "exit_code": 2,
+    "duration_seconds": 0.007,
+    "log": "build/gpu/validation/make-test-gpu.log",
+    "output_tail": [
+      "bash tools/service/gpu-check.sh test",
+      "make: *** [Makefile:131: test-gpu] Error 1"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "2410ecb82494ad37af5c7b67f276d217d4431cd0ec8eb792d290cc07c8b89e6e"
+  },
+  {
+    "command": "python3 -m pytest paper/test_evidence.py",
+    "exit_code": 1,
+    "duration_seconds": 0.019,
+    "log": "build/gpu/validation/python3--m-pytest-paper-test_evidence.py.log",
+    "output_tail": [
+      "/usr/bin/python3: No module named pytest"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "b72695fcb3e2889d64484497e2ea8079822f1532c2505f226cde970957bedf7d"
+  },
+  {
+    "command": "make verify",
+    "exit_code": 0,
+    "duration_seconds": 656.476,
+    "log": "build/gpu/validation/make-verify-rerun.log",
+    "output_tail": [
+      "OK intended insert-bob-owner rejection --check-only at false",
+      "OK intended insert-bob-owner rejection --verdict at false",
+      "OK intended transfer-owner rejection --check-only at false",
+      "OK intended transfer-owner rejection --verdict at false",
+      "OK intended scan-all rejection --check-only at false",
+      "OK intended scan-all rejection --verdict at false",
+      "OK intended read-bob-directory rejection --check-only at false",
+      "OK intended read-bob-directory rejection --verdict at false",
+      "OK intended foreign-id-in-directory rejection --check-only at false",
+      "OK intended foreign-id-in-directory rejection --verdict at false",
+      "OK intended create-without-directory rejection --check-only at false",
+      "OK intended create-without-directory rejection --verdict at false",
+      "OK intended unlist-without-delete rejection --check-only at false",
+      "OK intended unlist-without-delete rejection --verdict at false",
+      "OK intended admin-write rejection --check-only at false",
+      "OK intended admin-write rejection --verdict at false",
+      "OK --check-only: applications/rls/.build/universal/Check.bend",
+      "OK --verdict: applications/rls/.build/universal/Check.bend"
+    ],
+    "summaries": [
+      "OK negative controls: 400 fixtures, 800 official-mode rejections"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "57bd461e700aeb23a8f0a0020bf9b44e1e582d948a77f484d33a6b72431179d3"
+  },
+  {
+    "command": "make test",
+    "exit_code": 0,
+    "duration_seconds": 617.519,
+    "log": "build/gpu/validation/make-test-rerun.log",
+    "output_tail": [
+      "OK intended unlist-without-delete rejection --verdict at false",
+      "OK intended admin-write rejection --check-only at false",
+      "OK intended admin-write rejection --verdict at false",
+      "OK --check-only: applications/rls/.build/universal/Check.bend",
+      "OK --verdict: applications/rls/.build/universal/Check.bend",
+      "OK native read-bob: admission refusal and complete unchanged application state",
+      "OK native existence-bob: admission refusal and complete unchanged application state",
+      "OK native count-all: admission refusal and complete unchanged application state",
+      "OK native update-bob: admission refusal and complete unchanged application state",
+      "OK native insert-bob-owner: admission refusal and complete unchanged application state",
+      "OK native transfer-owner: admission refusal and complete unchanged application state",
+      "OK native scan-all: admission refusal and complete unchanged application state",
+      "OK native read-bob-directory: admission refusal and complete unchanged application state",
+      "OK native foreign-id-in-directory: admission refusal and complete unchanged application state",
+      "OK native create-without-directory: admission refusal and complete unchanged application state",
+      "OK native unlist-without-delete: admission refusal and complete unchanged application state",
+      "OK native admin-write: admission refusal and complete unchanged application state",
+      "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+    ],
+    "summaries": [
+      "\u2139 tests 47",
+      "\u2139 pass 47",
+      "\u2139 fail 0",
+      "\u2139 duration_ms 74104.1207",
+      "Ran 10 tests in 5.156s",
+      "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s",
+      "Ran 16 tests in 444.870s",
+      "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "51fda3f50b68589eaa0074342c9e2dbde93fcccfd3104c3efc29570b953cb8d0"
+  },
+  {
+    "command": "make smoke",
+    "exit_code": 0,
+    "duration_seconds": 12.857,
+    "log": "build/gpu/validation/make-smoke-rerun.log",
+    "output_tail": [
+      "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s",
+      "",
+      "    Checking typenum v1.20.1",
+      "    Checking cfg-if v1.0.5",
+      "    Checking memchr v2.8.3",
+      "    Checking cpufeatures v0.2.17",
+      "    Checking itoa v1.0.18",
+      "    Checking zmij v1.0.23",
+      "    Checking serde_core v1.0.229",
+      "    Checking libc v0.2.191",
+      "    Checking generic-array v0.14.7",
+      "    Checking block-buffer v0.10.4",
+      "    Checking crypto-common v0.1.7",
+      "    Checking digest v0.10.7",
+      "    Checking sha2 v0.10.9",
+      "    Checking serde_json v1.0.154",
+      "    Checking jaydb2 v0.1.0 (/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d)",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.70s"
+    ],
+    "summaries": [
+      "\u2139 tests 26",
+      "\u2139 pass 26",
+      "\u2139 fail 0",
+      "\u2139 duration_ms 3565.487635",
+      "\u2139 tests 40",
+      "\u2139 pass 40",
+      "\u2139 fail 0",
+      "\u2139 duration_ms 1724.59441",
+      "Ran 7 tests in 0.006s",
+      "Ran 3 tests in 0.004s",
+      "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s"
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "cae641efaee5a1ee407a4c0e2c94d88fbde60db3a12a835239272e5334b5d768"
+  },
+  {
+    "command": "make test-gpu",
+    "exit_code": 2,
+    "duration_seconds": 173.561,
+    "log": "build/gpu/validation/make-test-gpu-rerun.log",
+    "output_tail": [
+      "    raise AssertionError(f'inspector failure: {self.errors}')",
+      "AssertionError: inspector failure: ['Invalid tag']",
+      "",
+      "======================================================================",
+      "FAIL: test_unwrapped_unavailable_device_has_no_auto_fallback (tests.service.test_gpu.GpuTests.test_unwrapped_unavailable_device_has_no_auto_fallback)",
+      "----------------------------------------------------------------------",
+      "Traceback (most recent call last):",
+      "  File \"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/service/test_gpu.py\", line 315, in test_unwrapped_unavailable_device_has_no_auto_fallback",
+      "    feed.finish()",
+      "  File \"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/service/test_gpu.py\", line 69, in finish",
+      "    raise AssertionError(f'inspector failure: {self.errors}')",
+      "AssertionError: inspector failure: ['Invalid tag']",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 5 tests in 173.442s",
+      "",
+      "FAILED (failures=4, errors=1)",
+      "make: *** [Makefile:131: test-gpu] Error 1"
+    ],
+    "summaries": [
+      "Ran 5 tests in 173.442s"
+    ],
+    "cuda_forwarding_evidence": [
+      {
+        "fixture": "CUDA",
+        "sourceSha256": "da158f544d800f39530268fffc6a9b20d3709512b0cc179e3567e0f58665a0e4",
+        "hasBangs": true,
+        "allocation_successes": 1,
+        "launch_successes": 5,
+        "synchronize_successes": 2
+      },
+      {
+        "fixture": "HeavyClient",
+        "sourceSha256": "7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3",
+        "hasBangs": true,
+        "launch_successes": 5,
+        "synchronize_successes": 2
+      }
+    ],
+    "log_sha256": "b3d41713edfec791febc3181bfa60f56c5b1dfbc1f5eaf1298af3833c453a4b3"
+  },
+  {
+    "command": "make benchmark-gpu",
+    "exit_code": 2,
+    "duration_seconds": 79.185,
+    "log": "build/gpu/validation/make-benchmark-gpu.log",
+    "output_tail": [
+      "bash tools/service/gpu-check.sh benchmark",
+      "make[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.01s",
+      "make[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "Traceback (most recent call last):",
+      "  File \"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/paper/bench/gpu_programs.py\", line 183, in <module>",
+      "    main()",
+      "  File \"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/paper/bench/gpu_programs.py\", line 165, in main",
+      "    feed.finish()",
+      "  File \"/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/tests/service/test_gpu.py\", line 69, in finish",
+      "    raise AssertionError(f'inspector failure: {self.errors}')",
+      "AssertionError: inspector failure: ['Invalid tag']",
+      "CPU settings restored and verified: /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/paper-bench/frequency-xnDqNV/restored.json",
+      "make: *** [Makefile:134: benchmark-gpu] Error 1"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "f9cd8e47e3092086b9e24932d00216a0ba7b78dd5737a791e63f3a1bcea96692"
+  },
+  {
+    "command": "make test-gpu",
+    "exit_code": 0,
+    "duration_seconds": 188.963,
+    "log": "build/gpu/validation/make-test-gpu-final.log",
+    "output_tail": [
+      "bash tools/service/gpu-check.sh test",
+      "make[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.01s",
+      "make[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "test_bad_proof_never_compiles_or_enters_cuda_or_publishes (tests.service.test_gpu.GpuTests.test_bad_proof_never_compiles_or_enters_cuda_or_publishes) ... ok",
+      "test_bundle_integrity_real_launches_and_failure_rollback (tests.service.test_gpu.GpuTests.test_bundle_integrity_real_launches_and_failure_rollback) ... CUDA forwarding evidence: {\"sourceSha256\": \"da158f544d800f39530268fffc6a9b20d3709512b0cc179e3567e0f58665a0e4\", \"hasBangs\": true, \"allocation_successes\": 1, \"launch_successes\": 5, \"synchronize_successes\": 2}",
+      "HeavyClient forwarding evidence: {\"sourceSha256\": \"7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3\", \"hasBangs\": true, \"launch_successes\": 5, \"synchronize_successes\": 2}",
+      "ok",
+      "test_pipelined_gpu_execution_timing_and_durable_reopen (tests.service.test_gpu.GpuTests.test_pipelined_gpu_execution_timing_and_durable_reopen) ... ok",
+      "test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal (tests.service.test_gpu.GpuTests.test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal) ... ok",
+      "test_unwrapped_unavailable_device_has_no_auto_fallback (tests.service.test_gpu.GpuTests.test_unwrapped_unavailable_device_has_no_auto_fallback) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 5 tests in 188.896s",
+      "",
+      "OK"
+    ],
+    "summaries": [
+      "Ran 5 tests in 188.896s"
+    ],
+    "cuda_forwarding_evidence": [
+      {
+        "fixture": "CUDA",
+        "sourceSha256": "da158f544d800f39530268fffc6a9b20d3709512b0cc179e3567e0f58665a0e4",
+        "hasBangs": true,
+        "allocation_successes": 1,
+        "launch_successes": 5,
+        "synchronize_successes": 2
+      },
+      {
+        "fixture": "HeavyClient",
+        "sourceSha256": "7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3",
+        "hasBangs": true,
+        "launch_successes": 5,
+        "synchronize_successes": 2
+      }
+    ],
+    "log_sha256": "18a9c2ff5153ed7fd0c601265824e35672a2ffd4339a44aee56a1386de042787"
+  },
+  {
+    "command": "python3 -m pytest paper/test_evidence.py",
+    "exit_code": 0,
+    "duration_seconds": 15.296,
+    "log": "build/gpu/validation/paper-test-evidence-final.log",
+    "output_tail": [
+      "============================= test session starts ==============================",
+      "platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0",
+      "rootdir: /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d",
+      "collected 30 items",
+      "",
+      "paper/test_evidence.py ..............................                    [100%]",
+      "",
+      "============================= 30 passed in 14.84s =============================="
+    ],
+    "summaries": [
+      "============================= 30 passed in 14.84s =============================="
+    ],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "b62eb3807eb4f153b07f9889eeb75ec9b1241e0f7848e4f2c16c6c2d4b881080"
+  },
+  {
+    "command": "make benchmark-gpu",
+    "exit_code": 0,
+    "duration_seconds": 127.804,
+    "log": "build/gpu/validation/make-benchmark-gpu-final.log",
+    "output_tail": [
+      "bash tools/service/gpu-check.sh benchmark",
+      "make[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.35s",
+      "make[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "{\"backend\": \"cpu-1\", \"threads\": 1, \"first_preparation_ms\": 8081.797339, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3\", \"executableSha256\": \"0f1e522e201a7fb1552c28d448d6a3bf61343301518988a6a5ad7f52db5677e1\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803212-0/request-3803212-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803212-0/request-3803212-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program\", \"-lm\", \"-pthread\"], \"backend\": \"cpu\"}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [3.260743, 3.398172, 3.23133], \"complete_request_ms\": [7.100403, 6.621398, 6.882901], \"median_native_worker_ms\": 3.260743, \"median_complete_request_ms\": 6.882901}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [7185.904212, 7179.807306, 7179.792312], \"complete_request_ms\": [7184.436856, 7184.679378, 7183.585226], \"median_native_worker_ms\": 7179.807306, \"median_complete_request_ms\": 7184.436856}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+      "{\"backend\": \"cpu-16\", \"threads\": 16, \"first_preparation_ms\": 8099.372564, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3\", \"executableSha256\": \"0f1e522e201a7fb1552c28d448d6a3bf61343301518988a6a5ad7f52db5677e1\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803955-0/request-3803955-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803955-0/request-3803955-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program\", \"-lm\", \"-pthread\"], \"backend\": \"cpu\"}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [3.699235, 3.702606, 3.680322], \"complete_request_ms\": [7.400906, 7.12368, 7.195343], \"median_native_worker_ms\": 3.699235, \"median_complete_request_ms\": 7.195343}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [498.925941, 474.888233, 496.948366], \"complete_request_ms\": [501.066206, 503.067902, 503.700509], \"median_native_worker_ms\": 496.948366, \"median_complete_request_ms\": 503.067902}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+      "{\"backend\": \"cuda\", \"threads\": 1, \"first_preparation_ms\": 10906.620455, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3\", \"executableSha256\": \"75a80ac7da5b3afb2fd65e93b43fd7659024d4dc701e4169fbd9f240478ce764\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3804436-0/request-3804436-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3804436-0/request-3804436-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program\", \"-lm\", \"-pthread\", \"-DBEND_CUDA=1\", \"-lcuda\", \"-lnvrtc\"], \"backend\": \"cuda\", \"gpuSha256\": \"1616bad5e909e608d3d2bbca28a169ccac7293a610b96999c227a6f9c7f9faae\", \"gpuMiB\": 512, \"hasBangs\": true}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [179.532272, 174.087336, 176.741554], \"complete_request_ms\": [157.615092, 169.865919, 204.569445], \"median_native_worker_ms\": 176.741554, \"median_complete_request_ms\": 169.865919}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [210.357143, 216.807143, 214.895023], \"complete_request_ms\": [206.646063, 193.472322, 206.226626], \"median_native_worker_ms\": 214.895023, \"median_complete_request_ms\": 206.226626}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+      "CPU settings restored and verified: /home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d/.build/paper-bench/frequency-wLfNed/restored.json"
+    ],
+    "summaries": [],
+    "cuda_forwarding_evidence": [],
+    "log_sha256": "105eda60f6b4a7737af99e017336c0b5899dbf5a002651260a26c516116a8fc6"
+  },
+  {
+    "command": "make build test-host (initial)",
+    "exit_code": 0,
+    "duration_seconds": 6.694,
+    "log": "build/gpu/validation/initial-host.log",
+    "output_tail": [
+      "jaydb2: UNSEEN_CODE: rejected",
+      "jaydb2: launching denial controller for exact code: UNSEEN_CODE",
+      "jaydb2: denial controller failed for UNSEEN_CODE: HOST_NATIVE: missing or changed artifact: /tmp/jaydb-ready-3686666-6/denial; using technical failure fallback (not memoized)",
+      "jaydb2: UNSEEN_CODE: rejected",
+      "jaydb2: launching denial controller for exact code: UNSEEN_CODE",
+      "jaydb2: denial controller failed for UNSEEN_CODE: HOST_NATIVE: missing or changed artifact: /tmp/jaydb-ready-3686666-6/denial; using technical failure fallback (not memoized)",
+      "jaydb2: HOST_IO: memoized",
+      "jaydb2: checked denial memo hit: HOST_IO",
+      "jaydb2: PRIMARY_CHECK: physical prepared failure",
+      "jaydb2: checked denial memo hit: PRIMARY_CHECK",
+      "jaydb2: HANDLE: physical prepared failure",
+      "jaydb2: checked denial memo hit: HANDLE",
+      "jaydb2: PREPARED_INTEGRITY: physical prepared failure",
+      "jaydb2: checked denial memo hit: PREPARED_INTEGRITY",
+      "test tests::result_ready_follows_commit_and_precedes_final_inspector_output ... ok",
+      "",
+      "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s",
+      ""
+    ],
+    "log_sha256": "7fcf349d2eb1d6ab95522eddd31c2442a14e959db639c63745e9347f1fe3d5f2",
+    "note": "Earlier development run; final required command results are recorded separately."
+  },
+  {
+    "command": "make test-gpu (initial earlier suite)",
+    "exit_code": 0,
+    "duration_seconds": 167.81,
+    "log": "build/gpu/validation/gpu-initial.log",
+    "output_tail": [
+      "bash tools/service/gpu-check.sh test",
+      "make[1]: Entering directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "cargo build --locked --release",
+      "    Finished `release` profile [optimized] target(s) in 0.01s",
+      "make[1]: Leaving directory '/home/jota/.t3/worktrees/jaydb2/t3-fd837953-76746a0b727fe16d'",
+      "test_bad_proof_never_compiles_or_enters_cuda_or_publishes (tests.service.test_gpu.GpuTests.test_bad_proof_never_compiles_or_enters_cuda_or_publishes) ... ok",
+      "test_bundle_integrity_real_launches_and_failure_rollback (tests.service.test_gpu.GpuTests.test_bundle_integrity_real_launches_and_failure_rollback) ... ok",
+      "test_pipelined_gpu_execution_timing_and_durable_reopen (tests.service.test_gpu.GpuTests.test_pipelined_gpu_execution_timing_and_durable_reopen) ... ok",
+      "test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal (tests.service.test_gpu.GpuTests.test_unwrapped_cpu_and_gpu_results_publication_authentication_and_refusal) ... ok",
+      "test_unwrapped_unavailable_device_has_no_auto_fallback (tests.service.test_gpu.GpuTests.test_unwrapped_unavailable_device_has_no_auto_fallback) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 5 tests in 167.810s",
+      "",
+      "OK"
+    ],
+    "log_sha256": "656b8d543d7ce883f1bb84fefccdbd3d047fad50402137b7345a0d5d23ef3472",
+    "note": "Earlier development run; final required command results are recorded separately."
+  }
+]

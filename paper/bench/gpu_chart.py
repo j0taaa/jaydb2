@@ -32,7 +32,7 @@ def main():
                 ax.barh(index, median, color=color, height=.55)
                 ax.errorbar(median, index, xerr=[[median-min(values)], [max(values)-median]],
                             color='black', capsize=3, fmt='none', linewidth=1)
-                ax.text(median+maximum*.025, index, f'{median:.2f}', va='center', fontsize=9)
+                ax.text(max(values)+maximum*.025, index, f'{median:.2f}', va='center', fontsize=9)
             ax.set_yticks(range(3), [names[run['backend']] for run in data['runs']], fontsize=9)
             ax.invert_yaxis()
             ax.set_xlim(0, maximum*1.32)

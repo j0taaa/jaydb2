@@ -1,0 +1,895 @@
+{
+  "revision": "2c5c2f3b8d7bdf937fa0513e713db7ed84ee70b8",
+  "dirty": [
+    "?? paper/evidence/gpu-programs.md",
+    "?? paper/evidence/gpu-validation.json"
+  ],
+  "utc": "2026-11-12T13:15:16Z",
+  "frequency": {
+    "utc": "2026-11-12T13:15:16Z",
+    "settings": {
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+      "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+      "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+    },
+    "scaling_cur_freq_khz": {
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3603600,
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599974,
+      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3599824
+    },
+    "affinity_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "pinning": "none; all engines inherit the same harness CPU affinity"
+  },
+  "frequency_original": {
+    "utc": "2026-11-12T13:15:14Z",
+    "settings": {
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+      "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+      "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+    },
+    "scaling_cur_freq_khz": {
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4634895,
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 876803,
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 2220626,
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4700000,
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1355461,
+      "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4607307,
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4545858,
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1040030,
+      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+    },
+    "affinity_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "pinning": "none; all engines inherit the same harness CPU affinity"
+  },
+  "clock": "time.perf_counter_ns (wall clock)",
+  "warmups": 1,
+  "repeats": 3,
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+  "gpu": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 3080 Ti, 595.99.02, 12288 MiB\n",
+  "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+  "toolchain": {
+    "version": "2.0.39",
+    "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+    "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+    "files": {
+      "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+      "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+      "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+      "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+      "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+    },
+    "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+    "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+  },
+  "binary_sha256": "74f2e42fcdfad35db72cb35412c0c5db26407d9ff3748b9cb8db8d1446146ed6",
+  "fixture_sha256": {
+    "experiments/gpu/HeavyClient.bend": "c6f140ebec5573f1d8627a3d81d7c2076eed8ca73a380974823b1379ca11ae51",
+    "experiments/gpu/ClientProof.bend": "3d18b064815c32034bc9273ef8a561ed136763f5ca1d42f5e2f6742c31012796",
+    "paper/bench/gpu_programs.py": "3b03170e6fcef3caa58c40a864d2659120120f4f6e4592b07b44dd2c80d4d265"
+  },
+  "numpy_version": "1.26.4",
+  "small_scalar_oracle": 1321445589,
+  "gpu_mib": 512,
+  "gpu_worker_cap": 1,
+  "oracle": {
+    "2": 1321445589,
+    "16": 3867567763
+  },
+  "oracle_method": "Python/NumPy uint32, all seeds and all rounds; uint64 sum reduced modulo 2^32",
+  "lock": "/tmp/jaydb2-experiments-heavy.lock",
+  "runs": [
+    {
+      "backend": "cpu-1",
+      "threads": 1,
+      "first_preparation_ms": 8081.797339,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3",
+        "executableSha256": "0f1e522e201a7fb1552c28d448d6a3bf61343301518988a6a5ad7f52db5677e1",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803212-0/request-3803212-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803212-0/request-3803212-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program",
+          "-lm",
+          "-pthread"
+        ],
+        "backend": "cpu"
+      },
+      "records": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "rounds_per_leaf": 8192,
+          "total_mixing_rounds": 32768,
+          "result": 1321445589,
+          "native_worker_ms": [
+            3.260743,
+            3.398172,
+            3.23133
+          ],
+          "complete_request_ms": [
+            7.100403,
+            6.621398,
+            6.882901
+          ],
+          "median_native_worker_ms": 3.260743,
+          "median_complete_request_ms": 6.882901
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "rounds_per_leaf": 65536,
+          "total_mixing_rounds": 4294967296,
+          "result": 3867567763,
+          "native_worker_ms": [
+            7185.904212,
+            7179.807306,
+            7179.792312
+          ],
+          "complete_request_ms": [
+            7184.436856,
+            7184.679378,
+            7183.585226
+          ],
+          "median_native_worker_ms": 7179.807306,
+          "median_complete_request_ms": 7184.436856
+        }
+      ],
+      "full_published_states": [
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "cpu-16",
+      "threads": 16,
+      "first_preparation_ms": 8099.372564,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3",
+        "executableSha256": "0f1e522e201a7fb1552c28d448d6a3bf61343301518988a6a5ad7f52db5677e1",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803955-0/request-3803955-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3803955-0/request-3803955-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program",
+          "-lm",
+          "-pthread"
+        ],
+        "backend": "cpu"
+      },
+      "records": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "rounds_per_leaf": 8192,
+          "total_mixing_rounds": 32768,
+          "result": 1321445589,
+          "native_worker_ms": [
+            3.699235,
+            3.702606,
+            3.680322
+          ],
+          "complete_request_ms": [
+            7.400906,
+            7.12368,
+            7.195343
+          ],
+          "median_native_worker_ms": 3.699235,
+          "median_complete_request_ms": 7.195343
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "rounds_per_leaf": 65536,
+          "total_mixing_rounds": 4294967296,
+          "result": 3867567763,
+          "native_worker_ms": [
+            498.925941,
+            474.888233,
+            496.948366
+          ],
+          "complete_request_ms": [
+            501.066206,
+            503.067902,
+            503.700509
+          ],
+          "median_native_worker_ms": 496.948366,
+          "median_complete_request_ms": 503.067902
+        }
+      ],
+      "full_published_states": [
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "cuda",
+      "threads": 1,
+      "first_preparation_ms": 10906.620455,
+      "artifact": {
+        "format": "jaydb-official-c-v1",
+        "sourceSha256": "7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3",
+        "executableSha256": "75a80ac7da5b3afb2fd65e93b43fd7659024d4dc701e4169fbd9f240478ce764",
+        "compiler": "/usr/bin/clang-19",
+        "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
+        "flags": [
+          "-std=gnu11",
+          "-O2",
+          "-w",
+          "--no-default-config",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3804436-0/request-3804436-1/checked.c",
+          "-o",
+          "/tmp/jaydb-gpu.xI7HQfgr/jaydb2-3804436-0/request-3804436-1/7cc266d3277b193b2df978f2f5bf7de0b00b620fc1d63d77cd57e4132e797cc3.program",
+          "-lm",
+          "-pthread",
+          "-DBEND_CUDA=1",
+          "-lcuda",
+          "-lnvrtc"
+        ],
+        "backend": "cuda",
+        "gpuSha256": "1616bad5e909e608d3d2bbca28a169ccac7293a610b96999c227a6f9c7f9faae",
+        "gpuMiB": 512,
+        "hasBangs": true
+      },
+      "records": [
+        {
+          "depth": 2,
+          "leaves": 4,
+          "rounds_per_leaf": 8192,
+          "total_mixing_rounds": 32768,
+          "result": 1321445589,
+          "native_worker_ms": [
+            179.532272,
+            174.087336,
+            176.741554
+          ],
+          "complete_request_ms": [
+            157.615092,
+            169.865919,
+            204.569445
+          ],
+          "median_native_worker_ms": 176.741554,
+          "median_complete_request_ms": 169.865919
+        },
+        {
+          "depth": 16,
+          "leaves": 65536,
+          "rounds_per_leaf": 65536,
+          "total_mixing_rounds": 4294967296,
+          "result": 3867567763,
+          "native_worker_ms": [
+            210.357143,
+            216.807143,
+            214.895023
+          ],
+          "complete_request_ms": [
+            206.646063,
+            193.472322,
+            206.226626
+          ],
+          "median_native_worker_ms": 214.895023,
+          "median_complete_request_ms": 206.226626
+        }
+      ],
+      "full_published_states": [
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "alice-token",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        },
+        {
+          "tables": [],
+          "users": [
+            {
+              "credential": "xxxxxxxxxxxxxxxx",
+              "id": "alice",
+              "kind": "user"
+            },
+            {
+              "credential": "bob-token",
+              "id": "bob",
+              "kind": "user"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
