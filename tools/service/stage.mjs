@@ -383,7 +383,7 @@ def main() -> IO(Unit):
       'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())')
       .replace('ORACLE_PROOF', oracleProof(purpose === 'prepare'))
       .replace('WORKER_ENTRY', purpose === 'prepare'
-        ? 'Worker.routed_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
+        ? 'Worker.routed_bytes(C.config(), bytes, Bindings.code(), Bindings.proof_source(), admit)'
         : 'Worker.packet(C.config(), bytes, admit)');
     if (purpose === 'prepare') main = main.replace('import ./Execution.bend as E', 'import ./WorkerResult.bend as E');
   } else fail('DEPENDENCY', 'Invalid purpose');

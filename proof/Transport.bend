@@ -5,6 +5,7 @@ import ../contract/Bytes.bend as B
 import ../contract/Logic.bend as L
 import ../src/Codec.bend as C
 import ../src/Transport.bend as T
+import ./TransportScan.bend as Scan
 import ./Foundations.bend as F
 import ./CodecCounters.bend as Q
 import ./CodecWordsBE64.bend as E
@@ -157,16 +158,16 @@ def cut_preserves_exactly_os_two_blocks(first, second, number, measured):
     Equal.cong(List<&2, U32>, Maybe<&2, T.Parts>, xs => Some{T.Parts{xs, second}},
       T.invert(T.invert(first, Nil{}), Nil{}), first, invert_two_times(first)))
 
-law separate_be64_and_blocks_all_valid:
+law reference_be64_and_blocks_all_valid:
   for +first: List<&2, U32>
   for +second: List<&2, U32>
-  for number: B.Number64
+  for +number: B.Number64
   for measured: {B.nat64(B.length(first)) == Some{number} : Maybe<&2, B.Number64>}
   for vp: {B.octets_all_valid(first) == True{} : Bool}
   for vs: {B.octets_all_valid(second) == True{} : Bool}
-  {T.separate(B.concatenate(F.extract_or(List<&2, U32>, B.number64_bytes(Some{number}), Nil{}), B.concatenate(first, second))) ==
+  {T.separate_reference(B.concatenate(F.extract_or(List<&2, U32>, B.number64_bytes(Some{number}), Nil{}), B.concatenate(first, second))) ==
     Some{T.Parts{first, second}} : Maybe<&2, T.Parts>}
-def separate_be64_and_blocks_all_valid(first, second, number, measured, vp, vs):
+def reference_be64_and_blocks_all_valid(first, second, number, measured, vp, vs):
   match number:
     case B.Number64{+high, +low}:
       %Equal.sym(Bool, B.octets_all_valid(B.concatenate(B.be64(high, low), B.concatenate(first, second))), True{},
@@ -177,6 +178,20 @@ def separate_be64_and_blocks_all_valid(first, second, number, measured, vp, vs):
         T.cut(B.concatenate(first, second), B.Number64{high, low}, Nil{}), Some{T.Parts{first, second}},
         header_inverts_be64(high, low, B.concatenate(first, second)),
         cut_preserves_exactly_os_two_blocks(first, second, B.Number64{high, low}, measured))
+
+law separate_be64_and_blocks_all_valid:
+  for +first: List<&2, U32>
+  for +second: List<&2, U32>
+  for +number: B.Number64
+  for measured: {B.nat64(B.length(first)) == Some{number} : Maybe<&2, B.Number64>}
+  for vp: {B.octets_all_valid(first) == True{} : Bool}
+  for vs: {B.octets_all_valid(second) == True{} : Bool}
+  {T.separate(B.concatenate(F.extract_or(List<&2, U32>, B.number64_bytes(Some{number}), Nil{}), B.concatenate(first, second))) ==
+    Some{T.Parts{first, second}} : Maybe<&2, T.Parts>}
+def separate_be64_and_blocks_all_valid(first, second, number, measured, vp, vs):
+  +packet = B.concatenate(F.extract_or(List<&2, U32>, B.number64_bytes(Some{number}), Nil{}), B.concatenate(first, second))
+  Equal.trans(Maybe<&2, T.Parts>, T.separate(packet), T.separate_reference(packet), Some{T.Parts{first, second}},
+    Scan.separate_refines_reference(packet), reference_be64_and_blocks_all_valid(first, second, number, measured, vp, vs))
 
 def separate_assembly_measure(measure: Maybe<&2, B.Number64>,
   +first: List<&2, U32>, +second: List<&2, U32>, -bytes: List<&2, U32>,
@@ -488,4 +503,6 @@ law all_separation_accepts_reconstructs_packet_original:
   for accepted: {T.separate(bytes) == Some{parts} : Maybe<&2, T.Parts>}
   SeparationExact(bytes, parts)
 def all_separation_accepts_reconstructs_packet_original(bytes, parts, accepted):
-  invert_validation_accepts(B.octets_all_valid(bytes), bytes, parts, {==}, accepted)
+  invert_validation_accepts(B.octets_all_valid(bytes), bytes, parts, {==},
+    Equal.trans(Maybe<&2, T.Parts>, T.separate_reference(bytes), T.separate(bytes), Some{parts},
+      Equal.sym(Maybe<&2, T.Parts>, T.separate(bytes), T.separate_reference(bytes), Scan.separate_refines_reference(bytes)), accepted))

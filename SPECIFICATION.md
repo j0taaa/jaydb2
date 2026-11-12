@@ -227,6 +227,11 @@ admission token; sound source certification uses the T1 premise in `ServiceRun`.
 length fits uint64 and the decoder ceiling. `CodecCanonical` proves that every
 accepted value re-encodes to the exact original bytes. `FramingRoundtrip`
 proves inversion of successful private two-block joins for valid octets.
+`TransportScan` additionally proves that fused private validation/cutting equals
+the previous parser on all inputs. Prepared framing validates the outer
+registry prefix and inner root/body suffix once each; its all-input refinement
+preserves malformed-packet failure as well as valid framing. This changes no
+wire/storage bytes or trusted host duties.
 State representation lemmas in `proof/Representation.bend` connect the actual
 state decoder to the canonical state value. `Data.operate` defines the data
 operations used by the interpreter. T2 preserves these computations; T3 binds

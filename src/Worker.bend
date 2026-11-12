@@ -153,3 +153,9 @@ def routed_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: String,
     case None{}: Result.Inconsistent{}
     case Some{T.Parts{registry, packet}}:
       routed_parts(c, T.separate(packet), registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit)
+
+# The outer separator checks its registry prefix; routed_packet's inner
+# separator checks the entire remaining root/body packet exactly once.
+def routed_bytes(~c: S.Configuration, bytes: List<&2, U32>, code: String,
+  proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  routed_packet(c, T.separate_prefix(bytes), code, proof, admit)

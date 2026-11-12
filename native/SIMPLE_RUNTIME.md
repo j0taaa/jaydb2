@@ -20,9 +20,18 @@ before the host accepts a proposal for publication.
 ## Checked worker path
 
 The generated closed entry calls `Worker.packet` or, for a live prepared
-registration, `Worker.routed_packet` (a metadata-preserving lift of
-`Worker.registered_packet`). Private state is decoded once and
-kept through every early-error branch. Ordinary request ingress is
+registration, `Worker.routed_bytes` (proved equal on every input to the original
+`Worker.routed_packet` metadata-preserving lift of `Worker.registered_packet`).
+Private framing fuses octet validation with cutting and constructs each prefix
+in order, without a reverse accumulator. The prepared outer separator validates
+its registry prefix only; the inner separator validates the untouched root/body
+suffix before decoding. `TransportScan.separate_refines_reference` proves the
+full separator equals the previous parser on every U32 list, and
+`WorkerBridge.routed_bytes_equals_original_packet` proves that deferring the
+outer suffix scan preserves the complete worker result, including malformed
+private packets. A prefix-only result is never by itself a validated packet.
+These are pure source refinements with no new T1–T3 premise or byte-format change.
+Private state is decoded once and kept through every early-error branch. Ordinary request ingress is
 `Input.read_message`; prepared execution uses `Resolve.select` with the exact
 live registration supplied separately from the original request. Both enter
 `Gate.begin`: fresh authentication precedes the statically admitted oracle,
