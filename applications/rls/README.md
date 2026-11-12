@@ -7,8 +7,10 @@ notes. Public demonstration credentials are `alice-token`, `bob-token` and
 `admin-token`; authentication supplies the id and role from the current user
 registry. No caller-supplied owner or role is trusted.
 
-There is no slot count. A user can create notes until the configured
-65,536-byte state limit is reached; the earlier two-slot version is replaced.
+There is no slot count. Users share one configured 65,536-byte state limit;
+the earlier two-slot version is replaced. This shared capacity reveals aggregate
+size information and permits cross-user denial of creation (see "Limits and
+assumptions").
 
 ## Representation
 
@@ -22,8 +24,10 @@ is numeric. `create` enumerates only the caller's own directory, takes the
 largest id and adds one. Deleting the largest id and creating again reuses it
 (the id is fresh with respect to the current notes, which is all the laws need).
 Deletion removes both rows; nothing is kept as a tombstone.
+A previously returned id can later name different content, so saved references
+can become stale.
 
-Every listing step is private: a user enumerates **only their own directory
+Listing uses the caller's rows: a user enumerates **only their own directory
 table** and then reads each listed note. No user operation enumerates or counts
 the shared table, and no user operation tests whether another user's row exists.
 
@@ -57,9 +61,9 @@ own namespace (`ReadScope`/`WriteScope`), even if they later refuse; inserted
 or replaced rows carry the caller as owner, so ownership never changes at a key;
 writes reach only `notes` and the caller's own directory (`Writable`); a user
 enumerates only their own directory. The `admin` **role** may read any note,
-count notes and enumerate keys, but has no write exception. Every other
-operation, including all registry and partial-column operations, has the
-impossible obligation `False == True`.
+count notes and enumerate keys of `notes`, `alice_dir` and `bob_dir`, but has no
+write exception. Every other operation, including all registry and
+partial-column operations, has the impossible obligation `False == True`.
 
 **`DirectoryRule` — exact directory at stable states.**
 
@@ -84,13 +88,17 @@ likewise for Bob). The contract's structural validity makes keys strictly
 ordered, so neither list has duplicates: each directory lists exactly the ids of
 the notes its user owns, no more and no fewer.
 
-The law is stated for `Stable` situations. Publishing a success requires
-`Requirements.PublicationValid`, i.e. `Valid(working)`, which includes every
-stable law, so every published state is exact. Working prefixes may be stale
-(after the note write and before the directory write), exactly as in
-`applications/indexed`. A separate success-`Closed` clause would only repeat the
-publication obligation; it is omitted because a proof of a `∀k` statement is an
-affine Bend function and cannot be supplied twice.
+The law is stated for `Stable` situations. A success-`S.Closed` obligation
+occurs only inside [`Requirements.SafetyFinal`](../../contract/Requirements.bend),
+paired with `PublicationValid(finalize(r, c, w), c, w)` by `SafetyTrace`.
+When the finalized response succeeds, this is `Valid(c, w)`, which includes
+every stable law. (`SafetyPrefix` also checks `S.Closed`, but only with a
+`Failure` response.) In addition,
+[`Theorems.Completion`](../../contract/Theorems.bend) gives `Valid(c, next)`
+for the published state. Thus every published root satisfies the directory
+equality, and a separate success-`Closed` clause would repeat the publication
+obligation. Working prefixes may be stale (after the note write and before the
+directory write), exactly as in `applications/indexed`.
 
 ## How the certificate works
 
@@ -197,7 +205,7 @@ From the repository root with the pinned tools installed:
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build'
-flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B applications/rls/check.py --proof-only'
+flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 -B applications/rls/check.py'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make test-rls'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make verify'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make test'
@@ -214,11 +222,16 @@ Each fixture is a complete certificate for its actual one-operation program,
 built from the same `Proofs`/`Directory` machinery; only `false` is wrong. In
 both official modes **only `false` may fail**, with expected/observed
 diagnostics; any missing import, open definition, helper co-failure, linearity
-error or stack overflow fails the harness. All are submitted as Alice.
+error or stack overflow fails the harness. Fixtures are submitted as Alice
+except the administrator-write fixture, whose offline and native contexts are
+both the authenticated `admin` id and role.
 
 | Negative program | Intended failing obligation (observed vs required) |
 | --- | --- |
 | Read `bob/00000001`, then refuse | `ReadScope`: `"bob" == "alice"`. |
+| Test existence of `bob/00000001`, then refuse | `ReadScope`: `"bob" == "alice"`. |
+| Count rows of `notes`, then refuse | Admin role required: `"user" == "admin"`. |
+| Admin replaces `alice/00000001`, then refuses | `WriteScope`: `"alice" == "admin"`; there is no admin write exception. |
 | Replace existing `bob/00000001` | `WriteScope`: `"bob" == "alice"`. |
 | Insert fresh `alice/00000099` with owner Bob | Owner field must be `D.VText{"alice"}`. |
 | Replace existing `alice/00000001` with owner Bob | The same owner-field obligation (no ownership transfer). |
@@ -241,10 +254,12 @@ directory law fails.
 Alice creates a note with an ordinary certificate; a universal (prepared)
 certificate is then admitted once and reused, with fresh authentication and
 current state, for every later call by Alice, Bob and the administrator. Alice
-creates seven notes (six present at once), Bob two; listings, views, an update, deletions, a create
-after deletions, admin reads and counts are checked exactly. Runtime refusals
-cover foreign ids, a deleted id, cancel-after-write rollback and unsupported
-commands. Each of the nine negatives is refused at admission (`PRIMARY_CHECK`,
+creates seven notes (six present at once), Bob three (two present at once);
+listings, views, an update, deletions, a create after deletions, admin reads and
+counts are checked exactly. Bob deletes his largest id and creates again;
+the returned id is the same, and viewing it returns the replacement content.
+Runtime refusals cover foreign ids, a deleted id, cancel-after-write rollback and unsupported
+commands. Each of the twelve negatives is refused at admission (`PRIMARY_CHECK`,
 `Location: false`), and after each the same prepared artifact checks both
 listings, the count and the presence or absence of eleven possible keys.
 Finally Alice removes all notes, an invalid token is refused and the handle is
@@ -254,7 +269,14 @@ invalidated.
 
 - The principals are fixed at configuration time (one directory table and one
   key namespace each), as the two-slot version fixed them; the number of notes
-  is bounded only by the 65,536-byte state limit.
+  is bounded only by the shared 65,536-byte state limit.
+- This single state-size limit is an **aggregate-size channel** and a
+  **cross-user availability limit**. A user can choose note lengths and
+  binary-search the deterministic `limit` status to learn the combined encoded
+  size of other users' notes and directory entries. A user can also fill the
+  shared state so others cannot create notes; capacity is not isolated per user.
+  This logical response channel is outside the confidentiality claim, even
+  though it is deterministic and is not a physical timing channel.
 - Ids are eight decimal digits. Deleting the largest id and creating again
   reuses it. Past `99999999` the carry leaves the namespace and `create`
   refuses; the state limit makes that unreachable.
@@ -276,33 +298,34 @@ Counts are nonblank physical Bend lines, including comments and imports, using
 | Scope | Files | Nonblank lines |
 | --- | --- | ---: |
 | Client program | `Client.bend` | 126 |
-| Client certificate (incl. termination) | `ClientProof.bend` | 317 |
+| Client certificate (incl. termination) | `ClientProof.bend` | 320 |
 | Judgment and publication | `Proofs.bend` | 175 |
 | Directory transitions | `Directory.bend` | 190 |
 | Ownership preservation (unchanged) | `Ownership.bend` | 259 |
 | Termination witnesses | `Completion.bend` | 35 |
-| All application-local proof files | the five files above | 976 |
+| All application-local proof files | the five files above | 979 |
 | Schema, laws, seed | `Configuration.bend`, `Policy.bend`, `Seed.bend` | 163 |
 
-Certificate/program ratio: **2.52**. All local proof files/program: **7.75**.
+Certificate/program ratio: **2.54**. All local proof files/program: **7.77**.
 The two-slot version had 91 program lines, 112 certificate lines (1.23) and 482
 local proof lines (5.30).
 
 ## Validation result
 
 Validated on 2026-11-11 with the pinned official toolchain (BendTT and native
-sources bootstrapped from existing local copies by the hash-checking
-`tools/bootstrap.py`). All heavy commands ran under the shared lock with
-unlimited stack, in one session: `make build`, `make test-rls`, `make verify`,
-`make test`. No checker fuel, state limit, contract, host or library file
-changed.
+sources reused through a temporary `.tools` symlink to the existing local
+toolchain). All heavy commands ran under the shared lock with unlimited stack:
+`make build`, `python3 -B applications/rls/check.py` (full default),
+`make test-rls`, `make verify`, `make test`. No checker fuel, state limit,
+contract, host or library file changed.
 
 | Command | Result |
 | --- | --- |
 | `make build` | Passed. |
-| `make test-rls` | Positive certificate/termination/seed and the universal certificate passed both official modes; all nine negatives failed only at `false` in both modes; native session passed with 204 checked responses and nine admission denials, each followed by a complete unchanged-state check. |
+| `python3 -B applications/rls/check.py` | Positive certificate/termination/seed and the universal certificate passed both official modes; all twelve negatives failed only at `false` in both modes; native session passed with 253 checked responses and twelve admission denials, each followed by a complete unchanged-state check, plus largest-id deletion/reuse with replacement content. |
+| `make test-rls` | The same full RLS gate passed, including all twelve negatives in both modes and the 253-response native session. |
 | `make verify` | Import coverage and the existing positive roots passed in both modes; 373 negative fixtures / 746 official-mode rejections; this application's proof gate (as above, without the native session) passed. |
-| `make test` | 30 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (204-response native session). |
+| `make test` | 30 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (253-response native session). |
 
 Generated roots, intended-failure diagnostics and the host log stay under the
 ignored `applications/rls/.build/`.

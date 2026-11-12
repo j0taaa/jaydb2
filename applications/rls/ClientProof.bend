@@ -39,7 +39,10 @@ def read_scope(admin: Bool, +id: String, +key: String, h: P.WriteScope(id, key))
 
 def keys_scope(admin: Bool, +p: Client.Principal) -> P.KeysScope(admin, Client.name(p), P.dir_name(Client.name(p))):
   match admin:
-    case True{}: Unit{}
+    case True{}:
+      match p:
+        case Client.Alice{}: {==}
+        case Client.Bob{}: {==}
     case False{}: {==}
 
 def owner_field(+p: Client.Principal, +k: String, +own: {P.key_owner(k) == Client.name(p) : String}) ->

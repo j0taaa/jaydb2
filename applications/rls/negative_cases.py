@@ -143,6 +143,10 @@ def B.terminates(s, ctx, args):
     variants = (
         ('read-bob', program(f'D.ReadCell{{{NOTES}, "bob/00000001", "text"}}', refuse),
          law_allowed('P.Both{{==}, P.Both{{==}, {==}}}') + PERMISSION, ('"bob"', '"alice"')),
+        ('existence-bob', program(f'D.ViewExistence{{{NOTES}, "bob/00000001"}}', refuse),
+         law_allowed('P.Both{{==}, P.Both{{==}, {==}}}') + PERMISSION, ('"bob"', '"alice"')),
+        ('count-all', program(f'D.CountRows{{{NOTES}}}', refuse),
+         law_allowed('P.Both{{==}, {==}}') + PERMISSION, ('"user"', '"admin"')),
         ('update-bob', program(f'D.DefineRow{{{NOTES}, "bob/00000001", {fields("bob/00000001", "bob", "forged")}}}', refuse),
          law_allowed(write) + PERMISSION, ('"bob"', '"alice"')),
         ('insert-bob-owner', program(f'D.DefineRow{{{NOTES}, "alice/00000099", {fields("alice/00000099", "bob", "forged")}}}', refuse),
@@ -161,8 +165,13 @@ def B.terminates(s, ctx, args):
         ('unlist-without-delete', program('D.RemoveRow{D.Application{"alice_dir"}, "alice/00000001"}', 'S.Finish{D.VText{"alice/00000001"}}'),
          LAW_UNLISTED + UNLISTED, ('D.remove_row', '"alice/00000001"')),
     )
-    for name, code, body, expected in variants:
-        yield name, code, imports + body + '\n' + certify + tail, expected
+    admin_variants = (
+        ('admin-write', program(f'D.DefineRow{{{NOTES}, "alice/00000001", {fields("alice/00000001", "alice", "forged")}}}', refuse),
+         law_allowed(write) + PERMISSION, ('"alice"', '"admin"')),
+    )
+    for context, fixtures in ((('alice', 'user'), variants), (('admin', 'admin'), admin_variants)):
+        for name, code, body, expected in fixtures:
+            yield name, code, imports + body + '\n' + certify + tail, expected, context
 
 
 def rejected(name, root, expected):

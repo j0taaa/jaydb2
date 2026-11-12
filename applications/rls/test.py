@@ -88,6 +88,12 @@ def native_session():
             prepared('bob', ['remove', 'bob/00000002'], 'bob/00000002')
             del bob['bob/00000002']
             listing('bob', bob)
+            # Removing the largest id makes it available for different content.
+            prepared('bob', ['view', 'bob/00000002'], None)
+            prepared('bob', ['create', 'replacement bob 2'], 'bob/00000002')
+            bob['bob/00000002'] = 'replacement bob 2'
+            prepared('bob', ['view', 'bob/00000002'], note('bob/00000002', 'replacement bob 2'))
+            listing('bob', bob)
 
             def snapshot():
                 listing('alice', alice)
@@ -108,9 +114,9 @@ def native_session():
             prepared('alice', ['count'], 'unsupported', 'refusal')
             prepared('alice', ['read', 'bob/00000001'], 'unsupported', 'refusal')
             snapshot()
-            for name, bad_code, bad_proof, _ in cases():
+            for name, bad_code, bad_proof, _, context in cases():
                 before = server.diagnostics()
-                expect(server.call(bad_code, bad_proof, 'alice-token', ['list']), 'certificate', None)
+                expect(server.call(bad_code, bad_proof, context[0] + '-token', ['list']), 'certificate', None)
                 delta = server.diagnostics()[len(before):]
                 assert 'PRIMARY_CHECK' in delta and 'Location: false' in delta, (name, delta)
                 assert '- expected :' in delta and '- observed :' in delta, delta

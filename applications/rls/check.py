@@ -47,7 +47,7 @@ def chunked(s, size=2000):
     return ' ++ '.join(literal(part) for part in parts)
 
 
-def proof_root(name='positive', code=None, proof=None, universal=False):
+def proof_root(name='positive', code=None, proof=None, universal=False, context=('alice', 'user')):
     d = BUILD / name
     prepare(d)
     if code is not None:
@@ -64,7 +64,7 @@ import ./Data.bend as D
 import ./Semantics.bend as S
 import ./Configuration.bend as C
 def config() -> S.Configuration: C.config()
-def context() -> D.Context: D.Context{"alice", "user"}
+''' + 'def context() -> D.Context: D.Context{' + ', '.join(literal(part) for part in context) + '}\n' + '''
 def arguments() -> D.Value: D.VList{D.VText{"list"}, D.VListEmpty{}}
 ''')
     target = ('@ctx: D.Context -> @args: D.Value -> R.Certifies(I.config(), code(), Client.program(), ctx, args)'
@@ -95,8 +95,8 @@ def main():
     BUILD.mkdir(exist_ok=True)
     positive(proof_root())
     from negative_cases import cases, rejected
-    for name, code, proof, expected in cases():
-        rejected(name, proof_root(name, code, proof), expected)
+    for name, code, proof, expected, context in cases():
+        rejected(name, proof_root(name, code, proof, context=context), expected)
     from test import universal_proof
     positive(proof_root('universal', proof=universal_proof(), universal=True))
     if not args.proof_only:

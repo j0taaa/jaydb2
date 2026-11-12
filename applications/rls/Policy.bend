@@ -67,10 +67,10 @@ def WriteScope(id: String, +key: String) -> Data:
 def Writable(+id: String, +name: String) -> Data:
   {String.eq(name, "notes") || String.eq(name, dir_name(id)) == True{} : Bool}
 
-# An ordinary user enumerates only their own directory, never the shared table.
-def KeysScope(admin: Bool, +id: String, name: String) -> Data:
+# Admin enumerates only the three application tables; users only their own directory.
+def KeysScope(admin: Bool, +id: String, +name: String) -> Data:
   match admin:
-    case True{}: Unit
+    case True{}: {String.eq(name, "notes") || String.eq(name, "alice_dir") || String.eq(name, "bob_dir") == True{} : Bool}
     case False{}: {name == dir_name(id) : String}
 
 def Allowed(ctx: D.Context, op: D.Operation) -> Data:
