@@ -49,8 +49,8 @@ All build products are ignored under `.build/tcc/`; the deliverables are:
 
 The evidence builder validates the retained experiments and generates all measured
 values, table fragments and plot data. No measurement is copied into the article
-or slides source. This formatting work does not rerun benchmarks or change evidence
-JSON or `paper/bench/`. The builder's derived evidence reports remain unchanged.
+or slides source. The current evidence refresh reruns E1–E5 under the fixed-clock protocol below;
+the builder regenerates the derived evidence reports from the retained JSON.
 
 ## Course-regulation compliance
 
@@ -113,7 +113,9 @@ or overfull boxes. Count references with `rg -c '^\\bibitem' .build/tcc/main.bbl
 ## Reproducing the fresh evidence
 
 Each benchmark JSON records its exact source commit and executable/source
-fingerprints. The harness uses the real serial Rust host, official Bend 2.0.39 and
+fingerprints. E1–E5 (including the verification commands) must share the same
+engine source and executable fingerprints; the historical direct-seed attempt
+is retained separately. The harness uses the real serial Rust host, official Bend 2.0.39 and
 BendTT, literal emitted C, Clang 19, and one native worker thread. The final protocol uses independent sessions at the nominal base clock with
 the performance governor and turbo disabled. E5 uses one session with
 log-spaced populations and a first-key variant. Historical frequency-scaling
@@ -175,8 +177,7 @@ database for each E1–E3 session. The full final reproduction is:
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh bash -c "python3 -B paper/bench/run.py latency && python3 -B paper/bench/run.py prepared && python3 -B paper/bench/run.py comparison && python3 -B paper/bench/run.py scaling"'
-# E4 wall times are retained from the previous unchanged implementation;
-# optionally replace them with a new controlled run:
+# E4: collect fresh verification/test wall times under the same fixed policy:
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B paper/bench/run.py verification'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && paper/bench/fixed-clock.sh python3 -B -m paper.bench.source_sizes --update'
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build && python3 -B paper/bench/check-clock.py'
@@ -252,10 +253,10 @@ must return `limit`; an absent-row read confirms rollback. Canonical sizes for
 `scaling-seed-attempt.json` records direct-seed BendTT fuel failures and is
 retained for provenance, not pooled with final operation samples.
 
-`verification.json` retains its successful original `make verify-contract`,
-`make verify`, and `make test` wall times and full output; these are single runs
-under the earlier powersave/turbo policy, **not fixed-clock comparisons**.
-The new `detailed_sizes` inventory separates the Rust host's nonblank physical
+`verification.json` retains fresh successful `make verify-contract`,
+`make verify`, and `make test` wall times and full output under the same
+fixed-clock policy. These are single observations, without quartiles.
+The `detailed_sizes` inventory separates the Rust host's nonblank physical
 lines (comments/imports/attributes included) in `server/*.rs`: each
 `#[cfg(test)]` attribute and its following top-level item through the unindented
 closing brace count as test lines; all remaining lines count as production.
@@ -267,7 +268,9 @@ Client program lines count `applications/indexed/Client.bend` for Indexed and
 `applications/vouchers/Client.bend` **plus `Voucher.bend`** for Voucher (the
 six-line wrapper delegates the actual dispatcher there). Client proof lines
 count Indexed's `ClientProof.bend`, `CheckedActions.bend`, `Completion.bend`,
-and Voucher's `ClientProof.bend`. Ratios are proof/program nonblank lines.
+and Voucher's `ClientProof.bend`. RLS counts `applications/rls/Client.bend`
+against `ClientProof.bend` plus `Completion.bend`; shared ownership, directory
+and judgment/publication proofs are excluded by the same scoped definition. Ratios are proof/program nonblank lines.
 These local client-certificate counts exclude reusable library/kernel proofs,
 model/schema/seed files, shared application ownership proofs, and the separate
 voucher functional theorem suite; they are scoped client integration costs,
@@ -293,7 +296,10 @@ ordinary and prepared experiments enable it; comparison and scaling do not.
 Phase records include staging, bootstrap/preflight, parse/audit, primary check,
 binding audit/seal, official BendTT translation/check, C emission, C compilation,
 worker execution, cleanup and publication. `admission_total` contains the Node
-subphases and must not be added to them. The oracle-soundness law's share is
+subphases and must not be added to them. BendTT and C generation/build now
+overlap: their diagnostic durations must not be summed as exclusive wall time.
+The ordinary `OtherSeconds` macros subtract admission wall time and worker
+time from the round trip; they include the remaining host/communication work. The oracle-soundness law's share is
 included in whole-Book checking: the pinned APIs expose no per-law timer.
 Timing hooks never change protocol bytes or admission decisions. The existing
 service timer also writes raw sidecars under the ignored build directory.
@@ -339,7 +345,7 @@ No macro name contains digits. Integers use `{,}` grouping for English article t
 | `\OrdinaryReadCheckingSeconds`, `\OrdinaryIndexedCheckingSeconds`, `\OrdinaryVoucherCheckingSeconds` | Median of the per-call sum of primary and BendTT whole-Book checking | s |
 | `\OrdinaryReadCompilationSeconds`, `\OrdinaryIndexedCompilationSeconds`, `\OrdinaryVoucherCompilationSeconds` | Median of the per-call sum of C emission and compilation | s |
 | `\OrdinaryReadWorkerMs`, `\OrdinaryIndexedWorkerMs`, `\OrdinaryVoucherWorkerMs` | Median worker phase wall time | ms |
-| `\OrdinaryReadOtherSeconds`, `\OrdinaryIndexedOtherSeconds`, `\OrdinaryVoucherOtherSeconds` | Median per-call round trip minus checking, C generation/build and worker; includes all remaining work/communication | s |
+| `\OrdinaryReadOtherSeconds`, `\OrdinaryIndexedOtherSeconds`, `\OrdinaryVoucherOtherSeconds` | Median per-call round trip minus admission wall time and worker; includes remaining host work/communication | s |
 | `\OrdinaryReadWorkerSharePercent`, `\OrdinaryIndexedWorkerSharePercent`, `\OrdinaryVoucherWorkerSharePercent` | Median of per-call worker/round-trip shares | % |
 | `\JayPointReadOverPostgres`, `\JayPointReadOverSqlite`, `\JayPointUpdateOverPostgres`, `\JayPointUpdateOverSqlite`, `\JayOwnerReadOverPostgres`, `\JayOwnerReadOverSqlite`, `\JayOwnerUpdateOverPostgres`, `\JayOwnerUpdateOverSqlite` | Ratio of durable prepared JayDB2 median to the named SQL median, with matching policy and operation | ratio |
 | `\ProofToImplementationRatio` | Nonblank `proof/` lines divided by `src/` lines, including comments | ratio |
@@ -448,3 +454,16 @@ these diagnostic timings are not inputs to the headline tables.
 Preparation means one-time checking and compilation; registry means the
 prepared handle registry. Generated filenames and macro names retain their
 original registration/persistent spelling.
+
+### Integrated RLS and host-duty evidence macros
+
+| Macro | Meaning / unit |
+|---|---|
+| `\RlsClientLines` | RLS client program nonblank lines (Client.bend) |
+| `\RlsProofLines` | RLS scoped certificate/termination nonblank lines (ClientProof.bend + Completion.bend) |
+| `\RlsProofRatio` | Scoped RLS proof/program line ratio |
+| `\RlsNegativeFixtures` | RLS causal negative fixtures checked in both official modes (separate from core NegativeFixtures) |
+| `\RlsNativeResponses` | Exactly checked responses in the complete native RLS session |
+| `\HostDutyCount` | Numbered T3 duties read from proof/README.md; eight regrouped items do not reduce the previous eleven trust obligations |
+| `\OrdinaryReadAdmissionSeconds`, `\OrdinaryIndexedAdmissionSeconds`, `\OrdinaryVoucherAdmissionSeconds` | Admission wall time, including overlapping checker/native-build phases (s) |
+| `\RlsNonblankLines` | All maintained top-level RLS Bend source lines, including schema/laws/seed and domain proofs; generated .build packages excluded |

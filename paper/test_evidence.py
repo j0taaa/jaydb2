@@ -48,8 +48,7 @@ class EvidenceTests(unittest.TestCase):
                     self.assertAlmostEqual(macros[prefix+'WorkerSharePercent'][0],
                         statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in rows]))
                     self.assertAlmostEqual(macros[prefix+'OtherSeconds'][0],statistics.median([
-                        s['elapsed_ns']-sum(s['phases_ns'][p] for p in
-                            ('primary_check','bendtt_translate_check','c_emission','c_compilation','ordinary_worker'))
+                        s['elapsed_ns']-s['phases_ns']['admission_total']-s['phases_ns']['ordinary_worker']
                         for s in rows])/1e9)
                 self.assertGreater(macros['StateFirstExcessBytes'][0],macros['StateLimitBytes'][0])
                 self.assertLessEqual(macros['StateMaximumBytes'][0],macros['StateLimitBytes'][0])
@@ -91,12 +90,18 @@ class EvidenceTests(unittest.TestCase):
                     len(indexed['samples']))
                 prepared=(Path(folder)/'prepared-table.tex').read_text()
                 self.assertIn('Preparation s',prepared)
-                self.assertIn('7.51',prepared)
+                read=next(r for r in self.data['prepared']['records']
+                    if r['program']=='read' and not r['persistent'])
+                registration=statistics.median(x['elapsed_ns'] for x in read['registrations'])/1e9
+                self.assertIn(f'{registration:,.2f}',prepared)
                 comparison=(Path(folder)/'database-comparison-table.tex').read_text()
                 self.assertIn('Read ms',comparison)
-                self.assertIn('0.003',comparison)
+                sqlite=next(r for r in self.data['comparison']['records']
+                    if r['engine']=='sqlite' and r['policy']=='point' and r['rows']==10)
+                sql_read=statistics.median(x['elapsed_ns'] for x in sqlite['samples'] if x['workload']=='read')/1e6
+                self.assertIn(f'{sql_read:,.3f}',comparison)
                 spread=(Path(folder)/'session-spread-table.tex').read_text()
-                self.assertIn('17.201--50.658',spread)
+                self.assertIn(f'{min(medians):,.3f}--{max(medians):,.3f}',spread)
                 self.assertEqual(spread.count('E2 '),6)
         finally:evidence.OUT=previous
 
@@ -168,6 +173,24 @@ class EvidenceTests(unittest.TestCase):
             (root/'ignored.md').write_text('not Bend\n')
             self.assertEqual(evidence.source_inventory(root),dict(files=2,nonblank_lines=4))
 
+    def test_overlapped_phases_use_admission_wall(self):
+        previous=evidence.OUT
+        data=copy.deepcopy(self.data)
+        rows=data['ordinary']['records'][0]['samples']
+        for row in rows:
+            # Deliberately overlapping diagnostics exceed the round trip.
+            row['elapsed_ns']=1000000000
+            row['phases_ns'].update(admission_total=800000000, ordinary_worker=100000000,
+                primary_check=400000000, bendtt_translate_check=500000000,
+                c_emission=100000000, c_compilation=500000000)
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                evidence.OUT=Path(folder)
+                macros=evidence.derive(data)
+                self.assertAlmostEqual(macros['OrdinaryReadOtherSeconds'][0],0.1)
+                self.assertAlmostEqual(macros['OrdinaryReadAdmissionSeconds'][0],0.8)
+        finally:evidence.OUT=previous
+
     def test_duplicate_iteration(self):
         self.corrupt(lambda d:d['ordinary']['records'][0]['samples'][1].update(iteration=1),'samples')
 
@@ -208,6 +231,15 @@ class EvidenceTests(unittest.TestCase):
         result=evidence.summary([dict(elapsed_ns=x) for x in (1,2,3,4,100)])
         self.assertEqual((result['median'],result['qone'],result['qthree']),(3,2,4))
 
+    def test_core_negative_inventory_requires_completed_gate(self):
+        self.corrupt(lambda d:d['verification'].update(negative_fixtures=1),'Core negative inventory')
+
+    def test_rls_inventory_requires_completed_gate(self):
+        self.corrupt(lambda d:d['verification']['rls_validation'].update(native_responses=1),'RLS inventory')
+
+    def test_host_duty_inventory_matches_normative_list(self):
+        self.corrupt(lambda d:d['verification'].update(host_duty_count=11),'Host duty inventory')
+
     def test_mixed_engine_revision(self):
         self.corrupt(lambda d:d['comparison']['metadata'].update(source_sha256='0'*64),'Mixed engine fingerprints')
 
@@ -220,6 +252,13 @@ class EvidenceTests(unittest.TestCase):
     def test_frequency_policy_is_required(self):
         def edit(d):
             settings=d['prepared']['metadata']['frequency']['settings']
+            key=next(k for k in settings if k.endswith('/scaling_governor'))
+            settings[key]='powersave'
+        self.corrupt(edit,'CPU frequency policy')
+
+    def test_verification_wall_times_require_fixed_clock(self):
+        def edit(d):
+            settings=d['verification']['metadata']['frequency']['settings']
             key=next(k for k in settings if k.endswith('/scaling_governor'))
             settings[key]='powersave'
         self.corrupt(edit,'CPU frequency policy')
@@ -249,9 +288,14 @@ class EvidenceTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as folder:
                 evidence.OUT=Path(folder)
                 macros=evidence.derive(self.data)
-                names='CpuGovernor CpuClockGHz TurboSetting SessionCount RustProductionLines RustTestLines IndexedClientLines IndexedProofLines IndexedProofRatio VoucherClientLines VoucherProofLines VoucherProofRatio ComparisonLargeRows ScalingFirstKeySmallMs ScalingFirstKeyLargeMs'.split()
+                names='CpuGovernor CpuClockGHz TurboSetting SessionCount RustProductionLines RustTestLines IndexedClientLines IndexedProofLines IndexedProofRatio VoucherClientLines VoucherProofLines VoucherProofRatio RlsClientLines RlsProofLines RlsProofRatio RlsNegativeFixtures RlsNativeResponses HostDutyCount ComparisonLargeRows ScalingFirstKeySmallMs ScalingFirstKeyLargeMs'.split()
                 names += ['Large'+policy+engine+operation+'Ms' for policy in ('','Owner') for engine in ('Jay','Pg','Sq') for operation in ('Read','Write')]
                 for name in names:self.assertIn(name,macros)
+                self.assertEqual(macros['RlsClientLines'][0],126)
+                self.assertEqual(macros['RlsProofLines'][0],355)
+                self.assertEqual(macros['RlsNegativeFixtures'][0],12)
+                self.assertEqual(macros['RlsNativeResponses'][0],253)
+                self.assertEqual(macros['HostDutyCount'][0],8)
                 self.assertEqual(macros['SessionCount'][0],3)
                 self.assertEqual(macros['ComparisonLargeRows'][0],1104)
                 self.assertIn('65{,}536',(Path(folder)/'numbers.tex').read_text())

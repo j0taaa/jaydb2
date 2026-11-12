@@ -5,6 +5,7 @@ Invoke under flock /tmp/jaydb2-experiments-heavy.lock. All artifacts are local.
 """
 from pathlib import Path
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -100,7 +101,7 @@ def session(variants):
         assert p.returncode==0,p.returncode
         errors.seek(0)
         diagnostics=errors.read().decode('utf-8','replace')
-        assert diagnostics.count('PRIMARY_CHECK')==3,diagnostics
+        assert len(re.findall(r'^jaydb2: PRIMARY_CHECK: Error:$',diagnostics,re.M))==3,diagnostics
         assert diagnostics.count('Location: set_alice')==2 and diagnostics.count('Location: query_alice')==1,diagnostics
     print('PASS real indexed session: restricted Alice/Bob availability updates, X.scan_equal matching/nonmatching queries, X.maintain and X.rebuild, three intended certificate rejections, unchanged state after each denial, inherited BENDRTS neutralized.',flush=True)
 

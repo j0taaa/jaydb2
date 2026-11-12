@@ -60,13 +60,13 @@ def validate(data):
             if not meta.get(key): raise ValueError('Missing metadata: '+key)
         if not re.fullmatch('[0-9a-f]{40}',meta['commit']): raise ValueError('Invalid commit')
     for key in ('binary_sha256','source_sha256'):
-        if len({data[name]['metadata'][key] for name in ('ordinary','prepared','comparison','scaling')})!=1:
+        if len({data[name]['metadata'][key] for name in ('ordinary','prepared','comparison','scaling','verification')})!=1:
             raise ValueError('Mixed engine fingerprints: '+key)
     if {r['program'] for r in data['ordinary']['records']}!=set(PROGRAMS) or len(data['ordinary']['records'])!=3:
         raise ValueError('Ordinary program coverage')
     for r in data['ordinary']['records']:
         samples(r,30)
-        phases={'staging','primary_check','bendtt_translate_check','c_compilation','ordinary_worker','publication'}
+        phases={'staging','primary_check','bendtt_translate_check','c_emission','c_compilation','admission_total','ordinary_worker','publication'}
         if any(not phases<=s['phases_ns'].keys() for s in r['samples']): raise ValueError('Missing ordinary phase timing')
     expected={(p,m) for p in PROGRAMS for m in (False,True)}
     identities=[(r['program'],r['persistent']) for r in data['prepared']['records']]
@@ -128,12 +128,27 @@ def validate(data):
     for record in comparisons:
         if record['engine']=='postgresql' and record['policy']=='owner':
             if any(z['settings'].get('rls')!=[True,True] for z in record['sessions']):raise ValueError('PostgreSQL durability/RLS settings')
-    validate_frequency(data['verification'].get('size_collection_metadata',data['verification']['metadata']))
+    validate_frequency(data['verification']['metadata'])
+    if 'size_collection_metadata' in data['verification']:
+        validate_frequency(data['verification']['size_collection_metadata'])
     commands=data['verification']['commands']
     if {r['command'] for r in commands}!={'make verify-contract','make verify','make test'}:raise ValueError('Missing verification run')
     for row in commands:
         if not row.get('output') or row['elapsed_ns']<=0:raise ValueError('Missing verification output')
         if row['returncode']!=0:raise ValueError('Required verification gate failed; inspect retained output')
+        if 'metadata' in row:validate_frequency(row['metadata'])
+    count=data['verification']['negative_fixtures']
+    verify_output=next(row['output'] for row in commands if row['command']=='make verify')
+    if f'OK negative controls: {count} fixtures, {count*2} official-mode rejections' not in verify_output:
+        raise ValueError('Core negative inventory disagrees with completed verification')
+    native=re.search(r'OK native RLS session: (\d+) checked responses;.*? (\d+) admission denials',
+        next(row['output'] for row in commands if row['command']=='make test'))
+    rls=data['verification'].get('rls_validation',{})
+    if native is None or rls!={'native_responses':int(native[1]),'negative_fixtures':int(native[2])}:
+        raise ValueError('RLS inventory disagrees with completed native validation')
+    duties=(ROOT/'proof/README.md').read_text().split('**T3 —',1)[1].split('\nThe status table',1)[0]
+    if data['verification'].get('host_duty_count')!=len(re.findall(r'^\d+\. ',duties,re.M)):
+        raise ValueError('Host duty inventory disagrees with proof/README.md')
     # Failed measurements remain visible; they are never replaced with estimates.
     scaling=data['scaling']
     if not scaling['records']:raise ValueError('No state scaling measurements')
@@ -294,24 +309,26 @@ def derive(data):
     phase_cells={}
     for r in data['ordinary']['records']:
         groups={
+            'AdmissionSeconds':('admission_total',),
             'CheckingSeconds':('primary_check','bendtt_translate_check'),
             'CompilationSeconds':('c_emission','c_compilation'),
             'WorkerMs':('ordinary_worker',),
         }
         values={name:[sum(s['phases_ns'][p] for p in phases) for s in r['samples']]
             for name,phases in groups.items()}
-        values['OtherSeconds']=[s['elapsed_ns']-sum(values[name][i] for name in groups)
+        # The BendTT and native-build diagnostics overlap inside admission_total.
+        values['OtherSeconds']=[s['elapsed_ns']-values['AdmissionSeconds'][i]-values['WorkerMs'][i]
             for i,s in enumerate(r['samples'])]
         for name,ns in values.items():
             macro('Ordinary'+PROGRAMS[r['program']]+name,statistics.median(ns)/(1e6 if name=='WorkerMs' else 1e9),
-                r['program']+' ordinary '+name+' (other = round trip minus checking, C generation/build and worker)',
+                r['program']+' ordinary '+name+' (checking/build overlap inside admission; other = round trip minus admission and worker)',
                 'ms' if name=='WorkerMs' else 's')
         macro('Ordinary'+PROGRAMS[r['program']]+'WorkerSharePercent',
             statistics.median([100*s['phases_ns']['ordinary_worker']/s['elapsed_ns'] for s in r['samples']]),
             r['program']+' median per-call worker share of ordinary round trip','percent')
         phase_cells[r['program']]={name:cell(quartiles(ns),1e9,3)
             for name,ns in values.items()}
-    for name,label in [('CheckingSeconds','Checking'),('CompilationSeconds','C generation/build'),
+    for name,label in [('AdmissionSeconds','Admission wall'),('CheckingSeconds','Checking'),('CompilationSeconds','C generation/build'),
             ('WorkerMs','Worker'),('OtherSeconds','Other')]:
         phase_summary.append([label]+[phase_cells[p][name] for p in PROGRAMS])
     table('ordinary-phase-summary.tex','lrrr',phase_summary)
@@ -372,6 +389,9 @@ def derive(data):
         macro(name+'Files',counts['files'],label+' maintained Bend files','files')
         macro(name+'NonblankLines',counts['nonblank_lines'],label+' nonblank Bend lines, including comments','lines')
         inventory.append([label,counts['files'],counts['nonblank_lines']])
+    rls=v['detailed_sizes']['applications']['rls']
+    inventory.extend([['RLS client program',len(rls['program_files']),rls['client_lines']],
+        ['RLS client certificate/termination',len(rls['proof_files']),rls['proof_lines']]])
     table('size-table.tex','lrr',[['Area','Files','Nonblank lines']]+[[a.title(),s['files'],s['nonblank_lines']] for a,s in v['sizes'].items()]+inventory)
     scaling=data['scaling'];macro('StateLimitBytes',scaling['state_limit'],'Configured canonical state ceiling','bytes');macro('StateMaximumRows',scaling['max_rows'],'Largest analytically fitting population of this row shape','rows')
     macro('LargeSeedFuelFailures',sum('Seed.initial_valid' in r['reason'] and 'out of fuel' in r['reason'] for r in data['scaling-seed-attempt']['failures']),'Retained large direct-seed initialization attempts exhausted official BendTT fuel','attempts')
@@ -409,11 +429,15 @@ def derive(data):
     sizes=v['detailed_sizes']
     for name,key in [('RustProductionLines','rust_production_lines'),('RustTestLines','rust_test_lines')]:
         macro(name,sizes[key],sizes['definition'],'lines')
-    for app,label in [('indexed','Indexed'),('voucher','Voucher')]:
+    for app,label in [('indexed','Indexed'),('voucher','Voucher'),('rls','Rls')]:
         a=sizes['applications'][app]
         macro(label+'ClientLines',a['client_lines'],'Nonblank client program lines; see detailed file inventory','lines')
         macro(label+'ProofLines',a['proof_lines'],'Nonblank client certificate and local proof helper lines; see inventory','lines')
         macro(label+'ProofRatio',a['proof_lines']/a['client_lines'],'Local client proof lines / client program lines','ratio')
+    rls=v['rls_validation']
+    macro('RlsNegativeFixtures',rls['negative_fixtures'],'RLS causal negatives checked in both official modes','fixtures')
+    macro('RlsNativeResponses',rls['native_responses'],'Exactly checked responses in the complete native RLS session','responses')
+    macro('HostDutyCount',v['host_duty_count'],'Numbered T3 host obligations in proof/README.md; regrouping does not reduce trust','duties')
     for size,label in [(populations[0],'Small'),(scaling['max_rows'],'Large')]:
         r=next(r for r in scaling['records'] if r['rows']==size and not r['persistent'])
         macro('ScalingFirstKey'+label+'Ms',summary(r['first_key_samples'])['median']/1e6,'Volatile first-key read median at '+label.lower()+' population','ms')
@@ -455,9 +479,9 @@ def derive(data):
     (OUT/'final-headlines.md').write_text('\n'.join(markdown)+'\n')
     v=data['verification']
     details=['# Final controlled JayDB2 thesis evidence',
-        '', 'Branch: `'+data['scaling']['metadata']['branch']+'`. Engine source SHA-256: `'+data['scaling']['metadata']['source_sha256']+'`; executable SHA-256: `'+data['scaling']['metadata']['binary_sha256']+'`. Raw metadata retain each invocation commit; all four new latency datasets must have identical engine fingerprints.',
+        '', 'Branch: `'+data['scaling']['metadata']['branch']+'`. Engine source SHA-256: `'+data['scaling']['metadata']['source_sha256']+'`; executable SHA-256: `'+data['scaling']['metadata']['binary_sha256']+'`. Raw metadata retain each invocation commit; all refreshed E1–E5 datasets must have identical engine fingerprints.',
         '', 'E1–E3: three fresh sessions per condition. E5: one session, one service per storage mode reused across all sizes. Governor/EPP performance; turbo disabled; nominal 3.6 GHz. No CPU pinning. Inclusive quartiles; no outlier removal.',
-        '', 'E3 uses 10 and 1,104 total rows in all engines; owner rows are divided equally between Alice and Bob. SQLite is unconstrained. E4 wall times are retained historical successful runs under powersave/turbo; only source sizes were collected anew.',
+        '', 'E3 uses 10 and 1,104 total rows in all engines; owner rows are divided equally between Alice and Bob. SQLite is unconstrained. E4 commands were rerun under the same fixed-clock policy; each wall time is one observation.',
         '', 'All latency rows below use milliseconds. Session spread is min–max of session medians; E5 has only one session. Throughput rows use calls/s.', '',*markdown,
         '', '## Registration (nine observations per condition)', '', '| Program / storage | Min (s) | Median (s) | Max (s) | Session median min–max (s) | n |', '|---|---|---|---|---|---|']
     for r in data['prepared']['records']:
@@ -466,19 +490,31 @@ def derive(data):
         details.append(f"| {PROGRAMS[r['program']]} / {'durable' if r['persistent'] else 'volatile'} | {min(ns):.2f} | {statistics.median(ns):.2f} | {max(ns):.2f} | {min(sm):.2f}–{max(sm):.2f} | {len(ns)} |")
     details += ['', '## Ordinary phases', '', '| Program | Phase | Median [Q1,Q3] (ms) | n |', '|---|---|---|---|']
     for r in data['ordinary']['records']:
-        for label,phases in [('Checking',('primary_check','bendtt_translate_check')),('C generation/build',('c_emission','c_compilation')),('Worker',('ordinary_worker',))]:
+        for label,phases in [('Admission wall',('admission_total',)),('Checking (overlaps build)',('primary_check','bendtt_translate_check')),('C generation/build (overlaps checking)',('c_emission','c_compilation')),('Worker',('ordinary_worker',))]:
             ns=[sum(x['phases_ns'][p] for p in phases) for x in r['samples']]
             z=quartiles(ns)
             details.append(f"| {PROGRAMS[r['program']]} | {label} | {z['median']/1e6:,.2f} [{z['qone']/1e6:,.2f}, {z['qthree']/1e6:,.2f}] | {len(ns)} |")
     details += ['', '## Preparation break-even', '', '| Program | Calls |', '|---|---|']
     for p in PROGRAMS:details.append(f"| {PROGRAMS[p]} | {MACROS['BreakEven'+PROGRAMS[p]+'Calls'][0]} |")
-    details += ['', '## Retained verification times', '', '| Command | Seconds | n | Exit |', '|---|---|---|---|']
+    details += ['', '## E3 ordinary context (10 total rows)', '', '| Policy / operation | Median [Q1,Q3] (s) | n |', '|---|---|---|']
+    for policy in ('point','owner'):
+        r=next(r for r in data['comparison']['records'] if r['engine']=='jaydb2' and r['policy']==policy and r['rows']==10)
+        for workload in ('read','update'):
+            z=quartiles([x['elapsed_ns'] for x in r['ordinary'] if x['workload']==workload and x['phase']=='sample'])
+            details.append(f"| {policy.title()} / {workload} | {z['median']/1e9:.3f} [{z['qone']/1e9:.3f}, {z['qthree']/1e9:.3f}] | {z['n']} |")
+    details += ['', '## Fixed-clock verification times', '', '| Command | Seconds | n | Exit |', '|---|---|---|---|']
     for r in v['commands']:details.append(f"| {r['command']} | {r['elapsed_ns']/1e9:.3f} | 1 | {r['returncode']} |")
-    details += ['', 'Quartiles and session spread are undefined for these single historical command observations.', '', '## Source inventory', '', sizes['definition'], '', '| Area | Program / production lines | Proof / test lines | Proof/program ratio |', '|---|---|---|---|',f"| Rust host | {sizes['rust_production_lines']:,} | {sizes['rust_test_lines']:,} | — |"]
-    for app in ('indexed','voucher'):
+    details += ['', 'Quartiles and session spread are undefined for these single fixed-clock command observations. Checking and C generation/build diagnostics overlap inside admission wall time; they must not be added to it or to each other.', '', '## Verification inventory', '', '| Fact | Count |', '|---|---|']
+    for name in ('NegativeFixtures','ContractTheoremTypes','ProofLawDeclarations','ProofDefinitions','ProofTheoremWitnesses','PublicTheoremWitnesses','RlsNegativeFixtures','RlsNativeResponses','HostDutyCount'):
+        details.append(f"| {name} | {MACROS[name][0]:,} |")
+    details += ['', 'The core and RLS negative-fixture counts are separate; every fixture is checked in both official modes. The eight numbered T3 items regroup the previous eleven obligations and do not imply reduced trust.', '', '## Source inventory', '', sizes['definition'], '', '| Area | Program / production lines | Proof / test lines | Proof/program ratio |', '|---|---|---|',f"| Rust host | {sizes['rust_production_lines']:,} | {sizes['rust_test_lines']:,} | — |"]
+    for app in ('indexed','voucher','rls'):
         a=sizes['applications'][app]
         details.append(f"| {app.title()} | {a['client_lines']} | {a['proof_lines']} | {a['proof_lines']/a['client_lines']:.3f} |")
-    names=['CpuGovernor','CpuClockGHz','TurboSetting','SessionCount','RustProductionLines','RustTestLines','IndexedClientLines','IndexedProofLines','IndexedProofRatio','VoucherClientLines','VoucherProofLines','VoucherProofRatio','ComparisonLargeRows','ScalingFirstKeySmallMs','ScalingFirstKeyLargeMs']
+    details += ['', '| Source area | Files | Nonblank lines |', '|---|---|---|']
+    for area,counts in v['sizes'].items():
+        details.append(f"| {area.title()} | {counts['files']} | {counts['nonblank_lines']:,} |")
+    names=['CpuGovernor','CpuClockGHz','TurboSetting','SessionCount','RustProductionLines','RustTestLines','IndexedClientLines','IndexedProofLines','IndexedProofRatio','VoucherClientLines','VoucherProofLines','VoucherProofRatio','RlsClientLines','RlsProofLines','RlsProofRatio','RlsNonblankLines','RlsNegativeFixtures','RlsNativeResponses','HostDutyCount','ComparisonLargeRows','ScalingFirstKeySmallMs','ScalingFirstKeyLargeMs']
     names += ['Large'+policy+engine+op+'Ms' for policy in ('','Owner') for engine in ('Jay','Pg','Sq') for op in ('Read','Write')]
     details += ['', '## New macro contract', '', '| Macro | Value | Unit |', '|---|---|---|']
     for name in names:
@@ -498,7 +534,10 @@ def derive(data):
     pubs=[statistics.median(x['phases_ns']['publication'] for x in z['samples'])/1e6 for z in r['sessions']]
     workers=[statistics.median(x['phases_ns']['prepared_worker'] for x in z['samples'])/1e6 for z in r['sessions']]
     details += ['', 'Durable Indexed session medians (ms): '+', '.join(f'{v:.3f}' for v in totals)+'. Publication phase medians: '+', '.join(f'{v:.3f}' for v in pubs)+'. Worker phase medians: '+', '.join(f'{v:.3f}' for v in workers)+'. The fixed policy does not eliminate publication variability; these observations do not isolate individual fsync calls. No slow session was removed.']
-    details += ['', '## Run note', '', 'The E3/E5 measurement commands and both state-limit probes completed successfully. Their outer shell wrapper then exited 127 because its source was edited while Bash was executing it, causing Bash to read stray trailing text after the command returned. The EXIT trap restored and verified all original CPU settings. The finalized wrapper was subsequently checked with normal exit, failure, INT, TERM and HUP; no measured session was removed or replaced.']
+    details += ['', '## Run note', '', 'All E1–E5 datasets were refreshed after integrating checked host error replies, overlapped admission/build and unbounded RLS. E1–E3 retain three independent sessions; E5 retains its one-session scaling protocol. Complete command output and exact CPU restoration receipts are retained.']
+    attempts=ROOT/'paper/evidence/validation-attempts.json'
+    if attempts.exists():
+        details += ['', 'The initial aggregate test failed because its RLS diagnostic counter also counted checked-denial memo/controller logs. The counter now matches actual PRIMARY_CHECK error headers and requires exactly one false-proof location per negative. The failed command/output is retained in validation-attempts.json; the successful rerun supplies the E4 test wall time.']
     restoration=ROOT/'paper/evidence/cpu-restoration.json'
     if restoration.exists():
         restored=json.loads(restoration.read_text())

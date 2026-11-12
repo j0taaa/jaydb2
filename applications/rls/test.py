@@ -118,7 +118,8 @@ def native_session():
                 before = server.diagnostics()
                 expect(server.call(bad_code, bad_proof, context[0] + '-token', ['list']), 'certificate', None)
                 delta = server.diagnostics()[len(before):]
-                assert 'PRIMARY_CHECK' in delta and 'Location: false' in delta, (name, delta)
+                assert len(re.findall(r'^jaydb2: PRIMARY_CHECK: Error:$', delta, re.M)) == 1, (name, delta)
+                assert re.findall(r'^Location: (\S+)$', delta, re.M) == ['false'], (name, delta)
                 assert '- expected :' in delta and '- observed :' in delta, delta
                 snapshot()
                 print(f'OK native {name}: admission refusal and complete unchanged application state', flush=True)
@@ -130,7 +131,8 @@ def native_session():
             expect(server.prepared(2, handle, 'admin-token'), 'invalidated', None)
             server.finish()
             (BUILD / 'host.log').write_text(server.diagnostics())
-            assert server.diagnostics().count('PRIMARY_CHECK') == len(list(cases())), server.diagnostics()
+            errors = re.findall(r'^jaydb2: PRIMARY_CHECK: Error:$', server.diagnostics(), re.M)
+            assert len(errors) == len(list(cases())), server.diagnostics()
         finally:
             (BUILD / 'host.log').write_text(server.diagnostics())
             server.close()

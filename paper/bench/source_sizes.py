@@ -24,7 +24,8 @@ def counts():
     applications={}
     definitions={
         'indexed':(['applications/indexed/Client.bend'],['applications/indexed/ClientProof.bend','applications/indexed/CheckedActions.bend','applications/indexed/Completion.bend']),
-        'voucher':(['applications/vouchers/Client.bend','applications/vouchers/Voucher.bend'],['applications/vouchers/ClientProof.bend'])}
+        'voucher':(['applications/vouchers/Client.bend','applications/vouchers/Voucher.bend'],['applications/vouchers/ClientProof.bend']),
+        'rls':(['applications/rls/Client.bend'],['applications/rls/ClientProof.bend','applications/rls/Completion.bend'])}
     for name,(program,proof) in definitions.items():
         applications[name]=dict(program_files={p:nonblank(p) for p in program},proof_files={p:nonblank(p) for p in proof},
             client_lines=sum(map(nonblank,program)),proof_lines=sum(map(nonblank,proof)))
@@ -42,7 +43,7 @@ if __name__=='__main__':
         data=json.loads(path.read_text())
         data['detailed_sizes']=result
         data['size_collection_metadata']=metadata(1)
-        data['timing_policy_note']='Original successful verification wall times retained; their historical metadata precedes fixed-clock control. New size_collection_metadata records only source-inventory collection, not a rerun of command wall times.'
+        data['size_collection_note']='Source inventory refreshed independently; command timing metadata and policy remain as recorded.'
         save('verification.json',data)
     else:
         print(json.dumps(result,indent=2))

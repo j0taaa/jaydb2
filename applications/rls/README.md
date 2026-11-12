@@ -312,7 +312,7 @@ local proof lines (5.30).
 
 ## Validation result
 
-Validated on 2026-11-11 with the pinned official toolchain (BendTT and native
+Validated with the pinned official toolchain (BendTT and native
 sources reused through a temporary `.tools` symlink to the existing local
 toolchain). All heavy commands ran under the shared lock with unlimited stack:
 `make build`, `python3 -B applications/rls/check.py` (full default),
@@ -324,8 +324,14 @@ contract, host or library file changed.
 | `make build` | Passed. |
 | `python3 -B applications/rls/check.py` | Positive certificate/termination/seed and the universal certificate passed both official modes; all twelve negatives failed only at `false` in both modes; native session passed with 253 checked responses and twelve admission denials, each followed by a complete unchanged-state check, plus largest-id deletion/reuse with replacement content. |
 | `make test-rls` | The same full RLS gate passed, including all twelve negatives in both modes and the 253-response native session. |
-| `make verify` | Import coverage and the existing positive roots passed in both modes; 373 negative fixtures / 746 official-mode rejections; this application's proof gate (as above, without the native session) passed. |
-| `make test` | 30 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (253-response native session). |
+| `make verify` | Import coverage and the existing positive roots passed in both modes; 397 negative fixtures / 794 official-mode rejections; this application's proof gate (as above, without the native session) passed. |
+| `make test` | 47 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (253-response native session). |
 
 Generated roots, intended-failure diagnostics and the host log stay under the
 ignored `applications/rls/.build/`.
+
+Integration with checked host error replies also emits controller/memo diagnostics
+containing `PRIMARY_CHECK`. The native test counts anchored actual error headers,
+requires exactly one `false` location for each negative, and retains all twelve
+complete unchanged-state checks. The aggregate and standalone RLS gate passed
+after this diagnostic-counter adjustment.

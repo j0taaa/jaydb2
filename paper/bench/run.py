@@ -225,6 +225,11 @@ def verification():
         data['commands'].append(dict(command='make '+target,elapsed_ns=elapsed,returncode=result.returncode,output=result.stdout))
         save('verification.json',data)
         print(target,result.returncode,round(elapsed/1e9,2),flush=True)
+    verification_inventory(data)
+    save('verification.json',data)
+
+
+def verification_inventory(data):
     from paper.bench.source_sizes import counts
     data['detailed_sizes']=counts()
     data['source_extensions']=['.bend','.rs','.mjs','.json','.c','.h','.py']
@@ -233,13 +238,25 @@ def verification():
     for group,dirs in [('src',['src']),('contract',['contract']),('proof',['proof']),('server',['server']),('tools',['tools/admission','tools/service']),('native',['native'])]:
         files=[p for base in dirs for p in (ROOT/base).rglob('*') if p.is_file() and p.suffix in ('.bend','.rs','.mjs','.json','.c','.h','.py')]
         data['sizes'][group]=dict(files=len(files),nonblank_lines=sum(sum(bool(line.strip()) for line in p.read_text().splitlines()) for p in files))
+    # Generated proof packages live in applications/rls/.build; count only
+    # the maintained top-level Bend files, including schema/laws/seed.
+    files=list((ROOT/'applications/rls').glob('*.bend'))
+    data['sizes']['rls']=dict(files=len(files),nonblank_lines=sum(
+        sum(bool(line.strip()) for line in p.read_text().splitlines()) for p in files))
     data['negative_fixtures']=len(list((ROOT/'tests/proof/rejected').glob('*.bend')))
     data['theorem_types']=len(re.findall(r'^def \w*Theorem\b',(ROOT/'contract/Theorems.bend').read_text(),re.M))
     data['proof_law_declarations']=sum(len(re.findall(r'^law\s+',p.read_text(),re.M)) for p in (ROOT/'proof').glob('*.bend'))
     data['proof_definitions']=sum(len(re.findall(r'^def\s+',p.read_text(),re.M)) for p in (ROOT/'proof').glob('*.bend'))
     data['theorem_witnesses']=[f'{p.name}:{name}' for p in sorted((ROOT/'proof').glob('*.bend'))
         for name in re.findall(r'^def (\w*theorem)\(',p.read_text(),re.M)]
-    save('verification.json',data)
+    duties=(ROOT/'proof/README.md').read_text().split('**T3 —',1)[1].split('\nThe status table',1)[0]
+    data['host_duty_count']=len(re.findall(r'^\d+\. ',duties,re.M))
+    # Counts come from successful real gates, rather than README promises.
+    test_output=data['commands'][-1]['output']
+    native=re.search(r'OK native RLS session: (\d+) checked responses;.*? (\d+) admission denials',test_output)
+    if native is None: raise RuntimeError('Missing completed native RLS session')
+    data['rls_validation']=dict(native_responses=int(native[1]),negative_fixtures=int(native[2]))
+    data['timing_policy_note']='All three command wall times collected under fixed-clock.sh; one observation per command.'
 
 
 def main():
