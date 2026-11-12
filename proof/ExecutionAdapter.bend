@@ -133,18 +133,26 @@ def finite_execution_reaches_exact_adapter_result(c, n, initial, machine, w, eve
       L.ex_false({drive(c, 1n, X.Continue{X.StateExecution{initial, N.Running{s, action, ts}}}) ==
         X.prepared(N.prepare(N.Stopped{w, events, response}, c), initial) : X.Iteration},
         final_impossible(w, events, response, s, ts, obtained))
-    case 0n N.Stopped{s, ts, r}:
+    case 0n N.Stopped{+s, +ts, +r}:
+      %Equal.sym(X.Iteration, X.finish(r, c, s, ts, initial),
+        X.prepared(N.prepare(N.Stopped{s, ts, r}, c), initial),
+        X.finish_equals_reference(r, c, s, ts, initial)) :
+        {_ == X.prepared(N.prepare(N.Stopped{w, events, response}, c), initial) : X.Iteration}
       Equal.cong(S.Trace, X.Iteration, trace => final_output(c, initial, trace),
         S.Final{s, ts, r}, S.Final{w, events, response}, obtained)
     case Succ{+k} N.Running{s, action, ts}:
       next_complete(c, k, initial, N.advance(N.Running{s, action, ts}, S.schema(c)), w, events, response, obtained,
         next => result => finite_execution_reaches_exact_adapter_result(c, k, initial, next, w, events, response, result))
     case Succ{+k} N.Stopped{+s, +ts, +r}:
+      %Equal.sym(X.Iteration, X.finish(r, c, s, ts, initial),
+        X.prepared(N.prepare(N.Stopped{s, ts, r}, c), initial),
+        X.finish_equals_reference(r, c, s, ts, initial)) :
+        {drive(c, Succ{k}, _) == X.prepared(N.prepare(N.Stopped{w, events, response}, c), initial) : X.Iteration}
       +equality = Equal.trans(S.Trace, S.Final{s, ts, r}, N.traverse(1n+k, N.Stopped{s, ts, r}, S.schema(c)),
         S.Final{w, events, response}, Equal.sym(S.Trace, N.traverse(1n+k, N.Stopped{s, ts, r}, S.schema(c)),
           S.Final{s, ts, r}, N.stopped_absorbs(1n+k, s, ts, r, S.schema(c))), obtained)
       Equal.trans(X.Iteration,
-        drive(c, Succ{Succ{k}}, X.Continue{X.StateExecution{initial, N.Stopped{s, ts, r}}}),
+        drive(c, Succ{k}, X.prepared(N.prepare(N.Stopped{s, ts, r}, c), initial)),
         X.prepared(N.prepare(N.Stopped{s, ts, r}, c), initial),
         X.prepared(N.prepare(N.Stopped{w, events, response}, c), initial),
         terminal_iteration_cannot_resume(c, Succ{k},

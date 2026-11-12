@@ -1,6 +1,7 @@
 # Pure entry used literally by the generated native worker. Foreign effects
 # only supply private bytes and drive Execution.advance until its terminal sum.
 import Base
+import ./LimitWords.bend as LimitWords
 import ../contract/Bytes.bend as B
 import ../contract/Data.bend as D
 import ../contract/Protocol.bend as P
@@ -41,7 +42,7 @@ def decoded(~c: S.Configuration, initial: D.State, input: Input.PreAuthenticatio
 
 def ingress(~c: S.Configuration, +s: D.State, body: List<&2, U32>,
   admit: Gate.Oracle()) -> X.Iteration:
-  decoded(c, s, Input.read_message(B.nat64(R.limit_message(S.limits(c))), body, s), admit)
+  decoded(c, s, Input.read_message(LimitWords.convert(R.limit_message(S.limits(c))), body, s), admit)
 
 def registered(~c: S.Configuration, initial: D.State, input: Input.PreAuthentication,
   entries: List<&2, Registry.Entry>, admit: Gate.Oracle()) -> X.Iteration:

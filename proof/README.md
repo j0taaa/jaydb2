@@ -53,6 +53,17 @@ with the repository proofs, rather than imported into every admission Book:
 inlining the full bridge graph into a generated Book exhausts the pinned
 BendTT default fuel in `worker_body_equals_ingress_composition.qv_1`.
 
+The checked worker also specializes the common 65,536-byte ceiling through
+`LimitWords.convert_equals_reference`, with a canonical `Number64` literal
+witness derived from the existing binary-measure proof. Other ceilings use the
+unchanged `Bytes.nat64`, including its overflow behavior. The staging layer
+relocates this proof dependency closure into each admitted Book.
+`Execution.finish_equals_reference` proves that retaining the canonical state
+encoding used by finalization emits exactly the existing preparation,
+publication and Commit/Keep composition, including every failure branch.
+`ExecutionAdapter` uses that equality for the actual stopped-machine step.
+These are pure checked refinements; T1–T3 and the private result ABI are unchanged.
+
 ## Non-vacuity and checking
 
 `tests/proof/Positive.bend` uses the real tasks policy, program, client proof

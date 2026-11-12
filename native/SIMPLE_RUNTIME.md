@@ -41,6 +41,16 @@ The loop still consumes one `Execution.advance` step at a time, using
 encodes the exact framed bytes. The unchanged private ABI is
 `1 || frame(root) || response` for Commit and `0 || response` for Keep.
 Rust obeys this decision after cleanup and optional durable publication.
+
+The stopped-machine adapter retains the exact canonical state bytes used for
+the state-size check and supplies them to Commit framing, avoiding a second
+state encoding. `Execution.finish_equals_reference` proves exact equality to
+the original Gate/Core preparation and decision serialization on all inputs.
+`LimitWords.convert_equals_reference` checks the precomputed 65,536-byte u64
+ceiling against `Bytes.nat64`; other limits keep that reference conversion.
+Staging relocates the limit witness's proof dependencies into the admitted Book.
+Neither optimization changes the ABI, foreign effects, compiler/runtime or
+T1–T3 duties. Equal-root success still emits Commit with its new response.
 `WorkerBridge.worker_body_equals_ingress_composition` and
 `worker_unified_equals_gate_composition` reuse the existing ExecutionAdapter
 proof to connect finite loop results to the theorem's Gate composition.
