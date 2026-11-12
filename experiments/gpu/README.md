@@ -61,3 +61,8 @@ The latter uses the paper's fixed-clock wrapper and writes raw JSON to
 large-workload oracle. Corpus is 512 MiB. No emitted C or pinned Bend file is
 modified. Read the [trusted-base statement](../../proof/README.md#trusted-base)
 before interpreting source theorems or performance evidence.
+
+Optionally render the retained measurements as a standalone SVG research
+figure with `python3 -B paper/bench/gpu_chart.py` (requires matplotlib). The
+figure shows medians and sample min–max ranges; it does not infer confidence
+intervals or a general speedup.
