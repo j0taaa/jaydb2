@@ -15,12 +15,15 @@ APP = ROOT/'applications/simulation'
 CODE, PROOF = ((APP/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
 CONCRETE = PROOF.replace('def B.certificate(ctx, args, s, valid, identity, n):\n  +ctx = ctx\n  +args = args',
     'def B.certificate(s, valid, identity, n):\n  +ctx = I.context()\n  +args = I.arguments()')
+assert CONCRETE != PROOF, 'concrete certificate substitution no longer applies'
 PARAMETERS = {'alice': (123456789, 0, 250), 'bob': (3735928559, 3, 700)}
+# SQL-only control: drift 65535 for 65,536 steps wraps every path past 2**32.
+WRAP = (1, 65535, 1000)
 MASK = 0xffffffff
 
 
 def oracle(depth, steps, user='alice', vector=False):
-    seed, drift, vol = PARAMETERS[user]
+    seed, drift, vol = WRAP if user == 'wrap' else PARAMETERS[user]
     if vector:
         import numpy as np
         rng = (np.arange(1 << depth, dtype=np.uint64)*747796405+seed) & MASK
@@ -127,6 +130,19 @@ class SimulationSqlTests(unittest.TestCase):
                     self.assertEqual(rows, [tuple(reference[k] for k in ('sum', 'max', 'above', 'paths'))])
                     results[user] = reference
                     self.assertEqual(sql_state(conn), state(results)['tables'])
+            # Wraparound and negative intermediates must also be bit-exact.
+            conn.execute('INSERT INTO scenarios VALUES(?,?,?,?)', ('wrap', *WRAP))
+            reference = oracle(2, 65536, 'wrap')
+            crossed = False
+            for index in range(4):
+                rng, value = (WRAP[0]+index*747796405) & MASK, 1000000
+                for _ in range(65536):
+                    rng = (rng*1664525+1013904223) & MASK
+                    value += WRAP[1]+((rng >> 16) % (2*WRAP[2]+1))-WRAP[2]
+                    crossed |= value >= 2**32
+            self.assertTrue(crossed, 'control no longer wraps')
+            rows = conn.execute(query, dict(who='wrap', paths=4, steps=65536)).fetchall()
+            self.assertEqual(rows, [tuple(reference[k] for k in ('sum', 'max', 'above', 'paths'))])
 
 
 class SimulationGpuTests(unittest.TestCase):

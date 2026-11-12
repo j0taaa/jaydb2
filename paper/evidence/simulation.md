@@ -1,6 +1,6 @@
 # Certified table-driven simulation
 
-Measured revision `6ef0194eb5bedbdfb9605927b92a45c48b0ee335`. Dirty paths at measurement are retained in the raw metadata. This evidence is separate from the thesis E1–E5 dataset; no main/slides or contract files changed.
+Measured revision `6ef0194eb5bedbdfb9605927b92a45c48b0ee335`. Dirty paths at measurement are retained in the raw metadata. This evidence is separate from the thesis E1–E5 dataset; `paper/main.tex`, `paper/slides.tex` and contract files were not changed. Later commits (2e341d1 and the final-review fixes) change only artifact validation messages, staging arguments, MiB parsing and tests, none in the timed path. Out-of-range parameters differ by design: the Bend client maps a negative or high-word cell to 0, while the SQL scripts use the stored value; the fixed seed rows are in range. A SQL/scalar-oracle control with drift 65535 over 65,536 steps checks U32 wraparound past 2^32; the Bend client relies on native U32 wraparound and is checked against the oracle at the measured sizes.
 
 The application reads the authenticated user’s seed, drift and volatility from three cells in `scenarios`, then writes `sum`, `max`, `above`, and `paths` to that user’s `results` row. Two scenario rows keep access/state overhead small while runtime `[depth, steps]` controls numerical work.
 

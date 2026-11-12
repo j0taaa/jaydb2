@@ -99,8 +99,9 @@ def main():
     compiler = executable()
     count = 0
     rejected = Path(__file__).with_name('rejected')
-    for name in ('GpuFalseResult', 'GpuUnauthorizedRead', 'GpuFalseTermination', 'SimulationUnauthorizedWrite'):
-        assert (rejected / (name + '.bend')).is_file(), 'Missing GPU negative: ' + name
+    for name in ('GpuFalseResult', 'GpuUnauthorizedRead', 'GpuFalseTermination', 'SimulationUnauthorizedWrite',
+                 'SimulationUnauthorizedRead'):
+        assert (rejected / (name + '.bend')).is_file(), 'Missing required negative: ' + name
     for path in sorted(rejected.glob('*.bend')):
         for mode in ('--check-only', '--verdict'):
             run = subprocess.run([str(compiler), str(path), mode],

@@ -257,7 +257,7 @@ impl Program {
             if !regular || format!("{:x}", Sha256::digest(fs::read(&path)?)) != *expected {
                 return Err(Error::new(
                     "HOST_NATIVE",
-                    format!("missing or changed artifact: {}", path.display()),
+                    format!("changed or nonregular artifact: {}", path.display()),
                 ));
             }
         }

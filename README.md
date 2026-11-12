@@ -96,7 +96,8 @@ it does not replace the engine or change its core laws.
 
 The opt-in experimental GPU support (`--gpu MiB`, default off) ports the
 archived `archive/experiment-gpu` and `archive/experiment-integration` designs
-onto the current service; see [GPU programs](experiments/gpu/README.md).
+onto the current service; see [GPU programs](experiments/gpu/README.md) and the
+certified table-driven [simulation application](applications/simulation/README.md).
 The Bend controller replacement and quota enforcement are outside this work.
 
 ## Checks

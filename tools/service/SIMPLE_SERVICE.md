@@ -360,8 +360,7 @@ does not establish that a kernel launched. With `--gpu`, every submitted or
 prepared program is built with a mandatory official cubin prebuild, so without a
 usable CUDA device (concurrent managed memory) admission itself fails (a
 `HELPER` failure whose diagnostic starts with `GPU_BUILD:`), even for bang-free
-programs; bang-free programs then run on the
-CPU pool. A requested bang never silently falls back to CPU.
+programs. With a usable device, bang-free programs run on the CPU pool. A requested bang never silently falls back to CPU.
 
 GPU admission waits for **both** official checkers on the sealed Book before
 C emission, Clang or CUDA use. It compiles literal C with `/usr/bin/clang-19`,

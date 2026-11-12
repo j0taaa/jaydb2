@@ -266,7 +266,7 @@ class GpuTests(unittest.TestCase):
                     self.assertEqual(server.prepared(1, handle, 'abc', 'never-published'),
                                      {'status': 'failure', 'value': None}, server.diagnostics())
                     self.assertTrue(any(message in server.diagnostics()[before:] for message in
-                                        ['GPU_REBUILD', 'missing or changed artifact']))
+                                        ['GPU_REBUILD', 'changed or nonregular artifact']))
                 finally:
                     fault.unlink(missing_ok=True)
                     device.write_bytes(original_device)

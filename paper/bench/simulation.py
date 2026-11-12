@@ -182,6 +182,8 @@ def main():
                     if row['backend'] == name: row['complete_state_verified'] = True
             finally:
                 server.close()
+                feed.listener.close()
+                feed.thread.join(timeout=5)
         assert len(hashes) == 1, 'CPU/CUDA emitted C differs'
         save()
     with postgres() as (_, _, conn, settings):

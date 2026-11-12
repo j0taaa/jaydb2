@@ -66,3 +66,6 @@ Optionally render the retained measurements as a standalone SVG research
 figure with `python3 -B paper/bench/gpu_chart.py` (requires matplotlib). The
 figure shows medians and sample min–max ranges; it does not infer confidence
 intervals or a general speedup.
+
+A larger certified example, a table-driven integer Monte Carlo simulation compared
+with PostgreSQL and SQLite, is in [applications/simulation](../../applications/simulation/README.md).
