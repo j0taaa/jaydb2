@@ -1,0 +1,23 @@
+# First startup field is reserved zero; only sched_process_exec-to-main is measured.
+BEGIN { printf("READY\n"); }
+tracepoint:sched:sched_process_exec { @exec[tid]=nsecs; }
+uprobe:EXE:main { @main[tid]=nsecs; printf("startup %d 0 %llu\n",pid,nsecs-@exec[tid]); }
+uprobe:EXE:io_loop { printf("runtime_to_loop %d %llu\n",pid,nsecs-@main[tid]); }
+uprobe:EXE:jaydb_read { @read[tid]=nsecs; printf("loop_to_read %d %llu\n",pid,nsecs-@main[tid]); }
+uretprobe:EXE:jaydb_read { printf("read_list %d %llu\n",pid,nsecs-@read[tid]); }
+uprobe:EXE:corpus_eval { @eval[tid]=nsecs; @i[tid]++; }
+uretprobe:EXE:corpus_eval { printf("eval %d %llu %llu\n",pid,@i[tid],nsecs-@eval[tid]); }
+uprobe:EXE:io_cbuf { @buf[tid]=nsecs; }
+uretprobe:EXE:io_cbuf { printf("output_list %d %llu\n",pid,nsecs-@buf[tid]); }
+uprobe:EXE:WL_FID_Dispatch_read_root { @root[tid]=nsecs; }
+uprobe:EXE:WL_FID_State_form { @stateform[tid]=nsecs; printf("root_codec %d %llu\n",pid,nsecs-@root[tid]); }
+uprobe:EXE:WL_FID_Data_structure { if (!@rootdone[tid]) { @structure[tid]=nsecs; printf("root_conversion %d %llu\n",pid,nsecs-@stateform[tid]); } }
+uprobe:EXE:WL_FID_Input_read_message { if (!@rootdone[tid]) { @rootdone[tid]=1; @body[tid]=nsecs; printf("root_to_message %d %llu\n",pid,nsecs-@root[tid]); printf("root_validation %d %llu\n",pid,nsecs-@structure[tid]); } }
+uprobe:EXE:WL_FID_Dispatch_received { printf("root_decode %d %llu\n",pid,nsecs-@root[tid]); }
+uprobe:EXE:WL_FID_Data_authenticate { if (!@auth[tid]) { @auth[tid]=nsecs; printf("auth_start %d %llu\n",pid,nsecs-@eval[tid]); printf("body_decode %d %llu\n",pid,nsecs-@body[tid]); } }
+uprobe:EXE:WL_FID_Core_start { printf("auth_resolve_oracle %d %llu\n",pid,nsecs-@auth[tid]); }
+uprobe:EXE:WL_FID_Data_state_value { printf("state_encode_start %d %llu\n",pid,nsecs-@eval[tid]); }
+uprobe:EXE:WL_FID_Protocol_encode { printf("encode_start %d %llu\n",pid,nsecs-@eval[tid]); }
+uprobe:EXE:jaydb_loop_run { @loop[tid]=nsecs; printf("loop_enter %d %llu\n",pid,nsecs); }
+uretprobe:EXE:jaydb_loop_run { printf("loop %d %llu\n",pid,nsecs-@loop[tid]); }
+END {clear(@exec);clear(@main);clear(@read);clear(@eval);clear(@i);clear(@buf);clear(@root);clear(@auth);clear(@loop);clear(@stateform);clear(@structure);clear(@rootdone);clear(@body);}
