@@ -58,7 +58,7 @@ class StateFeed:
                     state = frame()
                     if state is None: raise AssertionError('inspector omitted state')
                     self.states.append(unframe(state))
-                    self.events.append(unframe(metadata))
+                    self.events.append(json.loads(metadata[8:]))
         except Exception as error:
             self.errors.append(str(error))
 
