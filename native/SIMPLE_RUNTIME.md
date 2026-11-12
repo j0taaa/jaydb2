@@ -36,9 +36,10 @@ remain T1; the environment guard does not purport to compare arbitrary
 function-valued configurations.
 
 The loop still consumes one `Execution.advance` step at a time, using
-`Core.advance`. The stopped branch now calls `Gate.finish`; early branches call
-`Gate.early`. Checked `Execution.decision` then selects Commit or Keep and
-encodes the exact framed bytes. The unchanged private ABI is
+`Core.advance`. The stopped branch calls the optimized `Execution.finish`;
+early branches call `Gate.early`. The stopped result is proved equal to the
+reference `Gate.finish` / `Execution.decision` composition, including its
+Commit/Keep selection and exact framed bytes. The unchanged private ABI is
 `1 || frame(root) || response` for Commit and `0 || response` for Keep.
 Rust obeys this decision after cleanup and optional durable publication.
 
