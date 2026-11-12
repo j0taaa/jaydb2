@@ -446,7 +446,8 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'staging', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
   const source = path.join(directory, 'checked.c');
   try { command(process.execPath, ['--stack_size=65536', path.join(runtimeRoot, 'tools/service/compile.mjs'), path.join(directory, 'manifest.json'), source, sourceDir, kernelPath,
-    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : ['']), String(gpuMiB)]); }
+    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : []),
+    ...(gpuMiB ? [String(gpuMiB)] : [])]); }
   catch (e) {
     const errorPath = source + '.error.json';
     if (fs.existsSync(errorPath)) {

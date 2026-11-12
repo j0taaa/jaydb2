@@ -220,6 +220,11 @@ class GpuTests(unittest.TestCase):
             self.assertIn('launch 0', events, 'no successful real CUDA kernel launch')
             self.assertIn('sync 0', events)
             self.assertFalse(any(not event.endswith(' 0') for event in events))
+            print('CUDA forwarding evidence: ' + json.dumps({
+                'sourceSha256': manifest['sourceSha256'], 'hasBangs': manifest['hasBangs'],
+                'allocation_successes': events.count('allocation 0'),
+                'launch_successes': events.count('launch 0'),
+                'synchronize_successes': events.count('sync 0')}), flush=True)
             # Both files and all compilation/proof metadata are sealed.
             for path in [native, device, Path(str(native)+'.json'), native.parent/'checked.c',
                          native.parent/'Client.bend', native.parent/'ClientProof.bend']:
