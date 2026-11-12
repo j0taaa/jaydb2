@@ -1,156 +1,199 @@
-# Certified row-level security on a shared notes table
+# Certified row-level security with unbounded per-user notes
 
-Alice and Bob store notes in **one `notes` table** with required text columns
-`id`, `owner`, and `text`. Public demonstration credentials are `alice-token`,
-`bob-token`, and `admin-token`; authentication supplies the ID and role from
-the current user registry. No caller-supplied owner or role is trusted.
+Alice and Bob store notes in **one shared `notes` table** (`id`, `owner`,
+`text`). Each user also has a private **directory table** (`alice_dir`,
+`bob_dir`, columns `id`, `owner`) whose rows are exactly the ids of that user's
+notes. Public demonstration credentials are `alice-token`, `bob-token` and
+`admin-token`; authentication supplies the id and role from the current user
+registry. No caller-supplied owner or role is trusted.
 
-Each ordinary user can read, test existence, replace, or delete only their own
-rows. Even a foreign-row read followed by refusal violates the law. Full-row
-insertion/replacement must supply the caller's owner. Ownership cannot change.
-The explicitly authorized `admin` **role** can read any note, test existence,
-enumerate all note keys, and count all notes. Admin has no exception for writes:
-the write rule still requires its own key, so the seed's admin cannot write or
-delete Alice/Bob notes. No role can read or mutate the registry through client
-operations, or perform partial-column writes. The demo does not provision users,
-change roles, transfer ownership, or confer any implicit kernel privilege.
+There is no slot count. A user can create notes until the configured
+65,536-byte state limit is reached; the earlier two-slot version is replaced.
 
-## Unbounded-directory follow-up (incomplete)
+## Representation
 
-The attempted follow-up is isolated in [`unbounded/`](unbounded/README.md).
-It contains a bitmap-directory model, prototype CRUD/list actions, generic
-key/directory algebra and concrete reference-interpreter examples beyond the
-old cap. **It is not an admitted application: the universal mutation/publication
-certificate is unfinished. The working app described below still has two slots.**
+| Table | Key | Meaning |
+| --- | --- | --- |
+| `notes` | `alice/00000001`, `bob/00000007`, ... | Shared business rows; the key prefix names the owner and the `owner` column repeats it. |
+| `alice_dir`, `bob_dir` | the note id | One row per note the user owns. |
 
-The [proof-gap report](unbounded/README.md#where-certification-remains-unfinished)
-identifies the required actual-upsert/removal and publication obligations and
-explains why ownership alone would be insufficient. No installed law, existing
-negative control, host source or checker limit was weakened for this spike.
-Its model controls must not be reported as new native admission-denial tests.
+Ids are fixed-width decimals under the owner's prefix, so their string order
+is numeric. `create` enumerates only the caller's own directory, takes the
+largest id and adds one. Deleting the largest id and creating again reuses it
+(the id is fresh with respect to the current notes, which is all the laws need).
+Deletion removes both rows; nothing is kept as a tombstone.
 
-## Representation and listing
+Every listing step is private: a user enumerates **only their own directory
+table** and then reads each listed note. No user operation enumerates or counts
+the shared table, and no user operation tests whether another user's row exists.
 
-There are exactly two possible note slots per user: `alice/1`, `alice/2`,
-`bob/1`, and `bob/2`. Each row redundantly stores its owner in the `owner`
-column. `Policy.key_valid` defines the complete address space; `key_owner`
-extracts the owner of those addresses. At every working prefix and publication,
-every row must have a valid key, an owner field equal to that key's owner, and
-a registered owner. Thus replacing or deleting/recreating a row at the same key
-cannot transfer ownership. `Ownership.owner_immutable_at_key` proves this
-relationship independently of any particular client.
+## Installed administrator laws
 
-The fixed slot bound makes proofs and private enumeration small and explicit.
-`Client.list` tests existence of only the caller's two keys and returns the
-present keys in order. It never invokes `EnumerateKeys` or observes another
-user's existence. Listing covers all possible caller rows because the invariant
-excludes every other key. The native engine may traverse its internal state to
-resolve an addressed operation; internal representation work does not expose
-those traversed rows to the program. This is a bounded notes demonstration,
-not an arbitrary-prefix query primitive or an unbounded multi-tenant application.
-The shared table has at most four rows, so the admin count fits the returned
-integer representation.
+`Policy.laws()` installs two propositions. Both are checked before execution;
+neither is a runtime predicate.
 
-## Installed administrator law
-
-`Policy.Rule` is the single installed proposition. Its `Stable` case requires
-`Owners(s)`; its `Executing` and `Closed` cases require both `Owners(w)` and
-`AllAllowed(ctx, ts)`. The latter checks each actual operation, including failed
-accesses and reads whose values the program discards. Representative definitions:
+**`Rule` — every working prefix, every closed result.** The existing RLS law,
+generalized from four fixed keys to every key in the two namespaces:
 
 ```bend
-def WriteScope(id: String, +key: String) -> Data:
-  Both<{key_owner(key) == id : String}, {key_valid(key) == True{} : Bool}>
+def key_owner(+k: String) -> String:
+  Bool.pick(String, starts("alice/", k), "alice", Bool.pick(String, starts("bob/", k), "bob", ""))
 
-# Allowed's full-row write case also requires the fixed owner field:
-case D.DefineRow{D.Application{name}, +k, fs}:
-  Both<{name == "notes" : String}, Both<WriteScope(id, k),
+# Every row of every table carries its key's owner, who must be registered.
+def Owner(+us: List<&2, D.Row>, name: String, +l: D.Row) -> Data:
+  Both<{key_valid(D.row_key(l)) == True{} : Bool},
+    Both<{D.find_field(fields(l), "owner") == Some{D.VText{key_owner(D.row_key(l))}} : Maybe<&2, D.Value>},
+      {D.exists_row(D.find_row(us, key_owner(D.row_key(l)))) == True{} : Bool}>>
+
+case D.DefineRow{D.Application{+name}, +k, fs}:
+  Both<Writable(id, name), Both<WriteScope(id, k),
     {D.find_field(fs, "owner") == Some{D.VText{key_owner(k)}} : Maybe<&2, D.Value>}>>
-
-# Reads explicitly distinguish the administrator role:
-def ReadScope(admin: Bool, id: String, +key: String) -> Data:
-  match admin:
-    case True{}: Unit
-    case False{}: Both<{key_owner(key) == id : String}, {key_valid(key) == True{} : Bool}>
+case D.EnumerateKeys{D.Application{name}}:
+  KeysScope(String.eq(kind, "admin"), id, name)   # a user: only name == id ++ "_dir"
 ```
 
-`Allowed` passes `String.eq(kind, "admin")` to `ReadScope`, restricts the table
-to `notes`, and requires `kind == "admin"` for whole-table enumeration/count.
-Every other operation, including all registry and partial-column operations,
-has the impossible obligation `False == True`.
+In words: users read, test, write and delete only rows whose key is in their
+own namespace (`ReadScope`/`WriteScope`), even if they later refuse; inserted
+or replaced rows carry the caller as owner, so ownership never changes at a key;
+writes reach only `notes` and the caller's own directory (`Writable`); a user
+enumerates only their own directory. The `admin` **role** may read any note,
+count notes and enumerate keys, but has no write exception. Every other
+operation, including all registry and partial-column operations, has the
+impossible obligation `False == True`.
 
-These are proof obligations checked **before execution**, not runtime RLS
-predicates. `Ownership.operation_preserves` reasons about actual `Data.operate`;
-`Proofs.safe` covers every observation depth; `Proofs.finalize` proves validity
-of the actual resulting state when technical publication checks succeed.
-`ClientProof.certify` quantifies over every valid initial state and authenticated
-context, not only this seed. Termination covers arbitrary states and returns,
-with an action-depth witness of three (two operations plus a terminal action).
-It is not a host timeout. No law or checker fuel limit is weakened.
+**`DirectoryRule` — exact directory at stable states.**
+
+```bend
+def listed(rows: List<&2, D.Row>, +k: String) -> Bool:
+  D.exists_row(D.find_row(rows, k))
+
+def owned(+p: String, rows: List<&2, D.Row>, +k: String) -> Bool:
+  row_owner(D.find_row(rows, k), p)       # the note at k has owner column p
+
+def Agree(+p: String, +ds: List<&2, D.Row>, +ns: List<&2, D.Row>) -> Type:
+  @k: String -> {listed(ds, k) == owned(p, ns, k) : Bool}
+
+def Directory(+s: D.State) -> Type:
+  L.E<Agree("alice", rows(dir_name("alice"), s), rows("notes", s)),
+    Agree("bob", rows(dir_name("bob"), s), rows("notes", s))>
+```
+
+In words: for **every** string `k`, `k` is in Alice's directory exactly when
+the shared table holds a note at `k` whose `owner` column is `alice` (and
+likewise for Bob). The contract's structural validity makes keys strictly
+ordered, so neither list has duplicates: each directory lists exactly the ids of
+the notes its user owns, no more and no fewer.
+
+The law is stated for `Stable` situations. Publishing a success requires
+`Requirements.PublicationValid`, i.e. `Valid(working)`, which includes every
+stable law, so every published state is exact. Working prefixes may be stale
+(after the note write and before the directory write), exactly as in
+`applications/indexed`. A separate success-`Closed` clause would only repeat the
+publication obligation; it is omitted because a proof of a `∀k` statement is an
+affine Bend function and cannot be supplied twice.
+
+## How the certificate works
+
+`Proofs.Safe(d, e, ctx, s, a)` is a weakest precondition over the **real**
+`Data.operate` result. Each access needs its `Allowed` permission and a proof
+for the actual result: data failure (nothing to prove), an observation at the
+same state, or a change to the actual new state. `Finish` needs
+`Directory(working)`; `Refuse` needs nothing because nothing publishes. The
+depth `d` only bounds unfolding; `Proofs.safe` uses it at depth `n + 1` for
+observation depth `n`, so every trace prefix and every final outcome is covered.
+The every-prefix ownership law is preserved separately by
+`Ownership.operation_preserves`, unchanged from the two-slot version.
+
+`Directory.bend` proves the transitions on arbitrary row lists, with no
+sortedness or uniqueness assumption, using the unchanged library lemmas for
+`insert_row`, `remove_row` and table swaps:
+
+| Lemma | Statement (informally) |
+| --- | --- |
+| `save_same` | Upserting note `id` (owner `p`) and directory entry `id` preserves `Agree(p, ...)`. |
+| `remove_same` | Removing `id` from both preserves `Agree(p, ...)`. |
+| `save_other`, `remove_other` | The other user's agreement survives, because the every-prefix law makes a note at `p/...` owned by `p` (`not_owned`). |
+| `pair` | The actual two-step state (note table swapped, then `p`'s directory swapped) has exactly those row views; the other directory is untouched. |
+
+`ClientProof.bend` quantifies over every valid initial state, authenticated
+context, argument and observation depth. The prepared (universal) form is the
+same proof with the context and arguments abstracted. Termination
+(`Completion.bend`) holds on arbitrary, even invalid, states: listing's bound
+is the actual number of directory keys observed plus one; every other command
+is bounded by four steps.
+
+## Commands
+
+Arguments are canonical values, shown as JSON arrays.
+
+| Caller | Arguments | Successful value |
+| --- | --- | --- |
+| Alice/Bob | `["create", "text"]` | New id, e.g. `"alice/00000007"`; writes the note and its directory entry. |
+| Alice/Bob | `["list"]` | `[{id, text}, ...]` for every id in the caller's directory, in id order. |
+| Alice/Bob | `["view", "alice/00000003"]` | `{id, text}`, or absence for a missing own id. |
+| Alice/Bob | `["update", "alice/00000003", "text"]` | The id; refuses `"no such own note"` if it does not exist. |
+| Alice/Bob | `["remove", "alice/00000003"]` | The id; removes the note and its directory entry. |
+| Alice/Bob | `["cancel", "text"]` | Refusal `"cancelled"` after a provisional create; nothing publishes. |
+| Admin | `["read", "bob/00000001"]` | `{id, text}`, or absence. |
+| Admin | `["count"]` | Number of rows in `notes`. |
+
+A user id outside the caller's namespace is refused (`"no such own note"`)
+before any access; unsupported commands refuse with `"unsupported"`. These are
+runtime refusals of the certified dispatcher. A submitted program that actually
+attempts a forbidden operation fails admission with status `certificate`.
 
 ## PostgreSQL comparison
 
-The PostgreSQL column describes its RLS policy mechanism, rather than all
-features that can be built with SQL constraints, triggers, and functions.
+The PostgreSQL column describes its RLS policy mechanism, not everything that
+can be built with constraints, triggers and functions.
 
 | Concern | PostgreSQL RLS | This JayDB2 application |
 | --- | --- | --- |
 | Reading foreign rows | `USING` filters rows during query execution. | An attempted foreign observation prevents certificate admission. |
-| Insert/new update values | Runtime `WITH CHECK`; a violating command errors. | The certificate must prove the new owner matches caller and key. |
+| Insert/new update values | Runtime `WITH CHECK`; a violating command errors. | The certificate proves the new owner matches caller and key. |
 | Existing update/delete targets | `USING` limits candidate rows. | Every addressed write/delete requires caller ownership before execution. |
-| Administrator reads | Policies can grant reads; superusers/`BYPASSRLS` bypass RLS, and table owners normally bypass it. | Only the explicit role branch in the installed law grants wider reads. |
-| Policy scope | Row visibility/new-row Boolean predicates, with expressions able to consult other data. | Propositions over stable state, every execution prefix, operations and outcome; this example uses ownership, registry membership and access traces. |
-| Whole-table listing | Query returns rows remaining after filtering. | Ordinary listing probes two authorized slots; an ordinary global scan is uncertifiable. |
-| Publication | RLS applies while executing statements. | Admission proves prefix obligations and final published-state validity; the native host publishes only complete success. |
+| Administrator reads | Policies can grant reads; superusers/`BYPASSRLS` bypass RLS, and table owners normally bypass it. | Only the explicit role branch grants wider reads; no write exception. |
+| Listing own rows | A filtered scan of the shared table. | The user scans only their own directory table; a scan of the shared table is uncertifiable for users. |
+| Directory = owned notes | Not an RLS property; it needs triggers or deferred constraints that run at execution/commit time. | A stable-state law proved for every transaction **before** it runs; a program that forgets the directory write is not admitted. |
+| Publication | RLS applies while executing statements. | Prefix obligations plus validity of the published state, including the directory law; the host publishes only complete success. |
 
 PostgreSQL references: [row security policies](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)
 and [CREATE POLICY](https://www.postgresql.org/docs/current/sql-createpolicy.html).
-In particular, filtering applies to `USING`; `WITH CHECK` violations are errors,
-so it would be inaccurate to describe all PostgreSQL RLS checks as silent.
 JayDB's broader proposition interface does not imply automatic proof discovery.
 Its existing [T1–T3 assumptions](../../proof/README.md) still apply, including
 compiler/runtime preservation and native host plumbing. Physical timing and
 resource-consumption channels remain outside the confidentiality guarantee.
 
-## Commands and proof files
-
-Arguments are ordinary canonical values (shown below as JSON arrays).
-The Boolean slot selector is `false` for `/1` and `true` for `/2`.
-
-| Caller | Arguments | Successful value |
-| --- | --- | --- |
-| Alice/Bob | `["save", false, "text"]` | Own key; inserts or replaces the complete row. |
-| Alice/Bob | `["view", false]` | `{id, owner, text}`, or absence for a missing own note. |
-| Alice/Bob | `["remove", false]` | Own key; removing an absent row also succeeds. |
-| Alice/Bob | `["list"]` | All present own keys. |
-| Alice/Bob | `["cancel", false, "discard"]` | Refusal `"cancelled"` after a provisional write; nothing publishes. |
-| Admin | `["read", "bob/1"]` | `{id, owner, text}`, or absence for a missing note. |
-| Admin | `["count"]` | Number of rows in the shared table. |
-
-An unsupported command is a runtime `refusal` from the certified dispatcher.
-That is distinct from a submitted program which actually attempts a forbidden
-operation: the latter must fail admission with status `certificate`.
+## Files
 
 | File | Responsibility |
 | --- | --- |
-| `Configuration.bend`, `Policy.bend`, `Seed.bend` | Shared schema, administrator law, registered users and initial-validity proof. |
-| `Client.bend` | Executable commands, private listing, explicit admin reads/count. |
-| `ClientProof.bend` | Local permissions, certificate and termination bindings. |
-| `Ownership.bend` | Preservation by real row writes/removals and same-key owner immutability. |
-| `Proofs.bend` | Prefix induction and technical finalization/publication composition. |
-| `check.py`, `negative_cases.py`, `test.py` | Public namespace packaging, both official checkers, causal negatives and real native session. |
+| `Configuration.bend`, `Policy.bend`, `Seed.bend` | Schema, the two installed laws, registered users, initial-validity proof. |
+| `Client.bend` | Executable commands. |
+| `ClientProof.bend` | Per-command certificates, termination and the bindings. |
+| `Proofs.bend` | State-indexed judgment, prefix induction and publication. |
+| `Directory.bend` | Directory transitions over actual row operations and table swaps. |
+| `Ownership.bend` | Every-prefix ownership preservation (unchanged). |
+| `Completion.bend` | Observation-dependent termination witnesses (from `applications/indexed`). |
+| `check.py`, `negative_cases.py`, `test.py` | Packaging, both official checkers, negatives and the native session. |
 
-The prefix infrastructure is adapted from tasks. `Ownership` changes the new-row
-witness to the shared-table key/owner invariant; the other row-list preservation
-lemmas retain their generic structure. Existing library `Laws`/`Query`/`Action`
-and `proof/Orders`/`Foundations` are packaged unchanged apart from relocated
-imports. Generated offline `Instance`/`Bindings` modules bind the exact code
-literal and actual certificate targets; host admission uses the original full
-sources with its own frozen environment, without private data in proof files.
+`Configuration.bend` imports `Proofs`, `Directory` and `Completion`: the host
+publishes exactly the administrator's import closure as modules a client
+certificate may import, so these proof helpers are part of the installed
+configuration (as `Proofs` already was in the two-slot version).
+
+`check.py` packages unchanged library lemmas (`RowLookupProofs`,
+`RowRemovalLookupProofs`, `CollectionFrameProofs`, `MutationStateShapeProofs`,
+`ValueScalarProofs`, `Value`, `ReadOperationProofs`) and `proof/Orders`,
+`proof/Foundations` with relocated imports only. Its offline `Bindings` module
+writes the client source as a `++` chain of literal chunks that joins to the
+exact source (asserted): the pinned native translator for `--verdict` overflows
+its stack expanding a single literal longer than about 5,000 characters. The
+real host binds its own exact literal.
 
 ## Run checks and native tests
 
-Run from the repository root with the pinned tools installed:
+From the repository root with the pinned tools installed:
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make build'
@@ -160,117 +203,106 @@ flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make veri
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; make test'
 ```
 
-`make verify` includes this application's proof checks. `make test` includes
-`test-rls`. The targets rely on the caller holding the lock; they acquire no
-nested lock. `check.py` defaults to both proof modes plus the real native session;
-`test.py` runs only the native session. Generated sources and diagnostic logs
-remain in ignored `applications/rls/.build/`.
+`make verify` includes this application's proof checks; `make test` includes
+`test-rls`. The targets acquire no nested lock. `check.py` defaults to both
+proof modes plus the real native session; `test.py` runs only the native
+session. Generated roots and logs stay in ignored `applications/rls/.build/`.
 
-The positive session checks ordinary admission/execution, Alice/Bob creation,
-reads, updates, deletion, absent reads, one/two/zero-result private listings,
-admin reads of both owners and whole-table counts, write-then-refuse rollback,
-authentication, universal preparation, cross-user handle reuse and invalidation.
-The prepared proof is derived from the same parameterized certificate, with
-fresh authentication and current state on every use.
+## Negative fixtures
 
-Five independent negative programs use filled certificates adapted to their
-actual operations. In both official modes **only `false` may fail**, with
-expected/observed diagnostics; any missing import, open definition, helper
-co-failure, or unrelated parse error fails the harness:
+Each fixture is a complete certificate for its actual one-operation program,
+built from the same `Proofs`/`Directory` machinery; only `false` is wrong. In
+both official modes **only `false` may fail**, with expected/observed
+diagnostics; any missing import, open definition, helper co-failure, linearity
+error or stack overflow fails the harness. All are submitted as Alice.
 
-| Negative program submitted as Alice | Intended failing obligation |
+| Negative program | Intended failing obligation (observed vs required) |
 | --- | --- |
-| Read `bob/1`, then refuse | `ReadScope`: `bob == alice`. |
-| Replace existing `bob/1` | `WriteScope`: `bob == alice`. |
-| Insert fresh `alice/2` with owner Bob | Owner field must be Alice, as required by key/caller. |
-| Replace existing `alice/1` with owner Bob | The same owner-field obligation prevents ownership transfer. |
-| Enumerate all note keys, even discarding the result | Whole-table enumeration requires role `admin`, not `user`. |
+| Read `bob/00000001`, then refuse | `ReadScope`: `"bob" == "alice"`. |
+| Replace existing `bob/00000001` | `WriteScope`: `"bob" == "alice"`. |
+| Insert fresh `alice/00000099` with owner Bob | Owner field must be `D.VText{"alice"}`. |
+| Replace existing `alice/00000001` with owner Bob | The same owner-field obligation (no ownership transfer). |
+| Enumerate the shared `notes` table | `KeysScope`: `"notes" == "alice_dir"`. |
+| Enumerate Bob's directory | `KeysScope`: `"bob_dir" == "alice_dir"`. |
+| Add foreign id `bob/00000001` to Alice's directory | `WriteScope`: `"bob" == "alice"`. |
+| Create `alice/00000099` without a directory entry | `Agree("alice", ds, insert_row(ns, note))` from `Agree("alice", ds, ns)`. |
+| Remove `alice/00000001` from the directory, keep the note | `Agree("alice", remove_row(ds, id), ns)` from `Agree("alice", ds, ns)`. |
 
-The real host must refuse each at `PRIMARY_CHECK`/`false`. After each denial,
-the same prepared artifact verifies both private listings, total count, and the
-complete row/absence of **every possible key**. Valid state fixes every owner field
-to its prefix, and the registry cannot be changed by these operations. Thus the
-checks cover the complete application state, not only the denied operation's
-response.
+The last two `false` laws are genuinely false: the empty seed, respectively a
+state with one listed note, is a counterexample at the written key. The
+permission negatives end in `Refuse`, so the permission is their only
+obligation. The directory negatives end in `Finish`; their permission, the
+other user's agreement and all frame equalities are proved, and only Alice's
+directory law fails.
 
-## Line-count definition
+## Native session
+
+`test.py` drives the real host through the framed ordinary and prepared APIs.
+Alice creates a note with an ordinary certificate; a universal (prepared)
+certificate is then admitted once and reused, with fresh authentication and
+current state, for every later call by Alice, Bob and the administrator. Alice
+creates seven notes (six present at once), Bob two; listings, views, an update, deletions, a create
+after deletions, admin reads and counts are checked exactly. Runtime refusals
+cover foreign ids, a deleted id, cancel-after-write rollback and unsupported
+commands. Each of the nine negatives is refused at admission (`PRIMARY_CHECK`,
+`Location: false`), and after each the same prepared artifact checks both
+listings, the count and the presence or absence of eleven possible keys.
+Finally Alice removes all notes, an invalid token is refused and the handle is
+invalidated.
+
+## Limits and assumptions
+
+- The principals are fixed at configuration time (one directory table and one
+  key namespace each), as the two-slot version fixed them; the number of notes
+  is bounded only by the 65,536-byte state limit.
+- Ids are eight decimal digits. Deleting the largest id and creating again
+  reuses it. Past `99999999` the carry leaves the namespace and `create`
+  refuses; the state limit makes that unreachable.
+- `list` and `create` check the namespace of each id they derive from the
+  directory at runtime. At valid states the check always passes (the directory
+  law and the ownership law put only own ids there); it exists because the
+  certificate does not inspect observed values.
+- `view`, `list` and admin `read` return `{id, text}`; the owner is the id's
+  namespace, which the ownership law ties to the `owner` column.
+- The administrator may enumerate keys of the notes table and both directories;
+  directories hold only note ids, which the administrator can already read.
+
+## Line counts
 
 Counts are nonblank physical Bend lines, including comments and imports, using
 `sum(bool(line.strip()) for line in path.read_text().splitlines())`, as in
-[the paper's size definitions](../../paper/README.md). Scoped client integration
-counts exclude schema/model/seed/policy and ownership infrastructure, like the
-paper's client comparison. A separate total discloses all locally maintained
-proof infrastructure, including the adapted ownership proof; no claim that it
-is free is intended.
+[the paper's size definitions](../../paper/README.md).
 
 | Scope | Files | Nonblank lines |
 | --- | --- | ---: |
-| Client program | `Client.bend` | 91 |
-| Scoped client certificate | `ClientProof.bend` | 112 |
-| Ownership/prefix infrastructure | `Ownership.bend`, `Proofs.bend` | 370 |
-| All admitted application-local proof files | All three files above | 482 |
+| Client program | `Client.bend` | 126 |
+| Client certificate (incl. termination) | `ClientProof.bend` | 317 |
+| Judgment and publication | `Proofs.bend` | 175 |
+| Directory transitions | `Directory.bend` | 190 |
+| Ownership preservation (unchanged) | `Ownership.bend` | 259 |
+| Termination witnesses | `Completion.bend` | 35 |
+| All application-local proof files | the five files above | 976 |
+| Schema, laws, seed | `Configuration.bend`, `Policy.bend`, `Seed.bend` | 163 |
 
-Scoped proof/program ratio: **1.23**. Including all local proof infrastructure: **5.30**.
+Certificate/program ratio: **2.52**. All local proof files/program: **7.75**.
+The two-slot version had 91 program lines, 112 certificate lines (1.23) and 482
+local proof lines (5.30).
 
-## Follow-up model line counts
+## Validation result
 
-The isolated, uncertified prototype uses the same nonblank physical-line
-counter. Its files are excluded from the admitted-app totals above.
+Validated on 2026-11-11 with the pinned official toolchain (BendTT and native
+sources bootstrapped from existing local copies by the hash-checking
+`tools/bootstrap.py`). All heavy commands ran under the shared lock with
+unlimited stack, in one session: `make build`, `make test-rls`, `make verify`,
+`make test`. No checker fuel, state limit, contract, host or library file
+changed.
 
-| Follow-up scope | Files | Nonblank lines |
-| --- | --- | ---: |
-| Prototype program | `unbounded/Client.bend` | 127 |
-| Generic representation/key algebra | `unbounded/DirectoryProof.bend` | 91 |
-| Concrete model/interpreter examples | `unbounded/Examples.bend` | 63 |
-| Model and proposed invariant | `unbounded/Model.bend` | 70 |
-| Completed unbounded client certificate | None | **Not implemented** |
-
-There is no meaningful unbounded certificate/program ratio: the missing
-certificate must not be counted as zero proof cost. The working app's **1.23**
-scoped and **5.30** all-local ratios remain unchanged.
-
-## Follow-up validation result — incomplete feature
-
-Validated on 2026-11-11 from `fa819db`. `make build` passed first. All heavy
-commands ran with the common lock held and unlimited stack; no checker fuel or
-configured state limit changed. The original app remains the certified two-slot
-version. The following passing regressions **do not certify the unbounded
-prototype**.
-
-| Command | Result and scope |
+| Command | Result |
 | --- | --- |
-| `python3 -B applications/rls/unbounded/check_model.py` | Passed both official modes for generic model/key algebra and the concrete reference-interpreter examples. All four model controls failed only at `false` in both modes with expected/observed directory text. |
-| `python3 -B applications/rls/check.py --proof-only` | Passed the original ordinary/universal certificates, termination, seed and five causal negatives in both modes. |
-| `make test-rls` | Passed the original 81-response native session, including all five admission denials and unchanged-state checks. |
-| `make verify` | Passed import coverage, all three existing positive roots in both modes, 373 negative fixtures / 746 official-mode rejections, and the original RLS proof gate. |
-| `make test` | Passed admission/verifier, 10 native runtime, 36 Rust host and 16 service integration tests, followed by another successful original 81-response RLS session. |
+| `make build` | Passed. |
+| `make test-rls` | Positive certificate/termination/seed and the universal certificate passed both official modes; all nine negatives failed only at `false` in both modes; native session passed with 204 checked responses and nine admission denials, each followed by a complete unchanged-state check. |
+| `make verify` | Import coverage and the existing positive roots passed in both modes; 373 negative fixtures / 746 official-mode rejections; this application's proof gate (as above, without the native session) passed. |
+| `make test` | 30 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (204-response native session). |
 
-Logs are in `.build/unbounded-validation/`; model-control diagnostics are
-`.build/unbounded-*-check-only.log` and `.build/unbounded-*-verdict.log`.
-The full unbounded client certificate, new native CRUD/admission tests and
-unbounded prepared reuse remain unfinished. The proposed exact directory law
-has not been installed, and no ownership-only alternative was substituted.
-
-## First-version validation result
-
-Validated on 2026-11-11 from base `ff96188` with the pinned official toolchain.
-`make build` ran first. All heavy commands used the shared lock and unlimited
-stack shown above. The native toolchain sources and BendTT artifact were
-bootstrapped from existing local copies with the standard hash-checking installer.
-
-- `check.py --proof-only`: complete ordinary and universal certificates,
-  termination and seed validity passed both official modes. Each of the five
-  filled false certificates failed only at `false` in both modes.
-- `make test-rls`: passed, with 81 checked native responses plus the checked
-  preparation receipt. All five attacks were rejected at admission and every
-  row/absent slot was checked unchanged after each denial.
-- `make verify`: passed all three existing positive roots in both modes,
-  import coverage, 373 existing negative fixtures (746 official-mode
-  rejections), and the newly wired RLS proof checks.
-- `make test`: passed 30 admission/verifier tests, 10 native runtime tests,
-  36 Rust host tests, 16 service integration tests, and the complete RLS gate
-  again (another successful 81-response native session).
-
-No application law was weakened to obtain these results. Generated proof
-roots, intended-failure diagnostics, the native host log, and the complete
-validation output remain under `.build/` for local inspection.
+Generated roots, intended-failure diagnostics and the host log stay under the
+ignored `applications/rls/.build/`.

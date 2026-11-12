@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RLS through the real native host and standard framed ordinary/prepared API."""
+"""Unbounded RLS notes through the real native host, ordinary and prepared."""
 from pathlib import Path
 import os
 import re
@@ -14,12 +14,16 @@ from negative_cases import cases
 
 def universal_proof():
     proof = (APP / 'ClientProof.bend').read_text()
-    old = 'def B.certificate(s, valid, identity, n):'
+    old = 'def B.certificate(s, valid, identity, n):\n  certificate(I.context(), I.arguments(), B.code(), s, valid, identity, n)'
     assert proof.count(old) == 1
     # The proof already quantifies over context/arguments; bind the universal
     # admission target exactly as in tests/service/test_prepared.py.
-    return proof.replace(old, 'def B.certificate(ctx, args, s, valid, identity, n):\n  +ctx = ctx\n  +args = args') \
-                .replace('I.context()', 'ctx').replace('I.arguments()', 'args')
+    return proof.replace(old, 'def B.certificate(ctx, args, s, valid, identity, n):\n'
+                         '  certificate(ctx, args, B.code(), s, valid, identity, n)')
+
+
+def note(key, text):
+    return dict(id=key, text=text)
 
 
 def native_session():
@@ -38,45 +42,71 @@ def native_session():
                 assert actual == dict(status=status, value=value), (actual, status, value, server.diagnostics())
 
             def call(user, args, value=None, status='success'):
-                expect(server.call(code, proof, user + '-token', args), status, note_value(user, args, value))
+                expect(server.call(code, proof, user + '-token', args), status, value)
 
-            def note_value(user, args, value):
-                if value is not None and args[0] in ('read', 'view'):
-                    key = args[1] if args[0] == 'read' else user + ('/2' if args[1] else '/1')
-                    return dict(id=key, owner=key.split('/')[0], text=value)
-                return value
-
-            # At least one ordinary full certificate is actually admitted,
-            # compiled, executed and published before universal preparation.
-            call('alice', ['save', False, 'Alice original'], 'alice/1')
-            call('alice', ['view', False], 'Alice original')
-            call('bob', ['save', False, 'Bob private'], 'bob/1')
+            # Ordinary full certificates are admitted, executed and published.
+            call('alice', ['create', 'first'], 'alice/00000001')
+            call('alice', ['list'], [note('alice/00000001', 'first')])
             receipt = server.prepared(0, code, 'alice-token', proof=universal_proof())
             assert receipt['status'] == 'prepared', (receipt, server.diagnostics())
             handle = receipt['value']
             assert re.fullmatch(r'[0-9a-f]{64}', handle), handle
 
             def prepared(user, args, value=None, status='success'):
-                expected = note_value(user, args, value) if status == 'success' else value
-                expect(server.prepared(1, handle, user + '-token', args), status, expected)
+                expect(server.prepared(1, handle, user + '-token', args), status, value)
 
-            prepared('alice', ['list'], ['alice/1'])
-            prepared('bob', ['list'], ['bob/1'])
-            prepared('admin', ['read', 'alice/1'], 'Alice original')
-            prepared('admin', ['read', 'bob/1'], 'Bob private')
-            prepared('admin', ['count'], 2)
-            # Validate every row's existence/payload before and after EACH
-            # denial. The stable law fixes owner==key prefix, so this snapshot
-            # covers the complete application state (including absent slots).
+            # The SAME prepared artifact creates and lists with fresh state each use.
+            alice = {'alice/00000001': 'first'}
+            for i in range(2, 7):
+                key = f'alice/{i:08d}'
+                prepared('alice', ['create', f'note {i}'], key)
+                alice[key] = f'note {i}'
+            bob = {}
+            for i in (1, 2):
+                prepared('bob', ['create', f'bob {i}'], f'bob/{i:08d}')
+                bob[f'bob/{i:08d}'] = f'bob {i}'
+
+            def listing(user, rows):
+                prepared(user, ['list'], [note(k, rows[k]) for k in sorted(rows)])
+
+            listing('alice', alice)
+            listing('bob', bob)
+            prepared('admin', ['count'], len(alice) + len(bob))
+            prepared('alice', ['view', 'alice/00000003'], note('alice/00000003', 'note 3'))
+            prepared('alice', ['update', 'alice/00000003', 'third, edited'], 'alice/00000003')
+            alice['alice/00000003'] = 'third, edited'
+            prepared('alice', ['view', 'alice/00000003'], note('alice/00000003', 'third, edited'))
+            for key in ('alice/00000002', 'alice/00000005'):
+                prepared('alice', ['remove', key], key)
+                del alice[key]
+            listing('alice', alice)
+            call('alice', ['list'], [note(k, alice[k]) for k in sorted(alice)])
+            prepared('alice', ['view', 'alice/00000002'], None)
+            prepared('alice', ['create', 'seventh'], 'alice/00000007')
+            alice['alice/00000007'] = 'seventh'
+            listing('alice', alice)
+            prepared('bob', ['remove', 'bob/00000002'], 'bob/00000002')
+            del bob['bob/00000002']
+            listing('bob', bob)
+
             def snapshot():
-                prepared('alice', ['list'], ['alice/1'])
-                prepared('bob', ['list'], ['bob/1'])
-                prepared('admin', ['count'], 2)
-                prepared('admin', ['read', 'alice/1'], 'Alice original')
-                prepared('admin', ['read', 'alice/2'], None)
-                prepared('admin', ['read', 'bob/1'], 'Bob private')
-                prepared('admin', ['read', 'bob/2'], None)
+                listing('alice', alice)
+                listing('bob', bob)
+                prepared('admin', ['count'], len(alice) + len(bob))
+                for key in [f'alice/{i:08d}' for i in range(1, 9)] + [f'bob/{i:08d}' for i in range(1, 4)]:
+                    rows = alice if key.startswith('alice/') else bob
+                    prepared('admin', ['read', key], note(key, rows[key]) if key in rows else None)
 
+            snapshot()
+            # Runtime refusals by the certified program, not admission failures.
+            prepared('alice', ['view', 'bob/00000001'], 'no such own note', 'refusal')
+            prepared('alice', ['update', 'bob/00000001', 'x'], 'no such own note', 'refusal')
+            prepared('alice', ['remove', 'bob/00000001'], 'no such own note', 'refusal')
+            prepared('alice', ['update', 'alice/00000002', 'gone'], 'no such own note', 'refusal')
+            prepared('alice', ['cancel', 'discard'], 'cancelled', 'refusal')
+            prepared('admin', ['create', 'no admin writes'], 'unsupported', 'refusal')
+            prepared('alice', ['count'], 'unsupported', 'refusal')
+            prepared('alice', ['read', 'bob/00000001'], 'unsupported', 'refusal')
             snapshot()
             for name, bad_code, bad_proof, _ in cases():
                 before = server.diagnostics()
@@ -86,41 +116,20 @@ def native_session():
                 assert '- expected :' in delta and '- observed :' in delta, delta
                 snapshot()
                 print(f'OK native {name}: admission refusal and complete unchanged application state', flush=True)
-
-            # Fresh state and caller at each use of the SAME prepared artifact.
-            prepared('alice', ['save', False, 'Alice updated'], 'alice/1')
-            prepared('alice', ['save', True, 'Alice second'], 'alice/2')
-            prepared('alice', ['list'], ['alice/1', 'alice/2'])
-            prepared('alice', ['view', False], 'Alice updated')
-            prepared('bob', ['view', False], 'Bob private')
-            prepared('bob', ['save', True, 'Bob second'], 'bob/2')
-            prepared('bob', ['list'], ['bob/1', 'bob/2'])
-            prepared('admin', ['count'], 4)
-            prepared('alice', ['cancel', False, 'discard'], 'cancelled', 'refusal')
-            prepared('alice', ['view', False], 'Alice updated')
-            prepared('admin', ['read', 'alice/2'], 'Alice second')
-            prepared('admin', ['read', 'bob/2'], 'Bob second')
-            prepared('alice', ['remove', False], 'alice/1')
-            prepared('alice', ['view', False], None)
-            prepared('alice', ['list'], ['alice/2'])
-            prepared('bob', ['remove', True], 'bob/2')
-            prepared('bob', ['list'], ['bob/1'])
-            prepared('admin', ['count'], 2)
-            prepared('alice', ['remove', True], 'alice/2')
+            for key in sorted(alice):
+                prepared('alice', ['remove', key], key)
             prepared('alice', ['list'], [])
-            prepared('admin', ['count'], 1)
-            prepared('admin', ['save', False, 'no admin writes'], 'administrator read or count required', 'refusal')
-            prepared('alice', ['count'], 'ordinary command required', 'refusal')
-            prepared('alice', ['read', 'bob/1'], 'ordinary command required', 'refusal')
+            prepared('admin', ['count'], len(bob))
             expect(server.prepared(1, handle, 'invalid-token', ['list']), 'authentication', None)
             expect(server.prepared(2, handle, 'admin-token'), 'invalidated', None)
             server.finish()
             (BUILD / 'host.log').write_text(server.diagnostics())
-            assert server.diagnostics().count('PRIMARY_CHECK') == 5, server.diagnostics()
+            assert server.diagnostics().count('PRIMARY_CHECK') == len(list(cases())), server.diagnostics()
         finally:
             (BUILD / 'host.log').write_text(server.diagnostics())
             server.close()
-    print(f'OK native RLS session: {calls} checked responses; ordinary and prepared CRUD, private listings, explicit admin reads/counts, five causal admission denials, rollback and authentication', flush=True)
+    print(f'OK native RLS session: {calls} checked responses; ordinary and prepared create/list/view/update/remove '
+          f'beyond any fixed slot count, admin reads/counts, {len(list(cases()))} admission denials, rollback and authentication', flush=True)
 
 
 if __name__ == '__main__':

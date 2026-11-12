@@ -10,10 +10,11 @@ def user(+id: String, kind: String) -> D.Row:
     D.Field{"id", D.VText{id}}, D.Field{"kind", D.VText{kind}}]}
 
 def state() -> D.State:
-  D.State{[D.Table{"notes", Nil{}}],
+  D.State{[D.Table{"alice_dir", Nil{}}, D.Table{"bob_dir", Nil{}}, D.Table{"notes", Nil{}}],
     [user("admin", "admin"), user("alice", "user"), user("bob", "user")]}
 
 law initial_valid:
   R.Valid(C.config(), state())
 def initial_valid():
-  L.Both{{==}, L.Both{P.Both{Unit{}, Unit{}}, Unit{}}}
+  L.Both{{==}, L.Both{P.Both{Unit{}, P.Both{Unit{}, P.Both{Unit{}, Unit{}}}},
+    L.Both{L.Both{k => {==}, k => {==}}, Unit{}}}}
