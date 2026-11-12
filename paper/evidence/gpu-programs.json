@@ -1,9 +1,201 @@
 {
-  "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+  "metadata": {
+    "frequency": {
+      "utc": "2026-11-12T20:49:59Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3599804,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "frequency_original": {
+      "utc": "2026-11-12T20:49:56Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4430766,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4608214,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4700000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4204575,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4598884,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4646828,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4401219,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4693682,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4605676,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4700000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "session_count": 1,
+    "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/paper-gpu-simulation",
+    "utc": "2026-11-12T20:49:59Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+    "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+    "dirty": [],
+    "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1
+  },
+  "revision": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
   "dirty": [],
-  "utc": "2026-11-12T15:33:25Z",
+  "utc": "2026-11-12T20:49:59Z",
   "frequency": {
-    "utc": "2026-11-12T15:33:25Z",
+    "utc": "2026-11-12T20:49:59Z",
     "settings": {
       "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
       "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
@@ -40,21 +232,21 @@
       "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
     },
     "scaling_cur_freq_khz": {
-      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3603809,
-      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
       "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3600000,
-      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3609230,
-      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3606081,
       "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600036,
-      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600022,
-      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3599836,
-      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3595789,
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3600000,
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599804,
       "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
     },
     "affinity_cpus": [
@@ -78,7 +270,7 @@
     "pinning": "none; all engines inherit the same harness CPU affinity"
   },
   "frequency_original": {
-    "utc": "2026-11-12T15:33:22Z",
+    "utc": "2026-11-12T20:49:56Z",
     "settings": {
       "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
       "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
@@ -115,22 +307,22 @@
       "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
     },
     "scaling_cur_freq_khz": {
-      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4594278,
-      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4476070,
-      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4235964,
-      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4600000,
-      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4704264,
-      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4405057,
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4430766,
+      "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4608214,
+      "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4700000,
+      "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4204575,
+      "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4598884,
+      "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4646828,
+      "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4401219,
+      "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4693682,
+      "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
       "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
-      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4405385,
-      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4602006,
-      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3803769,
-      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4607198,
-      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4382374,
-      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4311748
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4600000,
+      "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4605676,
+      "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4700000,
+      "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+      "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
     },
     "affinity_cpus": [
       0,
@@ -172,13 +364,13 @@
     "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
     "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
   },
-  "binary_sha256": "5eb98aab613beb9962b60d90b9ac0d5aa7aef0ad6864a731af53b0f9621e0326",
+  "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
   "fixture_sha256": {
     "experiments/gpu/HeavyClient.bend": "c6f140ebec5573f1d8627a3d81d7c2076eed8ca73a380974823b1379ca11ae51",
     "experiments/gpu/ClientProof.bend": "3d18b064815c32034bc9273ef8a561ed136763f5ca1d42f5e2f6742c31012796",
-    "paper/bench/gpu_programs.py": "3b03170e6fcef3caa58c40a864d2659120120f4f6e4592b07b44dd2c80d4d265"
+    "paper/bench/gpu_programs.py": "7d2e49d03cff8ede2cdb8288f730d1541777247b9aae433dc7dd551c311159d8"
   },
-  "numpy_version": "1.26.4",
+  "numpy_version": "2.5.4",
   "small_scalar_oracle": 1321445589,
   "gpu_mib": 512,
   "gpu_worker_cap": 1,
@@ -192,11 +384,11 @@
     {
       "backend": "cpu-1",
       "threads": 1,
-      "first_preparation_ms": 8126.341191,
+      "first_preparation_ms": 8139.449895,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75",
-        "executableSha256": "fc3700dc5f0f9d958f42c31247933e318a83c66c4e4a031889489c2b6759ba1d",
+        "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+        "executableSha256": "0ed397e5d481463f814b5cda5f0f1131e3d8843c82398db7a7d231b66ba6da6d",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -204,9 +396,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3990608-0/request-3990608-1/checked.c",
+          "/tmp/jaydb2-376136-0/request-376136-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3990608-0/request-3990608-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program",
+          "/tmp/jaydb2-376136-0/request-376136-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
           "-lm",
           "-pthread"
         ],
@@ -220,17 +412,17 @@
           "total_mixing_rounds": 32768,
           "result": 1321445589,
           "native_worker_ms": [
-            3.207946,
-            3.238306,
-            4.377838
+            3.407443,
+            3.312248,
+            3.289665
           ],
           "complete_request_ms": [
-            6.109056,
-            5.778923,
-            5.653597
+            5.749535,
+            5.563293,
+            5.657503
           ],
-          "median_native_worker_ms": 3.238306,
-          "median_complete_request_ms": 5.778923
+          "median_native_worker_ms": 3.312248,
+          "median_complete_request_ms": 5.657503
         },
         {
           "depth": 16,
@@ -239,17 +431,17 @@
           "total_mixing_rounds": 4294967296,
           "result": 3867567763,
           "native_worker_ms": [
-            7181.014764,
-            7181.636671,
-            7180.966897
+            7179.940654,
+            7179.926094,
+            7179.799813
           ],
           "complete_request_ms": [
-            7190.814165,
-            7203.3707,
-            7222.370741
+            7182.740854,
+            7182.451324,
+            7183.980212
           ],
-          "median_native_worker_ms": 7181.014764,
-          "median_complete_request_ms": 7203.3707
+          "median_native_worker_ms": 7179.926094,
+          "median_complete_request_ms": 7182.740854
         }
       ],
       "full_published_states": [
@@ -423,11 +615,11 @@
     {
       "backend": "cpu-16",
       "threads": 16,
-      "first_preparation_ms": 10531.017008,
+      "first_preparation_ms": 8102.88749,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75",
-        "executableSha256": "fc3700dc5f0f9d958f42c31247933e318a83c66c4e4a031889489c2b6759ba1d",
+        "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+        "executableSha256": "0ed397e5d481463f814b5cda5f0f1131e3d8843c82398db7a7d231b66ba6da6d",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -435,9 +627,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3991590-0/request-3991590-1/checked.c",
+          "/tmp/jaydb2-376599-0/request-376599-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3991590-0/request-3991590-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program",
+          "/tmp/jaydb2-376599-0/request-376599-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
           "-lm",
           "-pthread"
         ],
@@ -451,17 +643,17 @@
           "total_mixing_rounds": 32768,
           "result": 1321445589,
           "native_worker_ms": [
-            3.847992,
-            4.096277,
-            4.527501
+            3.637598,
+            3.758053,
+            3.725421
           ],
           "complete_request_ms": [
-            7.529434,
-            6.797748,
-            6.612788
+            6.296355,
+            6.370937,
+            6.037456
           ],
-          "median_native_worker_ms": 4.096277,
-          "median_complete_request_ms": 6.797748
+          "median_native_worker_ms": 3.725421,
+          "median_complete_request_ms": 6.296355
         },
         {
           "depth": 16,
@@ -470,17 +662,17 @@
           "total_mixing_rounds": 4294967296,
           "result": 3867567763,
           "native_worker_ms": [
-            529.507848,
-            530.453433,
-            599.219655
+            499.232055,
+            472.148376,
+            499.361344
           ],
           "complete_request_ms": [
-            569.818368,
-            568.447549,
-            557.9442
+            475.28526,
+            502.027444,
+            496.305097
           ],
-          "median_native_worker_ms": 530.453433,
-          "median_complete_request_ms": 568.447549
+          "median_native_worker_ms": 499.232055,
+          "median_complete_request_ms": 496.305097
         }
       ],
       "full_published_states": [
@@ -654,11 +846,11 @@
     {
       "backend": "cuda",
       "threads": 1,
-      "first_preparation_ms": 13547.954542,
+      "first_preparation_ms": 11201.489402,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75",
-        "executableSha256": "53142ca796726e47b199f118d8531fc9d3cb0e48174985bac2d6eb22445e2480",
+        "sourceSha256": "57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74",
+        "executableSha256": "c4a99a6cea46bff23d55bf33169264969843ed759ab8f518e31eb1e013968412",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -666,9 +858,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3992464-0/request-3992464-1/checked.c",
+          "/tmp/jaydb2-377350-0/request-377350-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3992464-0/request-3992464-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program",
+          "/tmp/jaydb2-377350-0/request-377350-1/57ab6d271bf41f3222fd657cee78e0cac31ff8f44922ec822ebc14b320d6ea74.program",
           "-lm",
           "-pthread",
           "-DBEND_CUDA=1",
@@ -676,7 +868,7 @@
           "-lnvrtc"
         ],
         "backend": "cuda",
-        "gpuSha256": "38d3c19e031b8a0c193217f9f8f39065001103941c42ce7ccfb8b4de40b6b3c3",
+        "gpuSha256": "d557d3e836530ab885f4a7703b95d80bdfb3aaa2eb0b1cafee54a75567798a24",
         "gpuMiB": 512,
         "cudaLibraries": {
           "libcuda.so.1": {
@@ -698,17 +890,17 @@
           "total_mixing_rounds": 32768,
           "result": 1321445589,
           "native_worker_ms": [
-            277.841781,
-            258.701877,
-            263.570694
+            175.133109,
+            180.017615,
+            171.021125
           ],
           "complete_request_ms": [
-            218.786919,
-            221.357298,
-            213.694201
+            148.233011,
+            160.458305,
+            159.884551
           ],
-          "median_native_worker_ms": 263.570694,
-          "median_complete_request_ms": 218.786919
+          "median_native_worker_ms": 175.133109,
+          "median_complete_request_ms": 159.884551
         },
         {
           "depth": 16,
@@ -717,17 +909,17 @@
           "total_mixing_rounds": 4294967296,
           "result": 3867567763,
           "native_worker_ms": [
-            272.772614,
-            275.673745,
-            269.050316
+            216.248039,
+            209.999917,
+            217.305362
           ],
           "complete_request_ms": [
-            263.754296,
-            226.080272,
-            226.994535
+            209.965799,
+            205.350223,
+            205.836501
           ],
-          "median_native_worker_ms": 272.772614,
-          "median_complete_request_ms": 226.994535
+          "median_native_worker_ms": 216.248039,
+          "median_complete_request_ms": 205.836501
         }
       ],
       "full_published_states": [

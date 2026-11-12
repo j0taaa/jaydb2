@@ -1,7 +1,7 @@
 {
   "metadata": {
     "frequency": {
-      "utc": "2026-11-12T18:08:08Z",
+      "utc": "2026-11-12T20:52:15Z",
       "settings": {
         "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
         "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
@@ -44,15 +44,15 @@
         "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
         "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
         "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 3600000,
-        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3596280,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
         "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600000,
         "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
-        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800000,
         "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3599799,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3598654,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3600000,
         "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
       },
       "affinity_cpus": [
@@ -76,7 +76,7 @@
       "pinning": "none; all engines inherit the same harness CPU affinity"
     },
     "frequency_original": {
-      "utc": "2026-11-12T18:07:58Z",
+      "utc": "2026-11-12T20:52:04Z",
       "settings": {
         "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
         "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
@@ -113,22 +113,22 @@
         "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
       },
       "scaling_cur_freq_khz": {
-        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3677622,
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4669672,
         "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800000,
         "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4300000,
-        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4326203,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4407382,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4609055,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4689110,
         "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4348532,
-        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4369651,
-        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4347689,
-        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3681862,
-        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4333450,
-        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
-        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3932349,
-        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4618787,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4039588,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4642503,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4565073,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3903327,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4705683,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4448164,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4447870
       },
       "affinity_cpus": [
         0,
@@ -151,10 +151,10 @@
       "pinning": "none; all engines inherit the same harness CPU affinity"
     },
     "session_count": 1,
-    "commit": "6ef0194eb5bedbdfb9605927b92a45c48b0ee335",
+    "commit": "2f768bb83c9a42ca9cb2f72faf49e2d75c8ca6ec",
     "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
-    "branch": "t3/gpu-simulation-comparison",
-    "utc": "2026-11-12T18:08:08Z",
+    "branch": "t3/paper-gpu-simulation",
+    "utc": "2026-11-12T20:52:15Z",
     "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
     "logical_cpus": 16,
     "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
@@ -179,12 +179,9 @@
       "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
       "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
     },
-    "binary_sha256": "f4c3ffa39d0011aeb90bbfbb38faad5ec94275d6f452c6b474be58d0d37c769b",
-    "source_sha256": "4e7dad4c46702ab21b91b6356fbb06cae5e1380af3e62839cdea1923869afe78",
-    "dirty": [
-      "?? paper/evidence/simulation-development.json",
-      "?? paper/evidence/simulation-validation.json"
-    ],
+    "binary_sha256": "d0b11273de3e0a50ffffaa062da49dc334959f959a4c3107fbcdddd289d0416c",
+    "source_sha256": "21faf2216e31b895ce17d4918f7746c392079d5ef3d543e75938cc9b5143eb3b",
+    "dirty": [],
     "threads": [
       1,
       16
@@ -271,8 +268,8 @@
     "applications/simulation/Client.bend": "51fc1d92a5eeb47b2ee6fa2136aed16cb0d5a50d22a4b9a990e31e7651dec2b9",
     "paper/bench/simulation-postgres.sql": "303a2a27a856906b04b7edcf2ee643ad5d181ae5ab0080aa78ba5d6e975082e0",
     "paper/bench/simulation-sqlite.sql": "dd908239e09c8e8fcf12e7378999111d2d86567c9f909bdf86369bde28be10f0",
-    "paper/bench/simulation.py": "df82c3576a24c0d82bbdde6acba25e6b886eeba937fc7b46de73d9d6556528c8",
-    "tests/service/test_simulation.py": "f48eb271b920084ae8eef42f235c5ec1be0450b84fffd0f0445f55ddb9a6e9b9"
+    "paper/bench/simulation.py": "3af4dc5d7de975327fe17ef8ebbcce557e8d2ff74d3d09490883e764711e849f",
+    "tests/service/test_simulation.py": "81ed50cc67defd7e917fd0bc363b91180b3bff2c1dde295c4511665b402045a1"
   },
   "settings": {
     "cuda": {
@@ -285,7 +282,7 @@
       1,
       16
     ],
-    "numpy": "1.26.4",
+    "numpy": "2.5.4",
     "postgresql": {
       "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
       "fsync": "on",
@@ -313,11 +310,11 @@
     {
       "backend": "cpu-1",
       "threads": 1,
-      "elapsed_ms": 8565.895371,
+      "elapsed_ms": 8651.317064,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
-        "executableSha256": "4d9865bd94d9519e280346724eb7a4eaefbb87d7957e75283fea0a55c96ee5f2",
+        "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+        "executableSha256": "3348a1f351b5718fd50ad985d0c4d622147b0d975483a9688c1fd65e933e6f6c",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -325,9 +322,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34452-0/request-34452-1/checked.c",
+          "/tmp/jaydb2-377808-0/request-377808-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34452-0/request-34452-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "/tmp/jaydb2-377808-0/request-377808-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
           "-lm",
           "-pthread"
         ],
@@ -338,11 +335,11 @@
     {
       "backend": "cpu-16",
       "threads": 16,
-      "elapsed_ms": 8636.227065,
+      "elapsed_ms": 8615.029503,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
-        "executableSha256": "4d9865bd94d9519e280346724eb7a4eaefbb87d7957e75283fea0a55c96ee5f2",
+        "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+        "executableSha256": "3348a1f351b5718fd50ad985d0c4d622147b0d975483a9688c1fd65e933e6f6c",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -350,9 +347,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34795-0/request-34795-1/checked.c",
+          "/tmp/jaydb2-378298-0/request-378298-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-34795-0/request-34795-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "/tmp/jaydb2-378298-0/request-378298-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
           "-lm",
           "-pthread"
         ],
@@ -363,11 +360,11 @@
     {
       "backend": "cuda",
       "threads": 1,
-      "elapsed_ms": 11928.166777,
+      "elapsed_ms": 11764.10799,
       "artifact": {
         "format": "jaydb-official-c-v1",
-        "sourceSha256": "e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888",
-        "executableSha256": "329bbca4f2b11d27a03ffb2167e8202892dbd21c824568354eb928f7c41b0699",
+        "sourceSha256": "8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274",
+        "executableSha256": "05ff2d9df0734f126827b88c0c90d24dab8b9c79e561f2d2565ee6e6bb5ad1b6",
         "compiler": "/usr/bin/clang-19",
         "compilerSha256": "f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3",
         "flags": [
@@ -375,9 +372,9 @@
           "-O2",
           "-w",
           "--no-default-config",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-35348-0/request-35348-1/checked.c",
+          "/tmp/jaydb2-378825-0/request-378825-1/checked.c",
           "-o",
-          "/tmp/jaydb-gpu.TBec46Oj/jaydb2-35348-0/request-35348-1/e3c83426f36a86f6a2ec325828b76ef2acc7cbdd6e2aa78d3f92884fd46f3888.program",
+          "/tmp/jaydb2-378825-0/request-378825-1/8dda664cc1a1662e09dc5c0feb4cf1023ae6a23420d5e2dcfae548b358cac274.program",
           "-lm",
           "-pthread",
           "-DBEND_CUDA=1",
@@ -385,7 +382,7 @@
           "-lnvrtc"
         ],
         "backend": "cuda",
-        "gpuSha256": "47188e2c3a6ca8e833c696b566431eb5407dcc243a2c116353757340fbf14053",
+        "gpuSha256": "6a1011047b5ce22d6ded68c00ae319d1fab42ceb73d4a5e5373d5ad190198254",
         "gpuMiB": 512,
         "cudaLibraries": {
           "libcuda.so.1": {
@@ -411,17 +408,17 @@
       "updates": 128,
       "status": "measured",
       "samples_ms": [
-        6.890885,
-        6.688721,
-        6.629115
+        6.964333,
+        6.67753,
+        6.587596
       ],
       "warmup_ms": [
-        7.334281
+        7.623051
       ],
-      "median_ms": 6.688721,
+      "median_ms": 6.67753,
       "range_ms": [
-        6.629115,
-        6.890885
+        6.587596,
+        6.964333
       ],
       "result": {
         "sum": 4001074,
@@ -439,17 +436,17 @@
       "updates": 262144,
       "status": "measured",
       "samples_ms": [
-        7.19113,
-        6.989882,
-        7.059739
+        7.185263,
+        7.108356,
+        7.143958
       ],
       "warmup_ms": [
-        7.275559
+        7.343427
       ],
-      "median_ms": 7.059739,
+      "median_ms": 7.143958,
       "range_ms": [
-        6.989882,
-        7.19113
+        7.108356,
+        7.185263
       ],
       "result": {
         "sum": 1024024504,
@@ -467,17 +464,17 @@
       "updates": 16777216,
       "status": "measured",
       "samples_ms": [
-        35.452455,
-        35.350177,
-        35.104389
+        34.902848,
+        34.946472,
+        35.179273
       ],
       "warmup_ms": [
-        35.226703
+        35.012587
       ],
-      "median_ms": 35.350177,
+      "median_ms": 34.946472,
       "range_ms": [
-        35.104389,
-        35.452455
+        34.902848,
+        35.179273
       ],
       "result": {
         "sum": 3494396886,
@@ -495,17 +492,17 @@
       "updates": 1073741824,
       "status": "measured",
       "samples_ms": [
-        1803.300679,
-        1807.990471,
-        1805.489216
+        1802.404583,
+        1802.072136,
+        1802.22375
       ],
       "warmup_ms": [
-        1801.94775
+        1802.244772
       ],
-      "median_ms": 1805.489216,
+      "median_ms": 1802.22375,
       "range_ms": [
-        1803.300679,
-        1807.990471
+        1802.072136,
+        1802.404583
       ],
       "result": {
         "sum": 792166316,
@@ -523,17 +520,17 @@
       "updates": 128,
       "status": "measured",
       "samples_ms": [
-        7.096173,
-        6.826883,
-        6.938129
+        7.182502,
+        6.829548,
+        7.063321
       ],
       "warmup_ms": [
-        7.866177
+        7.933279
       ],
-      "median_ms": 6.938129,
+      "median_ms": 7.063321,
       "range_ms": [
-        6.826883,
-        7.096173
+        6.829548,
+        7.182502
       ],
       "result": {
         "sum": 4001074,
@@ -551,17 +548,17 @@
       "updates": 262144,
       "status": "measured",
       "samples_ms": [
-        7.158137,
-        7.293139,
-        6.935258
+        7.150993,
+        7.106651,
+        7.183881
       ],
       "warmup_ms": [
-        7.140904
+        7.216953
       ],
-      "median_ms": 7.158137,
+      "median_ms": 7.150993,
       "range_ms": [
-        6.935258,
-        7.293139
+        7.106651,
+        7.183881
       ],
       "result": {
         "sum": 1024024504,
@@ -579,17 +576,17 @@
       "updates": 16777216,
       "status": "measured",
       "samples_ms": [
-        10.779838,
-        11.231085,
-        11.348119
+        10.607664,
+        10.789767,
+        10.591399
       ],
       "warmup_ms": [
-        10.792917
+        10.653556
       ],
-      "median_ms": 11.231085,
+      "median_ms": 10.607664,
       "range_ms": [
-        10.779838,
-        11.348119
+        10.591399,
+        10.789767
       ],
       "result": {
         "sum": 3494396886,
@@ -607,17 +604,17 @@
       "updates": 1073741824,
       "status": "measured",
       "samples_ms": [
-        248.30824,
-        236.954978,
-        245.043079
+        234.621004,
+        234.767337,
+        234.929549
       ],
       "warmup_ms": [
-        236.149983
+        235.469856
       ],
-      "median_ms": 245.043079,
+      "median_ms": 234.767337,
       "range_ms": [
-        236.954978,
-        248.30824
+        234.621004,
+        234.929549
       ],
       "result": {
         "sum": 792166316,
@@ -635,17 +632,17 @@
       "updates": 128,
       "status": "measured",
       "samples_ms": [
-        172.072591,
-        164.97222,
-        167.809872
+        169.164371,
+        161.450843,
+        149.428628
       ],
       "warmup_ms": [
-        151.232298
+        208.237837
       ],
-      "median_ms": 167.809872,
+      "median_ms": 161.450843,
       "range_ms": [
-        164.97222,
-        172.072591
+        149.428628,
+        169.164371
       ],
       "result": {
         "sum": 4001074,
@@ -663,17 +660,17 @@
       "updates": 262144,
       "status": "measured",
       "samples_ms": [
-        164.804577,
-        174.970317,
-        159.265757
+        175.474728,
+        155.208502,
+        155.400416
       ],
       "warmup_ms": [
-        163.078434
+        173.770578
       ],
-      "median_ms": 164.804577,
+      "median_ms": 155.400416,
       "range_ms": [
-        159.265757,
-        174.970317
+        155.208502,
+        175.474728
       ],
       "result": {
         "sum": 1024024504,
@@ -691,17 +688,17 @@
       "updates": 16777216,
       "status": "measured",
       "samples_ms": [
-        157.31978,
-        165.423734,
-        169.135018
+        168.739792,
+        170.678139,
+        162.294235
       ],
       "warmup_ms": [
-        171.850284
+        168.046923
       ],
-      "median_ms": 165.423734,
+      "median_ms": 168.739792,
       "range_ms": [
-        157.31978,
-        169.135018
+        162.294235,
+        170.678139
       ],
       "result": {
         "sum": 3494396886,
@@ -719,17 +716,17 @@
       "updates": 1073741824,
       "status": "measured",
       "samples_ms": [
-        190.958834,
-        172.806252,
-        194.871516
+        181.845147,
+        177.822261,
+        178.204287
       ],
       "warmup_ms": [
-        192.114365
+        187.315989
       ],
-      "median_ms": 190.958834,
+      "median_ms": 178.204287,
       "range_ms": [
-        172.806252,
-        194.871516
+        177.822261,
+        181.845147
       ],
       "result": {
         "sum": 792166316,
@@ -747,17 +744,17 @@
       "updates": 128,
       "status": "measured",
       "samples_ms": [
-        0.194509,
-        0.119183,
-        0.106797
+        0.260681,
+        0.182925,
+        0.115334
       ],
       "warmup_ms": [
-        0.16414
+        0.212416
       ],
-      "median_ms": 0.119183,
+      "median_ms": 0.182925,
       "range_ms": [
-        0.106797,
-        0.194509
+        0.115334,
+        0.260681
       ],
       "result": {
         "sum": 4001074,
@@ -775,17 +772,17 @@
       "updates": 262144,
       "status": "measured",
       "samples_ms": [
-        29.37948,
-        29.477702,
-        29.438011
+        29.323205,
+        29.338996,
+        29.438152
       ],
       "warmup_ms": [
-        29.473756
+        29.279144
       ],
-      "median_ms": 29.438011,
+      "median_ms": 29.338996,
       "range_ms": [
-        29.37948,
-        29.477702
+        29.323205,
+        29.438152
       ],
       "result": {
         "sum": 1024024504,
@@ -803,17 +800,17 @@
       "updates": 16777216,
       "status": "measured",
       "samples_ms": [
-        1848.68928,
-        1855.157867,
-        1848.717821
+        1845.224665,
+        1847.874933,
+        1850.113513
       ],
       "warmup_ms": [
-        1847.855652
+        1848.605529
       ],
-      "median_ms": 1848.717821,
+      "median_ms": 1847.874933,
       "range_ms": [
-        1848.68928,
-        1855.157867
+        1845.224665,
+        1850.113513
       ],
       "result": {
         "sum": 3494396886,
@@ -833,7 +830,7 @@
       "completed_samples_ms": [],
       "warmup_ms": [],
       "last_verified_updates": 16777216,
-      "diagnostic": "canceling statement due to statement timeout\nCONTEXT:  PL/pgSQL function simulate(text,integer,integer) line 13 at assignment"
+      "diagnostic": "canceling statement due to statement timeout\nCONTEXT:  PL/pgSQL function simulate(text,integer,integer) line 14 at assignment"
     },
     {
       "backend": "sqlite",
@@ -843,17 +840,17 @@
       "updates": 128,
       "status": "measured",
       "samples_ms": [
-        0.073346,
-        0.075895,
-        0.073688
+        0.07398,
+        0.074224,
+        0.071863
       ],
       "warmup_ms": [
-        0.080837
+        0.080606
       ],
-      "median_ms": 0.073688,
+      "median_ms": 0.07398,
       "range_ms": [
-        0.073346,
-        0.075895
+        0.071863,
+        0.074224
       ],
       "result": {
         "sum": 4001074,
@@ -871,17 +868,17 @@
       "updates": 262144,
       "status": "measured",
       "samples_ms": [
-        160.890217,
-        161.110739,
-        161.379337
+        161.234591,
+        162.434587,
+        162.77777
       ],
       "warmup_ms": [
-        161.153772
+        160.991287
       ],
-      "median_ms": 161.110739,
+      "median_ms": 162.434587,
       "range_ms": [
-        160.890217,
-        161.379337
+        161.234591,
+        162.77777
       ],
       "result": {
         "sum": 1024024504,
