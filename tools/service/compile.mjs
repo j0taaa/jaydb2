@@ -2,12 +2,23 @@
 // Check and emit the exact private Book with the unmodified official compiler.
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { admitSubmission, admitKernel, compileSubmission, compileKernel, emitC, configurationLimits, preflight } from '../admission/index.mjs';
 import { sha256 } from '../admission/bootstrap.mjs';
 
 const [manifestFile, outputFile, sourceDir, kernelPath, pureManifestFile, gpuOption = '0'] = process.argv.slice(2);
 let pureAccepted = false;
+// Record (not pin) the environment's CUDA libraries in the trusted base: the
+// dynamic loader resolves them at each run; this is provenance, not attestation.
+function resolvedCudaLibraries(executable) {
+  const listed = spawnSync('/usr/bin/ldd', [executable], { encoding: 'utf8', env: process.env });
+  const libraries = {};
+  for (const [, name, file] of (listed.stdout ?? '').matchAll(/^\s*(lib(?:cuda|nvrtc)[^\s]*) => (\S+)/gm))
+    libraries[name] = { path: fs.realpathSync(file), sha256: sha256(fs.readFileSync(file)) };
+  if (!Object.keys(libraries).some(n => n.startsWith('libcuda.')) || !Object.keys(libraries).some(n => n.startsWith('libnvrtc.')))
+    throw new Error('GPU_BUILD: cannot resolve libcuda/libnvrtc');
+  return libraries;
+}
 const provisionalFiles = [];
 function write(file, bytes) {
   fs.writeFileSync(file, bytes, { flag: 'wx', mode: 0o600 });
@@ -62,9 +73,11 @@ try {
     if (result.error || result.signal || result.status !== 0)
       throw new Error('clang-19: ' + (result.error?.message ?? result.signal ?? result.status));
     if (!fs.readFileSync(outputFile).equals(original)) throw new Error('Checked C changed during compilation');
-    let gpuSha256;
+    let gpuSha256, cudaLibraries;
     if (cuda) {
       const device = executable + '.gpu';
+      // --gpu-build can exit zero without writing; never adopt a stale file.
+      if (fs.existsSync(device)) throw new Error('GPU artifact already exists');
       provisionalFiles.push(device);
       const build = await new Promise(resolve => {
         const child = spawn(executable, ['+RTS', '--gpu-build', '-RTS'], {
@@ -79,11 +92,12 @@ try {
           || !fs.lstatSync(device).isFile() || fs.statSync(device).size <= 8)
         throw new Error('GPU_BUILD: GPU prebuild failed: ' + (build.stderr || build.error?.message || 'no artifact'));
       gpuSha256 = sha256(fs.readFileSync(device));
+      cudaLibraries = resolvedCudaLibraries(executable);
     }
     return { executable, report: { format: 'jaydb-official-c-v1', sourceSha256: sha256(original),
       executableSha256: sha256(fs.readFileSync(executable)), compiler, compilerSha256: sha256(fs.readFileSync(compiler)), flags,
       backend: cuda ? 'cuda' : 'cpu',
-      ...(cuda ? { gpuSha256, gpuMiB, hasBangs: /^#define\s+BANGS\s+[1-9]/m.test(original.toString()) } : {}) } };
+      ...(cuda ? { gpuSha256, gpuMiB, cudaLibraries, hasBangs: /^#define\s+BANGS\s+[1-9]/m.test(original.toString()) } : {}) } };
   };
   if (manifest.nativeOptimization !== undefined && !['-O0', '-O2'].includes(manifest.nativeOptimization))
     throw new Error('Invalid native optimization level');
@@ -91,8 +105,11 @@ try {
     if (cuda) {
       // CUDA is never entered before BOTH official checkers accept the sealed
       // Book. Keep the default CPU concurrent-check/build pipeline unchanged.
+      if (!manifest.nativeOptimization) throw new Error('CUDA requires a native optimization level');
       admitted = await (manifest.purpose ? admitKernel : admitSubmission)({ ...manifest, toolchain });
-      native = await build(emitC(admitted));
+      // Both checkers accepted: a build/prebuild failure is a compile-phase
+      // error, as on the CPU path, with no redundant pure re-check.
+      native = await build(emitC(admitted)).catch(e => { throw Object.assign(e, { phase: 'compile' }); });
     } else if (manifest.nativeOptimization) {
       const built = await (manifest.purpose ? compileKernel : compileSubmission)({ ...manifest, toolchain }, build);
       admitted = built.admitted; native = built.artifact;

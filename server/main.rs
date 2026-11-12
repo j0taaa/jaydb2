@@ -293,16 +293,17 @@ impl Program {
                 ),
             ));
         }
-        // No success can publish if a bundle changed during execution or if
-        // the official runtime rebuilt a device artifact (e.g. device change).
-        self.validate()?;
-        if self.gpu.is_some()
-            && String::from_utf8_lossy(&output.stderr).contains("bend: compiling the GPU program")
-        {
-            return Err(Error::new(
-                "GPU_REBUILD",
-                "GPU artifact is incompatible; prepare again",
-            ));
+        // CUDA only: no success can publish if a bundle changed during
+        // execution or if the official runtime rebuilt a device artifact
+        // (e.g. device change). The default CPU path keeps its original checks.
+        if self.gpu.is_some() {
+            self.validate()?;
+            if String::from_utf8_lossy(&output.stderr).contains("bend: compiling the GPU program") {
+                return Err(Error::new(
+                    "GPU_REBUILD",
+                    "GPU artifact is incompatible; prepare again",
+                ));
+            }
         }
         Ok(output.stdout)
     }
@@ -781,7 +782,10 @@ impl Database {
             let output = prepared
                 .program
                 .run(&packet(&self.registry, &input), self.threads)?;
-            prepared.validate()?;
+            if prepared.program.gpu.is_some() {
+                // CUDA only: the sealed bundle must be unchanged after the run.
+                prepared.validate()?;
+            }
             bench_mark(&mut bench, "prepared_worker");
             return parse_decision(&output, &self.limits);
         }
@@ -1424,6 +1428,36 @@ mod tests {
         fs::write(&identical, b"device").unwrap();
         std::os::unix::fs::symlink(identical, &device).unwrap();
         assert!(program.validate().is_err());
+    }
+
+    #[test]
+    fn program_load_rejects_backend_and_corpus_mismatch() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-gpu-load").unwrap();
+        let path = directory.path.join("worker");
+        fs::write(&path, b"native").unwrap();
+        fs::write(directory.path.join("worker.gpu"), b"device").unwrap();
+        let native = format!("{:x}", Sha256::digest(b"native"));
+        let device = format!("{:x}", Sha256::digest(b"device"));
+        let report = |value: Value| {
+            fs::write(format!("{}.json", path.display()), value.to_string()).unwrap();
+        };
+        let cpu = serde_json::json!({"format": "jaydb-official-c-v1", "backend": "cpu", "executableSha256": native});
+        let cuda = serde_json::json!({"format": "jaydb-official-c-v1", "backend": "cuda",
+            "executableSha256": native, "gpuSha256": device, "gpuMiB": 512});
+        report(cpu.clone());
+        assert!(Program::load(path.clone(), 0).unwrap().gpu.is_none());
+        assert!(Program::load(path.clone(), 512).is_err());
+        report(cuda.clone());
+        assert_eq!(
+            Program::load(path.clone(), 512).unwrap().gpu,
+            Some((512, device.clone()))
+        );
+        assert!(Program::load(path.clone(), 0).is_err());
+        assert!(Program::load(path.clone(), 1024).is_err());
+        let mut smuggled = cpu;
+        smuggled["gpuSha256"] = Value::String(device);
+        report(smuggled);
+        assert!(Program::load(path.clone(), 0).is_err());
     }
 
     fn hex(value: &str) -> Vec<u8> {

@@ -68,7 +68,10 @@ make the decision. No GPU permission or validity axiom is added.
 
 These theorems concern the checked Book's semantics. With CUDA enabled, trusted
 base T2 additionally includes the official CUDA path in the emitted runtime,
-NVRTC, the CUDA driver, managed memory and GPU hardware. Differential tests are
+NVRTC, the CUDA driver, managed memory and GPU hardware. The CUDA headers and
+libraries are taken from the host environment; their resolved paths and hashes
+are recorded in the artifact report, but they are not pinned like the Bend
+toolchain. Differential tests are
 evidence of implementation behavior, not a proof of compiler/runtime or GPU
 correctness. See [GPU evidence and limits](paper/evidence/gpu-programs.md).
 

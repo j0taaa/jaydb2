@@ -59,27 +59,33 @@ The harness fixes CPU policy, not GPU clocks; the GPU also drives the desktop.
 
 ## Fresh validation
 
+The log file names refer to the gitignored `build/gpu/validation/` directory
+of the machine that ran them; only tails and SHA-256 values are
+retained in [gpu-validation.json](gpu-validation.json). This first table was
+run on implementation revision `2c5c2f3`; the post-review rerun is recorded in
+the section "Post-review fixes and rerun" below.
+
 All heavy commands held the common lock with unlimited stack. Full raw local
 logs and retained SHA-256 values are indexed in [gpu-validation.json](gpu-validation.json).
 The table uses the final attempt for each requested command.
 
 | Command | Result | Seconds | Real output summary |
 | --- | --- | ---: | --- |
-| [`make build`](../../build/gpu/validation/make-build.log) | PASS | 0.021 | Release binary |
-| [`make verify-contract`](../../build/gpu/validation/make-verify-contract.log) | PASS | 49.902 | Both official modes; active/original contract hashes |
-| [`make verify`](../../build/gpu/validation/make-verify-rerun.log) | PASS | 656.476 | All positive roots; 400 fixtures / 800 exact-false rejections; RLS proof controls |
-| [`make test`](../../build/gpu/validation/make-test-rerun.log) | PASS | 617.519 | 47 admission/verifier; 10 native; 38 Rust; 16 service; 253 RLS responses |
-| [`make test-rls`](../../build/gpu/validation/make-test-rls.log) | PASS | 94.022 | 253 native responses; 12 admission denials; both proof modes |
-| [`make test-accessories-native`](../../build/gpu/validation/make-test-accessories-native.log) | PASS | 564.425 | 26 SQL CRUD; 31 limits; 600 random steps (638 SQL + 175 Drizzle comparisons); 11 TS responses; 2 starter profiles; 1 durable workflow |
-| [`make test-persistence`](../../build/gpu/validation/make-test-persistence.log) | PASS | 532.736 | 8 tests |
-| [`make test-idempotency-recovery`](../../build/gpu/validation/make-test-idempotency-recovery.log) | PASS | 80.994 | 1 lost-response/retry recovery test |
-| [`make prepared`](../../build/gpu/validation/make-prepared.log) | PASS | 71.899 | 2 tests |
-| [`make smoke`](../../build/gpu/validation/make-smoke-rerun.log) | PASS | 12.857 | Client/SQL/accessory unit suites; 38 Rust; fmt and strict Clippy |
-| [`make test-demo-web`](../../build/gpu/validation/make-test-demo-web.log) | PASS | 137.272 | 12 tests |
-| [`make test-admission`](../../build/gpu/validation/make-test-admission.log) | PASS | 74.016 | 47 tests |
-| [`make test-gpu`](../../build/gpu/validation/make-test-gpu-final.log) | PASS | 188.963 | 5 real GPU integration methods; source equality, complete state, proof/integrity/device negatives and real launches |
-| [`python3 -m pytest paper/test_evidence.py`](../../build/gpu/validation/paper-test-evidence-final.log) | PASS | 15.296 | 30 tests |
-| [`make benchmark-gpu`](../../build/gpu/validation/make-benchmark-gpu-final.log) | PASS | 127.804 | 3 modes × 2 sizes; 36 measured native/request trials, plus warmups; independent oracles and full state |
+| `make build` (`make-build.log`) | PASS | 0.021 | Release binary |
+| `make verify-contract` (`make-verify-contract.log`) | PASS | 49.902 | Both official modes; active/original contract hashes |
+| `make verify` (`make-verify-rerun.log`) | PASS | 656.476 | All positive roots; 400 fixtures / 800 exact-false rejections; RLS proof controls |
+| `make test` (`make-test-rerun.log`) | PASS | 617.519 | 47 admission/verifier; 10 native; 38 Rust; 16 service; 253 RLS responses |
+| `make test-rls` (`make-test-rls.log`) | PASS | 94.022 | 253 native responses; 12 admission denials; both proof modes |
+| `make test-accessories-native` (`make-test-accessories-native.log`) | PASS | 564.425 | 26 SQL CRUD; 31 limits; 600 random steps (638 SQL + 175 Drizzle comparisons); 11 TS responses; 2 starter profiles; 1 durable workflow |
+| `make test-persistence` (`make-test-persistence.log`) | PASS | 532.736 | 8 tests |
+| `make test-idempotency-recovery` (`make-test-idempotency-recovery.log`) | PASS | 80.994 | 1 lost-response/retry recovery test |
+| `make prepared` (`make-prepared.log`) | PASS | 71.899 | 2 tests |
+| `make smoke` (`make-smoke-rerun.log`) | PASS | 12.857 | Client/SQL/accessory unit suites; 38 Rust; fmt and strict Clippy |
+| `make test-demo-web` (`make-test-demo-web.log`) | PASS | 137.272 | 12 tests |
+| `make test-admission` (`make-test-admission.log`) | PASS | 74.016 | 47 tests |
+| `make test-gpu` (`make-test-gpu-final.log`) | PASS | 188.963 | 5 real GPU integration methods; source equality, complete state, proof/integrity/device negatives and real launches |
+| `python3 -m pytest paper/test_evidence.py` (`paper-test-evidence-final.log`) | PASS | 15.296 | 30 tests |
+| `make benchmark-gpu` (`make-benchmark-gpu-final.log`) | PASS | 127.804 | 3 modes × 2 sizes; 36 measured native/request trials, plus warmups; independent oracles and full state |
 
 Initial attempts are retained, including the new proof fixture's collision
 with Base's `Pair` name and the extra CPU compiler argument that broke an
@@ -100,12 +106,31 @@ The initial unwrapped/forwarding GPU integration suite passed 5 tests in
 rebuilds, changes after launch, and exact CPU/CUDA emitted-C equality. The
 forwarding driver trace counts are preserved in the final GPU log. Successful
 interposed CUDA calls forward to the installed real driver. Unwrapped runs and
-`CUDA_VISIBLE_DEVICES=''` tests are separate. Reports require `hasBangs: true`
-and tests inspect nonzero `#define BANGS` in the official emitted C.
+`CUDA_VISIBLE_DEVICES=''` tests are separate. Reports record `hasBangs`; the
+tests and benchmark (not the production host) require it to be true and
+inspect nonzero `#define BANGS` in the official emitted C.
+
+## GPU proof fixtures
+
+`tests/proof/GpuPrograms.bend` defines a program whose terminal value uses a
+real bang (`mix!(x)`). Its positive law `bang_value` shows both checkers reduce
+the bang exactly as the ordinary call. The three rejected fixtures fail exactly
+at `false` under `--check-only` and `--verdict`: `GpuFalseResult` asserts a
+wrong value through the bang (the checker must reduce `mix!`);
+`GpuFalseTermination` and `GpuUnauthorizedRead` state a false termination bound
+and the real `R.SafetyPrefix` access obligation for the bang program reading
+another user's cell. The latter two fail for reasons independent of the bang:
+they are controls showing that a bang changes no obligation. The full
+certificate of a real bang client (`experiments/gpu/ClientProof.bend`) is
+exercised at service level by `make test-gpu`.
 
 ## Focused fixed-clock measurements
 
 Measured code revision `2c5c2f3b8d7bdf937fa0513e713db7ed84ee70b8`. Raw samples, complete states, artifact hashes, frequency settings and toolchain metadata: [gpu-programs.json](gpu-programs.json).
+
+Native-worker and complete-request columns are **separate trials** (different
+processes and device initializations), not nested phases; this is why a CUDA
+complete-request median can be below its native-worker median.
 
 | Workload | Backend / CPU workers | Native worker median (range), ms | Complete request median (range), ms |
 | --- | --- | ---: | ---: |

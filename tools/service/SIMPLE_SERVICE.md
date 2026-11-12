@@ -339,7 +339,9 @@ span of translation and the kernel child; it overlaps `c_emission` and
 round trip to infer an exclusive remainder. Child completion can be observed
 after synchronous C emission yields the Node event loop. `admission_total`
 remains the inclusive wall time of admission/build. Staging, worker, cleanup
-and publication hooks retain their original boundaries.
+and publication hooks retain their original boundaries. With `--gpu`, checking
+and building are sequential (no overlap), and the CUDA-only post-run artifact
+rechecks fall inside `ordinary_worker` / `prepared_worker`.
 
 ## Experimental GPU programs
 
@@ -354,9 +356,11 @@ Programs and proofs use the ordinary request or prepared protocol unchanged.
 Use explicit `tree!(...)` calls in the client; parallel lets inside the called
 function use the official device backend. The same bang program with `--gpu off
 --threads 16` uses Bend's CPU worker pool. Without reachable bangs, opting in
-does not establish that a kernel launched. A requested bang requires a usable
-CUDA device and concurrent managed memory; a missing device fails, with no
-silent CPU fallback.
+does not establish that a kernel launched. With `--gpu`, every submitted or
+prepared program is built with a mandatory official cubin prebuild, so without a
+usable CUDA device (concurrent managed memory) admission itself fails
+(`GPU_BUILD`), even for bang-free programs; bang-free programs then run on the
+CPU pool. A requested bang never silently falls back to CPU.
 
 GPU admission waits for **both** official checkers on the sealed Book before
 C emission, Clang or CUDA use. It compiles literal C with `/usr/bin/clang-19`,
@@ -364,9 +368,13 @@ C emission, Clang or CUDA use. It compiles literal C with `/usr/bin/clang-19`,
 libraries in `/lib/x86_64-linux-gnu` on the measured machine. It invokes the
 official executable with `+RTS --gpu-build -RTS` before releasing a report or
 registration; `nvcc` is not needed. The report binds source, executable and
-`.gpu` hashes, backend and corpus setting. Private executable/cubin files
-must be regular files and match before each run and before accepting output;
-prepared execution rechecks all exact sealed bytes after the child exits too.
+`.gpu` hashes, backend and corpus setting, and records (does not pin) the
+resolved `libcuda`/`libnvrtc` paths and SHA-256: these vendor libraries and the
+`cuda.h`/`nvrtc.h` headers come from the host environment and are trusted, not
+attested. Private executable/cubin files must be regular files and match before
+each run and before accepting output; CUDA prepared execution rechecks all exact
+sealed bytes after the child exits too. The default CPU path keeps its original
+pre-run checks only.
 An official `bend: compiling the GPU program` notice fails even if rebuilt
 bytes happen to match. Substitution, removal, incompatible artifacts and device
 errors discard the proposal, preserving the current published/durable root.

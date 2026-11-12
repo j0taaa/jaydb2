@@ -143,5 +143,6 @@ a Linux NVIDIA device with concurrent managed memory, CUDA driver and NVRTC
 headers/libraries visible to `/usr/bin/clang-19` (`cuda.h`, `nvrtc.h`, `-lcuda`,
 `-lnvrtc`); the measured system installs these under `/usr`, with no
 `/usr/local/cuda` requirement. Official `--gpu-build` prebuilds each device
-bundle after proof admission. A requested bang fails without a usable device;
-CPU default remains available. See [GPU usage](experiments/gpu/README.md).
+bundle after proof admission, so with `--gpu` every submission fails at
+admission without a usable device (bang-free ones included); requested bangs
+never fall back to CPU. The CPU default remains available. See [GPU usage](experiments/gpu/README.md).

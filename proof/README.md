@@ -120,7 +120,9 @@ integer/Unicode behavior and observation ordering. The process boundary and
 executable provenance are part of this bridge. Compiler preservation is trusted.
 With experimental CUDA enabled, T2 grows to include the official CUDA code
 path in the emitted runtime, NVRTC, the CUDA driver, managed memory, and GPU
-hardware. No Bend compiler, runtime or emitted C is patched. CPU and GPU
+hardware. These CUDA headers/libraries come from the host environment; their
+resolved paths and hashes are recorded, not pinned like the Bend toolchain.
+No Bend compiler, runtime or emitted C is patched. CPU and GPU
 programs must discharge identical certificate, termination, access/RLS and size
 obligations on the same sealed Book, through both official checkers. CUDA
 compilation/prebuild begins only after both accept. The checked Gate/finisher
