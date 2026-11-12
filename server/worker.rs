@@ -25,6 +25,19 @@ impl Image {
         }
         // SAFETY: successful memfd_create returns a new owned descriptor.
         let mut file = unsafe { File::from_raw_fd(fd) };
+        if fd <= libc::STDERR_FILENO {
+            // Command's stdin/stdout/stderr setup replaces descriptors 0..2
+            // before exec. Keep the authoritative image outside that range,
+            // including when the host started with a standard stream closed.
+            // SAFETY: live fd, documented integer minimum and CLOEXEC policy.
+            let retained = unsafe { libc::fcntl(fd, libc::F_DUPFD_CLOEXEC, 3) };
+            if retained < 0 {
+                return Err(std::io::Error::last_os_error().into());
+            }
+            // SAFETY: F_DUPFD_CLOEXEC returned a new owned descriptor.
+            file = unsafe { File::from_raw_fd(retained) };
+        }
+        let fd = file.as_raw_fd();
         std::io::copy(&mut File::open(path)?, &mut file)?;
         let seals =
             libc::F_SEAL_WRITE | libc::F_SEAL_GROW | libc::F_SEAL_SHRINK | libc::F_SEAL_SEAL;
@@ -242,6 +255,38 @@ pub(crate) mod tests {
             std::io::Error::last_os_error().raw_os_error(),
             Some(libc::ECHILD)
         );
+    }
+
+    #[test]
+    fn closed_standard_stream_cannot_be_replaced_over_the_image_fd() {
+        const CHILD: &str = "JAYDB_CLOSED_STDERR_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "worker::tests::closed_standard_stream_cannot_be_replaced_over_the_image_fd",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+        let path = fixture();
+        let digest = hash(&path);
+        // SAFETY: this isolated test subprocess owns fd 2; no other tests run.
+        assert_eq!(unsafe { libc::close(libc::STDERR_FILENO) }, 0);
+        let image = Image::load(&path, &digest).unwrap();
+        assert!(image.0.as_raw_fd() > libc::STDERR_FILENO);
+        let result = capture::capture(&mut image.command(1), b"exact admitted image").unwrap();
+        assert!(result.status.success());
+        assert_eq!(result.stdout, b"exact admitted image");
     }
 
     #[test]

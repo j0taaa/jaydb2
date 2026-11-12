@@ -70,7 +70,8 @@ with the actual compiler arguments. At load the Rust host copies the released
 ELF into a CLOEXEC memfd, installs F_SEAL_WRITE/GROW/SHRINK/SEAL, checks
 F_GET_SEALS and hashes the sealed image against executableSha256. Sealing or
 verification failure refuses load. It owns that fd for the program lifetime
-and launches /proc/self/fd/N with ordinary Command::spawn (no pre_exec, retaining
+and retains it above fd 2 so child standard-pipe setup cannot replace it. It
+launches /proc/self/fd/N with ordinary Command::spawn (no pre_exec, retaining
 posix_spawn). This replaces hash-before-every-call and prepared staging-file
 rereads with verification once and trusted kernel seal enforcement. Staging
 source/C/manifest/executable copies are diagnostic after admission. Future
