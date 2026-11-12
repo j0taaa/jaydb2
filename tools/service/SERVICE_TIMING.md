@@ -37,7 +37,13 @@ The interval includes snapshot packet copying, authentication, artifact checks,
 proof admission/compilation where applicable, native execution, child and pipe
 cleanup, proposal validation and publication. Completion is stamped
 at `publish_with_ready`: after any durable snapshot commit and RAM publication,
-before final inspection and client delivery. A fatal commit uncertainty before
+before final inspection and client delivery.
+Pooled authenticator/prepared children receive no packet before selection.
+Image verification and idle-child startup completed before selection are outside
+this interval; packet delivery, remaining startup, checked execution, active-child
+reaping and publication remain inside. Asynchronous data-free refill may overlap
+the interval and still consumes real CPU/resources. Ordinary admission and image
+verification performed for the selected call remain inside its interval. A fatal commit uncertainty before
 that hook is measured once at the fatal return; service still stops with no
 response or later dispatch. A log cannot determine whether an uncertain commit
 reached storage.
