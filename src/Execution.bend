@@ -118,7 +118,7 @@ def response_packet_equals_prepared(framed, response, w, events, initial):
 # response framing failure, Keep and equal-root successful Commit.
 law finish_equals_reference:
   for +proposal: S.Response
-  for +c: S.Configuration
+  for c: S.Configuration
   for +w: D.State
   for +events: List<&2, S.OperationEvent>
   for +initial: D.State
@@ -128,9 +128,9 @@ def finish_equals_reference(proposal, c, w, events, initial):
   match proposal:
     case S.Response{S.Success{}, +value}:
       match c:
-        case S.Configuration{+schema, +laws, +limits, +environment}:
-          +configuration = S.Configuration{schema, laws, limits, environment}
-          +response = R.finalize_success_encoded(value, configuration, w, P.encode(D.state_value(w)))
+        case S.Configuration{schema, laws, limits, environment}:
+          +response = R.finalize_success_encoded(value,
+            S.Configuration{schema, laws, limits, environment}, w, P.encode(D.state_value(w)))
           response_packet_equals_prepared(P.frame(S.response_value(response)), response, w, events, initial)
     case S.Response{S.Refusal{}, value}: {==}
     case S.Response{S.Input{}, value}: {==}

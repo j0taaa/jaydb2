@@ -3,33 +3,25 @@
 import Base
 import ../contract/Bytes.bend as B
 import ../proof/Foundations.bend as F
-import ../proof/CodecRelaxArithmeticWord.bend as Measures
-import ../proof/CodecSums64.bend as Bits
+import ../proof/LimitLiteral.bend as Literal
 
+def common() -> B.Number64:
+  B.Number64{0, 65536}
 
-def select(common: Bool, n: Nat) -> Maybe<&2, B.Number64>:
-  match common:
+def select(matches: Bool, n: Nat) -> Maybe<&2, B.Number64>:
+  match matches:
     case True{}: Some{B.Number64{0, 65536}}
     case False{}: B.nat64(n)
-
 
 def convert(+n: Nat) -> Maybe<&2, B.Number64>:
   select(Nat.is_eq(n, 65536n), n)
 
-# Keep the natural measure abstract during conversion checking, so neither
-# checker needs to normalize the unary reference at the concrete ceiling.
-def common_from_measure(+n: Nat,
-  same: {n == Word.to_nat(64n, Bits.bits(B.Number64{0, 65536})) : Nat}) ->
-  {B.nat64(n) == Some{B.Number64{0, 65536}} : Maybe<&2, B.Number64>}:
-  %Equal.sym(Nat, n, Word.to_nat(64n, Bits.bits(B.Number64{0, 65536})), same) :
-    {B.nat64(_) == Some{B.Number64{0, 65536}} : Maybe<&2, B.Number64>}
-  Measures.nat64_measures_number(B.Number64{0, 65536})
-
+# The closed witness uses bounded chunks of the existing checked addition
+# theorem, so neither checker expands the whole unary conversion at once.
 law common_literal_exact:
   {B.nat64(65536n) == Some{B.Number64{0, 65536}} : Maybe<&2, B.Number64>}
 def common_literal_exact():
-  common_from_measure(65536n, {==})
-
+  Literal.at_65536()
 
 def natural_equal(+a: Nat, +b: Nat, same: {Nat.is_eq(a, b) == True{} : Bool}) -> {a == b : Nat}:
   match a b:
@@ -39,10 +31,9 @@ def natural_equal(+a: Nat, +b: Nat, same: {Nat.is_eq(a, b) == True{} : Bool}) ->
     case 1n+p 1n+q:
       Equal.cong(Nat, Nat, x => 1n+x, p, q, natural_equal(p, q, same))
 
-
-def select_exact(common: Bool, +n: Nat, same: {Nat.is_eq(n, 65536n) == common : Bool}) ->
-  {select(common, n) == B.nat64(n) : Maybe<&2, B.Number64>}:
-  match common:
+def select_exact(matches: Bool, +n: Nat, same: {Nat.is_eq(n, 65536n) == matches : Bool}) ->
+  {select(matches, n) == B.nat64(n) : Maybe<&2, B.Number64>}:
+  match matches:
     case False{}: {==}
     case True{}:
       %Equal.sym(Nat, n, 65536n, natural_equal(n, 65536n, same)) :
