@@ -8,7 +8,8 @@ import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
 from tests.service.test_persistence import BINARY, state_bytes
-from tools.client import frame, unframe
+from tools.client import frame, prepared_frame, unframe
+from tests.service.test_prepared import universal_access_proof
 
 
 class TimingPersistenceTests(unittest.TestCase):
@@ -39,8 +40,16 @@ class TimingPersistenceTests(unittest.TestCase):
                         arguments=['--storage', str(storage), '--storage-mode', 'open',
                                    '--timing-log', str(log)])
                     try:
-                        first = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token))
-                        later = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token+'-later'))
+                        setup_records = 0
+                        if len(token) > 4096:
+                            prepared = server.prepared(0, code, 'alice-token', proof=universal_access_proof(proof))
+                            self.assertEqual(prepared['status'], 'prepared', server.diagnostics())
+                            setup_records = 1
+                            first = prepared_frame(1, prepared['value'], 'alice-token', token)
+                            later = prepared_frame(1, prepared['value'], 'alice-token', token+'-later')
+                        else:
+                            first = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token))
+                            later = frame(dict(code=code, proof=proof, credential='alice-token', arguments=token+'-later'))
                         server.process.stdin.write(first+later)
                         server.process.stdin.close()
                         if point in ('before_write', 'after_file_sync'):
@@ -52,12 +61,13 @@ class TimingPersistenceTests(unittest.TestCase):
                                              {'status': 'failure', 'value': None})
                         result = server.process.wait(timeout=180)
                         self.assertEqual(server.process.stdout.read(), b'', server.diagnostics())
-                        records = [json.loads(line) for line in log.read_text().splitlines()]
+                        records = [json.loads(line) for line in log.read_text().splitlines()][setup_records:]
                         first = records[0]
                         self.assertEqual(first['principal'], 'alice')
                         self.assertGreaterEqual(int(first['elapsed_ns']), 1_000_000)
                         if point in ('before_write', 'after_file_sync'):
                             self.assertEqual(result, 0, server.diagnostics())
+                            self.assertIn('STORAGE_IO', server.diagnostics())
                             self.assertEqual(len(records), 2)
                             self.assertEqual(records[1]['principal'], 'alice')
                             self.assertIn(b'alice-token', state_bytes(storage))
@@ -66,7 +76,7 @@ class TimingPersistenceTests(unittest.TestCase):
                             self.assertNotEqual(result, 0)
                             self.assertIn('STORAGE_UNCERTAIN', server.diagnostics())
                             self.assertEqual(len(records), 1, 'fatal attempt double logged or queued request selected')
-                            self.assertEqual(first['sequence'], 1)
+                            self.assertEqual(first['sequence'], 1+setup_records)
                             if point in ('before_replace', 'before_slot_write', 'during_slot_write'):
                                 # Entering slot write/replacement is conservatively
                                 # uncertain even before a visible complete record.

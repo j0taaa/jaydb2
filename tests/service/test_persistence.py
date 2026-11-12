@@ -15,7 +15,7 @@ import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
 from tests.service.test_prepared import universal_access_proof
-from tools.client import frame, unframe
+from tools.client import frame, prepared_frame, unframe
 from applications.tasks.app import prepare
 
 BINARY = Path(os.environ.get('JAYDB_PERSISTENCE_BINARY',
@@ -225,11 +225,15 @@ class PersistenceTests(unittest.TestCase):
         # Exceed the original 4 KiB slot so the real growth predicate selects
         # the replacement protocol (no test-only branch in production logic).
         token = 'retry-after-repair-' + 'x'*5000
-        self.assertEqual(self.call(server, arguments=token), {'status': 'failure', 'value': None})
+        prepared = server.prepared(0, self.code, 'alice-token', proof=universal_access_proof(self.proof))
+        self.assertEqual(prepared['status'], 'prepared', server.diagnostics())
+        handle = prepared['value']
+        self.assertEqual(server.prepared(1, handle, 'alice-token', token), {'status': 'failure', 'value': None})
+        self.assertIn('STORAGE_IO', server.diagnostics())
         self.assertEqual(state_bytes(self.path), self.initial)
         self.assertEqual(self.call(server, token)['status'], 'authentication')
         (self.path/'.snapshot.tmp').rmdir()
-        self.assertEqual(self.call(server, arguments=token), {'status': 'success', 'value': token})
+        self.assertEqual(server.prepared(1, handle, 'alice-token', token), {'status': 'success', 'value': token})
         server.finish()
 
     def run_boundary(self, point, kill, expected_new, uncertain):
@@ -249,7 +253,12 @@ class PersistenceTests(unittest.TestCase):
             listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
             env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
         server = self.server(env=env)
-        request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments=token))
+        if len(token) > 4096:
+            prepared = server.prepared(0, self.code, 'alice-token', proof=universal_access_proof(self.proof))
+            self.assertEqual(prepared['status'], 'prepared', server.diagnostics())
+            request = prepared_frame(1, prepared['value'], 'alice-token', token)
+        else:
+            request = frame(dict(code=self.code, proof=self.proof, credential='alice-token', arguments=token))
         # Queue another request. Fatal commits must never produce its response.
         # Keep the queued frame below pipe capacity: the service may stop
         # reading immediately after the first commit. It would authenticate and
@@ -278,6 +287,7 @@ class PersistenceTests(unittest.TestCase):
         else:
             header = server.read(8)
             self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'failure', 'value': None})
+            self.assertIn('STORAGE_IO', server.diagnostics())
             # Safe failure allows the next frame; RAM authentication stays old.
             header = server.read(8)
             self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'authentication', 'value': None})
