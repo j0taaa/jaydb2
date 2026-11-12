@@ -81,9 +81,9 @@ compiler; the host retains the last published state.
 Requests are processed serially. `--threads N` selects 1–128 native CPU workers
 per process.
 
-The CPU capabilities above do not require CUDA. This experimental checkout
-adds opt-in GPU programs as described below; it adds no Bend host replacement
-or quotas.
+The CPU capabilities above do not require CUDA. Opt-in experimental GPU
+programs (`--gpu MiB`) are described below; there is no Bend host replacement
+or quota enforcement.
 The database contract has three canonical size limits: message, state and
 response. There is no total-process memory guarantee or custom per-stage
 deadline. A fatal failure can terminate an instance; volatile data is then lost.
@@ -94,9 +94,9 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 and TCC sources. SQL/Drizzle is an application layer;
 it does not replace the engine or change its core laws.
 
-The optional GPU implementation in this checkout ports the archived
-`archive/experiment-gpu` and `archive/experiment-integration` designs onto the
-current service. It remains experimental and separate from accepted main.
+The opt-in experimental GPU support (`--gpu MiB`, default off) ports the
+archived `archive/experiment-gpu` and `archive/experiment-integration` designs
+onto the current service; see [GPU programs](experiments/gpu/README.md).
 The Bend controller replacement and quota enforcement are outside this work.
 
 ## Checks

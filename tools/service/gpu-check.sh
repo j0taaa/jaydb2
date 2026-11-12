@@ -11,7 +11,6 @@ fi
 flock 9
 export JAYDB_HEAVY_LOCK_FD=9
 ulimit -s unlimited
-mkdir -p build/gpu/tmp
 # Use a short Unix-socket directory regardless of worktree path length.
 gpu_tmp=$(mktemp -d /tmp/jaydb-gpu.XXXXXXXX)
 trap 'rm -rf -- "$gpu_tmp"' EXIT

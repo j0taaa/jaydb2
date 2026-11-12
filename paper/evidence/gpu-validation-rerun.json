@@ -1,0 +1,257 @@
+{
+  "note": "Post-review rerun on ca9bbf7 under the exclusive heavy lock. Logs are local; SHA-256 of each full log is retained.",
+  "cpu_after_benchmark": {
+    "scaling_governor": "powersave",
+    "energy_performance_preference": "balance_performance",
+    "no_turbo": "0",
+    "checked": "2026-11-12, after make benchmark-gpu, before releasing review"
+  },
+  "runs": [
+    {
+      "command": "cargo fmt --check",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 0.062,
+      "log": "fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    },
+    {
+      "command": "make build",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 3.568,
+      "log": "make-build.log",
+      "log_sha256": "92a00f88ea67338c114a03fb31a6910daeb53d7f31711fbddf2083cba1e132fa",
+      "tail": [
+        "   Compiling digest v0.10.7",
+        "   Compiling sha2 v0.10.9",
+        "   Compiling jaydb2 v0.1.0 (~/.t3/worktrees/jaydb2/feature-gpu-programs-87d1027fa8cd2c17)",
+        "    Finished `release` profile [optimized] target(s) in 3.55s"
+      ]
+    },
+    {
+      "command": "make verify-contract",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 50.243,
+      "log": "make-verify-contract.log",
+      "log_sha256": "2edbd3fefb8f860cc1b1d77102f603853fb0b73f8a3fc244c3ae03685e4b2aec",
+      "tail": [
+        "python3 -B tools/check.py",
+        "OK --check-only: contract/VERIFY.bend",
+        "OK --verdict: contract/VERIFY.bend"
+      ]
+    },
+    {
+      "command": "make verify",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 683.344,
+      "log": "make-verify.log",
+      "log_sha256": "57bd461e700aeb23a8f0a0020bf9b44e1e582d948a77f484d33a6b72431179d3",
+      "tail": [
+        "OK intended admin-write rejection --check-only at false",
+        "OK intended admin-write rejection --verdict at false",
+        "OK --check-only: applications/rls/.build/universal/Check.bend",
+        "OK --verdict: applications/rls/.build/universal/Check.bend"
+      ]
+    },
+    {
+      "command": "make test",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 552.522,
+      "log": "make-test.log",
+      "log_sha256": "dbb57deddbc68124819046ba2940f952971ecb68d219e0825ca8c08d7682e584",
+      "tail": [
+        "OK native create-without-directory: admission refusal and complete unchanged application state",
+        "OK native unlist-without-delete: admission refusal and complete unchanged application state",
+        "OK native admin-write: admission refusal and complete unchanged application state",
+        "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+      ]
+    },
+    {
+      "command": "make test-rls",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 94.421,
+      "log": "make-test-rls.log",
+      "log_sha256": "9a47117fa469f455cd110818c4274ee8282fd28a78847ee5ffed48d41c22b448",
+      "tail": [
+        "OK native create-without-directory: admission refusal and complete unchanged application state",
+        "OK native unlist-without-delete: admission refusal and complete unchanged application state",
+        "OK native admin-write: admission refusal and complete unchanged application state",
+        "OK native RLS session: 253 checked responses; ordinary and prepared create/list/view/update/remove beyond any fixed slot count, admin reads/counts, 12 admission denials, rollback and authentication"
+      ]
+    },
+    {
+      "command": "make test-accessories-native",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 2,
+      "seconds": 18.281,
+      "log": "make-test-accessories-native.log",
+      "log_sha256": "1182287e967727468906f98060845a6b92ca28b7a23d71423779e93ecaf4cc8b",
+      "tail": [
+        "}",
+        "",
+        "Node.js v24.19.0",
+        "make: *** [Makefile:22: test-sql-native] Error 1"
+      ],
+      "note": "environment: npm dependencies not installed in this worktree; rerun below"
+    },
+    {
+      "command": "make test-persistence",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 542.387,
+      "log": "make-test-persistence.log",
+      "log_sha256": "ee255ba29166d7336a6d771b43e7afd86ff4654d98b529b3c7a37e17719f1529",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 8 tests in 538.552s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "make test-idempotency-recovery",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 81.344,
+      "log": "make-test-idempotency-recovery.log",
+      "log_sha256": "1aa2de383e9234867b30b971988c23de83ab163d3b0523f4186e8555c3f6bd2e",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 1 test in 77.536s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "make prepared",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 71.584,
+      "log": "make-prepared.log",
+      "log_sha256": "1dd3b6cf05733e4fe1787f2641a5e8dd9458a85cd56c34e14042a67c4375866a",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 2 tests in 71.515s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "make smoke",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 2,
+      "seconds": 0.106,
+      "log": "make-smoke.log",
+      "log_sha256": "14fd8a17d5c7e8d27848dcaa13c55a5c2f632746bb3da3f7db4336bef7a14762",
+      "tail": [
+        "sh: 1: tsc: not found",
+        "make[1]: *** [Makefile:11: test-client] Error 127",
+        "make[1]: Leaving directory '~/.t3/worktrees/jaydb2/feature-gpu-programs-87d1027fa8cd2c17'",
+        "make: *** [Makefile:41: smoke] Error 2"
+      ],
+      "note": "environment: npm dependencies not installed in this worktree; rerun below"
+    },
+    {
+      "command": "make test-demo-web",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 138.143,
+      "log": "make-test-demo-web.log",
+      "log_sha256": "c1eeb4131f5c1a9787eaa1a72c971b8f4e8e3a1d3db3cf95362fb374d013b0b3",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 12 tests in 138.032s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "make test-admission",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 74.382,
+      "log": "make-test-admission.log",
+      "log_sha256": "2b42d8cab0641b00b7f239e289feb98d46d98ddfcd23a9661050b2348ca18b7b",
+      "tail": [
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 74352.453981"
+      ]
+    },
+    {
+      "command": "make test-gpu",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 184.06,
+      "log": "make-test-gpu.log",
+      "log_sha256": "91127943820c388c28ce1d0d60c175a39aad85efbbaf7a928880c8f789b6dc9c",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 5 tests in 183.922s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "python3 -m pytest paper/test_evidence.py",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 1,
+      "seconds": 0.016,
+      "log": "pytest-evidence.log",
+      "log_sha256": "b72695fcb3e2889d64484497e2ea8079822f1532c2505f226cde970957bedf7d",
+      "tail": [
+        "/usr/bin/python3: No module named pytest"
+      ],
+      "note": "environment: system python lacks pytest; rerun with isolated wheels: 30 passed"
+    },
+    {
+      "command": "make benchmark-gpu",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 140.474,
+      "log": "make-benchmark-gpu.log",
+      "log_sha256": "d129a896a571ad13d123b8aad854a06ad7d576b627e2bd74177a07f4765277ab",
+      "tail": [
+        "{\"backend\": \"cpu-1\", \"threads\": 1, \"first_preparation_ms\": 8126.341191, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75\", \"executableSha256\": \"fc3700dc5f0f9d958f42c31247933e318a83c66c4e4a031889489c2b6759ba1d\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3990608-0/request-3990608-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3990608-0/request-3990608-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program\", \"-lm\", \"-pthread\"], \"backend\": \"cpu\"}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [3.207946, 3.238306, 4.377838], \"complete_request_ms\": [6.109056, 5.778923, 5.653597], \"median_native_worker_ms\": 3.238306, \"median_complete_request_ms\": 5.778923}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [7181.014764, 7181.636671, 7180.966897], \"complete_request_ms\": [7190.814165, 7203.3707, 7222.370741], \"median_native_worker_ms\": 7181.014764, \"median_complete_request_ms\": 7203.3707}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+        "{\"backend\": \"cpu-16\", \"threads\": 16, \"first_preparation_ms\": 10531.017008, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75\", \"executableSha256\": \"fc3700dc5f0f9d958f42c31247933e318a83c66c4e4a031889489c2b6759ba1d\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3991590-0/request-3991590-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3991590-0/request-3991590-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program\", \"-lm\", \"-pthread\"], \"backend\": \"cpu\"}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [3.847992, 4.096277, 4.527501], \"complete_request_ms\": [7.529434, 6.797748, 6.612788], \"median_native_worker_ms\": 4.096277, \"median_complete_request_ms\": 6.797748}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [529.507848, 530.453433, 599.219655], \"complete_request_ms\": [569.818368, 568.447549, 557.9442], \"median_native_worker_ms\": 530.453433, \"median_complete_request_ms\": 568.447549}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+        "{\"backend\": \"cuda\", \"threads\": 1, \"first_preparation_ms\": 13547.954542, \"artifact\": {\"format\": \"jaydb-official-c-v1\", \"sourceSha256\": \"231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75\", \"executableSha256\": \"53142ca796726e47b199f118d8531fc9d3cb0e48174985bac2d6eb22445e2480\", \"compiler\": \"/usr/bin/clang-19\", \"compilerSha256\": \"f6d5286a52de10b1e3e8841457c9903a1ea28f222ac0f58cd616697d0dcd9db3\", \"flags\": [\"-std=gnu11\", \"-O2\", \"-w\", \"--no-default-config\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3992464-0/request-3992464-1/checked.c\", \"-o\", \"/tmp/jaydb-gpu.Dn2DqsBN/jaydb2-3992464-0/request-3992464-1/231f63bd014cacca2bb8dd10e3d82dc22416ce299a8be14f3425e5f60214ff75.program\", \"-lm\", \"-pthread\", \"-DBEND_CUDA=1\", \"-lcuda\", \"-lnvrtc\"], \"backend\": \"cuda\", \"gpuSha256\": \"38d3c19e031b8a0c193217f9f8f39065001103941c42ce7ccfb8b4de40b6b3c3\", \"gpuMiB\": 512, \"cudaLibraries\": {\"libcuda.so.1\": {\"path\": \"/usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02\", \"sha256\": \"192d4eedb1b39f0568f2b5423d35227d13b32b9025599e1968a9081982da207d\"}, \"libnvrtc.so.12\": {\"path\": \"/usr/lib/x86_64-linux-gnu/libnvrtc.so.12.0.140\", \"sha256\": \"d7c32a86aa8321ef60a911b7b0c6655db489cae21481c71e166a684cbd54c62a\"}}, \"hasBangs\": true}, \"records\": [{\"depth\": 2, \"leaves\": 4, \"rounds_per_leaf\": 8192, \"total_mixing_rounds\": 32768, \"result\": 1321445589, \"native_worker_ms\": [277.841781, 258.701877, 263.570694], \"complete_request_ms\": [218.786919, 221.357298, 213.694201], \"median_native_worker_ms\": 263.570694, \"median_complete_request_ms\": 218.786919}, {\"depth\": 16, \"leaves\": 65536, \"rounds_per_leaf\": 65536, \"total_mixing_rounds\": 4294967296, \"result\": 3867567763, \"native_worker_ms\": [272.772614, 275.673745, 269.050316], \"complete_request_ms\": [263.754296, 226.080272, 226.994535], \"median_native_worker_ms\": 272.772614, \"median_complete_request_ms\": 226.994535}], \"full_published_states\": [{\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"alice-token\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}, {\"tables\": [], \"users\": [{\"credential\": \"xxxxxxxxxxxxxxxx\", \"id\": \"alice\", \"kind\": \"user\"}, {\"credential\": \"bob-token\", \"id\": \"bob\", \"kind\": \"user\"}]}]}",
+        "CPU settings restored and verified: ~/.t3/worktrees/jaydb2/feature-gpu-programs-87d1027fa8cd2c17/.build/paper-bench/frequency-anfczu/restored.json"
+      ]
+    },
+    {
+      "command": "make test-accessories-native (after npm ci)",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 557,
+      "log": "acc2.log",
+      "log_sha256": "9bc29eac1ded4aa592856aad67bf54f4b605d1a2af523c32334cc05aa4ca9a52",
+      "tail": [
+        "----------------------------------------------------------------------",
+        "Ran 1 test in 105.574s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "command": "make smoke (after npm ci)",
+      "revision": "ca9bbf785249707d3315ca6a2cd60cfaa7bd2605",
+      "exit_code": 0,
+      "seconds": 13,
+      "log": "smoke2.log",
+      "log_sha256": "3742a96d5a751d99d7edbc7ef0c083eb13cb9f87440546ca4b5aca562722588d",
+      "tail": [
+        "    Checking sha2 v0.10.9",
+        "    Checking serde_json v1.0.154",
+        "    Checking jaydb2 v0.1.0 (~/.t3/worktrees/jaydb2/feature-gpu-programs-87d1027fa8cd2c17)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.60s"
+      ]
+    }
+  ]
+}

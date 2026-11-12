@@ -12,8 +12,9 @@ let pureAccepted = false;
 // dynamic loader resolves them at each run; this is provenance, not attestation.
 function resolvedCudaLibraries(executable) {
   const listed = spawnSync('/usr/bin/ldd', [executable], { encoding: 'utf8', env: process.env });
+  if (listed.error || listed.status !== 0) throw new Error('GPU_BUILD: ldd failed');
   const libraries = {};
-  for (const [, name, file] of (listed.stdout ?? '').matchAll(/^\s*(lib(?:cuda|nvrtc)[^\s]*) => (\S+)/gm))
+  for (const [, name, file] of listed.stdout.matchAll(/^\s*(lib(?:cuda|nvrtc)\S*) => (\/\S+)/gm))
     libraries[name] = { path: fs.realpathSync(file), sha256: sha256(fs.readFileSync(file)) };
   if (!Object.keys(libraries).some(n => n.startsWith('libcuda.')) || !Object.keys(libraries).some(n => n.startsWith('libnvrtc.')))
     throw new Error('GPU_BUILD: cannot resolve libcuda/libnvrtc');
@@ -25,8 +26,8 @@ function write(file, bytes) {
   provisionalFiles.push(file);
 }
 try {
-  const gpuMiB = Number(gpuOption);
-  if (!Number.isInteger(gpuMiB) || (gpuMiB !== 0 && (gpuMiB < 64 || gpuMiB > 4096))) throw new Error('Invalid GPU MiB');
+  const gpuMiB = /^(0|[1-9][0-9]{0,3})$/.test(gpuOption) ? Number(gpuOption) : NaN;
+  if (gpuMiB !== 0 && !(gpuMiB >= 64 && gpuMiB <= 4096)) throw new Error('Invalid GPU MiB');
   const cuda = gpuMiB !== 0;
   const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
   const toolchain = { sourceDir, kernelPath };
@@ -79,18 +80,18 @@ try {
       // --gpu-build can exit zero without writing; never adopt a stale file.
       if (fs.existsSync(device)) throw new Error('GPU artifact already exists');
       provisionalFiles.push(device);
-      const build = await new Promise(resolve => {
+      const prebuild = await new Promise(resolve => {
         const child = spawn(executable, ['+RTS', '--gpu-build', '-RTS'], {
           env: { ...process.env, BENDRTS: '' }, stdio: ['ignore', 'ignore', 'pipe'] });
         let error, stderr = '';
-        child.stderr.on('data', bytes => { stderr += bytes; });
+        child.stderr.on('data', bytes => { if (stderr.length < 65536) stderr += bytes; });
         child.once('error', cause => { error = cause; });
         child.once('close', (status, signal) => resolve({ error, stderr, status, signal }));
       });
       // Official --gpu-build can exit zero without a device. Require a cubin.
-      if (build.error || build.signal || build.status !== 0 || !fs.existsSync(device)
+      if (prebuild.error || prebuild.signal || prebuild.status !== 0 || !fs.existsSync(device)
           || !fs.lstatSync(device).isFile() || fs.statSync(device).size <= 8)
-        throw new Error('GPU_BUILD: GPU prebuild failed: ' + (build.stderr || build.error?.message || 'no artifact'));
+        throw new Error('GPU_BUILD: GPU prebuild failed: ' + (prebuild.stderr.slice(0, 65536) || prebuild.error?.message || 'no artifact'));
       gpuSha256 = sha256(fs.readFileSync(device));
       cudaLibraries = resolvedCudaLibraries(executable);
     }

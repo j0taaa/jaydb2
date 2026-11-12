@@ -358,8 +358,9 @@ function use the official device backend. The same bang program with `--gpu off
 --threads 16` uses Bend's CPU worker pool. Without reachable bangs, opting in
 does not establish that a kernel launched. With `--gpu`, every submitted or
 prepared program is built with a mandatory official cubin prebuild, so without a
-usable CUDA device (concurrent managed memory) admission itself fails
-(`GPU_BUILD`), even for bang-free programs; bang-free programs then run on the
+usable CUDA device (concurrent managed memory) admission itself fails (a
+`HELPER` failure whose diagnostic starts with `GPU_BUILD:`), even for bang-free
+programs; bang-free programs then run on the
 CPU pool. A requested bang never silently falls back to CPU.
 
 GPU admission waits for **both** official checkers on the sealed Book before
@@ -374,7 +375,7 @@ resolved `libcuda`/`libnvrtc` paths and SHA-256: these vendor libraries and the
 attested. Private executable/cubin files must be regular files and match before
 each run and before accepting output; CUDA prepared execution rechecks all exact
 sealed bytes after the child exits too. The default CPU path keeps its original
-pre-run checks only.
+pre-run checks, now also requiring the executable to be a regular file.
 An official `bend: compiling the GPU program` notice fails even if rebuilt
 bytes happen to match. Substitution, removal, incompatible artifacts and device
 errors discard the proposal, preserving the current published/durable root.

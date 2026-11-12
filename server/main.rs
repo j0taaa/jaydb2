@@ -252,12 +252,9 @@ impl Program {
             ));
         }
         for (path, expected) in files {
-            let valid = (|| -> io::Result<bool> {
-                Ok(fs::symlink_metadata(&path)?.file_type().is_file()
-                    && format!("{:x}", Sha256::digest(fs::read(&path)?)) == *expected)
-            })()
-            .unwrap_or(false);
-            if !valid {
+            // I/O errors keep their HOST_IO diagnosis, as on main.
+            let regular = fs::symlink_metadata(&path)?.file_type().is_file();
+            if !regular || format!("{:x}", Sha256::digest(fs::read(&path)?)) != *expected {
                 return Err(Error::new(
                     "HOST_NATIVE",
                     format!("missing or changed artifact: {}", path.display()),
@@ -489,15 +486,11 @@ impl PreparedProgram {
 
     fn validate(&self) -> Result<()> {
         for (path, expected) in &self.sealed {
-            let valid = (|| -> io::Result<bool> {
-                Ok(fs::symlink_metadata(path)?.file_type().is_file()
-                    && fs::read(path)? == *expected)
-            })()
-            .unwrap_or(false);
-            if !valid {
+            let metadata = fs::symlink_metadata(path)?;
+            if !metadata.file_type().is_file() || fs::read(path)? != *expected {
                 return Err(Error::new(
                     "PREPARED_INTEGRITY",
-                    "sealed prepared artifact missing or changed",
+                    "sealed prepared artifact changed",
                 ));
             }
         }
@@ -809,22 +802,23 @@ impl Database {
         ] {
             fs::write(metadata.join(name), bytes)?;
         }
-        let report = json_helper(
-            &self.stage,
-            &[
-                if operation == 3 {
-                    "prepare".into()
-                } else {
-                    "execute".into()
-                },
-                self.directory.path.clone().into_os_string(),
-                request.path.clone().into_os_string(),
-                metadata.into_os_string(),
-                self.source.clone().into_os_string(),
-                self.kernel.clone().into_os_string(),
-                self.gpu_mib.to_string().into(),
-            ],
-        )?;
+        let mut arguments: Vec<OsString> = vec![
+            if operation == 3 {
+                "prepare".into()
+            } else {
+                "execute".into()
+            },
+            self.directory.path.clone().into_os_string(),
+            request.path.clone().into_os_string(),
+            metadata.into_os_string(),
+            self.source.clone().into_os_string(),
+            self.kernel.clone().into_os_string(),
+        ];
+        // The CPU default keeps main's exact staging arguments.
+        if self.gpu_mib != 0 {
+            arguments.push(self.gpu_mib.to_string().into());
+        }
+        let report = json_helper(&self.stage, &arguments)?;
         if Limits::read(&report)? != self.limits {
             return Err(Error::new(
                 "HOST_TRANSPORT",

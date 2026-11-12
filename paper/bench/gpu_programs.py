@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import statistics
 import subprocess
@@ -65,7 +66,7 @@ def validate(native, gpu):
     report = json.loads(Path(str(native)+'.json').read_text())
     assert report['backend'] == ('cuda' if gpu else 'cpu')
     assert report.get('hasBangs', True)
-    assert __import__('re').search(rb'^#define\s+BANGS\s+[1-9]', (native.parent/'checked.c').read_bytes(), __import__('re').M)
+    assert re.search(rb'^#define\s+BANGS\s+[1-9]', (native.parent/'checked.c').read_bytes(), re.M)
     for path, key in [(native, 'executableSha256'), *([(Path(str(native)+'.gpu'), 'gpuSha256')] if gpu else [])]:
         assert path.is_file() and not path.is_symlink()
         assert hashlib.sha256(path.read_bytes()).hexdigest() == report[key]

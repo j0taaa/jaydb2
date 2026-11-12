@@ -503,7 +503,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
     else if (operation === 'recover' && args.length === 4) result = recover(...args);
-    else if (['execute', 'prepare'].includes(operation) && [5, 6].includes(args.length)) result = execute(...args.slice(0, 5), operation, Number(args[5] ?? 0));
+    else if (['execute', 'prepare'].includes(operation) && [5, 6].includes(args.length)) {
+      if (args.length === 6 && !/^[1-9][0-9]{1,3}$/.test(args[5])) fail('USAGE', 'GPU MiB must be 64..4096');
+      result = execute(...args.slice(0, 5), operation, args.length === 6 ? Number(args[5]) : 0);
+    }
     else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {

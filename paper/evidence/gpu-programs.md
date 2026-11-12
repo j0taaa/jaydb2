@@ -127,7 +127,10 @@ were corrected. On `ca9bbf7`, under the heavy lock: `cargo fmt --check`,
 that worktree only because its npm dependencies were not installed
 (`drizzle-orm` / `tsc` not found); after `npm ci` both passed under the heavy
 lock on the same revision: `test-accessories-native` (557 s) and `smoke` (13 s,
-including strict Clippy and fmt).
+including strict Clippy and fmt). Exit codes, durations, SHA-256 of every full log and the
+post-benchmark CPU restoration check are in
+[gpu-validation-rerun.json](gpu-validation-rerun.json); the earlier
+[restoration record](gpu-frequency-restoration.json) belongs to the first run.
 
 ## GPU proof fixtures
 
@@ -164,14 +167,16 @@ An earlier run of the same harness at revision `2c5c2f3` (before the review
 fixes, which do not touch the measured worker computation) observed the same
 ordering with lower CUDA fixed overhead: CUDA 176.742 / 214.895 ms native
 worker (small / large), cpu-16 496.948 ms and cpu-1 7179.807 ms on the large
-size. The roughly 90 ms difference in the CUDA small-size cost between runs is
-run-to-run device/process startup variation; GPU clocks are not fixed and the
-GPU also drives the desktop. Treat the CUDA figures as observations, not
-stable constants.
+size. The runs differ by more than their within-run ranges (CUDA small
++87 ms; cpu-16 large +7%; cpu-16 preparation 8.1 s vs 10.5 s). The cause was
+not isolated: other heavy jobs were queued on the shared machine between runs
+(each run itself held the exclusive lock), GPU clocks are not fixed and the GPU
+also drives the desktop. Treat all figures as observations, not stable
+constants.
 
 [Standalone timing figure](gpu-programs.svg). The successful benchmark restored
 and verified powersave / EPP balance_performance / no_turbo=0 before releasing
-the heavy lock; see [restoration record](gpu-frequency-restoration.json).
+the heavy lock; see the [first-run restoration record](gpu-frequency-restoration.json) and, for the rerun, [gpu-validation-rerun.json](gpu-validation-rerun.json).
 
 Preparation, including both checkers, compilation and optional official cubin prebuild, was measured separately (one sample each): cpu-1 8126.341 ms, cpu-16 10531.017 ms, cuda 13547.955 ms.
 
