@@ -336,10 +336,14 @@ impl Storage {
             uncertain: false,
             cause: io::Error::other("slot exceeds address space"),
         })?;
-        let record = encode_slot(sequence, &bytes, slot_size).map_err(|cause| CommitError {
-            uncertain: false,
-            cause,
-        })?;
+        // Padding outside this frame is not authoritative. After a large
+        // state shrinks, write/allocate only its currently needed blocks,
+        // keeping the original slot geometry and the other slot untouched.
+        let record =
+            encode_slot(sequence, &bytes, needed as usize).map_err(|cause| CommitError {
+                uncertain: false,
+                cause,
+            })?;
         let result = if grow {
             let total = slot_size.checked_mul(2).ok_or_else(|| CommitError {
                 uncertain: false,
@@ -871,13 +875,16 @@ mod tests {
         storage.persist(&environment(), &large, b"small").unwrap();
         assert_eq!(storage.length, 24576); // never shrinks/aliases the latest slot
         assert_eq!(storage.recover(&environment(), &large).unwrap(), b"small");
+        storage.persist(&environment(), &large, b"tiny").unwrap();
+        assert_eq!(fs::read(path.join(IMAGE)).unwrap()[12288 + 5000], 12);
+        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"tiny");
         assert!(
             !storage
                 .persist(&environment(), &large, &vec![0; large.state as usize + 1])
                 .unwrap_err()
                 .uncertain
         );
-        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"small");
+        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"tiny");
         storage.sequence = Some(u64::MAX);
         assert!(
             !storage

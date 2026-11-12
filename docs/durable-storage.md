@@ -10,7 +10,7 @@ payload must never become a newer valid publication. Padding is not state.
 Slot A holds even sequences and B holds odd sequences; sequences never wrap.
 
 A routine changed-state commit opens the existing authoritative inode, checks
-its expected length, seeks to the older slot, overwrites that slot completely,
+its expected length, seeks to the older slot, writes the complete new frame,
 and calls `fdatasync` once. The latest durable slot is never overwritten by this
 commit. Both slots were fully written (including zeros), allocated and synced
 at creation or growth, so routine commits neither extend the file nor convert
@@ -27,6 +27,8 @@ occupies its sequence-selected slot; the other is initialized with zeros.
 Before replacement, errors are safe rollback. From replacement onward errors
 are uncertain. Growth occurs only when a state image no longer fits a slot;
 slots grow to the next 4096-byte boundary and never shrink during routine writes.
+Only the currently needed frame blocks are rewritten/allocated in RAM; unused
+padding left from a larger old image is ignored by sequence/length/checksum.
 The physical authoritative file is bounded by twice the padded maximum image
 plus header, independently of commit count. Logical limits apply to each state,
 not the physical file. A u64::MAX logical limit still permits small files; no
