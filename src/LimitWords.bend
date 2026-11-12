@@ -78,6 +78,30 @@ def blocks_sound(+count: Nat, +n: Nat, checked: {blocks(count, n) == True{} : Bo
       after_block_sound(trim(256n, n), n, k, {==}, checked,
         rest => valid => blocks_sound(k, rest, valid))
 
+# The optimized branch is reachable at exactly the intended common ceiling.
+def trim_complete(+amount: Nat, +rest: Nat) ->
+  {trim(amount, Nat.add(amount, rest)) == Some{rest} : Maybe<&2, Nat>}:
+  match amount:
+    case 0n: {==}
+    case 1n+k: trim_complete(k, rest)
+
+def blocks_complete(+count: Nat) ->
+  {blocks(count, Nat.mul(count, 256n)) == True{} : Bool}:
+  match count:
+    case 0n: {==}
+    case 1n+k:
+      %Equal.sym(Nat, Nat.mul(1n+k, 256n), Nat.add(256n, Nat.mul(k, 256n)), Literal.multiply_successor(k, 256n)) :
+        {blocks(1n+k, _) == True{} : Bool}
+      %Equal.sym(Maybe<&2, Nat>, trim(256n, Nat.add(256n, Nat.mul(k, 256n))), Some{Nat.mul(k, 256n)},
+        trim_complete(256n, Nat.mul(k, 256n))) :
+        {blocks_result(_, rest => blocks(k, rest)) == True{} : Bool}
+      blocks_complete(k)
+
+law common_guard_hits:
+  {blocks(256n, Nat.mul(256n, 256n)) == True{} : Bool}
+def common_guard_hits():
+  blocks_complete(256n)
+
 def select_exact(matches: Bool, +n: Nat, +count: Nat, +number: B.Number64,
   represented: {B.nat64(Nat.mul(count, 256n)) == Some{number} : Maybe<&2, B.Number64>},
   same: {blocks(count, n) == matches : Bool}) ->
