@@ -49,8 +49,9 @@ verify-contract:
 verify:
 	python3 -B tools/check.py --coverage VERIFY.bend tests/proof/VERIFY.bend library/VERIFY.bend
 	python3 -B tests/proof/test_proofs.py
+	python3 -B applications/rls/check.py --proof-only
 
-test: build test-admission test-native test-host test-integration
+test: build test-admission test-native test-host test-integration test-rls
 
 test-host:
 	cargo test --locked
@@ -118,3 +119,8 @@ test-recovery-integration:
 .PHONY: prepared
 prepared: build
 	python3 -B -m unittest tests.service.test_prepared -v
+
+# Caller holds /tmp/jaydb2-experiments-heavy.lock and sets unlimited stack.
+.PHONY: test-rls
+test-rls: build
+	python3 -B applications/rls/check.py
