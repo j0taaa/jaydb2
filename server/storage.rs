@@ -555,7 +555,7 @@ fn decode_slots(
         }
     }
     let maximum = slot_size_for(limits.state.saturating_add(OVERHEAD as u64)).unwrap_or(u64::MAX);
-    if length < BLOCK * 2 || length % (BLOCK * 2) != 0 || length / 2 > maximum {
+    if length < BLOCK * 2 || !length.is_multiple_of(BLOCK * 2) || length / 2 > maximum {
         return Err(storage_error(
             "invalid or oversized authoritative slot file",
         ));

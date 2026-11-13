@@ -197,12 +197,11 @@ impl Pool {
                         drop(child);
                         break;
                     }
-                    match child {
-                        Ok(child) => slot.idle = Some(child),
-                        // Leave an empty slot; selection can still spawn fresh.
-                        // Speculative failures must not block refill/shutdown
-                        // on administrator stderr or become this call's error.
-                        Err(_) => {}
+                    // Leave an empty slot on failure; selection can spawn fresh.
+                    // Speculative failures must not block refill/shutdown on
+                    // administrator stderr or become this call's error.
+                    if let Ok(child) = child {
+                        slot.idle = Some(child);
                     }
                     // A selection during spawn already has a fresh child. This
                     // completed spawn fills its one idle slot; do not spawn again.
