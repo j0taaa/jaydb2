@@ -27,41 +27,42 @@ const label=(x,y,lines,cls='')=>`<text x="${x}" y="${y}" class="${cls}">${lines.
 const box=(x,y,w,h,title,lines='',kind='')=>`<rect class="box ${kind}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label(x+24,y+43,title,'box-title')}${lines?label(x+24,y+85,lines):''}`;
 const edge=(d,kind='')=>`<path class="edge ${kind}" d="${d}" marker-end="url(#${kind==='deny'?'deny-tip':'flow-tip'})"/>`;
 let figureSequence=0;
+const step=(n,svg)=>`<g class="fragment" data-step="${n}">${svg}</g>`;
 const figure=(name,body,height=460,width=1400)=>`<svg class="system-figure" viewBox="0 0 ${width} ${height}" role="img" aria-label="${name}"><defs><marker id="flow-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#087869"/></marker><marker id="deny-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b24a32"/></marker></defs>${body}</svg>`.replaceAll('flow-tip',`flow-tip-${figureSequence}`).replaceAll('deny-tip',`deny-tip-${figureSequence++}`);
 function admissionFigure(){return figure('Cliente envia programa e prova. Leis do administrador alimentam o verificador. Aceitação permite execução privada; rejeição não executa o programa.',
  box(465,0,470,95,'Administrador','Esquema e leis instaladas')+edge('M700 95V155')+
  box(0,170,375,170,'Cliente','Programa + prova|Argumentos + credencial')+edge('M375 250H465')+
  `<path class="gate" d="M510 155H890L935 250L890 345H510L465 250Z"/>`+label(545,228,'Verificador','box-title')+label(545,271,'Prova e código exatos')+
- edge('M935 220H1020V155H1050')+label(920,195,'Aceita','edge-label')+box(1050,105,345,145,'Execução privada','Sobre o estado atual','accept')+
- edge('M935 285H1020V390H1050','deny')+label(920,337,'Rejeita','deny-label')+box(1050,325,345,115,'Sem execução','Estado preservado','reject'),460);}
+ step(1,edge('M935 220H1020V155H1050')+label(920,195,'Aceita','edge-label')+box(1050,105,345,145,'Execução privada','Sobre o estado atual','accept'))+
+ step(2,edge('M935 285H1020V390H1050','deny')+label(920,337,'Rejeita','deny-label')+box(1050,325,345,115,'Sem execução','Estado preservado','reject')),460);}
 function transactionFigure(){return figure('Estado publicado vazio. Na proposta privada cria-se a nota, depois a entrada do diretório. Somente o par completo é publicado.',
- `<rect class="private-zone" x="345" y="0" width="700" height="330" rx="10"/>`+label(370,40,'Proposta privada · invisível aos demais','box-title')+
- box(0,100,280,175,'Publicado','Sem nota|Diretório vazio')+edge('M280 185H375')+
- box(375,100,290,175,'Cria a nota','Nota n1|Diretório vazio','reject')+edge('M665 185H725')+
- box(725,100,290,175,'Atualiza a lista','Nota n1|Diretório inclui n1')+edge('M1045 185H1120')+
- box(1120,100,280,175,'Publicado','Nota n1|Diretório inclui n1','accept')+
- label(382,312,'Incompleto aqui','deny-label')+label(1120,315,'Commit','edge-label')+
+ box(0,100,280,175,'Publicado','Sem nota|Diretório vazio')+
+ step(1,`<rect class="private-zone" x="345" y="0" width="700" height="330" rx="10"/>`+label(370,40,'Proposta privada · invisível aos demais','box-title')+edge('M280 185H375')+
+ box(375,100,290,175,'Cria a nota','Nota n1|Diretório vazio','reject')+label(382,312,'Incompleto aqui','deny-label'))+
+ step(2,edge('M665 185H725')+box(725,100,290,175,'Atualiza a lista','Nota n1|Diretório inclui n1'))+
+ step(3,edge('M1045 185H1120')+box(1120,100,280,175,'Publicado','Nota n1|Diretório inclui n1','accept')+label(1120,315,'Commit','edge-label'))+
  `<path class="edge" d="M0 385H1400"/>`+label(0,425,'Outros clientes observam o estado anterior até a publicação.'),460);}
 function rejectionFigure(){return figure('Dois controles independentes: ler Bob viola acesso; omitir o diretório viola a consistência final. Ambos são recusados antes da execução.',
  box(0,0,300,175,'Ler Bob','Alice: bob/n7')+edge('M300 86H360')+
  box(360,0,380,175,'Acesso','Permissão|não demonstrada','reject')+
- box(0,255,300,175,'Omitir diretório','Cria sem listar')+edge('M300 340H360')+
+ step(1,box(0,255,300,175,'Omitir diretório','Cria sem listar')+edge('M300 340H360')+
  box(360,255,380,175,'Diretório','Consistência final|não demonstrada','reject')+
- label(0,495,'Admissão rejeitada. Estado preservado.','deny-label'),520,740);}
+ label(0,495,'Admissão rejeitada. Estado preservado.','deny-label')),520,740);}
 
 function llmFigure(){return figure('O usuário apresenta a intenção ao LLM. O gerador constrói programa e prova e fica fora da base de confiança. O verificador do banco confere as leis.',
  box(0,0,285,150,'Usuário','Intenção')+edge('M285 75H365')+
- box(365,0,480,170,'LLM + bibliotecas','Programa + prova')+edge('M605 170V240')+
+ box(365,0,480,170,'LLM + bibliotecas','Programa + prova')+
  label(389,137,'Gerador não confiável','deny-label')+
- box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept')+edge('M365 340H150V215H470V172','deny')+label(165,290,'Rejeita:|corrige','deny-label'),400,850);}
+ step(1,edge('M605 170V240')+box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept'))+
+ step(2,edge('M365 340H150V215H470V172','deny')+label(165,290,'Rejeita:|corrige','deny-label')),400,850);}
 
 function architectureFigure(){return figure('Node prepara fontes. Bend e BendTT verificam o Book. Selos vinculam o Book à compilação e hashes vinculam os artefatos ao worker. Bend interpreta e finaliza; Rust publica Commit ou preserva Keep.',
  box(0,0,330,220,'Node · staging','stage.mjs|Fontes e prova')+edge('M330 110H420')+
  box(420,0,450,220,'Bend + BendTT','Prova × leis instaladas|Book verificado')+edge('M870 110H960')+
- box(960,0,440,220,'Book selado','Selo semântico|Antes da emissão C')+edge('M1180 220V330')+
+ box(960,0,440,220,'Book selado','Selo semântico|Antes da emissão C')+step(1,edge('M1180 220V330')+
  box(960,330,440,220,'Compilação nativa','C / Clang + selo final|Artefatos + hashes')+edge('M960 440H870')+
  box(420,330,450,220,'Worker + host Rust','Bend: execução e finalização|Rust: recebe Commit / Keep')+edge('M420 440H330')+
- box(0,330,330,220,'Estado publicado','Commit: substitui|Keep: preserva'),550);}
+ box(0,330,330,220,'Estado publicado','Commit: substitui|Keep: preserva')),550);}
 
 function trustFigure(){return figure('Núcleo provado sob premissas. Camadas confiadas: T1 verificadores e vínculo, T2 compiladores e runtime, T3 trabalho físico do host.',
  `<rect class="trust-layer" x="0" y="0" width="1400" height="550" rx="9"/>`+label(28,50,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+
@@ -71,19 +72,19 @@ function trustFigure(){return figure('Núcleo provado sob premissas. Camadas con
  label(135,405,'Admissão exata · leis em cada passo|Finalização válida · terminação lógica'),550);}
 
 function gpuFigure(){return figure('O mesmo programa certificado usa CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
- box(0,120,475,240,'Programa + prova','Aceito pelos dois|verificadores antes|do código GPU')+edge('M475 240H575V90H685')+edge('M575 240V370H685')+
+ box(0,120,475,240,'Programa + prova','Aceito pelos dois|verificadores antes|do código GPU')+edge('M475 240H575V90H685')+
  box(685,0,715,180,'Backend CPU','Runtime Bend|Workers CPU')+
- box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','reject')+
- label(0,430,'Mesmas obrigações','box-title')+label(0,474,'e mesmo Gate/finalizador verificado'),510);}
+ step(1,edge('M575 240V370H685')+box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','reject'))+
+ step(2,label(0,430,'Mesmas obrigações','box-title')+label(0,474,'e mesmo Gate/finalizador verificado')),510);}
 
 function retryFigure(){return figure('Cliente envia pedido. Serviço publica voucher e recibo, mas a resposta se perde. Repetição idêntica e ainda autorizada recebe o resultado retido sem nova emissão.',
  label(40,35,'Cliente','box-title')+label(700,35,'Serviço de vouchers','box-title')+
  `<path class="lifeline" d="M155 65V440M890 65V440"/>`+
  edge('M155 100H890')+label(220,88,'Pedido: ID + entrada')+
  box(1000,80,395,120,'Publicação','Efeito + resultado retido')+`<path class="edge" d="M890 100H1000"/>`+
- `<path class="edge deny" d="M890 225H440" stroke-dasharray="10 8"/>`+label(465,209,'Resposta perdida','deny-label')+`<path class="lost" d="M420 208L452 240M452 208L420 240"/>`+
- edge('M155 320H890')+label(220,304,'Repetição: mesmo ID e entrada')+
- edge('M890 415H155')+label(220,398,'Resultado retido, se ainda autorizado')+label(915,330,'Sem nova emissão','box-title'),460);}
+ step(1,`<path class="edge deny" d="M890 225H440" stroke-dasharray="10 8"/>`+label(465,209,'Resposta perdida','deny-label')+`<path class="lost" d="M420 208L452 240M452 208L420 240"/>`)+
+ step(2,edge('M155 320H890')+label(220,304,'Repetição: mesmo ID e entrada')+
+ edge('M890 415H155')+label(220,398,'Resultado retido, se ainda autorizado')+label(915,330,'Sem nova emissão','box-title')),460);}
 
 function reuseChart(){
   const x=n=>335+Math.log10(n)*225;
@@ -157,7 +158,7 @@ const slides=[
 },
 {
  id:'contexto',title:'Quem confere o que um programa faz com os dados?',seconds:35,
- html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="motivation"><section class="incident"><p class="small muted">DINAMARCA · 5 OUT 2026</p><h3>Acesso indevido ao registro CPR</h3><p>Dados de cerca de 8,8 milhões<br>de pessoas foram acessados.</p><p class="small">O invasor usou o acesso legítimo<br>de uma empresa.</p></section><section><p class="small muted">IA · ACESSO A DADOS</p><h3>Programas gerados por IA</h3><p>Assistentes de IA são usados para escrever código que lê e altera dados.</p><p class="small spaced">Isso motiva verificar as operações permitidas e as regras de integridade antes da execução.</p></section></div>`,
+ html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="motivation"><section class="incident"><p class="small muted">DINAMARCA · 5 OUT 2026</p><h3>Acesso indevido ao registro CPR</h3><p>Dados de cerca de 8,8 milhões<br>de pessoas foram acessados.</p><p class="small">O invasor usou o acesso legítimo<br>de uma empresa.</p></section><section class="fragment" data-step="1"><p class="small muted">IA · ACESSO A DADOS</p><h3>Programas gerados por IA</h3><p>Assistentes de IA são usados para escrever código que lê e altera dados.</p><p class="small spaced">Isso motiva verificar as operações permitidas e as regras de integridade antes da execução.</p></section></div>`,
  bottom:'Fonte: comunicado oficial do CPR. O caso motiva a pergunta; não demonstra prevenção pelo protótipo.',
  notes:`O comunicado oficial do CPR relata acesso indevido a dados de aproximadamente oito milhões e oitocentas mil pessoas por meio do acesso legítimo de uma empresa. Esse incidente motiva distinguir autenticação e comportamento permitido. Em outro contexto, assistentes de IA são usados para escrever programas que acessam dados. O trabalho investiga uma interface que exige um certificado verificável antes de executar esses programas. O caso CPR é uma motivação, sem demonstração de que o protótipo impediria o ataque.`,
  sources:[sources.cpr]
@@ -192,7 +193,7 @@ const slides=[
 },
 {
  id:'rejeicoes',title:'Dois erros, duas obrigações',seconds:45,
- html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas obrigações</h2><div class="rejection-layout"><section>${rejectionFigure()}</section><figure class="terminal-figure"><img src="assets/checker-rejection.svg" alt="Saída real de Bend: SOME PROOFS FAIL, expected bob, observed alice, Location false."/><figcaption>Controle <code>read-bob</code>: chave real <code>bob/00000001</code>;<br><code>bob/n7</code> é ilustrativo. Trecho literal; … indica linhas omitidas.<br>Capturado por <code>capture_checker_figures.py</code>.</figcaption></figure></div>`,
+ html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas obrigações</h2><div class="rejection-layout"><section>${rejectionFigure()}</section><figure class="terminal-figure fragment" data-step="2"><img src="assets/checker-rejection.svg" alt="Saída real de Bend: SOME PROOFS FAIL, expected bob, observed alice, Location false."/><figcaption>Controle <code>read-bob</code>: chave real <code>bob/00000001</code>;<br><code>bob/n7</code> é ilustrativo. Trecho literal; … indica linhas omitidas.<br>Capturado por <code>capture_checker_figures.py</code>.</figcaption></figure></div>`,
  bottom:`Aplicação de notas: ${pt(value('RlsNegativeFixtures'),0)} negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas.`,
  notes:`Os dois diagramas representam obrigações independentes: ler Bob viola a permissão; criar sem atualizar o diretório viola a consistência final. À direita há a saída real do verificador. O controle read-bob usa a chave concreta bob/00000001, que é o caso correspondente ao identificador ilustrativo bob/n7. O verificador esperava bob e encontrou alice na prova de permissão. Os controles read-bob e create-without-directory foram executados em Bend e BendTT, com falha somente em false. A figura mostra apenas o diagnóstico inicial do primeiro controle; a elipse marca o contexto omitido. Os logs completos e o comando de reprodução estão nos artefatos da apresentação.`,
  sources:[sources.rls,source('Diagnóstico real: read-bob','paper/presentation/assets/read-bob-check-only.txt')]
