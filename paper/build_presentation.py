@@ -18,7 +18,7 @@ OUT = EVIDENCE / 'output'
 
 
 def inline_asset(path):
-    mime = {'.otf': 'font/otf', '.webp': 'image/webp'}[path.suffix]
+    mime = {'.otf': 'font/otf', '.webp': 'image/webp', '.svg': 'image/svg+xml'}[path.suffix]
     return 'data:' + mime + ';base64,' + base64.b64encode(path.read_bytes()).decode()
 
 
@@ -41,9 +41,11 @@ def build_html():
     OUT.mkdir(parents=True, exist_ok=True)
     css = (DECK / 'deck.css').read_text()
     player = (DECK / 'player.js').read_text()
-    for name in ['Inter-Regular.otf', 'Inter-SemiBold.otf']:
-        css = css.replace('assets/' + name, inline_asset(DECK / 'assets' / name))
-    player = player.replace('assets/verification-gate.webp', inline_asset(DECK / 'assets/verification-gate.webp'))
+    content = (DECK / 'content.js').read_text()
+    def inline_references(text):
+        return re.sub(r"assets/([A-Za-z0-9_.-]+)",
+                      lambda match: inline_asset(DECK / 'assets' / match[1]), text)
+    css, player, content = map(inline_references, (css, player, content))
     macros = read_macros()
     scaling = []
     for name, label in [('volatile_read', 'Leitura volátil'), ('persistent_update', 'Atualização durável')]:
@@ -56,7 +58,7 @@ def build_html():
     data = 'window.JAYDB2_SIMULATION=' + json.dumps(simulation) + ';\n' + 'window.JAYDB2_EVIDENCE=' + json.dumps(macros) + ';\nwindow.JAYDB2_SCALING=' + json.dumps(scaling) + ';'
     html = (DECK / 'shell.html').read_text()
     for marker, content in [('DECK_CSS', css), ('EVIDENCE_DATA', data),
-                            ('DECK_CONTENT', (DECK / 'content.js').read_text()), ('DECK_PLAYER', player)]:
+                            ('DECK_CONTENT', content), ('DECK_PLAYER', player)]:
         html = html.replace('/* ' + marker + ' */', content)
     license_text = (DECK / 'assets/Inter-LICENSE.txt').read_text()
     html = html.replace('</head>', '<script type="application/json" id="font-license">' +

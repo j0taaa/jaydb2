@@ -14,6 +14,14 @@ Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotali
 - Slides, speaking script, timing and citations: `presentation/content.js`.
 - Slide design: `presentation/deck.css`. The slide canvas is always 1600 × 900.
 - Navigation, step reveals, notes and fullscreen: `presentation/player.js`.
+- Editable SVG diagrams are embedded in `presentation/content.js`. They show
+  logical dependencies, not the scheduling of overlapping CPU admission work.
+- Code figures `write-scope.svg` and `client-certificate.svg` are literal excerpts
+  from `applications/rls/Policy.bend` (`WriteScope`) and
+  `applications/rls/ClientProof.bend` (`certificate`). Regenerate with
+  `python3 paper/presentation/render_code_figures.py` from the repository root.
+  Only line wrapping changes. No generated illustration or terminal output was
+  added. The builder inlines the SVGs, fonts and cover in the offline HTML.
 
 ```sh
 make -C paper

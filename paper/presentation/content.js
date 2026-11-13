@@ -21,10 +21,67 @@ const sources={
   misu:{label:'Misu et al. (2024), Dafny verificado, FSE',url:'https://doi.org/10.1145/3643763'},
   autoverus:{label:'Yang et al. (2025), AutoVerus, OOPSLA',url:'https://doi.org/10.1145/3763174'}
 };
-const arrow='<span class="connector" aria-hidden="true"><svg viewBox="0 0 65 40"><path d="M0 20H61M49 8l12 12-12 12"/></svg></span>';
-const fragment=(html,n=1)=>`<div class="fragment" data-step="${n}">${html}</div>`;
-const node=(n,title,body)=>`<div class="node"><div class="node-number">${n}</div><h3>${title}</h3><p>${body}</p></div>`;
-const footer=(text)=>`<span class="source">${text}</span>`;
+// Diagrams describe logical dependencies, not physical scheduling or proved trust layers.
+const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+const label=(x,y,lines,cls='')=>`<text x="${x}" y="${y}" class="${cls}">${lines.split('|').map((t,i)=>`<tspan x="${x}" dy="${i?36:0}">${esc(t)}</tspan>`).join('')}</text>`;
+const box=(x,y,w,h,title,lines='',kind='')=>`<rect class="box ${kind}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label(x+24,y+43,title,'box-title')}${lines?label(x+24,y+85,lines):''}`;
+const edge=(d,kind='')=>`<path class="edge ${kind}" d="${d}" marker-end="url(#${kind==='deny'?'deny-tip':'flow-tip'})"/>`;
+let figureSequence=0;
+const figure=(name,body,height=460)=>`<svg class="system-figure" viewBox="0 0 1400 ${height}" role="img" aria-label="${name}"><defs><marker id="flow-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#087869"/></marker><marker id="deny-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b24a32"/></marker></defs>${body}</svg>`.replaceAll('flow-tip',`flow-tip-${figureSequence}`).replaceAll('deny-tip',`deny-tip-${figureSequence++}`);
+function admissionFigure(){return figure('Cliente envia programa e prova. Leis do administrador alimentam o verificador. Aceitação permite execução privada; rejeição não executa o programa.',
+ box(465,0,470,95,'Administrador','Esquema e leis instaladas')+edge('M700 95V155')+
+ box(0,170,375,170,'Cliente','Programa + prova|Argumentos + credencial')+edge('M375 250H465')+
+ `<path class="gate" d="M510 155H890L935 250L890 345H510L465 250Z"/>`+label(545,228,'Verificador','box-title')+label(545,271,'Prova e código exatos')+
+ edge('M935 220H1020V155H1050')+label(920,195,'Aceita','edge-label')+box(1050,105,345,145,'Execução privada','Sobre o estado atual','accept')+
+ edge('M935 285H1020V390H1050','deny')+label(920,337,'Rejeita','deny-label')+box(1050,325,345,115,'Sem execução','Estado preservado','reject'),460);}
+function transactionFigure(){return figure('Estado publicado vazio. Na proposta privada cria-se a nota, depois a entrada do diretório. Somente o par completo é publicado.',
+ `<rect class="private-zone" x="345" y="0" width="700" height="330" rx="10"/>`+label(370,40,'Proposta privada · invisível aos demais','box-title')+
+ box(0,100,280,175,'Publicado','Sem nota|Diretório vazio')+edge('M280 185H375')+
+ box(375,100,290,175,'Cria a nota','Nota n1|Diretório vazio','reject')+edge('M665 185H725')+
+ box(725,100,290,175,'Atualiza a lista','Nota n1|Diretório inclui n1')+edge('M1045 185H1120')+
+ box(1120,100,280,175,'Publicado','Nota n1|Diretório inclui n1','accept')+
+ label(382,312,'Incompleto aqui','deny-label')+label(1120,315,'Commit','edge-label')+
+ `<path class="edge" d="M0 385H1400"/>`+label(0,425,'Outros clientes observam o estado anterior até a publicação.'),460);}
+function rejectionFigure(){return figure('Dois controles independentes são recusados na admissão: ler Bob viola a permissão; omitir o diretório viola a consistência final.',
+ box(0,30,420,145,'Ler uma nota de Bob','Alice acessa bob/n7')+edge('M420 100H545')+
+ box(545,30,420,145,'Obrigação de acesso','Permissão não demonstrada','reject')+
+ box(0,265,420,145,'Omitir o diretório','Cria nota sem listar')+edge('M420 337H545')+
+ box(545,265,420,145,'Obrigação ao concluir','Consistência não demonstrada','reject')+
+ edge('M965 100H1025V220H1100','deny')+edge('M965 337H1025V250H1100','deny')+
+ box(1100,165,300,155,'Rejeição','Nada executa|Estado preservado','reject'),460);}
+function llmFigure(){return figure('Intenção do usuário passa pelo LLM, que é um gerador não confiável. Programa e prova cruzam a fronteira da admissão, onde o banco verifica as leis.',
+ `<rect class="private-zone" x="970" y="0" width="425" height="300"/>`+label(995,38,'Admissão do banco','edge-label')+
+ box(0,75,310,155,'Usuário','Intenção da operação')+edge('M310 150H410')+
+ box(410,75,440,155,'LLM + bibliotecas','Escreve programa + prova')+edge('M850 150H1000')+
+ box(1000,75,365,155,'Verificador','Confere as leis','accept')+
+ label(410,275,'Gerador não confiável','deny-label')+label(1000,275,'Ponto de confiança: T1','edge-label'),310);}
+function architectureFigure(){return figure('Node prepara fontes. Bend e BendTT verificam o Book. Selos vinculam o Book à compilação e hashes vinculam os artefatos ao worker. Bend interpreta e finaliza; Rust publica Commit ou preserva Keep.',
+ box(0,15,310,165,'Node · staging','stage.mjs|Fontes e prova')+edge('M310 95H415')+
+ box(415,15,445,165,'Bend + BendTT','Prova × leis instaladas|Book elaborado e verificado')+edge('M860 95H965')+
+ box(965,15,430,165,'Book selado','Selo semântico|Antes da emissão C')+edge('M1180 180V255')+
+ box(965,255,430,165,'Compilação nativa','C / Clang + selo final|Artefatos + hashes')+edge('M965 335H860')+
+ box(415,255,445,165,'Worker + host Rust','Bend interpreta e finaliza|Rust recebe Commit / Keep')+edge('M415 335H310')+
+ box(0,255,310,165,'Estado publicado','Commit: substitui|Keep: preserva')+
+ label(0,475,'Selos e hashes vinculam o admitido ao executado (T1). Publicação física: T3.','edge-label'),500);}
+function trustFigure(){return figure('Núcleo provado sob premissas. Camadas de dependência confiadas: T1 verificadores e vínculo, T2 compiladores e runtime, T3 trabalho físico do host.',
+ `<rect class="trust-layer" x="0" y="0" width="1400" height="495" rx="9"/>`+label(25,43,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+
+ `<rect class="trust-layer" x="35" y="90" width="1330" height="375" rx="9"/>`+label(60,133,'T2 · Compilador e runtime: preservação do comportamento','box-title')+
+ `<rect class="trust-layer" x="70" y="180" width="1260" height="255" rx="9"/>`+label(95,223,'T1 · Verificadores, vínculo exato e auditoria das fontes','box-title')+
+ `<rect class="proved-core" x="105" y="270" width="1190" height="135" rx="9"/>`+label(132,312,'Núcleo Bend · propriedades provadas sob premissas','box-title')+label(132,356,'Admissão exata · leis em cada passo · finalização válida · terminação lógica'),510);}
+function gpuFigure(){return figure('O mesmo programa certificado permite CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
+ box(0,120,460,160,'Mesmo programa + prova','Book aceito pelos verificadores|Trecho paralelo marcado')+edge('M460 200H570V80H685')+edge('M570 200V325H685')+
+ box(685,10,710,145,'Backend CPU','Runtime Bend · workers CPU')+
+ box(685,250,710,180,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','accept')+
+ label(0,350,'As mesmas obrigações:','box-title')+label(0,393,'acesso, terminação e publicação'),460);}
+function retryFigure(){return figure('Cliente envia pedido. Serviço publica voucher e recibo, mas a resposta se perde. Repetição idêntica e ainda autorizada recebe o resultado retido sem nova emissão.',
+ label(40,35,'Cliente','box-title')+label(700,35,'Serviço de vouchers','box-title')+
+ `<path class="lifeline" d="M155 65V440M890 65V440"/>`+
+ edge('M155 100H890')+label(220,88,'Pedido: ID + entrada')+
+ box(1000,80,395,120,'Publicação','Efeito + resultado retido')+`<path class="edge" d="M890 100H1000"/>`+
+ `<path class="edge deny" d="M890 225H440" stroke-dasharray="10 8"/>`+label(465,209,'Resposta perdida','deny-label')+`<path class="lost" d="M420 208L452 240M452 208L420 240"/>`+
+ edge('M155 320H890')+label(220,304,'Repetição: mesmo ID e entrada')+
+ edge('M890 415H155')+label(220,398,'Resultado retido, se ainda autorizado')+label(1000,335,'Sem nova emissão','box-title'),460);}
+
 function reuseChart(){
   const x=n=>335+Math.log10(n)*225;
   const rows=[['Chamada ordinária',value('OrdinaryReadMedianSeconds')*1000,pt(value('OrdinaryReadMedianSeconds'))+' s','#dc6e52'],['Preparação, uma vez',value('RegistrationReadVolatileMedianSeconds')*1000,pt(value('RegistrationReadVolatileMedianSeconds'))+' s','#a1b3a6'],['Chamada preparada',value('PreparedReadVolatileMedianMs'),pt(value('PreparedReadVolatileMedianMs'))+' ms','#087869']];
@@ -97,14 +154,14 @@ const slides=[
 },
 {
  id:'contexto',title:'Quem confere o que um programa faz com os dados?',seconds:35,
- html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="news-columns"><section><div class="news-date">DINAMARCA · DIVULGADO EM 5 OUT 2026</div><div class="news-number">8,8 milhões</div><div class="news-title">de pessoas com dados do registro populacional acessados</div><div class="news-caption">O invasor abusou do acesso legítimo de uma empresa: as operações eram autenticadas.</div></section><section class="fragment" data-step="1"><div class="news-date">PROGRAMAS GERADOS POR IA</div><div class="news-number">Agentes</div><div class="news-title">escrevem cada vez mais o código que lê e altera dados</div><div class="news-caption">Um programa plausível pode estar errado. Confiar no autor, humano ou modelo, não basta.</div></section></div><p class="foot-message fragment" data-step="2"><strong>O problema não é apenas quem entra: é o que cada programa tem permissão para fazer.</strong></p>`,
+ html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="motivation"><section class="incident"><p class="small muted">DINAMARCA · 5 OUT 2026</p><h3>Acesso indevido ao registro CPR</h3><p>Dados de cerca de 8,8 milhões<br>de pessoas foram acessados.</p><p class="small">O invasor usou o acesso legítimo<br>de uma empresa.</p></section><section><h3>Programas gerados por IA</h3><p>Assistentes de IA são usados para escrever código que lê e altera dados.</p><p class="small spaced">Isso motiva verificar as operações permitidas e as regras de integridade antes da execução.</p></section></div>`,
  bottom:'Fonte: comunicado oficial do CPR. O caso motiva a pergunta; não demonstra prevenção pelo protótipo.',
- notes:'Em outubro, o registro populacional dinamarquês informou acesso indevido a dados de aproximadamente oito milhões e oitocentas mil pessoas. O invasor usou o acesso legítimo de uma empresa. Ao mesmo tempo, agentes de IA escrevem cada vez mais o código que lê e altera dados, e um programa plausível pode estar errado. Daí a pergunta: quem confere o que um programa faz com os dados antes de executar? O problema não é apenas quem entra, mas o que cada programa pode fazer. Não afirmo que o protótipo impediria esse ataque.',
+ notes:`O comunicado oficial do CPR relata acesso indevido a dados de aproximadamente oito milhões e oitocentas mil pessoas por meio do acesso legítimo de uma empresa. Esse incidente motiva distinguir autenticação e comportamento permitido. Em outro contexto, assistentes de IA são usados para escrever programas que acessam dados. O trabalho investiga uma interface que exige um certificado verificável antes de executar esses programas. O caso CPR é uma motivação, sem demonstração de que o protótipo impediria o ataque.`,
  sources:[sources.cpr]
 },
 {
  id:'o-que-e',title:'O que é o JayDB2',seconds:45,
- html:`<p class="kicker">A ideia</p><h2>O que é o JayDB2</h2><p class="lead">Um banco que exige uma prova de que o programa<br>respeita as regras instaladas pelo administrador.</p><div class="diagram">${node('01','O cliente propõe','Programa, argumentos,<br>credencial e prova.')}${arrow}${node('02','O banco verifica','A prova precisa corresponder<br>ao programa que vai executar.')}${arrow}${node('03','O programa executa','Mudanças ficam privadas<br>até a conclusão aceita.')}</div><p class="admin-rule">O administrador define esquema e leis; o cliente demonstra que as respeita.</p>`,
+ html:`<p class="kicker">A ideia</p><h2>O que é o JayDB2</h2><p class="small diagram-intro">O cliente demonstra que seu programa respeita as leis instaladas pelo administrador.</p>${admissionFigure()}`,
  bottom:'Programa e certificado entram juntos na admissão',
  notes:'Há três papéis. O administrador decide como os dados são organizados e quais regras a aplicação exige. O cliente escreve um programa para realizar sua operação e entrega uma prova. O JayDB2 confere se a prova tem o tipo exigido e se está ligada ao programa exato. Se a admissão aceita, o banco executa o programa em um estado de trabalho privado. Uma conclusão bem-sucedida pode publicar o resultado completo. Outros resultados preservam o estado anterior. A prova é uma estrutura formal que um verificador consegue checar. Ela não é uma explicação em linguagem natural nem uma aprovação feita pelo próprio modelo que escreveu o programa.',
  sources:[sources.laws,sources.artifact]
@@ -118,21 +175,21 @@ const slides=[
 },
 {
  id:'leis',title:'As regras da aplicação',seconds:30,
- html:`<p class="kicker">O que o administrador exige</p><h2>As regras da aplicação</h2><table class="data-table"><thead><tr><th>Regra</th><th>Significado neste exemplo</th></tr></thead><tbody><tr><td><strong>Propriedade</strong></td><td>Alice acessa apenas seu namespace.</td></tr><tr><td><strong>Dono da nota</strong></td><td>A criação usa a identidade autenticada.<br>Uma atualização preserva o dono.</td></tr><tr><td><strong>Diretório exato</strong></td><td>O diretório lista todas as notas do dono<br>e nenhuma nota de outra pessoa.</td></tr></tbody></table>`,
+ html:`<p class="kicker">O que o administrador exige</p><h2>As regras da aplicação</h2><div class="law-layout"><section><h3>Propriedade</h3><p class="small">A chave de escrita pertence<br>ao usuário autenticado.</p><figure class="code-figure"><img src="assets/write-scope.svg" alt="Trecho literal de Policy.bend: WriteScope exige que key_owner(key) seja id e key_valid(key) seja True."/><figcaption>Trecho literal · applications/rls/Policy.bend</figcaption></figure></section><section class="law-explanation"><h3>Dono da nota</h3><p>A criação usa a identidade autenticada.<br>A atualização preserva o dono.</p><h3>Diretório exato</h3><p>Lista todas as notas do dono<br>e nenhuma de outra pessoa.</p></section></div>`,
  bottom:'A aplicação também define um administrador com leitura ampliada e sem exceção de escrita.',
  notes:`Estas são as regras da aplicação. Cada chave está ligada à identidade atual. Na criação, o dono gravado deve ser o usuário autenticado. Uma atualização preserva esse dono. O diretório deve listar todas as notas dele e nenhuma de outra pessoa. O administrador pode fazer leituras ampliadas, mas não recebe exceção de escrita. Essas obrigações foram formalizadas e entram no certificado. Os controles negativos tentam quebrar cada uma delas para conferir a rejeição.`,
  sources:[sources.rls]
 },
 {
  id:'transacao',title:'Uma mudança privada, um resultado completo',seconds:55,
- html:`<p class="kicker">Como a transação funciona</p><h2>Uma mudança privada,<br>um resultado completo</h2><div class="state-grid"><section class="state-step"><div class="state-label">ANTES</div><h3>Estado publicado</h3><div class="entry">Notas de Alice: nenhuma</div><div class="entry">Diretório: vazio</div><div class="state-result">Os dados concordam.</div></section><section class="state-step warning fragment" data-step="1"><div class="state-label">DURANTE</div><h3>Proposta privada</h3><div class="entry">Nota n1 criada</div><div class="entry">Diretório ainda vazio</div><div class="state-result">Inconsistência temporária.<br>Outros clientes não a observam.</div></section><section class="state-step fragment" data-step="2"><div class="state-label">AO CONCLUIR</div><h3>Publicação aceita</h3><div class="entry">Nota n1 criada</div><div class="entry">Diretório inclui n1</div><div class="state-result">O resultado completo<br>pode ficar visível.</div></section></div><p class="foot-message">Cada acesso deve ser permitido. A consistência entre tabelas precisa valer na publicação.</p>`,
+ html:`<p class="kicker">Como a transação funciona</p><h2>Uma mudança privada,<br>um resultado completo</h2>${transactionFigure()}<p class="small diagram-note">Cada acesso precisa ser permitido. A consistência do diretório vale na publicação.</p>`,
  bottom:'A regra de diretório exato vale nos estados publicados; a proposta pode ficar incompleta durante a operação.',
  notes:'A ordem das escritas importa para a explicação. Antes do pedido, não há nota e o diretório está vazio. O programa cria a nota em sua proposta privada. Nesse instante, o diretório ainda não foi atualizado. Isso é permitido como situação intermediária. O programa então acrescenta a entrada correta e conclui. A lei exige que a correspondência seja exata quando o novo estado é publicado. O certificado estabelece essa propriedade sobre o caminho real do programa. Se o programa recusa, a proposta não substitui o estado publicado. E a regra de acesso continua valendo durante todo o processo: uma operação privada não ganha permissão para ler Bob.',
  sources:[sources.rls,sources.laws]
 },
 {
  id:'rejeicoes',title:'Dois erros, duas obrigações diferentes',seconds:45,
- html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas<br>obrigações diferentes</h2><div class="demo-comparison"><section><h3>Ler uma nota de Bob</h3><p class="fail-line">Alice tenta observar<br>um dado que não lhe pertence.</p><div class="status-word coral-text">Acesso inválido</div><p class="fail-reason">A prova falha na permissão.</p></section><section class="fragment" data-step="1"><h3>Esquecer o diretório</h3><p class="fail-line">O programa cria a nota de Alice,<br>mas deixa sua lista incompleta.</p><div class="status-word coral-text">Resultado inválido</div><p class="fail-reason">A prova falha na consistência final.</p></section></div><p class="foot-message">O host rejeita a admissão e as verificações posteriores confirmam o estado preservado.</p>`,
+ html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas<br>obrigações diferentes</h2>${rejectionFigure()}<p class="small diagram-note">São falhas independentes de certificação, verificadas antes da execução.</p>`,
  bottom:`Aplicação de notas: ${pt(value('RlsNegativeFixtures'),0)} negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas.`,
  notes:`Ler Bob falha na permissão, mesmo que o programa recuse depois. Esquecer o diretório falha na consistência final, apesar de respeitar o acesso. A aplicação tem ${pt(value('RlsNegativeFixtures'),0)} controles negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas, incluindo o estado completo preservado após rejeições. Cada controle isola uma obrigação. São evidências complementares às provas.`,
  sources:[sources.rls]
@@ -146,8 +203,8 @@ const slides=[
 },
 {
  id:'llms',title:'Onde os LLMs entram',seconds:50,
- html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="diagram">${node('INTENÇÃO','Pedido do usuário','A pessoa descreve<br>a operação desejada.')}${arrow}${node('AUTORIA','LLM + bibliotecas','Constrói o programa<br>e a sua prova.')}${arrow}${node('ADMISSÃO','Verificador do banco','Aceita só o que cumpre<br>as regras do administrador.')}</div><div class="split" style="margin-top:58px;gap:60px"><section><h3>Trabalhos relacionados</h3><p class="small spaced">LLMs já geram provas e código verificado:<br>Isabelle (Baldur), Dafny e Verus (AutoVerus).<br>Eles medem a taxa de sucesso da geração.</p></section><section><h3>Neste projeto</h3><p class="small spaced">LLMs ajudaram a escrever código e provas.<br><strong>Todos os testes do JayDB2 foram escritos por LLMs</strong>, sob direção do autor.</p></section></div>`,
- bottom:'O JayDB2 é o lado consumidor: o gerador não precisa ser confiável, porque a prova é verificada.',
+ html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2>${llmFigure()}<div class="split llm-context"><section><h3>Trabalhos relacionados</h3><p class="small spaced">Baldur (Isabelle), Dafny e AutoVerus (Verus)<br>avaliam geração de código e provas.</p></section><section><h3>Neste projeto</h3><p class="small spaced">LLMs ajudaram no código e nas provas.<br>Todos os testes foram escritos por LLMs,<br>sob direção do autor.</p></section></div>`,
+ bottom:`O gerador fica fora da base de confiança da admissão.`,
  notes:'A escrita manual de provas torna uma operação pequena cara de produzir. LLMs e bibliotecas de provas permitem outro fluxo: partir da intenção, construir programa e certificado, submeter ao verificador e corrigir quando não passa. Há trabalhos recentes nessa direção: o Baldur gera e repara provas em Isabelle, Misu e colegas sintetizam métodos Dafny verificados, e o AutoVerus gera provas para código Rust verificado pelo Verus. Esses trabalhos medem com que frequência a geração dá certo. O JayDB2 trata do lado complementar: um banco que só executa o artefato gerado se a prova passar, então o gerador não precisa ser confiável. Neste projeto, LLMs ajudaram no código e nas provas, e todos os testes do JayDB2 foram escritos por LLMs sob minha direção.',
  sources:[sources.ai,sources.baldur,sources.misu,sources.autoverus]
 },
@@ -160,14 +217,14 @@ const slides=[
 },
 {
  id:'arquitetura',title:'A prova precisa acompanhar o código exato',seconds:55,
- html:`<p class="kicker">A conexão com a implementação</p><h2>A prova precisa acompanhar<br>o código exato</h2><div class="diagram">${node('ADMISSÃO','Verificar e compilar','Programa e prova compõem<br>o mesmo Book em Bend.')}${arrow}${node('EXECUÇÃO','Interpretar e finalizar','Bend decide as ações<br>e o resultado completo.')}${arrow}${node('PUBLICAÇÃO','Commit ou Keep','Rust instala o estado<br>selecionado ou mantém o anterior.')}</div><p class="admin-rule">Selos, hashes e provas geradas ligam o admitido ao executado.</p><p class="small muted spaced">Node coordena a preparação das fontes. Rust coordena processos e estado.<br>As transações do serviço seguem uma fila serial.</p>`,
+ html:`<p class="kicker">A conexão com a implementação</p><h2>A prova precisa acompanhar<br>o código exato</h2>${architectureFigure()}`,
  bottom:'Bend 2.0.39 / BendTT · Rust 1.98.0 · Node 24.19.0 · Clang 19.1.1',
- notes:'O problema de sistemas aparece aqui. Seria insuficiente verificar um programa e depois executar um artefato diferente. A admissão monta um Book com as definições relevantes e alimenta a compilação com esse mesmo conteúdo. Provas geradas e conferências de identidade ligam o programa certificado ao que o worker inicia. As funções em Bend interpretam ações e finalizam a resposta. Uma decisão tipada, Commit ou Keep, informa ao host qual estado e resposta foram selecionados. Rust precisa instalar exatamente esse resultado e encaminhar seus bytes. Node coordena as ferramentas de admissão. O serviço processa transações em série, o que delimita a composição estudada.',
- sources:[sources.proofs,sources.evidence]
+ notes:`Node, por stage.mjs, prepara as fontes e coordena a admissão. Os verificadores Bend e BendTT conferem as obrigações do mesmo Book. O diagrama mostra dependências lógicas: na CPU, parte da compilação pode se sobrepor à segunda verificação. Selos conferem o Book antes e depois da emissão C; hashes ligam fontes e artefatos. Nenhum artefato é liberado antes de ambas as aceitações e das conferências de vínculo. O worker nativo executa Gate, interpretador e finalizador escritos em Bend. Rust coordena o processo, recebe a decisão Commit ou Keep e publica exatamente o estado e a resposta selecionados. As transações seguem uma fila serial.`,
+ sources:[sources.proofs,sources.evidence,sources.gpu]
 },
 {
  id:'garantias',title:'O alcance das garantias',theme:'dark',seconds:50,
- html:`<p class="kicker">Base de confiança explícita</p><h2>O alcance das garantias</h2><p class="lead">Admissão exata, leis em cada passo,<br>conclusão válida e terminação lógica.</p><div class="trust-lines"><div class="trust-id">T1</div><section><h3>Verificação e vínculo</h3><p>Correção dos verificadores e correspondência entre fonte, prova e artefato.</p></section><div class="trust-id">T2</div><section><h3>Compilação e execução nativa</h3><p>Preservação do comportamento pelo compilador e runtime.</p></section><div class="trust-id">T3</div><section><h3>Trabalho físico do host</h3><p>Estado atual, processos, registro e publicação exata de Commit / Keep.</p></section></div>`,
+ html:`<p class="kicker">Base de confiança explícita</p><h2>O alcance das garantias</h2>${trustFigure()}<p class="small diagram-note">Camadas de dependência. Configuração e estado inicial válidos são premissas.</p>`,
  bottom:'Durabilidade após falhas, recuperação geral e isolamento concorrente não estão provados.',
  notes:'Os resultados centrais estabelecem a identidade e o início do programa exato, as leis em cada prefixo real, a finalização com estado e resposta corretos e a existência de uma execução lógica finita. Há premissas. T1 reúne correção dos verificadores e vínculo exato dos artefatos. T2 trata do compilador e do runtime. T3 reúne as tarefas físicas do host, como fornecer o estado atual, executar o artefato admitido e publicar a decisão selecionada. A validade do estado inicial é uma premissa. Assim a banca consegue localizar o que tem prova no nível Bend e onde ainda confiamos na infraestrutura. Durabilidade geral e concorrência não fazem parte desses teoremas.',
  sources:[sources.proofs]
@@ -180,8 +237,8 @@ const slides=[
  sources:[sources.rls,sources.voucher,source('Disponibilidade e índices','applications/indexed/README.md'),sources.simulation]
 },
 {
- id:'evidencia',title:'Artefatos gerados, verificação executada',theme:'dark',seconds:40,
- html:`<p class="kicker">Evidências de construção e correção</p><h2>Artefatos gerados,<br>verificação executada</h2><div class="metric-line"><section><div class="metric-value">${pt(value('NegativeFixtures'),0)}</div><div class="metric-label">controles negativos<br>do núcleo</div></section><section><div class="metric-value">${pt(value('RlsNegativeFixtures'),0)}</div><div class="metric-label">negativos adicionais<br>da aplicação de notas</div></section><section><div class="metric-value">${pt(value('RlsNativeResponses'),0)}</div><div class="metric-label">respostas nativas conferidas<br>na sessão de notas</div></section></div><div class="success-log">✓ make verify-contract<br>✓ make verify<br>✓ make test</div>`,
+ id:'evidencia',title:'Artefatos gerados, verificação executada',seconds:40,
+ html:`<p class="kicker">Evidências de construção e correção</p><h2>Artefatos gerados,<br>verificação executada</h2><table class="data-table evidence-table"><thead><tr><th>Evidência retida</th><th>Quantidade</th><th>O que foi conferido</th></tr></thead><tbody><tr><td>Controles negativos do núcleo</td><td>${pt(value('NegativeFixtures'),0)}</td><td>Rejeição na obrigação esperada</td></tr><tr><td>Negativos adicionais de notas</td><td>${pt(value('RlsNegativeFixtures'),0)}</td><td>Falhas de regras da aplicação</td></tr><tr><td>Respostas nativas de notas</td><td>${pt(value('RlsNativeResponses'),0)}</td><td>Respostas e estados da sessão</td></tr></tbody></table><p class="small spaced">Execuções retidas com sucesso: <code>make verify-contract</code>, <code>make verify</code> e <code>make test</code>.</p>`,
  bottom:'Execuções retidas com sucesso. Os contadores representam evidências diferentes, não o total de testes do projeto.',
  notes:`Os teoremas estabelecem propriedades das funções sob premissas. Os controles negativos mostram que variantes inválidas falham no alvo esperado. As sessões nativas conferem respostas e estados reais. A evidência atual retém ${pt(value('NegativeFixtures'),0)} negativos do núcleo, ${pt(value('RlsNegativeFixtures'),0)} adicionais de notas e ${pt(value('RlsNativeResponses'),0)} respostas na sessão de notas. Os três comandos terminaram com sucesso. Esses contadores não são uma quantidade única de testes. Os negativos GPU e simulação também falham nas mesmas obrigações, em ambos os verificadores, antes da compilação.`,
  sources:[sources.evidence,sources.rls]
@@ -209,7 +266,7 @@ const slides=[
 },
 {
  id:'gpu',title:'Execução GPU opcional',seconds:50,
- html:`<p class="kicker">Mesmo programa, mesma prova</p><h2>Execução GPU opcional</h2><p class="lead">A simulação calcula milhares de caminhadas aleatórias inteiras.<br>O autor marca o trecho paralelo; o Bend pode executá-lo em CUDA.</p><div class="diagram">${node('ADMISSÃO','A mesma','Os dois verificadores aceitam<br>antes de gerar código GPU.')}${arrow}${node('OBRIGAÇÕES','As mesmas','Acesso, terminação, publicação.<br>Negativos falham igual.')}${arrow}${node('EXECUÇÃO','Sem atalho','Artefato alterado ou falha<br>descarta a proposta.')}</div><p class="admin-rule">O programa e o certificado não mudam; a base de confiança, sim: runtime CUDA, driver e GPU entram em T2.</p>`,
+ html:`<p class="kicker">Backends de execução</p><h2>Execução GPU opcional</h2><p class="small diagram-intro">A simulação usa caminhadas aleatórias inteiras. O autor marca o trecho paralelo.</p>${gpuFigure()}<p class="small diagram-note">Autenticação e controle seguem na CPU. Falha GPU descarta a proposta.</p>`,
  bottom:'Resultados numéricos conferidos com oráculos Python/NumPy: evidência de teste, não prova.',
  notes:'Para avaliar um caso de cálculo pesado, a quarta aplicação simula muitas caminhadas aleatórias inteiras. O autor marca o trecho paralelo do programa e, se o administrador ativar a GPU, o Bend executa esse trecho em CUDA. Autenticação e controle da transação continuam na CPU. A admissão é a mesma: os dois verificadores aceitam o programa antes de qualquer código GPU ser gerado. As obrigações também são as mesmas, e as variantes que leem o cenário de outro usuário falham antes da compilação. Se o artefato muda ou a GPU falha, a proposta é descartada, sem recorrer silenciosamente à CPU. O preço é uma base de confiança maior: o runtime CUDA, o driver e o hardware entram em T2. A correção numérica é conferida por testes, não provada.',
  sources:[sources.gpu,sources.simulation,source('Evidência GPU','paper/evidence/gpu-programs.md')]
@@ -229,10 +286,10 @@ const slides=[
  sources:[sources.proofs,sources.evidence,sources.rls]
 },
 {
- id:'futuro',title:'Uma arquitetura para programas gerados por IA',theme:'mint',seconds:45,
- html:`<p class="kicker">Próxima etapa de pesquisa</p><h2>Uma arquitetura para programas<br>gerados por IA</h2><p class="statement" style="margin-top:45px;font-size:55px">O gerador constrói o programa e sua prova.<br>O banco verifica as regras que deve cumprir.</p><div class="progress-line"><section class="progress-item"><h3>Já construído</h3><p>Serviço executável,<br>aplicações certificadas<br>e testes escritos por LLMs.</p></section><section class="progress-item"><h3>Próximo experimento</h3><p>Pedidos inéditos,<br>sucesso de geração<br>e esforço de correção.</p></section><section class="progress-item"><h3>Próxima engenharia</h3><p>Menos trabalho sobre<br>o estado completo<br>e melhores garantias do host.<br>Workers GPU persistentes.</p></section></div>`,
- bottom:'Direção proposta: programas de banco de dados verificados de forma independente em aplicações assistidas por IA.',
- notes:'O projeto permite formular uma direção de pesquisa mais ampla. A interface entre geração e banco pode exigir evidência verificável do comportamento permitido. A experiência atual já inclui serviço executável, programas e certificados construídos com ajuda de IA e testes escritos por LLMs. O próximo experimento deve receber pedidos inéditos e registrar quantos artefatos passam, quantas correções exigem e quanto trabalho humano permanece. Em paralelo, o sistema precisa reduzir o custo sobre o estado completo e fortalecer a fronteira do host e avaliar workers GPU persistentes. Assim o futuro aparece como um caminho apoiado no que foi construído, com critérios concretos para avaliar a próxima etapa.',
+ id:'futuro',title:'Trabalhos futuros',seconds:45,
+ html:`<p class="kicker">Continuidade da pesquisa</p><h2>Trabalhos futuros</h2><div class="method-list"><div class="n">01</div><p><strong>Avaliar geração em pedidos inéditos</strong>Medir aceitação dos artefatos, correções e esforço humano.</p><div class="n">02</div><p><strong>Reduzir trabalho sobre o estado completo</strong>Avaliar outras representações e workers GPU persistentes.</p><div class="n">03</div><p><strong>Ampliar garantias do host</strong>Estudar recuperação após falhas e recertificação após mudanças de política.</p></div>`,
+ bottom:`Etapas propostas; estes resultados ainda não foram estabelecidos.`,
+ notes:`Os próximos passos têm critérios concretos. Um experimento com pedidos inéditos deve medir quantos programas e certificados são aceitos, quantas correções exigem e quanto esforço humano permanece. Na implementação, é preciso reduzir o trabalho sobre o estado completo e avaliar workers GPU persistentes. Na formalização, os próximos alvos são recuperação após falhas e mudanças de política com recertificação. Estas são propostas de continuidade, ainda sem resultados neste trabalho.`,
  sources:[sources.artifact,sources.evidence]
 },
 {
@@ -243,10 +300,10 @@ const slides=[
  sources:[sources.ai]
 },
 {
- id:'conclusao',title:'JayDB2: o que fica demonstrado',theme:'dark conclusion',seconds:30,
- html:`<p class="kicker">Conclusão</p><h2>JayDB2</h2><p class="statement">Um programa pode chegar ao banco<br>com uma prova das regras<br>que precisa respeitar.</p><p class="bottom-line">A conexão com a execução foi construída e avaliada.<br>Reuso, escala e autoria assistida definem os próximos passos.</p>`,
+ id:'conclusao',title:'JayDB2: síntese do trabalho',theme:'dark conclusion',seconds:30,
+ html:`<p class="kicker">Conclusão</p><h2>JayDB2: síntese do trabalho</h2><div class="closing-points"><p>Serviço executável que verifica certificados ligados<br>ao programa e ao resultado publicado.</p><p>Aplicações combinam leis de acesso e consistência.<br>Experimentos medem custo, reuso, escala e CUDA.</p><p>O protótipo depende de T1–T3 e tem custo elevado<br>frente a SQL nas operações pontuais avaliadas.</p></div><p class="small spaced">Obrigado.</p>`,
  bottom:'Gabriel Jota Lizardo · PUC Minas',
- notes:'A contribuição do JayDB2 é tornar concreta essa interface: um programa chega acompanhado de uma prova das regras definidas pelo administrador, e essa prova está ligada às funções que executam e publicam seu resultado. As aplicações mostram acesso e consistência. A avaliação mede custo, reuso e escala. CUDA só supera CPU-16 na maior carga E6, sob T2 ampliada. A autoria assistida por LLMs torna especialmente interessante investigar a produção de novos programas e certificados sobre essa base. Obrigado.',
+ notes:`O trabalho construiu um serviço executável que exige certificados ligados ao programa admitido, à execução e à publicação. As aplicações combinam acesso e consistência, e os experimentos medem o custo desse caminho, a preparação, a escala e o offload em CUDA. Os resultados dependem da base T1 a T3; nas operações pontuais, o custo do protótipo continua elevado frente a SQL. As limitações apresentadas delimitam o que foi estabelecido. Obrigado.`,
  sources:[sources.artifact]
 },
 {
@@ -258,14 +315,14 @@ const slides=[
 },
 {
  id:'b-prova',title:'Como ler o alvo de um certificado',backup:true,seconds:0,
- html:`<p class="kicker">Perguntas · prova e esforço</p><h2>Como ler o alvo<br>de um certificado</h2><div class="code-block">Para todo estado inicial válido s,<br>para todo contexto e argumento cobertos,<br>para cada prefixo real da execução:<br><br>    as leis aplicáveis precisam valer.<br><br>Uma obrigação adicional estabelece terminação.</div><p class="small spaced">Linhas locais de programa / prova: disponibilidade ${pt(value('IndexedClientLines'),0)} / ${pt(value('IndexedProofLines'),0)},<br>vouchers ${pt(value('VoucherClientLines'),0)} / ${pt(value('VoucherProofLines'),0)}, notas ${pt(value('RlsClientLines'),0)} / ${pt(value('RlsProofLines'),0)}. Bibliotecas e provas de domínio ficam fora dessas contagens.</p>`,
- bottom:'Representação explicativa do alvo formal. Contagem de linhas não mede produtividade nem dificuldade.',
- notes:'A forma explicativa resume o quantificador do certificado. Um certificado ordinário fixa contexto e argumentos do pedido e quantifica sobre estados e profundidades. A preparação exige uma prova universal também em contextos e argumentos. As leis podem falar do estado estável, do prefixo em execução e do encerramento. O programa precisa fornecer uma continuação válida para cada resultado de uma ação. As contagens locais ajudam a visualizar tamanho, mas excluem partes compartilhadas e não estimam quanto esforço foi necessário. Não há medida controlada de produtividade de LLMs neste trabalho.',
- sources:[sources.laws,sources.evidence]
+ html:`<p class="kicker">Perguntas · prova e esforço</p><h2>Como ler o alvo de um certificado</h2><figure class="code-figure certificate-figure"><img src="assets/client-certificate.svg" alt="Trecho literal da declaração certificate: recebe contexto, argumentos, código, estado válido, identidade presente e profundidade n; produz SafetyTrace da execução real."/><figcaption>Declaração literal · applications/rls/ClientProof.bend · quebras de linha para leitura</figcaption></figure><p class="small spaced">Dado um estado válido, a prova cobre os prefixos da execução em <code>SafetyTrace</code>.<br>A terminação é uma obrigação adicional. Na preparação, contexto e argumentos também são universais.</p><p class="small spaced">Linhas locais de programa / prova: disponibilidade ${pt(value('IndexedClientLines'),0)} / ${pt(value('IndexedProofLines'),0)},<br>vouchers ${pt(value('VoucherClientLines'),0)} / ${pt(value('VoucherProofLines'),0)}, notas ${pt(value('RlsClientLines'),0)} / ${pt(value('RlsProofLines'),0)}. Bibliotecas e provas de domínio ficam fora dessas contagens.</p>`,
+ bottom:`Contagem de linhas não mede produtividade nem dificuldade.`,
+ notes:`O trecho vem da declaração certificate da aplicação de notas. Os parâmetros ctx, args e code identificam o pedido. O parâmetro s é um estado arbitrário, valid exige sua validade e identity exige a presença da identidade. A profundidade n também é arbitrária. O resultado SafetyTrace fala de S.execute, a execução real. Um certificado ordinário fixa contexto e argumentos; a preparação exige uma prova universal também nesses parâmetros. A terminação tem declaração separada. As contagens locais excluem bibliotecas e provas de domínio e não estimam esforço nem produtividade de LLMs.`,
+ sources:[sources.laws,sources.evidence,source('Certificado de notas','applications/rls/ClientProof.bend')]
 },
 {
  id:'b-resposta',title:'E se a resposta se perder?',backup:true,seconds:0,
- html:`<p class="kicker">Perguntas · vouchers e repetição</p><h2>E se a resposta se perder?</h2><div class="diagram">${node('PRIMEIRO PEDIDO','Voucher + recibo','A transação publica<br>o efeito e seu resultado.')}${arrow}${node('REPETIÇÃO IDÊNTICA','Permissão atual','Confere identidade,<br>operação e entrada exata.')}${arrow}${node('RESULTADO RETIDO','Sem nova emissão','Devolve o resultado<br>associado ao pedido.')}</div><p class="admin-rule">Entrada conflitante recusa. Retirar voucher e recibo encerra a proteção desse identificador.</p><p class="small muted spaced">Há testes nativos com perda de resposta e reabertura após publicação durável.<br>Uma prova geral de recuperação continua como trabalho futuro.</p>`,
+ html:`<p class="kicker">Perguntas · vouchers e repetição</p><h2>E se a resposta se perder?</h2>${retryFigure()}<p class="small diagram-note">Entrada conflitante recusa. Retirar voucher e recibo encerra a proteção do ID.</p>`,
  bottom:'A aplicação define o protocolo. O cliente não repete escritas silenciosamente.',
  notes:'A perda de resposta pode ocorrer depois de o banco publicar a transação. Repetir uma emissão comum poderia duplicar um efeito. A aplicação de vouchers liga o ID do pedido à entrada exata e ao resultado retido. Um pedido idêntico, ainda autorizado, retorna esse resultado sem repetir a emissão. Uma entrada diferente com o mesmo ID recusa. O protocolo inclui retirada explícita, que remove o voucher e recibo e termina a proteção daquele ID. Os testes matam o serviço após publicação durável e verificam o comportamento na reabertura. Isso é evidência de cenário e não uma prova completa de falhas de armazenamento.',
  sources:[sources.voucher]

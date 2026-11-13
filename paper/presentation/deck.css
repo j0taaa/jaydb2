@@ -7,3 +7,36 @@
 /* E6 keeps the existing evidence-table style within the fixed canvas. */
 .compute-table{font-size:25px;margin-top:24px;font-variant-numeric:tabular-nums}.compute-table td{padding:17px 0}.compute-table th{font-size:20px;padding-bottom:14px}.compute-table td:nth-child(n+2),.compute-table th:nth-child(n+2){padding-left:20px;text-align:right}
 .takeaways{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin-top:22px;font-size:24px;line-height:1.38}.takeaways section{border-top:3px solid var(--deck-green);padding-top:14px}.takeaways strong{display:block;font-size:29px;font-weight:600;margin-bottom:6px;letter-spacing:-.4px}.apps-table{font-size:28px}.apps-table td{padding:22px 0}
+
+/* Editable system diagrams: labels remain large in HTML and PDF. */
+.system-figure{display:block;width:100%;margin-top:30px;overflow:visible}
+.system-figure text{font-family:DeckInter,Arial,sans-serif;font-size:26px;fill:var(--deck-ink)}
+.system-figure .box-title{font-size:29px;font-weight:600}
+.system-figure .edge-label,.system-figure .deny-label{font-size:24px;fill:var(--deck-green)}
+.system-figure .deny-label{fill:#a14732}
+.system-figure .box{fill:var(--deck-paper);stroke:#a3b3a8;stroke-width:2}
+.system-figure .accept,.system-figure .gate{fill:#d8edda;stroke:var(--deck-green);stroke-width:3}
+.system-figure .reject{fill:#f4e4da;stroke:var(--deck-coral);stroke-width:2}
+.system-figure .edge{fill:none;stroke:var(--deck-green);stroke-width:3}
+.system-figure .edge.deny,.system-figure .lost{stroke:#b24a32;stroke-width:3}
+.system-figure .private-zone{fill:#ebece0;stroke:var(--deck-muted);stroke-width:2;stroke-dasharray:10 7}
+.system-figure .lifeline{stroke:var(--deck-muted);stroke-width:2;stroke-dasharray:8 7}
+.system-figure .trust-layer{fill:#173c46;stroke:#6e9991;stroke-width:2}
+.dark .system-figure text{fill:var(--deck-paper)}
+.system-figure .proved-core{fill:var(--deck-mint)}
+.dark .system-figure .proved-core~text{fill:var(--deck-ink)}
+.slide .diagram-intro{margin-top:25px}
+.slide .diagram-note{margin-top:16px}
+.llm-context{margin-top:30px;gap:65px}.llm-context .spaced{margin-top:18px}
+.motivation{display:grid;grid-template-columns:1fr 1fr;gap:95px;margin-top:65px}
+.motivation .incident{border-left:4px solid var(--deck-muted);padding-left:28px}
+.motivation h3{margin:22px 0}.motivation p{font-size:30px}
+.motivation .small{font-size:25px;margin-top:24px}
+.evidence-table{font-size:28px;margin-top:35px}.evidence-table td{padding:26px 0}
+.evidence-table td:nth-child(2){font-variant-numeric:tabular-nums;text-align:center}
+.closing-points{margin-top:45px;max-width:1260px}.closing-points p{font-size:35px;line-height:1.35;padding:23px 0;border-bottom:1px solid #52736f}
+.law-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:65px;margin-top:60px}
+.law-layout p{font-size:28px;margin-top:20px}.law-explanation h3:not(:first-child){margin-top:55px}
+.code-figure{margin:32px 0 0}.code-figure img{display:block;width:100%;height:auto}
+.code-figure figcaption{font-size:20px;color:var(--deck-muted);margin-top:14px}
+.certificate-figure{margin-top:35px}.certificate-figure img{max-height:300px;object-fit:contain;object-position:left}

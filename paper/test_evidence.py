@@ -378,6 +378,9 @@ class EvidenceTests(unittest.TestCase):
             self.assertNotIn('NaN',notes)
             self.assertNotIn('undefined',notes)
             self.assertIn('window.JAYDB2_SIMULATION=',html.read_text())
+            # New code figures must survive the offline HTML build.
+            self.assertIn('data:image/svg+xml;base64,',html.read_text())
+            self.assertNotIn('src="assets/',html.read_text())
             # Inject a sentinel through the generated-data contract, not the content.
             # Both the displayed table and the notes must respond to evidence changes.
             parsed['SimulationLargeCudaMs']=123456.789
