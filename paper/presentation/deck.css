@@ -6,3 +6,4 @@
 
 /* E6 keeps the existing evidence-table style within the fixed canvas. */
 .compute-table{font-size:25px;margin-top:24px;font-variant-numeric:tabular-nums}.compute-table td{padding:17px 0}.compute-table th{font-size:20px;padding-bottom:14px}.compute-table td:nth-child(n+2),.compute-table th:nth-child(n+2){padding-left:20px;text-align:right}
+.takeaways{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin-top:22px;font-size:24px;line-height:1.38}.takeaways section{border-top:3px solid var(--deck-green);padding-top:14px}.takeaways strong{display:block;font-size:29px;font-weight:600;margin-bottom:6px;letter-spacing:-.4px}.apps-table{font-size:28px}.apps-table td{padding:22px 0}

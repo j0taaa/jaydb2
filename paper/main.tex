@@ -20,8 +20,10 @@
 \definecolor{green}{HTML}{087F72}
 \definecolor{coral}{HTML}{BB513D}
 \setlength{\emergencystretch}{2em}
+% Let long corporate-author citation labels break across lines.
+\makeatletter\let\@cite@ofmt\@firstofone\makeatother
 \tikzset{box/.style={draw=ink,rounded corners=2pt,align=center,font=\small,minimum height=12mm,text width=32mm},flow/.style={-{Stealth[length=2mm]},thick,draw=ink}}
-\title{JayDB2: Checking What Database Programs Are Allowed to Do}
+\title{JayDB2: Proof-Carrying Programs for Database Access}
 \author{Gabriel Jota Lizardo\inst{1}, Gabriel Barbosa da Fonseca\inst{1} (advisor)}
 \address{Instituto de Ciências Exatas e Informática (ICEI)\\
 Pontifícia Universidade Católica de Minas Gerais (PUC Minas)\\
@@ -30,32 +32,38 @@ Belo Horizonte -- MG -- Brasil}
 \maketitle
 
 \begin{abstract}
-JayDB2 checks client programs and proofs against administrator-defined database
-rules before execution. Examples introduce its service, guarantees
-and costs. Certified applications cover ownership, consistent indexes, retry
-receipts, shared notes and simulation. Large language models (LLMs) assisted
-construction and authored tests under the author's direction. Preparation reduces
-a measured read from
-\num{\OrdinaryReadMedianSeconds} seconds to
-\num{\PreparedReadVolatileMedianMs} milliseconds, while SQL remains faster for
-point operations. Optional NVIDIA CUDA preserves proof obligations with a larger
-trusted base. In volatile simulation it beats CPU-16 only at the largest tested
-workload. Complete-state work limits scale; crash durability and CUDA
-correctness remain assumptions.
+When people or AI agents submit programs to a shared database, the operator has
+to trust code it did not write. JayDB2 is an experimental database that instead
+runs a client program only after checking a machine-checkable proof, written in
+the dependently typed language Bend, that the program respects
+administrator-defined access and integrity rules. Proved transition functions
+bind the checked proof to the exact program that runs and to the state it
+publishes. Four certified applications, built with the help of large language
+models, are accepted, and targeted invalid variants are rejected. Preparing a
+program once reduces a read from \num{\OrdinaryReadMedianSeconds}~s to
+\num{\PreparedReadVolatileMedianMs}~ms, yet point operations remain slower than
+PostgreSQL and SQLite, and processing the complete state limits scale. An
+optional GPU backend keeps the same proof obligations and pays off only at the
+largest simulated workload. The guarantees rely on an explicit trusted base of
+checkers, compilers and host; crash durability is not proved.
 \end{abstract}
 \begin{resumo}
 \selectlanguage{brazilian}
-O JayDB2 verifica programas e provas de clientes contra regras do administrador
-antes da execução. Exemplos apresentam o serviço, suas garantias e custos.
-Aplicações certificadas cobrem propriedade, índices consistentes, recibos,
-notas compartilhadas e simulação. LLMs auxiliaram a construção e escreveram
-os testes sob direção do autor. A preparação reduz uma leitura de
-\numbr{\OrdinaryReadMedianSeconds} segundos para
-\numbr{\PreparedReadVolatileMedianMs} milissegundos; SQL continua mais rápido em
-operações pontuais. CUDA opcional preserva as obrigações com maior base de
-confiança. Na simulação volátil supera CPU-16 apenas na maior carga testada.
-Processar o estado completo limita a escala; durabilidade após falhas e
-correção CUDA permanecem premissas.
+Quando pessoas ou agentes de IA enviam programas a um banco de dados
+compartilhado, o operador precisa confiar em código que não escreveu. O JayDB2
+é um banco experimental que só executa um programa de cliente depois de
+verificar uma prova formal, escrita na linguagem com tipos dependentes Bend, de
+que o programa respeita regras de acesso e integridade definidas pelo
+administrador. Funções de transição provadas ligam a prova verificada ao
+programa exato que executa e ao estado que ele publica. Quatro aplicações
+certificadas, construídas com ajuda de modelos de linguagem, são aceitas, e
+variantes inválidas direcionadas são rejeitadas. Preparar um programa uma vez
+reduz uma leitura de \numbr{\OrdinaryReadMedianSeconds}~s para
+\numbr{\PreparedReadVolatileMedianMs}~ms, mas operações pontuais continuam mais
+lentas que PostgreSQL e SQLite, e processar o estado completo limita a escala.
+Um backend GPU opcional mantém as mesmas obrigações e só compensa na maior
+carga simulada. As garantias dependem de uma base de confiança explícita
+(verificadores, compiladores e host); a durabilidade após falhas não é provada.
 \end{resumo}
 \selectlanguage{english}
 
@@ -83,21 +91,20 @@ lawful access for every valid starting state covered by its specification,
 including missing-data and refusal branches. The administrator chooses the rules.
 
 \paragraph{Why this problem matters.}
-Real incidents show why data access deserves an explicit boundary. In October
-2026, Denmark's Central Person Register reported that an unauthorized party
-abused a company's legitimate search access to obtain information concerning
-approximately 8.8 million registered people \cite{cpr2026}. The incident motivates
-careful restrictions on authenticated operations. It does not establish that
-this prototype would have prevented that attack: that would require a model of
-the actual system, credentials and permitted queries.
+Authenticated access can still be abused. In October 2026, Denmark's Central
+Person Register reported that an unauthorized party used a company's legitimate
+search access to obtain information about approximately 8.8 million people
+\cite{cpr2026}. The incident motivates explicit limits on what authenticated
+operations may do; it does not show that this prototype would have prevented it.
 
-AI-assisted programming adds another reason to study this boundary. LLMs can
-help construct the program and its proof while an independent checker decides
-whether the proof satisfies the installed rules. This division was used during
-JayDB2's development: AI agents assisted implementation and proofs. Proof libraries
-and prepared programs further reduce repeated work. The implemented database
-accepts Bend source and certificates. A general natural-language request service
-is a possible layer above it.
+AI-assisted programming adds a second reason. Large language models (LLMs) and
+AI agents increasingly write the code that touches data, and their output can
+look plausible while being wrong. If such a program must arrive with a proof,
+an independent checker can decide whether it satisfies the installed rules, and
+the generator need not be trusted. JayDB2's own development used this division:
+AI assistants helped write its implementation and proofs. The implemented
+database accepts Bend source and certificates; a natural-language request
+service is a possible layer above it.
 
 \paragraph{Problem and objective.}
 The research problem is to connect a checked proof to the exact program that
@@ -122,9 +129,8 @@ service guarantee, and under which assumptions? \textbf{RQ2:} Can certificates
 combine lawful access with consistency across related data? \textbf{RQ3:} What
 does this approach cost, and how do preparation and opt-in CUDA change it?
 
-The artifact provides executable proofs and certified examples.
-Section~\ref{sec:background} positions the idea,
-Section~\ref{sec:method} explains its construction,
+Section~\ref{sec:background} reviews related work,
+Section~\ref{sec:method} explains the design,
 Section~\ref{sec:results} evaluates it, and
 Sections~\ref{sec:discussion} and~\ref{sec:conclusion} discuss limits and next steps.
 
@@ -153,41 +159,40 @@ state. The certificate covers actual continuations after operation results,
 rather than a sequence of operations that the client merely claims to perform.
 
 \subsection{Existing database controls and verified systems}
-\begin{sloppypar}
-Conventional databases already provide substantial protection. PostgreSQL
-privileges restrict access to objects \cite{postgresprivileges}.
-Row-level security (RLS) selects the rows a role can see or change \cite{postgresrls}.
-Constraints enforce integrity conditions \cite{postgresconstraints}.
-Triggers can enforce further application obligations \cite{postgrestrigger}.
-A reference monitor can check permitted actions during execution \cite{schneider2000}.
-These mechanisms are important alternatives and complements to certificates.
-\end{sloppypar}
+Conventional databases already provide substantial protection. In PostgreSQL,
+privileges restrict access to objects, row-level security (RLS) selects the rows
+a role can see or change, and constraints and triggers enforce integrity
+conditions; its documentation describes each mechanism
+\cite{postgresprivileges,postgresrls,postgresconstraints,postgrestrigger}.
+A reference monitor can also check permitted actions during execution
+\cite{schneider2000}. These mechanisms are
+alternatives and complements to certificates. A certificate can instead
+establish a proposition about all action paths before execution, for example
+allowing temporary inconsistency inside a private transaction while requiring
+two ordinary tables to agree exactly at completion.
 
-A client certificate can establish a richer proposition about all possible
-action paths before execution. Temporary inconsistency may be allowed inside a
-private transaction, while two ordinary tables must agree exactly at completion.
-JayDB2 expresses this distinction in its laws, at substantial authoring and
-runtime cost.
+Verified databases address related goals. Malecha et al. verify relational
+database internals in Coq \cite{malecha2010}, using the Ynot specifications of
+imperative effects \cite{ynot2008}. Fiat derives implementations from
+specifications \cite{fiat2015}, and transaction safety has earlier formal
+treatments \cite{sheard1989}. UrFlow checks database-dependent security policies
+statically \cite{urflow2010}; Hails, LWeb and Jacqueline enforce information
+flow in web applications \cite{hails2012,lweb2019,jacqueline2016}. JayDB2's
+access and publication laws do not provide those end-to-end guarantees: a
+response reporting a shared capacity limit, for instance, can reveal aggregate
+information even when direct reads of another user's rows are forbidden. CompCert shows why preservation from proved source to running code
+needs its own theorem \cite{leroy2009}; JayDB2 instead lists its compiler,
+checker and host assumptions explicitly.
 
-Research on verified databases addresses closely related goals. Malecha
-et al. \cite{malecha2010} verify relational database internals using Coq/Ynot.
-Ynot supplies specifications for imperative effects \cite{ynot2008}; Fiat derives
-implementations from specifications \cite{fiat2015}. Transaction safety also has
-earlier formal treatments \cite{sheard1989}. JayDB2 focuses on admitting
-client-authored programs and connecting their certificates to service execution.
-
-UrFlow checks database-dependent security policies statically \cite{urflow2010}.
-Hails, LWeb and Jacqueline address information-flow protection in web
-applications \cite{hails2012,lweb2019,jacqueline2016}. JayDB2's access and
-publication laws do not establish their end-to-end information-flow guarantees.
-For instance, a response that reports a shared capacity limit can reveal
-aggregate information even if direct reads of another user's rows are forbidden.
-
-Finally, the transfer from proved source code to a running service needs its own
-assumptions. CompCert illustrates the importance of compiler preservation
-theorems \cite{leroy2009}. JayDB2 records compiler, checker and host assumptions
-explicitly. Its proofs cover specified Bend transitions, while external tools
-and physical publication still form part of the trusted base.
+\subsection{LLMs and machine-checked proofs}
+LLMs are increasingly used to produce proofs and verified code, with a proof
+checker deciding acceptance. Baldur generates and repairs whole Isabelle/HOL
+proofs \cite{baldur2023}; Misu et al. prompt LLMs to synthesize Dafny methods
+that the Dafny verifier accepts \cite{misu2024}; AutoVerus generates proofs for
+Rust code checked by Verus \cite{autoverus2025}. These works study how often
+generation succeeds. JayDB2 addresses the complementary consumer side: a
+database that executes such generated artifacts only when they discharge the
+administrator's obligations, so a wrong proof is rejected rather than trusted.
 
 \section{Methodology and System Design}
 \label{sec:method}
@@ -302,12 +307,10 @@ execution loop to the proved transition functions.
 Figure~\ref{fig:architecture} separates the logical decisions from host work.
 Rust owns the published state and coordinates processes. Node stages admission
 and compilation. Checked Bend functions decode requests, authenticate, select
-programs, interpret actions and finalize results. In the default CPU mode, after
-the primary check and translation for the second (BendTT) check, BendTT checking
-overlaps C emission and Clang compilation; GPU (graphics processing unit) mode waits
-for both checkers first.
-Artifacts are released only after required checks and identity seals agree.
-The emitted C is compiled without rewriting it.
+programs, interpret actions and finalize results. Two official checkers (Bend
+and its BendTT kernel) must both accept, and the emitted C is compiled without
+rewriting it; artifacts are released only after the checks and identity seals
+agree.
 
 \begin{figure}[H]\centering
 \begin{tikzpicture}[node distance=7mm and 8mm]
@@ -330,27 +333,19 @@ The host must collect the complete worker result and finish rollback-capable
 cleanup before publication. Losing the response after publication does not
 reverse a completed change.
 
-The public framing uses an unsigned 64-bit big-endian body length. Canonical
-encodings have explicit tags and lengths, valid UTF-8 and uniquely ordered
-fields. Configured byte limits apply to canonical bodies. These details matter
-because the proofs and the physical service must agree on the same input,
-output and size decisions.
+Requests and replies use canonical length-prefixed encodings, and configured
+byte limits apply to those exact bodies, so the proofs and the physical service
+agree on the same input, output and size decisions.
 
-\paragraph{Opt-in GPU execution.}
-The default is \code{-{}-gpu off}. Linux/NVIDIA opt-in \code{-{}-gpu MiB}
-(64--4096) sets the runtime's device memory pool (corpus) and enables CUDA for
-explicit bang calls \code{f!(x)}, Bend's marker for backend-parallel evaluation. Initialization,
-authentication and metadata control stay on CPU. In GPU mode, both official
-checkers must accept the same sealed Book before any C emission, Clang
-compilation or CUDA prebuild. Literal emitted C is compiled with CUDA support;
-the official runtime prebuilds a \code{.gpu} CUDA binary (cubin) using NVRTC (NVIDIA runtime compilation library) \cite{cuda,nvrtc}.
-The private report binds C, executable and cubin hashes. CUDA execution checks
-artifacts before launch and before accepting the proposal; prepared calls also
-compare exact sealed source/proof/artifact bytes. Missing or changed artifacts,
-device errors and even a runtime rebuild notice discard the proposal. Requested
-bangs never fall back to CPU. CUDA executions remain serial per instance,
-including reads; CPU worker parallelism or GPU forks do not add concurrent
-transactions. The corpus setting does not bound total driver/device memory.
+\paragraph{Optional GPU execution.}
+By default programs run on the CPU. On a Linux machine with an NVIDIA GPU, the
+administrator can enable CUDA \cite{cuda}; Bend then evaluates the parts of a
+program that its author explicitly marks as parallel on the GPU, while
+authentication and transaction control stay on the CPU. Admission is unchanged:
+both checkers must accept the program before any GPU code is generated, and the
+compiled GPU code is fingerprinted together with the CPU executable. A missing
+or altered artifact or a device error discards the private proposal, and a
+marked computation never silently falls back to the CPU. Requests remain serial.
 
 \subsection{Guarantees and the trusted boundary}
 The central executable results have four readable interpretations.
@@ -371,20 +366,17 @@ collecting results, preserving registry history and installing exactly the
 selected state/response pair. Initial validity is a premise. Recovered-state
 validity additionally assumes persistence integrity.
 
-CUDA adds Bend's emitted CUDA runtime path, NVRTC, the CUDA driver,
-managed memory and GPU hardware. Resolved driver/NVRTC library paths/hashes are recorded,
-but host CUDA headers/libraries are not pinned like Bend. Theorems concern the
-checked Book's semantics: GPU programs discharge identical certificate,
-termination, access/RLS, size and publication obligations, with no CUDA validity
-axiom. GPU-program negatives (false result/termination, foreign read) fail
-exactly like CPU ones. CPU/GPU differential tests and numerical oracles are evidence of behavior,
-not proofs of compiler/runtime or hardware correctness.
+Enabling CUDA adds Bend's GPU runtime, NVIDIA's compiler and driver, and the
+GPU hardware to T2. Because the theorems concern the checked program's meaning,
+a GPU program discharges exactly the same certificate, termination, access and
+publication obligations, and the same invalid variants fail. Agreement between
+CPU and GPU results and with independent numerical oracles is test evidence,
+not a proof that the CUDA stack is correct.
 
-Bend also classifies observed host error codes and constructs denial bytes.
-Rust still detects failures and must forward the exact code and checked bytes,
-including cached replies. A technical fallback remains trusted. Two related
-checker modes do not independently establish checker soundness. These boundaries
-state exactly where implementation confidence is still assumed.
+Bend also classifies host error codes and constructs the denial bytes, but Rust
+must still detect failures and forward them exactly, and a technical fallback
+remains trusted. The two related checkers do not independently establish
+checker soundness.
 
 \subsection{Preparation and reusable proof work}
 Ordinary admission checks and compiles the submitted source for a call.
@@ -426,18 +418,17 @@ and reopen behavior is tested against durable publication; crash durability
 itself is outside the proofs.
 
 \paragraph{Certified simulation.}
-The simulation application reads the caller's seed, drift and volatility from
-its \code{scenarios} row, executes a balanced \code{simulate!} tree of integer
-random walks, and writes modular sum, unsigned maximum, count above the initial
-value and path count to its own \code{results} row. Runtime depth/step arguments
-scale computation while the two scenario rows stay small. This is a deterministic
-compute demonstration, not a calibrated pricing model or statistically validated
-random generator. Its universal certificate allows only own-row scenario reads
-and own-row result writes, including failed operations and refusals. A
-\code{Safe} induction and \code{T.program\_finite} establish a finite Action
-chain; the official checker checks numerical recursion structurally. Foreign scenario-read and result-write mutations fail at the installed access
-obligation in both modes and are rejected before compilation, including CUDA. Numerical checksums are tested against
-independent scalar Python/NumPy, rather than proved by that certificate.
+The fourth application is compute-heavy. A caller's \code{scenarios} row holds
+a seed, drift and volatility; the program simulates many integer random walks
+in a balanced parallel tree and writes summary statistics (sum, maximum, count
+above the start and path count) to the caller's own \code{results} row. Depth
+and step arguments scale the work while the stored data stay small. It is a
+deterministic compute demonstration, not a calibrated financial model. Its
+universal certificate permits only reading the caller's scenario and writing
+the caller's result, including on failure and refusal paths, and proves
+termination. Variants that read another user's scenario or write another
+user's result are rejected before compilation on both backends. The numerical
+results are tested against independent Python/NumPy implementations, not proved.
 
 Experiments run the real serial Rust host on one Intel Core i7-11700K/Linux
 machine, using one client and ext4. E1--E5 use one native worker thread
@@ -469,14 +460,18 @@ Ordinary and prepared paths also use different supported C optimization levels.
 The latency comparison measures those service paths, rather than isolating the
 effect of proof checking alone.
 
-E6 additionally
-uses CPU one/sixteen workers and \GpuDevice{}, driver \GpuDriverVersion{},
-resolved NVRTC library \NvrtcLibraryVersion{}, and a \GpuCorpusMiB{}~MiB device memory pool.
-CPU policy is fixed and restored as above; GPU clocks are unfixed and the device
-also drives the desktop. E6 uses \SimulationSessionCount{} session per backend,
-\SimulationWarmups{} excluded warmup and \SimulationRepeats{} samples per completed
-size, reporting median and range; admission is timed separately.
-
+E6 has a different purpose from E1--E5. It checks that the proof obligations
+carry over unchanged to the CUDA backend and locates where offloading starts to
+pay; it is not designed to show that JayDB2 is faster than SQL engines. The
+simulation runs on JayDB2 with one CPU worker (CPU-1), sixteen workers (CPU-16)
+and CUDA on an \GpuDevice{} with a \GpuCorpusMiB{}~MiB device memory pool, all
+with volatile storage. In-database PostgreSQL PL/pgSQL and SQLite recursive
+common table expression (CTE) versions perform the same computation as familiar
+reference points; no host-language user-defined function is timed. Each backend
+has a single session with \SimulationWarmups{} excluded warmup and
+\SimulationRepeats{} timed requests per size. The CPU policy is fixed as above,
+but the GPU clocks were not fixed and the GPU also drove the desktop, so only
+large differences in E6 are meaningful.
 
 \section{Results and Analysis}
 \label{sec:results}
@@ -532,21 +527,6 @@ most of these times. Median per-call worker shares are \num{\OrdinaryReadWorkerS
 \num{\OrdinaryIndexedWorkerSharePercent}\% and
 \num{\OrdinaryVoucherWorkerSharePercent}\%, respectively.
 
-E2 records \PreparedSamples{} prepared calls and \RegistrationSamples{} preparations per program/storage
-condition, spread across the three sessions. Table~\ref{tab:prepared} shows the
-complete preparation/reuse tradeoff. A volatile read costs
-\num{\RegistrationReadVolatileMedianSeconds}~s to prepare and then
-\num{\PreparedReadVolatileMedianMs}~ms per call. Durable writes cost more
-because changed images are synchronized before acknowledgement. Read images
-can be reused unchanged.
-
-\begin{table}[H]\centering\small
-\caption{E2: one-time preparation and repeated-call latency. Calls show median
-[Q1,Q3]. There are \RegistrationSamples{} preparations and \PreparedSamples{} calls per condition.}
-\label{tab:prepared}
-\input{../.build/tcc/prepared-table.tex}
-\end{table}
-
 \begin{figure}[H]\centering
 \begin{tikzpicture}
 \begin{axis}[width=.87\linewidth,height=4.8cm,xbar,xmode=log,
@@ -570,6 +550,24 @@ the admitted program. E1 ordinary read $n=\OrdinarySamples$; E2 volatile calls $
 preparations $n=\RegistrationSamples$. Different supported compilation profiles are included.}
 \label{fig:reuse}
 \end{figure}
+
+E2 records \PreparedSamples{} prepared calls and \RegistrationSamples{} preparations per program/storage
+condition, spread across the three sessions. Table~\ref{tab:prepared} shows the
+complete preparation/reuse tradeoff. A volatile read costs
+\num{\RegistrationReadVolatileMedianSeconds}~s to prepare and then
+\num{\PreparedReadVolatileMedianMs}~ms per call. Durable writes cost more
+because changed images are synchronized before acknowledgement; read images
+can be reused unchanged. The durable voucher row has a long upper quartile
+because one of its three sessions was markedly slower in the durable publication
+step; those samples are retained rather than discarded.
+
+\begin{table}[!htb]\centering\small
+\caption{E2: one-time preparation and repeated-call latency. Calls show median
+[Q1,Q3]. There are \RegistrationSamples{} preparations and \PreparedSamples{} calls per condition.}
+\label{tab:prepared}
+\input{../.build/tcc/prepared-table.tex}
+\end{table}
+
 
 For preparation $R$, ordinary latency $O$ and prepared latency $P$ in the same
 units, a median-cost estimate breaks even at $\lceil R/(O-P)\rceil$ when $O>P$.
@@ -655,40 +653,42 @@ not identify each mechanism's individual cost or establish an asymptotic bound.
 The configured ceiling is \StateLimitBytes{} encoded bytes. It admits \StateMaximumRows{} rows of this
 shape at \StateMaximumBytes{} bytes. The next row would require \StateFirstExcessBytes{} bytes; actual probes
 return \code{limit} and preserve state. A \StateOversizedRows{}-row state is too large and
-receives no operation timing. \LargeSeedFuelFailures{} earlier direct-seed attempts exhausted
-checker fuel; certified population avoids those initialization failures.
+receives no operation timing. Seeding the large state directly exhausted
+checker fuel in \LargeSeedFuelFailures{} earlier attempts; certified population
+avoids those initialization failures.
 
 \subsection{E6: certified simulation on CPU and CUDA}
-Table~\ref{tab:simulation} compares complete prepared requests with in-database
-PostgreSQL PL/pgSQL and SQLite recursive common table expression (CTE) queries. Each engine reads identical
-scenario parameters, computes every path/step, upserts the same aggregates and
-returns them; no host-language user-defined function (UDF) is timed. JayDB2 timing includes encoding,
-transport, fresh authentication, artifact checks, fresh child/device startup,
-publication and decoding. SQL includes execute/fetch and in-database work.
-Independent scalar/NumPy numerical oracles and full published states/tables, including
-unchanged Bob data, are checked outside timing; separate controls exercise both users.
+The proof obligations carried over unchanged: the same certificate was accepted on both
+backends, and the foreign-access variants were rejected before any CUDA code was
+compiled. Outside the timed region, every numerical result matched independent
+oracles and the complete published state, including Bob's unchanged data, was
+checked. Table~\ref{tab:simulation} reports complete requests. For JayDB2
+this includes encoding, transport, authentication, artifact checks, starting a
+fresh worker process (and GPU context), publication and decoding; for SQL it
+includes executing the query and fetching the result.
 
 \begin{table}[!ht]\centering\footnotesize
 \setlength{\tabcolsep}{3pt}
-\caption{E6: complete-request/query median ms; $n=\SimulationRepeats$ per completed
-cell. CPU-1/CPU-16/CUDA are JayDB2. Timeouts are observed cancellations;
-``not run'' follows an earlier timeout. Full ranges remain in the generated evidence.}
+\caption{E6: median complete-request latency (ms), $n=\SimulationRepeats$ per
+completed cell. CPU-1, CPU-16 and CUDA are JayDB2 backends. ``Timeout'' is an
+observed cancellation; ``not run'' follows an earlier timeout. Ranges are in the
+retained evidence.}
 \label{tab:simulation}
 \input{../.build/tcc/simulation-table-en.tex}
 \end{table}
 
-Preparation (one observation, excluded above) costs
-\num{\SimulationCpuOnePreparationMs}, \num{\SimulationCpuSixteenPreparationMs}
+Three patterns stand out. Starting the GPU dominates small calls: the smallest
+CUDA request costs \num{\SimulationSmallCudaMs}~ms against
+\num{\SimulationSmallCpuOneMs}~ms on CPU-1. Only at the largest workload
+(\SimulationLargestPaths{} paths of \SimulationLargestSteps{} steps) does CUDA
+beat CPU-16, with \num{\SimulationLargeCudaMs} against
+\num{\SimulationLargeCpuSixteenMs}~ms (CPU-1: \num{\SimulationLargeCpuOneMs}~ms).
+Finally, both SQL engines are fastest at the smallest size, where JayDB2 pays
+process startup, but their interpreted strategies grow much faster and time out
+at larger sizes; this reflects strategies unsuited to numerical work, not
+general database performance. One-time preparation, excluded from the table,
+took \num{\SimulationCpuOnePreparationMs}, \num{\SimulationCpuSixteenPreparationMs}
 and \num{\SimulationCudaPreparationMs}~ms for CPU-1, CPU-16 and CUDA.
-Small CUDA requests cost \num{\SimulationSmallCudaMs}~ms versus
-\num{\SimulationSmallCpuOneMs}~ms on CPU-1. At
-\SimulationLargestPaths{} paths and \SimulationLargestSteps{} steps, medians are
-\num{\SimulationLargeCpuOneMs}, \num{\SimulationLargeCpuSixteenMs} and
-\num{\SimulationLargeCudaMs}~ms respectively. GPU benefit appears only at the
-largest tested workload relative to CPU-16. SQL engines are fastest at
-the smallest workload in Table~\ref{tab:simulation}, where JayDB2 pays per-request process/device startup, but interpreted
-PL/pgSQL and recursive CTE grow faster and time out at larger sizes; this reflects
-unsuited execution strategies, not general database performance.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
@@ -698,54 +698,45 @@ RQ2 receives concrete evidence from applications combining access and
 publication rules. Relative to verified relational internals and deductive
 synthesis \cite{malecha2010,fiat2015}, JayDB2 studies a consumer admitting
 client-authored transactions. Relative to UrFlow and information-flow
-systems \cite{urflow2010,lweb2019}, it exposes arbitrary application propositions
-without claiming complete noninterference. The experiments do not permit
-numerical performance comparisons with those research systems.
+systems \cite{urflow2010,lweb2019}, it expresses arbitrary application
+propositions without claiming complete noninterference.
 
-The generator can remain outside the verification trust boundary: the
-administrator supplies policy, an author constructs code and proof, and the
-service checks the resulting obligation. Dependable proof generation and
-reusable libraries remain research tasks. An omitted policy remains omitted
-even when every program satisfies the installed laws.
+The generator stays outside the verification trust boundary: the administrator
+supplies policy, an author or LLM constructs code and proof, and the service
+checks the resulting obligation. This makes JayDB2 a natural consumer for the
+proof-generation tools reviewed in Section~\ref{sec:background}, although
+dependable generation of database certificates remains untested. An omitted
+policy remains omitted even when every program satisfies the installed laws.
 
 The security claim concerns modeled observations and publication. It excludes
 physical timing channels and does not cover every response-based inference.
-In particular, shared notes have a single aggregate capacity limit. Chosen
-note lengths and \code{limit} responses can reveal the combined encoded size of
-other users' data, and one user can exhaust shared capacity. The current
-applications therefore do not provide full confidentiality or availability.
-The service is serial, with fixed schema and laws. Concurrent isolation,
-schema evolution and re-certification after policy changes are outside this
-evaluation.
+In particular, shared notes have a single aggregate capacity limit: chosen note
+lengths and \code{limit} responses can reveal the combined size of other users'
+data, and one user can exhaust shared capacity. The service is serial, with
+fixed schema and laws; concurrent isolation, schema evolution and
+re-certification after policy changes are outside this evaluation.
 
 Native correctness depends on checker soundness, artifact binding,
 compiler/runtime behavior and physical host duties. Storage durability,
-recovery validity and operating-system failures are not proved. Voucher retry
+recovery validity and operating-system failures are not proved; voucher retry
 tests demonstrate selected loss/restart scenarios rather than a general crash
-theorem. A model such as FSCQ's Crash Hoare Logic suggests a future path for
-that work \cite{fscq2015}. Logical termination also leaves physical resource
-limits and wall-clock completion unproved.
+theorem, and Crash Hoare Logic suggests a path for that work \cite{fscq2015}.
+Logical termination also leaves physical resource limits and wall-clock
+completion unproved.
 
 RQ3 identifies an expensive ordinary path, a reusable checked path and a
-whole-state scaling bottleneck and, for opt-in CUDA, a largest-workload-only
-benefit with fixed startup cost (E6). One machine, serial requests, correlated calls,
-different compilation profiles and timing boundaries limit generalization.
-E5 has one session; verification wall times have one run each. Slow sessions
-remain in the retained evidence. Local program/proof line counts describe
-source size, not developer effort. LLM-assisted authoring has no controlled
-productivity or unseen-task success study. These limits guide the next
-experiments rather than removing the value of the existing checked artifact.
+whole-state scaling bottleneck. One machine, serial requests, correlated calls,
+different compilation profiles and timing boundaries limit generalization; E5
+has one session and verification wall times one run each. Line counts describe
+source size, not developer effort, and LLM-assisted authoring has no controlled
+productivity or unseen-task study.
 
-E6 is a volatile compute comparison: JayDB2 RAM, PostgreSQL TEMP tables
-without table WAL, SQLite \code{:memory:}. SQL has no equivalent proof admission
-or authentication/RLS. PL/pgSQL is interpreted; recursive CTE is not designed
-for numerical computing. Preparation is excluded from calls but reported;
-a fresh GPU process/device imposes substantial fixed startup. One session,
-\SimulationRepeats{} samples, an unfixed desktop GPU and different execution
-strategies limit fairness/generalization. Timeouts supply no extrapolated result.
-CUDA libraries/hardware enlarge T2; artifact checks do not defeat same-UID races.
-No persistent GPU worker, cross-instance scheduling, resource quota or physical
-time bound is provided.
+E6 is deliberately narrow. Each request starts a fresh worker and, for CUDA, a
+fresh GPU context, so a persistent worker would change the small-call results.
+The SQL versions use interpreted PL/pgSQL and a recursive query, which are not
+numerical tools, and have no proof admission or authentication. With one
+session, \SimulationRepeats{} samples per cell and unfixed GPU clocks, E6
+supports coarse conclusions only, and timeouts are not extrapolated.
 
 \section{Conclusions and Future Work}
 \label{sec:conclusion}
@@ -753,22 +744,23 @@ JayDB2 is a working experimental database that requires client programs to
 carry proofs of administrator-defined rules. It connects accepted certificates
 to the actual program, its intermediate observations and its published result.
 Certified availability, voucher, shared-notes and simulation applications
-demonstrate access, consistency and termination obligations with targeted failing controls.
-LLM-assisted development produced code and proofs under the author's direction.
+demonstrate access, consistency and termination obligations with targeted
+failing controls. LLM-assisted development produced code and proofs under the
+author's direction.
 
 Preparation reduces a read from \num{\OrdinaryReadMedianSeconds}~s to
 \num{\PreparedReadVolatileMedianMs}~ms in the volatile profile. Point operations
-remain slower than SQL and whole-state handling limits scale. E6 shows GPU
-benefit over CPU-16 only at the largest workload, with substantial startup and
-expanded T2; it does not establish general database acceleration.
+remain slower than SQL and whole-state handling limits scale. The optional GPU
+backend preserves the proof obligations and helps only at the largest
+simulated workload; it does not establish general database acceleration.
 
 Future work should evaluate LLM-generated programs and certificates on unseen
 requests, recording checking outcomes, correction effort and reusable-proof
 coverage. System work should reduce whole-state processing, isolate capacity
-between users, strengthen host and recovery guarantees, and support changes to
-policies. Persistent GPU workers and broader controlled-device evaluation
-are further steps. JayDB2 offers a concrete basis for investigating independently
-verified database programs in AI-assisted applications.
+between users, strengthen host and recovery guarantees, support policy changes
+and keep GPU workers alive between requests. JayDB2 offers a concrete basis for
+investigating independently verified database programs in AI-assisted
+applications.
 
 \section*{Use of Artificial Intelligence}
 The author directed the work and used two AI assistants. Claude Opus 5.5

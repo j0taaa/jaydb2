@@ -1,8 +1,8 @@
 # TCC article and defense presentation
 
 The main article is the English SBC manuscript in `main.tex`. The Portuguese
-defense is now an editable **16:9 HTML slide deck**, with 23 main slides and four
-slides for questions. The current article has **16 pages including 31 references**.
+defense is now an editable **16:9 HTML slide deck**, with 23 main slides and five
+slides for questions. The current article has **16 pages including 34 references**.
 Both explain JayDB2 through concrete operations before introducing the formal
 machinery and discuss LLM-assisted construction using the author's experience.
 
@@ -40,14 +40,14 @@ Deliverables are ignored build products:
 
 - `.build/tcc/output/jaydb2-tcc.pdf`
 - `.build/tcc/output/jaydb2-defense.html` (self-contained, works offline)
-- `.build/tcc/output/jaydb2-defense.pdf` (includes all four question slides)
+- `.build/tcc/output/jaydb2-defense.pdf` (includes all five question slides)
 - `.build/tcc/output/speaker-notes.html`
 - `.build/tcc/output/defense-slides.json` (slide titles, IDs, timing and appendix status)
 
 Use arrow keys or Space to navigate, N for notes, F for fullscreen and O for the
 slide index. Reveals advance before the next slide. The presentation stops at
 the final main slide; question slides remain accessible through the index.
-Printing includes every slide. The planned main-slide allocation is **17min50s**. The generated
+Printing includes every slide. The planned main-slide allocation is **16min35s**. The generated
 notes report the current speaking-word count.
 The timing data leave room within the 20-minute limit, subject to rehearsal.
 
@@ -77,16 +77,22 @@ The author remains responsible for the work; advisor review and rehearsal remain
 part of preparation for submission.
 
 
-The English abstract and faithful Portuguese Resumo each have ten rendered lines.
-RQ3 covers preparation and opt-in CUDA. Section 3 defines bang calls, corpus,
-cubin and NVRTC and states the enlarged T2; Section 4 reports E6. The simulation
-certificate covers own-row scenario reads, own-row result writes and termination,
-with foreign-read/write controls in both checkers. CUDA adds no validity axiom.
-Libraries are recorded, not pinned; CPU/GPU tests provide evidence, not proof.
-The article and deck report fresh-process startup, largest-size-only benefit
-against CPU-16 and volatile SQL/fairness limitations. Slides 13 and 19 cover GPU
-and E6; their full speaker notes retain the detailed admission and timing limits.
-All final E1–E6 raw JSON and focused GPU inputs remain the retained measurements.
+The English abstract and its faithful Portuguese Resumo follow the order
+problem, approach, key results and main limitation. Related work includes LLM
+proof and verified-code generation (Baldur, Dafny synthesis, AutoVerus), with
+metadata checked against Crossref. RQ3 covers preparation and opt-in CUDA.
+Section 3 explains the GPU path and the enlarged T2 for a general CS reader;
+Section 4 reports E6 and frames its purpose: the proof obligations carry over to
+CUDA, and the results show where offloading starts to pay, not that JayDB2 is
+faster than SQL. The simulation certificate covers own-row scenario reads,
+own-row result writes and termination, with foreign-read/write controls in both
+checkers. CPU/GPU tests provide evidence, not proof.
+
+In the deck, the applications slide lists all four applications. The GPU slide
+(18) comes after the E1–E5 results and introduces the simulation, and the E6
+slide (19) shows a logarithmic chart with three takeaways. The full E6 table and
+its method details are question slide A4. All final E1–E6 raw JSON and focused
+GPU inputs remain the retained measurements.
 
 ## Reader assets and visual verification
 

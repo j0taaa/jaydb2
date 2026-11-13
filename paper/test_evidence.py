@@ -365,16 +365,16 @@ class EvidenceTests(unittest.TestCase):
                         self.assertEqual(cell['median_ms'],statistics.median(raw['samples_ms']))
                     else:self.assertNotIn('median_ms',cell)
             metadata=json.loads((root/'output/defense-slides.json').read_text())
-            self.assertEqual(len(metadata),27)
+            self.assertEqual(len(metadata),28)
             main=[s for s in metadata if not s['backup']]
             self.assertEqual(len(main),23)
             self.assertLessEqual(sum(s['seconds'] for s in main),18*60)
             self.assertEqual(len({s['id'] for s in metadata}),len(metadata))
             notes=(root/'output/speaker-notes.html').read_text()
-            self.assertIn('23 slides principais, 4 slides para perguntas',notes)
+            self.assertIn('23 slides principais, 5 slides para perguntas',notes)
             self.assertIn('Apêndice 1',notes)
-            self.assertIn('Apêndice 4',notes)
-            self.assertIn('17min50s',notes)
+            self.assertIn('Apêndice 5',notes)
+            self.assertIn('16min35s',notes)
             self.assertNotIn('NaN',notes)
             self.assertNotIn('undefined',notes)
             self.assertIn('window.JAYDB2_SIMULATION=',html.read_text())
@@ -392,10 +392,15 @@ process.stdout.write(JSON.stringify(context.window.JAYDB2_SLIDES));"""
             slides=json.loads(subprocess.check_output(['node','-e',script,str(payload),
                 str(builder.DECK/'content.js')],text=True))
             simulation=next(s for s in slides if s['id']=='simulacao')
-            self.assertIn('98.765,432',simulation['html'])
             self.assertIn('123.456,79',simulation['notes'])
             self.assertIn('limite 10 s',simulation['html'])
-            self.assertIn('não executado',simulation['html'])
+            # The main slide charts the rows; the full table is a question slide.
+            self.assertIn('98.765,432 ms',simulation['html'])
+            table=next(s for s in slides if s['id']=='b-simulacao')
+            self.assertTrue(table['backup'])
+            self.assertIn('98.765,432',table['html'])
+            self.assertIn('limite 10 s',table['html'])
+            self.assertIn('não executado',table['html'])
             self.assertNotIn('NaN',json.dumps(slides))
 
     def test_compute_mixed_fingerprints(self):
