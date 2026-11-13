@@ -1,142 +1,111 @@
-# TCC manuscript and defense slides
+# TCC article and defense presentation
 
-English SBC conference article by **Gabriel Jota Lizardo, PUC Minas**, with a
-Portuguese Beamer defense and Portuguese speaker notes. The deck retains its
-existing theme and has **22 main frames and seven appendix frames**, including
-a final AI-use disclosure. The article has **16 pages including 32 references**;
-it contains no appendix. Change text directly in `main.tex` and `slides.tex`.
+The main article is the English SBC manuscript in `main.tex`. The Portuguese
+defense is now an editable **16:9 HTML slide deck**, with 23 main slides and four
+slides for questions. The current article has **16 pages including 31 references**.
+Both explain JayDB2 through concrete operations before introducing the formal
+machinery and discuss LLM-assisted construction using the author's experience.
 
-## SBC template and build
+Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotalizardo.chatgpt.site).
 
-The unmodified `sbc-template.sty` (December 2017 update) and `sbc.bst` were
-obtained directly from the Sociedade Brasileira de Computação, without a mirror:
+## Edit and build
 
-- Official archive: <https://www.sbc.org.br/wp-content/uploads/2024/07/modelosparapublicaodeartigos.zip>
-- Archive members: `modelosparapublicaodeartigos/Template_SBC/template-latex/sbc-template.sty`
-  and `modelosparapublicaodeartigos/Template_SBC/template-latex/sbc.bst`.
-- Official SBC-authored Overleaf example: <https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr>
-
-The article uses `\documentclass[12pt]{article}` and `\usepackage{sbc-template}`,
-the template's title/author/address and abstract/resumo environments, Times font,
-A4 page, 3 cm side margins, 3.5 cm top and 2.5 cm bottom margins, template paragraph
-spacing and captions. There are no manuscript geometry/font/indent overrides.
-Article citations use the template's author/year labels from BibTeX with
-`sbc.bst`; `references.bib` preserves all 21 original references and adds eight
-official tool references, two NVIDIA CUDA/NVRTC references and NumPy. URLs/DOIs
-are in `note`/`howpublished` because the original
-SBC bibliography style does not print dedicated `url`/`doi` fields. The article
-uses `url` without `hyperref`, avoiding the official style's old hyperlink hook;
-the vendored style remains byte-identical to SBC's archive.
+- Article: `main.tex` and `references.bib`.
+- Slides, speaking script, timing and citations: `presentation/content.js`.
+- Slide design: `presentation/deck.css`. The slide canvas is always 1600 × 900.
+- Navigation, step reveals, notes and fullscreen: `presentation/player.js`.
 
 ```sh
 make -C paper
-PYTHONPATH="$JAYDB2_PY_DEPS" python3 -B -m unittest discover -s paper -p test_evidence.py -v
-PYTHONPATH="$JAYDB2_PY_DEPS" python3 -m pytest paper/test_evidence.py
-pdfinfo .build/tcc/output/jaydb2-tcc.pdf
-pdfinfo .build/tcc/output/jaydb2-defense.pdf
+python3 -B -m unittest discover -s paper -p test_evidence.py -v
+python3 -m pytest -q paper/test_evidence.py
 ```
 
-Set `JAYDB2_PY_DEPS` to the package directory for a Python environment providing
-pytest, NumPy and matplotlib (or leave it empty when those packages are already
-available to `python3`). The retained GPU benchmark records NumPy 2.5.4.
+The build validates the retained experiments and generates the quantitative
+macros, tables and plot series. The article and presentation read those outputs;
+building the documents does not rerun benchmarks. PDF generation requires
+pdfLaTeX/BibTeX, standard SBC/Times, Babel, AMS, microtype, booktabs, array, float,
+url, TikZ and PGFPlots packages. HTML and speaker-note generation use Python 3
+and Node.js. Evidence validation requires NumPy (the retained oracle version is
+2.5.4); pytest is needed for the additional test runner. Set `JAYDB2_PY_DEPS`
+to their package directory and export `PYTHONPATH="$JAYDB2_PY_DEPS"` if needed.
+The slide PDF uses a dedicated headless Chrome/Chromium profile.
+Set `JAYDB2_CHROME_BIN` to its executable if it is not on PATH.
 
-Requires Python 3 with NumPy (independent GPU/E6 oracle validation), pdfLaTeX and BibTeX, plus standard Times/PSNFSS, fontenc/inputenc,
-Babel (English and Brazilian Portuguese), AMS, caption, titlesec, etoolbox,
-microtype, booktabs, array, url, Beamer, Latin Modern, Helvetica, hyperref (slides),
-TikZ/PGF and PGFPlots packages. Verified with TeX Live 2026. The article build is
-**pdflatex → bibtex → pdflatex → pdflatex**; the slides receive two pdfLaTeX passes.
-BibTeX runs inside the output directory, with the paper directory on its
-bibliography/style search paths. `make clean` also removes BibTeX intermediates.
+```sh
+make -C paper slides-html  # HTML and notes without Chrome PDF export
+```
 
-All build products are ignored under `.build/tcc/`; the deliverables are:
+Deliverables are ignored build products:
 
 - `.build/tcc/output/jaydb2-tcc.pdf`
-- `.build/tcc/output/jaydb2-defense.pdf`
+- `.build/tcc/output/jaydb2-defense.html` (self-contained, works offline)
+- `.build/tcc/output/jaydb2-defense.pdf` (includes all four question slides)
+- `.build/tcc/output/speaker-notes.html`
+- `.build/tcc/output/defense-slides.json` (slide titles, IDs, timing and appendix status)
 
-The evidence builder validates the retained experiments and generates all measured
-values, table fragments and plot data. No measurement is copied into the article
-or slides source. The current refresh reruns E1–E6 and the focused GPU benchmark on one frozen
-engine under the fixed-clock protocol below;
-the builder regenerates the derived evidence reports from the retained JSON.
+Use arrow keys or Space to navigate, N for notes, F for fullscreen and O for the
+slide index. Reveals advance before the next slide. The presentation stops at
+the final main slide; question slides remain accessible through the index.
+Printing includes every slide. The planned main-slide allocation is **17min50s**;
+The generated notes report the current speaking-word count.
+The timing data leave room within the 20-minute limit, subject to rehearsal.
 
-## Course-regulation compliance
+## SBC template and course regulations
 
-For PUC Minas Ciência da Computação TCC II, the manuscript follows Art. 3's SBC
-LaTeX requirement and Art. 4's **10–16 pages**, counting references. Its outline
-maps to the required roles in this order:
+The vendored `sbc-template.sty` and `sbc.bst` remain unchanged. They were obtained
+from the official [SBC archive](https://www.sbc.org.br/wp-content/uploads/2024/07/modelosparapublicaodeartigos.zip),
+using its `Template_SBC/template-latex` files. The
+[official Overleaf example](https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr)
+also documents the format.
 
-| Regulation item | Article location |
-|---|---|
-| I — Introduction | Section 1: context, motivation/justification, problem, general objective paragraph, specific-objective bullets, research questions, synthesis/results and roadmap |
-| II — Theoretical background and literature review | Section 2: PCC, verified databases, policy systems, SQL mechanisms and trust boundaries |
-| III — Methodology | Section 3: construction steps, cited/versioned tools, model, architecture diagram, executable guarantees, trusted base, applications and evaluation protocol |
-| IV — Results with analysis | Section 4: E1–E6 latency, reuse, SQL comparison, verification, state scaling and certified CPU/CUDA simulation, with generated tables/PGFPlots; Section 5 discusses limitations |
-| V — Conclusions and future work | Section 6: contributions, main results, explicit comparison with literature and future directions |
-| VI — References | 32 BibTeX references using `sbc.bst` |
+The article retains the template's 12-point Times font, A4 geometry, author and
+affiliation block, English abstract and Portuguese resumo, paragraph layout and
+captions. It uses author/year BibTeX references with `sbc.bst`, plus `url` without
+`hyperref`. Four LaTeX passes with BibTeX after the first settle citations and floats.
+The first three explanatory diagrams and the results figures/tables stay with
+their discussion. There are no article appendices.
 
-Both the English abstract and faithful Portuguese **Resumo** appear on the first
-page, each with ten rendered lines, within SBC's guidance. The unnumbered
-**Use of Artificial Intelligence** note before the references
-states tools/models/vendors, purposes, contribution to all article sections and
-slides, author responsibility and executed-data provenance (Arts. 6–9). Its source
-comment `% AUTHOR: review and adjust this declaration` marks it for author review.
-The advisor, Gabriel Barbosa da Fonseca, appears in the SBC author block and on
-the title slide. The affiliation is ICEI, PUC Minas, Belo Horizonte–MG–Brasil.
-No email, committee member or defense date is invented.
+The supplied PUC Minas TCC regulations require SBC LaTeX, 10–16 article pages,
+at least ten references and a defense of at most 20 minutes. The article includes
+introduction with motivation/objectives, background and related work, methodology
+with diagrams and tools, analyzed results, discussion, conclusions/future work,
+and references. Its AI-use declaration identifies tools, uses and contributions,
+including the author's statement that all JayDB2-related tests were LLM-authored.
+The presentation also contains that declaration and a focused question appendix.
+The author remains responsible for the work; advisor review and rehearsal remain
+part of preparation for submission.
 
-To fit the page limit, the article condenses background, model, controller,
-application and repeated result prose; the full theorem inventory and numbered
-T3 duties remain in `proof/README.md`. Guarantees, the formal certificate/Core
-statements, all required sections and limitations remain explicit. The article
-has no appendix. GPU mode keeps the same proof obligations on the sealed Book;
-T2 additionally trusts Bend's CUDA runtime path, NVRTC, driver, managed memory
-and GPU hardware. CUDA libraries are recorded, not pinned. Differential tests
-are evidence, not proof. E1–E5 remain GPU-disabled. E6 is a volatile simulation
-comparison with separately reported admission, explicit SQL timeouts and no
-equivalent SQL proof/authentication claim.
 
-For Art. 18, the **22 main slides** have approximately **2,267 spoken words**, or
-**17.4 minutes at 130 words/minute**, leaving room for transitions within the
-20-minute maximum. Count only notes before `\appendix`, stop each note at
-**Se perguntarem:**, and exclude trailing `Fonte:`/`Fontes:` cues. Strip formatting
-commands; each numerical macro counts as one spoken token. The seven appendix
-frames are untimed. Rehearsal remains necessary because numerical pronunciation
-and delivery vary. The main defense adds GPU admission/trust and E6 comparison;
-the AI appendix names GPU/simulation implementation, orchestration and independent reviews.
+The English abstract and faithful Portuguese Resumo each have ten rendered lines.
+RQ3 covers preparation and opt-in CUDA. Section 3 defines bang calls, corpus,
+cubin and NVRTC and states the enlarged T2; Section 4 reports E6. The simulation
+certificate covers own-row scenario reads, own-row result writes and termination,
+with foreign-read/write controls in both checkers. CUDA adds no validity axiom.
+Libraries are recorded, not pinned; CPU/GPU tests provide evidence, not proof.
+The article and deck report fresh-process startup, largest-size-only benefit
+against CPU-16 and volatile SQL/fairness limitations. Slides 13 and 19 cover GPU
+and E6; their full speaker notes retain the detailed admission and timing limits.
+All final E1–E6 raw JSON and focused GPU inputs remain the retained measurements.
 
-The count is reproducible from the source (run at repository root):
+## Reader assets and visual verification
 
 ```sh
-python3 -B - <<'PYCODE'
-from pathlib import Path
-import re
-main = Path('paper/slides.tex').read_text().split('\\appendix', 1)[0]
-notes = re.findall(r'\\note\{(.*?)\}\s*\\end\{frame\}', main, re.S)
-words = 0
-for note in notes:
-    note = re.split(r'Se perguntarem:|Fontes?:', note)[0]
-    note = re.sub(r'\\(?:par|textbf|texttt|numpt|latpt|intpt|ratiopt)\b', ' ', note)
-    note = re.sub(r'\\([A-Za-z]+)', r' \1 ', note)
-    words += len(re.sub(r'[{}~$\\]', ' ', note).split())
-print(len(notes), words, round(words / 130, 1))
-PYCODE
+make -C paper reader-assets
+# Or update an existing reader checkout after make -C paper:
+python3 -B paper/build_reader_assets.py --directory /absolute/path/to/site/dist
 ```
 
-Before submission, the advisor reviews the article, and the author rehearses the
-defense. No committee member or defense date is assumed.
+Reader export needs Poppler (`pdftoppm`, `pdftotext`) and Pillow. It supplies the
+current PDFs, faithful WebP page renders, extracted-text alternatives, standalone
+interactive slides, notes and `assets/documents.json`. It removes surplus old
+page renders when the page/slide count decreases. Hosting and publication remain
+in the Site's source workflow.
 
-For visual QA, render every article page and slide at 60 dpi (scratch files stay
-ignored in `paper/.qa/`):
-
-```sh
-mkdir -p paper/.qa/article paper/.qa/slides
-pdftoppm -png -r 60 .build/tcc/output/jaydb2-tcc.pdf paper/.qa/article/page
-pdftoppm -png -r 60 .build/tcc/output/jaydb2-defense.pdf paper/.qa/slides/slide
-```
-
-Inspect every PNG for clipping, captions, table/plot fit and typography. Final
-`main.log` and `slides.log` must contain no undefined references/citations/macros
-or overfull boxes. Count references with `rg -c '^\\bibitem' .build/tcc/main.bbl`.
+Render every article page and PDF slide for visual review. `main.log` must have
+no undefined references or overfull boxes. Check the HTML deck for JavaScript
+errors, text fit, keyboard navigation, step reveals, notes, 16:9 scaling and print
+output. Count references with `rg -c '^\\bibitem' .build/tcc/main.bbl`.
 
 ## Reproducing the fresh evidence
 
@@ -144,14 +113,15 @@ Each benchmark JSON records its exact source commit and executable/source
 fingerprints. E1–E6 and the focused GPU benchmark (including verification commands) must share the same
 engine source and executable fingerprints; the historical direct-seed attempt
 is retained separately. The harness uses the real serial Rust host, official Bend 2.0.39 and
-BendTT, literal emitted C, Clang 19, and one native worker thread. The final protocol uses independent sessions at the nominal base clock with
+BendTT, literal emitted C and Clang 19. E1–E5 keep GPU disabled and use one native
+worker thread; E6 additionally uses CPU-16 and opt-in CUDA. The final protocol uses independent sessions at the nominal base clock with
 the performance governor and turbo disabled. E5 uses one session with
 log-spaced populations and a first-key variant. Historical frequency-scaling
 measurements are excluded from the final latency evaluation. No mock engine or alternate verifier
 is measured. All output values are checked. Initialization and warmups are
 outside the operation samples. JSON files include raw nanoseconds (E1–E5) or milliseconds (GPU/E6), outputs,
 CPU/kernel/toolchain/commit metadata and executable/source fingerprints.
-JayDB2 round trips start with sending a pre-encoded frame and end after the
+E1–E5 JayDB2 round trips start with sending a pre-encoded frame and end after the
 complete framed response is read; decoding/checking are outside that interval.
 SQL intervals surround `execute(...).fetchall()` and include driver
 encoding/decoding. Result checks are outside every operation interval.
@@ -348,6 +318,38 @@ not complete application correctness-proof sizes. `detailed_sizes` lists every
 included file and its count. Counts of `law` declarations, proof definitions
 and named theorem witnesses remain distinct syntactic facts.
 
+Statistics use inclusive quartiles, without outlier removal. Tables report
+pooled median [Q1,Q3] and a separate min–max of the three session medians in
+`session-spread-table.tex` (JayDB2 latency conditions) and `paper/evidence/final-headlines.md` (E5 has one
+session, so its session range is degenerate). E2 registration instead uses
+min/median/max over nine observations. Preparation break-even remains
+`ceil(median_registration / (median_ordinary - median_prepared))`, matching
+volatile programs and excluding startup; it is an amortization model over
+medians. Active throughput uses 30 consecutive blocks of 30 measured calls
+(ten per session), excludes maintenance/gaps, and reports pooled quartiles.
+Closed-loop throughput records three independent 300-call batch rates,
+including validation gaps and voucher retirements; its macro is their median.
+No pooling crosses a session boundary when forming throughput blocks.
+
+Set `JAYDB_BENCH_TIMING=1` only for the opt-in diagnostic phase hooks. The
+ordinary and prepared experiments enable it; comparison and scaling do not.
+Phase records include staging, bootstrap/preflight, parse/audit, primary check,
+binding audit/seal, official BendTT translation/check, C emission, C compilation,
+worker execution, cleanup and publication. `admission_total` contains the Node
+subphases and must not be added to them. BendTT and C generation/build now
+overlap: their diagnostic durations must not be summed as exclusive wall time.
+The ordinary `OtherSeconds` macros subtract admission wall time and worker
+time from the round trip; they include the remaining host/communication work. The oracle-soundness law's share is
+included in whole-Book checking: the pinned APIs expose no per-law timer.
+Successful C/native receipts are withheld until both official checkers accept
+the same sealed Book and seals/artifact hashes verify. `stage.mjs` checks those
+hashes before releasing a path. T1 relies on this release barrier independently
+of cleanup. This overlap applies to ordinary admission and preparation.
+`integration-validation.json` was removed: it was a validation receipt, not a
+measurement input consumed by `evidence.py`. Measurement JSON is unchanged.
+Timing hooks never change protocol bytes or admission decisions. The existing
+service timer also writes raw sidecars under the ignored build directory.
+
 E6 (`simulation.json`) compares the certified application on CPU-1, CPU-16 and
 CUDA with PostgreSQL PL/pgSQL and SQLite recursive CTE, without Python UDFs.
 Runtime arguments vary paths/steps while all engines store identical Alice/Bob
@@ -411,13 +413,17 @@ service timer also writes raw sidecars under the ignored build directory.
 fragments (`ordinary-table`, `prepared-table`, `phase-table`,
 `database-comparison-table`, `registration-phase-table`, `registration-table`,
 `session-spread-table`, `throughput-table`, `verification-table`, `size-table`, `scaling-table`),
-`ordinary-phase-summary.tex`, named coordinate macros in `scaling-coordinates.tex`,
+`ordinary-phase-summary.tex`, `simulation-table-{en,pt}.tex`, `simulation-ranges.tex`,
+`simulation-deck.json`, named coordinate macros in `scaling-coordinates.tex`,
 the versioned `final-summary.json`, `final-headlines.md` and `final-report.md`
 under `paper/evidence/`, and four `scaling-{volatile,persistent}_{read,update}.dat` files with
 `rows state_bytes median_ms lower_ms upper_ms` columns for pgfplots. The last two
 columns are distances from the median to Q1 and Q3; coordinate macros use decimal
 kB on the horizontal axis and ms on the vertical axis. Include `numbers.tex` once.
-No macro name contains digits. Integers use `{,}` grouping for English article text and math. `numbers.tex` detects the Beamer class and supplies raw integer tokens there, preserving the slides' existing PGF number helpers. Use grouped integer macros directly in English prose/math; numeric PGF parsers should receive raw numeric values; latency table columns use two decimals, or three for E3 and session medians to retain SQL read resolution, in one unit per latency table. Quartiles appear in table fragments and sample counts in macros/captions; no measurement is copied manually into the manuscript.
+No macro name contains digits. Integers use `{,}` grouping for English article text and math. `numbers.tex` retains a Beamer-compatible raw-integer branch. The HTML builder reads both branches and normalizes grouped integers before creating chart data.
+PGF number printers use `\mathord{,}` to avoid punctuation spacing in English math.
+`simulation-deck.json` supplies E6 cells, statuses and raw derived medians/ranges
+to the HTML deck; measured values are never copied into its source or notes. Use grouped integer macros directly in English prose/math; numeric PGF parsers should receive raw numeric values; latency table columns use two decimals, or three for E3 and session medians to retain SQL read resolution, in one unit per latency table. Quartiles appear in table fragments and sample counts in macros/captions. The figures and summary tables read generated evidence. Narrative summaries describe the retained evaluation and should be reviewed when its protocol or findings change.
 
 | Macro names | Meaning | Unit |
 |---|---|---|
@@ -479,8 +485,8 @@ The integration also derives these macros from the same samples:
 | `\PreparedIndexedPersistentSessionMinMs`, `\PreparedIndexedPersistentSessionMaxMs` | Min/max of durable indexed session medians, including the slow session | ms |
 | `\ScalingVolatileReadSlopeUsPerRow` | Least-squares slope of volatile last-key read medians against row count | microseconds/row |
 
-The article's session table selects E1/E2 latencies and JayDB2 E3 latencies;
-the retained final report includes every engine, throughput and E5 range.
+The article presents E1/E2 reuse results, point-operation SQL comparisons, selected scaling curves and E6 CPU/CUDA simulation;
+the retained final report includes every engine, quartile, throughput and session range.
 The fitted slope summarizes only the measured row shape and populations.
 
 The article and slides distinguish the executable theorems from the

@@ -506,6 +506,21 @@ def derive_compute(data):
             return s if locale=='en' else s.replace('{,}',r'\,').replace('.',',')
         return number(statistics.median(values))+(r' ['+number(min(values))+', '+number(max(values))+']' if ranges else '')
     backends=('cpu-1','cpu-16','cuda','postgresql','sqlite')
+    # One derived data contract supplies the HTML table and its speaker notes.
+    deck_rows=[]
+    for size in sim['sizes']:
+        cells=[]
+        for backend in backends:
+            r=next(r for r in sim['records'] if r['backend']==backend and
+                r['depth']==size['depth'] and r['steps']==size['steps'])
+            cell=dict(backend=backend,status=r['status'])
+            if r['status']=='measured':
+                cell.update(median_ms=statistics.median(r['samples_ms']),
+                    min_ms=min(r['samples_ms']),max_ms=max(r['samples_ms']))
+            elif r['status']=='timeout':cell['timeout_s']=r['timeout_s']
+            cells.append(cell)
+        deck_rows.append(dict(paths=size['paths'],steps=size['steps'],cells=cells))
+    (OUT/'simulation-deck.json').write_text(json.dumps(deck_rows,indent=2)+'\n')
     for locale in ('en','pt'):
         rows=[['Paths $\\times$ steps' if locale=='en' else 'Caminhos $\\times$ passos','CPU-1','CPU-16','CUDA','PostgreSQL','SQLite']]
         for size in sim['sizes']:

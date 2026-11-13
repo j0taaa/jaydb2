@@ -1,6 +1,9 @@
 """Checks on the fresh evidence and controls for plausible data corruption."""
 import copy
 import importlib.util
+import json
+import subprocess
+from unittest import mock
 from pathlib import Path
 import re
 import statistics
@@ -334,6 +337,66 @@ class EvidenceTests(unittest.TestCase):
                         self.assertAlmostEqual(median-lower,min(row['samples_ms']),places=5)
                         self.assertAlmostEqual(median+upper,max(row['samples_ms']),places=5)
         finally:evidence.OUT=previous
+
+    def test_html_deck_uses_generated_compute_evidence(self):
+        """Exercise the HTML/notes pipeline and catch stale values or invented timeouts."""
+        builder_spec=importlib.util.spec_from_file_location('presentation_builder',
+            Path(__file__).with_name('build_presentation.py'))
+        builder=importlib.util.module_from_spec(builder_spec)
+        builder_spec.loader.exec_module(builder)
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            with mock.patch.object(evidence,'OUT',root):
+                macros=evidence.derive(self.data)
+            with mock.patch.multiple(builder,EVIDENCE=root,OUT=root/'output'):
+                html=builder.build_html()
+                parsed=builder.read_macros()
+            self.assertEqual(parsed['StateLimitBytes'],macros['StateLimitBytes'][0])
+            self.assertAlmostEqual(parsed['SimulationLargeCudaMs'],
+                macros['SimulationLargeCudaMs'][0],places=3)
+            rows=json.loads((root/'simulation-deck.json').read_text())
+            for row in rows:
+                for cell in row['cells']:
+                    raw=next(r for r in self.data['simulation']['records']
+                        if r['paths']==row['paths'] and r['steps']==row['steps']
+                        and r['backend']==cell['backend'])
+                    self.assertEqual(cell['status'],raw['status'])
+                    if cell['status']=='measured':
+                        self.assertEqual(cell['median_ms'],statistics.median(raw['samples_ms']))
+                    else:self.assertNotIn('median_ms',cell)
+            metadata=json.loads((root/'output/defense-slides.json').read_text())
+            self.assertEqual(len(metadata),27)
+            main=[s for s in metadata if not s['backup']]
+            self.assertEqual(len(main),23)
+            self.assertLessEqual(sum(s['seconds'] for s in main),18*60)
+            self.assertEqual(len({s['id'] for s in metadata}),len(metadata))
+            notes=(root/'output/speaker-notes.html').read_text()
+            self.assertIn('23 slides principais, 4 slides para perguntas',notes)
+            self.assertIn('Apêndice 1',notes)
+            self.assertIn('Apêndice 4',notes)
+            self.assertIn('17min50s',notes)
+            self.assertNotIn('NaN',notes)
+            self.assertNotIn('undefined',notes)
+            self.assertIn('window.JAYDB2_SIMULATION=',html.read_text())
+            # Inject a sentinel through the generated-data contract, not the content.
+            # Both the displayed table and the notes must respond to evidence changes.
+            parsed['SimulationLargeCudaMs']=123456.789
+            rows[0]['cells'][0]['median_ms']=98765.432
+            payload=root/'sentinel.json'
+            payload.write_text(json.dumps(dict(JAYDB2_EVIDENCE=parsed,
+                JAYDB2_SIMULATION=rows,JAYDB2_SCALING=[])))
+            script="""const fs=require('node:fs'),vm=require('node:vm');
+const context={window:JSON.parse(fs.readFileSync(process.argv[1],'utf8'))};
+vm.runInNewContext(fs.readFileSync(process.argv[2],'utf8'),context);
+process.stdout.write(JSON.stringify(context.window.JAYDB2_SLIDES));"""
+            slides=json.loads(subprocess.check_output(['node','-e',script,str(payload),
+                str(builder.DECK/'content.js')],text=True))
+            simulation=next(s for s in slides if s['id']=='simulacao')
+            self.assertIn('98.765,432',simulation['html'])
+            self.assertIn('123.456,79',simulation['notes'])
+            self.assertIn('limite 10 s',simulation['html'])
+            self.assertIn('não executado',simulation['html'])
+            self.assertNotIn('NaN',json.dumps(slides))
 
     def test_compute_mixed_fingerprints(self):
         for name in ('gpu-programs','simulation'):

@@ -116,8 +116,15 @@ alone does not establish proof or durability correctness. The older individual
 `make verify-contract`, `make verify`, `make test` and application targets remain
 available.
 
-The English [TCC article and editable defense slides](paper/README.md) use the project's
-verified evidence and identify its trusted boundaries.
+The English [TCC article and 16:9 HTML defense slides](paper/README.md) explain
+the project through concrete examples and diagrams, use the retained evidence,
+and identify its trusted boundaries. Read both on the public
+[TCC site](https://jaydb2-tcc-reading-room.gabrieljotalizardo.chatgpt.site).
+The paper and HTML deck include the certified simulation and E6 comparison of
+JayDB2 CPU-1/CPU-16/CUDA, PostgreSQL PL/pgSQL and SQLite recursive CTE.
+[Evidence and reproduction](paper/README.md) document separate preparation,
+timeouts, volatile storage, fresh GPU startup and the expanded T2 assumptions;
+building the documents validates retained evidence without rerunning benchmarks.
 
 ## Guarantees and assumptions
 
