@@ -65,11 +65,6 @@
 #slide-evidencia .evidence-table th{font-size:25px;padding-bottom:24px}
 #slide-evidencia .evidence-table td{padding:36px 0}
 #slide-evidencia .spaced{margin-top:42px;font-size:28px}
-#slide-limites .method-list,#slide-futuro .method-list{height:510px;margin-top:50px;align-content:space-between;gap:35px 20px}
-#slide-limites .method-list strong,#slide-futuro .method-list strong{font-size:38px;margin-bottom:12px}
-#slide-limites .method-list p,#slide-futuro .method-list p{font-size:32px}
-#slide-limites .method-list{height:450px}
-#slide-limites .foot-message{font-size:28px;bottom:90px}
 .request-layout{display:grid;grid-template-columns:730px 620px;gap:62px;margin-top:38px}
 .request-layout .request{font-size:48px;line-height:1.23;margin:0 0 36px}
 .request-layout .ledger{margin-top:0}.request-layout .ledger-line{font-size:28px;padding:20px 0}
@@ -289,3 +284,63 @@
 #slide-evidencia .evid-card:nth-child(2) .evid-number{color:#b24a32}
 #slide-evidencia .evid-stat-label{font-size:24px;line-height:1.25}
 #slide-evidencia .evid-checker{display:flex;align-items:center;gap:10px;font-size:24px;color:var(--deck-muted);border-top:1px solid #cfd3c3;padding-top:14px}
+/* ── Group 3: results, limitations and conclusion (reuso, sql, escala, gpu, simulacao, limites, conclusao) ── */
+#slide-reuso .reuso-flow .system-figure{margin-top:36px}
+#slide-reuso .reuso-flow .system-figure text{font-size:26px}
+#slide-reuso .reuso-flow .system-figure .box-title{font-size:30px}
+#slide-reuso .reuso-dots{font-size:40px;font-weight:600;fill:var(--deck-green)}
+#slide-reuso .reuso-chart{height:363px;margin-top:40px}
+#slide-reuso .chart-area .tick,#slide-sql .chart-area .tick,#slide-escala .chart-area .tick{font-size:22px}
+#slide-reuso .chart-area .axis-label,#slide-sql .chart-area .axis-label,#slide-escala .chart-area .axis-label{font-size:22px}
+#slide-reuso .chart-area .series-label{font-size:26px}
+#slide-reuso .chart-area .value{font-size:28px}
+#slide-sql .sql-chart{height:353px;margin-top:34px}
+#slide-sql .chart-area .series-label{font-size:25px}
+#slide-sql .chart-area .sql-jay{font-weight:600;fill:var(--deck-green)}
+#slide-sql .sql-ratio{fill:#f4e0d6;stroke:#dc6e52;stroke-width:2}
+#slide-sql .chart-area .sql-ratio-text{font-size:26px;font-weight:600;fill:#b24a32}
+#slide-sql .sql-takeaways{display:grid;grid-template-columns:1fr 1fr;gap:70px;margin-top:40px}
+#slide-sql .sql-takeaways section{display:flex;gap:22px;align-items:flex-start;border-top:3px solid var(--deck-green);padding-top:20px}
+#slide-sql .sql-takeaways section:last-child{border-color:var(--deck-coral)}
+#slide-sql .sql-takeaways p{font-size:25px;line-height:1.38}
+#slide-sql .sql-takeaways strong{display:block;font-size:29px;margin-bottom:4px;letter-spacing:-.3px}
+#slide-escala .escala-layout{display:grid;grid-template-columns:340px 1032px;gap:40px;margin-top:34px;align-items:start}
+#slide-escala .escala-chart{height:502px;margin-top:0}
+#slide-escala .escala-picto{padding-top:6px}
+#slide-escala .escala-picto-title{display:flex;align-items:center;gap:16px;font-size:32px;font-weight:600}
+#slide-escala .escala-picto>svg{display:block;width:300px;height:300px;margin-top:22px;overflow:visible}
+#slide-escala .escala-row{fill:#e3e5da}
+#slide-escala .escala-row-key{fill:var(--deck-mint)}
+#slide-escala .escala-frame{fill:none;stroke:var(--deck-green);stroke-width:3}
+#slide-escala .escala-scan{fill:#08786924;stroke:var(--deck-green);stroke-width:2;opacity:0}
+#slide-escala.entered .escala-scan{animation:escala-scan 1.6s .5s ease-in-out}
+@keyframes escala-scan{0%{opacity:0;transform:translateY(0)}10%{opacity:1;transform:translateY(0)}90%{opacity:1;transform:translateY(238px)}100%{opacity:0;transform:translateY(238px)}}
+@media(prefers-reduced-motion:reduce){#slide-escala .escala-scan{animation:none!important}}
+#slide-escala .escala-picto-text{font-size:28px;font-weight:600;color:var(--deck-green);margin-top:18px}
+#slide-escala .escala-picto-note{font-size:24px;line-height:1.4;margin-top:12px;color:var(--deck-muted)}
+#slide-escala .escala-zone{fill:#f4e4da;opacity:.75}
+#slide-escala .escala-cap{stroke:#c15c42;stroke-width:3;stroke-dasharray:8 6}
+#slide-escala .chart-area .escala-zone-title{font-size:26px;font-weight:600}
+#slide-escala .chart-area .escala-zone-text{font-size:24px}
+#slide-escala .chart-area .escala-refused,#slide-escala .chart-area .escala-cap-tick{fill:#b24a32;font-weight:600}
+#slide-escala .chart-area .escala-trend{font-size:26px;font-weight:600;fill:var(--deck-green)}
+#slide-gpu .gpu-intro{display:flex;align-items:center;gap:14px}
+#slide-gpu .gpu-notes{display:flex;gap:70px;margin-top:8px}
+#slide-gpu .gpu-notes p{display:flex;align-items:center;gap:12px;font-size:28px}
+#slide-limites .limites-grid{margin-top:34px}
+#slide-limites .limites-heads,#slide-limites .limites-row{display:grid;grid-template-columns:1fr 80px 1fr;gap:24px;align-items:center}
+#slide-limites .limites-head{font-size:21px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding-bottom:10px}
+#slide-limites .limites-head-limit{color:#b24a32}
+#slide-limites .limites-head-next{color:var(--deck-green)}
+#slide-limites .limites-row{border-top:1.5px solid var(--deck-rule);padding:17px 0}
+#slide-limites .limites-cell{display:flex;gap:20px;align-items:center}
+#slide-limites .limites-cell div strong{display:block;font-size:30px;line-height:1.2;letter-spacing:-.4px}
+#slide-limites .limites-cell div span{display:block;font-size:24px;line-height:1.35;color:var(--deck-muted);margin-top:3px}
+#slide-limites .limites-arrow{display:flex;justify-content:center}
+#slide-conclusao .deck-logo{width:380px;top:62px}
+#slide-conclusao .conclusao-points{margin-top:34px;max-width:1412px}
+#slide-conclusao .conclusao-point{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:start;padding:16px 0;border-bottom:1px solid #52736f}
+#slide-conclusao .conclusao-point .icon{margin-top:1px}
+#slide-conclusao .conclusao-point p{font-size:30px;line-height:1.32}
+#slide-conclusao .conclusao-point strong{color:var(--deck-mint)}
+#slide-conclusao .conclusao-thanks{font-size:40px;font-weight:600;margin-top:44px;color:var(--deck-mint)}
