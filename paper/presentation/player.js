@@ -50,9 +50,12 @@
     resize();
     if(window.parent!==window) window.parent.postMessage({type:'jaydb2:slide',index:current},location.origin==='null'?'*':location.origin);
   }
+  // Entry animations (.anim-*) run while the shown slide has .entered; re-adding it after a reflow restarts them.
+  sections.forEach(el=>el.querySelectorAll('.anim-draw').forEach(p=>{if(!p.hasAttribute('pathLength'))p.setAttribute('pathLength','1');}));
+  function enter(el){el.classList.remove('entered');void el.getBoundingClientRect();el.classList.add('entered');}
   function show(index,step=0){
-    sections[current].hidden=true;current=Math.max(0,Math.min(slides.length-1,index));revealed=step;
-    sections[current].hidden=false;update();
+    sections[current].hidden=true;sections[current].classList.remove('entered');current=Math.max(0,Math.min(slides.length-1,index));revealed=step;
+    sections[current].hidden=false;update();enter(sections[current]);
   }
   function next(){if(revealed<maxStep()){revealed++;update();}else if(current!==mainCount-1&&current<slides.length-1)show(current+1);}
   function previous(){if(revealed>0){revealed--;update();}else if(current>0){show(current-1);revealed=maxStep();update();}}

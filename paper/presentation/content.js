@@ -1,4 +1,31 @@
 'use strict';
+/* ───────────────────────── Deck building blocks (API) ─────────────────────────
+ Diagrams (inside figure(name, body, height=460, width=1400), an SVG on a 1400-wide grid):
+   box(x,y,w,h,title,lines,kind)  kind '' | 'accept' | 'reject'; '|' splits lines
+   edge(d,kind)  path with arrowhead; kind 'deny' for coral;  label(x,y,'a|b',cls)
+   step(n,svg)   SVG group revealed on the n-th → press (HTML: class="fragment" data-step="n")
+ Icons (24×24 line icons, stroke currentColor; names: Object.keys(ICONS)):
+   icon(name,{size=40,cls,title})       inline <svg class="icon">; color via cls, e.g. 'tone-green'
+   badge(name,{size=64,tone,cls})       icon on a tinted disc; tone green|mint|coral|gold|ink|muted
+   iconAt(name,x,y,size=48,cls)         inside a diagram SVG; cls goes on an outer <g> (anim-* safe)
+   tones: tone-ink|paper|green|mint|coral|gold|muted (green/coral/gold/muted lighten on .dark slides)
+ Logo: logo(variant='dark'|'light'|'mark'|'mark-light', cls) → <img class="deck-logo">.
+   Files in assets/: jaydb2-logo.svg, jaydb2-logo-light.svg, jaydb2-mark.svg, jaydb2-mark-light.svg
+   (wordmark converted to outlines, so it renders without the font).
+ Automatic entry animations: play every time a slide is shown, no key press. Put a class on any
+   HTML or SVG element: anim-fade, anim-fade-up, anim-grow-x (bars, from the left), anim-grow-y
+   (from the bottom), anim-pop (scale in), anim-draw (stroke draws along the shape; player.js adds
+   pathLength="1" when missing, so use it on solid strokes; dash patterns and markers are not drawn).
+   Stagger with --d (delay) and override duration with --dur: style="--d:.3s;--dur:1.2s" or ${delay(.3)}.
+   Do not put anim-* on an element that has its own transform attribute; wrap it in a <g> instead.
+   Inside a step (fragment) the animation waits and starts when the step is revealed, with --d
+   counted from the reveal; going back and forward replays it. Prefer anim-* on a child of the
+   fragment, not on the fragment element itself.
+   Final state is shown in print/PDF, with prefers-reduced-motion, and on slides not currently shown.
+ Image assets: save to paper/presentation/assets/ (.webp, .svg; add other types to inline_asset's
+   mime map in paper/build_presentation.py) and reference as "assets/<file>" in content.js or CSS;
+   the builder inlines every such reference as a data URI, so the deck stays one offline HTML file.
+──────────────────────────────────────────────────────────────────────────────── */
 const E=window.JAYDB2_EVIDENCE;
 const value=name=>{if(!(name in E))throw Error('Missing evidence macro: '+name);return Number(E[name]);};
 const pt=(n,d=2)=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -29,6 +56,62 @@ const edge=(d,kind='')=>`<path class="edge ${kind}" d="${d}" marker-end="url(#${
 let figureSequence=0;
 const step=(n,svg)=>`<g class="fragment" data-step="${n}">${svg}</g>`;
 const figure=(name,body,height=460,width=1400)=>`<svg class="system-figure" viewBox="0 0 ${width} ${height}" role="img" aria-label="${name}"><defs><marker id="flow-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#087869"/></marker><marker id="deny-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b24a32"/></marker></defs>${body}</svg>`.replaceAll('flow-tip',`flow-tip-${figureSequence}`).replaceAll('deny-tip',`deny-tip-${figureSequence++}`);
+// Line icons: 24×24 grid, stroke currentColor, 1.75 stroke, round caps/joins. Dots are zero-length round-capped strokes.
+const ICONS={
+  database:'<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.66 3.58 3 8 3s8-1.34 8-3v-13"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/>',
+  table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 14.75h18M9 9.5V20"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.1 3.6-7 8-7s8 2.9 8 7"/>',
+  users:'<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M18 14.4c2.1.8 3.5 2.8 3.5 5.6"/>',
+  admin:'<circle cx="10" cy="7.5" r="3.75"/><path d="M3 20.5c0-3.8 3.1-6.5 7-6.5 1 0 1.9.2 2.7.5"/><path d="M18 12.5l3.75 1.4v2.8c0 2.3-1.6 3.9-3.75 4.8-2.15-.9-3.75-2.5-3.75-4.8v-2.8z"/>',
+  'shield-check':'<path d="M12 2.75l7.5 3v5.5c0 4.6-3.1 8.4-7.5 10-4.4-1.6-7.5-5.4-7.5-10v-5.5z"/><path d="M8.75 12.25l2.25 2.25 4.25-4.5"/>',
+  lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.75v2"/>',
+  key:'<circle cx="8" cy="15.5" r="4.5"/><path d="M11.2 12.3L20.5 3M16.5 7l3 3M14 9.5l2.25 2.25"/>',
+  code:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M10.25 12l-2.25 2.75 2.25 2.75M13.75 12l2.25 2.75-2.25 2.75"/>',
+  proof:'<path d="M14 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5"/><path d="M8 7.5h8M8 11.5h5"/><circle cx="17.5" cy="15" r="3.25"/><path d="M15.75 17.75L15.25 22l2.25-1.25L19.75 22l-.5-4.25"/>',
+  check:'<path d="M4.5 12.5l5 5L19.5 7"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  warning:'<path d="M10.27 4.03a2 2 0 0 1 3.46 0l7.6 13.2a2 2 0 0 1-1.73 3H4.4a2 2 0 0 1-1.73-3z"/><path d="M12 9.5v4M12 17h0"/>',
+  cpu:'<rect x="6" y="6" width="12" height="12" rx="1.75"/><rect x="9.5" y="9.5" width="5" height="5" rx=".5"/><path d="M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5"/>',
+  gpu:'<rect x="2.5" y="5" width="19" height="12" rx="2"/><circle cx="15" cy="11" r="3.25"/><path d="M15 11h0M6 8.75h3.5M6 13.25h3.5M6 17v3M9.5 17v3M13 17v3"/>',
+  clock:'<circle cx="12" cy="13.5" r="7.75"/><path d="M12 9.5v4l2.75 2.25M9.5 2.5h5M12 2.5v3.25M18.5 6.25l1.5-1.5"/>',
+  'chart-bars':'<path d="M3 20.5h18"/><rect x="5" y="12" width="3.5" height="8.5" rx=".75"/><rect x="10.25" y="6" width="3.5" height="14.5" rx=".75"/><rect x="15.5" y="9.5" width="3.5" height="11" rx=".75"/>',
+  'chart-line':'<path d="M3.5 3.5v17h17"/><path d="M7.5 15.5l4-4.5 3 3 5-6.5"/>',
+  layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.75l9 5 9-5"/>',
+  refresh:'<path d="M20 11.5A8 8 0 0 0 5.6 7.2L4 9"/><path d="M4 4.5V9h4.5M4 12.5a8 8 0 0 0 14.4 4.3L20 15"/><path d="M20 19.5V15h-4.5"/>',
+  send:'<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5-7.5-4z"/>',
+  arrow:'<path d="M4 12h16M14 6l6 6-6 6"/>',
+  'eye-off':'<path d="M3 3l18 18"/><path d="M10.6 6.1A9.6 9.6 0 0 1 12 6c5.5 0 9 6 9 6a16.4 16.4 0 0 1-2.6 3.3M6.6 7.6C4.2 9.2 3 12 3 12s3.5 6 9 6a9 9 0 0 0 4.3-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.75 5.7 3.75 9S14.4 18.5 12 21c-2.4-2.5-3.75-5.7-3.75-9S9.6 5.5 12 3z"/>',
+  news:'<path d="M4 5h12.5v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M16.5 9H20v10a2 2 0 0 1-2 2M7.5 9h5.5M7.5 12.5h5.5M7.5 16h3.5"/>',
+  sparkle:'<path d="M11 3c.6 4.3 2.7 6.4 7 7-4.3.6-6.4 2.7-7 7-.6-4.3-2.7-6.4-7-7 4.3-.6 6.4-2.7 7-7z"/><path d="M18.5 14.5c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5z"/>',
+  robot:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4.5V8M9 13.5h0M15 13.5h0M9.5 17h5M1.75 13v3M22.25 13v3"/><circle cx="12" cy="3.5" r="1"/>',
+  hourglass:'<path d="M6 2.75h12M6 21.25h12M7 2.75V6a5 5 0 0 0 2.4 4.3L12 12l2.6-1.7A5 5 0 0 0 17 6V2.75M7 21.25V18a5 5 0 0 1 2.4-4.3L12 12l2.6 1.7A5 5 0 0 1 17 18v3.25"/>',
+  infinity:'<path d="M12 12c-2-2.6-3.6-4-5.4-4a4 4 0 0 0 0 8c1.8 0 3.4-1.4 5.4-4zm0 0c2 2.6 3.6 4 5.4 4a4 4 0 0 0 0-8c-1.8 0-3.4 1.4-5.4 4z"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.25 15.25L21 21"/>',
+  branch:'<circle cx="6" cy="5" r="2.25"/><circle cx="6" cy="19" r="2.25"/><circle cx="18" cy="6.5" r="2.25"/><path d="M6 7.25v9.5M18 8.75v1.5a3.5 3.5 0 0 1-3.5 3.5h-5A3.5 3.5 0 0 0 6 17.25"/>',
+  terminal:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15H17"/>',
+  'hard-drive':'<rect x="3" y="13" width="18" height="7.5" rx="2"/><path d="M5.25 13l2.2-7.2A2.5 2.5 0 0 1 9.8 4h4.4a2.5 2.5 0 0 1 2.4 1.8l2.2 7.2M7 16.75h0M10 16.75h0"/>',
+  server:'<rect x="3.5" y="3.5" width="17" height="7" rx="1.75"/><rect x="3.5" y="13.5" width="17" height="7" rx="1.75"/><path d="M7 7h0M7 17h0M11 7h6M11 17h6"/>',
+  scale:'<path d="M12 3.5V21M7.5 21h9M4.5 7h15"/><path d="M4.5 7L2 13.5a2.5 2.5 0 0 0 5 0zM19.5 7L17 13.5a2.5 2.5 0 0 0 5 0z"/>',
+  expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M9 9L4 4M15 9l5-5M9 15l-5 5M15 15l5 5"/>',
+  flask:'<path d="M9 3h6M10 3v6.2L4.6 18.5A1.75 1.75 0 0 0 6.1 21h11.8a1.75 1.75 0 0 0 1.5-2.5L14 9.2V3M7 15.5h10"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.75"/><path d="M12 2.75v2.5M12 18.75v2.5M2.75 12h2.5M18.75 12h2.5M5.46 5.46l1.77 1.77M16.77 16.77l1.77 1.77M5.46 18.54l1.77-1.77M16.77 7.23l1.77-1.77"/>',
+  play:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.25 3.5L10 15.5z"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M8.75 13h6.5M8.75 16.5h4.5"/>'
+};
+const ICON_ATTRS='fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"';
+const iconBody=name=>{if(!(name in ICONS))throw Error('Unknown icon: '+name);return ICONS[name];};
+// HTML icon: icon('lock',{size:48,cls:'tone-green'}). Decorative (aria-hidden) unless a title is given.
+const icon=(name,{size=40,cls='',title=''}={})=>`<svg class="icon ${cls}" viewBox="0 0 24 24" width="${size}" height="${size}" ${ICON_ATTRS} ${title?`role="img" aria-label="${esc(title)}"`:'aria-hidden="true"'}>${title?`<title>${esc(title)}</title>`:''}${iconBody(name)}</svg>`;
+// Icon on a tinted disc: badge('gpu',{size:64,tone:'coral'}); tone ∈ green|mint|coral|gold|ink|muted.
+const badge=(name,{size=64,tone='green',cls=''}={})=>`<span class="icon-badge badge-${tone} ${cls}" style="width:${size}px;height:${size}px">${icon(name,{size:Math.round(size*.56)})}</span>`;
+// Icon inside a diagram SVG at (x,y) with a size in user units. cls lands on an outer <g>, so anim-* classes are safe there.
+const iconAt=(name,x,y,size=48,cls='')=>`<g class="icon ${cls}"><g transform="translate(${x} ${y}) scale(${size/24})" ${ICON_ATTRS}>${iconBody(name)}</g></g>`;
+// Stagger for auto entry animations: <rect class="anim-grow-x" ${delay(.3)}/> sets --d.
+const delay=s=>`style="--d:${s}s"`;
+// Logo <img>; the builder inlines each assets/… reference as a data URI.
+const LOGOS={dark:'assets/jaydb2-logo.svg',light:'assets/jaydb2-logo-light.svg',mark:'assets/jaydb2-mark.svg','mark-light':'assets/jaydb2-mark-light.svg'};
+const logo=(variant='dark',cls='')=>`<img class="deck-logo ${cls}" src="${LOGOS[variant]}" alt="JayDB2">`;
 function admissionFigure(){return figure('Cliente envia programa e prova. Leis do administrador alimentam o verificador. Aceitação permite execução privada; rejeição não executa o programa.',
  box(465,0,470,95,'Administrador','Esquema e leis instaladas')+edge('M700 95V155')+
  box(0,170,375,170,'Cliente','Programa + prova|Argumentos + credencial')+edge('M375 250H465')+
@@ -72,9 +155,9 @@ function trustFigure(){return figure('Núcleo provado sob premissas. Camadas con
  label(135,405,'Admissão exata · leis em cada passo|Finalização válida · terminação lógica'),550);}
 
 function gpuFigure(){return figure('O mesmo programa certificado usa CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
- box(0,120,475,240,'Programa + prova','Aceito pelos dois|verificadores antes|do código GPU')+edge('M475 240H575V90H685')+
- box(685,0,715,180,'Backend CPU','Runtime Bend|Workers CPU')+
- step(1,edge('M575 240V370H685')+box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','reject'))+
+ box(0,120,475,240,'Programa + prova','Aceito pelos dois|verificadores antes|do código GPU')+iconAt('code',327,140,56,'tone-green')+iconAt('proof',395,140,56,'tone-green')+edge('M475 240H575V90H685')+
+ box(685,0,715,180,'Backend CPU','Runtime Bend|Workers CPU')+iconAt('cpu',1320,20,60,'tone-green')+
+ step(1,edge('M575 240V370H685')+box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','reject')+iconAt('gpu',1320,290,60,'tone-coral anim-pop'))+
  step(2,label(0,430,'Mesmas obrigações','box-title')+label(0,474,'e mesmo Gate/finalizador verificado')),510);}
 
 function retryFigure(){return figure('Cliente envia pedido. Serviço publica voucher e recibo, mas a resposta se perde. Repetição idêntica e ainda autorizada recebe o resultado retido sem nova emissão.',
@@ -89,7 +172,7 @@ function retryFigure(){return figure('Cliente envia pedido. Serviço publica vou
 function reuseChart(){
   const x=n=>335+Math.log10(n)*225;
   const rows=[['Chamada ordinária',value('OrdinaryReadMedianSeconds')*1000,pt(value('OrdinaryReadMedianSeconds'))+' s','#dc6e52'],['Preparação, uma vez',value('RegistrationReadVolatileMedianSeconds')*1000,pt(value('RegistrationReadVolatileMedianSeconds'))+' s','#a1b3a6'],['Chamada preparada',value('PreparedReadVolatileMedianMs'),pt(value('PreparedReadVolatileMedianMs'))+' ms','#087869']];
-  return `<svg viewBox="0 0 1400 370" role="img" aria-label="Leitura ordinária: ${pt(value('OrdinaryReadMedianSeconds'))} segundos. Preparação única: ${pt(value('RegistrationReadVolatileMedianSeconds'))} segundos. Leitura preparada volátil: ${pt(value('PreparedReadVolatileMedianMs'))} milissegundos. Eixo logarítmico em milissegundos.">${[1,10,100,1000,10000].map(n=>`<line class="gridline" x1="${x(n)}" y1="20" x2="${x(n)}" y2="285"/><text class="tick" x="${x(n)}" y="320" text-anchor="middle">${pt(n,0)}</text>`).join('')}${rows.map(([label,n,labelValue,color],i)=>{const y=53+i*89;return `<text class="series-label" x="0" y="${y+25}">${label}</text><rect x="335" y="${y}" width="${x(n)-335}" height="35" fill="${color}"/><text class="value" x="${x(n)+18}" y="${y+26}">${labelValue}</text>`;}).join('')}<text class="axis-label" x="790" y="363" text-anchor="middle">Latência (ms) · escala logarítmica</text></svg>`;
+  return `<svg viewBox="0 0 1400 370" role="img" aria-label="Leitura ordinária: ${pt(value('OrdinaryReadMedianSeconds'))} segundos. Preparação única: ${pt(value('RegistrationReadVolatileMedianSeconds'))} segundos. Leitura preparada volátil: ${pt(value('PreparedReadVolatileMedianMs'))} milissegundos. Eixo logarítmico em milissegundos.">${[1,10,100,1000,10000].map(n=>`<line class="gridline" x1="${x(n)}" y1="20" x2="${x(n)}" y2="285"/><text class="tick" x="${x(n)}" y="320" text-anchor="middle">${pt(n,0)}</text>`).join('')}${rows.map(([label,n,labelValue,color],i)=>{const y=53+i*89;return `<text class="series-label" x="0" y="${y+25}">${label}</text><rect class="anim-grow-x" ${delay(.15+i*.2)} x="335" y="${y}" width="${x(n)-335}" height="35" fill="${color}"/><text class="value anim-fade" ${delay(.95+i*.2)} x="${x(n)+18}" y="${y+26}">${labelValue}</text>`;}).join('')}<text class="axis-label" x="790" y="363" text-anchor="middle">Latência (ms) · escala logarítmica</text></svg>`;
 }
 function sqlChart(){
   const names=['PostgreSQL','SQLite','JayDB2'];const colors=['#9aaea0','#b9c8b5','#087869'];
@@ -305,7 +388,7 @@ const slides=[
 },
 {
  id:'conclusao',title:'JayDB2: síntese do trabalho',theme:'dark conclusion',seconds:30,
- html:`<p class="kicker">Conclusão</p><h2>JayDB2: síntese do trabalho</h2><div class="closing-points"><p>Um programa pode chegar ao banco com uma prova<br>das regras que precisa respeitar.</p><p>Serviço executável que verifica certificados ligados<br>ao programa executado e à sua finalização.</p><p>Aplicações combinam leis de acesso e consistência.<br>Experimentos medem custo, reuso, escala e CUDA.</p><p>O protótipo depende de T1–T3 e tem custo elevado<br>frente a SQL nas operações pontuais avaliadas.</p></div><p class="small spaced">Obrigado.</p>`,
+ html:`${logo('dark','anim-fade')}<p class="kicker">Conclusão</p><h2>JayDB2: síntese do trabalho</h2><div class="closing-points"><p>Um programa pode chegar ao banco com uma prova<br>das regras que precisa respeitar.</p><p>Serviço executável que verifica certificados ligados<br>ao programa executado e à sua finalização.</p><p>Aplicações combinam leis de acesso e consistência.<br>Experimentos medem custo, reuso, escala e CUDA.</p><p>O protótipo depende de T1–T3 e tem custo elevado<br>frente a SQL nas operações pontuais avaliadas.</p></div><p class="small spaced">Obrigado.</p>`,
  bottom:'Gabriel Jota Lizardo · PUC Minas',
  notes:`A pergunta do trabalho foi se um programa pode chegar ao banco com uma prova das regras que precisa respeitar. O trabalho construiu um serviço executável que exige certificados ligados ao programa admitido, à sua execução e à sua finalização; a publicação física fica em T3. As aplicações combinam acesso e consistência, e os experimentos medem o custo desse caminho, a preparação, a escala e o offload em CUDA. Os resultados dependem da base T1 a T3; nas operações pontuais, o custo do protótipo continua elevado frente a SQL. As limitações apresentadas delimitam o que foi estabelecido. Obrigado.`,
  sources:[sources.artifact]
