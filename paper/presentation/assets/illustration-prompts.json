@@ -1,0 +1,16 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "style_reference": "verification-gate.webp (visually inspected; described in the prompts)",
+  "images": [
+    {
+      "file": "notes-collections.webp",
+      "slide": "pedido",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Portuguese academic database thesis slide; no lettering. Create a soft, tactile 3D editorial illustration with an orthographic/isometric camera. Warm ivory paper surface against a deep dark teal studio backdrop (#102f3b), mint glass (#b4e6c8), restrained coral and gold accents, gentle ambient occlusion, fine paper fibers, soft shadows. Subject: two distinct small groups of personal paper notes, one mint and one coral, sit inside ONE common dark-teal storage tray, visually separated with generous space. Each group has its own small matching index sheet with simple abstract ruled marks. A new ivory note and matching index slip are beside the mint group, illustrating a note and its directory entry being updated together. No people, faces, hands, robots, logos, lock icons, labels, letters, digits or readable text. Use only abstract ruled strokes on paper. Few large objects, clear silhouettes, sober academic mood, no glossy advertising effects. Frame objects to fill the square with safe margins. This is a conceptual illustration, not a diagram or screenshot. Match the visual language of a mint transparent glass verification gate and paper sheets on a warm ivory plinth against deep teal."
+    },
+    {
+      "file": "program-proof-generator.webp",
+      "slide": "llms",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for an academic database thesis slide; no lettering. Create a soft tactile isometric 3D editorial illustration, warm ivory paper plinth and deep dark teal backdrop (#102f3b), mint translucent glass (#b4e6c8), restrained coral and gold paper accents, ambient occlusion, subtle paper fibers, soft studio light. Subject: on the left, a compact dark-teal mechanical paper-producing device hands out TWO separate companion sheets, one ivory with abstract code-like ruled strokes and one small gold certificate-like sheet with abstract ruled strokes; the paired sheets approach a large upright mint transparent glass rectangular gate on the right, with a dark-teal storage tray beyond it. The device only produces the sheets; the separate glass gate visually checks their passage. No people, faces, hands, robots, brains, logos, letters, digits, readable text, checkmark badges, slogans, neon or promotional effects. Few large objects, clear relation between generator, program/proof pair and independent gate. Fill the square with safe margins. Conceptual illustration only, not a system diagram. Match a refined mint-glass verification gate, dark teal stacked database blocks and warm textured paper, with a sober academic mood."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+SOME PROOFS FAIL
+Error:
+- expected : {D.exists_row(D.find_row(ds, k)) == P.row_owner(D.find_row(D.insert_row(ns, D.Row{"alice/00000099", [D.Field{"id", D.VText{"alice/00000099"}}, D.Field{"owner", D.VText{"alice"}}, D.Field{"text", D.VText{"orphan"}}]}), k), "alice") : Bool}
+- observed : {D.exists_row(D.find_row(ds, k)) == P.row_owner(D.find_row(ns, k), "alice") : Bool}
+Context:
+- ds : List<&2, D.Row>
+- ns : List<&2, D.Row>
+- h  : @k:String -> {D.exists_row(D.find_row(ds, k)) == P.row_owner(D.find_row(ns, k), "alice") : Bool}
+- k  : String
+Location: false
+26 | def false(ds, ns, h):
+27>|   +k => h(k)
+   |         ^^^^
+28 | def step_safe(+d: Nat, +e: D.Schema, +s: D.State, dir: P.Directory(s), +owners: P.Owners(s)) ->

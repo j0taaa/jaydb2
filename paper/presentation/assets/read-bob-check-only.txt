@@ -1,0 +1,9 @@
+SOME PROOFS FAIL
+Error:
+- expected : "bob"
+- observed : "alice"
+Location: false
+23 | def false():
+24>|   P.Both{{==}, P.Both{{==}, {==}}}
+   |                       ^^^^
+25 | def refused(res: D.ResultOp, +m: Nat, +e: D.Schema, +s: D.State) ->

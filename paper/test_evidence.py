@@ -381,6 +381,9 @@ class EvidenceTests(unittest.TestCase):
             # New code figures must survive the offline HTML build.
             self.assertIn('data:image/svg+xml;base64,',html.read_text())
             self.assertNotIn('src="assets/',html.read_text())
+            # A source citation inside a repository path stays a link.
+            self.assertIn('paper/presentation/assets/read-bob-check-only.txt',
+                          html.read_text())
             # Inject a sentinel through the generated-data contract, not the content.
             # Both the displayed table and the notes must respond to evidence changes.
             parsed['SimulationLargeCudaMs']=123456.789

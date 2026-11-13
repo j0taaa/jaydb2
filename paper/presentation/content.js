@@ -27,7 +27,7 @@ const label=(x,y,lines,cls='')=>`<text x="${x}" y="${y}" class="${cls}">${lines.
 const box=(x,y,w,h,title,lines='',kind='')=>`<rect class="box ${kind}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label(x+24,y+43,title,'box-title')}${lines?label(x+24,y+85,lines):''}`;
 const edge=(d,kind='')=>`<path class="edge ${kind}" d="${d}" marker-end="url(#${kind==='deny'?'deny-tip':'flow-tip'})"/>`;
 let figureSequence=0;
-const figure=(name,body,height=460)=>`<svg class="system-figure" viewBox="0 0 1400 ${height}" role="img" aria-label="${name}"><defs><marker id="flow-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#087869"/></marker><marker id="deny-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b24a32"/></marker></defs>${body}</svg>`.replaceAll('flow-tip',`flow-tip-${figureSequence}`).replaceAll('deny-tip',`deny-tip-${figureSequence++}`);
+const figure=(name,body,height=460,width=1400)=>`<svg class="system-figure" viewBox="0 0 ${width} ${height}" role="img" aria-label="${name}"><defs><marker id="flow-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#087869"/></marker><marker id="deny-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b24a32"/></marker></defs>${body}</svg>`.replaceAll('flow-tip',`flow-tip-${figureSequence}`).replaceAll('deny-tip',`deny-tip-${figureSequence++}`);
 function admissionFigure(){return figure('Cliente envia programa e prova. Leis do administrador alimentam o verificador. Aceitação permite execução privada; rejeição não executa o programa.',
  box(465,0,470,95,'Administrador','Esquema e leis instaladas')+edge('M700 95V155')+
  box(0,170,375,170,'Cliente','Programa + prova|Argumentos + credencial')+edge('M375 250H465')+
@@ -42,37 +42,40 @@ function transactionFigure(){return figure('Estado publicado vazio. Na proposta 
  box(1120,100,280,175,'Publicado','Nota n1|Diretório inclui n1','accept')+
  label(382,312,'Incompleto aqui','deny-label')+label(1120,315,'Commit','edge-label')+
  `<path class="edge" d="M0 385H1400"/>`+label(0,425,'Outros clientes observam o estado anterior até a publicação.'),460);}
-function rejectionFigure(){return figure('Dois controles independentes são recusados na admissão: ler Bob viola a permissão; omitir o diretório viola a consistência final.',
- box(0,30,420,145,'Ler uma nota de Bob','Alice acessa bob/n7')+edge('M420 100H545')+
- box(545,30,420,145,'Obrigação de acesso','Permissão não demonstrada','reject')+
- box(0,265,420,145,'Omitir o diretório','Cria nota sem listar')+edge('M420 337H545')+
- box(545,265,420,145,'Obrigação ao concluir','Consistência não demonstrada','reject')+
- edge('M965 100H1025V220H1100','deny')+edge('M965 337H1025V250H1100','deny')+
- box(1100,165,300,155,'Rejeição','Nada executa|Estado preservado','reject'),460);}
-function llmFigure(){return figure('Intenção do usuário passa pelo LLM, que é um gerador não confiável. Programa e prova cruzam a fronteira da admissão, onde o banco verifica as leis.',
- `<rect class="private-zone" x="970" y="0" width="425" height="300"/>`+label(995,38,'Admissão do banco','edge-label')+
- box(0,75,310,155,'Usuário','Intenção da operação')+edge('M310 150H410')+
- box(410,75,440,155,'LLM + bibliotecas','Escreve programa + prova')+edge('M850 150H1000')+
- box(1000,75,365,155,'Verificador','Confere as leis','accept')+
- label(410,275,'Gerador não confiável','deny-label')+label(1000,275,'Ponto de confiança: T1','edge-label'),310);}
+function rejectionFigure(){return figure('Dois controles independentes: ler Bob viola acesso; omitir o diretório viola a consistência final. Ambos são recusados antes da execução.',
+ box(0,0,300,175,'Ler Bob','Alice: bob/n7')+edge('M300 86H360')+
+ box(360,0,380,175,'Acesso','Permissão|não demonstrada','reject')+
+ box(0,255,300,175,'Omitir diretório','Cria sem listar')+edge('M300 340H360')+
+ box(360,255,380,175,'Diretório','Consistência final|não demonstrada','reject')+
+ label(0,495,'Admissão rejeitada. Estado preservado.','deny-label'),520,740);}
+
+function llmFigure(){return figure('O usuário apresenta a intenção ao LLM. O gerador constrói programa e prova e fica fora da base de confiança. O verificador do banco confere as leis.',
+ box(0,0,285,150,'Usuário','Intenção')+edge('M285 75H365')+
+ box(365,0,480,170,'LLM + bibliotecas','Programa + prova')+edge('M605 170V240')+
+ label(389,137,'Gerador não confiável','deny-label')+
+ box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept'),400,850);}
+
 function architectureFigure(){return figure('Node prepara fontes. Bend e BendTT verificam o Book. Selos vinculam o Book à compilação e hashes vinculam os artefatos ao worker. Bend interpreta e finaliza; Rust publica Commit ou preserva Keep.',
- box(0,15,310,165,'Node · staging','stage.mjs|Fontes e prova')+edge('M310 95H415')+
- box(415,15,445,165,'Bend + BendTT','Prova × leis instaladas|Book elaborado e verificado')+edge('M860 95H965')+
- box(965,15,430,165,'Book selado','Selo semântico|Antes da emissão C')+edge('M1180 180V255')+
- box(965,255,430,165,'Compilação nativa','C / Clang + selo final|Artefatos + hashes')+edge('M965 335H860')+
- box(415,255,445,165,'Worker + host Rust','Bend interpreta e finaliza|Rust recebe Commit / Keep')+edge('M415 335H310')+
- box(0,255,310,165,'Estado publicado','Commit: substitui|Keep: preserva')+
- label(0,475,'Selos e hashes vinculam o admitido ao executado (T1). Publicação física: T3.','edge-label'),500);}
-function trustFigure(){return figure('Núcleo provado sob premissas. Camadas de dependência confiadas: T1 verificadores e vínculo, T2 compiladores e runtime, T3 trabalho físico do host.',
- `<rect class="trust-layer" x="0" y="0" width="1400" height="495" rx="9"/>`+label(25,43,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+
- `<rect class="trust-layer" x="35" y="90" width="1330" height="375" rx="9"/>`+label(60,133,'T2 · Compilador e runtime: preservação do comportamento','box-title')+
- `<rect class="trust-layer" x="70" y="180" width="1260" height="255" rx="9"/>`+label(95,223,'T1 · Verificadores, vínculo exato e auditoria das fontes','box-title')+
- `<rect class="proved-core" x="105" y="270" width="1190" height="135" rx="9"/>`+label(132,312,'Núcleo Bend · propriedades provadas sob premissas','box-title')+label(132,356,'Admissão exata · leis em cada passo · finalização válida · terminação lógica'),510);}
-function gpuFigure(){return figure('O mesmo programa certificado permite CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
- box(0,120,460,160,'Mesmo programa + prova','Book aceito pelos verificadores|Trecho paralelo marcado')+edge('M460 200H570V80H685')+edge('M570 200V325H685')+
- box(685,10,710,145,'Backend CPU','Runtime Bend · workers CPU')+
- box(685,250,710,180,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','accept')+
- label(0,350,'As mesmas obrigações:','box-title')+label(0,393,'acesso, terminação e publicação'),460);}
+ box(0,0,330,220,'Node · staging','stage.mjs|Fontes e prova')+edge('M330 110H420')+
+ box(420,0,450,220,'Bend + BendTT','Prova × leis instaladas|Book verificado')+edge('M870 110H960')+
+ box(960,0,440,220,'Book selado','Selo semântico|Antes da emissão C')+edge('M1180 220V330')+
+ box(960,330,440,220,'Compilação nativa','C / Clang + selo final|Artefatos + hashes')+edge('M960 440H870')+
+ box(420,330,450,220,'Worker + host Rust','Bend: execução e finalização|Rust: recebe Commit / Keep')+edge('M420 440H330')+
+ box(0,330,330,220,'Estado publicado','Commit: substitui|Keep: preserva'),550);}
+
+function trustFigure(){return figure('Núcleo provado sob premissas. Camadas confiadas: T1 verificadores e vínculo, T2 compiladores e runtime, T3 trabalho físico do host.',
+ `<rect class="trust-layer" x="0" y="0" width="1400" height="550" rx="9"/>`+label(28,50,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+
+ `<rect class="trust-layer" x="35" y="105" width="1330" height="415" rx="9"/>`+label(63,155,'T2 · Compilador e runtime: preservação do comportamento','box-title')+
+ `<rect class="trust-layer" x="70" y="210" width="1260" height="280" rx="9"/>`+label(98,260,'T1 · Verificadores, vínculo exato e auditoria das fontes','box-title')+
+ `<rect class="proved-core" x="105" y="315" width="1190" height="145" rx="9"/>`+label(135,360,'Núcleo Bend · propriedades provadas sob premissas','box-title')+
+ label(135,405,'Admissão exata · leis em cada passo|Finalização válida · terminação lógica'),550);}
+
+function gpuFigure(){return figure('O mesmo programa certificado usa CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
+ box(0,145,475,195,'Programa + prova','Book aceito|Trecho paralelo marcado')+edge('M475 240H575V90H685')+edge('M575 240V370H685')+
+ box(685,0,715,180,'Backend CPU','Runtime Bend|Workers CPU')+
+ box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','accept')+
+ label(0,430,'Mesmas obrigações:','box-title')+label(0,474,'acesso, terminação e publicação'),510);}
+
 function retryFigure(){return figure('Cliente envia pedido. Serviço publica voucher e recibo, mas a resposta se perde. Repetição idêntica e ainda autorizada recebe o resultado retido sem nova emissão.',
  label(40,35,'Cliente','box-title')+label(700,35,'Serviço de vouchers','box-title')+
  `<path class="lifeline" d="M155 65V440M890 65V440"/>`+
@@ -168,9 +171,9 @@ const slides=[
 },
 {
  id:'pedido',title:'Um pedido comum',seconds:30,
- html:`<p class="kicker">Exemplo: notas compartilhadas</p><h2>Um pedido comum</h2><div class="request">Salve uma nota para mim e inclua<br>essa nota na minha lista.</div><div class="split"><section><div class="owner">Alice</div><div class="ledger"><div class="ledger-line"><span>Nota</span><code>alice/n1</code></div><div class="ledger-line"><span>Dona</span><span>Alice</span></div><div class="ledger-line"><span>Diretório de Alice</span><span>inclui n1</span></div></div></section><section><div class="owner bob">Bob</div><div class="ledger"><div class="ledger-line"><span>Nota</span><code>bob/n7</code></div><div class="ledger-line"><span>Dono</span><span>Bob</span></div><div class="ledger-line"><span>Dados de Bob</span><span>fora do pedido</span></div></div></section></div>`,
+ html:`<p class="kicker">Exemplo: notas compartilhadas</p><h2>Um pedido comum</h2><div class="request-layout"><section><div class="request">Salve uma nota para mim<br>e inclua essa nota<br>na minha lista.</div><div class="ledger"><div class="ledger-line"><span class="owner">Alice</span><code>alice/n1</code></div><div class="ledger-line"><span>Diretório de Alice</span><span>inclui n1</span></div><div class="ledger-line"><span class="owner bob">Bob</span><code>bob/n7</code></div><div class="ledger-line"><span>Dados de Bob</span><span>fora do pedido</span></div></div></section><figure class="illustration"><img src="assets/notes-collections.webp" alt="Ilustração conceitual: notas de dois donos no mesmo recipiente, cada grupo com sua própria ficha de índice."/><figcaption>Uma tabela de notas compartilhada.<br>Um diretório por usuário.</figcaption></figure></div>`,
  bottom:'Pedido e resultado pretendido são ilustrativos. A interface recebe programa e certificado em Bend.',
- notes:`Alice quer salvar uma nota e encontrá-la em seu diretório. Bob também possui notas nessa tabela compartilhada. O pedido envolve duas obrigações: Alice não deve acessar a nota de Bob e, ao concluir, seu diretório deve listar exatamente as notas que pertencem a ela. A tela ilustra o resultado pretendido; o próximo exemplo parte do estado vazio. A interface implementada recebe o programa e sua prova em Bend.`,
+ notes:`Alice quer salvar uma nota e encontrá-la em seu diretório. A ilustração agrupa os papéis por dono dentro de um recipiente compartilhado: no sistema, há uma única tabela de notas e um diretório separado por usuário. Bob também tem notas nessa tabela; seus dados ficam fora do pedido de Alice. O programa deve respeitar o acesso e atualizar nota e diretório antes da publicação. Os identificadores n1 e n7 são ilustrativos. A interface implementada recebe programa e certificado em Bend.`,
  sources:[sources.rls]
 },
 {
@@ -188,11 +191,11 @@ const slides=[
  sources:[sources.rls,sources.laws]
 },
 {
- id:'rejeicoes',title:'Dois erros, duas obrigações diferentes',seconds:45,
- html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas<br>obrigações diferentes</h2>${rejectionFigure()}<p class="small diagram-note">São falhas independentes de certificação, verificadas antes da execução.</p>`,
+ id:'rejeicoes',title:'Dois erros, duas obrigações',seconds:45,
+ html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas obrigações</h2><div class="rejection-layout"><section>${rejectionFigure()}</section><figure class="terminal-figure"><img src="assets/checker-rejection.svg" alt="Saída real de Bend: SOME PROOFS FAIL, expected bob, observed alice, Location false."/><figcaption><code>python3 -B paper/presentation/<br>capture_checker_figures.py</code><br>Controle <code>read-bob</code>: chave <code>bob/00000001</code>.<br>Trecho literal; … indica linhas omitidas.</figcaption></figure></div>`,
  bottom:`Aplicação de notas: ${pt(value('RlsNegativeFixtures'),0)} negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas.`,
- notes:`Ler Bob falha na permissão, mesmo que o programa recuse depois. Esquecer o diretório falha na consistência final, apesar de respeitar o acesso. A aplicação tem ${pt(value('RlsNegativeFixtures'),0)} controles negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas, incluindo o estado completo preservado após rejeições. Cada controle isola uma obrigação. São evidências complementares às provas.`,
- sources:[sources.rls]
+ notes:`Os dois diagramas representam obrigações independentes: ler Bob viola a permissão; criar sem atualizar o diretório viola a consistência final. À direita há uma saída real capturada nesta revisão. O controle read-bob usa a chave concreta bob/00000001, que é o caso correspondente ao identificador ilustrativo bob/n7. O verificador esperava bob e encontrou alice na prova de permissão. Os controles read-bob e create-without-directory foram executados em Bend e BendTT, com falha somente em false. A figura mostra apenas o diagnóstico inicial do primeiro controle; a elipse marca o contexto omitido. Os logs completos e o comando de reprodução estão nos artefatos da apresentação.`,
+ sources:[sources.rls,source('Diagnóstico real: read-bob','paper/presentation/assets/read-bob-check-only.txt')]
 },
 {
  id:'prova',title:'O que a prova acrescenta',seconds:45,
@@ -203,7 +206,7 @@ const slides=[
 },
 {
  id:'llms',title:'Onde os LLMs entram',seconds:50,
- html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2>${llmFigure()}<div class="split llm-context"><section><h3>Trabalhos relacionados</h3><p class="small spaced">Baldur (Isabelle), Dafny e AutoVerus (Verus)<br>avaliam geração de código e provas.</p></section><section><h3>Neste projeto</h3><p class="small spaced">LLMs ajudaram no código e nas provas.<br>Todos os testes foram escritos por LLMs,<br>sob direção do autor.</p></section></div>`,
+ html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="llm-layout"><section>${llmFigure()}<div class="llm-context"><p><strong>Pesquisa.</strong> Baldur, Dafny e AutoVerus estudam geração.</p><p><strong>Neste projeto.</strong> LLMs ajudaram no código e nas provas.<br>Escreveram todos os testes, sob direção do autor.</p></div></section><figure class="illustration"><img src="assets/program-proof-generator.webp" alt="Ilustração conceitual: gerador produz programa e certificado em folhas separadas diante de um portal de verificação independente."/><figcaption>O gerador produz os artefatos.<br>O banco verifica a prova.</figcaption></figure></div>`,
  bottom:`O gerador fica fora da base de confiança da admissão.`,
  notes:'A escrita manual de provas torna uma operação pequena cara de produzir. LLMs e bibliotecas de provas permitem outro fluxo: partir da intenção, construir programa e certificado, submeter ao verificador e corrigir quando não passa. Há trabalhos recentes nessa direção: o Baldur gera e repara provas em Isabelle, Misu e colegas sintetizam métodos Dafny verificados, e o AutoVerus gera provas para código Rust verificado pelo Verus. Esses trabalhos medem com que frequência a geração dá certo. O JayDB2 trata do lado complementar: um banco que só executa o artefato gerado se a prova passar, então o gerador não precisa ser confiável. Neste projeto, LLMs ajudaram no código e nas provas, e todos os testes do JayDB2 foram escritos por LLMs sob minha direção.',
  sources:[sources.ai,sources.baldur,sources.misu,sources.autoverus]
@@ -216,8 +219,8 @@ const slides=[
  sources:[sources.evidence,sources.proofs]
 },
 {
- id:'arquitetura',title:'A prova precisa acompanhar o código exato',seconds:55,
- html:`<p class="kicker">A conexão com a implementação</p><h2>A prova precisa acompanhar<br>o código exato</h2>${architectureFigure()}`,
+ id:'arquitetura',title:'A prova acompanha o código exato',seconds:55,
+ html:`<p class="kicker">A conexão com a implementação</p><h2>A prova acompanha o código exato</h2>${architectureFigure()}<p class="small diagram-note">Selos e hashes: vínculo T1. Rust publica exatamente a decisão selecionada: T3.</p>`,
  bottom:'Bend 2.0.39 / BendTT · Rust 1.98.0 · Node 24.19.0 · Clang 19.1.1',
  notes:`Node, por stage.mjs, prepara as fontes e coordena a admissão. Os verificadores Bend e BendTT conferem as obrigações do mesmo Book. O diagrama mostra dependências lógicas: na CPU, parte da compilação pode se sobrepor à segunda verificação. Selos conferem o Book antes e depois da emissão C; hashes ligam fontes e artefatos. Nenhum artefato é liberado antes de ambas as aceitações e das conferências de vínculo. O worker nativo executa Gate, interpretador e finalizador escritos em Bend. Rust coordena o processo, recebe a decisão Commit ou Keep e publica exatamente o estado e a resposta selecionados. As transações seguem uma fila serial.`,
  sources:[sources.proofs,sources.evidence,sources.gpu]
@@ -294,9 +297,9 @@ const slides=[
 },
 {
  id:'declaracao-ia',title:'Uso de inteligência artificial',seconds:35,
- html:`<p class="kicker">Declaração de autoria assistida</p><h2>Uso de inteligência artificial</h2><div class="split disclosure" style="grid-template-columns:1fr 1fr 1fr;gap:55px"><section><h3>Claude Opus 5.5</h3><p>Anthropic<br>Planejamento e coordenação,<br>parte do código e das provas,<br>revisões e texto final.</p></section><section><h3>GPT-6.1 Sol</h3><p>OpenAI<br>Código e provas,<br>scripts de medição,<br>redação do artigo,<br>slides e notas.</p></section><section><h3>Kimi K3.1 Pro</h3><p>Moonshot AI<br>Revisão do artigo<br>e dos slides.</p></section></div><p class="lead spaced-lg">Todos os testes relacionados ao JayDB2 foram escritos por LLMs,<br>sob direção do autor.</p><p class="small spaced">O autor responde pelo conteúdo. As medições vêm de experimentos executados.<br>A imagem da capa foi gerada com a ferramenta de imagens da OpenAI.</p>`,
+ html:`<p class="kicker">Declaração de autoria assistida</p><h2>Uso de inteligência artificial</h2><div class="split disclosure" style="grid-template-columns:1fr 1fr 1fr;gap:55px"><section><h3>Claude Opus 5.5</h3><p>Anthropic<br>Planejamento e coordenação,<br>parte do código e das provas,<br>revisões e texto final.</p></section><section><h3>GPT-6.1 Sol</h3><p>OpenAI<br>Código e provas,<br>scripts de medição,<br>redação do artigo,<br>slides e notas.</p></section><section><h3>Kimi K3.1 Pro</h3><p>Moonshot AI<br>Revisão do artigo<br>e dos slides.</p></section></div><p class="lead spaced-lg">Todos os testes relacionados ao JayDB2 foram escritos por LLMs,<br>sob direção do autor.</p><p class="small spaced">O autor responde pelo conteúdo. As medições vêm de experimentos executados.<br>As ilustrações dos slides foram geradas com a ferramenta de imagens da OpenAI.</p>`,
  bottom:'Regulamento TCC CC: declaração de ferramentas, finalidade e partes com contribuição de IA.',
- notes:`Usei três assistentes de IA sob minha direção. O Claude Opus 5.5, da Anthropic, ajudou no planejamento, nas revisões, em parte do código e das provas e no texto final. O GPT-6.1 Sol, da OpenAI, ajudou com código, provas, medições, artigo, slides e notas. O Kimi K3.1 Pro, da Moonshot AI, ajudou a revisar artigo e slides. Todos os testes foram escritos por IA, e a imagem da capa foi gerada por IA. Eu respondo pelo conteúdo; as medições vêm de experimentos executados.`,
+ notes:`Usei três assistentes de IA sob minha direção. O Claude Opus 5.5, da Anthropic, ajudou no planejamento, nas revisões, em parte do código e das provas e no texto final. O GPT-6.1 Sol, da OpenAI, ajudou com código, provas, medições, artigo, slides e notas. O Kimi K3.1 Pro, da Moonshot AI, ajudou a revisar artigo e slides. Todos os testes foram escritos por IA, e as ilustrações dos slides foram geradas com a ferramenta de imagens da OpenAI. Eu respondo pelo conteúdo; as medições vêm de experimentos executados.`,
  sources:[sources.ai]
 },
 {

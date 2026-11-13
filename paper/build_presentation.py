@@ -43,7 +43,7 @@ def build_html():
     player = (DECK / 'player.js').read_text()
     content = (DECK / 'content.js').read_text()
     def inline_references(text):
-        return re.sub(r"assets/([A-Za-z0-9_.-]+)",
+        return re.sub(r"(?<![\w/])assets/([A-Za-z0-9_.-]+)",
                       lambda match: inline_asset(DECK / 'assets' / match[1]), text)
     css, player, content = map(inline_references, (css, player, content))
     macros = read_macros()

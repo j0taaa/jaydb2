@@ -20,8 +20,27 @@ Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotali
   from `applications/rls/Policy.bend` (`WriteScope`) and
   `applications/rls/ClientProof.bend` (`certificate`). Regenerate with
   `python3 paper/presentation/render_code_figures.py` from the repository root.
-  Only line wrapping changes. No generated illustration or terminal output was
-  added. The builder inlines the SVGs, fonts and cover in the offline HTML.
+  Only line wrapping changes. The builder inlines the SVGs, fonts and all WebP
+  illustrations in the offline HTML.
+- Slides 4 and 9 use OpenAI-generated conceptual illustrations, styled after
+  the cover. Their exact prompts and filenames are retained in
+  `presentation/assets/illustration-prompts.json`. Both WebP files are below
+  150 KB. The article and slide AI declarations include these illustrations.
+- Slide 7 includes a literal excerpt of a real Bend rejection for `read-bob`.
+  The concrete fixture reads `bob/00000001`; `bob/n7` is the slide's illustrative
+  identifier. Complete diagnostics for this fixture and
+  `create-without-directory`, in both official modes, are retained as `.txt`
+  files under `presentation/assets/`. Reproduce and regenerate the terminal
+  figure with:
+
+  ```sh
+  flock /tmp/jaydb2-experiments-heavy.lock bash -c \
+    'ulimit -s unlimited; python3 -B paper/presentation/capture_checker_figures.py'
+  ```
+
+  The script uses the existing `cases`, `proof_root` and `rejected` helpers;
+  each failure must occur only at the intended `false` obligation. The figure
+  contains the first five diagnostic lines; an ellipsis marks omitted context.
 
 ```sh
 make -C paper

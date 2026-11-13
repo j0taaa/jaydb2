@@ -40,3 +40,53 @@
 .code-figure{margin:32px 0 0}.code-figure img{display:block;width:100%;height:auto}
 .code-figure figcaption{font-size:20px;color:var(--deck-muted);margin-top:14px}
 .certificate-figure{margin-top:35px}.certificate-figure img{max-height:300px;object-fit:contain;object-position:left}
+
+/* Second-round layouts use the full content area above the footer. */
+#slide-arquitetura .system-figure,#slide-garantias .system-figure{margin-top:38px}
+#slide-arquitetura .system-figure text,#slide-garantias .system-figure text,#slide-gpu .system-figure text{font-size:30px}
+#slide-arquitetura .system-figure .box-title,#slide-garantias .system-figure .box-title,#slide-gpu .system-figure .box-title{font-size:32px}
+#slide-arquitetura .diagram-note,#slide-garantias .diagram-note{font-size:28px;margin-top:20px}
+#slide-gpu .diagram-intro{font-size:28px;margin-top:22px}
+#slide-gpu .system-figure{margin-top:20px}
+#slide-gpu .diagram-note{font-size:28px;margin-top:10px}
+#slide-contexto .motivation{height:470px;margin-top:70px;gap:90px}
+#slide-contexto .motivation section{display:flex;flex-direction:column;justify-content:space-between}
+#slide-contexto .motivation h3{font-size:38px;margin:0}
+#slide-contexto .motivation p{font-size:34px;margin:0}
+#slide-contexto .motivation .small{font-size:30px}
+#slide-contexto .motivation .news-date{font-size:24px}
+#slide-leis .law-layout{grid-template-columns:800px 1fr;gap:60px;height:540px;margin-top:70px}
+#slide-leis .law-layout h3{font-size:38px}
+#slide-leis .law-layout p{font-size:32px;margin-top:28px}
+#slide-leis .code-figure{margin-top:55px}
+#slide-leis .law-explanation{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:35px}
+#slide-leis .law-explanation h3:not(:first-child){margin-top:45px}
+#slide-evidencia .evidence-table{margin-top:45px;font-size:32px}
+#slide-evidencia .evidence-table th{font-size:25px;padding-bottom:24px}
+#slide-evidencia .evidence-table td{padding:36px 0}
+#slide-evidencia .spaced{margin-top:42px;font-size:28px}
+#slide-limites .method-list,#slide-futuro .method-list{height:510px;margin-top:50px;align-content:space-between;gap:35px 20px}
+#slide-limites .method-list strong,#slide-futuro .method-list strong{font-size:38px;margin-bottom:12px}
+#slide-limites .method-list p,#slide-futuro .method-list p{font-size:32px}
+#slide-limites .method-list{height:450px}
+#slide-limites .foot-message{font-size:28px;bottom:90px}
+.request-layout{display:grid;grid-template-columns:730px 620px;gap:62px;margin-top:38px}
+.request-layout .request{font-size:48px;line-height:1.23;margin:0 0 36px}
+.request-layout .ledger{margin-top:0}.request-layout .ledger-line{font-size:28px;padding:20px 0}
+.illustration{margin:0}.illustration img{display:block;width:100%;height:auto}
+.illustration figcaption{font-size:24px;line-height:1.35;color:var(--deck-muted);margin-top:15px}
+.rejection-layout{display:grid;grid-template-columns:740px 620px;gap:52px;margin-top:55px;align-items:start}
+.rejection-layout .system-figure{margin-top:0}
+.rejection-layout .system-figure text{font-size:30px}.rejection-layout .system-figure .box-title{font-size:32px}
+.rejection-layout .system-figure .deny-label{font-size:28px}
+.terminal-figure{margin:0}.terminal-figure img{width:100%;height:auto;display:block}
+.terminal-figure figcaption{font-size:22px;line-height:1.5;color:var(--deck-muted);margin-top:22px}
+.llm-layout{display:grid;grid-template-columns:850px 500px;gap:62px;margin-top:38px}
+.llm-layout .system-figure{margin-top:0}.llm-layout .system-figure text{font-size:30px}
+.llm-layout .system-figure .box-title{font-size:32px}
+.llm-layout .system-figure .deny-label{font-size:30px}
+.llm-context{margin-top:25px}.llm-context p{font-size:28px;line-height:1.4;margin-bottom:24px}
+.llm-layout .illustration img{height:500px;object-fit:cover}
+
+.request-layout .illustration img{height:520px;object-fit:cover}
+.llm-context p:last-child{margin-bottom:0}
