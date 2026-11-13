@@ -348,7 +348,17 @@ or altered artifact or a device error discards the private proposal, and a
 marked computation never silently falls back to the CPU. Requests remain serial.
 
 \subsection{Guarantees and the trusted boundary}
-The central executable results have four readable interpretations.
+The core theorem is stated over the executable gate, interpreter and finalizer
+($\operatorname{begin}$), not over a separate model. For every configuration
+$C$, state $s$, request $r$, admission oracle $a$ and clause $k$:
+\[
+\operatorname{ValidConf}(C)\wedge\operatorname{Valid}(C,s)\wedge
+\operatorname{OracleSound}(C,r,a)\Longrightarrow
+\operatorname{Core}_k(\operatorname{begin}(C,s,r,a)).
+\]
+$\operatorname{OracleSound}$ is the T1 interface: the checker accepts only when
+$\operatorname{Certifies}$ and termination hold for the exact program; T2 and T3
+carry the result to the running service. The four clauses read as follows.
 \emph{Admitted} connects current identity and successful admission to the exact
 initial machine. \emph{Safe} establishes the laws for each actual execution
 prefix. \emph{Completed} connects finalization to the valid selected state and
@@ -420,10 +430,10 @@ itself is outside the proofs.
 \paragraph{Certified simulation.}
 The fourth application is compute-heavy. A caller's \code{scenarios} row holds
 a seed, drift and volatility; the program simulates many integer random walks
-in a balanced parallel tree and writes summary statistics (sum, maximum, count
+in a balanced parallel tree and writes summary statistics (32-bit modular sum, unsigned maximum, count
 above the start and path count) to the caller's own \code{results} row. Depth
 and step arguments scale the work while the stored data stay small. It is a
-deterministic compute demonstration, not a calibrated financial model. Its
+deterministic integer workload, not a calibrated financial model. Its
 universal certificate permits only reading the caller's scenario and writing
 the caller's result, including on failure and refusal paths, and proves
 termination. Variants that read another user's scenario or write another
@@ -695,11 +705,9 @@ and \num{\SimulationCudaPreparationMs}~ms for CPU-1, CPU-16 and CUDA.
 The main contribution is a connection between application certificates and
 executable database transitions. RQ1 is answered conditionally under T1--T3;
 RQ2 receives concrete evidence from applications combining access and
-publication rules. Relative to verified relational internals and deductive
-synthesis \cite{malecha2010,fiat2015}, JayDB2 studies a consumer admitting
-client-authored transactions. Relative to UrFlow and information-flow
-systems \cite{urflow2010,lweb2019}, it expresses arbitrary application
-propositions without claiming complete noninterference.
+publication rules. Unlike verified database internals, JayDB2 admits
+client-authored transactions; unlike information-flow systems, it does not
+claim complete noninterference (Section 2).
 
 The generator stays outside the verification trust boundary: the administrator
 supplies policy, an author or LLM constructs code and proof, and the service
