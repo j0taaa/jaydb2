@@ -34,7 +34,7 @@
 .motivation .small{font-size:25px;margin-top:24px}
 .evidence-table{font-size:28px;margin-top:35px}.evidence-table td{padding:26px 0}
 .evidence-table td:nth-child(2){font-variant-numeric:tabular-nums;text-align:center}
-.closing-points{margin-top:45px;max-width:1260px}.closing-points p{font-size:35px;line-height:1.35;padding:23px 0;border-bottom:1px solid #52736f}
+.closing-points{margin-top:36px;max-width:1260px}.closing-points p{font-size:32px;line-height:1.3;padding:17px 0;border-bottom:1px solid #52736f}
 .law-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:65px;margin-top:60px}
 .law-layout p{font-size:28px;margin-top:20px}.law-explanation h3:not(:first-child){margin-top:55px}
 .code-figure{margin:32px 0 0}.code-figure img{display:block;width:100%;height:auto}
@@ -49,8 +49,8 @@
 #slide-gpu .diagram-intro{font-size:28px;margin-top:22px}
 #slide-gpu .system-figure{margin-top:20px}
 #slide-gpu .diagram-note{font-size:28px;margin-top:10px}
-#slide-contexto .motivation{height:470px;margin-top:70px;gap:90px}
-#slide-contexto .motivation section{display:flex;flex-direction:column;justify-content:space-between}
+#slide-contexto .motivation{height:470px;margin-top:70px;gap:90px;align-items:start}
+#slide-contexto .motivation section{display:flex;flex-direction:column;justify-content:flex-start;gap:34px}
 #slide-contexto .motivation h3{font-size:38px;margin:0}
 #slide-contexto .motivation p{font-size:34px;margin:0}
 #slide-contexto .motivation .small{font-size:30px}

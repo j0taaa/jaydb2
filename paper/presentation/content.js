@@ -53,7 +53,7 @@ function llmFigure(){return figure('O usuário apresenta a intenção ao LLM. O 
  box(0,0,285,150,'Usuário','Intenção')+edge('M285 75H365')+
  box(365,0,480,170,'LLM + bibliotecas','Programa + prova')+edge('M605 170V240')+
  label(389,137,'Gerador não confiável','deny-label')+
- box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept'),400,850);}
+ box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept')+edge('M365 340H150V215H470V172','deny')+label(165,290,'Rejeita:|corrige','deny-label'),400,850);}
 
 function architectureFigure(){return figure('Node prepara fontes. Bend e BendTT verificam o Book. Selos vinculam o Book à compilação e hashes vinculam os artefatos ao worker. Bend interpreta e finaliza; Rust publica Commit ou preserva Keep.',
  box(0,0,330,220,'Node · staging','stage.mjs|Fontes e prova')+edge('M330 110H420')+
@@ -71,10 +71,10 @@ function trustFigure(){return figure('Núcleo provado sob premissas. Camadas con
  label(135,405,'Admissão exata · leis em cada passo|Finalização válida · terminação lógica'),550);}
 
 function gpuFigure(){return figure('O mesmo programa certificado usa CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
- box(0,145,475,195,'Programa + prova','Book aceito|Trecho paralelo marcado')+edge('M475 240H575V90H685')+edge('M575 240V370H685')+
+ box(0,120,475,240,'Programa + prova','Aceito pelos dois|verificadores antes|do código GPU')+edge('M475 240H575V90H685')+edge('M575 240V370H685')+
  box(685,0,715,180,'Backend CPU','Runtime Bend|Workers CPU')+
- box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','accept')+
- label(0,430,'Mesmas obrigações:','box-title')+label(0,474,'acesso, terminação e publicação'),510);}
+ box(685,270,715,230,'Backend CUDA','Trecho paralelo na GPU|T2 adicional: runtime CUDA, NVRTC,|driver, memória gerenciada e GPU','reject')+
+ label(0,430,'Mesmas obrigações','box-title')+label(0,474,'e mesmo Gate/finalizador verificado'),510);}
 
 function retryFigure(){return figure('Cliente envia pedido. Serviço publica voucher e recibo, mas a resposta se perde. Repetição idêntica e ainda autorizada recebe o resultado retido sem nova emissão.',
  label(40,35,'Cliente','box-title')+label(700,35,'Serviço de vouchers','box-title')+
@@ -83,7 +83,7 @@ function retryFigure(){return figure('Cliente envia pedido. Serviço publica vou
  box(1000,80,395,120,'Publicação','Efeito + resultado retido')+`<path class="edge" d="M890 100H1000"/>`+
  `<path class="edge deny" d="M890 225H440" stroke-dasharray="10 8"/>`+label(465,209,'Resposta perdida','deny-label')+`<path class="lost" d="M420 208L452 240M452 208L420 240"/>`+
  edge('M155 320H890')+label(220,304,'Repetição: mesmo ID e entrada')+
- edge('M890 415H155')+label(220,398,'Resultado retido, se ainda autorizado')+label(1000,335,'Sem nova emissão','box-title'),460);}
+ edge('M890 415H155')+label(220,398,'Resultado retido, se ainda autorizado')+label(915,330,'Sem nova emissão','box-title'),460);}
 
 function reuseChart(){
   const x=n=>335+Math.log10(n)*225;
@@ -157,7 +157,7 @@ const slides=[
 },
 {
  id:'contexto',title:'Quem confere o que um programa faz com os dados?',seconds:35,
- html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="motivation"><section class="incident"><p class="small muted">DINAMARCA · 5 OUT 2026</p><h3>Acesso indevido ao registro CPR</h3><p>Dados de cerca de 8,8 milhões<br>de pessoas foram acessados.</p><p class="small">O invasor usou o acesso legítimo<br>de uma empresa.</p></section><section><h3>Programas gerados por IA</h3><p>Assistentes de IA são usados para escrever código que lê e altera dados.</p><p class="small spaced">Isso motiva verificar as operações permitidas e as regras de integridade antes da execução.</p></section></div>`,
+ html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="motivation"><section class="incident"><p class="small muted">DINAMARCA · 5 OUT 2026</p><h3>Acesso indevido ao registro CPR</h3><p>Dados de cerca de 8,8 milhões<br>de pessoas foram acessados.</p><p class="small">O invasor usou o acesso legítimo<br>de uma empresa.</p></section><section><p class="small muted">IA · ACESSO A DADOS</p><h3>Programas gerados por IA</h3><p>Assistentes de IA são usados para escrever código que lê e altera dados.</p><p class="small spaced">Isso motiva verificar as operações permitidas e as regras de integridade antes da execução.</p></section></div>`,
  bottom:'Fonte: comunicado oficial do CPR. O caso motiva a pergunta; não demonstra prevenção pelo protótipo.',
  notes:`O comunicado oficial do CPR relata acesso indevido a dados de aproximadamente oito milhões e oitocentas mil pessoas por meio do acesso legítimo de uma empresa. Esse incidente motiva distinguir autenticação e comportamento permitido. Em outro contexto, assistentes de IA são usados para escrever programas que acessam dados. O trabalho investiga uma interface que exige um certificado verificável antes de executar esses programas. O caso CPR é uma motivação, sem demonstração de que o protótipo impediria o ataque.`,
  sources:[sources.cpr]
@@ -173,14 +173,14 @@ const slides=[
  id:'pedido',title:'Um pedido comum',seconds:30,
  html:`<p class="kicker">Exemplo: notas compartilhadas</p><h2>Um pedido comum</h2><div class="request-layout"><section><div class="request">Salve uma nota para mim<br>e inclua essa nota<br>na minha lista.</div><div class="ledger"><div class="ledger-line"><span class="owner">Alice</span><code>alice/n1</code></div><div class="ledger-line"><span>Diretório de Alice</span><span>inclui n1</span></div><div class="ledger-line"><span class="owner bob">Bob</span><code>bob/n7</code></div><div class="ledger-line"><span>Dados de Bob</span><span>fora do pedido</span></div></div></section><figure class="illustration"><img src="assets/notes-collections.webp" alt="Ilustração conceitual: notas de dois donos no mesmo recipiente, cada grupo com sua própria ficha de índice."/><figcaption>Uma tabela de notas compartilhada.<br>Um diretório por usuário.</figcaption></figure></div>`,
  bottom:'Pedido e resultado pretendido são ilustrativos. A interface recebe programa e certificado em Bend.',
- notes:`Alice quer salvar uma nota e encontrá-la em seu diretório. A ilustração agrupa os papéis por dono dentro de um recipiente compartilhado: no sistema, há uma única tabela de notas e um diretório separado por usuário. Bob também tem notas nessa tabela; seus dados ficam fora do pedido de Alice. O programa deve respeitar o acesso e atualizar nota e diretório antes da publicação. Os identificadores n1 e n7 são ilustrativos. A interface implementada recebe programa e certificado em Bend.`,
+ notes:`Alice quer salvar uma nota e encontrá-la em seu diretório. A ilustração agrupa as notas por dono dentro de um recipiente compartilhado: no sistema, há uma única tabela de notas e um diretório separado por usuário. Bob também tem notas nessa tabela; seus dados ficam fora do pedido de Alice. O programa deve respeitar o acesso e atualizar nota e diretório antes da publicação. Os identificadores n1 e n7 são ilustrativos. A interface implementada recebe programa e certificado em Bend.`,
  sources:[sources.rls]
 },
 {
  id:'leis',title:'As regras da aplicação',seconds:30,
- html:`<p class="kicker">O que o administrador exige</p><h2>As regras da aplicação</h2><div class="law-layout"><section><h3>Propriedade</h3><p class="small">A chave de escrita pertence<br>ao usuário autenticado.</p><figure class="code-figure"><img src="assets/write-scope.svg" alt="Trecho literal de Policy.bend: WriteScope exige que key_owner(key) seja id e key_valid(key) seja True."/><figcaption>Trecho literal · applications/rls/Policy.bend</figcaption></figure></section><section class="law-explanation"><h3>Dono da nota</h3><p>A criação usa a identidade autenticada.<br>A atualização preserva o dono.</p><h3>Diretório exato</h3><p>Lista todas as notas do dono<br>e nenhuma de outra pessoa.</p></section></div>`,
+ html:`<p class="kicker">O que o administrador exige</p><h2>As regras da aplicação</h2><div class="law-layout"><section><h3>Propriedade</h3><p class="small">A chave de escrita pertence<br>ao usuário autenticado.</p><figure class="code-figure"><img src="assets/write-scope.svg" alt="Trecho literal de Policy.bend: WriteScope exige que key_owner(key) seja id e key_valid(key) seja True."/><figcaption>Trecho literal · applications/rls/Policy.bend</figcaption></figure></section><section class="law-explanation"><h3>Dono da nota</h3><p>A criação usa a identidade<br>autenticada. A atualização<br>preserva o dono.</p><h3>Diretório exato</h3><p>Lista todas as notas do dono<br>e nenhuma de outra pessoa.</p></section></div>`,
  bottom:'A aplicação também define um administrador com leitura ampliada e sem exceção de escrita.',
- notes:`Estas são as regras da aplicação. Cada chave está ligada à identidade atual. Na criação, o dono gravado deve ser o usuário autenticado. Uma atualização preserva esse dono. O diretório deve listar todas as notas dele e nenhuma de outra pessoa. O administrador pode fazer leituras ampliadas, mas não recebe exceção de escrita. Essas obrigações foram formalizadas e entram no certificado. Os controles negativos tentam quebrar cada uma delas para conferir a rejeição.`,
+ notes:`Estas são as regras da aplicação. Cada chave está ligada à identidade atual. O trecho mostra WriteScope: o dono da chave deve ser o id autenticado e a chave deve ser válida. Na criação, o dono gravado deve ser o usuário autenticado. Uma atualização preserva esse dono. O diretório deve listar todas as notas dele e nenhuma de outra pessoa. O administrador pode fazer leituras ampliadas, mas não recebe exceção de escrita. Essas obrigações foram formalizadas e entram no certificado. Os controles negativos tentam quebrar cada uma delas para conferir a rejeição.`,
  sources:[sources.rls]
 },
 {
@@ -192,9 +192,9 @@ const slides=[
 },
 {
  id:'rejeicoes',title:'Dois erros, duas obrigações',seconds:45,
- html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas obrigações</h2><div class="rejection-layout"><section>${rejectionFigure()}</section><figure class="terminal-figure"><img src="assets/checker-rejection.svg" alt="Saída real de Bend: SOME PROOFS FAIL, expected bob, observed alice, Location false."/><figcaption><code>python3 -B paper/presentation/<br>capture_checker_figures.py</code><br>Controle <code>read-bob</code>: chave <code>bob/00000001</code>.<br>Trecho literal; … indica linhas omitidas.</figcaption></figure></div>`,
+ html:`<p class="kicker">Controles negativos executados</p><h2>Dois erros, duas obrigações</h2><div class="rejection-layout"><section>${rejectionFigure()}</section><figure class="terminal-figure"><img src="assets/checker-rejection.svg" alt="Saída real de Bend: SOME PROOFS FAIL, expected bob, observed alice, Location false."/><figcaption>Controle <code>read-bob</code>: chave real <code>bob/00000001</code>;<br><code>bob/n7</code> é ilustrativo. Trecho literal; … indica linhas omitidas.<br>Capturado por <code>capture_checker_figures.py</code>.</figcaption></figure></div>`,
  bottom:`Aplicação de notas: ${pt(value('RlsNegativeFixtures'),0)} negativos causais e ${pt(value('RlsNativeResponses'),0)} respostas nativas conferidas.`,
- notes:`Os dois diagramas representam obrigações independentes: ler Bob viola a permissão; criar sem atualizar o diretório viola a consistência final. À direita há uma saída real capturada nesta revisão. O controle read-bob usa a chave concreta bob/00000001, que é o caso correspondente ao identificador ilustrativo bob/n7. O verificador esperava bob e encontrou alice na prova de permissão. Os controles read-bob e create-without-directory foram executados em Bend e BendTT, com falha somente em false. A figura mostra apenas o diagnóstico inicial do primeiro controle; a elipse marca o contexto omitido. Os logs completos e o comando de reprodução estão nos artefatos da apresentação.`,
+ notes:`Os dois diagramas representam obrigações independentes: ler Bob viola a permissão; criar sem atualizar o diretório viola a consistência final. À direita há a saída real do verificador. O controle read-bob usa a chave concreta bob/00000001, que é o caso correspondente ao identificador ilustrativo bob/n7. O verificador esperava bob e encontrou alice na prova de permissão. Os controles read-bob e create-without-directory foram executados em Bend e BendTT, com falha somente em false. A figura mostra apenas o diagnóstico inicial do primeiro controle; a elipse marca o contexto omitido. Os logs completos e o comando de reprodução estão nos artefatos da apresentação.`,
  sources:[sources.rls,source('Diagnóstico real: read-bob','paper/presentation/assets/read-bob-check-only.txt')]
 },
 {
@@ -206,7 +206,7 @@ const slides=[
 },
 {
  id:'llms',title:'Onde os LLMs entram',seconds:50,
- html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="llm-layout"><section>${llmFigure()}<div class="llm-context"><p><strong>Pesquisa.</strong> Baldur, Dafny e AutoVerus estudam geração.</p><p><strong>Neste projeto.</strong> LLMs ajudaram no código e nas provas.<br>Escreveram todos os testes, sob direção do autor.</p></div></section><figure class="illustration"><img src="assets/program-proof-generator.webp" alt="Ilustração conceitual: gerador produz programa e certificado em folhas separadas diante de um portal de verificação independente."/><figcaption>O gerador produz os artefatos.<br>O banco verifica a prova.</figcaption></figure></div>`,
+ html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="llm-layout"><section>${llmFigure()}<div class="llm-context"><p><strong>Pesquisa.</strong> Baldur (Isabelle), Misu et al. (Dafny)<br>e AutoVerus (Verus) estudam a geração de provas.</p><p><strong>Neste projeto.</strong> LLMs ajudaram no código e nas provas.<br>Escreveram todos os testes, sob direção do autor.</p></div></section><figure class="illustration"><img src="assets/program-proof-generator.webp" alt="Ilustração conceitual: gerador produz programa e certificado em folhas separadas diante de um portal de verificação independente."/><figcaption>O gerador produz os artefatos.<br>O banco verifica a prova.</figcaption></figure></div>`,
  bottom:`O gerador fica fora da base de confiança da admissão.`,
  notes:'A escrita manual de provas torna uma operação pequena cara de produzir. LLMs e bibliotecas de provas permitem outro fluxo: partir da intenção, construir programa e certificado, submeter ao verificador e corrigir quando não passa. Há trabalhos recentes nessa direção: o Baldur gera e repara provas em Isabelle, Misu e colegas sintetizam métodos Dafny verificados, e o AutoVerus gera provas para código Rust verificado pelo Verus. Esses trabalhos medem com que frequência a geração dá certo. O JayDB2 trata do lado complementar: um banco que só executa o artefato gerado se a prova passar, então o gerador não precisa ser confiável. Neste projeto, LLMs ajudaram no código e nas provas, e todos os testes do JayDB2 foram escritos por LLMs sob minha direção.',
  sources:[sources.ai,sources.baldur,sources.misu,sources.autoverus]
@@ -220,7 +220,7 @@ const slides=[
 },
 {
  id:'arquitetura',title:'A prova acompanha o código exato',seconds:55,
- html:`<p class="kicker">A conexão com a implementação</p><h2>A prova acompanha o código exato</h2>${architectureFigure()}<p class="small diagram-note">Selos e hashes: vínculo T1. Rust publica exatamente a decisão selecionada: T3.</p>`,
+ html:`<p class="kicker">A conexão com a implementação</p><h2>A prova acompanha o código exato</h2>${architectureFigure()}<p class="small diagram-note">Dependências lógicas. Selos e hashes: vínculo T1. Rust publica a decisão selecionada: T3.</p>`,
  bottom:'Bend 2.0.39 / BendTT · Rust 1.98.0 · Node 24.19.0 · Clang 19.1.1',
  notes:`Node, por stage.mjs, prepara as fontes e coordena a admissão. Os verificadores Bend e BendTT conferem as obrigações do mesmo Book. O diagrama mostra dependências lógicas: na CPU, parte da compilação pode se sobrepor à segunda verificação. Selos conferem o Book antes e depois da emissão C; hashes ligam fontes e artefatos. Nenhum artefato é liberado antes de ambas as aceitações e das conferências de vínculo. O worker nativo executa Gate, interpretador e finalizador escritos em Bend. Rust coordena o processo, recebe a decisão Commit ou Keep e publica exatamente o estado e a resposta selecionados. As transações seguem uma fila serial.`,
  sources:[sources.proofs,sources.evidence,sources.gpu]
@@ -269,7 +269,7 @@ const slides=[
 },
 {
  id:'gpu',title:'Execução GPU opcional',seconds:50,
- html:`<p class="kicker">Backends de execução</p><h2>Execução GPU opcional</h2><p class="small diagram-intro">A simulação usa caminhadas aleatórias inteiras. O autor marca o trecho paralelo.</p>${gpuFigure()}<p class="small diagram-note">Autenticação e controle seguem na CPU. Falha GPU descarta a proposta.</p>`,
+ html:`<p class="kicker">Backends de execução</p><h2>Execução GPU opcional</h2><p class="small diagram-intro">A simulação usa caminhadas aleatórias inteiras. O autor marca o trecho paralelo.</p>${gpuFigure()}<p class="small diagram-note">Autenticação e controle seguem na CPU. Uma falha na GPU descarta a proposta.</p>`,
  bottom:'Resultados numéricos conferidos com oráculos Python/NumPy: evidência de teste, não prova.',
  notes:'Para avaliar um caso de cálculo pesado, a quarta aplicação simula muitas caminhadas aleatórias inteiras. O autor marca o trecho paralelo do programa e, se o administrador ativar a GPU, o Bend executa esse trecho em CUDA. Autenticação e controle da transação continuam na CPU. A admissão é a mesma: os dois verificadores aceitam o programa antes de qualquer código GPU ser gerado. As obrigações também são as mesmas, e as variantes que leem o cenário de outro usuário falham antes da compilação. Se o artefato muda ou a GPU falha, a proposta é descartada, sem recorrer silenciosamente à CPU. O preço é uma base de confiança maior: o runtime CUDA, o driver e o hardware entram em T2. A correção numérica é conferida por testes, não provada.',
  sources:[sources.gpu,sources.simulation,source('Evidência GPU','paper/evidence/gpu-programs.md')]
@@ -290,7 +290,7 @@ const slides=[
 },
 {
  id:'futuro',title:'Trabalhos futuros',seconds:45,
- html:`<p class="kicker">Continuidade da pesquisa</p><h2>Trabalhos futuros</h2><div class="method-list"><div class="n">01</div><p><strong>Avaliar geração em pedidos inéditos</strong>Medir aceitação dos artefatos, correções e esforço humano.</p><div class="n">02</div><p><strong>Reduzir trabalho sobre o estado completo</strong>Avaliar outras representações e workers GPU persistentes.</p><div class="n">03</div><p><strong>Ampliar garantias do host</strong>Estudar recuperação após falhas e recertificação após mudanças de política.</p></div>`,
+ html:`<p class="kicker">Continuidade da pesquisa</p><h2>Trabalhos futuros</h2><div class="method-list"><div class="n">01</div><p><strong>Avaliar geração em pedidos inéditos</strong>Medir aceitação dos artefatos, correções e esforço humano.</p><div class="n">02</div><p><strong>Reduzir trabalho sobre o estado completo</strong>Avaliar outras representações e workers GPU persistentes.</p><div class="n">03</div><p><strong>Ampliar garantias formais</strong>Estudar recuperação após falhas e recertificação após mudanças de política.</p></div>`,
  bottom:`Etapas propostas; estes resultados ainda não foram estabelecidos.`,
  notes:`Os próximos passos têm critérios concretos. Um experimento com pedidos inéditos deve medir quantos programas e certificados são aceitos, quantas correções exigem e quanto esforço humano permanece. Na implementação, é preciso reduzir o trabalho sobre o estado completo e avaliar workers GPU persistentes. Na formalização, os próximos alvos são recuperação após falhas e mudanças de política com recertificação. Estas são propostas de continuidade, ainda sem resultados neste trabalho.`,
  sources:[sources.artifact,sources.evidence]
@@ -304,9 +304,9 @@ const slides=[
 },
 {
  id:'conclusao',title:'JayDB2: síntese do trabalho',theme:'dark conclusion',seconds:30,
- html:`<p class="kicker">Conclusão</p><h2>JayDB2: síntese do trabalho</h2><div class="closing-points"><p>Serviço executável que verifica certificados ligados<br>ao programa e ao resultado publicado.</p><p>Aplicações combinam leis de acesso e consistência.<br>Experimentos medem custo, reuso, escala e CUDA.</p><p>O protótipo depende de T1–T3 e tem custo elevado<br>frente a SQL nas operações pontuais avaliadas.</p></div><p class="small spaced">Obrigado.</p>`,
+ html:`<p class="kicker">Conclusão</p><h2>JayDB2: síntese do trabalho</h2><div class="closing-points"><p>Um programa pode chegar ao banco com uma prova<br>das regras que precisa respeitar.</p><p>Serviço executável que verifica certificados ligados<br>ao programa executado e à sua finalização.</p><p>Aplicações combinam leis de acesso e consistência.<br>Experimentos medem custo, reuso, escala e CUDA.</p><p>O protótipo depende de T1–T3 e tem custo elevado<br>frente a SQL nas operações pontuais avaliadas.</p></div><p class="small spaced">Obrigado.</p>`,
  bottom:'Gabriel Jota Lizardo · PUC Minas',
- notes:`O trabalho construiu um serviço executável que exige certificados ligados ao programa admitido, à execução e à publicação. As aplicações combinam acesso e consistência, e os experimentos medem o custo desse caminho, a preparação, a escala e o offload em CUDA. Os resultados dependem da base T1 a T3; nas operações pontuais, o custo do protótipo continua elevado frente a SQL. As limitações apresentadas delimitam o que foi estabelecido. Obrigado.`,
+ notes:`A pergunta do trabalho foi se um programa pode chegar ao banco com uma prova das regras que precisa respeitar. O trabalho construiu um serviço executável que exige certificados ligados ao programa admitido, à sua execução e à sua finalização; a publicação física fica em T3. As aplicações combinam acesso e consistência, e os experimentos medem o custo desse caminho, a preparação, a escala e o offload em CUDA. Os resultados dependem da base T1 a T3; nas operações pontuais, o custo do protótipo continua elevado frente a SQL. As limitações apresentadas delimitam o que foi estabelecido. Obrigado.`,
  sources:[sources.artifact]
 },
 {
@@ -325,9 +325,9 @@ const slides=[
 },
 {
  id:'b-resposta',title:'E se a resposta se perder?',backup:true,seconds:0,
- html:`<p class="kicker">Perguntas · vouchers e repetição</p><h2>E se a resposta se perder?</h2>${retryFigure()}<p class="small diagram-note">Entrada conflitante recusa. Retirar voucher e recibo encerra a proteção do ID.</p>`,
+ html:`<p class="kicker">Perguntas · vouchers e repetição</p><h2>E se a resposta se perder?</h2>${retryFigure()}<p class="small diagram-note">Uma entrada conflitante é recusada. Retirar voucher e recibo encerra a proteção do ID.<br>Testes nativos cobrem perda de resposta e reabertura após publicação durável.</p>`,
  bottom:'A aplicação define o protocolo. O cliente não repete escritas silenciosamente.',
- notes:'A perda de resposta pode ocorrer depois de o banco publicar a transação. Repetir uma emissão comum poderia duplicar um efeito. A aplicação de vouchers liga o ID do pedido à entrada exata e ao resultado retido. Um pedido idêntico, ainda autorizado, retorna esse resultado sem repetir a emissão. Uma entrada diferente com o mesmo ID recusa. O protocolo inclui retirada explícita, que remove o voucher e recibo e termina a proteção daquele ID. Os testes matam o serviço após publicação durável e verificam o comportamento na reabertura. Isso é evidência de cenário e não uma prova completa de falhas de armazenamento.',
+ notes:'A perda de resposta pode ocorrer depois de o banco publicar a transação. Repetir uma emissão comum poderia duplicar um efeito. A aplicação de vouchers liga o ID do pedido à entrada exata e ao resultado retido. Um pedido idêntico, ainda autorizado, retorna esse resultado sem repetir a emissão. Uma entrada diferente com o mesmo ID é recusada. O protocolo inclui retirada explícita, que remove o voucher e recibo e termina a proteção daquele ID. Os testes matam o serviço após publicação durável e verificam o comportamento na reabertura. Isso é evidência de cenário e não uma prova completa de falhas de armazenamento.',
  sources:[sources.voucher]
 },
 {
