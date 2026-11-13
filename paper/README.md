@@ -47,8 +47,8 @@ Deliverables are ignored build products:
 Use arrow keys or Space to navigate, N for notes, F for fullscreen and O for the
 slide index. Reveals advance before the next slide. The presentation stops at
 the final main slide; question slides remain accessible through the index.
-Printing includes every slide. The planned main-slide allocation is **17min50s**;
-The generated notes report the current speaking-word count.
+Printing includes every slide. The planned main-slide allocation is **17min50s**. The generated
+notes report the current speaking-word count.
 The timing data leave room within the 20-minute limit, subject to rehearsal.
 
 ## SBC template and course regulations

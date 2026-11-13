@@ -31,18 +31,20 @@ Belo Horizonte -- MG -- Brasil}
 
 \begin{abstract}
 JayDB2 checks client programs and proofs against administrator-defined database
-rules before execution. Concrete examples introduce its service, guarantees
+rules before execution. Examples introduce its service, guarantees
 and costs. Certified applications cover ownership, consistent indexes, retry
-receipts, shared notes and simulation. LLMs assisted construction and authored
-tests under the author's direction. Preparation reduces a measured read from
+receipts, shared notes and simulation. Large language models (LLMs) assisted
+construction and authored tests under the author's direction. Preparation reduces
+a measured read from
 \num{\OrdinaryReadMedianSeconds} seconds to
 \num{\PreparedReadVolatileMedianMs} milliseconds, while SQL remains faster for
-point operations. Optional CUDA preserves the proof obligations with a larger
+point operations. Optional NVIDIA CUDA preserves proof obligations with a larger
 trusted base. In volatile simulation it beats CPU-16 only at the largest tested
 workload. Complete-state work limits scale; crash durability and CUDA
 correctness remain assumptions.
 \end{abstract}
 \begin{resumo}
+\selectlanguage{brazilian}
 O JayDB2 verifica programas e provas de clientes contra regras do administrador
 antes da execução. Exemplos apresentam o serviço, suas garantias e custos.
 Aplicações certificadas cobrem propriedade, índices consistentes, recibos,
@@ -92,8 +94,7 @@ the actual system, credentials and permitted queries.
 AI-assisted programming adds another reason to study this boundary. LLMs can
 help construct the program and its proof while an independent checker decides
 whether the proof satisfies the installed rules. This division was used during
-JayDB2's development: AI agents assisted implementation and proofs, and the
-author reports that all JayDB2-related tests were LLM-authored. Proof libraries
+JayDB2's development: AI agents assisted implementation and proofs. Proof libraries
 and prepared programs further reduce repeated work. The implemented database
 accepts Bend source and certificates. A general natural-language request service
 is a possible layer above it.
@@ -294,15 +295,17 @@ these obligations to quantify over contexts and arguments as well as states.
 A central implementation obligation is exact binding. JayDB2 must check the
 program that its interpreter will execute. Admission generates a sealed Bend
 \emph{Book}, a collection of definitions containing the program and proof.
-The same Book feeds native compilation. Generated oracle proofs connect the
+The same Book feeds native compilation. Generated admission-oracle proofs connect the
 admission decision to that exact program. A worker bridge connects the foreign
 execution loop to the proved transition functions.
 
 Figure~\ref{fig:architecture} separates the logical decisions from host work.
 Rust owns the published state and coordinates processes. Node stages admission
 and compilation. Checked Bend functions decode requests, authenticate, select
-programs, interpret actions and finalize results. After the primary check and
-Safe translation, BendTT checking overlaps C emission and Clang compilation.
+programs, interpret actions and finalize results. In the default CPU mode, after
+the primary check and translation for the second (BendTT) check, BendTT checking
+overlaps C emission and Clang compilation; GPU (graphics processing unit) mode waits
+for both checkers first.
 Artifacts are released only after required checks and identity seals agree.
 The emitted C is compiled without rewriting it.
 
@@ -450,7 +453,7 @@ The toolchain uses Bend 2.0.39 and its official BendTT checker \cite{bend}.
 The physical host uses Rust 1.98.0 \cite{rust}; staging uses Node.js
 24.19.0 \cite{node}; native C compilation uses Clang 19.1.1 \cite{clang}.
 Python 3.12.3 runs experiments \cite{python}. NumPy 2.5.4 supplies independent
-oracles \cite{numpy}; CUDA driver \GpuDriverVersion{} and resolved NVRTC
+numerical oracles \cite{numpy}; CUDA driver \GpuDriverVersion{} and resolved NVRTC
 library \NvrtcLibraryVersion{} support E6 \cite{cuda,nvrtc}. SQL comparisons use
 PostgreSQL 16.15 \cite{postgresrls}, Psycopg 3.3.8 \cite{psycopg} and
 SQLite 3.45.1 \cite{sqlite}. LaTeX/BibTeX typeset the
@@ -486,12 +489,12 @@ controls separate a valid ownership argument from an invalid final index.
 The notes controls separately exercise foreign access, ownership changes,
 directory maintenance and the administrator's read-only role.
 
-Full verification retains \NegativeFixtures{} core negative fixtures and
+E4 retains the verification runs. Full verification includes \NegativeFixtures{} core negative fixtures and
 \RlsNegativeFixtures{} separate RLS negatives. Each RLS negative fails only its
 intended obligation in both official checker modes. Its native session checks
 \RlsNativeResponses{} responses, including unchanged complete state after
-rejected programs. The retained command runs \code{make verify-contract},
-\code{make verify} and \code{make test} all succeed. Their single-run wall times
+rejected programs. The retained runs of \code{make verify-contract}, \code{make verify} and
+\code{make test} all succeed. Their single-run wall times
 are \num{\VerifyContractSeconds}, \num{\VerifySeconds} and
 \num{\TestSeconds}~s. These are one observation per command, not distributions.
 
@@ -510,7 +513,7 @@ requires a separate study of unseen tasks and developers.
 
 \begin{table}[H]\centering\small
 \caption{Local nonblank program and certificate/termination lines. These counts
-exclude shared and domain proofs and do not measure authoring effort.}
+exclude shared and domain proofs and do not measure authoring effort. Simulation is not counted.}
 \label{tab:proof-size}
 \begin{tabular}{@{}lrr@{}}\toprule Application & Program lines & Proof lines\\\midrule
 Availability & \IndexedClientLines & \IndexedProofLines\\
@@ -519,7 +522,7 @@ Shared notes & \RlsClientLines & \RlsProofLines\\\bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{E1--E2: checking once makes reuse practical to measure}
+\subsection{E1--E2: ordinary admission versus prepared reuse}
 E1 records \OrdinarySamples{} ordinary calls per program, \OrdinarySessionSamples{} in each session after warmup.
 Figure~\ref{fig:reuse} compares the read paths.
 Median latency is \num{\OrdinaryReadMedianSeconds}~s for a read,
@@ -579,7 +582,7 @@ checks and whole-state handling remain.
 \subsection{E3: the prototype remains slower than SQL}
 The durable comparison uses \ComparisonSamples{} reads and changing updates per engine, profile
 and population, with three sessions. PostgreSQL uses fsync, synchronous commit
-and full-page writes on a local Unix socket. SQLite uses WAL and
+and full-page writes on a local Unix socket. SQLite uses write-ahead logging (WAL) and
 \code{synchronous=FULL}. Connections and statements are reused. JayDB2 uses
 durable prepared programs. SQLite has no ownership policy in this experiment;
 the owner profile uses forced PostgreSQL RLS and JayDB2 ownership laws.
@@ -657,12 +660,12 @@ checker fuel; certified population avoids those initialization failures.
 
 \subsection{E6: certified simulation on CPU and CUDA}
 Table~\ref{tab:simulation} compares complete prepared requests with in-database
-PostgreSQL PL/pgSQL and SQLite recursive CTE queries. Each engine reads identical
+PostgreSQL PL/pgSQL and SQLite recursive common table expression (CTE) queries. Each engine reads identical
 scenario parameters, computes every path/step, upserts the same aggregates and
-returns them; no host-language SQL UDF is timed. JayDB2 timing includes encoding,
+returns them; no host-language user-defined function (UDF) is timed. JayDB2 timing includes encoding,
 transport, fresh authentication, artifact checks, fresh child/device startup,
 publication and decoding. SQL includes execute/fetch and in-database work.
-Independent scalar/NumPy oracles and full published states/tables, including
+Independent scalar/NumPy numerical oracles and full published states/tables, including
 unchanged Bob data, are checked outside timing; separate controls exercise both users.
 
 \begin{table}[!ht]\centering\footnotesize
@@ -686,10 +689,6 @@ largest tested workload relative to CPU-16. SQL engines are fastest at
 the smallest workload in Table~\ref{tab:simulation}, where JayDB2 pays per-request process/device startup, but interpreted
 PL/pgSQL and recursive CTE grow faster and time out at larger sizes; this reflects
 unsuited execution strategies, not general database performance.
-The focused GPU benchmark separately retains native-worker and complete-request
-trials with independent unsigned 32-bit (U32) oracles and identical emitted C;
-its small CUDA native worker costs \num{\GpuSmallCudaNativeMs}~ms including
-process/device startup. These are fresh-process wall times, not kernel timings.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
@@ -728,7 +727,8 @@ that work \cite{fscq2015}. Logical termination also leaves physical resource
 limits and wall-clock completion unproved.
 
 RQ3 identifies an expensive ordinary path, a reusable checked path and a
-whole-state scaling bottleneck. One machine, serial requests, correlated calls,
+whole-state scaling bottleneck and, for opt-in CUDA, a largest-workload-only
+benefit with fixed startup cost (E6). One machine, serial requests, correlated calls,
 different compilation profiles and timing boundaries limit generalization.
 E5 has one session; verification wall times have one run each. Slow sessions
 remain in the retained evidence. Local program/proof line counts describe
@@ -754,8 +754,7 @@ carry proofs of administrator-defined rules. It connects accepted certificates
 to the actual program, its intermediate observations and its published result.
 Certified availability, voucher, shared-notes and simulation applications
 demonstrate access, consistency and termination obligations with targeted failing controls.
-LLM-assisted development produced code, proofs and an LLM-authored test suite
-under the author's direction.
+LLM-assisted development produced code and proofs under the author's direction.
 
 Preparation reduces a read from \num{\OrdinaryReadMedianSeconds}~s to
 \num{\PreparedReadVolatileMedianMs}~ms in the volatile profile. Point operations
@@ -774,10 +773,11 @@ verified database programs in AI-assisted applications.
 % AUTHOR: review and adjust this declaration
 \section*{Use of Artificial Intelligence}
 The author directed the work and extensively used Claude Opus 5.5 (Anthropic,
-\texttt{claude-opus-5-5}, via Claude Code) for planning, orchestration, code/text
-reviews and some implementation/proofs. GPT-6.1 Sol (OpenAI, via Codex) assisted
+\texttt{claude-opus-5-5}, via Claude Code CLI 2.1.322) for planning, orchestration, code/text
+reviews and some implementation/proofs. GPT-6.1 Sol (OpenAI,
+\texttt{gpt-6.1-sol}, via Codex CLI 0.167.0) assisted
 code/proofs, benchmark harnesses and executed measurements, drafting/revision,
-Portuguese slide translation and LaTeX formatting. For GPU and simulation,
+Portuguese slides, speaker notes and diagrams, and LaTeX formatting. For GPU and simulation,
 Claude Opus 5.5 orchestrated/reviewed via Claude Code, GPT-6.1 Sol implemented
 via Codex, and Claude Opus 5.5 conducted independent reviews. Contributions
 cover every article section and slides, including GPU/simulation changes to
