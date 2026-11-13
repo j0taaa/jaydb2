@@ -141,3 +141,94 @@
 @keyframes deck-pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.slide :is(.anim-fade,.anim-fade-up,.anim-grow-x,.anim-grow-y,.anim-draw,.anim-pop){animation:none!important}}
 @media print{.slide :is(.anim-fade,.anim-fade-up,.anim-grow-x,.anim-grow-y,.anim-draw,.anim-pop){animation:none!important}}
+
+/* ── Group 1: slides contexto, o-que-e, admissao, pedido, leis, transacao, rejeicoes, prova ── */
+/* contexto: two stylized newspaper clippings (no real outlet), revealed one per step. */
+#slide-contexto .contexto-news{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:34px}
+#slide-contexto .contexto-clip{position:relative;background:#fbf9f1;background-image:repeating-linear-gradient(0deg,#0000 0 3px,#10303b06 3px 4px);border:1px solid #e0dccd;padding:20px 26px 24px;box-shadow:0 1px 0 #d9d4c4,0 16px 32px #10303b26}
+#slide-contexto .contexto-slot,#slide-contexto .contexto-slot>div,#slide-contexto .contexto-clip{height:100%}
+#slide-contexto .contexto-clip-a{transform:rotate(-.6deg)}
+#slide-contexto .contexto-clip-b{transform:rotate(.5deg)}
+#slide-contexto .contexto-masthead{display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:7px double var(--deck-ink);border-bottom:1.5px solid var(--deck-ink);padding:9px 0 8px;margin-bottom:16px;font-size:20px;line-height:1.2;letter-spacing:1.6px;text-transform:uppercase;font-weight:600}
+#slide-contexto .contexto-masthead span{display:inline-flex;align-items:center;gap:10px}
+#slide-contexto .contexto-masthead span:last-child{font-weight:400;color:var(--deck-muted)}
+#slide-contexto .contexto-photo{display:block;width:100%;height:210px;object-fit:cover;object-position:50% 42%}
+#slide-contexto svg.contexto-ai{display:block;width:100%;height:210px}
+#slide-contexto .contexto-headline{font-family:Georgia,'Noto Serif','DejaVu Serif','Times New Roman',serif;font-size:36px;line-height:1.13;font-weight:700;letter-spacing:-.3px;margin:18px 0 12px}
+#slide-contexto .contexto-dek{font-size:25px;line-height:1.38;color:#35505a;border-top:1px solid #cfd3c6;padding-top:10px}
+/* o-que-e: what the system is; numbers in the list match pins on the illustration. */
+#slide-o-que-e .oquee-layout{display:grid;grid-template-columns:600px 1fr;gap:52px;margin-top:40px;align-items:start}
+#slide-o-que-e .oquee-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:24px}
+#slide-o-que-e .oquee-list li{display:flex;align-items:center;gap:26px}
+#slide-o-que-e .oquee-badge{position:relative;flex-shrink:0}
+#slide-o-que-e .oquee-badge b,#slide-o-que-e .oquee-pin b{display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--deck-ink);color:var(--deck-paper);font-weight:600}
+#slide-o-que-e .oquee-badge b{position:absolute;right:-8px;top:-8px;width:32px;height:32px;font-size:20px;border:2px solid var(--deck-paper)}
+#slide-o-que-e .oquee-list strong{display:block;font-size:32px;line-height:1.2;letter-spacing:-.5px}
+#slide-o-que-e .oquee-list div span{display:block;font-size:26px;line-height:1.35;color:#35505a;margin-top:2px}
+#slide-o-que-e .oquee-figure{margin:0}
+#slide-o-que-e .oquee-image{position:relative}
+#slide-o-que-e .oquee-image img{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 12px 30px #10303b2e}
+#slide-o-que-e .oquee-pin{position:absolute;transform:translate(-50%,-50%)}
+#slide-o-que-e .oquee-pin b{width:48px;height:48px;font-size:25px;border:3px solid var(--deck-mint);box-shadow:0 3px 10px #10303b55}
+#slide-o-que-e .oquee-band{display:flex;align-items:center;gap:22px;margin-top:40px;padding-top:24px;border-top:2px solid var(--deck-rule)}
+#slide-o-que-e .oquee-band-label{display:inline-flex;align-items:center;gap:12px;font-size:28px;font-weight:600;margin-right:10px}
+#slide-o-que-e .oquee-band>span{white-space:nowrap}
+#slide-o-que-e .oquee-chip{display:inline-flex;align-items:center;gap:12px;font-size:26px;padding:10px 20px;border-radius:30px}
+#slide-o-que-e .oquee-commit{background:#d8edda;color:var(--deck-ink)}
+#slide-o-que-e .oquee-commit .icon{color:var(--deck-green)}
+#slide-o-que-e .oquee-keep{background:#e3e5da;color:var(--deck-ink)}
+#slide-o-que-e .oquee-keep .icon{color:var(--deck-muted)}
+/* admissao, transacao: diagrams with icons. */
+#slide-admissao .system-figure{margin-top:36px}
+#slide-transacao .system-figure{margin-top:44px}
+#slide-transacao .diagram-note{font-size:26px;margin-top:22px}
+#slide-transacao .diagram-note .icon{margin:-4px 4px 0 0}
+/* pedido: request, what the program must and must not do, labelled illustration. */
+#slide-pedido .pedido-layout{display:grid;grid-template-columns:760px 1fr;gap:56px;margin-top:36px}
+#slide-pedido .pedido-request{display:flex;gap:26px;align-items:flex-start}
+#slide-pedido .pedido-request .request{font-size:40px;line-height:1.25;letter-spacing:-1px;margin:0;max-width:none}
+#slide-pedido .pedido-group{margin-top:30px;padding-top:18px;border-top:3px solid var(--deck-green)}
+#slide-pedido .pedido-mustnot{border-top-color:var(--deck-coral)}
+#slide-pedido .pedido-group h3{display:flex;align-items:center;gap:16px;font-size:30px}
+#slide-pedido .pedido-group ul{list-style:none;margin:10px 0 0;padding:0}
+#slide-pedido .pedido-group li{display:flex;align-items:center;gap:16px;font-size:28px;line-height:1.35;padding:7px 0 7px 64px}
+#slide-pedido code,#slide-leis code{font:600 25px 'DejaVu Sans Mono',Menlo,Consolas,monospace;background:#e4e8dc;padding:1px 8px;border-radius:5px}
+#slide-pedido .pedido-figure{margin:0}
+#slide-pedido .pedido-image{position:relative;height:470px;overflow:hidden;border-radius:6px}
+#slide-pedido .pedido-image img{display:block;width:100%;height:100%;object-fit:cover}
+#slide-pedido .pedido-tag{position:absolute;display:inline-flex;align-items:center;gap:10px;background:#102f3bea;color:var(--deck-paper);font-size:22px;font-weight:600;line-height:1.2;padding:8px 15px;border-radius:24px;white-space:nowrap;box-shadow:0 3px 10px #0004}
+#slide-pedido .pedido-tag i{width:14px;height:14px;border-radius:50%}
+#slide-pedido .pedido-tag-alice{left:18px;top:44px}
+#slide-pedido .pedido-tag-alice i{background:var(--deck-mint)}
+#slide-pedido .pedido-tag-bob{right:22px;top:16px}
+#slide-pedido .pedido-tag-bob i{background:var(--deck-coral)}
+#slide-pedido .pedido-tag-step{position:absolute;left:14px;bottom:14px}
+#slide-pedido .pedido-tag-step .pedido-tag{position:static;background:#087869f0}
+#slide-pedido .pedido-figure figcaption{font-size:24px;line-height:1.35;color:var(--deck-muted);margin-top:14px}
+/* leis: one card per law; the timing tag separates every-access laws from the publication law. */
+#slide-leis .leis-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:44px}
+#slide-leis .leis-cards>div,#slide-leis .leis-cards>div>div{height:100%}
+#slide-leis .leis-card{height:510px;display:flex;flex-direction:column;background:#fbf9f2;border:2px solid #d4d8cb;border-top:6px solid var(--deck-green);border-radius:10px;padding:26px 28px}
+#slide-leis .leis-card header{display:flex;align-items:center;gap:18px}
+#slide-leis .leis-card h3{font-size:34px}
+#slide-leis .leis-rule{font-size:28px;line-height:1.38;margin-top:22px}
+#slide-leis .leis-examples{list-style:none;margin:22px 0 0;padding:14px 0 0;border-top:1px solid #d4d8cb}
+#slide-leis .leis-examples li{display:flex;align-items:center;gap:12px;font-size:26px;line-height:1.3;padding:8px 0}
+#slide-leis .leis-when{margin-top:auto;display:flex;align-items:center;gap:12px;font-size:24px;font-weight:600;padding:12px 16px;border-radius:8px}
+#slide-leis .leis-when-access{background:#d8edda;color:var(--deck-green)}
+#slide-leis .leis-when-publish{background:#f6e5c4;color:#8c6420}
+/* rejeicoes: failing program → obligation, then the real checker output. */
+#slide-rejeicoes .rejeicoes-layout{grid-template-columns:740px 1fr;gap:60px;margin-top:40px}
+#slide-rejeicoes .rejeicoes-mark{fill:var(--deck-paper);stroke:#b24a32;stroke-width:3}
+#slide-rejeicoes .rejeicoes-terminal-head{display:flex;align-items:center;gap:12px;font-size:25px;line-height:1.3;color:var(--deck-muted);margin-bottom:16px}
+#slide-rejeicoes .rejeicoes-terminal-head strong{color:var(--deck-ink)}
+/* prova: test vs certificate, one side per step. */
+#slide-prova .prova-vs{display:grid;grid-template-columns:1fr 150px 1fr;margin-top:30px;align-items:start}
+#slide-prova .prova-side{text-align:center}
+#slide-prova .prova-side img{display:block;width:340px;height:340px;margin:0 auto 22px;border-radius:10px;box-shadow:0 12px 28px #10303b33}
+#slide-prova .prova-side h3{display:flex;justify-content:center;align-items:center;gap:12px;font-size:38px}
+#slide-prova .prova-side p{font-size:28px;line-height:1.35;margin-top:12px}
+#slide-prova .prova-side p.small{font-size:24px;margin-top:12px}
+#slide-prova .prova-mid{display:flex;flex-direction:column;align-items:center;height:560px}
+#slide-prova .prova-line{flex:1;width:2px;background:#c3cec1}
+#slide-prova .prova-mark{display:flex;align-items:center;justify-content:center;width:86px;height:86px;margin:16px 0;border-radius:50%;background:var(--deck-ink);color:var(--deck-mint);font-size:30px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
