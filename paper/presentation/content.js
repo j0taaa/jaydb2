@@ -139,19 +139,11 @@ function llmFigure(){return figure('O usuário apresenta a intenção ao LLM. O 
  step(1,edge('M605 170V240')+box(365,240,480,150,'Verificador do banco','Leis instaladas · T1','accept'))+
  step(2,edge('M365 340H150V215H470V172','deny')+label(165,290,'Rejeita:|corrige','deny-label')),400,850);}
 
-function architectureFigure(){return figure('Node prepara fontes. Bend e BendTT verificam o Book. Selos vinculam o Book à compilação e hashes vinculam os artefatos ao worker. Bend interpreta e finaliza; Rust publica Commit ou preserva Keep.',
- box(0,0,330,220,'Node · staging','stage.mjs|Fontes e prova')+edge('M330 110H420')+
- box(420,0,450,220,'Bend + BendTT','Prova × leis instaladas|Book verificado')+edge('M870 110H960')+
- box(960,0,440,220,'Book selado','Selo semântico|Antes da emissão C')+step(1,edge('M1180 220V330')+
- box(960,330,440,220,'Compilação nativa','C / Clang + selo final|Artefatos + hashes')+edge('M960 440H870')+
- box(420,330,450,220,'Worker + host Rust','Bend: execução e finalização|Rust: recebe Commit / Keep')+edge('M420 440H330')+
- box(0,330,330,220,'Estado publicado','Commit: substitui|Keep: preserva')),550);}
-
 function trustFigure(){return figure('Núcleo provado sob premissas. Camadas confiadas: T1 verificadores e vínculo, T2 compiladores e runtime, T3 trabalho físico do host.',
- `<rect class="trust-layer" x="0" y="0" width="1400" height="550" rx="9"/>`+label(28,50,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+
- `<rect class="trust-layer" x="35" y="105" width="1330" height="415" rx="9"/>`+label(63,155,'T2 · Compilador e runtime: preservação do comportamento','box-title')+
- `<rect class="trust-layer" x="70" y="210" width="1260" height="280" rx="9"/>`+label(98,260,'T1 · Verificadores, vínculo exato e auditoria das fontes','box-title')+
- `<rect class="proved-core" x="105" y="315" width="1190" height="145" rx="9"/>`+label(135,360,'Núcleo Bend · propriedades provadas sob premissas','box-title')+
+ `<rect class="trust-layer" x="0" y="0" width="1400" height="550" rx="9"/>`+label(28,50,'T3 · Host: estado atual, processos, registro e publicação exata','box-title')+iconAt('server',1322,20,44,'tone-green')+
+ `<rect class="trust-layer" x="35" y="105" width="1330" height="415" rx="9"/>`+label(63,155,'T2 · Compilador e runtime: preservação do comportamento','box-title')+iconAt('cpu',1287,125,44,'tone-green')+
+ `<rect class="trust-layer" x="70" y="210" width="1260" height="280" rx="9"/>`+label(98,260,'T1 · Verificadores, vínculo exato e auditoria das fontes','box-title')+iconAt('shield-check',1252,230,44,'tone-green')+
+ `<rect class="proved-core" x="105" y="315" width="1190" height="145" rx="9"/>`+label(135,360,'Núcleo Bend · propriedades provadas sob premissas','box-title')+iconAt('proof',1217,335,48,'tone-ink')+
  label(135,405,'Admissão exata · leis em cada passo|Finalização válida · terminação lógica'),550);}
 
 function gpuFigure(){return figure('O mesmo programa certificado usa CPU ou CUDA. CUDA mantém as obrigações e amplia T2 com runtime CUDA, NVRTC, driver, memória gerenciada e GPU.',
@@ -252,6 +244,65 @@ const oqueeRow=(n,name,title,text,d)=>`<li class="anim-fade-up" ${delay(d)}><spa
 const oqueePin=(n,x,y,d)=>`<span class="oquee-pin" style="left:${x}%;top:${y}%"><b class="anim-pop" ${delay(d)}>${n}</b></span>`;
 // Slide leis: one law card with an allowed and a refused example and when the law is checked.
 const leisCard=(name,title,rule,ok,no,when,whenIcon,whenCls)=>`<article class="leis-card"><header>${badge(name,{size:64,tone:'green'})}<h3>${title}</h3></header><p class="leis-rule">${rule}</p><ul class="leis-examples"><li>${icon('check',{size:30,cls:'tone-green'})}<span>${ok}</span></li><li>${icon('x',{size:30,cls:'tone-coral'})}<span>${no}</span></li></ul><footer class="leis-when ${whenCls}">${icon(whenIcon,{size:30})}<span>${when}</span></footer></article>`;
+// ── Group 2 helpers ──
+// Slide 10 (metodo): one small pictogram per research question, drawn on a 420×140 grid.
+function metodoPictogram(n){
+  const pic=body=>`<svg class="metodo-pic" viewBox="0 0 420 160" role="presentation" aria-hidden="true">${body}</svg>`;
+  if(n===1)return pic(
+    iconAt('proof',6,46,68,'tone-green anim-fade-up')+
+    `<path class="metodo-link anim-draw" ${delay(.35)} d="M80 80H116M184 80H218"/>`+
+    `<g class="anim-pop" ${delay(.55)}><circle class="metodo-seal" cx="150" cy="80" r="33"/></g>`+iconAt('lock',131,61,38,'tone-ink anim-pop')+
+    iconAt('code',222,46,68,'tone-green anim-fade-up')+
+    `<path class="metodo-flow anim-draw" ${delay(.75)} d="M298 80H334"/><path class="metodo-tip anim-fade" ${delay(1.1)} d="M326 69L338 80L326 91"/>`+
+    iconAt('play',344,46,68,'tone-green anim-fade-up'));
+  if(n===2)return pic(
+    `<path class="metodo-line anim-draw" d="M10 116H296"/>`+
+    [34,108,182,256].map((x,i)=>`<g class="anim-pop" ${delay(.25+i*.15)}><circle class="metodo-dot" cx="${x}" cy="116" r="11"/></g>${iconAt('shield-check',x-21,40,42,'tone-green anim-fade-up')}`).join('')+
+    `<path class="metodo-flow anim-draw" ${delay(.9)} d="M296 116H310"/>`+
+    `<g class="anim-pop" ${delay(1.05)}><rect class="metodo-final" x="312" y="34" width="100" height="100" rx="14"/></g>`+iconAt('database',331,53,62,'tone-ink anim-pop'));
+  return pic(
+    `<path class="metodo-line" d="M12 142H196"/>`+
+    [[26,74],[80,112],[134,50]].map(([x,h],i)=>`<rect class="metodo-bar anim-grow-y" ${delay(.2+i*.15)} x="${x}" y="${140-h}" width="40" height="${h}" rx="4"/>`).join('')+
+    iconAt('clock',218,40,76,'tone-green anim-fade-up')+iconAt('gpu',318,38,86,'tone-coral anim-pop'));
+}
+// Slide 11 (arquitetura): stage card with an icon, a title and short lines; tag adds a trust-layer chip.
+const arqCard=(x,y,w,h,name,title,lines,{kind='',tag=''}={})=>
+  `<rect class="box ${kind}" x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/>`+
+  iconAt(name,x+24,y+22,44,'tone-green')+
+  label(x+82,y+56,title,'box-title')+(lines?label(x+24,y+104,lines):'')+
+  (tag?`<rect class="arq-chip" x="${x+w-78}" y="${y+18}" width="60" height="38" rx="19"/><text class="arq-chip-text" x="${x+w-48}" y="${y+46}" text-anchor="middle">${tag}</text>`:'');
+function arquiteturaFigure(){return figure('Admissão: Node prepara o Book com programa e prova; Bend e BendTT verificam o mesmo Book; a compilação nativa transforma esse Book em executável, e selos e hashes ligam o executável ao Book verificado (T1). Execução a cada chamada: o worker Bend verificado autentica, interpreta e finaliza; o host Rust executa a decisão Commit ou Keep sobre o estado publicado.',
+ label(0,26,'ADMISSÃO · PROGRAMA + PROVA DO CLIENTE','arq-lane')+
+ `<g class="anim-fade-up">${arqCard(0,44,420,160,'terminal','Node prepara','stage.mjs monta o Book|com programa e prova')}</g>`+
+ `<path class="edge anim-draw" ${delay(.3)} d="M420 124H482" marker-end="url(#flow-tip)"/>`+
+ `<g class="anim-fade-up" ${delay(.45)}>${arqCard(490,44,420,160,'shield-check','Bend + BendTT','dois verificadores|checam o mesmo Book')}</g>`+
+ step(1,`<path class="edge anim-draw" d="M910 124H972" marker-end="url(#flow-tip)"/>`+
+  `<g class="anim-fade-up" ${delay(.2)}>${arqCard(980,44,420,160,'cpu','Compilação','o mesmo Book vira|C e executável (Clang)',{tag:'T2'})}</g>`+
+  `<g class="anim-fade-up" ${delay(.6)}><path class="arq-bind-link" d="M700 204V224M1190 204V224"/><rect class="arq-bind" x="490" y="224" width="910" height="66" rx="10"/>`+
+  `<text class="arq-bind-text" x="566" y="267">Selos e hashes ligam o executável ao Book verificado</text>`+
+  `<rect class="arq-chip" x="1322" y="238" width="60" height="38" rx="19"/><text class="arq-chip-text" x="1352" y="266" text-anchor="middle">T1</text></g>`+
+  iconAt('lock',512,237,40,'tone-ink anim-pop'))+
+ step(2,`<path class="edge anim-draw" d="M600 290V334" marker-end="url(#flow-tip)"/>`+label(624,322,'executável liberado','edge-label anim-fade')+
+  label(0,322,'EXECUÇÃO · CADA CHAMADA','arq-lane anim-fade')+
+  `<g class="anim-fade-up" ${delay(.25)}>${arqCard(0,342,620,206,'gear','Worker Bend verificado','',{kind:'accept'})}`+
+  [['Gate','autentica e inicia o programa'],['Interpretador','executa cada ação'],['Finalizador','decide Commit ou Keep']].map(([t,d],i)=>
+   `<text class="arq-part" x="24" y="${442+i*40}"><tspan class="arq-part-name">${t}</tspan><tspan dx="12">${d}</tspan></text>`).join('')+`</g>`)+
+ step(3,`<path class="edge anim-draw" d="M620 445H682" marker-end="url(#flow-tip)"/>`+
+  `<g class="anim-fade-up" ${delay(.2)}>${arqCard(690,342,340,206,'server','Host Rust','executa a decisão|Commit: publica|Keep: preserva',{tag:'T3'})}</g>`+
+  `<path class="edge anim-draw" ${delay(.5)} d="M1030 445H1092" marker-end="url(#flow-tip)"/>`+
+  `<g class="anim-fade-up" ${delay(.65)}>${arqCard(1100,342,300,206,'database','Estado','publicado; base|da próxima chamada')}</g>`),556);}
+// Slide 13 (aplicacoes): one card per application.
+function aplicacaoCard([name,iconName,what,access,publish,invalid],i){
+  return `<section class="aplic-card anim-fade-up" ${delay(.1+i*.15)}><header>${badge(iconName,{size:58,tone:'mint'})}<div><h3>${name}</h3><p class="aplic-what">${what}</p></div></header>`+
+  `<div class="aplic-rules"><div><p class="aplic-label">${icon('shield-check',{size:26,cls:'tone-green'})}Em cada acesso</p><p>${access}</p></div><div><p class="aplic-label">${icon('database',{size:26,cls:'tone-green'})}Ao publicar</p><p>${publish}</p></div></div>`+
+  `<p class="aplic-invalid">${icon('x',{size:26,cls:'tone-coral'})}<span><strong>Rejeitada:</strong> ${invalid}</span></p></section>`;
+}
+// Slide 14 (evidencia): three complementary kinds of correctness evidence.
+const evidenciaStat=(n,text)=>`<div class="evid-stat"><span class="evid-number">${pt(n,0)}</span><span class="evid-stat-label">${text}</span></div>`;
+const evidenciaCheck=text=>`<li>${icon('check',{size:26,cls:'tone-green'})}${text}</li>`;
+function evidenciaCard(step,{iconName,tone,title,question,text,body,checker,checkerIcon}){
+  return `<section class="evid-card${step?' fragment':''}" ${step?`data-step="${step}"`:''}><div class="anim-fade-up">${badge(iconName,{size:70,tone})}<h3>${title}</h3><p class="evid-question">${question}</p><p class="evid-text">${text}</p></div><div class="evid-body anim-fade-up" ${delay(.25)}>${body}</div><p class="evid-checker">${icon(checkerIcon,{size:28,cls:'tone-muted'})}${checker}</p></section>`;
+}
 const slides=[
 {
  id:'inicio',title:'JayDB2',theme:'dark cover',seconds:25,
@@ -318,23 +369,23 @@ const slides=[
 },
 {
  id:'llms',title:'Onde os LLMs entram',seconds:50,
- html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="llm-layout"><section>${llmFigure()}<div class="llm-context"><p><strong>Pesquisa.</strong> Baldur (Isabelle), Misu et al. (Dafny)<br>e AutoVerus (Verus) estudam a geração de provas.</p><p><strong>Neste projeto.</strong> LLMs ajudaram no código e nas provas.<br>Escreveram todos os testes, sob direção do autor.</p></div></section><figure class="illustration"><img src="assets/program-proof-generator.webp" alt="Ilustração conceitual: gerador produz programa e certificado em folhas separadas diante de um portal de verificação independente."/><figcaption>O gerador produz os artefatos.<br>O banco verifica a prova.</figcaption></figure></div>`,
- bottom:`O gerador fica fora da base de confiança da admissão.`,
- notes:'A escrita manual de provas torna uma operação pequena cara de produzir. LLMs e bibliotecas de provas permitem outro fluxo: partir da intenção, construir programa e certificado, submeter ao verificador e corrigir quando não passa. Há trabalhos recentes nessa direção: o Baldur gera e repara provas em Isabelle, Misu e colegas sintetizam métodos Dafny verificados, e o AutoVerus gera provas para código Rust verificado pelo Verus. Esses trabalhos medem com que frequência a geração dá certo. O JayDB2 trata do lado complementar: um banco que só executa o artefato gerado se a prova passar, então o gerador não precisa ser confiável. Neste projeto, LLMs ajudaram no código e nas provas, e todos os testes do JayDB2 foram escritos por LLMs sob minha direção.',
+ html:`<p class="kicker">Autoria assistida por IA</p><h2>Onde os LLMs entram</h2><div class="llm-layout"><section>${llmFigure()}<ul class="llms-points"><li class="anim-fade-up" ${delay(.2)}>${icon('warning',{size:40,cls:'tone-coral'})}<span>Código gerado pode parecer correto e estar errado.</span></li><li class="fragment" data-step="1">${icon('shield-check',{size:40,cls:'tone-green'})}<span>Confia-se nas leis e no verificador, não no modelo.</span></li><li class="fragment" data-step="2">${icon('refresh',{size:40,cls:'tone-coral'})}<span>Prova rejeitada: o gerador corrige e tenta de novo.</span></li></ul></section><figure class="illustration"><img src="assets/program-proof-generator.webp" alt="Ilustração conceitual: gerador produz programa e certificado em folhas separadas diante de um portal de verificação independente."/><figcaption>O gerador produz os artefatos.<br>O banco verifica a prova.</figcaption></figure></div>`,
+ bottom:`Geração de provas por LLMs: Baldur (Isabelle/HOL), Misu et al. (Dafny), AutoVerus (Verus). O JayDB2 trata do lado que recebe as provas.`,
+ notes:'LLMs e agentes já escrevem código que lê e altera dados, e esse código pode parecer correto e estar errado. Revisar cada programa gerado à mão não acompanha esse volume. No JayDB2 o fluxo é outro. O usuário expressa uma intenção, e o LLM, com bibliotecas de provas, produz o programa e a prova. [→] O verificador do banco confere essa prova contra as leis instaladas. A resposta é sim ou não e não depende da explicação do modelo: o que continua confiável são as leis escritas pelo administrador e o próprio verificador, que é a camada T1. O gerador fica fora da base de confiança. [→] Se a prova não passa, o gerador recebe a rejeição, corrige e tenta de novo; nada é executado nesse meio-tempo. Há trabalhos recentes que estudam a geração em si: o Baldur gera e repara provas em Isabelle, Misu e colegas sintetizam métodos Dafny verificados, e o AutoVerus gera provas para código Rust verificado pelo Verus. Eles medem com que frequência a geração dá certo. O JayDB2 trata do lado complementar, o banco que recebe esses artefatos e só os executa se a prova passar. O uso de LLMs na construção deste trabalho aparece na declaração de IA, no fim.',
  sources:[sources.ai,sources.baldur,sources.misu,sources.autoverus]
 },
 {
  id:'metodo',title:'Como o trabalho foi avaliado',seconds:40,
- html:`<p class="kicker">Problema de pesquisa e método</p><h2>Como o trabalho foi avaliado</h2><div class="method-list"><div class="n">RQ1</div><p><strong>Ligar a prova ao programa que executa</strong>Especificação e teoremas sobre as funções executáveis.</p><div class="n">RQ2</div><p><strong>Combinar acesso e consistência</strong>Aplicações certificadas e variantes inválidas direcionadas.</p><div class="n">RQ3</div><p><strong>Medir custo, reuso e CUDA</strong>Experimentos nativos com resultados e estados conferidos.</p></div>`,
+ html:`<p class="kicker">Problema de pesquisa e método</p><h2>Como o trabalho foi avaliado</h2><div class="metodo-grid"><section class="metodo-card">${metodoPictogram(1)}<p class="metodo-n">RQ1</p><h3>Ligar a prova ao programa que executa</h3><p>Especificação e teoremas sobre as funções executáveis.</p></section><section class="metodo-card fragment" data-step="1">${metodoPictogram(2)}<p class="metodo-n">RQ2</p><h3>Combinar acesso e consistência</h3><p>Aplicações certificadas e variantes inválidas direcionadas.</p></section><section class="metodo-card fragment" data-step="2">${metodoPictogram(3)}<p class="metodo-n">RQ3</p><h3>Medir custo, reuso e CUDA</h3><p>Experimentos nativos com resultados e estados conferidos.</p></section></div>`,
  bottom:'Objetivo geral: implementar e avaliar o serviço, com ligação explícita entre certificado, execução e publicação.',
- notes:'A pesquisa organiza a construção em três perguntas. A primeira trata da conexão entre o certificado aceito e a execução. A segunda testa se leis conseguem combinar permissão em cada acesso e consistência ao final. A terceira mede o custo real do protótipo e o efeito da preparação e de CUDA opcional. O método começa pela especificação das ações, implementa as funções do banco, estabelece teoremas e constrói aplicações e controles inválidos. Depois mede o serviço nativo. Todos os números que vou mostrar vêm dos experimentos retidos no repositório, com verificação das respostas.',
+ notes:'A pesquisa organiza a construção em três perguntas. A primeira trata da conexão entre o certificado aceito e o programa que de fato executa: a prova fica selada ao código. Ela é respondida com uma especificação e com teoremas sobre as próprias funções executáveis do banco. [→] A segunda testa se as leis conseguem combinar permissão em cada acesso com consistência no momento da publicação. Para isso construí aplicações certificadas e variantes inválidas, cada uma feita para quebrar uma obrigação específica. [→] A terceira mede o custo real do protótipo, o efeito da preparação, que permite reutilizar uma prova, e o da execução opcional em CUDA. Todos os números que vou mostrar vêm dos experimentos retidos no repositório, com as respostas e os estados conferidos.',
  sources:[sources.evidence,sources.proofs]
 },
 {
- id:'arquitetura',title:'A prova acompanha o código exato',seconds:55,
- html:`<p class="kicker">A conexão com a implementação</p><h2>A prova acompanha o código exato</h2>${architectureFigure()}<p class="small diagram-note">Dependências lógicas. Selos e hashes: vínculo T1. Rust publica a decisão selecionada: T3.</p>`,
+ id:'arquitetura',title:'Da prova ao código executado',seconds:55,
+ html:`<p class="kicker">Arquitetura</p><h2>Da prova ao código executado</h2>${arquiteturaFigure()}`,
  bottom:'Bend 2.0.39 / BendTT · Rust 1.98.0 · Node 24.19.0 · Clang 19.1.1',
- notes:`Node, por stage.mjs, prepara as fontes e coordena a admissão. Os verificadores Bend e BendTT conferem as obrigações do mesmo Book. O diagrama mostra dependências lógicas: na CPU, parte da compilação pode se sobrepor à segunda verificação. Selos conferem o Book antes e depois da emissão C; hashes ligam fontes e artefatos. Nenhum artefato é liberado antes de ambas as aceitações e das conferências de vínculo. O worker nativo executa Gate, interpretador e finalizador escritos em Bend. Rust coordena o processo, recebe a decisão Commit ou Keep e publica exatamente o estado e a resposta selecionados. As transações seguem uma fila serial.`,
+ notes:`O diagrama tem duas faixas: a admissão, que acontece antes de qualquer execução, e a execução de cada chamada. Na admissão, o cliente entrega programa e prova. O Node, pelo stage.mjs, monta com eles o Book, o conjunto de definições Bend que será verificado. Os dois verificadores oficiais, Bend e BendTT, conferem as obrigações sobre esse mesmo Book, e os dois precisam aceitar. [→] O mesmo Book é compilado para C e depois para um executável nativo; essa compilação é confiada, faz parte de T2. O ponto central é o vínculo: um selo confere o Book antes da emissão do C, outro confere o resultado depois, e hashes ligam o executável às fontes verificadas. Nenhum artefato é liberado antes das duas aceitações e dessas conferências. É por isso que a prova fala do código exato que vai rodar; esse vínculo está em T1. O diagrama mostra dependências lógicas; na CPU, parte da compilação pode se sobrepor à segunda verificação. [→] A cada chamada roda um worker nativo cujas funções são escritas em Bend e verificadas: o Gate autentica o cliente sobre o estado atual e inicia exatamente o programa admitido, o interpretador executa cada ação, e o finalizador decide entre Commit e Keep. [→] O host Rust só executa essa decisão: em Commit, publica o estado e a resposta selecionados; em Keep, preserva o estado anterior. Essa parte física é a camada T3. A próxima chamada parte do estado publicado, e as transações seguem uma fila serial.`,
  sources:[sources.proofs,sources.evidence,sources.gpu]
 },
 {
@@ -346,17 +397,29 @@ const slides=[
 },
 {
  id:'aplicacoes',title:'A mesma interface em quatro aplicações',seconds:50,
- html:`<p class="kicker">Aplicações certificadas</p><h2>A mesma interface<br>em quatro aplicações</h2><table class="data-table apps-table"><thead><tr><th>Aplicação</th><th>Durante a operação</th><th>Ao publicar</th></tr></thead><tbody><tr><td><strong>Disponibilidade</strong></td><td>Só as tabelas do próprio usuário</td><td>Índice corresponde à linha principal</td></tr><tr><td><strong>Vouchers</strong></td><td>Permissão atual e protocolo de recibos</td><td>Voucher e recibo consistentes</td></tr><tr><td><strong>Notas</strong></td><td>Namespace próprio, dono preservado</td><td>Diretório lista exatamente as notas</td></tr><tr><td><strong>Simulação</strong></td><td>Lê e grava só as próprias linhas</td><td>Resultado válido; termina</td></tr></tbody></table>`,
- bottom:'Cada aplicação tem variantes inválidas que quebram uma obrigação específica e são rejeitadas.',
- notes:'As quatro aplicações usam a mesma interface. Disponibilidade mantém uma linha principal e tabelas comuns que funcionam como índices. Vouchers ligam um identificador de pedido à entrada exata e ao resultado guardado, para permitir repetir um pedido com segurança. Notas é o exemplo inicial, com tabela compartilhada e diretórios por usuário. A simulação é um caso de cálculo pesado: lê o cenário do próprio usuário, calcula e escreve só o próprio resultado, com prova de terminação. Todas combinam regras que valem em cada acesso com regras que valem na publicação, e cada uma tem variantes inválidas que localizam a obrigação que falha.',
+ html:`<p class="kicker">Aplicações certificadas</p><h2>A mesma interface em quatro aplicações</h2><div class="aplic-grid">${[
+  ['Disponibilidade','table','Item livre ou ocupado, com índice por usuário','Só as próprias tabelas e índices','Índice corresponde à linha principal','ler o índice de Bob; omitir o índice'],
+  ['Vouchers','refresh','Emissão com recibo: repetir o pedido é seguro','Permissão atual e protocolo de recibos','Voucher e recibo consistentes','quebrar o par voucher–recibo'],
+  ['Notas','news','Tabela compartilhada e um diretório por usuário','Namespace próprio; dono preservado','Diretório lista exatamente as notas','ler nota alheia; forjar dono; omitir entrada'],
+  ['Simulação','chart-line','Cálculo pesado, em CPU ou CUDA','Só o próprio cenário e o próprio resultado','Resultado válido; terminação provada','ler cenário ou gravar resultado alheio']
+ ].map(aplicacaoCard).join('')}</div>`,
+ bottom:'Todas usam o mesmo protocolo: programa, certificado, credencial e argumentos. Cada variante inválida é rejeitada antes da execução.',
+ notes:'As quatro aplicações usam a mesma interface: programa, certificado, credencial e argumentos. Cada cartão mostra a regra que vale em cada acesso, a regra que vale na publicação e um exemplo de variante inválida. Disponibilidade: cada usuário marca seu item como livre ou ocupado e mantém uma tabela comum que funciona como índice; durante a operação só toca as próprias tabelas, e ao publicar o índice precisa corresponder à linha principal. Vouchers: um identificador de pedido fica ligado à entrada exata e ao resultado guardado, para que repetir o mesmo pedido devolva o resultado sem nova emissão; voucher e recibo precisam sair juntos e consistentes. Notas é o exemplo que acompanhamos: tabela compartilhada, diretório por usuário, dono preservado, e o diretório lista exatamente as notas. A simulação é o caso de cálculo pesado: lê o cenário do próprio usuário, escreve só o próprio resultado, tem prova de terminação e pode usar CUDA. Em todas, as variantes inválidas, como ler o índice de Bob ou omitir a entrada no diretório, são rejeitadas na obrigação que quebram, antes de executar.',
  sources:[sources.rls,sources.voucher,source('Disponibilidade e índices','applications/indexed/README.md'),sources.simulation]
 },
 {
- id:'evidencia',title:'Artefatos gerados, verificação executada',seconds:40,
- html:`<p class="kicker">Evidências de construção e correção</p><h2>Artefatos gerados,<br>verificação executada</h2><table class="data-table evidence-table"><thead><tr><th>Evidência retida</th><th>Quantidade</th><th>O que foi conferido</th></tr></thead><tbody><tr><td>Controles negativos do núcleo</td><td>${pt(value('NegativeFixtures'),0)}</td><td>Rejeição na obrigação esperada</td></tr><tr><td>Negativos adicionais de notas</td><td>${pt(value('RlsNegativeFixtures'),0)}</td><td>Falhas de regras da aplicação</td></tr><tr><td>Respostas nativas de notas</td><td>${pt(value('RlsNativeResponses'),0)}</td><td>Respostas e estados da sessão</td></tr></tbody></table><p class="small spaced">Execuções retidas com sucesso: <code>make verify-contract</code>, <code>make verify</code> e <code>make test</code>.</p>`,
- bottom:'Execuções retidas com sucesso. Os contadores representam evidências diferentes, não o total de testes do projeto.',
- notes:`Os teoremas estabelecem propriedades das funções sob premissas. Os controles negativos mostram que variantes inválidas falham no alvo esperado. As sessões nativas conferem respostas e estados reais. A evidência atual retém ${pt(value('NegativeFixtures'),0)} negativos do núcleo, ${pt(value('RlsNegativeFixtures'),0)} adicionais de notas e ${pt(value('RlsNativeResponses'),0)} respostas na sessão de notas. Os três comandos terminaram com sucesso. Esses contadores não são uma quantidade única de testes. Os negativos GPU e simulação também falham nas mesmas obrigações, em ambos os verificadores, antes da compilação.`,
- sources:[sources.evidence,sources.rls]
+ id:'evidencia',title:'Como a correção foi conferida',seconds:40,
+ html:`<p class="kicker">Evidências de correção</p><h2>Como a correção foi conferida</h2><div class="evid-grid">${
+  evidenciaCard(0,{iconName:'proof',tone:'green',title:'Teoremas',question:'O que vale para todos os casos',text:'Provas sobre as funções executáveis: Gate, interpretador e finalizador.',
+   body:`<ul class="evid-checks">${['Admissão exata','Leis em cada passo','Finalização correta','Execução finita'].map(evidenciaCheck).join('')}</ul>`,checker:'Bend e BendTT',checkerIcon:'shield-check'})+
+  evidenciaCard(1,{iconName:'x',tone:'coral',title:'Controles negativos',question:'O que precisa ser recusado',text:'Variantes inválidas devem falhar na obrigação esperada, nos dois verificadores.',
+   body:`<div class="evid-stats">${evidenciaStat(value('NegativeFixtures'),'variantes<br>do núcleo')}${evidenciaStat(value('RlsNegativeFixtures'),'variantes<br>de notas')}</div>`,checker:'Bend e BendTT',checkerIcon:'shield-check'})+
+  evidenciaCard(2,{iconName:'play',tone:'ink',title:'Sessões nativas',question:'O que o serviço real faz',text:'O serviço real recebe pedidos; respostas e estados completos são conferidos.',
+   body:`<div class="evid-stats">${evidenciaStat(value('RlsNativeResponses'),'respostas na<br>sessão de notas')}</div><ul class="evid-checks">${evidenciaCheck('Estado inalterado após cada rejeição')}</ul>`,checker:'Serviço nativo em Rust',checkerIcon:'server'})
+ }</div>`,
+ bottom:'Contadores de evidências diferentes, não um total de testes. Execuções retidas com sucesso: make verify-contract, make verify e make test.',
+ notes:`A correção foi conferida por três tipos de evidência, que se complementam. Primeiro, os teoremas: são provas sobre as próprias funções executáveis do banco, o Gate, o interpretador e o finalizador, e não sobre um modelo separado. Elas estabelecem admissão do programa exato, leis em cada passo, finalização correta e execução finita, para todos os estados válidos, sob as premissas T1 a T3. Bend e BendTT conferem essas provas. [→] Segundo, os controles negativos. Uma prova pode ser verdadeira e ainda assim fraca demais; por isso cada variante inválida precisa falhar exatamente na obrigação esperada, nos dois verificadores. São ${pt(value('NegativeFixtures'),0)} variantes do núcleo e ${pt(value('RlsNegativeFixtures'),0)} da aplicação de notas. Os negativos de GPU e de simulação também falham nas mesmas obrigações, antes da compilação. [→] Terceiro, as sessões nativas: o serviço real, com o host Rust, recebe pedidos e cada resposta e estado são conferidos. A sessão de notas confere ${pt(value('RlsNativeResponses'),0)} respostas, e depois de cada rejeição confere que o estado completo ficou inalterado. Esses contadores medem coisas diferentes e não somam um total de testes. Os comandos make verify-contract, make verify e make test foram executados com sucesso e seus registros estão no repositório.`,
+ sources:[sources.evidence,sources.proofs,sources.rls]
 },
 {
  id:'reuso',title:'A prova pode ser reutilizada',seconds:45,
