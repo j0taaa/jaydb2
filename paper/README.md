@@ -1,7 +1,7 @@
 # TCC article and defense presentation
 
 The main article is the English SBC manuscript in `main.tex`. The Portuguese
-defense is now an editable **16:9 HTML slide deck**, with 23 main slides and five
+defense is now an editable **16:9 HTML slide deck**, with 22 main slides and six
 slides for questions. The current article has **16 pages including 34 references**.
 Both explain JayDB2 through concrete operations before introducing the formal
 machinery and discuss LLM-assisted construction using the author's experience.
@@ -16,18 +16,22 @@ Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotali
 - Navigation, step reveals, notes and fullscreen: `presentation/player.js`.
 - Editable SVG diagrams are embedded in `presentation/content.js`. They show
   logical dependencies, not the scheduling of overlapping CPU admission work.
-- Code figures `write-scope.svg` and `client-certificate.svg` are literal excerpts
-  from `applications/rls/Policy.bend` (`WriteScope`) and
-  `applications/rls/ClientProof.bend` (`certificate`). Regenerate with
-  `python3 paper/presentation/render_code_figures.py` from the repository root.
-  Only line wrapping changes. The builder inlines the SVGs, fonts and all WebP
-  illustrations in the offline HTML.
-- Slides 4 and 9 use OpenAI-generated conceptual illustrations, styled after
-  the cover. Their exact prompts and filenames are retained in
-  `presentation/assets/illustration-prompts.json`. Both WebP files are below
-  150 KB. The article and slide AI declarations include these illustrations.
-- Slide 7 includes a literal excerpt of a real Bend rejection for `read-bob`.
-  The concrete fixture reads `bob/00000001`; `bob/n7` is the slide's illustrative
+- The code figure `client-certificate.svg` (backup slide on certificates) is a
+  literal excerpt of `applications/rls/ClientProof.bend` (`certificate`);
+  `write-scope.svg` (`Policy.bend`, `WriteScope`) is kept but no longer shown.
+  Regenerate with `python3 paper/presentation/render_code_figures.py` from the
+  repository root. Only line wrapping changes. The builder inlines the SVGs,
+  fonts and all WebP illustrations in the offline HTML.
+- Icons, the JayDB2 logo (`presentation/assets/jaydb2-*.svg`) and automatic
+  entry animations are documented at the top of `presentation/content.js`.
+  Animations show their final state in print/PDF and with reduced motion.
+- The cover and the illustrations on the motivation, "O que é o JayDB2",
+  request, LLM and test-vs-certificate slides are OpenAI-generated conceptual
+  images styled after the cover. Their exact prompts and filenames are retained
+  in `presentation/assets/illustration-prompts.json`; each WebP is below 150 KB.
+  The article and the AI-declaration backup slide mention these illustrations.
+- The rejections slide includes a literal excerpt of a real Bend rejection for `read-bob`.
+  The concrete fixture reads `bob/00000001`; `bob/n7` is the slides' illustrative
   identifier. Complete diagnostics for this fixture and
   `create-without-directory`, in both official modes, are retained as `.txt`
   files under `presentation/assets/`. Reproduce and regenerate the terminal
@@ -67,14 +71,14 @@ Deliverables are ignored build products:
 
 - `.build/tcc/output/jaydb2-tcc.pdf`
 - `.build/tcc/output/jaydb2-defense.html` (self-contained, works offline)
-- `.build/tcc/output/jaydb2-defense.pdf` (includes all five question slides)
+- `.build/tcc/output/jaydb2-defense.pdf` (includes all six question slides)
 - `.build/tcc/output/speaker-notes.html`
 - `.build/tcc/output/defense-slides.json` (slide titles, IDs, timing and appendix status)
 
 Use arrow keys or Space to navigate, N for notes, F for fullscreen and O for the
 slide index. Reveals advance before the next slide. The presentation stops at
 the final main slide; question slides remain accessible through the index.
-Printing includes every slide. The planned main-slide allocation is **16min35s**. The generated
+Printing includes every slide. The planned main-slide allocation is **16min25s**. The generated
 notes report the current speaking-word count.
 The timing data leave room within the 20-minute limit, subject to rehearsal.
 

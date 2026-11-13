@@ -327,6 +327,7 @@ const evidenciaStat=(n,text)=>`<div class="evid-stat"><span class="evid-number">
 const evidenciaCheck=text=>`<li>${icon('check',{size:26,cls:'tone-green'})}${text}</li>`;
 function evidenciaCard(step,{iconName,tone,title,question,text,body,checker,checkerIcon}){
   return `<section class="evid-card${step?' fragment':''}" ${step?`data-step="${step}"`:''}><div class="anim-fade-up">${badge(iconName,{size:70,tone})}<h3>${title}</h3><p class="evid-question">${question}</p><p class="evid-text">${text}</p></div><div class="evid-body anim-fade-up" ${delay(.25)}>${body}</div><p class="evid-checker">${icon(checkerIcon,{size:28,cls:'tone-muted'})}${checker}</p></section>`;
+}
 // ── Group 3 helpers ──
 // Reuse slide: prepare once (check + compile), then many calls with current credential and arguments.
 function reuseFlow(){
