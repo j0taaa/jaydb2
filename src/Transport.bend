@@ -56,8 +56,64 @@ def validate(ok: Bool, bytes: List<&2, U32>) -> Maybe<&2, Parts>:
     case True{}:
       header(bytes)
 
-def separate(+bytes: List<&2, U32>) -> Maybe<&2, Parts>:
+# Retained specification for all-input refinement and malformed-packet proofs.
+def separate_reference(+bytes: List<&2, U32>) -> Maybe<&2, Parts>:
   validate(B.octets_all_valid(bytes), bytes)
+
+def accept(ok: Bool, parts: Maybe<&2, Parts>) -> Maybe<&2, Parts>:
+  match ok:
+    case False{}: None{}
+    case True{}: parts
+
+def prepend(h: U32, parts: Maybe<&2, Parts>) -> Maybe<&2, Parts>:
+  match parts:
+    case None{}: None{}
+    case Some{Parts{first, second}}: Some{Parts{Con{h, first}, second}}
+
+# Build the prefix in order while unwinding the cut, with no reverse list.
+# The suffix is validated once and returned unchanged. Every consumed octet
+# is checked at its cut step; truncation and non-octets fail closed.
+def scan_step(zero: Bool, +h: U32, +t: List<&2, U32>, resume: Unit -> Maybe<&2, Parts>) -> Maybe<&2, Parts>:
+  match zero:
+    case True{}: accept(B.octets_all_valid(Con{h, t}), Some{Parts{Nil{}, Con{h, t}}})
+    case False{}: accept(U32.is_le(h, 255), prepend(h, resume(Unit{})))
+
+def scan(bytes: List<&2, U32>, +count: B.Number64) -> Maybe<&2, Parts>:
+  match bytes:
+    case Nil{}: accept(C.zero64(count), Some{Parts{Nil{}, Nil{}}})
+    case Con{h, +t}: scan_step(C.zero64(count), h, t, unit => scan(t, C.decrease64(count)))
+
+def separate(bytes: List<&2, U32>) -> Maybe<&2, Parts>:
+  match bytes:
+    case Con{+a, Con{+b, Con{+c, Con{+d, Con{+e, Con{+f, Con{+g, Con{+h, rest}}}}}}}}:
+      accept(B.octets_all_valid([a, b, c, d, e, f, g, h]),
+        scan(rest, B.Number64{word(a, b, c, d), word(e, f, g, h)}))
+    case _: None{}
+
+# Outer prepared framing validates only its own prefix. The inner separator
+# validates the untouched suffix before any root/request reaches the worker.
+def complete(parts: Maybe<&2, Parts>) -> Maybe<&2, Parts>:
+  match parts:
+    case None{}: None{}
+    case Some{Parts{first, +second}}:
+      accept(B.octets_all_valid(second), Some{Parts{first, second}})
+
+def prefix_step(zero: Bool, +h: U32, +t: List<&2, U32>, resume: Unit -> Maybe<&2, Parts>) -> Maybe<&2, Parts>:
+  match zero:
+    case True{}: Some{Parts{Nil{}, Con{h, t}}}
+    case False{}: accept(U32.is_le(h, 255), prepend(h, resume(Unit{})))
+
+def prefix_scan(bytes: List<&2, U32>, +count: B.Number64) -> Maybe<&2, Parts>:
+  match bytes:
+    case Nil{}: accept(C.zero64(count), Some{Parts{Nil{}, Nil{}}})
+    case Con{h, +t}: prefix_step(C.zero64(count), h, t, unit => prefix_scan(t, C.decrease64(count)))
+
+def separate_prefix(bytes: List<&2, U32>) -> Maybe<&2, Parts>:
+  match bytes:
+    case Con{+a, Con{+b, Con{+c, Con{+d, Con{+e, Con{+f, Con{+g, Con{+h, rest}}}}}}}}:
+      accept(B.octets_all_valid([a, b, c, d, e, f, g, h]),
+        prefix_scan(rest, B.Number64{word(a, b, c, d), word(e, f, g, h)}))
+    case _: None{}
 
 def join_combined_header(header: Maybe<&2, List<&2, U32>>,
   first: List<&2, U32>, second: List<&2, U32>) -> Maybe<&2, List<&2, U32>>:

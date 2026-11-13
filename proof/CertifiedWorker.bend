@@ -197,7 +197,7 @@ def checked_routed_prepared(~c: S.Configuration, ~checked: Evidence.Checked<c>, 
     W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) ->
   L.E<T.UnifiedCore(k, c, s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw},
       W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
-    {Bridge.result_drive(c, Succ{n}, W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+    {Bridge.result_drive(c, Succ{n}, W.routed_bytes(c, bytes, code, proof, Evidence.oracle(c, checked))) ==
       Result.attach(Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof), Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
         W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) : Result.Iteration}>:
   lift_emission(
@@ -206,7 +206,7 @@ def checked_routed_prepared(~c: S.Configuration, ~checked: Evidence.Checked<c>, 
     {A.drive(c, Succ{n}, W.registered_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
       Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
         W.artifact_oracle(code, proof, Evidence.oracle(c, checked))) : X.Iteration},
-    {Bridge.result_drive(c, Succ{n}, W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked))) ==
+    {Bridge.result_drive(c, Succ{n}, W.routed_bytes(c, bytes, code, proof, Evidence.oracle(c, checked))) ==
       Result.attach(Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
         Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
           W.artifact_oracle(code, proof, Evidence.oracle(c, checked)))) : Result.Iteration},
@@ -214,8 +214,8 @@ def checked_routed_prepared(~c: S.Configuration, ~checked: Evidence.Checked<c>, 
       checked, outer, parts, root, received, configured, valid, complete),
     finished => Bridge.lifted_finite_result(c, Succ{n},
     Bridge.prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
-    W.routed_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked)),
+    W.routed_bytes(c, bytes, code, proof, Evidence.oracle(c, checked)),
     W.registered_packet(c, Transport.separate(bytes), code, proof, Evidence.oracle(c, checked)),
     Bridge.selection_reference(c, s, n, Resolve.select(S.environment(c), s, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), Resolve.Registered{raw}),
       W.artifact_oracle(code, proof, Evidence.oracle(c, checked))),
-    Bridge.routed_packet_lifts_registered(c, bytes, registry_bytes, packet, state_bytes, body, s, raw, code, proof, Evidence.oracle(c, checked), outer, parts, root, received), finished))
+    Bridge.routed_bytes_lifts_registered(c, bytes, registry_bytes, packet, state_bytes, body, s, raw, code, proof, Evidence.oracle(c, checked), outer, parts, root, received), finished))

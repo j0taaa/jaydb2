@@ -174,7 +174,7 @@ class PreparedTests(unittest.TestCase):
             self.assertEqual(unframe(run_control(foreign, 2, candidate)[1:])['status'], 'failure')
             self.assertEqual(unframe(run_control(foreign, 0, code, proof)[1:])['status'], 'failure')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
-            self.assertIn('Worker.routed_packet(', (prepared/'Main.bend').read_text())
+            self.assertIn('Worker.routed_bytes(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             # Exercise Resolve/Gate in the compiled worker directly, bypassing
             # Rust's artifact selection. Only the checked registry and the
@@ -184,6 +184,23 @@ class PreparedTests(unittest.TestCase):
             def private_packet(first, rest):
                 return len(first).to_bytes(8, 'big') + first + rest
             executable = next(prepared.glob('*.program'))
+            # The outer prefix parser deliberately defers the suffix scan.
+            # Actual compiled workers must still reject incomplete nested
+            # frames and malformed private roots before producing metadata.
+            raw = prepared_frame(1, candidate, 'alice-token')[8:]
+            for label, bad_packet in (
+                    ('empty-outer', b''),
+                    ('short-outer-header', bytes(7)),
+                    ('outer-prefix-truncated', (2**64-1).to_bytes(8, 'big') + live_registry),
+                    ('short-inner-header', private_packet(live_registry, bytes(7))),
+                    ('inner-prefix-truncated', private_packet(live_registry,
+                        (2**64-1).to_bytes(8, 'big') + root + raw)),
+                    ('invalid-root', private_packet(live_registry, private_packet(root[:-1], raw))),
+                    ('extra-root-byte', private_packet(live_registry, private_packet(root + b'\x00', raw)))):
+                with self.subTest(private_transport=label):
+                    worker = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
+                        input=bad_packet, capture_output=True, timeout=30, check=True)
+                    self.assertEqual(worker.stdout, b'\x02', worker.stderr.decode())
             mismatched_code = run_control(b'', 0, failing, proof, admitted_code=failing)
             _, rest = split_control(mismatched_code[1:])
             wrong_program_registry, _ = split_control(rest)

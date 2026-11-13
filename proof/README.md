@@ -21,7 +21,7 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `IngressTheorem` | Complete ordinary body decoding keeps the exact root and applies Core to the decoded request, or produces a bounded framed denial; it cannot produce a private transport error. | `Ingress.ingress_theorem`, `Ingress.bend` |
 | `UnifiedCoreTheorem` | Direct and registered request selection applies Core to the exact selected request, or returns a bounded denial. Registered selection authenticates first, requires empty raw proof and uses scoped lookup. | `Ingress.unified_core_theorem`, `Ingress.bend` |
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
-| `WorkerBridge` | `result_driver_preserves_exact_execution` and `routed_packet_lifts_registered` lift the original exact decision into the checked route/principal envelope; metadata is derived from the same fresh authentication and complete registry selection. Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
+| `WorkerBridge` | `result_driver_preserves_exact_execution` and `routed_bytes_lifts_registered` (refining `routed_packet_lifts_registered`) lift the original exact decision into the checked route/principal envelope; metadata is derived from the same fresh authentication and complete registry selection. Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
 | `CertifiedWorker` | `checked_routed_prepared` covers the actual metadata-bearing entry with its closed generated oracle package, preserving the same UnifiedCore clause and exact decision. The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
 | `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
@@ -32,6 +32,16 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
 | `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
+
+`TransportScan.separate_refines_reference` proves fused validation/cutting equals
+the previous private parser for every U32 list, including non-octets and truncated
+frames. Prefixes are built in order without reverse accumulators.
+`WorkerBridge.routed_bytes_equals_original_packet` proves the literal prepared
+entry may defer the outer suffix scan to its inner separator, preserving the
+complete result on all inputs. The inner parser still validates that suffix
+before root/request decoding. Existing framing, registry and worker theorems
+therefore retain their premises; no canonical-byte provenance premise or new
+trusted duty is introduced by this transport change.
 
 `RequestFacts` contains shared pure request/termination predicates.
 The supporting proofs cover authentication, interpreter fidelity, finalization,

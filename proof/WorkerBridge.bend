@@ -1,9 +1,10 @@
-# The generated entry calls Worker.packet/registered_packet literally; the
+# The generated entry calls Worker.packet/routed_bytes literally; the
 # native conversion and step laws are checked in that same admitted Book.
 # Here the pure worker result is related to the theorem's exact Gate path.
 # Fuel is a proof index only, never an execution quota or prefix replay.
 import Base
 import ../src/LimitWords.bend as LimitWords
+import ./TransportScan.bend as Scan
 import ../contract/Bytes.bend as B
 import ../contract/Theorems.bend as Theorems
 import ../contract/Logic.bend as L
@@ -509,3 +510,104 @@ def lifted_finite_result(~c: S.Configuration, +n: Nat, +metadata: Messages.Worke
     result_drive(c, n, Result.attach(metadata, original)), Result.attach(metadata, A.drive(c, n, original)), Result.attach(metadata, ref),
     result_driver_preserves_exact_execution(c, n, metadata, original),
     Equal.cong(X.Iteration, Result.Iteration, i => Result.attach(metadata, i), A.drive(c, n, original), ref, finished))
+
+
+# Deferring the suffix octet scan to the inner separator preserves even the
+# malformed-packet result. No canonical-root provenance premise is needed.
+law routed_accept:
+  for ~c: S.Configuration
+  for ok: Bool
+  for +parts: Maybe<&2, Transport.Parts>
+  for +entries: List<&2, Registry.Entry>
+  for +code: String
+  for +proof: String
+  for -admit: Gate.Oracle()
+  {W.routed_parts(c, Transport.accept(ok, parts), entries, code, proof, admit) ==
+    result_accept(ok, W.routed_parts(c, parts, entries, code, proof, admit)) : Result.Iteration}
+
+def result_accept(ok: Bool, result: Result.Iteration) -> Result.Iteration:
+  match ok:
+    case False{}: Result.Inconsistent{}
+    case True{}: result
+
+def routed_accept(c, ok, parts, entries, code, proof, admit):
+  match ok:
+    case False{}: {==}
+    case True{}: {==}
+
+law routed_outer_accept:
+  for ~c: S.Configuration
+  for ok: Bool
+  for +parts: Maybe<&2, Transport.Parts>
+  for +code: String
+  for +proof: String
+  for -admit: Gate.Oracle()
+  {W.routed_packet(c, Transport.accept(ok, parts), code, proof, admit) ==
+    result_accept(ok, W.routed_packet(c, parts, code, proof, admit)) : Result.Iteration}
+def routed_outer_accept(c, ok, parts, code, proof, admit):
+  match ok:
+    case False{}: {==}
+    case True{}: {==}
+
+law routed_complete:
+  for ~c: S.Configuration
+  for +parts: Maybe<&2, Transport.Parts>
+  for +code: String
+  for +proof: String
+  for -admit: Gate.Oracle()
+  {W.routed_packet(c, Transport.complete(parts), code, proof, admit) ==
+    W.routed_packet(c, parts, code, proof, admit) : Result.Iteration}
+def routed_complete(c, parts, code, proof, admit):
+  match parts:
+    case None{}: {==}
+    case Some{Transport.Parts{+registry, +packet}}:
+      %Equal.sym(Result.Iteration,
+        W.routed_packet(c, Transport.accept(B.octets_all_valid(packet), Some{Transport.Parts{registry, packet}}), code, proof, admit),
+        result_accept(B.octets_all_valid(packet), W.routed_packet(c, Some{Transport.Parts{registry, packet}}, code, proof, admit)),
+        routed_outer_accept(c, B.octets_all_valid(packet), Some{Transport.Parts{registry, packet}}, code, proof, admit)) :
+        {_ == W.routed_packet(c, Some{Transport.Parts{registry, packet}}, code, proof, admit) : Result.Iteration}
+      %routed_accept(c, B.octets_all_valid(packet), Transport.separate(packet),
+        W.registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit) :
+        {_ == W.routed_parts(c, Transport.separate(packet), W.registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit) : Result.Iteration}
+      Equal.cong(Maybe<&2, Transport.Parts>, Result.Iteration,
+        p => W.routed_parts(c, p, W.registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit),
+        Transport.accept(B.octets_all_valid(packet), Transport.separate(packet)), Transport.separate(packet),
+        Scan.separate_is_validated(packet))
+
+law routed_bytes_equals_original_packet:
+  for ~c: S.Configuration
+  for +bytes: List<&2, U32>
+  for +code: String
+  for +proof: String
+  for -admit: Gate.Oracle()
+  {W.routed_bytes(c, bytes, code, proof, admit) ==
+    W.routed_packet(c, Transport.separate(bytes), code, proof, admit) : Result.Iteration}
+def routed_bytes_equals_original_packet(c, bytes, code, proof, admit):
+  Equal.trans(Result.Iteration, W.routed_packet(c, Transport.separate_prefix(bytes), code, proof, admit),
+    W.routed_packet(c, Transport.complete(Transport.separate_prefix(bytes)), code, proof, admit),
+    W.routed_packet(c, Transport.separate(bytes), code, proof, admit),
+    Equal.sym(Result.Iteration,
+      W.routed_packet(c, Transport.complete(Transport.separate_prefix(bytes)), code, proof, admit),
+      W.routed_packet(c, Transport.separate_prefix(bytes), code, proof, admit),
+      routed_complete(c, Transport.separate_prefix(bytes), code, proof, admit)),
+    Equal.cong(Maybe<&2, Transport.Parts>, Result.Iteration,
+      p => W.routed_packet(c, p, code, proof, admit),
+      Transport.complete(Transport.separate_prefix(bytes)), Transport.separate(bytes), Scan.separate_prefix_complete(bytes)))
+
+
+def routed_bytes_lifts_registered(~c: S.Configuration, +bytes: List<&2, U32>,
+  +registry_bytes: List<&2, U32>, +packet: List<&2, U32>, +state_bytes: List<&2, U32>, +body: List<&2, U32>,
+  +s: D.State, +raw: P.Request, +code: String, +proof: String, admit: Gate.Oracle(),
+  outer: {Transport.separate(bytes) == Some{Transport.Parts{registry_bytes, packet}} : Maybe<&2, Transport.Parts>},
+  +parts: {Transport.separate(packet) == Some{Transport.Parts{state_bytes, body}} : Maybe<&2, Transport.Parts>},
+  +root: {Dispatch.read_root(state_bytes, S.schema(c), S.limits(c)) == Some{s} : Maybe<&2, D.State>},
+  +received: {Dispatch.execution(Dispatch.received(S.limits(c), body, s)) == Input.InputReady{s, raw} : Input.PreAuthentication}) ->
+  {W.routed_bytes(c, bytes, code, proof, admit) ==
+    Result.attach(prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
+      W.registered_packet(c, Transport.separate(bytes), code, proof, admit)) : Result.Iteration}:
+  Equal.trans(Result.Iteration, W.routed_bytes(c, bytes, code, proof, admit),
+    W.routed_packet(c, Transport.separate(bytes), code, proof, admit),
+    Result.attach(prepared_metadata(c, s, raw, W.registry_entries(ControlBridge.decode_registry(registry_bytes)), code, proof),
+      W.registered_packet(c, Transport.separate(bytes), code, proof, admit)),
+    routed_bytes_equals_original_packet(c, bytes, code, proof, admit),
+    routed_packet_lifts_registered(c, bytes, registry_bytes, packet, state_bytes, body, s, raw, code, proof, admit, outer, parts, root, received))

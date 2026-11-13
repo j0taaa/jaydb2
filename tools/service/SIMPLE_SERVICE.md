@@ -31,7 +31,10 @@ metadata selects external admission or a prepared artifact; Rust copies the
 checked source/context/arguments bindings to staging.
 
 The generated entry calls `Worker.packet` (ordinary) or
-`Worker.routed_packet` (prepared, lifting the original `registered_packet` decision). Both decode the private published root
+`Worker.routed_bytes` (prepared, proved equal on all inputs to the original
+`routed_packet` / `registered_packet` composition). Prepared framing validates
+the registry prefix and leaves suffix validation to the inner root/body parser.
+Both entries decode the private published root
 and retain it on early errors. Ordinary bodies use `Input.read_message`.
 Prepared execution receives the latest unchanged registry bytes from the
 checked controller separately from the original body, decodes it with
