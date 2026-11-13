@@ -141,3 +141,61 @@
 @keyframes deck-pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.slide :is(.anim-fade,.anim-fade-up,.anim-grow-x,.anim-grow-y,.anim-draw,.anim-pop){animation:none!important}}
 @media print{.slide :is(.anim-fade,.anim-fade-up,.anim-grow-x,.anim-grow-y,.anim-draw,.anim-pop){animation:none!important}}
+
+/* ── Group 2: LLMs, method, architecture, guarantees, applications, evidence (slides 9–14) ── */
+/* Slide 9 (llms): three short points under the diagram, revealed with its steps. */
+#slide-llms .llms-points{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:16px}
+#slide-llms .llms-points li{display:flex;align-items:center;gap:18px;font-size:28px;line-height:1.3}
+/* Slide 10 (metodo): one card per research question with a pictogram. */
+#slide-metodo .metodo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:70px}
+#slide-metodo .metodo-card{border-top:3px solid var(--deck-ink);padding-top:26px}
+#slide-metodo .metodo-pic{display:block;width:100%;height:auto;background:#e8ecdf;border-radius:10px;padding:14px 10px;box-sizing:border-box;overflow:visible}
+#slide-metodo .metodo-n{font-size:42px;color:var(--deck-green);letter-spacing:-1.5px;margin:34px 0 12px}
+#slide-metodo .metodo-card h3{font-size:36px;line-height:1.18;margin-bottom:18px}
+#slide-metodo .metodo-card p:last-child{font-size:28px;line-height:1.4;color:#33515a}
+#slide-metodo .metodo-link{fill:none;stroke:var(--deck-green);stroke-width:3}
+#slide-metodo .metodo-flow,#slide-metodo .metodo-tip{fill:none;stroke:var(--deck-green);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#slide-metodo .metodo-seal{fill:var(--deck-mint);stroke:var(--deck-green);stroke-width:2.5}
+#slide-metodo .metodo-line{fill:none;stroke:#93a59c;stroke-width:3;stroke-linecap:round}
+#slide-metodo .metodo-dot{fill:var(--deck-green)}
+#slide-metodo .metodo-final{fill:var(--deck-mint);stroke:var(--deck-green);stroke-width:2.5}
+#slide-metodo .metodo-bar{fill:var(--deck-green)}
+#slide-metodo .metodo-bar:nth-of-type(2){fill:#7fb59d}
+/* Slide 11 (arquitetura): two lanes, stage cards with icons, binding band and trust chips. */
+#slide-arquitetura .system-figure{margin-top:50px}
+#slide-arquitetura .system-figure text{font-size:27px}
+#slide-arquitetura .system-figure .box-title{font-size:30px}
+#slide-arquitetura .system-figure .arq-lane{font-size:26px;font-weight:600;letter-spacing:2px;fill:var(--deck-green)}
+#slide-arquitetura .system-figure .edge-label{font-size:26px}
+#slide-arquitetura .arq-bind{fill:var(--deck-mint);stroke:var(--deck-green);stroke-width:2.5}
+#slide-arquitetura .arq-bind-link{stroke:var(--deck-green);stroke-width:3;stroke-dasharray:5 6}
+#slide-arquitetura .system-figure .arq-bind-text{font-size:28px;font-weight:600}
+#slide-arquitetura .arq-chip{fill:var(--deck-ink)}
+#slide-arquitetura .system-figure .arq-chip-text{font-size:26px;font-weight:600;fill:var(--deck-paper)}
+#slide-arquitetura .system-figure .arq-part-name{font-weight:600}
+/* Slide 13 (aplicacoes): 2×2 application cards. */
+#slide-aplicacoes .aplic-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:34px}
+#slide-aplicacoes .aplic-card{background:#ebe9dc;border:2px solid #d2d6c6;border-radius:12px;padding:20px 28px 18px}
+#slide-aplicacoes .aplic-card header{display:flex;align-items:center;gap:20px}
+#slide-aplicacoes .aplic-card h3{font-size:33px}
+#slide-aplicacoes .aplic-what{font-size:24px;color:var(--deck-muted);margin-top:2px}
+#slide-aplicacoes .aplic-rules{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:14px}
+#slide-aplicacoes .aplic-rules p{font-size:26px;line-height:1.3}
+#slide-aplicacoes .aplic-rules .aplic-label{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--deck-green);margin-bottom:4px}
+#slide-aplicacoes .aplic-invalid{display:flex;align-items:center;gap:10px;font-size:24px;color:#8d3e2b;margin-top:12px;padding-top:10px;border-top:1px solid #cfd3c3}
+#slide-aplicacoes .aplic-invalid strong{font-weight:600}
+/* Slide 14 (evidencia): three complementary kinds of evidence. */
+#slide-evidencia .evid-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px}
+#slide-evidencia .evid-card{display:flex;flex-direction:column;background:#ebe9dc;border:2px solid #d2d6c6;border-radius:12px;padding:26px 30px 22px;height:596px}
+#slide-evidencia .evid-card h3{font-size:35px;margin-top:20px}
+#slide-evidencia .evid-question{font-size:24px;color:var(--deck-muted);margin-top:6px}
+#slide-evidencia .evid-text{font-size:26px;line-height:1.35;margin-top:16px}
+#slide-evidencia .evid-body{margin-top:22px;padding-top:20px;border-top:1px solid #cfd3c3;flex:1}
+#slide-evidencia .evid-checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#slide-evidencia .evid-checks li{display:flex;align-items:center;gap:12px;font-size:25px}
+#slide-evidencia .evid-stats{display:grid;gap:14px;margin-bottom:14px}
+#slide-evidencia .evid-stat{display:flex;align-items:center;gap:18px}
+#slide-evidencia .evid-number{min-width:118px;font-size:60px;font-weight:600;letter-spacing:-2px;line-height:1;color:var(--deck-green);font-variant-numeric:tabular-nums}
+#slide-evidencia .evid-card:nth-child(2) .evid-number{color:#b24a32}
+#slide-evidencia .evid-stat-label{font-size:24px;line-height:1.25}
+#slide-evidencia .evid-checker{display:flex;align-items:center;gap:10px;font-size:24px;color:var(--deck-muted);border-top:1px solid #cfd3c3;padding-top:14px}
