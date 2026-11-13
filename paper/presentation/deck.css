@@ -42,7 +42,7 @@
 .certificate-figure{margin-top:35px}.certificate-figure img{max-height:300px;object-fit:contain;object-position:left}
 
 /* Second-round layouts use the full content area above the footer. */
-#slide-arquitetura .system-figure,#slide-garantias .system-figure{margin-top:38px}
+#slide-arquitetura .system-figure{margin-top:38px}#slide-garantias .system-figure{margin-top:50px}
 #slide-arquitetura .system-figure text,#slide-garantias .system-figure text,#slide-gpu .system-figure text{font-size:30px}
 #slide-arquitetura .system-figure .box-title,#slide-garantias .system-figure .box-title,#slide-gpu .system-figure .box-title{font-size:32px}
 #slide-arquitetura .diagram-note,#slide-garantias .diagram-note{font-size:28px;margin-top:20px}
@@ -81,7 +81,7 @@
 .llm-layout .system-figure .box-title{font-size:32px}
 .llm-layout .system-figure .deny-label{font-size:30px}
 .llm-context{margin-top:25px}.llm-context p{font-size:28px;line-height:1.4;margin-bottom:24px}
-.llm-layout .illustration img{height:500px;object-fit:cover}
+.llm-layout .illustration img{height:600px;object-fit:cover}
 
 .request-layout .illustration img{height:520px;object-fit:cover}
 .llm-context p:last-child{margin-bottom:0}
@@ -174,9 +174,9 @@
 #slide-o-que-e .oquee-keep{background:#e3e5da;color:var(--deck-ink)}
 #slide-o-que-e .oquee-keep .icon{color:var(--deck-muted)}
 /* admissao, transacao: diagrams with icons. */
-#slide-admissao .system-figure{margin-top:36px}
-#slide-transacao .system-figure{margin-top:44px}
-#slide-transacao .diagram-note{font-size:26px;margin-top:22px}
+#slide-admissao .system-figure{margin-top:58px}
+#slide-transacao .system-figure{margin-top:108px}
+#slide-transacao .diagram-note{font-size:29px;margin-top:58px}
 #slide-transacao .diagram-note .icon{margin:-4px 4px 0 0}
 /* pedido: request, what the program must and must not do, labelled illustration. */
 #slide-pedido .pedido-layout{display:grid;grid-template-columns:760px 1fr;gap:56px;margin-top:36px}
@@ -186,7 +186,7 @@
 #slide-pedido .pedido-mustnot{border-top-color:var(--deck-coral)}
 #slide-pedido .pedido-group h3{display:flex;align-items:center;gap:16px;font-size:30px}
 #slide-pedido .pedido-group ul{list-style:none;margin:10px 0 0;padding:0}
-#slide-pedido .pedido-group li{display:flex;align-items:center;gap:16px;font-size:28px;line-height:1.35;padding:7px 0 7px 64px}
+#slide-pedido .pedido-group li{display:flex;align-items:center;gap:16px;font-size:28px;line-height:1.35;padding:7px 0 7px 72px}
 #slide-pedido code,#slide-leis code{font:600 25px 'DejaVu Sans Mono',Menlo,Consolas,monospace;background:#e4e8dc;padding:1px 8px;border-radius:5px}
 #slide-pedido .pedido-figure{margin:0}
 #slide-pedido .pedido-image{position:relative;height:470px;overflow:hidden;border-radius:6px}
@@ -203,9 +203,9 @@
 /* leis: one card per law; the timing tag separates every-access laws from the publication law. */
 #slide-leis .leis-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:44px}
 #slide-leis .leis-cards>div,#slide-leis .leis-cards>div>div{height:100%}
-#slide-leis .leis-card{height:510px;display:flex;flex-direction:column;background:#fbf9f2;border:2px solid #d4d8cb;border-top:6px solid var(--deck-green);border-radius:10px;padding:26px 28px}
+#slide-leis .leis-card{height:510px;display:flex;flex-direction:column;padding:26px 28px}
 #slide-leis .leis-card header{display:flex;align-items:center;gap:18px}
-#slide-leis .leis-card h3{font-size:34px}
+#slide-leis .leis-card h3{font-size:33px}
 #slide-leis .leis-rule{font-size:28px;line-height:1.38;margin-top:22px}
 #slide-leis .leis-examples{list-style:none;margin:22px 0 0;padding:14px 0 0;border-top:1px solid #d4d8cb}
 #slide-leis .leis-examples li{display:flex;align-items:center;gap:12px;font-size:26px;line-height:1.3;padding:8px 0}
@@ -232,11 +232,11 @@
 #slide-llms .llms-points{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:16px}
 #slide-llms .llms-points li{display:flex;align-items:center;gap:18px;font-size:28px;line-height:1.3}
 /* Slide 10 (metodo): one card per research question with a pictogram. */
-#slide-metodo .metodo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:70px}
-#slide-metodo .metodo-card{border-top:3px solid var(--deck-ink);padding-top:26px}
+#slide-metodo .metodo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:48px}
+#slide-metodo .metodo-card{padding:24px 26px 28px;height:100%}
 #slide-metodo .metodo-pic{display:block;width:100%;height:auto;background:#e8ecdf;border-radius:10px;padding:14px 10px;box-sizing:border-box;overflow:visible}
-#slide-metodo .metodo-n{font-size:42px;color:var(--deck-green);letter-spacing:-1.5px;margin:34px 0 12px}
-#slide-metodo .metodo-card h3{font-size:36px;line-height:1.18;margin-bottom:18px}
+#slide-metodo .metodo-n{font-size:42px;color:var(--deck-green);letter-spacing:-1.5px;margin:26px 0 10px}
+#slide-metodo .metodo-card h3{font-size:33px;line-height:1.18;margin-bottom:16px}
 #slide-metodo .metodo-card p:last-child{font-size:28px;line-height:1.4;color:#33515a}
 #slide-metodo .metodo-link{fill:none;stroke:var(--deck-green);stroke-width:3}
 #slide-metodo .metodo-flow,#slide-metodo .metodo-tip{fill:none;stroke:var(--deck-green);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
@@ -247,7 +247,7 @@
 #slide-metodo .metodo-bar{fill:var(--deck-green)}
 #slide-metodo .metodo-bar:nth-of-type(2){fill:#7fb59d}
 /* Slide 11 (arquitetura): two lanes, stage cards with icons, binding band and trust chips. */
-#slide-arquitetura .system-figure{margin-top:50px}
+#slide-arquitetura .system-figure{margin-top:32px}
 #slide-arquitetura .system-figure text{font-size:27px}
 #slide-arquitetura .system-figure .box-title{font-size:30px}
 #slide-arquitetura .system-figure .arq-lane{font-size:26px;font-weight:600;letter-spacing:2px;fill:var(--deck-green)}
@@ -259,8 +259,8 @@
 #slide-arquitetura .system-figure .arq-chip-text{font-size:26px;font-weight:600;fill:var(--deck-paper)}
 #slide-arquitetura .system-figure .arq-part-name{font-weight:600}
 /* Slide 13 (aplicacoes): 2×2 application cards. */
-#slide-aplicacoes .aplic-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:34px}
-#slide-aplicacoes .aplic-card{background:#ebe9dc;border:2px solid #d2d6c6;border-radius:12px;padding:20px 28px 18px}
+#slide-aplicacoes .aplic-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px}
+#slide-aplicacoes .aplic-card{padding:14px 28px 14px}
 #slide-aplicacoes .aplic-card header{display:flex;align-items:center;gap:20px}
 #slide-aplicacoes .aplic-card h3{font-size:33px}
 #slide-aplicacoes .aplic-what{font-size:24px;color:var(--deck-muted);margin-top:2px}
@@ -271,9 +271,10 @@
 #slide-aplicacoes .aplic-invalid strong{font-weight:600}
 /* Slide 14 (evidencia): three complementary kinds of evidence. */
 #slide-evidencia .evid-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px}
-#slide-evidencia .evid-card{display:flex;flex-direction:column;background:#ebe9dc;border:2px solid #d2d6c6;border-radius:12px;padding:26px 30px 22px;height:596px}
-#slide-evidencia .evid-card h3{font-size:35px;margin-top:20px}
-#slide-evidencia .evid-question{font-size:24px;color:var(--deck-muted);margin-top:6px}
+#slide-evidencia .evid-card{display:flex;flex-direction:column;padding:24px 26px 20px;height:560px}
+#slide-evidencia .evid-card header{display:flex;align-items:center;gap:16px}
+#slide-evidencia .evid-card h3{font-size:32px;letter-spacing:-.6px;white-space:nowrap}
+#slide-evidencia .evid-question{font-size:24px;color:var(--deck-muted);margin-top:14px}
 #slide-evidencia .evid-text{font-size:26px;line-height:1.35;margin-top:16px}
 #slide-evidencia .evid-body{margin-top:22px;padding-top:20px;border-top:1px solid #cfd3c3;flex:1}
 #slide-evidencia .evid-checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -281,7 +282,7 @@
 #slide-evidencia .evid-stats{display:grid;gap:14px;margin-bottom:14px}
 #slide-evidencia .evid-stat{display:flex;align-items:center;gap:18px}
 #slide-evidencia .evid-number{min-width:118px;font-size:60px;font-weight:600;letter-spacing:-2px;line-height:1;color:var(--deck-green);font-variant-numeric:tabular-nums}
-#slide-evidencia .evid-card:nth-child(2) .evid-number{color:#b24a32}
+#slide-evidencia .evid-coral .evid-number{color:#b24a32}
 #slide-evidencia .evid-stat-label{font-size:24px;line-height:1.25}
 #slide-evidencia .evid-checker{display:flex;align-items:center;gap:10px;font-size:24px;color:var(--deck-muted);border-top:1px solid #cfd3c3;padding-top:14px}
 /* ── Group 3: results, limitations and conclusion (reuso, sql, escala, gpu, simulacao, limites, conclusao) ── */
@@ -308,7 +309,7 @@
 #slide-escala .escala-chart{height:502px;margin-top:0}
 #slide-escala .escala-picto{padding-top:6px}
 #slide-escala .escala-picto-title{display:flex;align-items:center;gap:16px;font-size:32px;font-weight:600}
-#slide-escala .escala-picto>svg{display:block;width:300px;height:300px;margin-top:22px;overflow:visible}
+#slide-escala .escala-picto>svg{display:block;width:220px;height:220px;margin-top:20px;overflow:visible}
 #slide-escala .escala-row{fill:#e3e5da}
 #slide-escala .escala-row-key{fill:var(--deck-mint)}
 #slide-escala .escala-frame{fill:none;stroke:var(--deck-green);stroke-width:3}
@@ -316,8 +317,10 @@
 #slide-escala.entered .escala-scan{animation:escala-scan 1.6s .5s ease-in-out}
 @keyframes escala-scan{0%{opacity:0;transform:translateY(0)}10%{opacity:1;transform:translateY(0)}90%{opacity:1;transform:translateY(238px)}100%{opacity:0;transform:translateY(238px)}}
 @media(prefers-reduced-motion:reduce){#slide-escala .escala-scan{animation:none!important}}
-#slide-escala .escala-picto-text{font-size:28px;font-weight:600;color:var(--deck-green);margin-top:18px}
-#slide-escala .escala-picto-note{font-size:24px;line-height:1.4;margin-top:12px;color:var(--deck-muted)}
+#slide-escala .escala-picto-text{font-size:28px;font-weight:600;color:var(--deck-green);margin-top:16px;line-height:1.25}
+#slide-escala .escala-picto-note{font-size:24px;line-height:1.35;margin-top:10px;color:var(--deck-muted)}
+#slide-escala .escala-picto-why{display:flex;gap:10px;align-items:flex-start;font-size:24px;line-height:1.35;font-weight:600;margin-top:12px}
+#slide-escala .escala-picto-why .icon{margin-top:2px}
 #slide-escala .escala-zone{fill:#f4e4da;opacity:.75}
 #slide-escala .escala-cap{stroke:#c15c42;stroke-width:3;stroke-dasharray:8 6}
 #slide-escala .chart-area .escala-zone-title{font-size:26px;font-weight:600}
@@ -338,9 +341,20 @@
 #slide-limites .limites-cell div span{display:block;font-size:24px;line-height:1.35;color:var(--deck-muted);margin-top:3px}
 #slide-limites .limites-arrow{display:flex;justify-content:center}
 #slide-conclusao .deck-logo{width:380px;top:62px}
-#slide-conclusao .conclusao-points{margin-top:34px;max-width:1412px}
-#slide-conclusao .conclusao-point{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:start;padding:16px 0;border-bottom:1px solid #52736f}
+#slide-conclusao .conclusao-points{margin-top:52px;max-width:1412px}
+#slide-conclusao .conclusao-point{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:start;padding:22px 0;border-bottom:1px solid #52736f}
 #slide-conclusao .conclusao-point .icon{margin-top:1px}
 #slide-conclusao .conclusao-point p{font-size:30px;line-height:1.32}
 #slide-conclusao .conclusao-point strong{color:var(--deck-mint)}
-#slide-conclusao .conclusao-thanks{font-size:40px;font-weight:600;margin-top:44px;color:var(--deck-mint)}
+#slide-conclusao .conclusao-thanks{font-size:44px;font-weight:600;margin-top:48px;color:var(--deck-mint)}
+/* ── Polish: one content-card style (leis, metodo, aplicacoes, evidencia) and small additions ── */
+:is(#slide-leis .leis-card,#slide-metodo .metodo-card,#slide-aplicacoes .aplic-card,#slide-evidencia .evid-card){background:#fbf9f2;border:2px solid var(--deck-rule);border-top:6px solid var(--deck-green);border-radius:10px}
+#slide-evidencia .evid-card.evid-coral{border-top-color:var(--deck-coral)}
+#slide-evidencia .evid-card.evid-ink{border-top-color:var(--deck-ink)}
+#slide-metodo .metodo-pic{background:#eef0e5}
+#slide-aplicacoes .aplic-rules .aplic-label,#slide-aplicacoes .aplic-invalid{border-color:var(--deck-rule)}
+#slide-evidencia .evid-body,#slide-evidencia .evid-checker{border-color:var(--deck-rule)}
+#slide-contexto .contexto-photo-wrap{position:relative}
+#slide-contexto .contexto-credit{position:absolute;right:8px;bottom:8px;font-size:17px;line-height:1;letter-spacing:.6px;color:var(--deck-paper);background:#102f3bb8;padding:5px 9px;border-radius:4px}
+#slide-arquitetura .arq-trust-rule{stroke:var(--deck-green);stroke-width:1.5;opacity:.45}
+#slide-arquitetura .system-figure .arq-trust{font-size:24px;font-weight:600;fill:var(--deck-green)}
