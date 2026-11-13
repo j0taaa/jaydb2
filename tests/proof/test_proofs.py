@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Causal negative controls; `make verify` checks the positive aggregates."""
 from pathlib import Path
+import argparse
 import json
 import re
 import subprocess
@@ -70,6 +71,46 @@ def positive_bindings():
     print('OK tasks source/proof literal bindings', flush=True)
 
 
+def implementation_mutations():
+    """Tie negatives to real bodies and original universal theorem statements."""
+    def relocate(text):
+        return (text.replace('import ../contract/', 'import ../../../contract/')
+                    .replace('import ../proof/', 'import ../../../proof/')
+                    .replace('import ./', 'import ../../../src/'))
+
+    def mutate_once(text, old, new):
+        assert text.count(old) == 1, f'Mutation target drift: {old}'
+        return text.replace(old, new)
+
+    limits = relocate((ROOT / 'src/LimitWords.bend').read_text())
+    limits = mutate_once(limits, 'select(B.Number64{0, 65536}, blocks(256n, n), n)',
+                            'select(B.Number64{0, 65535}, blocks(256n, n), n)')
+    limits = limits.replace('law convert_equals_reference:', 'law false:').replace(
+        'def convert_equals_reference(n):', 'def false(n):')
+    expected = {'LimitWordsMutatedConvert.bend': limits}
+    worker = relocate((ROOT / 'src/Worker.bend').read_text())
+    bridge = (ROOT / 'proof/WorkerBridge.bend').read_text()
+    metadata = bridge[bridge.index('def prepared_metadata('):bridge.index('# The constant guard')]
+    metadata = metadata.replace('W.ready_metadata(', 'ready_metadata(')
+    for name, law_name, old, new in (
+        ('WorkerMutatedPrincipal.bend', 'prepared_principal_is_same_fresh_dispatch_authentication',
+         'Input.identity(authentication, s, raw)', 'Input.identity(Some{D.Context{"spoofed", "user"}}, s, raw)'),
+        ('WorkerMutatedRoute.bend', 'prepared_route_is_checked_raw_handle',
+         'Some{Gate.code(raw)}', 'Some{"wrong-handle"}')):
+        start = bridge.index('law ' + law_name + ':')
+        end = bridge.find('\nlaw ', start + 1)
+        if name == 'WorkerMutatedPrincipal.bend':
+            end = bridge.index('\ndef reference(', start)
+        law = bridge[start:end].replace('law ' + law_name + ':', 'law false:').replace(
+            'def ' + law_name + '(', 'def false(')
+        expected[name] = mutate_once(worker, old, new) + '\n' + metadata + law
+    for name, body in expected.items():
+        file = ROOT / 'tests/proof/rejected' / name
+        assert file.read_text() == body, f'Implementation mutation fixture drift: {name}'
+    print('OK implementation mutations bound to actual bodies and universal laws', flush=True)
+    return [ROOT / 'tests/proof/rejected' / name for name in expected]
+
+
 def only_false_fails(output):
     # Check every diagnostic location, including failures in imported helpers.
     locations = re.findall(r'^Location:\s*(\S+)\s*$', output, re.MULTILINE)
@@ -86,14 +127,20 @@ def diagnostic_controls():
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--implementation-mutations-only', action='store_true')
+    args = parser.parse_args()
     diagnostic_controls()
-    coverage_controls()
-    positive_bindings()
+    mutations = implementation_mutations()
+    if not args.implementation_mutations_only:
+        coverage_controls()
+        positive_bindings()
     # Each mutation removes a different premise: bytes, administrative law,
     # publishable state, authentication, construction guard, or reification.
     compiler = executable()
     count = 0
-    for path in sorted(Path(__file__).with_name('rejected').glob('*.bend')):
+    paths = mutations if args.implementation_mutations_only else Path(__file__).with_name('rejected').glob('*.bend')
+    for path in sorted(paths):
         for mode in ('--check-only', '--verdict'):
             run = subprocess.run([str(compiler), str(path), mode],
                 cwd=ROOT, env=environment(), capture_output=True, text=True, timeout=600)

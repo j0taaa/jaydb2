@@ -2,10 +2,12 @@
 use crate::{Error, Result, capture, diagnostic};
 use sha2::{Digest, Sha256};
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Output};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 
@@ -13,18 +15,17 @@ pub(crate) struct Image(File);
 
 impl Image {
     pub(crate) fn load(path: &Path, expected: &str) -> Result<Self> {
-        // SAFETY: constant NUL-terminated name and documented Linux flags.
-        let fd = unsafe {
-            libc::memfd_create(
-                c"jaydb-admitted".as_ptr(),
-                libc::MFD_CLOEXEC | libc::MFD_ALLOW_SEALING,
-            )
-        };
-        if fd < 0 {
-            return Err(std::io::Error::last_os_error().into());
-        }
-        // SAFETY: successful memfd_create returns a new owned descriptor.
-        let mut file = unsafe { File::from_raw_fd(fd) };
+        let mut file = executable_memfd(|flags| {
+            // SAFETY: constant NUL-terminated name and documented Linux flags.
+            let fd = unsafe { libc::memfd_create(c"jaydb-admitted".as_ptr(), flags) };
+            if fd < 0 {
+                Err(io::Error::last_os_error())
+            } else {
+                // SAFETY: successful memfd_create returns a new owned descriptor.
+                Ok(unsafe { File::from_raw_fd(fd) })
+            }
+        })?;
+        let fd = file.as_raw_fd();
         if fd <= libc::STDERR_FILENO {
             // Command's stdin/stdout/stderr setup replaces descriptors 0..2
             // before exec. Keep the authoritative image outside that range,
@@ -43,7 +44,7 @@ impl Image {
             libc::F_SEAL_WRITE | libc::F_SEAL_GROW | libc::F_SEAL_SHRINK | libc::F_SEAL_SEAL;
         // SAFETY: owned live fd; integer fcntl arguments, no pointers.
         if unsafe { libc::fcntl(fd, libc::F_ADD_SEALS, seals) } != 0
-            || unsafe { libc::fcntl(fd, libc::F_GET_SEALS) } != seals
+            || !required_seals_present(unsafe { libc::fcntl(fd, libc::F_GET_SEALS) })
         {
             return Err(Error::new("HOST_NATIVE", "cannot seal admitted executable"));
         }
@@ -66,13 +67,75 @@ impl Image {
         Ok(Self(file))
     }
 
-    pub(crate) fn command(&self, threads: usize) -> Command {
-        // Keep this Image alive through spawn. CLOEXEC closes the fd only after
-        // the kernel opens this exact ELF. No pre_exec: retain posix_spawn.
-        command(
-            Path::new(&format!("/proc/self/fd/{}", self.0.as_raw_fd())),
-            threads,
-        )
+    pub(crate) fn command(&self, threads: usize) -> ImageCommand<'_> {
+        // The borrow prevents dropping Image before spawn/capture. No mutable
+        // access or extraction of the underlying Command is exposed.
+        ImageCommand {
+            command: command(
+                Path::new(&format!("/proc/self/fd/{}", self.0.as_raw_fd())),
+                threads,
+            ),
+            _image: self,
+        }
+    }
+}
+
+pub(crate) struct ImageCommand<'a> {
+    command: Command,
+    _image: &'a Image,
+}
+
+impl ImageCommand<'_> {
+    fn spawn(mut self) -> Result<capture::ChildGuard> {
+        capture::spawn(&mut self.command)
+    }
+
+    pub(crate) fn capture(mut self, input: &[u8]) -> Result<Output> {
+        capture::capture(&mut self.command, input)
+    }
+}
+
+fn required_seals_present(actual: i32) -> bool {
+    let required = libc::F_SEAL_WRITE | libc::F_SEAL_GROW | libc::F_SEAL_SHRINK | libc::F_SEAL_SEAL;
+    actual >= 0 && actual & required == required
+}
+
+fn executable_memfd(mut create: impl FnMut(u32) -> io::Result<File>) -> Result<File> {
+    let flags = libc::MFD_CLOEXEC | libc::MFD_ALLOW_SEALING;
+    // MFD_EXEC (Linux 6.3) opts in under vm.memfd_noexec=1. Only EINVAL
+    // permits an old-kernel fallback; EACCES under policy 2 must fail closed.
+    let file = match create(flags | libc::MFD_EXEC) {
+        Err(error) if error.raw_os_error() == Some(libc::EINVAL) => create(flags),
+        result => result,
+    }.map_err(|error| Error::new("HOST_NATIVE", format!(
+        "cannot create executable admitted memfd (vm.memfd_noexec=2 or kernel/security policy may prohibit execution): {error}")))?;
+    if file.metadata()?.permissions().mode() & 0o111 == 0 {
+        return Err(Error::new(
+            "HOST_NATIVE",
+            "admitted memfd is non-executable; check vm.memfd_noexec/kernel security policy",
+        ));
+    }
+    Ok(file)
+}
+
+// Process-wide first-come cap, including the authenticator. Extra admitted
+// registrations keep their image but use fresh selected spawns, without refill.
+const MAX_POOLED_IMAGES: usize = 8;
+static POOLED_IMAGES: AtomicUsize = AtomicUsize::new(0);
+struct PoolPermit;
+impl PoolPermit {
+    fn acquire() -> Option<Self> {
+        POOLED_IMAGES
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                (count < MAX_POOLED_IMAGES).then_some(count + 1)
+            })
+            .ok()
+            .map(|_| Self)
+    }
+}
+impl Drop for PoolPermit {
+    fn drop(&mut self) {
+        POOLED_IMAGES.fetch_sub(1, Ordering::AcqRel);
     }
 }
 
@@ -98,10 +161,12 @@ pub(crate) struct Pool {
     shared: Arc<(Mutex<Slot>, Condvar)>,
     refill: Option<JoinHandle<()>>,
     threads: usize,
+    _permit: PoolPermit,
 }
 
 impl Pool {
-    pub(crate) fn new(image: Arc<Image>, threads: usize) -> Result<Self> {
+    pub(crate) fn new(image: Arc<Image>, threads: usize) -> Option<Self> {
+        let permit = PoolPermit::acquire()?;
         let shared = Arc::new((
             Mutex::new(Slot {
                 refill: true,
@@ -126,30 +191,31 @@ impl Pool {
                     slot.refill = false;
                     drop(slot);
                     // No packet, root, registry or credential is held by this thread.
-                    let child = capture::spawn(&mut worker_image.command(threads));
+                    let child = worker_image.command(threads).spawn();
                     let mut slot = mutex.lock().unwrap();
                     if slot.stop {
                         drop(child);
                         break;
                     }
-                    match child {
-                        Ok(child) => slot.idle = Some(child),
-                        // Leave an empty slot; selection can still spawn fresh.
-                        // Speculative failures must not block refill/shutdown
-                        // on administrator stderr or become this call's error.
-                        Err(_) => {}
+                    // Leave an empty slot on failure; selection can spawn fresh.
+                    // Speculative failures must not block refill/shutdown on
+                    // administrator stderr or become this call's error.
+                    if let Ok(child) = child {
+                        slot.idle = Some(child);
                     }
                     // A selection during spawn already has a fresh child. This
                     // completed spawn fills its one idle slot; do not spawn again.
                     slot.refill = false;
                     wake.notify_all();
                 }
-            })?;
-        Ok(Self {
+            })
+            .ok()?;
+        Some(Self {
             image,
             shared,
             refill: Some(refill),
             threads,
+            _permit: permit,
         })
     }
 
@@ -169,7 +235,7 @@ impl Pool {
             }
             drop(child); // Kill/reap on status error as well.
         }
-        capture::spawn(&mut self.image.command(threads))
+        self.image.command(threads).spawn()
     }
 }
 
@@ -259,6 +325,108 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn exec_flag_falls_back_only_for_unsupported_flag_and_rejects_policy_denial() {
+        let path = fixture();
+        let mut seen = Vec::new();
+        let file = executable_memfd(|flags| {
+            seen.push(flags);
+            if seen.len() == 1 {
+                Err(io::Error::from_raw_os_error(libc::EINVAL))
+            } else {
+                File::open(&path)
+            }
+        })
+        .unwrap();
+        drop(file);
+        let base = libc::MFD_CLOEXEC | libc::MFD_ALLOW_SEALING;
+        assert_eq!(seen, [base | libc::MFD_EXEC, base]);
+        for errno in [libc::EACCES, libc::EPERM, libc::EMFILE] {
+            let mut calls = 0;
+            let error = executable_memfd(|_| {
+                calls += 1;
+                Err(io::Error::from_raw_os_error(errno))
+            })
+            .err()
+            .unwrap();
+            assert_eq!(calls, 1);
+            assert_eq!(error.code, "HOST_NATIVE");
+            assert!(error.message.contains("vm.memfd_noexec"));
+        }
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-noexec").unwrap();
+        let path = directory.path.join("noexec");
+        std::fs::write(&path, b"no execute permission").unwrap();
+        assert!(
+            executable_memfd(|_| File::open(&path))
+                .err()
+                .unwrap()
+                .message
+                .contains("non-executable")
+        );
+    }
+
+    #[test]
+    fn additional_kernel_seals_are_allowed_but_every_required_seal_is_mandatory() {
+        let required =
+            libc::F_SEAL_WRITE | libc::F_SEAL_GROW | libc::F_SEAL_SHRINK | libc::F_SEAL_SEAL;
+        for extra in [0, libc::F_SEAL_EXEC] {
+            assert!(required_seals_present(required | extra));
+            for bit in [
+                libc::F_SEAL_WRITE,
+                libc::F_SEAL_GROW,
+                libc::F_SEAL_SHRINK,
+                libc::F_SEAL_SEAL,
+            ] {
+                assert!(!required_seals_present((required | extra) & !bit));
+            }
+        }
+        assert!(!required_seals_present(-1));
+    }
+
+    #[test]
+    fn global_pool_cap_falls_back_to_fresh_spawns_and_releases_capacity() {
+        const CHILD: &str = "JAYDB_POOL_CAP_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "worker::tests::global_pool_cap_falls_back_to_fresh_spawns_and_releases_capacity", "--test-threads=1"])
+                .env(CHILD, "1").output().unwrap();
+            assert!(
+                output.status.success(),
+                "{}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+        let image = image();
+        let mut pools = Vec::new();
+        for _ in 0..MAX_POOLED_IMAGES {
+            let pool = Pool::new(Arc::clone(&image), 1).unwrap();
+            ready(&pool);
+            pools.push(pool);
+        }
+        assert_eq!(POOLED_IMAGES.load(Ordering::Acquire), MAX_POOLED_IMAGES);
+        assert!(Pool::new(Arc::clone(&image), 1).is_none());
+        let mut program = crate::Program {
+            image: Arc::clone(&image),
+            pool: None,
+        };
+        program.enable_pool(1);
+        assert!(program.pool.is_none());
+        assert_eq!(
+            program
+                .run(b"above cap still executes exact image", 1)
+                .unwrap(),
+            b"above cap still executes exact image"
+        );
+        drop(pools.pop());
+        let pool = Pool::new(Arc::clone(&image), 1).unwrap();
+        ready(&pool);
+        drop(pool);
+        drop(pools);
+        assert_eq!(POOLED_IMAGES.load(Ordering::Acquire), 0);
+    }
+
+    #[test]
     fn closed_standard_stream_cannot_be_replaced_over_the_image_fd() {
         const CHILD: &str = "JAYDB_CLOSED_STDERR_CHILD";
         if std::env::var_os(CHILD).is_none() {
@@ -285,7 +453,7 @@ pub(crate) mod tests {
         assert_eq!(unsafe { libc::close(libc::STDERR_FILENO) }, 0);
         let image = Image::load(&path, &digest).unwrap();
         assert!(image.0.as_raw_fd() > libc::STDERR_FILENO);
-        let result = capture::capture(&mut image.command(1), b"exact admitted image").unwrap();
+        let result = image.command(1).capture(b"exact admitted image").unwrap();
         assert!(result.status.success());
         assert_eq!(result.stdout, b"exact admitted image");
     }

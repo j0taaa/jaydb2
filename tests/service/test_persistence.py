@@ -72,9 +72,9 @@ class PersistenceTests(unittest.TestCase):
         self.path = self.directory/'db'
         shutil.copytree(self.base, self.path)
 
-    def server(self, mode='open', env=None, folder=None):
+    def server(self, mode='open', env=None, folder=None, repair=False):
         server = Server(folder or self.folder, binary=BINARY, threads=1, env=env,
-            arguments=['--storage', str(self.path), '--storage-mode', mode], seed=mode == 'create')
+            arguments=['--storage', str(self.path), '--storage-mode', mode] + (['--repair-invalid-slot'] if repair else []), seed=mode == 'create')
         self.addCleanup(server.close)
         return server
 
@@ -85,8 +85,8 @@ class PersistenceTests(unittest.TestCase):
         return subprocess.run([str(binary), '--configuration', str((folder or self.folder)/'Configuration.bend'),
             '--threads', '1', *map(str, args)], cwd=ROOT, input=b'', capture_output=True, timeout=180)
 
-    def open_failure(self):
-        result = self.run_cli('--storage', self.path, '--storage-mode', 'open')
+    def open_failure(self, *args):
+        result = self.run_cli('--storage', self.path, '--storage-mode', 'open', *args)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, b'')
         return result
@@ -181,6 +181,42 @@ class PersistenceTests(unittest.TestCase):
         self.assertIn(b'incompatible image environment', result.stderr)
         self.assertEqual((self.path/'snapshot').read_bytes(), image)
 
+    def test_corrupt_newest_acknowledged_slot_requires_explicit_evidence_preserving_repair(self):
+        server = self.server()
+        self.assertEqual(self.call(server, arguments='acknowledged-token')['status'], 'success')
+        server.finish()
+        image = bytearray((self.path/'snapshot').read_bytes())
+        size = len(image)//2
+        image[size+64+OVERHEAD] ^= 1
+        (self.path/'snapshot').write_bytes(image)
+        result = self.open_failure()
+        self.assertIn(b'STORAGE_INVALID_SLOT', result.stderr)
+        self.assertIn(b'slot 1 (B)', result.stderr)
+        self.assertIn(b'checksum', result.stderr)
+        self.assertEqual((self.path/'snapshot').read_bytes(), image)
+        self.assertFalse(list(self.path.glob('*.evidence')))
+        repaired = self.server(repair=True)
+        self.assertEqual(self.call(repaired)['status'], 'refusal', repaired.diagnostics())
+        self.assertEqual(self.call(repaired, 'acknowledged-token')['status'], 'authentication')
+        repaired.finish()
+        evidence = list(self.path.glob('snapshot.invalid-slot-1.*.evidence'))
+        self.assertEqual(len(evidence), 1)
+        self.assertEqual(evidence[0].read_bytes(), image[size:])
+        self.assertEqual((self.path/'snapshot').read_bytes()[size:], bytes(size))
+
+    def test_v1_snapshot_format_is_named_and_bytes_are_preserved(self):
+        slot = (self.path/'snapshot').read_bytes()
+        length = int.from_bytes(slot[24:32], 'big')
+        old = slot[64:64+length] # the actual old single-image v1 representation
+        self.assertTrue(old.startswith(MAGIC))
+        (self.path/'snapshot').write_bytes(old)
+        for args in ([], ['--repair-invalid-slot']):
+            result = self.open_failure(*args)
+            self.assertIn(b'STORAGE_FORMAT', result.stderr)
+            self.assertIn(b'format v1', result.stderr)
+            self.assertEqual((self.path/'snapshot').read_bytes(), old)
+            self.assertFalse(list(self.path.glob('*.evidence')))
+
     def test_exact_descriptor_missing_modified_and_symlinked_are_rejected(self):
         descriptor = self.path/'environment'
         original = descriptor.read_bytes()
@@ -203,6 +239,8 @@ class PersistenceTests(unittest.TestCase):
 
     def test_create_open_policy_and_real_owner_contention(self):
         self.assertNotEqual(self.run_cli('--storage', self.path).returncode, 0)
+        result = self.run_cli('--repair-invalid-slot')
+        self.assertIn(b'--repair-invalid-slot requires --storage-mode open', result.stderr)
         result = self.run_cli('--storage', self.path, '--storage-mode', 'open', '--seed', self.directory/'absent')
         self.assertIn(b'--seed is forbidden', result.stderr)
         result = self.run_cli('--storage', self.path, '--storage-mode', 'create', '--seed', self.folder/'Seed.bend')
@@ -277,7 +315,10 @@ class PersistenceTests(unittest.TestCase):
                     # before storage. Retain pre-existing prepared artifacts.
                     private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
                     self.assertEqual(set(private.glob('request-*')), prepared_artifacts)
-                    self.assertFalse(Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children').read_text().strip())
+                    # Data-free pooled replacements may exist; the selected
+                    # worker and per-call artifact have already been reaped.
+                    idle = Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children').read_text().split()
+                    self.assertLessEqual(len(idle), 8)
                     os.kill(server.process.pid, signal.SIGKILL)
                     server.process.wait(timeout=10)
             finally:
@@ -296,16 +337,25 @@ class PersistenceTests(unittest.TestCase):
             self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'authentication', 'value': None})
             self.assertEqual(self.call(server, token)['status'], 'authentication')
             server.finish()
-        recovered = self.server()
+        if point == 'during_slot_write':
+            exact = (self.path/'snapshot').read_bytes()
+            result = self.open_failure()
+            self.assertIn(b'STORAGE_INVALID_SLOT', result.stderr)
+            self.assertIn(b'slot 1', result.stderr)
+            self.assertEqual((self.path/'snapshot').read_bytes(), exact)
+            self.assertFalse(list(self.path.glob('*.evidence')))
+        recovered = self.server(repair=point == 'during_slot_write')
         credential = token if expected_new else 'alice-token'
         self.assertEqual(self.call(recovered, credential), {'status': 'refusal', 'value': 'cancelled'}, recovered.diagnostics())
         self.assertEqual(self.call(recovered, 'bob-token'), {'status': 'refusal', 'value': 'cancelled'})
         recovered.finish()
+        if point == 'during_slot_write':
+            self.assertEqual([p.read_bytes() for p in self.path.glob('*.evidence')], [exact[len(exact)//2:]])
         if not expected_new:
             self.assertEqual(state_bytes(self.path), self.initial)
 
     def test_recovery_peer_clearing_faults_and_process_death(self):
-        for point in ('before_slot_clear', 'during_slot_clear', 'after_slot_clear', 'after_recovery_file_sync', 'after_recovery_sync'):
+        for point in ('before_evidence_file_sync', 'before_evidence_directory_sync', 'after_slot_evidence_sync', 'before_slot_clear', 'during_slot_clear', 'after_slot_clear', 'after_recovery_file_sync', 'after_recovery_sync'):
             for kill in (False, True):
                 with self.subTest(point=point, kill=kill):
                     self.path = self.directory/(point+str(kill))
@@ -323,6 +373,8 @@ class PersistenceTests(unittest.TestCase):
                     peer[64+OVERHEAD-32] ^= 128 # invalid future candidate
                     image[size:] = peer
                     (self.path/'snapshot').write_bytes(image)
+                    self.assertIn(b'STORAGE_INVALID_SLOT', self.open_failure().stderr)
+                    self.assertEqual((self.path/'snapshot').read_bytes(), image)
                     env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
                     if kill:
                         gate = self.enterContext(tempfile.TemporaryDirectory(prefix='jdb-clear-', dir='/tmp'))
@@ -330,7 +382,7 @@ class PersistenceTests(unittest.TestCase):
                         listener = self.enterContext(socket.socket(socket.AF_UNIX))
                         listener.bind(str(socket_path)); listener.listen(1); listener.settimeout(180)
                         env['JAYDB_STORAGE_BARRIER'] = str(socket_path)
-                    server = self.server(env=env)
+                    server = self.server(env=env, repair=True)
                     if kill:
                         stream, _ = listener.accept()
                         with stream:
@@ -339,7 +391,11 @@ class PersistenceTests(unittest.TestCase):
                     self.assertNotEqual(server.process.wait(timeout=180), 0)
                     self.assertEqual(server.process.stdout.read(), b'')
                     if not kill: self.assertIn('STORAGE', server.diagnostics())
-                    recovered = self.server()
+                    if point in ('before_evidence_file_sync', 'before_evidence_directory_sync', 'after_slot_evidence_sync', 'before_slot_clear'):
+                        self.assertEqual((self.path/'snapshot').read_bytes(), image)
+                    if point not in ('before_evidence_file_sync', 'before_evidence_directory_sync'):
+                        self.assertIn(bytes(peer), [p.read_bytes() for p in self.path.glob('*.evidence')])
+                    recovered = self.server(repair=True)
                     self.assertEqual(self.call(recovered)['status'], 'refusal', recovered.diagnostics())
                     self.assertEqual(self.call(recovered, 'ghost-token')['status'], 'authentication')
                     recovered.finish()

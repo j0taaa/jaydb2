@@ -23,7 +23,7 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `FoldTheorem` | Starting from Init-accepted seed, every reached root is valid and each step satisfies every Core clause, provided the finite run records the actual gate/interpreter/finisher results and sound admissions. | `Iteration.fold_theorem`, `Iteration.bend` |
 | `WorkerBridge` | `result_driver_preserves_exact_execution` and `routed_bytes_lifts_registered` (refining `routed_packet_lifts_registered`) lift the original exact decision into the checked route/principal envelope; metadata is derived from the same fresh authentication and complete registry selection. Finite execution emits exactly the Gate/Ingress/Unified composition. The literal prepared packet supplies the complete decoded control registry, with selected source/proof bound to the artifact by generated `matches` and T1; the artifact guard adds defense in depth. | `WorkerBridge.worker_body_equals_ingress_composition`, `WorkerBridge.worker_unified_equals_gate_composition`, `WorkerBridge.prepared_packet_equals_real_registry_selection` |
 | `CertifiedWorker` | `checked_routed_prepared` covers the actual metadata-bearing entry with its closed generated oracle package, preserving the same UnifiedCore clause and exact decision. The actual prepared packet satisfies UnifiedCore over its decoded registry and emits that composition's exact finite result, using the generated checked oracle and sound artifact guard. | `CertifiedWorker.checked_prepared`, `CertifiedWorker.artifact_checked` |
-| `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early` |
+| `DispatchBridge` | Every tag-0 Dispatch reply equals the corresponding Ingress/Unified early branch and the prepared envelope decision projection, with the same bounded framed denial and unchanged root. Prepare/invalidate replies come from the controller under `ControlTheorem`, not the worker denial branch; this bridge does not establish controller reply correspondence. | `DispatchBridge.dispatch_denials_equal_ingress_unified_early`, `DispatchBridge.dispatch_denials_equal_prepared_envelope` |
 | `WorkerDecision` | Keep is exactly the non-success publication path and preserves the starting root; Commit carries the exact theorem next root and bytes. Success may commit a root equal to the starting root. | `WorkerDecision.completion_emits_exact_decision`, `WorkerDecision.keep_iff_non_success` |
 | `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `HostErrorReply` states exact emitted bytes independent of root/last/registry, justifying a memo keyed by exact observed code; both prepared codes are prefilled at startup. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
 | `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
@@ -76,7 +76,9 @@ relocates this proof dependency closure into each admitted Book.
 encoding used by finalization emits exactly the existing preparation,
 publication and Commit/Keep composition, including every failure branch.
 `ExecutionAdapter` uses that equality for the actual stopped-machine step.
-These are pure checked refinements; T1–T3 and the private result ABI are unchanged.
+For these two pure checked refinements (limit words and final encoding reuse),
+T1–T3 and the underlying Commit/Keep decision ABI are unchanged. The separate
+prepared-routing change adds the tag-6 metadata envelope and T3 duties below.
 
 ## Non-vacuity and checking
 
@@ -93,7 +95,12 @@ clauses. `Controls.bend` and `WrongSteps.bend` provide concrete inputs and
 mutations. Every remaining `rejected/*.bend` fixture must fail at its named
 `false` proof with expected/observed diagnostics in **both** official modes.
 Every diagnostic location must name exactly `false`; a helper co-failure,
-missing name or unfinished proof rejects the fixture. `InputLimit.bend` and
+missing name or unfinished proof rejects the fixture. The implementation-mutating
+`LimitWordsMutatedConvert`, `WorkerMutatedPrincipal` and `WorkerMutatedRoute`
+fixtures copy the actual conversion/worker bodies with one mutation and claim
+the original universal laws. The driver verifies their exact source/law binding
+to prevent drift; both `make verify` and `make test-admission` require all six
+checker-mode rejections at `false`. The older concrete spoof controls remain. `InputLimit.bend` and
 `InputRefusals.bend` cover forged internal lengths in physically bounded bodies
 and the distinct rejection of actual excess body bytes.
 `HostError*.bend` negatives invert every certificate-code row and the prepared
@@ -169,8 +176,18 @@ they are OS assumptions, not new checked Bend theorems.
    On parser doubt, missing artifact, integrity/transport/worker failure or identity mismatch, discard the
    candidate and run the original checked-dispatch path before publication.
    This retry is required for routing completeness: the artifact guard alone
-   does not establish observational equivalence of a wrong candidate. Compile
-   and load the exact selected checked program and gate with immutable
+   does not establish observational equivalence of a wrong candidate.
+   Acceptance-safety composition: original tag 0 uses
+   `DispatchBridge.dispatch_denials_equal_prepared_envelope` for exact decision
+   projection; tag 4 uses the same checked handle lookup plus T2 deterministic
+   re-execution of the same sealed image; tag 2 has readiness=false and must
+   fall back. This composition includes trusted host comparison/routing and T2,
+   and is not a whole-host equivalence theorem. A discarded tag-2 candidate may
+   run admitted client code the old path would never run. Its universal
+   certificate covers that current-state execution and every observation;
+   purity excludes host effects and the worker cannot publish. Discarding the
+   result is therefore law-safe, though extra work can delay/exhaust service.
+   Compile and load the exact selected checked program and gate with immutable
    dependencies; preserve context, arguments and proof between checking and launch.
 4. Run a fresh private worker through the checked gate/advance/finalizer using
    the trusted native loop. Give it no publication capability. A worker may
@@ -178,7 +195,11 @@ they are OS assumptions, not new checked Bend theorems.
    or request until selection, and supply only that call's current packet.
    Keep each idle process bound to its exact admitted image and runtime policy;
    asynchronously refill at most one idle slot per live prepared image and one
-   for the authenticator. Reap a dead idle child and fall back to fresh spawn;
+   for the authenticator, with at most eight pooled images process-wide using
+   first-come permits. Beyond that cap or on refill-thread startup failure,
+   execute freshly; release capacity only after pool cleanup. This caps idle
+   processes/threads/pipes, not total admitted memfds or memory.
+   Reap a dead idle child and fall back to fresh spawn;
    kill/reap idle children and join refill work on invalidation and shutdown.
    Refill owns no publication authority and does not change serial publication.
    Preserve the logical observation trace on interruption.
@@ -187,7 +208,10 @@ they are OS assumptions, not new checked Bend theorems.
    their intermediate results are neither published nor delivered. An actual
    tool/process/transport failure on the final authoritative path keeps
    the prior root and emits the fixed failure frame when possible; fatal loss
-   may stop the process without a reply. Supply admission/other observed error
+   may stop the process without a reply. Pipe-thread setup exhaustion is fatal
+   after joining waiters/reaping any selected child, before packet delivery;
+   denial transport also needs those threads, so continued replies cannot be
+   guaranteed. Supply admission/other observed error
    codes, current root and registry to the checked controller and forward its
    denial; a memo hit forwards the checked bytes for that exact observed code.
    If that executable or transport itself fails, the fixed technical fallback
@@ -210,7 +234,12 @@ they are OS assumptions, not new checked Bend theorems.
    copy the released ELF into an owned CLOEXEC memfd, install and verify
    F_SEAL_WRITE/GROW/SHRINK/SEAL, then hash the sealed contents against the
    admitted executableSha256. Fail closed on any mismatch/seal failure and
-   execute that exact retained fd. The trust changes from rereading/comparing
+   execute that exact retained fd through a launch wrapper borrowing the Image
+   until spawn/capture. Request MFD_EXEC, fall back without it only for EINVAL
+   on older kernels, require at least the four seals (additional F_SEAL_EXEC is
+   allowed), and refuse non-executable/policy-denied memfds. vm.memfd_noexec=1
+   supports explicit MFD_EXEC; enforced policy 2 can prevent startup.
+   The trust changes from rereading/comparing
    physical artifacts every call to verification once plus kernel-enforced
    memfd immutability. Staged source/C/manifest/executable copies are diagnostic
    after load and may change without affecting an existing worker. Before each
@@ -326,15 +355,26 @@ unsafe rollback have separate rejection controls.
 
 The [storage protocol](../docs/durable-storage.md) specifies the two initialized,
 4096-byte-aligned slots, parity, consecutive sequences, growth and size bounds.
-Recovery durably zeroes a nonzero invalid peer before reusing its sequence,
-preventing resurrection of an earlier failed candidate by a later torn write.
+Default recovery refuses every nonzero invalid slot without changing snapshot
+bytes (`STORAGE_INVALID_SLOT`, with index/reason). An operator can explicitly
+select `--repair-invalid-slot` after investigating a power loss, kernel crash
+or SIGKILL mid-commit; buffered Linux writes can stop short on fatal signals.
+Repair first creates an exclusive full-slot evidence copy, fsyncs it and the
+directory, then durably zeroes the peer before sequence reuse. **If invalidity
+was corruption of the newest acknowledged slot, repair may lose that commit.**
+Evidence is diagnostic and never replaces existing evidence or competes for
+recovery. Strict recovery never silently rolls back to the older slot.
+`strict_recovery_never_clears` and `evidence_failure_never_clears` check the policy
+and evidence-sync gate; the actual bytes/fsync ordering remain trusted.
 `repaired_peer_is_stable_before_sequence_reuse` checks the clear/file-sync/directory-sync
-order; `repair_crash_recovers_previous_or_certified_failed_candidate` requires
-that earlier candidate's actual certified origin, including crashes during clearing.
+order after that gate; `repair_crash_recovers_previous_or_certified_failed_candidate`
+requires the earlier candidate's actual certified crash-only origin, including
+crashes during clearing. The crash-selection lemmas describe returned states,
+conditional on recovery being allowed to return; strict mode can refuse.
 These are trusted Rust/OS obligations, tested with exhaustive byte cuts,
 mutations, stale-header/payload combinations, sector/block subsets and real
 process crash/error boundaries. They are not proved by the abstract model.
-New physical assumptions are successful Linux/ext4 `fdatasync` durability,
+Physical assumptions include healthy-epoch Linux/ext4 `fdatasync` durability,
 isolation of the current slot's synced filesystem blocks during writes to the
 other slot, and detection of torn sequence/payload contents by SHA-256
 (undetected collisions excluded). No sector or block atomicity is assumed.
@@ -343,4 +383,12 @@ recovery; device flush honesty, protected storage and exact environment binding
 remain required. Unrelated media corruption or malicious rewriting is outside
 the crash-only model. A checksum is neither a certificate nor proof of disk
 provenance: corruption of an acknowledged newest slot cannot be distinguished
-from an interrupted peer overwrite under a stronger fault model.
+from an interrupted peer overwrite under a stronger fault model; strict mode
+refuses the invalid slot and repair requires an explicit loss decision.
+Only 4096-byte f_frsize is checked; ext4 semantics remain an operator assumption.
+Linux errseq may have reported a writeback error before restart: a fresh open
+can then see checksum-valid page-cache-only bytes even after a successful sync.
+After actual sync/writeback failure, stop, preserve diagnostics, fix storage,
+reboot and assess on-disk recovery/backup before reopening. This limitation is
+not mitigated by direct IO here; see the protocol's writeback-error procedure.
+Old single-image v1 format fails closed, names its version and is not modified.

@@ -225,15 +225,14 @@ impl Program {
         })
     }
 
-    fn enable_pool(&mut self, threads: usize) -> Result<()> {
-        self.pool = Some(worker::Pool::new(Arc::clone(&self.image), threads)?);
-        Ok(())
+    fn enable_pool(&mut self, threads: usize) {
+        self.pool = worker::Pool::new(Arc::clone(&self.image), threads);
     }
 
     fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
         let output = match &self.pool {
             Some(pool) => capture::capture_child(pool.take(threads)?, input)?,
-            None => capture(&mut self.image.command(threads), input)?,
+            None => self.image.command(threads).capture(input)?,
         };
         if !output.status.success() {
             return Err(Error::new(
@@ -510,10 +509,11 @@ impl Database {
             storage.bind_environment(&fs::read(directory.path.join("environment.bytes"))?)?;
         }
         let state = if recovering {
-            storage
-                .as_mut()
-                .expect("recovery storage")
-                .recover(&environment, &limits)?
+            storage.as_mut().expect("recovery storage").recover(
+                &environment,
+                &limits,
+                options.repair_invalid_slot,
+            )?
         } else {
             output[1..].to_vec()
         };
@@ -540,7 +540,7 @@ impl Database {
             let path = directory.path.join(name);
             compilation_inputs.push((path.clone(), fs::read(path)?));
         }
-        authenticate.enable_pool(options.threads)?;
+        authenticate.enable_pool(options.threads);
         let mut database = Self {
             directory,
             stage: text(&report, "stagePath")?.into(),
@@ -777,7 +777,7 @@ impl Database {
         let mut program = Program::load(text(&report, "program")?.into())?;
         bench_mark(&mut bench, "admission_total");
         if operation == 3 {
-            program.enable_pool(self.threads)?;
+            program.enable_pool(self.threads);
             let control = self.run_control(body, text(&report, "certificateMode")?, code, proof)?;
             let (handle, registry, response) = match control {
                 ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
@@ -1056,6 +1056,7 @@ struct Options {
     threads: usize,
     timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
+    repair_invalid_slot: bool,
 }
 
 // The pinned official Bend runtime supports up to 128 CPU workers.
@@ -1093,15 +1094,20 @@ impl Options {
         let mut timing_log = None;
         let mut storage = None;
         let mut storage_mode = None;
+        let mut repair_invalid_slot = false;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Native CPU workers per process, 1 to 128 (default: available CPU parallelism, capped at 128)"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--repair-invalid-slot] [--threads N] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--repair-invalid-slot  Storage open only: sync invalid-slot evidence before clearing; may discard an acknowledged commit\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Native CPU workers per process, 1 to 128 (default: available CPU parallelism, capped at 128)"
                 );
                 return Ok(None);
+            }
+            if argument == "--repair-invalid-slot" {
+                repair_invalid_slot = true;
+                continue;
             }
             let value = arguments
                 .next()
@@ -1148,6 +1154,12 @@ impl Options {
         let recovering = storage
             .as_ref()
             .is_some_and(|(_, mode)| *mode == storage::Mode::Open);
+        if repair_invalid_slot && !recovering {
+            return Err(Error::new(
+                "ARGUMENT",
+                "--repair-invalid-slot requires --storage-mode open",
+            ));
+        }
         if recovering == seed.is_some() {
             return Err(Error::new(
                 "ARGUMENT",
@@ -1171,6 +1183,7 @@ impl Options {
             threads,
             timing_log,
             storage,
+            repair_invalid_slot,
         }))
     }
 }
@@ -1331,7 +1344,7 @@ mod tests {
             image: Arc::new(worker::Image::load(&path, &worker::tests::hash(&path)).unwrap()),
             pool: None,
         };
-        program.enable_pool(1).unwrap();
+        program.enable_pool(1);
         assert_eq!(
             program.run(&[], 1).unwrap(),
             b"\n+RTS\n--threads\n1\n--gpu\noff\n-RTS\n"
@@ -1596,7 +1609,7 @@ mod tests {
             db.storage
                 .as_mut()
                 .unwrap()
-                .recover(&db.environment, &db.limits)
+                .recover(&db.environment, &db.limits, false)
                 .unwrap(),
             b"new"
         );

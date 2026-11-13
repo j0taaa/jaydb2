@@ -2,12 +2,14 @@
 //! Routine commits overwrite the older slot and fdatasync the existing inode.
 //! Creation/growth use synced temp + atomic rename + directory fsync. Recovery
 //! requires checksum-valid complete slots with consecutive, correctly placed
-//! sequence numbers (or one valid slot). Nonzero invalid peers are durably
-//! cleared on recovery before their sequence can be reused, preventing stale
-//! failed-candidate resurrection. Bytes are not a validity proof.
+//! sequence numbers (or one valid slot beside an all-zero slot). Nonzero invalid
+//! slots stop default recovery without modifying snapshot. Explicit operator
+//! repair syncs evidence before clearing a peer and reusing its sequence.
+//! Repair may discard an acknowledged commit. Bytes are not a validity proof.
 //!
 //! Trusted Linux/ext4 boundary: successful fdatasync persists data and required
-//! metadata; directory fsync persists atomic replacement; errors may have effects.
+//! metadata, absent prior writeback errors (see docs/durable-storage.md);
+//! directory fsync persists atomic replacement; errors may have effects.
 //! Previously synced, unmodified filesystem blocks remain intact across a crash.
 //! Slots start/end on 4096-byte filesystem block boundaries. No sector or block
 //! write atomicity is assumed. SHA-256 must detect torn/mixed slot contents;
@@ -254,7 +256,12 @@ impl Storage {
         Ok(())
     }
 
-    pub fn recover(&mut self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
+    pub fn recover(
+        &mut self,
+        environment: &str,
+        limits: &Limits,
+        repair_invalid_slot: bool,
+    ) -> Result<Vec<u8>> {
         if !self.environment_bound || self.poisoned {
             return Err(storage_error("environment unbound or storage uncertain"));
         }
@@ -265,8 +272,13 @@ impl Storage {
             .open(self.path.join(IMAGE))
             .map_err(storage_error)?;
         let length = file.metadata().map_err(storage_error)?.len();
-        let (state, sequence, repair) = decode_slots(&mut file, length, environment, limits)?;
-        if let Some(index) = repair {
+        let (state, sequence, repair) =
+            decode_slots(&mut file, length, environment, limits, repair_invalid_slot)?;
+        if let Some(InvalidSlot { index, bytes }) = repair {
+            // Evidence must survive a crash BEFORE the first authoritative write.
+            // create_new prevents replacement of any earlier repair evidence.
+            self.preserve_invalid_slot(index, &bytes)?;
+            fault_point("after_slot_evidence_sync").map_err(storage_error)?;
             // A failed future candidate can retain its valid checksum/header.
             // Reusing those bytes at the same next sequence could resurrect it
             // through a later torn write. Clear an invalid peer DURABLY before
@@ -292,6 +304,37 @@ impl Storage {
         self.length = length;
         self.poisoned = false;
         Ok(state)
+    }
+
+    fn preserve_invalid_slot(&self, index: u64, bytes: &[u8]) -> Result<()> {
+        for serial in 0u64.. {
+            let path = self
+                .path
+                .join(format!("snapshot.invalid-slot-{index}.{serial}.evidence"));
+            let mut evidence = match OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&path)
+            {
+                Ok(file) => file,
+                Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
+                Err(error) => return Err(storage_error(error)),
+            };
+            evidence
+                .write_all(bytes)
+                .and_then(|()| fault_point("before_evidence_file_sync"))
+                .and_then(|()| evidence.sync_all())
+                .and_then(|()| fault_point("before_evidence_directory_sync"))
+                .and_then(|()| self.directory.sync_all())
+                .map_err(storage_error)?;
+            crate::diagnostic(format_args!(
+                "repairing invalid slot {index}; synced evidence {}. This may discard the newest acknowledged commit",
+                path.display()
+            ));
+            return Ok(());
+        }
+        Err(storage_error("repair evidence names exhausted"))
     }
 
     pub fn persist(
@@ -461,37 +504,58 @@ impl SlotIo for Storage {
     }
 }
 
-fn decode_slot(bytes: &[u8]) -> Option<(u64, &[u8])> {
+fn decode_slot(bytes: &[u8]) -> std::result::Result<(u64, &[u8]), &'static str> {
     if bytes.len() < HEADER || !bytes.starts_with(SLOT_MAGIC) {
-        return None;
+        return Err("invalid slot format/magic (expected v2)");
     }
-    let size = usize::try_from(u64::from_be_bytes(bytes[24..32].try_into().ok()?)).ok()?;
-    let end = HEADER.checked_add(size)?;
+    let size = usize::try_from(u64::from_be_bytes(bytes[24..32].try_into().unwrap()))
+        .map_err(|_| "slot image length exceeds address space")?;
+    let end = HEADER
+        .checked_add(size)
+        .ok_or("slot image length overflow")?;
     if size < OVERHEAD || end > bytes.len() {
-        return None;
+        return Err("invalid slot image length");
     }
     let mut digest = Sha256::new();
     digest.update(&bytes[..32]);
     digest.update(&bytes[HEADER..end]);
     if digest.finalize()[..] != bytes[32..64] {
-        return None;
+        return Err("slot checksum mismatch");
     }
-    Some((
-        u64::from_be_bytes(bytes[16..24].try_into().ok()?),
+    Ok((
+        u64::from_be_bytes(bytes[16..24].try_into().unwrap()),
         &bytes[HEADER..end],
     ))
+}
+
+#[derive(Debug)]
+struct InvalidSlot {
+    index: u64,
+    bytes: Vec<u8>,
 }
 
 // Shared by OS recovery and arbitrary torn-write tests. Never trusts a length
 // before bounding it by actual file geometry and the logical state ceiling.
 fn decode_slots(
-    file: &mut impl Read,
+    file: &mut (impl Read + Seek),
     length: u64,
     environment: &str,
     limits: &Limits,
-) -> Result<(Vec<u8>, u64, Option<u64>)> {
+    repair_invalid_slot: bool,
+) -> Result<(Vec<u8>, u64, Option<InvalidSlot>)> {
+    if length >= MAGIC.len() as u64 {
+        let mut prefix = [0; MAGIC.len()];
+        file.read_exact(&mut prefix).map_err(storage_error)?;
+        file.seek(SeekFrom::Start(0)).map_err(storage_error)?;
+        if prefix.as_slice() == MAGIC {
+            return Err(Error::new(
+                "STORAGE_FORMAT",
+                "unsupported snapshot format v1; expected slot format v2 (explicit recreation required)",
+            ));
+        }
+    }
     let maximum = slot_size_for(limits.state.saturating_add(OVERHEAD as u64)).unwrap_or(u64::MAX);
-    if length < BLOCK * 2 || length % (BLOCK * 2) != 0 || length / 2 > maximum {
+    if length < BLOCK * 2 || !length.is_multiple_of(BLOCK * 2) || length / 2 > maximum {
         return Err(storage_error(
             "invalid or oversized authoritative slot file",
         ));
@@ -502,15 +566,30 @@ fn decode_slots(
     for index in 0..2 {
         let mut bytes = vec![0; size];
         file.read_exact(&mut bytes).map_err(storage_error)?;
-        if let Some((sequence, image)) = decode_slot(&bytes) {
+        if let Ok((sequence, image)) = decode_slot(&bytes) {
             if sequence % 2 != index {
                 return Err(storage_error("ambiguous slot sequence placement"));
             }
             // Check every checksum-valid image, including an older one. Never
             // hide an incompatible valid slot behind a newer publication.
-            candidates.push((sequence, decode_image(image, environment, limits)?));
+            candidates.push((
+                sequence,
+                decode_image(image, environment, limits).map_err(|error| {
+                    Error::new(&error.code, format!("slot {index}: {}", error.message))
+                })?,
+            ));
         } else if bytes.iter().any(|byte| *byte != 0) {
-            repair = Some(index);
+            let reason = decode_slot(&bytes).unwrap_err();
+            if !repair_invalid_slot {
+                return Err(Error::new(
+                    "STORAGE_INVALID_SLOT",
+                    format!(
+                        "invalid nonzero slot {index} ({}): {reason}; snapshot unchanged; operator repair requires --repair-invalid-slot and may discard an acknowledged commit",
+                        if index == 0 { "A" } else { "B" }
+                    ),
+                ));
+            }
+            repair = Some(InvalidSlot { index, bytes });
         }
     }
     candidates.sort_by_key(|(sequence, _)| *sequence);
@@ -641,7 +720,7 @@ mod tests {
         storage.persist(&environment(), &limits(), b"old").unwrap();
         drop(storage);
         let mut storage = Storage::begin(&path, Mode::Open).unwrap();
-        assert!(storage.recover(&environment(), &limits()).is_err());
+        assert!(storage.recover(&environment(), &limits(), false).is_err());
         // Same image digest and same-length descriptor still cannot bind
         // changed bytes. No SHA collision-resistance premise is involved.
         assert!(storage.bind_environment(b"changed! environment").is_err());
@@ -650,7 +729,10 @@ mod tests {
             b"original environment"
         );
         storage.bind_environment(b"original environment").unwrap();
-        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"old");
+        assert_eq!(
+            storage.recover(&environment(), &limits(), false).unwrap(),
+            b"old"
+        );
         drop(storage);
         fs::remove_file(path.join(ENVIRONMENT)).unwrap();
         let mut storage = Storage::begin(&path, Mode::Open).unwrap();
@@ -695,9 +777,12 @@ mod tests {
         drop(storage);
         fs::write(path.join(TEMP), b"orphan").unwrap();
         let mut storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"new");
+        assert_eq!(
+            storage.recover(&environment(), &limits(), false).unwrap(),
+            b"new"
+        );
         fs::write(path.join(IMAGE), b"corrupt").unwrap();
-        assert!(storage.recover(&environment(), &limits()).is_err());
+        assert!(storage.recover(&environment(), &limits(), false).is_err());
         fs::remove_file(path.join(IMAGE)).unwrap();
         drop(storage);
         assert!(Storage::begin(&path, Mode::Open).is_err());
@@ -714,7 +799,10 @@ mod tests {
         storage.persist(&environment(), &limits, b"small").unwrap();
         drop(storage);
         let mut storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &limits).unwrap(), b"small");
+        assert_eq!(
+            storage.recover(&environment(), &limits, false).unwrap(),
+            b"small"
+        );
     }
 
     fn record(n: u64, state: &[u8]) -> Vec<u8> {
@@ -731,12 +819,13 @@ mod tests {
             bytes.len() as u64,
             &environment(),
             &limits(),
+            true,
         )
         .map(|(state, sequence, _)| (state, sequence))
     }
 
     #[test]
-    fn every_torn_slot_byte_recovers_old_or_new_and_never_stale() {
+    fn every_torn_slot_byte_refuses_or_explicitly_recovers_old_or_new_and_never_stale() {
         // Current sequence 1 lives in B; A still has sequence 0. Sequence 2
         // overwrites A. New header + fully old body MUST fail the combined hash.
         let stale = record(0, b"stale");
@@ -745,7 +834,24 @@ mod tests {
         for cut in 0..=new.len() {
             let mut torn = stale.clone();
             torn[..cut].copy_from_slice(&new[..cut]);
-            let (state, seq) = read_slots(&[torn, old.clone()].concat()).unwrap();
+            let bytes = [torn.clone(), old.clone()].concat();
+            let strict = decode_slots(
+                &mut io::Cursor::new(&bytes),
+                bytes.len() as u64,
+                &environment(),
+                &limits(),
+                false,
+            );
+            if decode_slot(&torn).is_err() {
+                assert_eq!(
+                    strict.unwrap_err().code,
+                    "STORAGE_INVALID_SLOT",
+                    "cut {cut}"
+                );
+            } else {
+                assert!(strict.is_ok(), "cut {cut}");
+            }
+            let (state, seq) = read_slots(&bytes).unwrap();
             assert!(state == b"old" || state == b"new", "cut {cut}");
             assert!(seq == 1 || seq == 2);
         }
@@ -767,7 +873,7 @@ mod tests {
     }
 
     #[test]
-    fn multi_block_slots_tolerate_torn_sector_and_block_subsets() {
+    fn explicit_repair_handles_torn_sector_and_block_subsets() {
         let mut large = limits();
         large.state = 16384;
         let slot_size = 12288;
@@ -790,6 +896,7 @@ mod tests {
                 bytes.len() as u64,
                 &environment(),
                 &large,
+                true,
             )
             .unwrap();
             assert!(got == b"old" || got == state);
@@ -847,6 +954,85 @@ mod tests {
     }
 
     #[test]
+    fn corrupt_acknowledged_slot_is_untouched_by_default_and_repair_preserves_evidence() {
+        for index in 0..2 {
+            let parent = Temporary::new(&std::env::temp_dir(), "jaydb-corrupt-slot").unwrap();
+            let path = parent.path.join("db");
+            let mut storage = bound_storage(&path, Mode::Create);
+            storage.persist(&environment(), &limits(), b"seed").unwrap();
+            storage.persist(&environment(), &limits(), b"old").unwrap();
+            if index == 0 {
+                storage.persist(&environment(), &limits(), b"new").unwrap();
+            }
+            drop(storage);
+            let mut corrupt = fs::read(path.join(IMAGE)).unwrap();
+            corrupt[index * BLOCK as usize + HEADER + OVERHEAD] ^= 1;
+            fs::write(path.join(IMAGE), &corrupt).unwrap();
+            let mut storage = bound_storage(&path, Mode::Open);
+            let error = storage
+                .recover(&environment(), &limits(), false)
+                .unwrap_err();
+            assert_eq!(error.code, "STORAGE_INVALID_SLOT");
+            assert!(error.message.contains(&format!("slot {index}")));
+            assert!(error.message.contains("checksum"));
+            assert_eq!(fs::read(path.join(IMAGE)).unwrap(), corrupt);
+            assert_eq!(fs::read_dir(&path).unwrap().count(), 3);
+            drop(storage);
+            // Existing evidence is never overwritten, including interrupted copies.
+            let evidence = path.join(format!("snapshot.invalid-slot-{index}.0.evidence"));
+            fs::write(&evidence, b"earlier evidence").unwrap();
+            let mut storage = bound_storage(&path, Mode::Open);
+            let state = storage.recover(&environment(), &limits(), true).unwrap();
+            assert_eq!(
+                state,
+                if index == 0 {
+                    b"old".as_slice()
+                } else {
+                    b"seed".as_slice()
+                }
+            );
+            assert_eq!(fs::read(&evidence).unwrap(), b"earlier evidence");
+            let saved =
+                fs::read(path.join(format!("snapshot.invalid-slot-{index}.1.evidence"))).unwrap();
+            assert_eq!(
+                saved,
+                corrupt[index * BLOCK as usize..(index + 1) * BLOCK as usize]
+            );
+            let repaired = fs::read(path.join(IMAGE)).unwrap();
+            assert!(
+                repaired[index * BLOCK as usize..(index + 1) * BLOCK as usize]
+                    .iter()
+                    .all(|b| *b == 0)
+            );
+            assert_eq!(
+                repaired[(1 - index) * BLOCK as usize..(2 - index) * BLOCK as usize],
+                corrupt[(1 - index) * BLOCK as usize..(2 - index) * BLOCK as usize]
+            );
+        }
+    }
+
+    #[test]
+    fn old_v1_snapshot_fails_closed_without_any_byte_changes_even_with_repair() {
+        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-v1").unwrap();
+        let path = parent.path.join("db");
+        let mut storage = bound_storage(&path, Mode::Create);
+        storage.persist(&environment(), &limits(), b"seed").unwrap();
+        drop(storage);
+        let old_image = encode_image(&environment(), &limits(), b"old v1 state").unwrap();
+        fs::write(path.join(IMAGE), &old_image).unwrap();
+        for repair in [false, true] {
+            let mut storage = bound_storage(&path, Mode::Open);
+            let error = storage
+                .recover(&environment(), &limits(), repair)
+                .unwrap_err();
+            assert_eq!(error.code, "STORAGE_FORMAT");
+            assert!(error.message.contains("format v1"));
+            assert_eq!(fs::read(path.join(IMAGE)).unwrap(), old_image);
+            assert_eq!(fs::read_dir(&path).unwrap().count(), 3);
+        }
+    }
+
+    #[test]
     fn real_slots_survive_repeated_overwrites_growth_and_restart() {
         use std::os::unix::fs::MetadataExt;
         let parent = Temporary::new(&std::env::temp_dir(), "jaydb-slots").unwrap();
@@ -871,20 +1057,32 @@ mod tests {
         assert_eq!(storage.sequence, Some(65));
         drop(storage);
         let mut storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &large).unwrap(), state);
+        assert_eq!(
+            storage.recover(&environment(), &large, false).unwrap(),
+            state
+        );
         storage.persist(&environment(), &large, b"small").unwrap();
         assert_eq!(storage.length, 24576); // never shrinks/aliases the latest slot
-        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"small");
+        assert_eq!(
+            storage.recover(&environment(), &large, false).unwrap(),
+            b"small"
+        );
         storage.persist(&environment(), &large, b"tiny").unwrap();
         assert_eq!(fs::read(path.join(IMAGE)).unwrap()[12288 + 5000], 12);
-        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"tiny");
+        assert_eq!(
+            storage.recover(&environment(), &large, false).unwrap(),
+            b"tiny"
+        );
         assert!(
             !storage
                 .persist(&environment(), &large, &vec![0; large.state as usize + 1])
                 .unwrap_err()
                 .uncertain
         );
-        assert_eq!(storage.recover(&environment(), &large).unwrap(), b"tiny");
+        assert_eq!(
+            storage.recover(&environment(), &large, false).unwrap(),
+            b"tiny"
+        );
         storage.sequence = Some(u64::MAX);
         assert!(
             !storage
@@ -899,7 +1097,7 @@ mod tests {
                 .unwrap_err()
                 .uncertain
         );
-        assert!(storage.recover(&environment(), &large).is_err());
+        assert!(storage.recover(&environment(), &large, false).is_err());
     }
 
     #[test]
@@ -915,7 +1113,7 @@ mod tests {
         let mut invalid = failed.clone();
         let missing = HEADER + MAGIC.len() + 64 + 32 + 600;
         invalid[missing] ^= 128;
-        assert!(decode_slot(&invalid).is_none());
+        assert!(decode_slot(&invalid).is_err());
         // An out-of-order partial zeroing can itself resurrect that earlier
         // candidate before repair sync. Startup has admitted no request yet.
         let mut partial_clear = invalid.clone();
@@ -933,7 +1131,10 @@ mod tests {
         file.write_all(&invalid).unwrap();
         drop(file);
         let mut storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"old");
+        assert_eq!(
+            storage.recover(&environment(), &limits(), true).unwrap(),
+            b"old"
+        );
         assert!(
             fs::read(path.join(IMAGE)).unwrap()[..BLOCK as usize]
                 .iter()
@@ -961,7 +1162,7 @@ mod tests {
             .persist(&environment(), &limits(), b"different")
             .unwrap();
         assert_eq!(
-            storage.recover(&environment(), &limits()).unwrap(),
+            storage.recover(&environment(), &limits(), true).unwrap(),
             b"different"
         );
     }
