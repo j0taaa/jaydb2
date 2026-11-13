@@ -155,7 +155,10 @@ sequence AND payload, slot parity, consecutive valid sequences and environment
 bindings. By default every nonzero invalid slot stops startup with
 `STORAGE_INVALID_SLOT`, naming the slot and reason, leaving snapshot bytes
 unchanged. Missing, corrupt or incompatible snapshots never fall back to a seed
-or silently serve an older slot. With a valid peer, explicit operator
+or silently serve an older slot past a nonzero invalid slot. (An all-zero slot
+cannot be told apart from the empty peer left by creation, growth or repair; a
+device that returns zeros for the newest acknowledged slot therefore yields the
+older slot without a diagnostic — see docs/durable-storage.md.) With a valid peer, explicit operator
 `--repair-invalid-slot` first copies the full invalid slot to a new mode-0600
 `*.evidence` file, fsyncs the evidence and directory, then durably clears the
 invalid peer before sequence reuse. Use only after investigating a power loss,

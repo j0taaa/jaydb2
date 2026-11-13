@@ -363,9 +363,16 @@ Repair first creates an exclusive full-slot evidence copy, fsyncs it and the
 directory, then durably zeroes the peer before sequence reuse. **If invalidity
 was corruption of the newest acknowledged slot, repair may lose that commit.**
 Evidence is diagnostic and never replaces existing evidence or competes for
-recovery. Strict recovery never silently rolls back to the older slot.
-`strict_recovery_never_clears` and `evidence_failure_never_clears` check the policy
-and evidence-sync gate; the actual bytes/fsync ordering remain trusted.
+recovery. Strict recovery never silently rolls back past a *nonzero* invalid
+slot. An all-zero slot is indistinguishable from the legitimately empty peer
+left by creation, growth or repair, so if storage replaces the newest
+acknowledged slot entirely with zeros (for example lost or trimmed blocks read
+back as zeros), recovery serves the older valid slot without a diagnostic; this
+is outside the crash-only model and is a stated storage assumption.
+`strict_recovery_never_clears` and `evidence_failure_never_clears` hold by
+definition of the modeled policy function: they record the intended policy and
+evidence-sync gate, they do not check the Rust code; the actual bytes/fsync
+ordering remain trusted.
 `repaired_peer_is_stable_before_sequence_reuse` checks the clear/file-sync/directory-sync
 order after that gate; `repair_crash_recovers_previous_or_certified_failed_candidate`
 requires the earlier candidate's actual certified crash-only origin, including

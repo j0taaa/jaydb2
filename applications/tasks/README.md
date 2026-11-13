@@ -67,6 +67,21 @@ node applications/tasks/tasks.ts --workspace .build/tasks/personal --storage-mod
 node applications/tasks/tasks.ts --workspace .build/tasks/personal --storage-mode open --credential bob-token --command list
 ```
 
+If a command is interrupted (for example Ctrl-C makes the wrapper send SIGKILL
+to the database) while a commit is being written, the next `--storage-mode open`
+may stop with `STORAGE_INVALID_SLOT`. The wrappers deliberately do not repair
+automatically. After confirming the interruption, an operator can run the
+database once directly with the explicit repair flag, then use the wrappers again:
+
+```sh
+./jaydb2 --configuration .build/tasks/personal/app/Configuration.bend \
+  --storage .build/tasks/personal/db --storage-mode open --repair-invalid-slot < /dev/null
+```
+
+Repair keeps a synced `*.evidence` copy of the invalid slot and may discard the
+newest acknowledged commit if the slot was corrupted rather than torn; see
+[durable storage](../../docs/durable-storage.md).
+
 Each command starts and gracefully closes one real database instance. The second
 and subsequent commands load the authoritative image, authenticate afresh and
 submit the existing ordinary certificate. Handles are not persisted and this

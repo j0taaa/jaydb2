@@ -39,7 +39,11 @@ Recovery requires valid file geometry and bounds allocation by its actual slot
 size and logical state ceiling. It checks both slots, including bindings of
 any checksum-valid older slot. With two valid slots, their sequences must be
 consecutive and match slot parity; recover the newer. A valid slot beside an
-all-zero slot is also accepted. **By default any nonzero invalid slot stops
+all-zero slot is also accepted (an all-zero slot is the legitimately empty
+peer after creation, growth or repair, so a device that replaces the newest
+acknowledged slot entirely with zeros — e.g. lost or trimmed blocks read back as
+zeros — makes recovery serve the older slot without a diagnostic; the storage
+must not do that, which is an explicit assumption below). **By default any nonzero invalid slot stops
 startup with `STORAGE_INVALID_SLOT`, naming its index (0/A or 1/B) and reason,
 without modifying `snapshot`.** A torn unacknowledged write and corruption of
 the newest acknowledged commit are indistinguishable without extra durable
@@ -102,7 +106,9 @@ size check). In a healthy writeback epoch, successful `fdatasync` persists
 written data and metadata needed to retrieve it; successful file/directory `fsync` and atomic replacement
 have their documented durability semantics, and the device honors flushes.
 A slot overwrite must not damage previously synchronized blocks in the other
-slot or expose stale allocation contents. No sector, filesystem-block or
+slot or expose stale allocation contents, and must not return zeros in place of
+previously synchronized slot contents (an all-zero newest slot would be read as
+an empty peer). No sector, filesystem-block or
 multi-sector write atomicity is assumed. Unlike the old atomic-image protocol,
 torn-slot detection now explicitly depends on SHA-256 rejecting incomplete or
 mixed sequence/payload contents; undetected collisions are excluded. Checksums

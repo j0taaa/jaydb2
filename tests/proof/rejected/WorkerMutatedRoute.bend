@@ -155,6 +155,12 @@ def routed_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: String,
     case Some{T.Parts{registry, packet}}:
       routed_parts(c, T.separate(packet), registry_entries(ControlBridge.decode_registry(registry)), code, proof, admit)
 
+# The outer separator checks its registry prefix; routed_packet's inner
+# separator checks the entire remaining root/body packet exactly once.
+def routed_bytes(~c: S.Configuration, bytes: List<&2, U32>, code: String,
+  proof: String, admit: Gate.Oracle()) -> Result.Iteration:
+  routed_packet(c, T.separate_prefix(bytes), code, proof, admit)
+
 def prepared_metadata(~c: S.Configuration, +s: D.State, +raw: P.Request,
   +entries: List<&2, Registry.Entry>, code: String, proof: String) -> Messages.WorkerMetadata:
   ready_metadata(S.environment(c), s, raw, code, proof, D.authenticate(s, Gate.credential(raw)),
