@@ -1,0 +1,1859 @@
+{
+  "before_commit": "3f28eb7c69d5da06b2bfe89ce3d720ed6d581acc",
+  "after_commit": "1ea6ddc7f76b0efc6cf5220b88628a1963339ad7",
+  "statistics": "inclusive quartiles; pooled median; min/max independent-session medians",
+  "prepared": [
+    {
+      "program": "read",
+      "persistent": false,
+      "before": {
+        "median_ms": 3.9155984999999998,
+        "q1_ms": 3.8704465,
+        "q3_ms": 3.9624462499999997,
+        "n": 900,
+        "session_medians_ms": [
+          3.9259614999999997,
+          3.923867,
+          3.897526
+        ],
+        "session_min_ms": 3.897526,
+        "session_max_ms": 3.9259614999999997
+      },
+      "after": {
+        "median_ms": 1.1351740000000001,
+        "q1_ms": 1.110732,
+        "q3_ms": 1.18639575,
+        "n": 900,
+        "session_medians_ms": [
+          1.119428,
+          1.1961810000000002,
+          1.125811
+        ],
+        "session_min_ms": 1.119428,
+        "session_max_ms": 1.1961810000000002
+      }
+    },
+    {
+      "program": "indexed",
+      "persistent": false,
+      "before": {
+        "median_ms": 6.0098015,
+        "q1_ms": 5.9518415000000005,
+        "q3_ms": 6.071348250000001,
+        "n": 900,
+        "session_medians_ms": [
+          6.01483,
+          5.9841315,
+          6.033295
+        ],
+        "session_min_ms": 5.9841315,
+        "session_max_ms": 6.033295
+      },
+      "after": {
+        "median_ms": 2.6933274999999997,
+        "q1_ms": 2.6231382500000002,
+        "q3_ms": 2.869119,
+        "n": 900,
+        "session_medians_ms": [
+          2.9608315000000003,
+          2.781699,
+          2.61333
+        ],
+        "session_min_ms": 2.61333,
+        "session_max_ms": 2.9608315000000003
+      }
+    },
+    {
+      "program": "voucher",
+      "persistent": false,
+      "before": {
+        "median_ms": 6.144185500000001,
+        "q1_ms": 6.08966425,
+        "q3_ms": 6.201873750000001,
+        "n": 900,
+        "session_medians_ms": [
+          6.143167999999999,
+          6.167631,
+          6.119752
+        ],
+        "session_min_ms": 6.119752,
+        "session_max_ms": 6.167631
+      },
+      "after": {
+        "median_ms": 2.9280805,
+        "q1_ms": 2.8868469999999995,
+        "q3_ms": 2.98037525,
+        "n": 900,
+        "session_medians_ms": [
+          2.941752,
+          2.9279605,
+          2.9213775
+        ],
+        "session_min_ms": 2.9213775,
+        "session_max_ms": 2.941752
+      }
+    },
+    {
+      "program": "read",
+      "persistent": true,
+      "before": {
+        "median_ms": 3.9201645000000003,
+        "q1_ms": 3.87754875,
+        "q3_ms": 3.964619,
+        "n": 900,
+        "session_medians_ms": [
+          3.916321,
+          3.9217675,
+          3.9219730000000004
+        ],
+        "session_min_ms": 3.916321,
+        "session_max_ms": 3.9219730000000004
+      },
+      "after": {
+        "median_ms": 1.090181,
+        "q1_ms": 1.0739667499999999,
+        "q3_ms": 1.1135309999999998,
+        "n": 900,
+        "session_medians_ms": [
+          1.1090565,
+          1.0883915,
+          1.0795305000000002
+        ],
+        "session_min_ms": 1.0795305000000002,
+        "session_max_ms": 1.1090565
+      }
+    },
+    {
+      "program": "indexed",
+      "persistent": true,
+      "before": {
+        "median_ms": 18.1547545,
+        "q1_ms": 16.504316,
+        "q3_ms": 49.672402250000005,
+        "n": 900,
+        "session_medians_ms": [
+          16.947750499999998,
+          17.885968499999997,
+          57.6874255
+        ],
+        "session_min_ms": 16.947750499999998,
+        "session_max_ms": 57.6874255
+      },
+      "after": {
+        "median_ms": 5.8487225,
+        "q1_ms": 4.84740925,
+        "q3_ms": 6.260629250000001,
+        "n": 900,
+        "session_medians_ms": [
+          6.1372055,
+          5.859628,
+          5.6894035
+        ],
+        "session_min_ms": 5.6894035,
+        "session_max_ms": 6.1372055
+      }
+    },
+    {
+      "program": "voucher",
+      "persistent": true,
+      "before": {
+        "median_ms": 16.70497,
+        "q1_ms": 15.750074000000001,
+        "q3_ms": 17.87667975,
+        "n": 900,
+        "session_medians_ms": [
+          17.2823065,
+          16.1722195,
+          15.9967615
+        ],
+        "session_min_ms": 15.9967615,
+        "session_max_ms": 17.2823065
+      },
+      "after": {
+        "median_ms": 6.149732500000001,
+        "q1_ms": 5.036085,
+        "q3_ms": 6.488222,
+        "n": 900,
+        "session_medians_ms": [
+          6.3165189999999996,
+          6.1789795000000005,
+          6.035087
+        ],
+        "session_min_ms": 6.035087,
+        "session_max_ms": 6.3165189999999996
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "read",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 3.8690594999999997,
+        "q1_ms": 3.820555,
+        "q3_ms": 3.9102129999999997,
+        "n": 900,
+        "session_medians_ms": [
+          3.8682605,
+          3.8834334999999998,
+          3.8620419999999998
+        ],
+        "session_min_ms": 3.8620419999999998,
+        "session_max_ms": 3.8834334999999998
+      },
+      "after": {
+        "median_ms": 1.039588,
+        "q1_ms": 1.02881025,
+        "q3_ms": 1.05385675,
+        "n": 900,
+        "session_medians_ms": [
+          1.0384915000000001,
+          1.041131,
+          1.0396305
+        ],
+        "session_min_ms": 1.0384915000000001,
+        "session_max_ms": 1.041131
+      },
+      "jaydb2_over_postgresql": {
+        "before": 91.57428906166791,
+        "after": 25.027697863376464
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "read",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 0.042250499999999996,
+        "q1_ms": 0.041808,
+        "q3_ms": 0.04294,
+        "n": 900,
+        "session_medians_ms": [
+          0.042665999999999996,
+          0.042108999999999994,
+          0.0420015
+        ],
+        "session_min_ms": 0.0420015,
+        "session_max_ms": 0.042665999999999996
+      },
+      "after": {
+        "median_ms": 0.041537500000000005,
+        "q1_ms": 0.04103325,
+        "q3_ms": 0.042479750000000004,
+        "n": 900,
+        "session_medians_ms": [
+          0.0414375,
+          0.042136,
+          0.041091
+        ],
+        "session_min_ms": 0.041091,
+        "session_max_ms": 0.042136
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "read",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 0.002999,
+        "q1_ms": 0.002957,
+        "q3_ms": 0.003047,
+        "n": 900,
+        "session_medians_ms": [
+          0.00302,
+          0.0029915000000000002,
+          0.002965
+        ],
+        "session_min_ms": 0.002965,
+        "session_max_ms": 0.00302
+      },
+      "after": {
+        "median_ms": 0.002992,
+        "q1_ms": 0.002961,
+        "q3_ms": 0.003047,
+        "n": 900,
+        "session_medians_ms": [
+          0.0029665,
+          0.0030105,
+          0.0030025
+        ],
+        "session_min_ms": 0.0029665,
+        "session_max_ms": 0.0030105
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "update",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 14.689399,
+        "q1_ms": 14.30969375,
+        "q3_ms": 15.198678000000001,
+        "n": 900,
+        "session_medians_ms": [
+          14.96792,
+          14.665479,
+          14.642805
+        ],
+        "session_min_ms": 14.642805,
+        "session_max_ms": 14.96792
+      },
+      "after": {
+        "median_ms": 4.0671990000000005,
+        "q1_ms": 2.9232775,
+        "q3_ms": 4.2536525,
+        "n": 900,
+        "session_medians_ms": [
+          3.364858,
+          3.6507315,
+          4.125291000000001
+        ],
+        "session_min_ms": 3.364858,
+        "session_max_ms": 4.125291000000001
+      },
+      "jaydb2_over_postgresql": {
+        "before": 4.584591832913035,
+        "after": 1.264214215233207
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "update",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 3.2040800000000003,
+        "q1_ms": 2.212737,
+        "q3_ms": 3.4478064999999996,
+        "n": 900,
+        "session_medians_ms": [
+          2.701456,
+          3.308273,
+          2.9461155000000003
+        ],
+        "session_min_ms": 2.701456,
+        "session_max_ms": 3.308273
+      },
+      "after": {
+        "median_ms": 3.2171755,
+        "q1_ms": 2.18625675,
+        "q3_ms": 3.430397,
+        "n": 900,
+        "session_medians_ms": [
+          2.6454405,
+          2.668412,
+          3.242021
+        ],
+        "session_min_ms": 2.6454405,
+        "session_max_ms": 3.242021
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "point",
+      "operation": "update",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 5.641301,
+        "q1_ms": 4.489008,
+        "q3_ms": 6.846978999999999,
+        "n": 900,
+        "session_medians_ms": [
+          6.5304994999999995,
+          5.599080000000001,
+          5.7035275
+        ],
+        "session_min_ms": 5.599080000000001,
+        "session_max_ms": 6.5304994999999995
+      },
+      "after": {
+        "median_ms": 5.7889,
+        "q1_ms": 4.53101375,
+        "q3_ms": 6.849928,
+        "n": 900,
+        "session_medians_ms": [
+          6.0251155,
+          5.718840999999999,
+          6.447822
+        ],
+        "session_min_ms": 5.718840999999999,
+        "session_max_ms": 6.447822
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 5.0928725,
+        "q1_ms": 5.040267,
+        "q3_ms": 5.151168,
+        "n": 900,
+        "session_medians_ms": [
+          5.105334,
+          5.101762,
+          5.0734455
+        ],
+        "session_min_ms": 5.0734455,
+        "session_max_ms": 5.105334
+      },
+      "after": {
+        "median_ms": 2.0454084999999997,
+        "q1_ms": 2.01345575,
+        "q3_ms": 2.1665765,
+        "n": 900,
+        "session_medians_ms": [
+          2.025926,
+          2.3041515,
+          2.0244595
+        ],
+        "session_min_ms": 2.0244595,
+        "session_max_ms": 2.3041515
+      },
+      "jaydb2_over_postgresql": {
+        "before": 116.16821204137726,
+        "after": 48.40630694592355
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 0.043840500000000004,
+        "q1_ms": 0.042855,
+        "q3_ms": 0.0681285,
+        "n": 900,
+        "session_medians_ms": [
+          0.043512999999999996,
+          0.042616,
+          0.0685345
+        ],
+        "session_min_ms": 0.042616,
+        "session_max_ms": 0.0685345
+      },
+      "after": {
+        "median_ms": 0.042255,
+        "q1_ms": 0.0417825,
+        "q3_ms": 0.04301675,
+        "n": 900,
+        "session_medians_ms": [
+          0.042036000000000004,
+          0.041967500000000005,
+          0.042737
+        ],
+        "session_min_ms": 0.041967500000000005,
+        "session_max_ms": 0.042737
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 0.003196,
+        "q1_ms": 0.003149,
+        "q3_ms": 0.003248,
+        "n": 900,
+        "session_medians_ms": [
+          0.0032325,
+          0.0031444999999999997,
+          0.0031895
+        ],
+        "session_min_ms": 0.0031444999999999997,
+        "session_max_ms": 0.0032325
+      },
+      "after": {
+        "median_ms": 0.0031845,
+        "q1_ms": 0.003144,
+        "q3_ms": 0.003233,
+        "n": 900,
+        "session_medians_ms": [
+          0.0031975,
+          0.003151,
+          0.0031904999999999998
+        ],
+        "session_min_ms": 0.003151,
+        "session_max_ms": 0.0031975
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 16.080977,
+        "q1_ms": 14.55636175,
+        "q3_ms": 17.0723655,
+        "n": 900,
+        "session_medians_ms": [
+          15.098821999999998,
+          16.1059855,
+          16.4076195
+        ],
+        "session_min_ms": 15.098821999999998,
+        "session_max_ms": 16.4076195
+      },
+      "after": {
+        "median_ms": 5.0960675,
+        "q1_ms": 3.981884,
+        "q3_ms": 5.31862,
+        "n": 900,
+        "session_medians_ms": [
+          5.2522839999999995,
+          4.9178455,
+          4.4670675
+        ],
+        "session_min_ms": 4.4670675,
+        "session_max_ms": 5.2522839999999995
+      },
+      "jaydb2_over_postgresql": {
+        "before": 4.80644173507385,
+        "after": 1.5726489541297766
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 3.3457134999999996,
+        "q1_ms": 2.2527745,
+        "q3_ms": 3.51196875,
+        "n": 900,
+        "session_medians_ms": [
+          2.731832,
+          3.2587665,
+          3.3857559999999998
+        ],
+        "session_min_ms": 2.731832,
+        "session_max_ms": 3.3857559999999998
+      },
+      "after": {
+        "median_ms": 3.2404355000000002,
+        "q1_ms": 2.219069,
+        "q3_ms": 3.4693065,
+        "n": 900,
+        "session_medians_ms": [
+          2.928938,
+          3.326005,
+          2.617693
+        ],
+        "session_min_ms": 2.617693,
+        "session_max_ms": 3.326005
+      }
+    },
+    {
+      "rows": 10,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 5.7200705,
+        "q1_ms": 4.562694,
+        "q3_ms": 6.906569,
+        "n": 900,
+        "session_medians_ms": [
+          6.6746055,
+          5.646983,
+          5.7888625000000005
+        ],
+        "session_min_ms": 5.646983,
+        "session_max_ms": 6.6746055
+      },
+      "after": {
+        "median_ms": 5.627259,
+        "q1_ms": 4.586096,
+        "q3_ms": 6.779180500000001,
+        "n": 900,
+        "session_medians_ms": [
+          5.6222575,
+          5.592206,
+          6.5965705
+        ],
+        "session_min_ms": 5.592206,
+        "session_max_ms": 6.5965705
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "read",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 36.8372105,
+        "q1_ms": 36.67249725,
+        "q3_ms": 36.99960675,
+        "n": 900,
+        "session_medians_ms": [
+          36.8372105,
+          36.768622,
+          36.908579
+        ],
+        "session_min_ms": 36.768622,
+        "session_max_ms": 36.908579
+      },
+      "after": {
+        "median_ms": 18.828026,
+        "q1_ms": 18.6729645,
+        "q3_ms": 18.9971475,
+        "n": 900,
+        "session_medians_ms": [
+          18.8300915,
+          18.784646,
+          18.859389
+        ],
+        "session_min_ms": 18.784646,
+        "session_max_ms": 18.859389
+      },
+      "jaydb2_over_postgresql": {
+        "before": 864.966903822673,
+        "after": 447.64151638710905
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "read",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 0.042588,
+        "q1_ms": 0.042133,
+        "q3_ms": 0.043223250000000005,
+        "n": 900,
+        "session_medians_ms": [
+          0.042722,
+          0.042503,
+          0.042476
+        ],
+        "session_min_ms": 0.042476,
+        "session_max_ms": 0.042722
+      },
+      "after": {
+        "median_ms": 0.0420605,
+        "q1_ms": 0.0415405,
+        "q3_ms": 0.04271425,
+        "n": 900,
+        "session_medians_ms": [
+          0.042301,
+          0.041976,
+          0.041718500000000006
+        ],
+        "session_min_ms": 0.041718500000000006,
+        "session_max_ms": 0.042301
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "read",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 0.003247,
+        "q1_ms": 0.00318,
+        "q3_ms": 0.003325,
+        "n": 900,
+        "session_medians_ms": [
+          0.003176,
+          0.003233,
+          0.00331
+        ],
+        "session_min_ms": 0.003176,
+        "session_max_ms": 0.00331
+      },
+      "after": {
+        "median_ms": 0.003212,
+        "q1_ms": 0.003177,
+        "q3_ms": 0.003268,
+        "n": 900,
+        "session_medians_ms": [
+          0.0032155,
+          0.0032275,
+          0.003199
+        ],
+        "session_min_ms": 0.003199,
+        "session_max_ms": 0.0032275
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "update",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 48.858168000000006,
+        "q1_ms": 47.772743000000006,
+        "q3_ms": 49.941094500000005,
+        "n": 900,
+        "session_medians_ms": [
+          48.708694,
+          48.818953,
+          49.1004795
+        ],
+        "session_min_ms": 48.708694,
+        "session_max_ms": 49.1004795
+      },
+      "after": {
+        "median_ms": 22.623340499999998,
+        "q1_ms": 21.7204775,
+        "q3_ms": 22.89142575,
+        "n": 900,
+        "session_medians_ms": [
+          22.7166615,
+          22.195968,
+          22.6800645
+        ],
+        "session_min_ms": 22.195968,
+        "session_max_ms": 22.7166615
+      },
+      "jaydb2_over_postgresql": {
+        "before": 14.880251664154809,
+        "after": 6.676054798126377
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "update",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 3.2834235,
+        "q1_ms": 2.2421457499999997,
+        "q3_ms": 3.5052160000000003,
+        "n": 900,
+        "session_medians_ms": [
+          3.2554125000000003,
+          3.2918624999999997,
+          2.980754
+        ],
+        "session_min_ms": 2.980754,
+        "session_max_ms": 3.2918624999999997
+      },
+      "after": {
+        "median_ms": 3.3887289999999997,
+        "q1_ms": 2.2681240000000003,
+        "q3_ms": 3.528132,
+        "n": 900,
+        "session_medians_ms": [
+          3.428758,
+          3.3236305,
+          3.034741
+        ],
+        "session_min_ms": 3.034741,
+        "session_max_ms": 3.428758
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "point",
+      "operation": "update",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 2.4136755,
+        "q1_ms": 2.0736127499999997,
+        "q3_ms": 3.4312455,
+        "n": 900,
+        "session_medians_ms": [
+          3.1366515,
+          2.62343,
+          2.132332
+        ],
+        "session_min_ms": 2.132332,
+        "session_max_ms": 3.1366515
+      },
+      "after": {
+        "median_ms": 3.1818375000000003,
+        "q1_ms": 2.0923695,
+        "q3_ms": 3.47724725,
+        "n": 900,
+        "session_medians_ms": [
+          3.5678460000000003,
+          2.5531405,
+          2.451488
+        ],
+        "session_min_ms": 2.451488,
+        "session_max_ms": 3.5678460000000003
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 37.976237,
+        "q1_ms": 37.810839,
+        "q3_ms": 38.136816249999995,
+        "n": 900,
+        "session_medians_ms": [
+          37.954532,
+          38.0325085,
+          37.929319
+        ],
+        "session_min_ms": 37.929319,
+        "session_max_ms": 38.0325085
+      },
+      "after": {
+        "median_ms": 19.5899125,
+        "q1_ms": 19.4153965,
+        "q3_ms": 19.8030085,
+        "n": 900,
+        "session_medians_ms": [
+          19.560526000000003,
+          19.8636645,
+          19.46676
+        ],
+        "session_min_ms": 19.46676,
+        "session_max_ms": 19.8636645
+      },
+      "jaydb2_over_postgresql": {
+        "before": 875.8155254721985,
+        "after": 461.64516319076233
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 0.043361,
+        "q1_ms": 0.0426735,
+        "q3_ms": 0.06889725000000001,
+        "n": 900,
+        "session_medians_ms": [
+          0.042674500000000004,
+          0.0693945,
+          0.0429615
+        ],
+        "session_min_ms": 0.042674500000000004,
+        "session_max_ms": 0.0693945
+      },
+      "after": {
+        "median_ms": 0.042435,
+        "q1_ms": 0.04201725,
+        "q3_ms": 0.043035,
+        "n": 900,
+        "session_medians_ms": [
+          0.042475,
+          0.042581999999999995,
+          0.0422585
+        ],
+        "session_min_ms": 0.0422585,
+        "session_max_ms": 0.042581999999999995
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "read",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 0.003357,
+        "q1_ms": 0.003314,
+        "q3_ms": 0.0034332499999999997,
+        "n": 900,
+        "session_medians_ms": [
+          0.003372,
+          0.003347,
+          0.003345
+        ],
+        "session_min_ms": 0.003345,
+        "session_max_ms": 0.003372
+      },
+      "after": {
+        "median_ms": 0.003335,
+        "q1_ms": 0.003296,
+        "q3_ms": 0.00340125,
+        "n": 900,
+        "session_medians_ms": [
+          0.003313,
+          0.0033515,
+          0.003339
+        ],
+        "session_min_ms": 0.003313,
+        "session_max_ms": 0.0033515
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "jaydb2",
+      "before": {
+        "median_ms": 50.397242500000004,
+        "q1_ms": 49.02731975,
+        "q3_ms": 52.87759225,
+        "n": 900,
+        "session_medians_ms": [
+          49.8498015,
+          84.67123799999999,
+          49.5310585
+        ],
+        "session_min_ms": 49.5310585,
+        "session_max_ms": 84.67123799999999
+      },
+      "after": {
+        "median_ms": 23.149867,
+        "q1_ms": 22.29220825,
+        "q3_ms": 23.40596825,
+        "n": 900,
+        "session_medians_ms": [
+          23.141284,
+          23.224161000000002,
+          23.1098915
+        ],
+        "session_min_ms": 23.1098915,
+        "session_max_ms": 23.224161000000002
+      },
+      "jaydb2_over_postgresql": {
+        "before": 21.453842342240712,
+        "after": 6.868381764356484
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "postgresql",
+      "before": {
+        "median_ms": 2.349101,
+        "q1_ms": 2.225065,
+        "q3_ms": 3.45701475,
+        "n": 900,
+        "session_medians_ms": [
+          2.274511,
+          2.9223745,
+          3.0202185000000004
+        ],
+        "session_min_ms": 2.274511,
+        "session_max_ms": 3.0202185000000004
+      },
+      "after": {
+        "median_ms": 3.370498,
+        "q1_ms": 2.2408504999999996,
+        "q3_ms": 3.4835035,
+        "n": 900,
+        "session_medians_ms": [
+          2.9632405000000004,
+          3.3573765,
+          3.4538365
+        ],
+        "session_min_ms": 2.9632405000000004,
+        "session_max_ms": 3.4538365
+      }
+    },
+    {
+      "rows": 1104,
+      "policy": "owner",
+      "operation": "update",
+      "engine": "sqlite",
+      "before": {
+        "median_ms": 3.234813,
+        "q1_ms": 2.0469355,
+        "q3_ms": 3.352865,
+        "n": 900,
+        "session_medians_ms": [
+          3.177027,
+          3.312087,
+          3.168718
+        ],
+        "session_min_ms": 3.168718,
+        "session_max_ms": 3.312087
+      },
+      "after": {
+        "median_ms": 3.242145,
+        "q1_ms": 2.14070625,
+        "q3_ms": 3.47087325,
+        "n": 900,
+        "session_medians_ms": [
+          3.0894825,
+          2.6545565,
+          3.3764545000000004
+        ],
+        "session_min_ms": 2.6545565,
+        "session_max_ms": 3.3764545000000004
+      }
+    }
+  ],
+  "scaling": [
+    {
+      "rows": 10,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 3.8854055,
+        "q1_ms": 3.8420179999999995,
+        "q3_ms": 3.93279675,
+        "n": 150,
+        "session_medians_ms": [
+          3.8744875,
+          3.8940795,
+          3.894704
+        ],
+        "session_min_ms": 3.8744875,
+        "session_max_ms": 3.894704
+      },
+      "after": {
+        "median_ms": 1.0379485,
+        "q1_ms": 1.0285389999999999,
+        "q3_ms": 1.04974225,
+        "n": 150,
+        "session_medians_ms": [
+          1.0309059999999999,
+          1.0404685,
+          1.037932
+        ],
+        "session_min_ms": 1.0309059999999999,
+        "session_max_ms": 1.0404685
+      }
+    },
+    {
+      "rows": 30,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 4.5129684999999995,
+        "q1_ms": 4.4527985,
+        "q3_ms": 4.5632209999999995,
+        "n": 150,
+        "session_medians_ms": [
+          4.5355360000000005,
+          4.497453500000001,
+          4.5109355
+        ],
+        "session_min_ms": 4.497453500000001,
+        "session_max_ms": 4.5355360000000005
+      },
+      "after": {
+        "median_ms": 1.38109,
+        "q1_ms": 1.3637670000000002,
+        "q3_ms": 1.4090065,
+        "n": 150,
+        "session_medians_ms": [
+          1.377149,
+          1.3683425,
+          1.4203095
+        ],
+        "session_min_ms": 1.3683425,
+        "session_max_ms": 1.4203095
+      }
+    },
+    {
+      "rows": 100,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 6.5681175,
+        "q1_ms": 6.51107225,
+        "q3_ms": 6.6252242500000005,
+        "n": 150,
+        "session_medians_ms": [
+          6.5775355,
+          6.524240499999999,
+          6.609765
+        ],
+        "session_min_ms": 6.524240499999999,
+        "session_max_ms": 6.609765
+      },
+      "after": {
+        "median_ms": 2.4733525,
+        "q1_ms": 2.43022375,
+        "q3_ms": 2.5012455,
+        "n": 150,
+        "session_medians_ms": [
+          2.4721655,
+          2.450198,
+          2.4832185
+        ],
+        "session_min_ms": 2.450198,
+        "session_max_ms": 2.4832185
+      }
+    },
+    {
+      "rows": 300,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 12.651992,
+        "q1_ms": 12.53740425,
+        "q3_ms": 13.3085855,
+        "n": 150,
+        "session_medians_ms": [
+          12.586958,
+          12.5909935,
+          13.473302
+        ],
+        "session_min_ms": 12.586958,
+        "session_max_ms": 13.473302
+      },
+      "after": {
+        "median_ms": 5.7289105,
+        "q1_ms": 5.6424075,
+        "q3_ms": 5.82129475,
+        "n": 150,
+        "session_medians_ms": [
+          5.852635,
+          5.655885,
+          5.679004
+        ],
+        "session_min_ms": 5.655885,
+        "session_max_ms": 5.852635
+      }
+    },
+    {
+      "rows": 600,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 21.6039765,
+        "q1_ms": 21.49841225,
+        "q3_ms": 21.70704525,
+        "n": 150,
+        "session_medians_ms": [
+          21.5744075,
+          21.625549,
+          21.5862805
+        ],
+        "session_min_ms": 21.5744075,
+        "session_max_ms": 21.625549
+      },
+      "after": {
+        "median_ms": 10.5993395,
+        "q1_ms": 10.526443750000002,
+        "q3_ms": 10.675396000000001,
+        "n": 150,
+        "session_medians_ms": [
+          10.607745999999999,
+          10.6393375,
+          10.5735445
+        ],
+        "session_min_ms": 10.5735445,
+        "session_max_ms": 10.6393375
+      }
+    },
+    {
+      "rows": 1000,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 33.663664499999996,
+        "q1_ms": 33.5407655,
+        "q3_ms": 33.855251249999995,
+        "n": 150,
+        "session_medians_ms": [
+          33.6708955,
+          33.645581500000006,
+          33.7231335
+        ],
+        "session_min_ms": 33.645581500000006,
+        "session_max_ms": 33.7231335
+      },
+      "after": {
+        "median_ms": 17.021254,
+        "q1_ms": 16.903067,
+        "q3_ms": 17.21258075,
+        "n": 150,
+        "session_medians_ms": [
+          17.0174055,
+          17.027283500000003,
+          17.041441
+        ],
+        "session_min_ms": 17.0174055,
+        "session_max_ms": 17.041441
+      }
+    },
+    {
+      "rows": 1105,
+      "persistent": false,
+      "operation": "read",
+      "before": {
+        "median_ms": 36.94328,
+        "q1_ms": 36.81695125,
+        "q3_ms": 37.126870000000004,
+        "n": 150,
+        "session_medians_ms": [
+          36.9958065,
+          36.973242,
+          36.8546015
+        ],
+        "session_min_ms": 36.8546015,
+        "session_max_ms": 36.9958065
+      },
+      "after": {
+        "median_ms": 18.9668645,
+        "q1_ms": 18.7916415,
+        "q3_ms": 19.09220325,
+        "n": 150,
+        "session_medians_ms": [
+          18.983003500000002,
+          18.9166455,
+          18.982123
+        ],
+        "session_min_ms": 18.9166455,
+        "session_max_ms": 18.983003500000002
+      }
+    },
+    {
+      "rows": 10,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 3.902894,
+        "q1_ms": 3.85602525,
+        "q3_ms": 3.95482025,
+        "n": 150,
+        "session_medians_ms": [
+          3.8833595,
+          3.930644,
+          3.900319
+        ],
+        "session_min_ms": 3.8833595,
+        "session_max_ms": 3.930644
+      },
+      "after": {
+        "median_ms": 1.0524355,
+        "q1_ms": 1.0421162499999999,
+        "q3_ms": 1.06885125,
+        "n": 150,
+        "session_medians_ms": [
+          1.0456020000000001,
+          1.0543375,
+          1.059945
+        ],
+        "session_min_ms": 1.0456020000000001,
+        "session_max_ms": 1.059945
+      }
+    },
+    {
+      "rows": 30,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 4.5006445,
+        "q1_ms": 4.4629235000000005,
+        "q3_ms": 4.5392395,
+        "n": 150,
+        "session_medians_ms": [
+          4.500992500000001,
+          4.486801,
+          4.507013499999999
+        ],
+        "session_min_ms": 4.486801,
+        "session_max_ms": 4.507013499999999
+      },
+      "after": {
+        "median_ms": 1.405694,
+        "q1_ms": 1.37640125,
+        "q3_ms": 1.4419062500000002,
+        "n": 150,
+        "session_medians_ms": [
+          1.3855735,
+          1.3906455000000002,
+          1.459452
+        ],
+        "session_min_ms": 1.3855735,
+        "session_max_ms": 1.459452
+      }
+    },
+    {
+      "rows": 100,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 6.613111,
+        "q1_ms": 6.551041,
+        "q3_ms": 6.671451249999999,
+        "n": 150,
+        "session_medians_ms": [
+          6.6232205,
+          6.6098894999999995,
+          6.607984500000001
+        ],
+        "session_min_ms": 6.607984500000001,
+        "session_max_ms": 6.6232205
+      },
+      "after": {
+        "median_ms": 2.5186694999999997,
+        "q1_ms": 2.4924922499999997,
+        "q3_ms": 2.546373,
+        "n": 150,
+        "session_medians_ms": [
+          2.5007105000000003,
+          2.5360535,
+          2.52238
+        ],
+        "session_min_ms": 2.5007105000000003,
+        "session_max_ms": 2.5360535
+      }
+    },
+    {
+      "rows": 300,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 12.7665215,
+        "q1_ms": 12.68332475,
+        "q3_ms": 12.874079,
+        "n": 150,
+        "session_medians_ms": [
+          12.702684,
+          12.773117,
+          13.450544
+        ],
+        "session_min_ms": 12.702684,
+        "session_max_ms": 13.450544
+      },
+      "after": {
+        "median_ms": 5.932836,
+        "q1_ms": 5.835897750000001,
+        "q3_ms": 6.0676732499999995,
+        "n": 150,
+        "session_medians_ms": [
+          6.1133415,
+          5.8535495,
+          5.889369
+        ],
+        "session_min_ms": 5.8535495,
+        "session_max_ms": 6.1133415
+      }
+    },
+    {
+      "rows": 600,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 21.973452,
+        "q1_ms": 21.86465125,
+        "q3_ms": 22.096747,
+        "n": 150,
+        "session_medians_ms": [
+          21.9813745,
+          21.985156,
+          21.953837
+        ],
+        "session_min_ms": 21.953837,
+        "session_max_ms": 21.985156
+      },
+      "after": {
+        "median_ms": 10.905863,
+        "q1_ms": 10.82768475,
+        "q3_ms": 11.01881775,
+        "n": 150,
+        "session_medians_ms": [
+          10.959531,
+          10.8684925,
+          10.877635
+        ],
+        "session_min_ms": 10.8684925,
+        "session_max_ms": 10.959531
+      }
+    },
+    {
+      "rows": 1000,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 34.2775515,
+        "q1_ms": 34.102987250000005,
+        "q3_ms": 34.43061175,
+        "n": 150,
+        "session_medians_ms": [
+          34.287109,
+          34.266588,
+          34.275481
+        ],
+        "session_min_ms": 34.266588,
+        "session_max_ms": 34.287109
+      },
+      "after": {
+        "median_ms": 17.645794000000002,
+        "q1_ms": 17.455975249999998,
+        "q3_ms": 17.79205475,
+        "n": 150,
+        "session_medians_ms": [
+          17.642359,
+          17.682456000000002,
+          17.6210825
+        ],
+        "session_min_ms": 17.6210825,
+        "session_max_ms": 17.682456000000002
+      }
+    },
+    {
+      "rows": 1105,
+      "persistent": false,
+      "operation": "update",
+      "before": {
+        "median_ms": 37.537642000000005,
+        "q1_ms": 37.41640925,
+        "q3_ms": 37.688241500000004,
+        "n": 150,
+        "session_medians_ms": [
+          37.634072,
+          37.497101,
+          37.53738
+        ],
+        "session_min_ms": 37.497101,
+        "session_max_ms": 37.634072
+      },
+      "after": {
+        "median_ms": 19.4971355,
+        "q1_ms": 19.35270525,
+        "q3_ms": 19.66187025,
+        "n": 150,
+        "session_medians_ms": [
+          19.4310265,
+          19.551569,
+          19.433676499999997
+        ],
+        "session_min_ms": 19.4310265,
+        "session_max_ms": 19.551569
+      }
+    },
+    {
+      "rows": 10,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 3.8700134999999998,
+        "q1_ms": 3.81959625,
+        "q3_ms": 3.92332375,
+        "n": 150,
+        "session_medians_ms": [
+          3.9133325,
+          3.8454885,
+          3.8584865
+        ],
+        "session_min_ms": 3.8454885,
+        "session_max_ms": 3.9133325
+      },
+      "after": {
+        "median_ms": 1.038452,
+        "q1_ms": 1.0267412500000002,
+        "q3_ms": 1.05124825,
+        "n": 150,
+        "session_medians_ms": [
+          1.033643,
+          1.044806,
+          1.038731
+        ],
+        "session_min_ms": 1.033643,
+        "session_max_ms": 1.044806
+      }
+    },
+    {
+      "rows": 30,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 4.4914165,
+        "q1_ms": 4.4559732499999996,
+        "q3_ms": 4.542282999999999,
+        "n": 150,
+        "session_medians_ms": [
+          4.4928645,
+          4.4657355,
+          4.50303
+        ],
+        "session_min_ms": 4.4657355,
+        "session_max_ms": 4.50303
+      },
+      "after": {
+        "median_ms": 1.3712745000000002,
+        "q1_ms": 1.3598617499999999,
+        "q3_ms": 1.38767825,
+        "n": 150,
+        "session_medians_ms": [
+          1.370008,
+          1.3707185000000002,
+          1.372876
+        ],
+        "session_min_ms": 1.370008,
+        "session_max_ms": 1.372876
+      }
+    },
+    {
+      "rows": 100,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 6.5483435,
+        "q1_ms": 6.503325,
+        "q3_ms": 6.616544,
+        "n": 150,
+        "session_medians_ms": [
+          6.5572045,
+          6.54496,
+          6.5438145
+        ],
+        "session_min_ms": 6.5438145,
+        "session_max_ms": 6.5572045
+      },
+      "after": {
+        "median_ms": 2.4564500000000002,
+        "q1_ms": 2.42770025,
+        "q3_ms": 2.494177,
+        "n": 150,
+        "session_medians_ms": [
+          2.472842,
+          2.4147585,
+          2.4663225
+        ],
+        "session_min_ms": 2.4147585,
+        "session_max_ms": 2.472842
+      }
+    },
+    {
+      "rows": 300,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 12.5922845,
+        "q1_ms": 12.5145655,
+        "q3_ms": 12.66342325,
+        "n": 150,
+        "session_medians_ms": [
+          12.571664,
+          12.586166,
+          12.601325500000002
+        ],
+        "session_min_ms": 12.571664,
+        "session_max_ms": 12.601325500000002
+      },
+      "after": {
+        "median_ms": 5.7294475,
+        "q1_ms": 5.658644000000001,
+        "q3_ms": 5.7826362499999995,
+        "n": 150,
+        "session_medians_ms": [
+          5.699228,
+          5.6875295,
+          5.7935715000000005
+        ],
+        "session_min_ms": 5.6875295,
+        "session_max_ms": 5.7935715000000005
+      }
+    },
+    {
+      "rows": 600,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 21.6079325,
+        "q1_ms": 21.50594125,
+        "q3_ms": 21.75599475,
+        "n": 150,
+        "session_medians_ms": [
+          21.615356499999997,
+          21.613324,
+          21.6051005
+        ],
+        "session_min_ms": 21.6051005,
+        "session_max_ms": 21.615356499999997
+      },
+      "after": {
+        "median_ms": 10.5319725,
+        "q1_ms": 10.449180250000001,
+        "q3_ms": 10.62056875,
+        "n": 150,
+        "session_medians_ms": [
+          10.5496655,
+          10.496027,
+          10.5302625
+        ],
+        "session_min_ms": 10.496027,
+        "session_max_ms": 10.5496655
+      }
+    },
+    {
+      "rows": 1000,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 33.7788475,
+        "q1_ms": 33.628781,
+        "q3_ms": 33.934667,
+        "n": 150,
+        "session_medians_ms": [
+          33.906956,
+          33.646832,
+          33.7682395
+        ],
+        "session_min_ms": 33.646832,
+        "session_max_ms": 33.906956
+      },
+      "after": {
+        "median_ms": 17.1469615,
+        "q1_ms": 16.9951005,
+        "q3_ms": 17.23211475,
+        "n": 150,
+        "session_medians_ms": [
+          17.1915645,
+          17.038728,
+          17.127233
+        ],
+        "session_min_ms": 17.038728,
+        "session_max_ms": 17.1915645
+      }
+    },
+    {
+      "rows": 1105,
+      "persistent": true,
+      "operation": "read",
+      "before": {
+        "median_ms": 37.029493,
+        "q1_ms": 36.91494725,
+        "q3_ms": 37.2355035,
+        "n": 150,
+        "session_medians_ms": [
+          37.0204715,
+          36.942738500000004,
+          37.1991505
+        ],
+        "session_min_ms": 36.942738500000004,
+        "session_max_ms": 37.1991505
+      },
+      "after": {
+        "median_ms": 18.907956,
+        "q1_ms": 18.736007,
+        "q3_ms": 19.08429575,
+        "n": 150,
+        "session_medians_ms": [
+          19.017336,
+          18.9757775,
+          18.745314
+        ],
+        "session_min_ms": 18.745314,
+        "session_max_ms": 19.017336
+      }
+    },
+    {
+      "rows": 10,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 15.231186000000001,
+        "q1_ms": 13.120696,
+        "q3_ms": 16.16039125,
+        "n": 150,
+        "session_medians_ms": [
+          15.047345,
+          15.3001475,
+          14.985148500000001
+        ],
+        "session_min_ms": 14.985148500000001,
+        "session_max_ms": 15.3001475
+      },
+      "after": {
+        "median_ms": 4.0467815,
+        "q1_ms": 2.89688025,
+        "q3_ms": 4.22001325,
+        "n": 150,
+        "session_medians_ms": [
+          3.000814,
+          4.088562,
+          4.0467815
+        ],
+        "session_min_ms": 3.000814,
+        "session_max_ms": 4.088562
+      }
+    },
+    {
+      "rows": 30,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 15.9959795,
+        "q1_ms": 14.193001500000001,
+        "q3_ms": 17.22630425,
+        "n": 150,
+        "session_medians_ms": [
+          15.928659,
+          16.577298,
+          15.7413255
+        ],
+        "session_min_ms": 15.7413255,
+        "session_max_ms": 16.577298
+      },
+      "after": {
+        "median_ms": 3.7298125,
+        "q1_ms": 3.26925775,
+        "q3_ms": 4.4869755,
+        "n": 150,
+        "session_medians_ms": [
+          3.676674,
+          4.354595,
+          3.7298125
+        ],
+        "session_min_ms": 3.676674,
+        "session_max_ms": 4.354595
+      }
+    },
+    {
+      "rows": 100,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 18.6668505,
+        "q1_ms": 15.035134,
+        "q3_ms": 19.842474,
+        "n": 150,
+        "session_medians_ms": [
+          17.739337,
+          18.618976,
+          19.871773500000003
+        ],
+        "session_min_ms": 17.739337,
+        "session_max_ms": 19.871773500000003
+      },
+      "after": {
+        "median_ms": 5.226038,
+        "q1_ms": 4.47517775,
+        "q3_ms": 5.723023250000001,
+        "n": 150,
+        "session_medians_ms": [
+          4.6000464999999995,
+          5.5203985,
+          5.239357500000001
+        ],
+        "session_min_ms": 4.6000464999999995,
+        "session_max_ms": 5.5203985
+      }
+    },
+    {
+      "rows": 300,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 23.781476499999997,
+        "q1_ms": 22.817741749999996,
+        "q3_ms": 25.30708575,
+        "n": 150,
+        "session_medians_ms": [
+          23.453998,
+          24.5915695,
+          25.29484
+        ],
+        "session_min_ms": 23.453998,
+        "session_max_ms": 25.29484
+      },
+      "after": {
+        "median_ms": 8.857591,
+        "q1_ms": 7.827011,
+        "q3_ms": 9.11144125,
+        "n": 150,
+        "session_medians_ms": [
+          8.9362545,
+          8.5498325,
+          8.746667
+        ],
+        "session_min_ms": 8.5498325,
+        "session_max_ms": 8.9362545
+      }
+    },
+    {
+      "rows": 600,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 33.085533,
+        "q1_ms": 31.5406075,
+        "q3_ms": 34.0599225,
+        "n": 150,
+        "session_medians_ms": [
+          33.263197,
+          33.053329500000004,
+          31.595553
+        ],
+        "session_min_ms": 31.595553,
+        "session_max_ms": 33.263197
+      },
+      "after": {
+        "median_ms": 13.903645000000001,
+        "q1_ms": 12.9323925,
+        "q3_ms": 14.214583,
+        "n": 150,
+        "session_medians_ms": [
+          13.940539000000001,
+          13.902569499999998,
+          13.760470000000002
+        ],
+        "session_min_ms": 13.760470000000002,
+        "session_max_ms": 13.940539000000001
+      }
+    },
+    {
+      "rows": 1000,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 46.10583,
+        "q1_ms": 44.82942075,
+        "q3_ms": 47.20952425,
+        "n": 150,
+        "session_medians_ms": [
+          46.003684,
+          45.9504245,
+          46.366374
+        ],
+        "session_min_ms": 45.9504245,
+        "session_max_ms": 46.366374
+      },
+      "after": {
+        "median_ms": 20.418178,
+        "q1_ms": 19.8200795,
+        "q3_ms": 21.066786750000002,
+        "n": 150,
+        "session_medians_ms": [
+          20.442707499999997,
+          20.599923,
+          20.199305
+        ],
+        "session_min_ms": 20.199305,
+        "session_max_ms": 20.599923
+      }
+    },
+    {
+      "rows": 1105,
+      "persistent": true,
+      "operation": "update",
+      "before": {
+        "median_ms": 49.8937495,
+        "q1_ms": 48.59684375,
+        "q3_ms": 50.851719,
+        "n": 150,
+        "session_medians_ms": [
+          50.5095245,
+          49.01187,
+          49.1821895
+        ],
+        "session_min_ms": 49.01187,
+        "session_max_ms": 50.5095245
+      },
+      "after": {
+        "median_ms": 22.7812825,
+        "q1_ms": 21.834119,
+        "q3_ms": 22.95635725,
+        "n": 150,
+        "session_medians_ms": [
+          22.786929999999998,
+          22.793507499999997,
+          22.7363845
+        ],
+        "session_min_ms": 22.7363845,
+        "session_max_ms": 22.793507499999997
+      }
+    }
+  ]
+}

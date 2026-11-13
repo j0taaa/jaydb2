@@ -1,0 +1,7134 @@
+{
+  "metadata": {
+    "frequency": {
+      "utc": "2026-11-13T05:53:05Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "1"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3600000,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 3599963,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "frequency_original": {
+      "utc": "2026-11-13T05:53:05Z",
+      "settings": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave",
+        "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu1/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu10/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu11/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu12/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu13/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu14/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu15/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu2/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu3/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu4/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu5/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu6/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu7/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu8/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/cpu9/cpufreq/energy_performance_preference": "balance_performance",
+        "/sys/devices/system/cpu/intel_pstate/no_turbo": "0"
+      },
+      "scaling_cur_freq_khz": {
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4600000,
+        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4605905,
+        "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4690021,
+        "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4700000,
+        "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4537761,
+        "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4604235,
+        "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4389566,
+        "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4695422,
+        "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4598293,
+        "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+        "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 1991423,
+        "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4602213,
+        "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+      },
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pinning": "none; all engines inherit the same harness CPU affinity"
+    },
+    "session_count": 1,
+    "commit": "1ea6ddc7f76b0efc6cf5220b88628a1963339ad7",
+    "base_commit": "95027beddd57b8f0a647f6980d16610497c3bbf0",
+    "branch": "t3/fixed-clock-repeated-program-benchmark",
+    "utc": "2026-11-13T05:53:05Z",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+    "logical_cpus": 16,
+    "kernel": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "sqlite": "3.45.1",
+    "node": "v24.19.0",
+    "clang": "Ubuntu clang version 19.1.1 (1ubuntu1~24.04.2)",
+    "rust": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "bend": "2.0.39",
+    "toolchain": {
+      "version": "2.0.39",
+      "sourceUrl": "https://github.com/bendlang/bend/archive/refs/tags/v2.0.39.tar.gz",
+      "archiveSha256": "2eb3c00510608f1a91c5b7cd05d2a88dd0e4cb93e2778eca5b7af60b65d198f4",
+      "files": {
+        "bend2/bend.ts": "22b5915cd7cccd23b6aa28849b23a7f1e3549333cdd0954ab48103ddd0777e9e",
+        "bend2/safe.ts": "56af896b1ee7ab1156343f9e743e7061ee35995758faf8b3323fb9456d902bb0",
+        "bend2/comp.ts": "efcd6a0c476849fce03faefd718e3058633b2a28ea34d45ca14fa383c726d0ef",
+        "bend2/base.bend": "3cd0b0944b11e15c4da5c9af2560e3c04f27d3d37027f1617899aeec17b499ce",
+        "bend2/bendtt.lean": "d7268ff461de974bd4cd875d9766c71c62ee6b2e6411b9bab84839870db68a80"
+      },
+      "kernelSha256": "e365eba1741602bb45261aa0eb6bd2c6f5db885d4b9d4cd603a27bc3c5a9ed18",
+      "officialBinarySha256": "2ec160fa4486d33aff51e9eedcc294d6b531dc10c279c00b0c00685dae2045cd"
+    },
+    "binary_sha256": "df4927d94395d7851482330a8117b0285ec1babc5bd9b6bb5500be0140378bda",
+    "source_sha256": "6839f612d3b64f8fa7d9978e1352cf9e9fc10396bed77ae3c9c9eccbaeee0810",
+    "dirty": [
+      "?? paper/bench/perf_final.py",
+      "?? paper/bench/perf_final_audit.py",
+      "?? paper/bench/perf_final_discussion.md",
+      "?? paper/bench/perf_final_phases.py",
+      "?? paper/bench/perf_final_report.py",
+      "?? paper/evidence/perf-final-baseline-comparison.json",
+      "?? paper/evidence/perf-final-baseline-prepared.json",
+      "?? paper/evidence/perf-final-phases-session1.json",
+      "?? paper/evidence/perf-final-prepared.json"
+    ],
+    "threads": 1,
+    "ordinary_optimization": "-O0",
+    "prepared_optimization": "-O2",
+    "gpu": "off",
+    "filesystem": "ext4   /dev/sda2 rw,relatime",
+    "clock": "time.perf_counter_ns (monotonic wall clock)",
+    "lock": "/tmp/jaydb2-experiments-heavy.lock",
+    "warmups": 1
+  },
+  "mode": "unmodified service, no preload; volatile, threads=1",
+  "records": [
+    {
+      "rows": 10,
+      "operation": "read",
+      "warmup": [
+        {
+          "elapsed_ns": 1152776,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1888,
+            "prepared_worker": 1096931,
+            "publication": 258
+          }
+        }
+      ],
+      "samples": [
+        {
+          "elapsed_ns": 1094029,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1054,
+            "prepared_worker": 1041963,
+            "publication": 216
+          }
+        },
+        {
+          "elapsed_ns": 1093326,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1033,
+            "prepared_worker": 1043513,
+            "publication": 180
+          }
+        },
+        {
+          "elapsed_ns": 1059420,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 940,
+            "prepared_worker": 1009834,
+            "publication": 182
+          }
+        },
+        {
+          "elapsed_ns": 1076129,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 881,
+            "prepared_worker": 1022496,
+            "publication": 159
+          }
+        },
+        {
+          "elapsed_ns": 1062424,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 968,
+            "prepared_worker": 1012169,
+            "publication": 207
+          }
+        },
+        {
+          "elapsed_ns": 1051596,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 923,
+            "prepared_worker": 1002967,
+            "publication": 153
+          }
+        },
+        {
+          "elapsed_ns": 1082240,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 921,
+            "prepared_worker": 1029179,
+            "publication": 195
+          }
+        },
+        {
+          "elapsed_ns": 1080840,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 862,
+            "prepared_worker": 1028504,
+            "publication": 181
+          }
+        },
+        {
+          "elapsed_ns": 1096135,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 881,
+            "prepared_worker": 1037448,
+            "publication": 274
+          }
+        },
+        {
+          "elapsed_ns": 1077892,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1293,
+            "prepared_worker": 1024190,
+            "publication": 254
+          }
+        },
+        {
+          "elapsed_ns": 1072301,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1256,
+            "prepared_worker": 1022469,
+            "publication": 200
+          }
+        },
+        {
+          "elapsed_ns": 963158,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 959,
+            "prepared_worker": 907071,
+            "publication": 250
+          }
+        },
+        {
+          "elapsed_ns": 1084248,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1481,
+            "prepared_worker": 1008630,
+            "publication": 295
+          }
+        },
+        {
+          "elapsed_ns": 1090499,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1803,
+            "prepared_worker": 1033556,
+            "publication": 263
+          }
+        },
+        {
+          "elapsed_ns": 1056756,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1034,
+            "prepared_worker": 996055,
+            "publication": 277
+          }
+        },
+        {
+          "elapsed_ns": 1096328,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1292,
+            "prepared_worker": 1031902,
+            "publication": 285
+          }
+        },
+        {
+          "elapsed_ns": 1066465,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1475,
+            "prepared_worker": 1013653,
+            "publication": 211
+          }
+        },
+        {
+          "elapsed_ns": 1077675,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 992,
+            "prepared_worker": 1029113,
+            "publication": 138
+          }
+        },
+        {
+          "elapsed_ns": 1063903,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 924,
+            "prepared_worker": 1006584,
+            "publication": 303
+          }
+        },
+        {
+          "elapsed_ns": 1105378,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1690,
+            "prepared_worker": 1047752,
+            "publication": 241
+          }
+        },
+        {
+          "elapsed_ns": 1064043,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1032,
+            "prepared_worker": 1009938,
+            "publication": 226
+          }
+        },
+        {
+          "elapsed_ns": 1087835,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1299,
+            "prepared_worker": 1030064,
+            "publication": 288
+          }
+        },
+        {
+          "elapsed_ns": 972295,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1516,
+            "prepared_worker": 913238,
+            "publication": 244
+          }
+        },
+        {
+          "elapsed_ns": 962377,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1030,
+            "prepared_worker": 908145,
+            "publication": 143
+          }
+        },
+        {
+          "elapsed_ns": 1067030,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 950,
+            "prepared_worker": 1014601,
+            "publication": 201
+          }
+        },
+        {
+          "elapsed_ns": 1063082,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1185,
+            "prepared_worker": 998927,
+            "publication": 255
+          }
+        },
+        {
+          "elapsed_ns": 1064237,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1640,
+            "prepared_worker": 1008461,
+            "publication": 274
+          }
+        },
+        {
+          "elapsed_ns": 1082288,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1793,
+            "prepared_worker": 1023947,
+            "publication": 246
+          }
+        },
+        {
+          "elapsed_ns": 1068842,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1487,
+            "prepared_worker": 1015928,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1059070,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1506,
+            "prepared_worker": 1003727,
+            "publication": 236
+          }
+        },
+        {
+          "elapsed_ns": 1063898,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1060,
+            "prepared_worker": 1007586,
+            "publication": 214
+          }
+        },
+        {
+          "elapsed_ns": 1083514,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1113,
+            "prepared_worker": 1029487,
+            "publication": 185
+          }
+        },
+        {
+          "elapsed_ns": 1039513,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1077,
+            "prepared_worker": 989737,
+            "publication": 214
+          }
+        },
+        {
+          "elapsed_ns": 1048469,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 985,
+            "prepared_worker": 998934,
+            "publication": 194
+          }
+        },
+        {
+          "elapsed_ns": 1095209,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 970,
+            "prepared_worker": 1044813,
+            "publication": 206
+          }
+        },
+        {
+          "elapsed_ns": 1064686,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1058,
+            "prepared_worker": 1009951,
+            "publication": 263
+          }
+        },
+        {
+          "elapsed_ns": 1067844,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1208,
+            "prepared_worker": 1012824,
+            "publication": 255
+          }
+        },
+        {
+          "elapsed_ns": 1089377,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1518,
+            "prepared_worker": 1027770,
+            "publication": 242
+          }
+        },
+        {
+          "elapsed_ns": 1062875,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1001,
+            "prepared_worker": 991205,
+            "publication": 245
+          }
+        },
+        {
+          "elapsed_ns": 1050071,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1462,
+            "prepared_worker": 991652,
+            "publication": 290
+          }
+        },
+        {
+          "elapsed_ns": 1072793,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1562,
+            "prepared_worker": 1010246,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1060095,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 946,
+            "prepared_worker": 1010102,
+            "publication": 222
+          }
+        },
+        {
+          "elapsed_ns": 1084289,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 977,
+            "prepared_worker": 1028996,
+            "publication": 224
+          }
+        },
+        {
+          "elapsed_ns": 1057491,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1540,
+            "prepared_worker": 1000870,
+            "publication": 231
+          }
+        },
+        {
+          "elapsed_ns": 1096815,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1671,
+            "prepared_worker": 1032860,
+            "publication": 268
+          }
+        },
+        {
+          "elapsed_ns": 1043713,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1088,
+            "prepared_worker": 991769,
+            "publication": 179
+          }
+        },
+        {
+          "elapsed_ns": 1060246,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1021,
+            "prepared_worker": 1002506,
+            "publication": 274
+          }
+        },
+        {
+          "elapsed_ns": 1071408,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1347,
+            "prepared_worker": 1016400,
+            "publication": 277
+          }
+        },
+        {
+          "elapsed_ns": 1095947,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1571,
+            "prepared_worker": 1032401,
+            "publication": 245
+          }
+        },
+        {
+          "elapsed_ns": 1038857,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1284,
+            "prepared_worker": 985539,
+            "publication": 238
+          }
+        },
+        {
+          "elapsed_ns": 1070461,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1623,
+            "prepared_worker": 1009448,
+            "publication": 248
+          }
+        },
+        {
+          "elapsed_ns": 1036074,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1109,
+            "prepared_worker": 978798,
+            "publication": 211
+          }
+        },
+        {
+          "elapsed_ns": 1060440,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 954,
+            "prepared_worker": 1009123,
+            "publication": 182
+          }
+        },
+        {
+          "elapsed_ns": 1056617,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1024,
+            "prepared_worker": 1001232,
+            "publication": 245
+          }
+        },
+        {
+          "elapsed_ns": 1090724,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1639,
+            "prepared_worker": 1029994,
+            "publication": 247
+          }
+        },
+        {
+          "elapsed_ns": 1085103,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1304,
+            "prepared_worker": 1032205,
+            "publication": 257
+          }
+        },
+        {
+          "elapsed_ns": 1070830,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1285,
+            "prepared_worker": 1018260,
+            "publication": 215
+          }
+        },
+        {
+          "elapsed_ns": 1060381,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1034,
+            "prepared_worker": 1002250,
+            "publication": 208
+          }
+        },
+        {
+          "elapsed_ns": 1068560,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1049,
+            "prepared_worker": 1017932,
+            "publication": 195
+          }
+        },
+        {
+          "elapsed_ns": 1060875,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 998,
+            "prepared_worker": 1005072,
+            "publication": 220
+          }
+        },
+        {
+          "elapsed_ns": 1081750,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1230,
+            "prepared_worker": 1028161,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1077715,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1499,
+            "prepared_worker": 1019846,
+            "publication": 257
+          }
+        },
+        {
+          "elapsed_ns": 1082176,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1740,
+            "prepared_worker": 1030075,
+            "publication": 246
+          }
+        },
+        {
+          "elapsed_ns": 1066100,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1669,
+            "prepared_worker": 1008164,
+            "publication": 276
+          }
+        },
+        {
+          "elapsed_ns": 1087481,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 989,
+            "prepared_worker": 1035508,
+            "publication": 210
+          }
+        },
+        {
+          "elapsed_ns": 1083146,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1510,
+            "prepared_worker": 1030888,
+            "publication": 249
+          }
+        },
+        {
+          "elapsed_ns": 1069056,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1673,
+            "prepared_worker": 1012701,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1051542,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 977,
+            "prepared_worker": 1001914,
+            "publication": 157
+          }
+        },
+        {
+          "elapsed_ns": 1236044,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 934,
+            "prepared_worker": 1184193,
+            "publication": 227
+          }
+        },
+        {
+          "elapsed_ns": 1085306,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1336,
+            "prepared_worker": 1031667,
+            "publication": 253
+          }
+        },
+        {
+          "elapsed_ns": 1096028,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 960,
+            "prepared_worker": 1042052,
+            "publication": 228
+          }
+        },
+        {
+          "elapsed_ns": 1065900,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1162,
+            "prepared_worker": 1005421,
+            "publication": 210
+          }
+        },
+        {
+          "elapsed_ns": 1062331,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1294,
+            "prepared_worker": 1008131,
+            "publication": 249
+          }
+        },
+        {
+          "elapsed_ns": 1194996,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1632,
+            "prepared_worker": 1087204,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1070576,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1165,
+            "prepared_worker": 1015226,
+            "publication": 249
+          }
+        },
+        {
+          "elapsed_ns": 1058713,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1241,
+            "prepared_worker": 1004838,
+            "publication": 232
+          }
+        },
+        {
+          "elapsed_ns": 1070986,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1517,
+            "prepared_worker": 1010825,
+            "publication": 248
+          }
+        },
+        {
+          "elapsed_ns": 1059387,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1377,
+            "prepared_worker": 1004947,
+            "publication": 211
+          }
+        },
+        {
+          "elapsed_ns": 1084286,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1680,
+            "prepared_worker": 1023011,
+            "publication": 271
+          }
+        },
+        {
+          "elapsed_ns": 1049285,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1078,
+            "prepared_worker": 998296,
+            "publication": 169
+          }
+        },
+        {
+          "elapsed_ns": 1093538,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1002,
+            "prepared_worker": 1038150,
+            "publication": 219
+          }
+        },
+        {
+          "elapsed_ns": 1074126,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1335,
+            "prepared_worker": 1014459,
+            "publication": 217
+          }
+        },
+        {
+          "elapsed_ns": 1078588,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1040,
+            "prepared_worker": 1021700,
+            "publication": 211
+          }
+        },
+        {
+          "elapsed_ns": 1075987,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1349,
+            "prepared_worker": 1016359,
+            "publication": 190
+          }
+        },
+        {
+          "elapsed_ns": 1046011,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 961,
+            "prepared_worker": 990106,
+            "publication": 187
+          }
+        },
+        {
+          "elapsed_ns": 1070955,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 957,
+            "prepared_worker": 1021009,
+            "publication": 192
+          }
+        },
+        {
+          "elapsed_ns": 1097561,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 972,
+            "prepared_worker": 1035314,
+            "publication": 261
+          }
+        },
+        {
+          "elapsed_ns": 1041594,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1349,
+            "prepared_worker": 989151,
+            "publication": 261
+          }
+        },
+        {
+          "elapsed_ns": 1061131,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1516,
+            "prepared_worker": 994245,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1050829,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1113,
+            "prepared_worker": 993722,
+            "publication": 203
+          }
+        },
+        {
+          "elapsed_ns": 1088203,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1077,
+            "prepared_worker": 1037205,
+            "publication": 233
+          }
+        },
+        {
+          "elapsed_ns": 1069388,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1112,
+            "prepared_worker": 1013804,
+            "publication": 216
+          }
+        },
+        {
+          "elapsed_ns": 1045591,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1277,
+            "prepared_worker": 991480,
+            "publication": 276
+          }
+        },
+        {
+          "elapsed_ns": 1064621,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1530,
+            "prepared_worker": 1008185,
+            "publication": 188
+          }
+        },
+        {
+          "elapsed_ns": 1092399,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1324,
+            "prepared_worker": 1039382,
+            "publication": 260
+          }
+        },
+        {
+          "elapsed_ns": 1088388,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1019,
+            "prepared_worker": 1037674,
+            "publication": 201
+          }
+        },
+        {
+          "elapsed_ns": 1048063,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 951,
+            "prepared_worker": 991976,
+            "publication": 175
+          }
+        },
+        {
+          "elapsed_ns": 1059000,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 915,
+            "prepared_worker": 1001065,
+            "publication": 208
+          }
+        },
+        {
+          "elapsed_ns": 1090895,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1452,
+            "prepared_worker": 1032990,
+            "publication": 264
+          }
+        },
+        {
+          "elapsed_ns": 1081759,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1626,
+            "prepared_worker": 1017954,
+            "publication": 250
+          }
+        }
+      ]
+    },
+    {
+      "rows": 10,
+      "operation": "update",
+      "warmup": [
+        {
+          "elapsed_ns": 1068457,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1357,
+            "prepared_worker": 1010582,
+            "publication": 240
+          }
+        }
+      ],
+      "samples": [
+        {
+          "elapsed_ns": 1097316,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1048,
+            "prepared_worker": 1038603,
+            "publication": 256
+          }
+        },
+        {
+          "elapsed_ns": 1098337,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1295,
+            "prepared_worker": 1042335,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1091631,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1284,
+            "prepared_worker": 1027517,
+            "publication": 231
+          }
+        },
+        {
+          "elapsed_ns": 1090253,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 2163,
+            "prepared_worker": 1028813,
+            "publication": 250
+          }
+        },
+        {
+          "elapsed_ns": 1107940,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1939,
+            "prepared_worker": 1043192,
+            "publication": 337
+          }
+        },
+        {
+          "elapsed_ns": 1094946,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1488,
+            "prepared_worker": 1034497,
+            "publication": 354
+          }
+        },
+        {
+          "elapsed_ns": 1093305,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1900,
+            "prepared_worker": 1039993,
+            "publication": 221
+          }
+        },
+        {
+          "elapsed_ns": 1084320,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1247,
+            "prepared_worker": 1026320,
+            "publication": 369
+          }
+        },
+        {
+          "elapsed_ns": 1095371,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1757,
+            "prepared_worker": 1042150,
+            "publication": 270
+          }
+        },
+        {
+          "elapsed_ns": 991288,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1166,
+            "prepared_worker": 920957,
+            "publication": 221
+          }
+        },
+        {
+          "elapsed_ns": 1070446,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1111,
+            "prepared_worker": 1015995,
+            "publication": 246
+          }
+        },
+        {
+          "elapsed_ns": 1074340,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1330,
+            "prepared_worker": 1019977,
+            "publication": 250
+          }
+        },
+        {
+          "elapsed_ns": 1102850,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1426,
+            "prepared_worker": 1049020,
+            "publication": 271
+          }
+        },
+        {
+          "elapsed_ns": 1082790,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1526,
+            "prepared_worker": 1028436,
+            "publication": 270
+          }
+        },
+        {
+          "elapsed_ns": 1097785,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1385,
+            "prepared_worker": 1042243,
+            "publication": 244
+          }
+        },
+        {
+          "elapsed_ns": 1082509,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1478,
+            "prepared_worker": 1019496,
+            "publication": 270
+          }
+        },
+        {
+          "elapsed_ns": 1074351,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1507,
+            "prepared_worker": 1022416,
+            "publication": 244
+          }
+        },
+        {
+          "elapsed_ns": 1121539,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1172,
+            "prepared_worker": 1064369,
+            "publication": 274
+          }
+        },
+        {
+          "elapsed_ns": 1109762,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1522,
+            "prepared_worker": 1048173,
+            "publication": 292
+          }
+        },
+        {
+          "elapsed_ns": 1108393,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1562,
+            "prepared_worker": 1038154,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1087084,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1490,
+            "prepared_worker": 1025119,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1095647,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1413,
+            "prepared_worker": 1035092,
+            "publication": 361
+          }
+        },
+        {
+          "elapsed_ns": 1073191,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1816,
+            "prepared_worker": 1013339,
+            "publication": 315
+          }
+        },
+        {
+          "elapsed_ns": 1057519,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1487,
+            "prepared_worker": 999694,
+            "publication": 223
+          }
+        },
+        {
+          "elapsed_ns": 1058598,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1033,
+            "prepared_worker": 999389,
+            "publication": 223
+          }
+        },
+        {
+          "elapsed_ns": 1089006,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1532,
+            "prepared_worker": 1032283,
+            "publication": 253
+          }
+        },
+        {
+          "elapsed_ns": 1072611,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1466,
+            "prepared_worker": 1015406,
+            "publication": 246
+          }
+        },
+        {
+          "elapsed_ns": 1107601,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1539,
+            "prepared_worker": 1047832,
+            "publication": 287
+          }
+        },
+        {
+          "elapsed_ns": 1132899,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1468,
+            "prepared_worker": 1080919,
+            "publication": 207
+          }
+        },
+        {
+          "elapsed_ns": 955440,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1239,
+            "prepared_worker": 905614,
+            "publication": 198
+          }
+        },
+        {
+          "elapsed_ns": 1063243,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1057,
+            "prepared_worker": 1006941,
+            "publication": 254
+          }
+        },
+        {
+          "elapsed_ns": 1060998,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1340,
+            "prepared_worker": 1002571,
+            "publication": 285
+          }
+        },
+        {
+          "elapsed_ns": 1101896,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1398,
+            "prepared_worker": 1045628,
+            "publication": 277
+          }
+        },
+        {
+          "elapsed_ns": 1089724,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1510,
+            "prepared_worker": 1034957,
+            "publication": 261
+          }
+        },
+        {
+          "elapsed_ns": 1086680,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1398,
+            "prepared_worker": 1032566,
+            "publication": 297
+          }
+        },
+        {
+          "elapsed_ns": 1056310,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1421,
+            "prepared_worker": 1002288,
+            "publication": 298
+          }
+        },
+        {
+          "elapsed_ns": 1071064,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1429,
+            "prepared_worker": 1017528,
+            "publication": 294
+          }
+        },
+        {
+          "elapsed_ns": 1075581,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1859,
+            "prepared_worker": 1010575,
+            "publication": 397
+          }
+        },
+        {
+          "elapsed_ns": 1069263,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1730,
+            "prepared_worker": 1014051,
+            "publication": 250
+          }
+        },
+        {
+          "elapsed_ns": 1062421,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1212,
+            "prepared_worker": 1004371,
+            "publication": 266
+          }
+        },
+        {
+          "elapsed_ns": 1099778,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1331,
+            "prepared_worker": 1043969,
+            "publication": 288
+          }
+        },
+        {
+          "elapsed_ns": 1065681,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1493,
+            "prepared_worker": 1008845,
+            "publication": 291
+          }
+        },
+        {
+          "elapsed_ns": 1088394,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1541,
+            "prepared_worker": 1033420,
+            "publication": 231
+          }
+        },
+        {
+          "elapsed_ns": 1067208,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1419,
+            "prepared_worker": 1007809,
+            "publication": 357
+          }
+        },
+        {
+          "elapsed_ns": 1088045,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1739,
+            "prepared_worker": 1033206,
+            "publication": 251
+          }
+        },
+        {
+          "elapsed_ns": 1065473,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1203,
+            "prepared_worker": 1015224,
+            "publication": 205
+          }
+        },
+        {
+          "elapsed_ns": 1065289,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 886,
+            "prepared_worker": 1011598,
+            "publication": 251
+          }
+        },
+        {
+          "elapsed_ns": 1079383,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1517,
+            "prepared_worker": 1023864,
+            "publication": 271
+          }
+        },
+        {
+          "elapsed_ns": 1061623,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1464,
+            "prepared_worker": 1006483,
+            "publication": 262
+          }
+        },
+        {
+          "elapsed_ns": 1084231,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1463,
+            "prepared_worker": 1028046,
+            "publication": 312
+          }
+        },
+        {
+          "elapsed_ns": 1078297,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1572,
+            "prepared_worker": 1023208,
+            "publication": 277
+          }
+        },
+        {
+          "elapsed_ns": 1092942,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1387,
+            "prepared_worker": 1039062,
+            "publication": 235
+          }
+        },
+        {
+          "elapsed_ns": 1192556,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1499,
+            "prepared_worker": 1127614,
+            "publication": 354
+          }
+        },
+        {
+          "elapsed_ns": 1100812,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 2321,
+            "prepared_worker": 1034088,
+            "publication": 277
+          }
+        },
+        {
+          "elapsed_ns": 1108159,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1990,
+            "prepared_worker": 1047963,
+            "publication": 280
+          }
+        },
+        {
+          "elapsed_ns": 1077847,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1917,
+            "prepared_worker": 1024179,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1091317,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1640,
+            "prepared_worker": 1034822,
+            "publication": 184
+          }
+        },
+        {
+          "elapsed_ns": 1091015,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1628,
+            "prepared_worker": 1030811,
+            "publication": 223
+          }
+        },
+        {
+          "elapsed_ns": 1073479,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1743,
+            "prepared_worker": 1018903,
+            "publication": 228
+          }
+        },
+        {
+          "elapsed_ns": 1099772,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1662,
+            "prepared_worker": 1043893,
+            "publication": 234
+          }
+        },
+        {
+          "elapsed_ns": 1097573,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1440,
+            "prepared_worker": 1025392,
+            "publication": 216
+          }
+        },
+        {
+          "elapsed_ns": 1089681,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1658,
+            "prepared_worker": 1032837,
+            "publication": 260
+          }
+        },
+        {
+          "elapsed_ns": 1078633,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1760,
+            "prepared_worker": 1020616,
+            "publication": 264
+          }
+        },
+        {
+          "elapsed_ns": 1121710,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1610,
+            "prepared_worker": 1061904,
+            "publication": 269
+          }
+        },
+        {
+          "elapsed_ns": 1092538,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6960,
+            "prepared_worker": 1026693,
+            "publication": 306
+          }
+        },
+        {
+          "elapsed_ns": 1085767,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1651,
+            "prepared_worker": 1030714,
+            "publication": 234
+          }
+        },
+        {
+          "elapsed_ns": 1072482,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1111,
+            "prepared_worker": 1022444,
+            "publication": 171
+          }
+        },
+        {
+          "elapsed_ns": 1072429,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1007,
+            "prepared_worker": 1019150,
+            "publication": 194
+          }
+        },
+        {
+          "elapsed_ns": 1098531,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 986,
+            "prepared_worker": 1048330,
+            "publication": 198
+          }
+        },
+        {
+          "elapsed_ns": 1058228,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1105,
+            "prepared_worker": 1005624,
+            "publication": 179
+          }
+        },
+        {
+          "elapsed_ns": 1061827,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 955,
+            "prepared_worker": 1004081,
+            "publication": 258
+          }
+        },
+        {
+          "elapsed_ns": 1097292,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1373,
+            "prepared_worker": 1031295,
+            "publication": 257
+          }
+        },
+        {
+          "elapsed_ns": 1091773,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1861,
+            "prepared_worker": 1035460,
+            "publication": 210
+          }
+        },
+        {
+          "elapsed_ns": 1081776,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1494,
+            "prepared_worker": 1027091,
+            "publication": 219
+          }
+        },
+        {
+          "elapsed_ns": 1072591,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1783,
+            "prepared_worker": 1013059,
+            "publication": 275
+          }
+        },
+        {
+          "elapsed_ns": 1087227,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1495,
+            "prepared_worker": 1029335,
+            "publication": 270
+          }
+        },
+        {
+          "elapsed_ns": 1062445,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1873,
+            "prepared_worker": 1008324,
+            "publication": 168
+          }
+        },
+        {
+          "elapsed_ns": 1093797,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1330,
+            "prepared_worker": 1037905,
+            "publication": 254
+          }
+        },
+        {
+          "elapsed_ns": 1070377,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1385,
+            "prepared_worker": 1011870,
+            "publication": 287
+          }
+        },
+        {
+          "elapsed_ns": 1095289,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1511,
+            "prepared_worker": 1039323,
+            "publication": 256
+          }
+        },
+        {
+          "elapsed_ns": 1024531,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1743,
+            "prepared_worker": 967473,
+            "publication": 229
+          }
+        },
+        {
+          "elapsed_ns": 1087594,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1660,
+            "prepared_worker": 1033929,
+            "publication": 200
+          }
+        },
+        {
+          "elapsed_ns": 1089352,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1529,
+            "prepared_worker": 1035866,
+            "publication": 235
+          }
+        },
+        {
+          "elapsed_ns": 1090302,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1409,
+            "prepared_worker": 1031443,
+            "publication": 207
+          }
+        },
+        {
+          "elapsed_ns": 1250277,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1560,
+            "prepared_worker": 1195913,
+            "publication": 192
+          }
+        },
+        {
+          "elapsed_ns": 1080714,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1480,
+            "prepared_worker": 1026268,
+            "publication": 235
+          }
+        },
+        {
+          "elapsed_ns": 1083036,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1633,
+            "prepared_worker": 1029448,
+            "publication": 219
+          }
+        },
+        {
+          "elapsed_ns": 1103851,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1411,
+            "prepared_worker": 1050060,
+            "publication": 225
+          }
+        },
+        {
+          "elapsed_ns": 1090978,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1393,
+            "prepared_worker": 1033321,
+            "publication": 218
+          }
+        },
+        {
+          "elapsed_ns": 1114139,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1469,
+            "prepared_worker": 1053831,
+            "publication": 253
+          }
+        },
+        {
+          "elapsed_ns": 1102057,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1647,
+            "prepared_worker": 1045683,
+            "publication": 281
+          }
+        },
+        {
+          "elapsed_ns": 1110373,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1729,
+            "prepared_worker": 1021924,
+            "publication": 231
+          }
+        },
+        {
+          "elapsed_ns": 1069007,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1722,
+            "prepared_worker": 1013652,
+            "publication": 207
+          }
+        },
+        {
+          "elapsed_ns": 1082907,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1370,
+            "prepared_worker": 1025267,
+            "publication": 255
+          }
+        },
+        {
+          "elapsed_ns": 1079068,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1723,
+            "prepared_worker": 1017817,
+            "publication": 298
+          }
+        },
+        {
+          "elapsed_ns": 1069567,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1738,
+            "prepared_worker": 1012257,
+            "publication": 251
+          }
+        },
+        {
+          "elapsed_ns": 1079920,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1660,
+            "prepared_worker": 1023941,
+            "publication": 243
+          }
+        },
+        {
+          "elapsed_ns": 1078719,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1657,
+            "prepared_worker": 1018745,
+            "publication": 276
+          }
+        },
+        {
+          "elapsed_ns": 1071407,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1340,
+            "prepared_worker": 1010521,
+            "publication": 229
+          }
+        },
+        {
+          "elapsed_ns": 1075529,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 1431,
+            "prepared_worker": 1013022,
+            "publication": 247
+          }
+        }
+      ]
+    },
+    {
+      "rows": 1105,
+      "operation": "read",
+      "warmup": [
+        {
+          "elapsed_ns": 18784517,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 7419,
+            "prepared_worker": 18671722,
+            "publication": 3342
+          }
+        }
+      ],
+      "samples": [
+        {
+          "elapsed_ns": 19094523,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4741,
+            "prepared_worker": 18953986,
+            "publication": 2997
+          }
+        },
+        {
+          "elapsed_ns": 18874582,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4907,
+            "prepared_worker": 18771021,
+            "publication": 6718
+          }
+        },
+        {
+          "elapsed_ns": 18786583,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5056,
+            "prepared_worker": 18660566,
+            "publication": 2600
+          }
+        },
+        {
+          "elapsed_ns": 18862685,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4781,
+            "prepared_worker": 18772149,
+            "publication": 3921
+          }
+        },
+        {
+          "elapsed_ns": 18909162,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4513,
+            "prepared_worker": 18749912,
+            "publication": 3179
+          }
+        },
+        {
+          "elapsed_ns": 19297401,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5960,
+            "prepared_worker": 19203239,
+            "publication": 3172
+          }
+        },
+        {
+          "elapsed_ns": 18669248,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5239,
+            "prepared_worker": 18563421,
+            "publication": 3348
+          }
+        },
+        {
+          "elapsed_ns": 18935861,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5466,
+            "prepared_worker": 18816870,
+            "publication": 3055
+          }
+        },
+        {
+          "elapsed_ns": 18811397,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4555,
+            "prepared_worker": 18723526,
+            "publication": 3080
+          }
+        },
+        {
+          "elapsed_ns": 18695514,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5101,
+            "prepared_worker": 18540247,
+            "publication": 2357
+          }
+        },
+        {
+          "elapsed_ns": 18870837,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4250,
+            "prepared_worker": 18747884,
+            "publication": 3368
+          }
+        },
+        {
+          "elapsed_ns": 18976877,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4936,
+            "prepared_worker": 18891604,
+            "publication": 3931
+          }
+        },
+        {
+          "elapsed_ns": 18643966,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4420,
+            "prepared_worker": 18554541,
+            "publication": 3404
+          }
+        },
+        {
+          "elapsed_ns": 18911319,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5333,
+            "prepared_worker": 18820767,
+            "publication": 3588
+          }
+        },
+        {
+          "elapsed_ns": 18658377,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5265,
+            "prepared_worker": 18571546,
+            "publication": 2527
+          }
+        },
+        {
+          "elapsed_ns": 18786802,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5037,
+            "prepared_worker": 18656712,
+            "publication": 4063
+          }
+        },
+        {
+          "elapsed_ns": 18745115,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4937,
+            "prepared_worker": 18625077,
+            "publication": 2318
+          }
+        },
+        {
+          "elapsed_ns": 19189203,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 16996,
+            "prepared_worker": 19049124,
+            "publication": 3612
+          }
+        },
+        {
+          "elapsed_ns": 19067998,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6101,
+            "prepared_worker": 18976671,
+            "publication": 2839
+          }
+        },
+        {
+          "elapsed_ns": 18600477,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4911,
+            "prepared_worker": 18503697,
+            "publication": 3191
+          }
+        },
+        {
+          "elapsed_ns": 18922111,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6124,
+            "prepared_worker": 18756855,
+            "publication": 3223
+          }
+        },
+        {
+          "elapsed_ns": 18816279,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5016,
+            "prepared_worker": 18692968,
+            "publication": 5000
+          }
+        },
+        {
+          "elapsed_ns": 18739073,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5133,
+            "prepared_worker": 18570871,
+            "publication": 3479
+          }
+        },
+        {
+          "elapsed_ns": 18755118,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5715,
+            "prepared_worker": 18615464,
+            "publication": 4235
+          }
+        },
+        {
+          "elapsed_ns": 18760998,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5517,
+            "prepared_worker": 18619793,
+            "publication": 3096
+          }
+        },
+        {
+          "elapsed_ns": 18925768,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4918,
+            "prepared_worker": 18799252,
+            "publication": 4646
+          }
+        },
+        {
+          "elapsed_ns": 18981845,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5592,
+            "prepared_worker": 18854989,
+            "publication": 3493
+          }
+        },
+        {
+          "elapsed_ns": 18783668,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5244,
+            "prepared_worker": 18655918,
+            "publication": 3794
+          }
+        },
+        {
+          "elapsed_ns": 18698268,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4816,
+            "prepared_worker": 18577564,
+            "publication": 3826
+          }
+        },
+        {
+          "elapsed_ns": 19096234,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5353,
+            "prepared_worker": 18969553,
+            "publication": 4188
+          }
+        },
+        {
+          "elapsed_ns": 18785600,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5534,
+            "prepared_worker": 18661076,
+            "publication": 3184
+          }
+        },
+        {
+          "elapsed_ns": 19210584,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4900,
+            "prepared_worker": 19076812,
+            "publication": 4726
+          }
+        },
+        {
+          "elapsed_ns": 18784344,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4779,
+            "prepared_worker": 18647290,
+            "publication": 11512
+          }
+        },
+        {
+          "elapsed_ns": 18934545,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5490,
+            "prepared_worker": 18813144,
+            "publication": 3165
+          }
+        },
+        {
+          "elapsed_ns": 18804341,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5378,
+            "prepared_worker": 18682485,
+            "publication": 3265
+          }
+        },
+        {
+          "elapsed_ns": 18726585,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4576,
+            "prepared_worker": 18609525,
+            "publication": 3547
+          }
+        },
+        {
+          "elapsed_ns": 18939766,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5810,
+            "prepared_worker": 18816649,
+            "publication": 3338
+          }
+        },
+        {
+          "elapsed_ns": 18845512,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5503,
+            "prepared_worker": 18714977,
+            "publication": 4004
+          }
+        },
+        {
+          "elapsed_ns": 19039257,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5291,
+            "prepared_worker": 18885535,
+            "publication": 2628
+          }
+        },
+        {
+          "elapsed_ns": 19034894,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4417,
+            "prepared_worker": 18881743,
+            "publication": 4924
+          }
+        },
+        {
+          "elapsed_ns": 18847949,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5529,
+            "prepared_worker": 18726376,
+            "publication": 3258
+          }
+        },
+        {
+          "elapsed_ns": 18872417,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5567,
+            "prepared_worker": 18731986,
+            "publication": 4632
+          }
+        },
+        {
+          "elapsed_ns": 18896475,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6013,
+            "prepared_worker": 18786795,
+            "publication": 3929
+          }
+        },
+        {
+          "elapsed_ns": 18960606,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5947,
+            "prepared_worker": 18849817,
+            "publication": 3584
+          }
+        },
+        {
+          "elapsed_ns": 19029443,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6202,
+            "prepared_worker": 18921614,
+            "publication": 3026
+          }
+        },
+        {
+          "elapsed_ns": 18765946,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5362,
+            "prepared_worker": 18674014,
+            "publication": 3398
+          }
+        },
+        {
+          "elapsed_ns": 18788463,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5398,
+            "prepared_worker": 18690770,
+            "publication": 3178
+          }
+        },
+        {
+          "elapsed_ns": 19161213,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5476,
+            "prepared_worker": 19065928,
+            "publication": 2583
+          }
+        },
+        {
+          "elapsed_ns": 18779712,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4754,
+            "prepared_worker": 18689568,
+            "publication": 2373
+          }
+        },
+        {
+          "elapsed_ns": 18847302,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4836,
+            "prepared_worker": 18747782,
+            "publication": 2654
+          }
+        },
+        {
+          "elapsed_ns": 19132646,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4852,
+            "prepared_worker": 19037889,
+            "publication": 3031
+          }
+        },
+        {
+          "elapsed_ns": 18796628,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4979,
+            "prepared_worker": 18701257,
+            "publication": 3344
+          }
+        },
+        {
+          "elapsed_ns": 18849618,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5166,
+            "prepared_worker": 18726135,
+            "publication": 2711
+          }
+        },
+        {
+          "elapsed_ns": 18749951,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4900,
+            "prepared_worker": 18617619,
+            "publication": 2991
+          }
+        },
+        {
+          "elapsed_ns": 19122016,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4708,
+            "prepared_worker": 18996379,
+            "publication": 2925
+          }
+        },
+        {
+          "elapsed_ns": 18627651,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4787,
+            "prepared_worker": 18534389,
+            "publication": 2581
+          }
+        },
+        {
+          "elapsed_ns": 19162299,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4775,
+            "prepared_worker": 19009979,
+            "publication": 2874
+          }
+        },
+        {
+          "elapsed_ns": 19063372,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4242,
+            "prepared_worker": 18975419,
+            "publication": 4501
+          }
+        },
+        {
+          "elapsed_ns": 19032549,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5078,
+            "prepared_worker": 18943018,
+            "publication": 3407
+          }
+        },
+        {
+          "elapsed_ns": 19680896,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4774,
+            "prepared_worker": 19191191,
+            "publication": 5641
+          }
+        },
+        {
+          "elapsed_ns": 19207967,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5359,
+            "prepared_worker": 19079495,
+            "publication": 3030
+          }
+        },
+        {
+          "elapsed_ns": 19203527,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4880,
+            "prepared_worker": 19043762,
+            "publication": 4623
+          }
+        },
+        {
+          "elapsed_ns": 18589611,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5023,
+            "prepared_worker": 18499006,
+            "publication": 3368
+          }
+        },
+        {
+          "elapsed_ns": 19177936,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4456,
+            "prepared_worker": 19052710,
+            "publication": 5003
+          }
+        },
+        {
+          "elapsed_ns": 19036548,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5140,
+            "prepared_worker": 18867495,
+            "publication": 4533
+          }
+        },
+        {
+          "elapsed_ns": 18897455,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4673,
+            "prepared_worker": 18764838,
+            "publication": 4283
+          }
+        },
+        {
+          "elapsed_ns": 19045536,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 9332,
+            "prepared_worker": 18936221,
+            "publication": 3352
+          }
+        },
+        {
+          "elapsed_ns": 19080000,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4839,
+            "prepared_worker": 18951248,
+            "publication": 3643
+          }
+        },
+        {
+          "elapsed_ns": 19158743,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5055,
+            "prepared_worker": 19037579,
+            "publication": 4549
+          }
+        },
+        {
+          "elapsed_ns": 19053141,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4820,
+            "prepared_worker": 18926708,
+            "publication": 4665
+          }
+        },
+        {
+          "elapsed_ns": 19132008,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5645,
+            "prepared_worker": 18997422,
+            "publication": 3818
+          }
+        },
+        {
+          "elapsed_ns": 19032369,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5510,
+            "prepared_worker": 18935686,
+            "publication": 3405
+          }
+        },
+        {
+          "elapsed_ns": 18564684,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6224,
+            "prepared_worker": 18475989,
+            "publication": 2543
+          }
+        },
+        {
+          "elapsed_ns": 18885084,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5128,
+            "prepared_worker": 18755928,
+            "publication": 4489
+          }
+        },
+        {
+          "elapsed_ns": 18744406,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4795,
+            "prepared_worker": 18619930,
+            "publication": 3326
+          }
+        },
+        {
+          "elapsed_ns": 19068167,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4403,
+            "prepared_worker": 18932249,
+            "publication": 3517
+          }
+        },
+        {
+          "elapsed_ns": 19160184,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4662,
+            "prepared_worker": 19034290,
+            "publication": 3999
+          }
+        },
+        {
+          "elapsed_ns": 19016597,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4799,
+            "prepared_worker": 18888549,
+            "publication": 4647
+          }
+        },
+        {
+          "elapsed_ns": 18894836,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5043,
+            "prepared_worker": 18745158,
+            "publication": 3227
+          }
+        },
+        {
+          "elapsed_ns": 19280284,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4548,
+            "prepared_worker": 19117011,
+            "publication": 3869
+          }
+        },
+        {
+          "elapsed_ns": 18737453,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4868,
+            "prepared_worker": 18613571,
+            "publication": 3544
+          }
+        },
+        {
+          "elapsed_ns": 18725342,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4748,
+            "prepared_worker": 18631686,
+            "publication": 4792
+          }
+        },
+        {
+          "elapsed_ns": 18760811,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5433,
+            "prepared_worker": 18671774,
+            "publication": 2830
+          }
+        },
+        {
+          "elapsed_ns": 18792673,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5371,
+            "prepared_worker": 18706731,
+            "publication": 3656
+          }
+        },
+        {
+          "elapsed_ns": 18772463,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4632,
+            "prepared_worker": 18683517,
+            "publication": 3312
+          }
+        },
+        {
+          "elapsed_ns": 18671393,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4732,
+            "prepared_worker": 18577736,
+            "publication": 3578
+          }
+        },
+        {
+          "elapsed_ns": 18709388,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4428,
+            "prepared_worker": 18620473,
+            "publication": 3260
+          }
+        },
+        {
+          "elapsed_ns": 18826670,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5385,
+            "prepared_worker": 18731264,
+            "publication": 3401
+          }
+        },
+        {
+          "elapsed_ns": 18969567,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6656,
+            "prepared_worker": 18853561,
+            "publication": 2890
+          }
+        },
+        {
+          "elapsed_ns": 19085294,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5398,
+            "prepared_worker": 18960162,
+            "publication": 3165
+          }
+        },
+        {
+          "elapsed_ns": 18544476,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6163,
+            "prepared_worker": 18457134,
+            "publication": 2723
+          }
+        },
+        {
+          "elapsed_ns": 19025088,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5248,
+            "prepared_worker": 18925551,
+            "publication": 3770
+          }
+        },
+        {
+          "elapsed_ns": 18642118,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4904,
+            "prepared_worker": 18523020,
+            "publication": 2377
+          }
+        },
+        {
+          "elapsed_ns": 19067345,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4103,
+            "prepared_worker": 18976947,
+            "publication": 4664
+          }
+        },
+        {
+          "elapsed_ns": 18649963,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5937,
+            "prepared_worker": 18557973,
+            "publication": 2582
+          }
+        },
+        {
+          "elapsed_ns": 19108412,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5465,
+            "prepared_worker": 19013823,
+            "publication": 3667
+          }
+        },
+        {
+          "elapsed_ns": 18686318,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4903,
+            "prepared_worker": 18559010,
+            "publication": 3413
+          }
+        },
+        {
+          "elapsed_ns": 19125885,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4854,
+            "prepared_worker": 19000564,
+            "publication": 4352
+          }
+        },
+        {
+          "elapsed_ns": 18844015,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4798,
+            "prepared_worker": 18761351,
+            "publication": 3390
+          }
+        },
+        {
+          "elapsed_ns": 19276800,
+          "actual": {
+            "status": "success",
+            "value": 0
+          },
+          "expected": {
+            "status": "success",
+            "value": 0
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5113,
+            "prepared_worker": 19187103,
+            "publication": 4480
+          }
+        }
+      ]
+    },
+    {
+      "rows": 1105,
+      "operation": "update",
+      "warmup": [
+        {
+          "elapsed_ns": 19174413,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4754,
+            "prepared_worker": 19087531,
+            "publication": 3463
+          }
+        }
+      ],
+      "samples": [
+        {
+          "elapsed_ns": 19797918,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4593,
+            "prepared_worker": 19677841,
+            "publication": 3764
+          }
+        },
+        {
+          "elapsed_ns": 19138351,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4611,
+            "prepared_worker": 19018896,
+            "publication": 3167
+          }
+        },
+        {
+          "elapsed_ns": 19315248,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4454,
+            "prepared_worker": 19198056,
+            "publication": 3092
+          }
+        },
+        {
+          "elapsed_ns": 19752591,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4507,
+            "prepared_worker": 19592028,
+            "publication": 3381
+          }
+        },
+        {
+          "elapsed_ns": 19539635,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5206,
+            "prepared_worker": 19419499,
+            "publication": 3892
+          }
+        },
+        {
+          "elapsed_ns": 19367915,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4600,
+            "prepared_worker": 19248846,
+            "publication": 4004
+          }
+        },
+        {
+          "elapsed_ns": 19868155,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4712,
+            "prepared_worker": 19781622,
+            "publication": 4146
+          }
+        },
+        {
+          "elapsed_ns": 19115482,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4761,
+            "prepared_worker": 19032546,
+            "publication": 3267
+          }
+        },
+        {
+          "elapsed_ns": 19835391,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4647,
+            "prepared_worker": 19690165,
+            "publication": 3248
+          }
+        },
+        {
+          "elapsed_ns": 19750350,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4580,
+            "prepared_worker": 19664537,
+            "publication": 3242
+          }
+        },
+        {
+          "elapsed_ns": 19328437,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4584,
+            "prepared_worker": 19185967,
+            "publication": 3611
+          }
+        },
+        {
+          "elapsed_ns": 19765156,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5368,
+            "prepared_worker": 19638533,
+            "publication": 2671
+          }
+        },
+        {
+          "elapsed_ns": 19472727,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4823,
+            "prepared_worker": 19308251,
+            "publication": 2400
+          }
+        },
+        {
+          "elapsed_ns": 19710886,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4323,
+            "prepared_worker": 19588809,
+            "publication": 4634
+          }
+        },
+        {
+          "elapsed_ns": 19301816,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4733,
+            "prepared_worker": 19212529,
+            "publication": 3635
+          }
+        },
+        {
+          "elapsed_ns": 19808636,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4820,
+            "prepared_worker": 19688722,
+            "publication": 3601
+          }
+        },
+        {
+          "elapsed_ns": 22120231,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5457,
+            "prepared_worker": 21832526,
+            "publication": 22571
+          }
+        },
+        {
+          "elapsed_ns": 21395955,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 16241,
+            "prepared_worker": 21231942,
+            "publication": 4636
+          }
+        },
+        {
+          "elapsed_ns": 21814115,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5686,
+            "prepared_worker": 21533492,
+            "publication": 23162
+          }
+        },
+        {
+          "elapsed_ns": 21169865,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 15295,
+            "prepared_worker": 21028187,
+            "publication": 4788
+          }
+        },
+        {
+          "elapsed_ns": 19239579,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4830,
+            "prepared_worker": 19148040,
+            "publication": 4269
+          }
+        },
+        {
+          "elapsed_ns": 19574103,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4891,
+            "prepared_worker": 19447587,
+            "publication": 3791
+          }
+        },
+        {
+          "elapsed_ns": 19720635,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5059,
+            "prepared_worker": 19629500,
+            "publication": 4764
+          }
+        },
+        {
+          "elapsed_ns": 19327044,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4626,
+            "prepared_worker": 19200554,
+            "publication": 3800
+          }
+        },
+        {
+          "elapsed_ns": 19679535,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4895,
+            "prepared_worker": 19524488,
+            "publication": 3687
+          }
+        },
+        {
+          "elapsed_ns": 19367680,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4563,
+            "prepared_worker": 19279510,
+            "publication": 4416
+          }
+        },
+        {
+          "elapsed_ns": 19955172,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4905,
+            "prepared_worker": 19830184,
+            "publication": 5045
+          }
+        },
+        {
+          "elapsed_ns": 19722292,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4583,
+            "prepared_worker": 19597814,
+            "publication": 4450
+          }
+        },
+        {
+          "elapsed_ns": 19426604,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4552,
+            "prepared_worker": 19293605,
+            "publication": 5263
+          }
+        },
+        {
+          "elapsed_ns": 19564127,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4660,
+            "prepared_worker": 19473026,
+            "publication": 4200
+          }
+        },
+        {
+          "elapsed_ns": 19609771,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5202,
+            "prepared_worker": 19476610,
+            "publication": 5434
+          }
+        },
+        {
+          "elapsed_ns": 19558221,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4819,
+            "prepared_worker": 19467859,
+            "publication": 3517
+          }
+        },
+        {
+          "elapsed_ns": 19297909,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4536,
+            "prepared_worker": 19198937,
+            "publication": 3165
+          }
+        },
+        {
+          "elapsed_ns": 19338558,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4564,
+            "prepared_worker": 19216954,
+            "publication": 2933
+          }
+        },
+        {
+          "elapsed_ns": 19242879,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4463,
+            "prepared_worker": 19148038,
+            "publication": 3588
+          }
+        },
+        {
+          "elapsed_ns": 19607382,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4673,
+            "prepared_worker": 19453559,
+            "publication": 3385
+          }
+        },
+        {
+          "elapsed_ns": 19303645,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4399,
+            "prepared_worker": 19216576,
+            "publication": 3556
+          }
+        },
+        {
+          "elapsed_ns": 19892141,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4556,
+            "prepared_worker": 19772622,
+            "publication": 3887
+          }
+        },
+        {
+          "elapsed_ns": 19575933,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5181,
+            "prepared_worker": 19418308,
+            "publication": 3929
+          }
+        },
+        {
+          "elapsed_ns": 19707447,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5117,
+            "prepared_worker": 19587366,
+            "publication": 3648
+          }
+        },
+        {
+          "elapsed_ns": 19541573,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5006,
+            "prepared_worker": 19389129,
+            "publication": 4202
+          }
+        },
+        {
+          "elapsed_ns": 19633671,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4694,
+            "prepared_worker": 19512752,
+            "publication": 4080
+          }
+        },
+        {
+          "elapsed_ns": 19774475,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4610,
+            "prepared_worker": 19649842,
+            "publication": 4321
+          }
+        },
+        {
+          "elapsed_ns": 19276889,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4861,
+            "prepared_worker": 19189675,
+            "publication": 3456
+          }
+        },
+        {
+          "elapsed_ns": 19642466,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4621,
+            "prepared_worker": 19538449,
+            "publication": 5098
+          }
+        },
+        {
+          "elapsed_ns": 19449281,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4638,
+            "prepared_worker": 19359027,
+            "publication": 4485
+          }
+        },
+        {
+          "elapsed_ns": 19446058,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4741,
+            "prepared_worker": 19290067,
+            "publication": 3709
+          }
+        },
+        {
+          "elapsed_ns": 19240628,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4458,
+            "prepared_worker": 19148803,
+            "publication": 4006
+          }
+        },
+        {
+          "elapsed_ns": 19226017,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4732,
+            "prepared_worker": 19109939,
+            "publication": 2890
+          }
+        },
+        {
+          "elapsed_ns": 19341561,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4130,
+            "prepared_worker": 19219455,
+            "publication": 4131
+          }
+        },
+        {
+          "elapsed_ns": 19475107,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4191,
+            "prepared_worker": 19353509,
+            "publication": 4213
+          }
+        },
+        {
+          "elapsed_ns": 19379230,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4943,
+            "prepared_worker": 19251916,
+            "publication": 3639
+          }
+        },
+        {
+          "elapsed_ns": 19733980,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4645,
+            "prepared_worker": 19615056,
+            "publication": 4000
+          }
+        },
+        {
+          "elapsed_ns": 19456663,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4331,
+            "prepared_worker": 19332831,
+            "publication": 3400
+          }
+        },
+        {
+          "elapsed_ns": 19693429,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4485,
+            "prepared_worker": 19573999,
+            "publication": 4035
+          }
+        },
+        {
+          "elapsed_ns": 19599151,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5178,
+            "prepared_worker": 19473066,
+            "publication": 3101
+          }
+        },
+        {
+          "elapsed_ns": 19291230,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4828,
+            "prepared_worker": 19166935,
+            "publication": 4649
+          }
+        },
+        {
+          "elapsed_ns": 19738734,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4500,
+            "prepared_worker": 19583464,
+            "publication": 3879
+          }
+        },
+        {
+          "elapsed_ns": 19489820,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4380,
+            "prepared_worker": 19407069,
+            "publication": 4469
+          }
+        },
+        {
+          "elapsed_ns": 19400222,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4974,
+            "prepared_worker": 19306710,
+            "publication": 4766
+          }
+        },
+        {
+          "elapsed_ns": 19943358,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4908,
+            "prepared_worker": 19845330,
+            "publication": 3103
+          }
+        },
+        {
+          "elapsed_ns": 19578348,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5008,
+            "prepared_worker": 19453876,
+            "publication": 2625
+          }
+        },
+        {
+          "elapsed_ns": 19856673,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4682,
+            "prepared_worker": 19768158,
+            "publication": 2780
+          }
+        },
+        {
+          "elapsed_ns": 19377052,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4870,
+            "prepared_worker": 19291755,
+            "publication": 2655
+          }
+        },
+        {
+          "elapsed_ns": 19703059,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4743,
+            "prepared_worker": 19607694,
+            "publication": 4420
+          }
+        },
+        {
+          "elapsed_ns": 19398159,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4745,
+            "prepared_worker": 19278857,
+            "publication": 4604
+          }
+        },
+        {
+          "elapsed_ns": 19678638,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4684,
+            "prepared_worker": 19554075,
+            "publication": 4090
+          }
+        },
+        {
+          "elapsed_ns": 19648362,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4733,
+            "prepared_worker": 19529359,
+            "publication": 3576
+          }
+        },
+        {
+          "elapsed_ns": 19561929,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4695,
+            "prepared_worker": 19445879,
+            "publication": 3987
+          }
+        },
+        {
+          "elapsed_ns": 19431230,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4552,
+            "prepared_worker": 19310518,
+            "publication": 3213
+          }
+        },
+        {
+          "elapsed_ns": 19525689,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4590,
+            "prepared_worker": 19436043,
+            "publication": 3820
+          }
+        },
+        {
+          "elapsed_ns": 19213754,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4558,
+            "prepared_worker": 19098484,
+            "publication": 3134
+          }
+        },
+        {
+          "elapsed_ns": 19423160,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4341,
+            "prepared_worker": 19337613,
+            "publication": 3534
+          }
+        },
+        {
+          "elapsed_ns": 19683898,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4993,
+            "prepared_worker": 19555041,
+            "publication": 11252
+          }
+        },
+        {
+          "elapsed_ns": 19311550,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5322,
+            "prepared_worker": 19192152,
+            "publication": 3254
+          }
+        },
+        {
+          "elapsed_ns": 19405832,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4467,
+            "prepared_worker": 19323090,
+            "publication": 2903
+          }
+        },
+        {
+          "elapsed_ns": 19165193,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5068,
+            "prepared_worker": 19075595,
+            "publication": 3020
+          }
+        },
+        {
+          "elapsed_ns": 19234420,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4421,
+            "prepared_worker": 19108674,
+            "publication": 3396
+          }
+        },
+        {
+          "elapsed_ns": 19045283,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4956,
+            "prepared_worker": 18961525,
+            "publication": 2693
+          }
+        },
+        {
+          "elapsed_ns": 19432615,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4350,
+            "prepared_worker": 19345975,
+            "publication": 3740
+          }
+        },
+        {
+          "elapsed_ns": 19273577,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4411,
+            "prepared_worker": 19152472,
+            "publication": 3342
+          }
+        },
+        {
+          "elapsed_ns": 19787462,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4324,
+            "prepared_worker": 19698757,
+            "publication": 3764
+          }
+        },
+        {
+          "elapsed_ns": 19318240,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4557,
+            "prepared_worker": 19231396,
+            "publication": 3035
+          }
+        },
+        {
+          "elapsed_ns": 19685917,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4438,
+            "prepared_worker": 19563906,
+            "publication": 4546
+          }
+        },
+        {
+          "elapsed_ns": 19494457,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5109,
+            "prepared_worker": 19371272,
+            "publication": 4222
+          }
+        },
+        {
+          "elapsed_ns": 19376715,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4533,
+            "prepared_worker": 19286418,
+            "publication": 4005
+          }
+        },
+        {
+          "elapsed_ns": 19258888,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4655,
+            "prepared_worker": 19171503,
+            "publication": 3890
+          }
+        },
+        {
+          "elapsed_ns": 19212699,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4603,
+            "prepared_worker": 19085137,
+            "publication": 3113
+          }
+        },
+        {
+          "elapsed_ns": 19379552,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4428,
+            "prepared_worker": 19293842,
+            "publication": 3636
+          }
+        },
+        {
+          "elapsed_ns": 19523820,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4393,
+            "prepared_worker": 19404547,
+            "publication": 3588
+          }
+        },
+        {
+          "elapsed_ns": 19327141,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4712,
+            "prepared_worker": 19240296,
+            "publication": 3555
+          }
+        },
+        {
+          "elapsed_ns": 19537413,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4656,
+            "prepared_worker": 19421812,
+            "publication": 3481
+          }
+        },
+        {
+          "elapsed_ns": 19451086,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5020,
+            "prepared_worker": 19335660,
+            "publication": 3005
+          }
+        },
+        {
+          "elapsed_ns": 19432376,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4504,
+            "prepared_worker": 19314152,
+            "publication": 3175
+          }
+        },
+        {
+          "elapsed_ns": 19161904,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4367,
+            "prepared_worker": 19077705,
+            "publication": 2986
+          }
+        },
+        {
+          "elapsed_ns": 19262686,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 4345,
+            "prepared_worker": 19169627,
+            "publication": 4526
+          }
+        },
+        {
+          "elapsed_ns": 19567872,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5279,
+            "prepared_worker": 19438928,
+            "publication": 3028
+          }
+        },
+        {
+          "elapsed_ns": 19619206,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5994,
+            "prepared_worker": 19522176,
+            "publication": 3596
+          }
+        },
+        {
+          "elapsed_ns": 19651023,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 5490,
+            "prepared_worker": 19509925,
+            "publication": 3664
+          }
+        },
+        {
+          "elapsed_ns": 19422230,
+          "actual": {
+            "status": "success",
+            "value": true
+          },
+          "expected": {
+            "status": "success",
+            "value": true
+          },
+          "checked": true,
+          "phases_ns": {
+            "prepared_integrity": 6014,
+            "prepared_worker": 19329211,
+            "publication": 3124
+          }
+        }
+      ]
+    }
+  ],
+  "first_population_handle": "7bf8d2b6cc044d5f74cc4b1b0ec750f703f247ccb1e584fec68a53c11d94d5bc",
+  "fixtures": [
+    {
+      "rows": 10,
+      "state_bytes": 898,
+      "registry_bytes": 2592,
+      "handle": "ffe08b7ebedd94b2c7795673a258845f86d8537ccd7bf8d025c246dfc5d59a2a",
+      "artifact_directory": ".build/paper-bench/repeated/artifacts-10",
+      "live_directory": "/home/jota/.t3/worktrees/jaydb2/t3-ca922e29-450d52e22eb3dbc9/.build/paper-bench/tmp/jaydb2-1107439-0"
+    },
+    {
+      "rows": 1105,
+      "state_bytes": 65503,
+      "registry_bytes": 2665,
+      "handle": "ffe08b7ebedd94b2c7795673a258845f86d8537ccd7bf8d025c246dfc5d59a2a",
+      "artifact_directory": ".build/paper-bench/repeated/artifacts-1105",
+      "live_directory": "/home/jota/.t3/worktrees/jaydb2/t3-ca922e29-450d52e22eb3dbc9/.build/paper-bench/tmp/jaydb2-1107439-0"
+    }
+  ],
+  "runner": {
+    "command": [
+      "paper/bench/perf_final_phases.py",
+      "--output",
+      "paper/evidence/perf-final-phases-session2.json"
+    ],
+    "script_sha256": "fb9dfd9e284fabb1a7e71bc5efad32eae8e7b30f6eb84b8f56efad0868db5ba4"
+  }
+}
