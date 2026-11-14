@@ -1,7 +1,7 @@
 # TCC article and defense presentation
 
 The main article is the English SBC manuscript in `main.tex`. The Portuguese
-defense is now an editable **16:9 HTML slide deck**, with 22 main slides and six
+defense is now an editable **16:9 HTML slide deck**, with 23 main slides and six
 slides for questions. The current article has **16 pages including 34 references**.
 Both explain JayDB2 through concrete operations before introducing the formal
 machinery and discuss LLM-assisted construction using the author's experience.
@@ -78,7 +78,7 @@ Deliverables are ignored build products:
 Use arrow keys or Space to navigate, N for notes, F for fullscreen and O for the
 slide index. Reveals advance before the next slide. The presentation stops at
 the final main slide; question slides remain accessible through the index.
-Printing includes every slide. The planned main-slide allocation is **16min25s**. The generated
+Printing includes every slide. The planned main-slide allocation is **17min25s**. The generated
 notes report the current speaking-word count.
 The timing data leave room within the 20-minute limit, subject to rehearsal.
 

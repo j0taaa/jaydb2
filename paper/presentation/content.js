@@ -368,6 +368,24 @@ function closingStatements(){
   ];
   return `<div class="conclusao-points">${items.map(([ic,tone,lead,text],i)=>`<div class="conclusao-point anim-fade-up" ${delay(.35+i*.4)}>${icon(ic,{size:46,cls:'tone-'+tone})}<p><strong>${lead}</strong> ${text}</p></div>`).join('')}</div>`;
 }
+// ── Bend slide helpers ──
+// Slide bend: simplified flag for the creator's country (decorative).
+const bendFlag=()=>`<svg class="bend-flag" viewBox="0 0 70 49" aria-hidden="true"><rect width="70" height="49" rx="4" fill="#009c3b"/><path d="M35 6L64 24.5L35 43L6 24.5Z" fill="#ffdf00"/><circle cx="35" cy="24.5" r="11.5" fill="#002776"/><path d="M24 22.5Q35 19 46 26" stroke="#fff" stroke-width="2.4" fill="none"/></svg>`;
+// Slide bend: three dated milestones on a line that draws on entry.
+function bendTimeline(){
+ const pts=[[24,'mai. 2024','Bend 1','paralelismo automático em CPU e GPU','muted'],[500,'set. 2026','Bend 2','nova linguagem, com provas','green'],[976,'out. 2026','Bend 2.0.39','versão usada neste trabalho','green']];
+ return `<svg class="bend-timeline" viewBox="0 0 1412 128" role="img" aria-label="Linha do tempo: Bend 1 em maio de 2024; Bend 2 em setembro de 2026; versão 2.0.39, usada no trabalho, em outubro de 2026.">`+
+  `<path class="anim-draw" d="M24 24H1388" stroke="#a3b3a8" stroke-width="3" fill="none" style="--dur:1.1s"/>`+
+  pts.map(([x,date,name,desc,tone],i)=>`<g class="anim-fade-up" ${delay(.25+i*.3)}><circle cx="${x}" cy="24" r="${i?13:11}" fill="${tone==='muted'?'#f4f1e8':'#087869'}" stroke="${tone==='muted'?'#637574':'#087869'}" stroke-width="3"/>`+
+   `<text x="${x}" y="76"><tspan class="bend-tl-date">${esc(date)}</tspan><tspan dx="16" class="bend-tl-name">${esc(name)}</tspan></text>`+
+   desc.split('|').map((t,j)=>`<text x="${x}" y="${112+j*31}" class="bend-tl-desc">${esc(t)}</text>`).join('')+`</g>`).join('')+`</svg>`;
+}
+// Slide bend: a law and its proof from the Bend 2.0.39 guide (comments translated; {…} elides one term).
+const bendCode=()=>{
+ const k=w=>`<b class="bend-kw">${w}</b>`, c=t=>`<i class="bend-cm">${t}</i>`;
+ return [c('# LEI: x + 0 = x, para todo x'),`${k('law')} add_zero:`,`  ${k('for')} x: Nat`,`  {Nat.add(x, 0n) == x : Nat}`,c('# PROVA: indução sobre x'),`${k('def')} add_zero(x):`,`  ${k('match')} x:`,`    ${k('case')} 0n:`,`      {==}`,`    ${k('case')} 1n+p:`,`      %add_zero(p) : {…}`,`      {==}`].join('\n');
+};
+const bendRow=(name,title,text)=>`<li>${badge(name,{size:56,tone:'green'})}<div><strong>${title}</strong><span>${text}</span></div></li>`;
 const slides=[
 {
  id:'inicio',title:'JayDB2',theme:'dark cover',seconds:20,
@@ -389,6 +407,13 @@ const slides=[
  bottom:'',
  notes:`O que é o JayDB2? Primeiro, é um banco de dados: guarda as tabelas e o estado publicado, e os clientes operam sobre ele por transações. Segundo, o administrador instala o esquema e as leis, as regras que todo programa precisa respeitar; na ilustração, a folha dourada. Terceiro, o cliente não envia SQL: envia um programa e um certificado de que ele respeita as leis. Quarto, na entrada o banco verifica o certificado, e só um programa com prova aceita executa. Cada programa aceito é uma transação: Commit publica o resultado completo; Keep preserva o estado anterior.`,
  sources:[sources.artifact,sources.laws]
+},
+{
+ id:'bend',title:'O que é Bend 2',seconds:60,
+ html:`<p class="kicker">A linguagem</p><h2>O que é Bend 2</h2><div class="bend-origin anim-fade" ${delay(.1)}>${bendFlag()}<div><strong>Criada pelo brasileiro Victor Taelin</strong><span>Higher Order Company</span></div></div>${bendTimeline()}<div class="bend-main"><figure class="bend-code fragment" data-step="1"><div class="anim-fade-up"><pre aria-label="Uma lei e sua prova em Bend">${bendCode()}</pre></div></figure><div class="bend-rows"><div class="fragment" data-step="1"><ul class="anim-fade-up" ${delay(.15)}>${bendRow('proof','Tipos dependentes','A lei é um tipo; a prova é uma função desse tipo.')}${bendRow('hourglass','Toda função termina','A recursão só desce em partes menores da entrada.')}</ul></div><div class="fragment" data-step="2"><ul class="anim-fade-up">${bendRow('shield-check','Dois verificadores','Bend e o núcleo BendTT, provado consistente em Lean.')}${bendRow('gpu','C nativo e GPU','Compila para C; <code>f!(x)</code> executa a chamada na GPU.')}</ul></div></div></div><p class="bend-band fragment" data-step="3"><span class="anim-fade-up">${icon('check',{size:34,cls:'tone-green'})}No JayDB2, a prova é checada sobre as mesmas funções que são compiladas e executadas.</span></p>`,
+ bottom:'Fontes: repositório e guia do Bend 2.0.39 (github.com/bendlang/bend). Exemplo do guia, com comentários traduzidos; {…} omite um termo.',
+ notes:`As leis, os programas, as provas e o núcleo verificado do JayDB2 são escritos em Bend 2, uma linguagem criada pelo pesquisador brasileiro Victor Taelin, da Higher Order Company. O Bend 1, de 2024, era conhecido pelo paralelismo automático em CPU e GPU. O Bend 2, lançado em setembro de 2026, é uma linguagem nova, com provas; uso a versão 2.0.39. [→] Bend tem tipos dependentes: uma lei é um tipo, e a prova é uma função desse tipo. No exemplo, a lei diz que x mais zero é x, e a prova é uma indução. Toda função precisa terminar; senão, uma função infinita provaria qualquer coisa. [→] Dois verificadores conferem as provas: o do Bend e o núcleo BendTT, cuja consistência está provada em Lean. O mesmo código compila para C nativo, e uma chamada marcada com exclamação vai para a GPU. [→] Para o JayDB2, isso significa que a prova vale para as funções que de fato executam. Como a linguagem é nova, compilador e runtime ficam na base confiável.`,
+ sources:[{label:'Bend 2 (repositório e guia)',url:'https://github.com/bendlang/bend'},sources.proofs]
 },
 {
  id:'admissao',title:'Como um programa é admitido',seconds:40,
