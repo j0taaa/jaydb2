@@ -4,8 +4,8 @@ The main article is the English SBC manuscript in `main.tex`. The Portuguese
 defense is now an editable **16:9 HTML slide deck**, with 23 main slides and six
 slides for questions. The current article has **16 pages including 38 references**.
 Both explain JayDB2 through concrete operations before introducing the formal
-machinery. The article reports LLM-assisted construction in its methodology and
-AI-use declaration, not as a result.
+machinery. The article reports AI assistance only in its AI-use declaration, not as a
+result.
 
 Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotalizardo.chatgpt.site).
 
@@ -507,6 +507,7 @@ to the HTML deck; measured values are never copied into its source or notes. Use
 | `\IndexedProofRatio` | Indexed proof/program line ratio | ratio |
 | `\VoucherClientLines`, `\VoucherProofLines` | Voucher client wrapper+dispatcher and local certificate nonblank lines, files defined above | lines |
 | `\VoucherProofRatio` | Voucher proof/program line ratio | ratio |
+| `\SimulationClientLines`, `\SimulationProofLines` | Simulation `Client.bend` and `ClientProof.bend` nonblank lines, counted from the sources pinned by SHA-256 in `simulation.json` | lines |
 | `\ComparisonLargeRows` | Total rows per engine in the large comparison (both policy arms) | rows |
 | `\LargeJayReadMs`, `\LargeJayWriteMs`, `\LargePgReadMs`, `\LargePgWriteMs`, `\LargeSqReadMs`, `\LargeSqWriteMs` | Large-state durable point read/update median: JayDB2, PostgreSQL, SQLite | ms |
 | `\LargeOwnerJayReadMs`, `\LargeOwnerJayWriteMs`, `\LargeOwnerPgReadMs`, `\LargeOwnerPgWriteMs`, `\LargeOwnerSqReadMs`, `\LargeOwnerSqWriteMs` | Large-state durable owner-arm read/update median: JayDB2, PostgreSQL FORCE RLS, unconstrained SQLite | ms |

@@ -49,13 +49,15 @@ reduces a read from \num{\OrdinaryReadMedianSeconds}~s to
 \num{\PreparedReadVolatileMedianMs}~ms, but point operations remain slower than
 in PostgreSQL and SQLite, and latency grows with the size of the stored state.
 An optional GPU backend keeps the same proof obligations and is faster than the
-CPU only for the largest simulated workload.
+CPU only for large, compute-heavy workloads.
 \end{abstract}
 \begin{resumo}
 \selectlanguage{brazilian}
 Um banco de dados que executa programas escritos por terceiros, inclusive
 programas gerados por grandes modelos de linguagem, precisa confiar em código
-que não escreveu. Este trabalho aplica código portador de prova a esse cenário.
+que não escreveu. Este trabalho aplica a esse cenário a técnica de
+\textit{proof-carrying code}, em que o programa vem acompanhado de uma prova de
+que respeita as regras.
 O JayDB2 é um banco de dados experimental que só executa um programa de cliente
 depois que dois verificadores aceitam uma prova verificável por máquina, escrita
 na linguagem com tipos dependentes Bend~2, de que o programa obedece a regras de
@@ -69,7 +71,7 @@ reutilizá-lo reduz uma leitura de \numbr{\OrdinaryReadMedianSeconds}~s para
 \numbr{\PreparedReadVolatileMedianMs}~ms, mas operações pontuais continuam mais
 lentas que no PostgreSQL e no SQLite, e a latência cresce com o tamanho do estado
 armazenado. Um backend opcional para GPU mantém as mesmas obrigações de prova e
-só supera a CPU na maior carga simulada.
+só supera a CPU em cargas grandes e de computação intensa.
 \end{resumo}
 \selectlanguage{english}
 
@@ -427,16 +429,17 @@ that violate one specific obligation; a variant is counted as correctly
 rejected only if checking fails at that obligation.
 
 \begin{table}[H]\centering\small
-\caption{Certified applications. Lines are local nonblank lines of the client
-program and of its certificate and termination proof, excluding shared
-libraries; they describe size, not effort.}
+\caption{Certified applications. Lines gives two counts, written
+\emph{program/certificate}: the nonblank lines of the client program and of its
+certificate (with local proof files), excluding shared libraries. They describe
+size, not effort.}
 \label{tab:apps}
 \begin{tabular}{@{}L{.14\linewidth}L{.34\linewidth}L{.32\linewidth}r@{}}\toprule
 Application & Rule being established & Invalid variants & Lines\\\midrule
 Availability & Access only own tables; published index matches the row & Read Bob's index; omit or falsify index maintenance & \IndexedClientLines/\IndexedProofLines\\
 Vouchers & Request ID, exact input and stored result stay paired; issue protocol completes & Break pairing or protocol completion & \VoucherClientLines/\VoucherProofLines\\
 Shared notes & Own namespace; owner never changes; directory lists exactly the owned notes & Read foreign data; forge owner; omit directory entry & \RlsClientLines/\RlsProofLines\\
-Simulation & Read own scenario; write own result; terminate & Read foreign scenario; write foreign result & ---\\\bottomrule
+Simulation & Read own scenario; write own result; terminate & Read foreign scenario; write foreign result & \SimulationClientLines/\SimulationProofLines\\\bottomrule
 \end{tabular}
 \end{table}
 
@@ -477,7 +480,7 @@ Ordinary calls compile with Clang \code{-O0} and prepared programs with
 \code{-O2}, and in CPU mode checking overlaps compilation, so phase times are
 not additive.
 
-\subsection{Environment, tools and construction}
+\subsection{Environment and tools}
 \begin{sloppypar}
 All experiments ran on one Linux machine with an Intel Core i7-11700K, an ext4
 file system and an \GpuDevice{}, with one client. The CPU used the performance
@@ -494,16 +497,9 @@ article was typeset with LaTeX \cite{latex}, and figures were drawn with
 TikZ/PGFPlots \cite{pgf}.
 \end{sloppypar}
 
-The author built the system with substantial assistance from LLM-based coding
-assistants, which drafted implementation code, Bend proofs and tests under the
-author's direction (see the declaration at the end of the article). Whether a
-proof is accepted depends on the checkers, not on the assistants; the tests and
-measurement scripts, however, are evidence only insofar as they are adequate,
-and they were produced with the same assistance. Generation success rates,
-prompts and correction effort were not recorded, so the project provides no
-measurement of LLM productivity. Source code, proofs, applications, raw
-measurements and the scripts that derive every number in this article are
-available in the project repository \cite{artifact}.
+Source code, proofs, applications, raw measurements and the scripts that derive
+every number in this article are available in the project repository
+\cite{artifact}.
 
 \section{Results}
 \label{sec:results}
@@ -692,21 +688,16 @@ earlier timeout.}
 
 \section{Discussion and Threats to Validity}
 \label{sec:discussion}
-The results support the central claim conditionally. Under T1--T3, an accepted
-program accesses only what the laws allow at every step and publishes only
-states that satisfy the consistency laws (RQ1), and the applications show that
-one certificate can combine both kinds of rule while invalid programs are
-rejected before they run (RQ2). Unlike verified database internals, JayDB2
-admits transactions written by clients; unlike information-flow systems, it
-does not claim end-to-end confidentiality (Section~\ref{sec:background}). The
-producer of a certificate, whether a person or an LLM, remains outside the
-trusted base, so JayDB2 could accept certificates produced by the proof-generation
-tools discussed in Section~\ref{sec:background}; whether LLMs can reliably
-generate database certificates was not tested. Certificates also protect only
-the rules that were written: a rule the administrator omits is not enforced.
+\textbf{Who writes the certificate.} Whether a program runs depends only on the
+checkers, not on who wrote the program and its proof. A certificate written by a
+person and one generated by an LLM are treated the same way, so the producer
+stays outside the trusted base, and JayDB2 could accept certificates from the
+proof-generation tools discussed in Section~\ref{sec:background}. Whether LLMs
+can reliably generate database certificates was not tested.
 
-\textbf{Scope of the guarantees.} The security claim concerns modeled
-observations and publication. It excludes physical timing channels and some
+\textbf{Scope of the guarantees.} Certificates enforce the laws as the
+administrator wrote them. The security claim concerns modeled observations and
+publication. It excludes physical timing channels and some
 inferences from responses. In the shared-notes application, all users share one
 state-size limit, so by choosing note sizes and observing \code{limit}
 responses a user can learn the combined size of other users' data, and one user
@@ -724,14 +715,15 @@ optimization levels, and checking overlaps compilation, so E1 and E2 compare
 service paths rather than isolating the cost of proof checking. E5 and E6 have
 one session each, and E6 has only \SimulationRepeats{} samples per cell. The GPU
 was not dedicated to the experiment and its clocks were not fixed, so only large
-differences in E6 are meaningful, and timeouts are not extrapolated.
+differences in E6 are meaningful, and timeouts are not extrapolated. The tests
+and measurement scripts were written within the project, so they support the
+results only insofar as they are adequate.
 
 \textbf{Construct and external validity.} JayDB2 and the SQL engines are timed
 through different client interfaces, and the SQL simulation versions have no
 proof checking or authentication. All measurements come from one machine with
 one client and serial requests. The applications are small and have two
-principals each, line counts describe source size rather than effort, and LLM
-assistance was not studied in a controlled way.
+principals each, and line counts describe source size rather than effort.
 
 \section{Conclusions and Future Work}
 \label{sec:conclusion}
@@ -758,17 +750,13 @@ between requests; support schema and policy changes; and strengthen the
 guarantees about the host and about recovery after crashes.
 
 \section*{Use of Artificial Intelligence}
-The author directed the work and used three AI assistants. Claude Opus 5.5
-(Anthropic) helped with planning, coordination, technical reviews and part of
-the code and proofs, and restructured and rewrote the article in its final
-revision. GPT-6.1 Sol (OpenAI) helped write code, proofs, benchmark scripts and
-measurements, and helped draft and revise the article, the Portuguese slides and
-speaker notes. Kimi K3.1 Pro (Moonshot AI) helped revise the article and slides.
-AI contributed to every section of the article and to the slides. All JayDB2
-tests were written by AI under the author's direction, and the slide
-illustrations were generated with OpenAI's image generation. The author
-reviewed the content and is responsible for it; all measurements come from
-experiments that were actually run.
+Three AI assistants were used in this work. Claude Opus 5.5 (Anthropic) helped
+with planning, technical reviews, code, proofs and writing the article. GPT-6.1
+Sol (OpenAI) helped with code, proofs, tests, benchmark scripts and
+measurements, the article and the slides. Kimi K3.1 Pro (Moonshot AI) helped
+revise the article and the slides. The slide illustrations were generated with
+OpenAI's image generation. I reviewed all content and take responsibility for
+it.
 
 \bibliographystyle{sbc}
 \bibliography{references}

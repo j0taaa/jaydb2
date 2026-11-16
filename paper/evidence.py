@@ -733,6 +733,15 @@ def derive(data):
         macro(label+'ClientLines',a['client_lines'],'Nonblank client program lines; see detailed file inventory','lines')
         macro(label+'ProofLines',a['proof_lines'],'Nonblank client certificate and local proof helper lines; see inventory','lines')
         macro(label+'ProofRatio',a['proof_lines']/a['client_lines'],'Local client proof lines / client program lines','ratio')
+    # The simulation application is not in the retained size inventory; its sources are pinned by
+    # the SHA-256 digests in simulation.json (checked in validate_compute), so count them directly
+    # with the same definition: Client.bend versus its local certificate file.
+    sim_sources=data['simulation']['source_sha256']
+    for name,files in [('SimulationClientLines',['applications/simulation/Client.bend']),
+                       ('SimulationProofLines',['applications/simulation/ClientProof.bend'])]:
+        if any(f not in sim_sources for f in files):raise ValueError('Simulation size source not pinned')
+        count=sum(1 for f in files for line in (ROOT/f).read_text().splitlines() if line.strip())
+        macro(name,count,'Nonblank lines of the hash-pinned simulation '+('client program' if 'Client' in name and 'Proof' not in name else 'certificate'),'lines')
     rls=v['rls_validation']
     macro('RlsNegativeFixtures',rls['negative_fixtures'],'RLS causal negatives checked in both official modes','fixtures')
     macro('RlsNativeResponses',rls['native_responses'],'Exactly checked responses in the complete native RLS session','responses')
