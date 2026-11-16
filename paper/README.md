@@ -2,9 +2,10 @@
 
 The main article is the English SBC manuscript in `main.tex`. The Portuguese
 defense is now an editable **16:9 HTML slide deck**, with 23 main slides and six
-slides for questions. The current article has **16 pages including 34 references**.
+slides for questions. The current article has **16 pages including 38 references**.
 Both explain JayDB2 through concrete operations before introducing the formal
-machinery and discuss LLM-assisted construction using the author's experience.
+machinery. The article reports LLM-assisted construction in its methodology and
+AI-use declaration, not as a result.
 
 Read them on the public [TCC site](https://jaydb2-tcc-reading-room.gabrieljotalizardo.chatgpt.site).
 
