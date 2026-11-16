@@ -84,8 +84,8 @@ privileges, row-level security, constraints and triggers
 \cite{bertino2005,postgresprivileges,postgresrls,postgresconstraints,postgrestrigger}.
 These mechanisms are evaluated by the database while statements run or at
 commit. A rule that spans several statements of a transaction, such as ``the
-directory agrees with the notes when the transaction ends'', can only be
-encoded indirectly, for example with triggers that run additional code;
+directory agrees with the notes when the transaction ends'', must be
+expressed indirectly, with deferred constraints or triggers that run additional code;
 otherwise it remains the responsibility of the application program, which the
 database must then trust.
 
@@ -409,8 +409,8 @@ includes Bend's GPU runtime, NVIDIA's compiler and driver and the GPU hardware.
 \textbf{T3} consists of \HostDutyCount{} numbered duties of the Rust host, such as
 supplying the complete request and current state, collecting the complete result
 before publishing, and installing exactly the selected state and response. The
-two checkers come from the same project and do not independently establish each
-other's soundness, and the correctness of durable storage after crashes is not
+two checkers come from the same project, so their agreement is not independent
+evidence of soundness, and the correctness of durable storage after crashes is not
 proved.
 
 \section{Evaluation Methodology}
@@ -511,8 +511,8 @@ available in the project repository \cite{artifact}.
 Every public theorem has a witness accepted by both official checkers; the
 repository lists \PublicTheoremWitnesses{} named theorem witnesses, covering
 start-up, admission, safety at every prefix, completion, progress, sequences of
-transactions and prepared-program controls, and the codecs. The proofs total
-\ProofNonblankLines{} nonblank lines, about \whole{\ProofToImplementationRatio}
+transactions and prepared-program controls, and the codecs. The proof modules total
+\ProofNonblankLines{} nonblank lines (comments included), about \whole{\ProofToImplementationRatio}
 times the size of the Bend service implementation. To show that the
 statements are not vacuous, the suite instantiates them with a real application
 and proves that spoofed identities, uncertified starts and publication after a
