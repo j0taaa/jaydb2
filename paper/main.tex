@@ -473,7 +473,7 @@ engines.
 JayDB2 latency is measured from sending a pre-encoded request to receiving the
 complete reply; SQL latency includes executing the statement and fetching the
 result through the driver. Initialization, warm-up, result checks and readbacks
-are outside the timed region, and all samples are retained; we report medians
+are outside the timed region, and all samples are retained; I report medians
 and inclusive quartiles. E1--E3 use \SessionCount{} independent sessions; E5 and
 E6 use one session. E1--E5 use one native worker thread with the GPU disabled.
 Ordinary calls compile with Clang \code{-O0} and prepared programs with
