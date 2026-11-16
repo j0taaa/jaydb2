@@ -21,7 +21,6 @@
 \definecolor{green}{HTML}{087F72}
 \definecolor{coral}{HTML}{BB513D}
 \setlength{\emergencystretch}{2em}
-\raggedbottom
 \makeatletter\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}{1.2ex \@plus .4ex \@minus .2ex}{-1em}{\normalfont\normalsize\bfseries}}\makeatother
 % Let long corporate-author citation labels break across lines.
 \makeatletter\let\@cite@ofmt\@firstofone\makeatother
@@ -181,14 +180,14 @@ program from every valid state accesses only the caller's rows. A
 certificate is then simply a term whose type is that statement.
 
 JayDB2 is written in Bend~2 \cite{bend}, a pure, dependently typed language
-whose first public release in its repository dates
-from September 2026. Its syntax resembles
+whose releases began in September 2026. Its syntax resembles
 Python, while its semantics are closer to Haskell or Lean. Propositions are
 types and proofs are ordinary definitions, without tactics. Recursive calls must
 be on structurally smaller arguments, so checked definitions terminate. The
 compiler translates checked definitions into a single C file, which Clang
-compiles for the CPU and CUDA can compile for NVIDIA GPUs; calls marked with
-\code{!} may run in parallel. Besides its main checker, Bend provides BendTT, a
+compiles for the CPU and CUDA can compile for NVIDIA GPUs. A call written with
+\code{!} hands that call, and the parallel calls inside it, to the GPU; without
+a GPU it runs in parallel on the CPU. Besides its main checker, Bend provides BendTT, a
 small kernel distributed with a Lean formalization of its consistency (no
 accepted definition inhabits the empty type) \cite{bend}. Bend~2 was chosen
 because one language expresses the executable program, the rules and the
@@ -369,7 +368,7 @@ lost when the service restarts.
 
 By default, programs run on the CPU. On a Linux machine with an NVIDIA GPU, the
 administrator can enable the CUDA backend \cite{cuda}. Bend then evaluates the
-calls the program marks as parallel on the GPU, while authentication and
+calls the program marks with \code{!} on the GPU, while authentication and
 transaction control remain on the CPU. Admission is unchanged: both checkers
 must accept the Book before any GPU code is generated, and the GPU code is
 fingerprinted together with the executable. A missing or altered artifact or a
@@ -377,9 +376,10 @@ device error discards the proposal; marked computations never fall back silently
 to the CPU.
 
 \subsection{Guarantees and trusted base}
-The main theorem is stated over the executable function
-$\op{begin}$ that composes admission, the interpreter and finalization, not over
-a separate model. For every configuration $C$, state $s$, request $r$, admission
+The main theorem is stated over the executable gate function $\op{begin}$,
+which authenticates the caller and applies the admission decision, and over the
+actual interpreter and finalizer run on the machine it starts, not over a
+separate model. For every configuration $C$, state $s$, request $r$, admission
 function $\alpha$ and clause $k$,
 \[
 \op{ValidConf}(C)\wedge\op{Valid}(C,s)\wedge
@@ -496,9 +496,10 @@ TikZ/PGFPlots \cite{pgf}.
 
 The author built the system with substantial assistance from LLM-based coding
 assistants, which drafted implementation code, Bend proofs and tests under the
-author's direction (see the declaration at the end of the article). This does
-not affect the validity of the results, since acceptance relies on the checkers
-and tests rather than on the assistants. However, generation success rates,
+author's direction (see the declaration at the end of the article). Whether a
+proof is accepted depends on the checkers, not on the assistants; the tests and
+measurement scripts, however, are evidence only insofar as they are adequate,
+and they were produced with the same assistance. Generation success rates,
 prompts and correction effort were not recorded, so the project provides no
 measurement of LLM productivity. Source code, proofs, applications, raw
 measurements and the scripts that derive every number in this article are
@@ -530,8 +531,9 @@ variant that reads Bob's index fails at its first access. The \RlsNegativeFixtur
 shared-notes variants each fail only at their intended obligation in both
 checker modes, and the native shared-notes session checks \RlsNativeResponses{}
 responses exactly, including an unchanged complete state after rejected
-programs. The simulation's foreign-access variants are rejected before any code
-is compiled, on both the CPU and the CUDA backend. Table~\ref{tab:apps} shows that
+programs. The simulation's foreign-read and foreign-write variants fail at the access
+obligation in both checker modes, and on a service with CUDA enabled a
+foreign-write program is rejected before any C or GPU code is built. Table~\ref{tab:apps} shows that
 certificates are larger than the programs they describe, from about
 \num{\VoucherProofRatio} to \num{\IndexedProofRatio} times.
 
@@ -564,7 +566,7 @@ ytick=data,xlabel={Latency (ms, logarithmic scale)},xmin=1,xmax=80000,
 xtick={1,10,100,1000,10000},xticklabels={1,10,100,1000,10000},
 grid=major,bar width=11pt,enlarge y limits=.4,
 nodes near coords,point meta=explicit symbolic,
-every node near coord/.append style={font=\small,anchor=west},
+every node near coord/.append style={font=\small,anchor=west,xshift=2pt},
 tick label style={font=\small},label style={font=\small}]
 \pgfmathsetmacro{\readPreparationMs}{1000*\RegistrationReadVolatileMedianSeconds}
 \pgfmathsetmacro{\ordinaryReadMs}{1000*\OrdinaryReadMedianSeconds}
@@ -698,7 +700,7 @@ rejected before they run (RQ2). Unlike verified database internals, JayDB2
 admits transactions written by clients; unlike information-flow systems, it
 does not claim end-to-end confidentiality (Section~\ref{sec:background}). The
 producer of a certificate, whether a person or an LLM, remains outside the
-trusted base, which makes JayDB2 a natural consumer for the proof-generation
+trusted base, so JayDB2 could accept certificates produced by the proof-generation
 tools discussed in Section~\ref{sec:background}; whether LLMs can reliably
 generate database certificates was not tested. Certificates also protect only
 the rules that were written: a rule the administrator omits is not enforced.

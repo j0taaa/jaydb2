@@ -13,6 +13,8 @@ sys.path.insert(0,str(ROOT))
 OUT=ROOT/'.build/tcc'
 FILES=('ordinary','prepared','comparison','verification','scaling','scaling-seed-attempt','gpu-programs','simulation')
 PROGRAMS={'read':'Read','indexed':'Indexed','voucher':'Voucher'}
+# Article-facing names (the indexed program is the availability application).
+PROGRAM_LABELS={'read':'Read','indexed':'Availability','voucher':'Voucher'}
 MACROS={}
 
 
@@ -579,7 +581,7 @@ def derive(data):
         if not r['persistent']:
             breakeven=math.ceil(reg['median']/(ordinary[p]['median']-s['median']))
             macro('BreakEven'+PROGRAMS[p]+'Calls',breakeven,'First integer call count where median registration plus prepared calls costs no more than ordinary calls','calls')
-        rows.append([PROGRAMS[p]+' / '+('Durable' if r['persistent'] else 'Volatile'),decimal(reg['median']/1e9),cell(s)])
+        rows.append([PROGRAM_LABELS[p]+' / '+('Durable' if r['persistent'] else 'Volatile'),decimal(reg['median']/1e9),cell(s)])
         checks=summary([dict(elapsed_ns=x['phases_ns']['primary_check']+x['phases_ns']['bendtt_translate_check']) for x in r['registrations']])
         compile_times=summary([dict(elapsed_ns=x['phases_ns']['c_emission']+x['phases_ns']['c_compilation']) for x in r['registrations']])
         macro('Registration'+PROGRAMS[p]+mode+'CheckingSeconds',checks['median']/1e9,'Preparation whole-Book checking median','s')
