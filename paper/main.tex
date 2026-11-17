@@ -36,46 +36,29 @@ Belo Horizonte -- MG -- Brasil}
 \begin{abstract}
 Database security is usually a race: rules are enforced by code, attackers
 search that code for flaws, and AI now speeds up both sides. This work replaces
-the race with proof, applying proof-carrying code to databases. JayDB2 is an experimental database
-that runs a client program only after two checkers accept a machine-checkable
-proof, written in the dependently typed language Bend~2, that the program obeys
-access and consistency rules defined by the administrator. Machine-checked
-theorems over the executable admission, execution and publication functions
-connect the accepted proof to the program that actually runs and to the state
-that becomes visible, under an explicit trusted base of checkers, compilers and
-host duties. Four certified applications are accepted, and deliberately invalid
-variants are rejected. Checking and compiling a program once and reusing it
-reduces a read from \num{\OrdinaryReadMedianSeconds}~s to
-\num{\PreparedReadVolatileMedianMs}~ms, but point operations remain slower than
-in PostgreSQL and SQLite, and latency grows with the size of the stored state.
-An optional GPU backend keeps the same proof obligations. On a compute-heavy
-simulation, JayDB2 is faster than equivalent in-database PostgreSQL and SQLite
-versions at large sizes, and the GPU is faster than sixteen CPU workers at the
-largest size.
+the race with proof. JayDB2, an experimental database, runs a client program
+only after two checkers accept a machine-checkable proof, written in Bend~2,
+that it obeys the administrator's access and consistency rules. Machine-checked
+theorems tie the accepted proof to the code that runs and the state it
+publishes, under an explicit trusted base. Four certified applications are
+accepted and invalid variants rejected. Reusing a checked program cuts a read
+from \num{\OrdinaryReadMedianSeconds}~s to \num{\PreparedReadVolatileMedianMs}~ms.
+Point operations remain slower than in PostgreSQL and SQLite, but a
+compute-heavy simulation, also runnable on a GPU, beats both at large sizes.
 \end{abstract}
 \begin{resumo}
 \selectlanguage{brazilian}
-A segurança de bancos de dados costuma ser uma corrida: as regras são impostas
-por código, atacantes procuram falhas nesse código, e a IA acelera os dois
-lados. Este trabalho substitui a corrida por prova, aplicando a bancos de dados
-a técnica de \textit{proof-carrying code}, em que o programa vem acompanhado de
-uma prova de que respeita as regras.
-O JayDB2 é um banco de dados experimental que só executa um programa de cliente
-depois que dois verificadores aceitam uma prova verificável por máquina, escrita
-na linguagem com tipos dependentes Bend~2, de que o programa obedece a regras de
-acesso e de consistência definidas pelo administrador. Teoremas verificados por máquina
-sobre as funções executáveis de admissão, execução e publicação ligam a prova
-aceita ao programa que de fato executa e ao estado que se torna visível, sob uma
-base de confiança explícita de verificadores, compiladores e deveres do host.
-Quatro aplicações certificadas são aceitas, e variantes deliberadamente
-inválidas são rejeitadas. Verificar e compilar um programa uma única vez e
-reutilizá-lo reduz uma leitura de \numbr{\OrdinaryReadMedianSeconds}~s para
-\numbr{\PreparedReadVolatileMedianMs}~ms, mas operações pontuais continuam mais
-lentas que no PostgreSQL e no SQLite, e a latência cresce com o tamanho do estado
-armazenado. Um backend opcional para GPU mantém as mesmas obrigações de prova.
-Numa simulação de computação intensiva, o JayDB2 supera versões equivalentes
-executadas dentro do PostgreSQL e do SQLite em tamanhos grandes, e a GPU supera
-dezesseis workers de CPU no maior tamanho.
+A segurança de dados costuma ser uma corrida: regras são impostas por
+código, atacantes procuram falhas nele, e a IA acelera os dois lados. Este
+trabalho substitui a corrida por prova. O JayDB2, um banco
+experimental, só executa um programa após dois verificadores aceitarem uma
+prova formal, escrita em Bend~2, de que obedece às regras
+de acesso e consistência. Teoremas verificados ligam a prova
+ao código executado e ao estado publicado, sob uma base de confiança
+explícita. Quatro aplicações certificadas são aceitas; variantes inválidas, não. Reusar um programa verificado leva uma leitura de
+\numbr{\OrdinaryReadMedianSeconds}~s a \numbr{\PreparedReadVolatileMedianMs}~ms;
+operações pontuais são mais lentas que no PostgreSQL e SQLite, mas uma
+simulação pesada, também em GPU, supera ambos em tamanhos grandes.
 \end{resumo}
 \selectlanguage{english}
 
