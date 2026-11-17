@@ -43,7 +43,8 @@ const sources={
   simulation:source('Simulação certificada','applications/simulation/README.md'),
   compute:source('E6: dados e limites','paper/evidence/simulation.md'),
   ai:source('Declaração de uso de IA','paper/main.tex'),
-  cpr:{label:'Dinamarca: comunicado oficial, 05/10/2026',url:'https://www.cpr.dk/cpr-nyt/nyhedsarkiv/2026/okt/omfattende-uautoriseret-adgang-til-borgeres-cpr-oplysninger'},
+  servicenow:{label:'BleepingComputer: ServiceNow, 09/06/2026',url:'https://www.bleepingcomputer.com/news/security/servicenow-discloses-security-incident-exposing-customer-data/'},
+  gtig:{label:'Google Threat Intelligence Group, 16/11/2026',url:'https://cloud.google.com/blog/topics/threat-intelligence/agentic-threat-activity-crosses-a-significant-threshold'},
   baldur:{label:'First et al. (2023), Baldur, ESEC/FSE',url:'https://doi.org/10.1145/3611643.3616243'},
   misu:{label:'Misu et al. (2024), Dafny verificado, FSE',url:'https://doi.org/10.1145/3643763'},
   autoverus:{label:'Yang et al. (2025), AutoVerus, OOPSLA',url:'https://doi.org/10.1145/3763174'}
@@ -383,9 +384,77 @@ function bendTimeline(){
 // Slide bend: a law and its proof from the Bend 2.0.39 guide (comments translated; {…} elides one term).
 const bendCode=()=>{
  const k=w=>`<b class="bend-kw">${w}</b>`, c=t=>`<i class="bend-cm">${t}</i>`;
- return [c('# LEI: x + 0 = x, para todo x'),`${k('law')} add_zero:`,`  ${k('for')} x: Nat`,`  {Nat.add(x, 0n) == x : Nat}`,c('# PROVA: indução sobre x'),`${k('def')} add_zero(x):`,`  ${k('match')} x:`,`    ${k('case')} 0n:`,`      {==}`,`    ${k('case')} 1n+p:`,`      %add_zero(p) : {…}`,`      {==}`].join('\n');
+ return [c('# LEI DE ACESSO (aplicação de notas)'),c('# a chave "alice/…" pertence a alice'),`${k('def')} ReadScope(admin, id, key):`,`  ${k('match')} admin:`,`    ${k('case')} True{}:  Unit  ${c('# admin lê tudo')}`,`    ${k('case')} False{}:`,`      {key_owner(key) == id}`,'',`${k('def')} Allowed(ctx, op):`,`  ${k('match')} op:`,`    ${k('case')} ReadCell{table, k, c}:`,`      ReadScope(admin(ctx), ctx.id, k)`].join('\n');
 };
 const bendRow=(name,title,text)=>`<li>${badge(name,{size:56,tone:'green'})}<div><strong>${title}</strong><span>${text}</span></div></li>`;
+// Slide contexto: an API answering a request without a login and leaking table rows.
+function contextoApiVisual(){
+  const rows=[0,1,2,3];
+  return `<svg class="contexto-ai" viewBox="0 0 624 210" role="img" aria-label="Qualquer pessoa na internet consulta uma API sem login, e a API devolve linhas de tabelas de clientes."><rect width="624" height="210" rx="4" fill="#102f3b"/>`+
+  `<g class="anim-pop" ${delay(.2)}><circle cx="96" cy="105" r="56" fill="#173f4a"/>${iconAt('globe',62,71,68,'tone-mint')}</g>`+
+  `<text x="96" y="194" text-anchor="middle" font-size="17" fill="#b3c8c6" font-family="DeckInter,Arial,sans-serif">sem login</text>`+
+  `<path class="anim-draw" ${delay(.45)} d="M166 92H230" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round"/><path class="anim-fade" ${delay(.8)} d="M226 81L240 92L226 103" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`+
+  `<g class="anim-fade-up" ${delay(.55)}><rect x="254" y="44" width="150" height="122" rx="10" fill="#f4f1e8"/><text x="329" y="84" text-anchor="middle" font-size="22" font-weight="600" fill="#102f3b" font-family="'DejaVu Sans Mono','Courier New',monospace">/api</text>`+
+  `<g transform="translate(305 98)"><rect x="0" y="16" width="48" height="36" rx="6" fill="none" stroke="#dc6e52" stroke-width="4"/><path d="M10 16V8a14 14 0 0 1 27-5" fill="none" stroke="#dc6e52" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="34" r="4" fill="#dc6e52"/></g></g>`+
+  `<path class="anim-draw" ${delay(1.1)} d="M418 105H470" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round"/><path class="anim-fade" ${delay(1.4)} d="M466 94L480 105L466 116" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`+
+  rows.map(i=>`<g class="anim-fade-up" ${delay(1.4+i*.15)}><rect x="496" y="${46+i*31}" width="104" height="22" rx="4" fill="${i%2?'#e9ba68':'#f2a48c'}"/><rect x="506" y="${54+i*31}" width="${40+(i%3)*14}" height="6" rx="3" fill="#102f3b" opacity=".55"/></g>`).join('')+`</svg>`;
+}
+// Slide contexto: attackers and defenders, both with AI, in a loop that never ends.
+function contextoRaceVisual(){
+  const T=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="17" fill="${c}" font-family="DeckInter,Arial,sans-serif">${t}</text>`;
+  return `<svg class="contexto-ai" viewBox="0 0 624 210" role="img" aria-label="Atacantes com IA encontram falhas e defensores com IA corrigem, num ciclo sem fim."><rect width="624" height="210" rx="4" fill="#102f3b"/>`+
+  `<g class="anim-pop" ${delay(.2)}><circle cx="110" cy="96" r="58" fill="#3a2a2a"/>${iconAt('robot',72,58,76,'tone-coral')}</g>`+T(110,190,'atacante: acha falha','#f2a48c')+
+  `<g class="anim-pop" ${delay(.5)}><circle cx="514" cy="96" r="58" fill="#173f4a"/>${iconAt('robot',476,58,76,'tone-mint')}</g>`+T(514,190,'defensor: corrige','#b4e6c8')+
+  `<path class="anim-draw" ${delay(.8)} d="M190 70C260 22 364 22 434 70" stroke="#f2a48c" stroke-width="4" fill="none" stroke-linecap="round"/><path class="anim-fade" ${delay(1.6)} d="M420 56L436 72L414 76" stroke="#f2a48c" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`+
+  `<path class="anim-draw" ${delay(1.2)} d="M434 124C364 172 260 172 190 124" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round"/><path class="anim-fade" ${delay(2)} d="M204 138L188 122L210 118" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`+
+  `<g class="anim-pop" ${delay(2.1)}>${iconAt('infinity',282,66,60,'tone-gold')}</g></svg>`;
+}
+// Slide processo: an animated, ~32 s walk through the whole process (top lane valid, bottom lane invalid).
+// Every element's resting style is the final frame, which print/PDF and reduced motion show.
+function processFigure(){
+  const F='font-family="DeckInter,Arial,sans-serif"', M=`font-family="'DejaVu Sans Mono','Courier New',monospace"`;
+  const t=(x,y,s,o={})=>`<text x="${x}" y="${y}"${o.mono?' xml:space="preserve" style="white-space:pre"':''} font-size="${o.size||22}" ${o.mono?M:F} fill="${o.fill||'#102f3b'}"${o.weight?` font-weight="${o.weight}"`:''}${o.anchor?` text-anchor="${o.anchor}"`:''}>${s}</text>`;
+  const line=(d,x,y,s,o={})=>`<g class="anim-fade" style="--d:${d}s;--dur:.35s">${t(x,y,s,{mono:true,size:19,fill:o.fill||'#dce9df'})}</g>`;
+  const kw=w=>`<tspan fill="#b4e6c8">${w}</tspan>`, cm=w=>`<tspan fill="#8fa9a4">${w}</tspan>`, bad=w=>`<tspan fill="#f2a48c">${w}</tspan>`;
+  const packet=(x,y,dx,d,dur,col)=>`<g class="pr-packet" style="--d:${d}s;--dur:${dur}s;--dx:${dx}px"><rect x="${x}" y="${y-19}" width="58" height="38" rx="7" fill="${col}"/>${iconAt('file',x+8,y-15,30,'tone-paper')}${iconAt(col==='#087869'?'proof':'x',x+30,y-12,24,'tone-paper')}</g>`;
+  const cap=(a,b,s,final)=>`<g class="${final?'anim-fade':'pr-caption'}" style="--d:${a}s;--dur:${final?.5:b-a}s">${t(706,600,s,{size:27,anchor:'middle',weight:600,fill:final?'#087869':'#102f3b'})}</g>`;
+  return `<svg class="process-figure" viewBox="0 0 1412 620" role="img" aria-label="Animação do processo: o cliente escreve programa e prova; os dois verificadores aceitam; o código é compilado, executa e publica com Commit. Uma versão que lê a nota de Bob é recusada pelos verificadores e o estado fica intacto.">`+
+  // lane A: valid program and proof
+  `<rect x="0" y="0" width="440" height="250" rx="10" fill="#173a45"/>`+t(20,32,'programa + prova',{size:19,fill:'#b3c8c6',weight:600})+t(420,32,'ilustração',{size:16,fill:'#8fa9a4',anchor:'end'})+
+  line(1.0,20,72,`${kw('def')} ler_nota(ctx, id):`)+line(1.8,20,100,`  ${kw('return')} read("notes", id)`)+
+  line(3.4,20,140,cm('# certificado'))+line(4.1,20,168,`${kw('def')} prova(ctx, id, s):`)+line(4.9,20,196,`  ${cm('# toda leitura é do chamador')}`)+line(5.7,20,224,`  ReadScope(ctx.id, id) ${kw('✓')}`)+
+  // lane B: invalid version
+  `<g class="anim-fade-up" style="--d:20.2s"><rect x="0" y="300" width="440" height="200" rx="10" fill="#173a45" stroke="#dc6e52" stroke-width="2"/>${t(20,332,'versão inválida',{size:19,fill:'#f2a48c',weight:600})}</g>`+
+  line(20.8,20,372,`${kw('def')} ler_nota(ctx, id):`)+line(21.5,20,400,`  ${kw('return')} read("notes", ${bad('"bob/n1"')})`)+
+  line(22.3,20,440,`${kw('def')} prova(ctx, id, s):`)+line(22.9,20,468,`  ReadScope(ctx.id, ${bad('"bob/n1"')}) ${bad('?')}`)+
+  // checkers (shared column)
+  `<rect x="540" y="0" width="230" height="500" rx="12" fill="#d8edda" stroke="#087869" stroke-width="3"/>`+
+  `<g>${iconAt('shield-check',563,18,40,'tone-green')}</g>`+t(613,46,'Verificadores',{size:23,weight:600})+
+  `<rect x="562" y="70" width="186" height="44" rx="8" fill="#f4f1e8" stroke="#a3b3a8"/>${t(580,100,'Bend',{size:22})}`+
+  `<rect x="562" y="124" width="186" height="44" rx="8" fill="#f4f1e8" stroke="#a3b3a8"/>${t(580,154,'BendTT',{size:22})}`+
+  `<g class="anim-pop" style="--d:10.2s">${iconAt('check',708,78,30,'tone-green')}</g><g class="anim-pop" style="--d:11.2s">${iconAt('check',708,132,30,'tone-green')}</g>`+
+  `<g class="anim-fade" style="--d:11.8s">${t(655,212,'aceito',{size:24,weight:600,fill:'#087869',anchor:'middle'})}</g>`+
+  `<g class="anim-pop" style="--d:25.4s"><circle cx="655" cy="400" r="34" fill="#dc6e52"/>${iconAt('x',637,382,36,'tone-paper')}</g>`+
+  `<g class="anim-fade" style="--d:26.1s">${t(655,462,'recusado',{size:24,weight:600,fill:'#a14732',anchor:'middle'})}${t(655,488,'antes de executar',{size:18,fill:'#a14732',anchor:'middle'})}</g>`+
+  // compile (lane A only)
+  `<rect x="845" y="55" width="210" height="140" rx="12" fill="#f4f1e8" stroke="#a3b3a8" stroke-width="2"/>${iconAt('gear',868,72,40,'tone-green')}${t(918,100,'Compila',{size:23,weight:600})}${t(868,140,'C nativo · GPU',{size:20,fill:'#637574'})}`+
+  `<g class="anim-fade" style="--d:15s">${t(868,175,'executável selado',{size:18,fill:'#087869'})}</g>`+
+  // database
+  `<rect x="1130" y="0" width="282" height="500" rx="12" fill="#f4f1e8" stroke="#a3b3a8" stroke-width="2"/>${iconAt('database',1150,16,40,'tone-green')}${t(1200,46,'Banco',{size:23,weight:600})}`+
+  [['alice/n1','#087869'],['alice/n2','#087869'],['bob/n1','#dc6e52']].map(([k,c],i)=>`<rect x="1150" y="${70+i*44}" width="242" height="36" rx="6" fill="#fbf9f1" stroke="#d4d8cb"/><circle cx="1170" cy="${88+i*44}" r="7" fill="${c}"/>${t(1186,95+i*44,k,{mono:true,size:19})}`).join('')+
+  `<g class="anim-fade" style="--d:17s"><rect x="1150" y="70" width="242" height="36" rx="6" fill="none" stroke="#087869" stroke-width="3"/></g>`+
+  `<g class="anim-pop" style="--d:17.6s"><rect x="1150" y="212" width="242" height="48" rx="24" fill="#087869"/>${t(1271,244,'Commit · publica',{size:21,weight:600,fill:'#f4f1e8',anchor:'middle'})}</g>`+
+  `<g class="anim-pop" style="--d:27.4s"><rect x="1150" y="376" width="242" height="48" rx="24" fill="#e2e6dc" stroke="#637574"/>${t(1271,408,'Keep · estado intacto',{size:20,weight:600,anchor:'middle'})}</g>`+
+  // connectors
+  `<path class="anim-draw" style="--d:7.6s" d="M444 125H536" stroke="#087869" stroke-width="3" fill="none"/><path class="anim-draw" style="--d:12.6s" d="M774 125H841" stroke="#087869" stroke-width="3" fill="none"/><path class="anim-draw" style="--d:15.6s" d="M1059 125H1126" stroke="#087869" stroke-width="3" fill="none"/>`+
+  `<path class="anim-draw" style="--d:23.2s" d="M444 400H536" stroke="#dc6e52" stroke-width="3" fill="none"/><path class="anim-fade" style="--d:27s" d="M774 400H1126" stroke="#a3b3a8" stroke-width="3" stroke-dasharray="8 8" fill="none"/>`+
+  packet(440,125,96,7.6,1.8,'#087869')+packet(772,125,70,12.6,1.4,'#087869')+packet(1058,125,70,15.6,1.4,'#087869')+packet(440,400,96,23.2,1.8,'#dc6e52')+
+  // captions
+  cap(.3,7.5,'1 · O cliente escreve o programa e a prova')+cap(7.5,9.9,'2 · Envia os dois ao banco')+cap(9.9,12.9,'3 · Dois verificadores conferem a prova')+
+  cap(12.9,16.4,'4 · Só o código aceito é compilado')+cap(16.4,20.2,'5 · Executa e publica o resultado')+cap(20.2,27,'6 · Uma versão tenta ler a nota de Bob…')+
+  cap(27,31,'7 · …e é recusada antes de executar; o estado fica intacto')+cap(31,0,'Só executa o que tem prova aceita, não importa quem escreveu',true)+
+  `</svg>`;
+}
 const slides=[
 {
  id:'inicio',title:'JayDB2',theme:'dark cover',seconds:20,
@@ -395,11 +464,11 @@ const slides=[
  sources:[sources.artifact]
 },
 {
- id:'contexto',title:'Quem confere o que um programa faz com os dados?',seconds:45,
- html:`<p class="kicker">Motivação</p><h2>Quem confere o que um programa<br>faz com os dados?</h2><div class="contexto-news"><div class="contexto-slot anim-fade-up" style="--d:.15s;--dur:.8s"><article class="contexto-clip contexto-clip-a"><header class="contexto-masthead"><span>${icon('news',{size:26})}Segurança de dados</span><span>Dinamarca · 5 out 2026</span></header><div class="contexto-photo-wrap"><img class="contexto-photo" src="assets/news-registry.webp" alt="Ilustração conceitual: arquivo de fichas aberto com uma chave legítima, de onde sai uma longa fileira de registros."><span class="contexto-credit">Ilustração</span></div><h3 class="contexto-headline">Acesso indevido ao registro CPR</h3><p class="contexto-dek">Terceiros não autorizados usaram o acesso legítimo de uma empresa: dados de cerca de 8,8 milhões de pessoas.</p></article></div><div class="contexto-slot fragment" data-step="1"><div class="anim-fade-up" style="--dur:.8s"><article class="contexto-clip contexto-clip-b"><header class="contexto-masthead"><span>${icon('robot',{size:26})}Desenvolvimento de software</span><span>Tendência</span></header>${contextoAiVisual()}<h3 class="contexto-headline">Assistentes de IA escrevem código que lê e altera dados</h3><p class="contexto-dek">Isso motiva verificar operações permitidas e regras de integridade antes da execução.</p></article></div></div></div>`,
- bottom:'Fonte: comunicado oficial do CPR. O caso motiva a pergunta; não demonstra prevenção pelo protótipo.',
- notes:`Começo com dois fatos. Segundo o comunicado oficial do CPR, o registro civil dinamarquês, terceiros não autorizados usaram indevidamente o acesso de consulta legítimo de uma empresa e chegaram a dados de cerca de oito milhões e oitocentas mil pessoas. A credencial era válida; o problema foi o que se fez com ela. [→] O segundo é uma tendência: assistentes de IA escrevem cada vez mais código que lê e altera dados, e quem executa esse código não o escreveu. Daí a pergunta do título: quem confere o que um programa faz com os dados antes de ele executar? O caso CPR motiva a pergunta; não afirmo que o protótipo o teria impedido.`,
- sources:[sources.cpr]
+ id:'contexto',title:'Segurança de dados virou uma corrida',seconds:50,
+ html:`<p class="kicker">Motivação</p><h2>Segurança de dados virou uma corrida</h2><div class="contexto-news"><div class="contexto-slot anim-fade-up" style="--d:.15s;--dur:.8s"><article class="contexto-clip contexto-clip-a"><header class="contexto-masthead"><span>${icon('news',{size:26})}Segurança de dados</span><span>9 jun 2026</span></header>${contextoApiVisual()}<h3 class="contexto-headline">ServiceNow: API aceitava consultas sem login a dados de clientes</h3><p class="contexto-dek">A empresa confirmou consultas a tabelas de clientes; a correção passou a exigir autenticação.</p></article></div><div class="contexto-slot fragment" data-step="1"><div class="anim-fade-up" style="--dur:.8s"><article class="contexto-clip contexto-clip-b"><header class="contexto-masthead"><span>${icon('robot',{size:26})}Inteligência de ameaças</span><span>16 nov 2026</span></header>${contextoRaceVisual()}<h3 class="contexto-headline">Google: atacantes já usam agentes de IA para achar e explorar falhas</h3><p class="contexto-dek">Pela primeira vez, descoberta e exploração foram automatizadas sem um humano no ciclo.</p></article></div></div></div>`,
+ bottom:'Fontes: BleepingComputer, com o comunicado da ServiceNow (09/06/2026); Google Threat Intelligence Group (16/11/2026).',
+ notes:`Começo com duas notícias deste ano. Em junho, a ServiceNow confirmou que um endpoint de API aceitava consultas sem autenticação a tabelas de dados de clientes; a correção foi uma mudança de configuração para exigir login. A regra de acesso existia, mas dependia de código e configuração corretos. [→] Em novembro, o grupo de inteligência de ameaças do Google relatou que atacantes já usam agentes de IA para descobrir e explorar vulnerabilidades sem um humano no ciclo. Os defensores também usam IA para achar e corrigir falhas. É uma corrida sem fim: cada correção fecha uma falha, mas nada garante que não exista outra. A proposta deste trabalho é sair dessa corrida: em vez de procurar falhas no código, o banco exige uma prova de que o programa respeita as regras e a confere antes de executar. Assim a garantia não depende de quanto esforço, humano ou de IA, o atacante gasta.`,
+ sources:[sources.servicenow,sources.gtig]
 },
 {
  id:'o-que-e',title:'O que é o JayDB2',seconds:40,
@@ -410,10 +479,17 @@ const slides=[
 },
 {
  id:'bend',title:'O que é Bend 2',seconds:60,
- html:`<p class="kicker">A linguagem</p><h2>O que é Bend 2</h2><div class="bend-origin anim-fade" ${delay(.1)}>${bendFlag()}<div><strong>Criada pelo brasileiro Victor Taelin</strong><span>Higher Order Company</span></div></div>${bendTimeline()}<div class="bend-main"><figure class="bend-code fragment" data-step="1"><div class="anim-fade-up"><pre aria-label="Uma lei e sua prova em Bend">${bendCode()}</pre></div></figure><div class="bend-rows"><div class="fragment" data-step="1"><ul class="anim-fade-up" ${delay(.15)}>${bendRow('proof','Tipos dependentes','A lei é um tipo; a prova é uma função desse tipo.')}${bendRow('hourglass','Toda função termina','A recursão só desce em partes menores da entrada.')}</ul></div><div class="fragment" data-step="2"><ul class="anim-fade-up">${bendRow('shield-check','Dois verificadores','Bend e o núcleo BendTT, provado consistente em Lean.')}${bendRow('gpu','C nativo e GPU','Compila para C; <code>f!(x)</code> executa a chamada na GPU.')}</ul></div></div></div><p class="bend-band fragment" data-step="3"><span class="anim-fade-up">${icon('check',{size:34,cls:'tone-green'})}No JayDB2, a prova é checada sobre as mesmas funções que são compiladas e executadas.</span></p>`,
- bottom:'Fontes: repositório e guia do Bend 2.0.39 (github.com/bendlang/bend). Exemplo do guia, com comentários traduzidos; {…} omite um termo.',
- notes:`As leis, os programas, as provas e o núcleo verificado do JayDB2 são escritos em Bend 2, uma linguagem criada pelo pesquisador brasileiro Victor Taelin, da Higher Order Company. O Bend 1, de 2024, era conhecido pelo paralelismo automático em CPU e GPU. O Bend 2, lançado em setembro de 2026, é uma linguagem nova, com provas; uso a versão 2.0.39. [→] Bend tem tipos dependentes: uma lei é um tipo, e a prova é uma função desse tipo. No exemplo, a lei diz que x mais zero é x, e a prova é uma indução. Toda função precisa terminar; senão, uma função infinita provaria qualquer coisa. [→] Dois verificadores conferem as provas: o do Bend e o núcleo BendTT, cuja consistência está provada em Lean. O mesmo código compila para C nativo, e uma chamada marcada com exclamação vai para a GPU. [→] Para o JayDB2, isso significa que a prova vale para as funções que de fato executam. Como a linguagem é nova, compilador e runtime ficam na base de confiança.`,
+ html:`<p class="kicker">A linguagem</p><h2>O que é Bend 2</h2><div class="bend-origin anim-fade" ${delay(.1)}>${bendFlag()}<div><strong>Criada pelo brasileiro Victor Taelin</strong><span>Higher Order Company</span></div></div>${bendTimeline()}<div class="bend-main"><figure class="bend-code fragment" data-step="1"><div class="anim-fade-up"><pre aria-label="Trecho da lei de acesso da aplicação de notas em Bend">${bendCode()}</pre></div></figure><div class="bend-rows"><div class="fragment" data-step="1"><ul class="anim-fade-up" ${delay(.15)}>${bendRow('proof','Tipos dependentes','A lei é um tipo; a prova é uma função desse tipo.')}${bendRow('hourglass','Toda função termina','A recursão só desce em partes menores da entrada.')}</ul></div><div class="fragment" data-step="2"><ul class="anim-fade-up">${bendRow('shield-check','Dois verificadores','Bend e o núcleo BendTT, provado consistente em Lean.')}${bendRow('gpu','C nativo e GPU','Compila para C; <code>f!(x)</code> executa a chamada na GPU.')}</ul></div></div></div><p class="bend-band fragment" data-step="3"><span class="anim-fade-up">${icon('check',{size:34,cls:'tone-green'})}No JayDB2, a prova é checada sobre as mesmas funções que são compiladas e executadas.</span></p>`,
+ bottom:'Fontes: repositório e guia do Bend 2.0.39 (github.com/bendlang/bend). Código: trecho simplificado da lei de acesso da aplicação de notas.',
+ notes:`As leis, os programas, as provas e o núcleo verificado do JayDB2 são escritos em Bend 2, uma linguagem criada pelo pesquisador brasileiro Victor Taelin, da Higher Order Company. O Bend 1, de 2024, era conhecido pelo paralelismo automático em CPU e GPU. O Bend 2, lançado em setembro de 2026, é uma linguagem nova, com provas; uso a versão 2.0.39. [→] Bend tem tipos dependentes: uma lei é um tipo, e a prova é uma função desse tipo. No exemplo, a lei de acesso da aplicação de notas: um usuário comum só lê chaves que começam com o próprio nome, e o administrador lê todas. O certificado é a prova de que toda leitura do programa satisfaz essa lei. Toda função precisa terminar; senão, uma função infinita provaria qualquer coisa. [→] Dois verificadores conferem as provas: o do Bend e o núcleo BendTT, cuja consistência está provada em Lean. O mesmo código compila para C nativo, e uma chamada marcada com exclamação vai para a GPU. [→] Para o JayDB2, isso significa que a prova vale para as funções que de fato executam. Como a linguagem é nova, compilador e runtime ficam na base de confiança.`,
  sources:[{label:'Bend 2 (repositório e guia)',url:'https://github.com/bendlang/bend'},sources.proofs]
+},
+{
+ id:'processo',title:'O processo completo',seconds:40,
+ html:`<p class="kicker">Visão geral</p><h2>O processo completo</h2>${processFigure()}`,
+ bottom:'Animação ilustrativa; o código é simplificado. Os passos seguem o serviço real.',
+ notes:`Antes dos detalhes, o processo inteiro. O cliente escreve o programa e, junto, o certificado: a prova de que toda leitura é das próprias notas. Envia os dois ao banco. Os dois verificadores, Bend e BendTT, conferem a prova. Só depois o código aceito é compilado, executa e publica o resultado com Commit. Agora uma versão que tenta ler a nota de Bob: a prova não fecha, os verificadores recusam, e o programa nem começa; o estado fica intacto. O banco executa só o que tem prova aceita, não importa quem escreveu o programa: uma pessoa, um LLM ou um atacante.`,
+ sources:[sources.laws,sources.artifact]
 },
 {
  id:'admissao',title:'Como um programa é admitido',seconds:40,
@@ -541,9 +617,9 @@ const slides=[
 },
 {
  id:'simulacao',title:'Quando a GPU compensa',seconds:45,
- html:`<p class="kicker">E6 · simulação certificada · chamadas completas</p><h2>Quando a GPU compensa</h2><div class="chart-area" style="height:430px;margin-top:22px">${simulationChart()}</div><div class="takeaways"><section class="anim-fade-up" style="--d:2.1s"><strong>CUDA: ~${pt(value('SimulationSmallCudaMs'),0)} ms já na menor</strong>A inicialização do processo e da GPU domina as chamadas pequenas.</section><section class="anim-fade-up" style="--d:2.35s"><strong>CUDA vence só na maior carga</strong>CUDA ${pt(value('SimulationLargeCudaMs'),0)} ms<br>contra CPU-16 ${pt(value('SimulationLargeCpuSixteenMs'),0)} ms.</section><section class="anim-fade-up" style="--d:2.6s"><strong>SQL vence só na menor carga</strong>Depois cresce rápido e esgota o limite de ${pt(simulationLimitS(),0)} s.</section></div>`,
- bottom:`Objetivo: obrigações preservadas em CUDA e onde a GPU compensa, não “JayDB2 é mais rápido”. Detalhes no apêndice.`,
- notes:`O objetivo do E6 não é mostrar que o JayDB2 é mais rápido, mas que as obrigações valem em CUDA e onde a GPU compensa. Cada ponto é uma chamada completa, em escala logarítmica. Primeiro: CUDA custa cerca de ${pt(value('SimulationSmallCudaMs'),0)} milissegundos já na menor carga, porque cada pedido inicia um processo e a GPU. Segundo: só na maior carga a GPU vence a CPU com dezesseis workers, ${pt(value('SimulationLargeCudaMs'))} contra ${pt(value('SimulationLargeCpuSixteenMs'))} milissegundos. Terceiro: os bancos SQL vencem só na menor carga; PL/pgSQL e a consulta recursiva do SQLite crescem rápido e esgotam o limite de ${pt(simulationLimitS(),0)} segundos, o que reflete estratégias inadequadas para cálculo numérico. Há uma sessão, ${pt(value('SimulationRepeats'),0)} amostras por célula e GPU sem clock fixo; só diferenças grandes têm significado.`,
+ html:`<p class="kicker">E6 · simulação certificada · chamadas completas</p><h2>Quando a GPU compensa</h2><div class="chart-area" style="height:430px;margin-top:22px">${simulationChart()}</div><div class="takeaways"><section class="anim-fade-up" style="--d:2.1s"><strong>CUDA: ~${pt(value('SimulationSmallCudaMs'),0)} ms já na menor</strong>A inicialização do processo e da GPU domina as chamadas pequenas.</section><section class="anim-fade-up" style="--d:2.35s"><strong>CUDA vence só na maior carga</strong>CUDA ${pt(value('SimulationLargeCudaMs'),0)} ms<br>contra CPU-16 ${pt(value('SimulationLargeCpuSixteenMs'),0)} ms.</section><section class="anim-fade-up" style="--d:2.6s"><strong>Supera SQL nas cargas grandes</strong>CPU-16 ${pt(value('SimulationMidCpuSixteenMs'),0)} ms contra PostgreSQL ${pt(value('SimulationMidPostgresMs'),0)} ms; na maior, SQL esgota ${pt(value('SimulationTimeoutSeconds'),0)} s.</section></div>`,
+ bottom:`As obrigações de prova são as mesmas em CUDA. SQL: PL/pgSQL e CTE recursiva executados dentro do banco. Detalhes no apêndice.`,
+ notes:`O E6 mostra que as obrigações de prova valem em CUDA, onde a GPU compensa e como o JayDB2 se compara a SQL num cálculo pesado. Cada ponto é uma chamada completa, em escala logarítmica. Primeiro: CUDA custa cerca de ${pt(value('SimulationSmallCudaMs'),0)} milissegundos já na menor carga, porque cada pedido inicia um processo e a GPU. Segundo: só na maior carga a GPU vence a CPU com dezesseis workers, ${pt(value('SimulationLargeCudaMs'))} contra ${pt(value('SimulationLargeCpuSixteenMs'))} milissegundos. Terceiro: os bancos SQL só vencem na menor carga. Com ${pt(value('SimulationMidPaths'),0)} caminhos, a CPU com dezesseis workers leva ${pt(value('SimulationMidCpuSixteenMs'),0)} milissegundos e o PostgreSQL ${pt(value('SimulationMidPostgresMs'),0)}; o SQLite esgota o limite de ${pt(value('SimulationTimeoutSeconds'),0)} segundos, e na maior carga o PostgreSQL também. Para computação pesada dentro do banco, o JayDB2 certificado é muito mais rápido. Há uma sessão, ${pt(value('SimulationRepeats'),0)} amostras por célula e GPU sem clock fixo; só diferenças grandes têm significado.`,
  sources:[sources.simulation,sources.compute,sources.gpu]
 },
 {
@@ -594,6 +670,27 @@ const slides=[
  bottom:'Medições retidas no repositório, com dados e respostas conferidos.',
  notes:'Os comandos e os dados brutos estão no guia do artigo. Os arquivos retêm metadados, versões e fingerprints de fonte e executável. A política de CPU foi salva, alterada e restaurada com conferência. E1 a E3 possuem três sessões independentes. E5 tem uma única sessão e populações ascendentes. As medidas incluem resultados diferentes de serialização em JayDB2 e nos drivers SQL, por isso são comparações de caminho completo. Os tempos de checagem e compilação se sobrepõem e não devem ser somados. As observações lentas foram mantidas. E6 inclui codificação e decodificação; usa uma sessão, preparação separada, armazenamento volátil e GPU sem clock fixo. NumPy 2.5.4 valida os oráculos; driver e NVRTC vêm dos artefatos registrados. Os dados são os experimentos retidos.',
  sources:[sources.evidence,sources.artifact]
+},
+{
+ id:'b-verificador',title:'E se o verificador estiver errado?',backup:true,seconds:0,
+ html:`<p class="kicker">Perguntas · base de confiança</p><h2>E se o verificador estiver errado?</h2><div class="qa-list"><section><h3>É uma premissa explícita (T1), não um teorema</h3><p>Um erro no verificador poderia aceitar uma prova falsa. O trabalho não esconde isso: a base de confiança lista os verificadores.</p></section><section><h3>Dois verificadores precisam concordar</h3><p>O verificador do Bend e o núcleo BendTT, pequeno e com consistência formalizada em Lean, conferem cada prova.</p></section><section><h3>Provas falsas precisam falhar no lugar certo</h3><p>${pt(value('NegativeFixtures'),0)} provas deliberadamente falsas são recusadas, cada uma na obrigação prevista, nos dois verificadores.</p></section></div>`,
+ bottom:'A superfície de ataque deixa de ser todo o código das aplicações e passa a ser uma base pequena e listada.',
+ notes:'Sim, se o verificador tiver um erro, uma prova falsa poderia passar. Isso é a premissa T1, declarada. Para reduzir o risco, dois verificadores independentes conferem cada prova, e um deles é um núcleo pequeno com consistência provada em Lean. Além disso, centenas de provas falsas precisam ser recusadas exatamente na obrigação esperada. O ganho é que, em vez de confiar em todo o código de todas as aplicações, confio numa base pequena e conhecida.',
+ sources:[sources.proofs]
+},
+{
+ id:'b-lei',title:'E se a lei estiver errada?',backup:true,seconds:0,
+ html:`<p class="kicker">Perguntas · especificação</p><h2>E se a lei estiver errada?</h2><div class="qa-list"><section><h3>O certificado garante a lei como foi escrita</h3><p>Uma lei incompleta ou errada é cumprida exatamente como está. A responsabilidade passa a ser escrever a lei certa.</p></section><section><h3>Ler a lei é mais fácil que auditar programas</h3><p>A lei da aplicação de notas tem poucas linhas e vale para todo programa futuro; não é preciso revisar cada programa.</p></section><section><h3>Variantes negativas mostram que a lei não é vazia</h3><p>Programas que leem a nota de outro usuário ou deixam o diretório incoerente são recusados na obrigação prevista.</p></section></div>`,
+ bottom:'Não há garantia de que a lei esteja completa; há garantia de que nenhum programa aceito a viola.',
+ notes:'O certificado prova que o programa respeita a lei como ela foi escrita. Se a lei estiver errada ou incompleta, ela será cumprida assim mesmo. Mas a lei é curta, escrita uma vez, e vale para todos os programas; revisar a lei é muito mais fácil do que auditar cada programa. As variantes negativas mostram que as leis não são vazias: os erros previstos são recusados.',
+ sources:[sources.laws,sources.rls]
+},
+{
+ id:'b-operacao',title:'Concorrência, falhas e disponibilidade',backup:true,seconds:0,
+ html:`<p class="kicker">Perguntas · operação</p><h2>Concorrência, falhas e disponibilidade</h2><div class="qa-list"><section><h3>Concorrência</h3><p>O protótipo executa um pedido por vez, na ordem de chegada. Isso simplifica a atomicidade; isolamento concorrente fica para trabalho futuro.</p></section><section><h3>Durabilidade e falhas</h3><p>Com armazenamento durável, o novo estado é gravado e sincronizado no disco antes da resposta. Perda de resposta e reinício são testados nos vouchers, mas não há teorema geral de recuperação após falhas.</p></section><section><h3>Disponibilidade</h3><p>A terminação é lógica, sem limite de tempo; como o serviço é serial, um pedido lento atrasa os demais. Disponibilidade não está entre as garantias.</p></section></div>`,
+ bottom:'Esses pontos estão fora dos teoremas e aparecem nas limitações do artigo.',
+ notes:'O protótipo é serial: um pedido por vez, o que simplifica a atomicidade. Com armazenamento durável, o estado é sincronizado no disco antes da resposta, e os cenários de resposta perdida e reinício são testados nos vouchers, mas não há teorema geral de recuperação após falhas. A terminação é lógica, sem limite de tempo, então um pedido lento atrasa os outros; disponibilidade não está entre as garantias. Tudo isso está nas limitações.',
+ sources:[sources.artifact,sources.voucher]
 },
 {
  id:'declaracao-ia',title:'Uso de inteligência artificial',backup:true,seconds:0,
