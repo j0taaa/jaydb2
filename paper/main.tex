@@ -232,10 +232,12 @@ arguments, a Bend program and its certificate. The client writes the program and
 the certificate against the public configuration only; the certificate must hold
 for every valid database state, so the client never needs the private data.
 
-Figure~\ref{fig:pipeline} shows how a request is processed. JayDB2 first checks
-the certificate (\emph{admission}). It then authenticates the credential against
-the current \emph{published state}, the state visible to all clients, and runs
-the program on a private copy of it, called the \emph{proposal}. If the program
+Figure~\ref{fig:pipeline} shows how a request is processed. JayDB2 first
+authenticates the credential against the current \emph{published state}, the
+state visible to all clients; an invalid credential ends the request. It then
+checks the certificate (\emph{admission}), and a fresh worker authenticates the
+caller again and runs the program on a private copy of the state, called the
+\emph{proposal}. If the program
 finishes successfully and the result satisfies the limits, the host
 \emph{commits}: it publishes the proposal and the response together. Otherwise
 it \emph{keeps} the previous state. A request whose certificate is rejected is
@@ -279,7 +281,7 @@ observation that has already happened.
 \node[box,right=of before,text width=48mm] (during) {Private proposal\\remove old index entry,\\insert new entry,\\update row};
 \node[box,right=of during,text width=33mm] (after) {Published after\\row: busy\\index: busy};
 \draw[flow] (before)--(during);\draw[flow] (during)--(after);
-\node[below=6mm of during,font=\small,align=center,text width=118mm] {Access law: checked at every step. Consistency law: may fail inside the proposal, must hold when published.};
+\node[below=6mm of during,font=\small,align=center,text width=118mm] {Access law: holds at every step. Consistency law: may fail inside the proposal, must hold when published.};
 \end{tikzpicture}
 \caption{One transaction of the running example. The two laws apply at
 different moments.}\label{fig:trace}
@@ -335,8 +337,9 @@ executed. For each request, JayDB2 generates a collection of Bend
 definitions (a \emph{Book}) containing the client program, its certificate, the
 administrator's configuration and the service functions that will execute
 them. Both official checkers,
-Bend and BendTT, must accept this Book. The same Book is then compiled to C and
-by Clang to a native executable, without modifying the Bend compiler, runtime
+Bend and BendTT, must accept this Book before anything runs. The same Book is
+compiled to C and by Clang to a native executable (on the CPU path this overlaps
+the BendTT check, but the executable is released only after both accept), without modifying the Bend compiler, runtime
 or emitted C. Cryptographic hashes of the Book and of the generated artifacts (\emph{seals}),
 checked before and after compilation and again before execution, ensure that the compiled artifact comes from the checked Book.
 The generated Book also proves that its admission decision is sound for the
@@ -418,7 +421,7 @@ The work combined construction of the system, deductive verification and
 controlled experiments. RQ1 is evaluated by the checked theorems and by deliberately
 false proofs that the checkers must reject; RQ2 by certified applications, invalid
 variants and sessions run against the real service; and RQ3 by the experiments E1--E3, E5 and E6.
-E4 is a recorded run of the complete verification and test suite.
+E4 is a recorded run of the contract check, the proof verification and the test suite.
 
 \subsection{Applications and invalid variants}
 Table~\ref{tab:apps} lists the four applications. Each has invalid variants
@@ -736,7 +739,7 @@ interpretation and publication functions bind each certificate to the program
 that runs, to every action it performs and to the state it publishes, under
 explicitly listed assumptions about checkers, compilers and the host (RQ1).
 Four applications show that a single certificate can enforce access at every
-step together with consistency across related tables at publication, and
+step and, in three of them, consistency across related tables at publication, and
 targeted invalid variants are rejected (RQ2).
 
 The approach is currently expensive (RQ3). Checking and compiling a program

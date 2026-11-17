@@ -72,7 +72,7 @@ Deliverables are ignored build products:
 
 - `.build/tcc/output/jaydb2-tcc.pdf`
 - `.build/tcc/output/jaydb2-defense.html` (self-contained, works offline)
-- `.build/tcc/output/jaydb2-defense.pdf` (includes all six question slides)
+- `.build/tcc/output/jaydb2-defense.pdf` (includes all nine question slides)
 - `.build/tcc/output/speaker-notes.html`
 - `.build/tcc/output/defense-slides.json` (slide titles, IDs, timing and appendix status)
 
@@ -114,15 +114,15 @@ problem, approach, key results and main limitation. Related work includes LLM
 proof and verified-code generation (Baldur, Dafny synthesis, AutoVerus), with
 metadata checked against Crossref. RQ3 covers preparation and opt-in CUDA.
 Section 3 explains the GPU path and the enlarged T2 for a general CS reader;
-Section 4 reports E6 and frames its purpose: the proof obligations carry over to
-CUDA, and the results show where offloading starts to pay, not that JayDB2 is
-faster than SQL. The simulation certificate covers own-row scenario reads,
+Section 4 describes E6 and Section 5 reports it: the proof obligations carry over
+to CUDA, JayDB2 is faster than the in-database PostgreSQL and SQLite versions at
+large sizes, and CUDA beats CPU-16 at the largest size. The simulation certificate covers own-row scenario reads,
 own-row result writes and termination, with foreign-read/write controls in both
 checkers. CPU/GPU tests provide evidence, not proof.
 
 In the deck, the applications slide lists all four applications. The GPU slide
-(18) comes after the E1–E5 results and introduces the simulation, and the E6
-slide (19) shows a logarithmic chart with three takeaways. The full E6 table and
+(21) comes after the E1–E5 results and introduces the simulation, and the E6
+slide (22) shows a logarithmic chart with three takeaways. The full E6 table and
 its method details are question slide A4. All final E1–E6 raw JSON and focused
 GPU inputs remain the retained measurements.
 

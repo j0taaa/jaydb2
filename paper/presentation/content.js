@@ -346,7 +346,7 @@ function reuseFlow(){
 // Scale slide pictogram: reading one key still processes every row of the stored state.
 function scalePictogram(){
   const rows=[...Array(8)].map((_,k)=>`<rect x="14" y="${16+k*34}" width="272" height="24" rx="4" class="${k===2?'escala-row-key':'escala-row'}"/>`).join('');
-  return `<div class="escala-picto"><p class="escala-picto-title">${badge('key',{size:56,tone:'green'})}<span>Ler 1 chave</span></p><svg viewBox="0 0 300 300" aria-hidden="true">${rows}${iconAt('key',250,82,28,'tone-ink')}<rect class="escala-scan" x="4" y="9" width="292" height="38" rx="7"/><rect class="escala-frame anim-draw" style="--d:2s;--dur:1s" x="3" y="4" width="294" height="286" rx="10"/></svg><p class="escala-picto-text">processa o estado inteiro</p><p class="escala-picto-note">Com ${pt(value('StateMaximumRows'),0)} linhas: 1ª chave ${pt(value('ScalingFirstKeyLargeMs'),1)} ms, última ${pt(value('ScalingMaximumVolatileReadMedianMs'),1)} ms</p><p class="escala-picto-why">${icon('arrow',{size:28,cls:'tone-green'})}<span>Mesmo custo: o tempo não vem da busca pela chave.</span></p></div>`;
+  return `<div class="escala-picto"><p class="escala-picto-title">${badge('key',{size:56,tone:'green'})}<span>Ler 1 chave</span></p><svg viewBox="0 0 300 300" aria-hidden="true">${rows}${iconAt('key',250,82,28,'tone-ink')}<rect class="escala-scan" x="4" y="9" width="292" height="38" rx="7"/><rect class="escala-frame anim-draw" style="--d:2s;--dur:1s" x="3" y="4" width="294" height="286" rx="10"/></svg><p class="escala-picto-text">processa o estado inteiro</p><p class="escala-picto-note">Com ${pt(value('StateMaximumRows'),0)} linhas: 1ª chave ${pt(value('ScalingFirstKeyLargeMs'),1)} ms, última ${pt(value('ScalingMaximumVolatileReadMedianMs'),1)} ms</p><p class="escala-picto-why">${icon('arrow',{size:28,cls:'tone-green'})}<span>Mesmo custo: a posição da chave não muda o tempo.</span></p></div>`;
 }
 // Limitations paired with next steps; the first pair is visible, the others are revealed one per step.
 function limitsPairs(){
@@ -364,8 +364,8 @@ function closingStatements(){
   const items=[
     ['proof','green','Pergunta.','Um programa pode chegar ao banco com a prova das regras que precisa respeitar, para o banco verificá-la antes de executá-lo?'],
     ['database','green','Construção.','Um serviço executável em que a prova fica ligada ao código exato que roda.'],
-    ['flask','green','Evidência.','Quatro aplicações combinam acesso e consistência; variantes inválidas são recusadas; custo, reuso e CUDA foram medidos.'],
-    ['warning','gold','Limite.','As garantias dependem da base de confiança T1–T3, e o protótipo é mais lento que SQL.']
+    ['flask','green','Evidência.','Quatro aplicações exercitam acesso e consistência; variantes inválidas são recusadas; custo, reuso e CUDA foram medidos.'],
+    ['warning','gold','Limite.','As garantias dependem da base de confiança T1–T3, e operações pontuais são mais lentas que em SQL.']
   ];
   return `<div class="conclusao-points">${items.map(([ic,tone,lead,text],i)=>`<div class="conclusao-point anim-fade-up" ${delay(.35+i*.4)}>${icon(ic,{size:46,cls:'tone-'+tone})}<p><strong>${lead}</strong> ${text}</p></div>`).join('')}</div>`;
 }
@@ -421,8 +421,8 @@ function processFigure(){
   return `<svg class="process-figure" viewBox="0 0 1412 620" role="img" aria-label="Animação do processo: o cliente escreve programa e prova; os dois verificadores aceitam; o código é compilado, executa e publica com Commit. Uma versão que lê a nota de Bob é recusada pelos verificadores e o estado fica intacto.">`+
   // lane A: valid program and proof
   `<rect x="0" y="0" width="440" height="250" rx="10" fill="#173a45"/>`+t(20,32,'programa + prova',{size:19,fill:'#b3c8c6',weight:600})+t(420,32,'ilustração',{size:16,fill:'#8fa9a4',anchor:'end'})+
-  line(1.0,20,72,`${kw('def')} ler_nota(ctx, id):`)+line(1.8,20,100,`  ${kw('return')} read("notes", id)`)+
-  line(3.4,20,140,cm('# certificado'))+line(4.1,20,168,`${kw('def')} prova(ctx, id, s):`)+line(4.9,20,196,`  ${cm('# toda leitura é do chamador')}`)+line(5.7,20,224,`  ReadScope(ctx.id, id) ${kw('✓')}`)+
+  line(1.0,20,66,`${kw('def')} ler_nota(ctx, id):`)+line(1.6,20,92,`  ${kw('if')} mine(ctx, id):`)+line(2.2,20,118,`    ${kw('return')} read("notes", id)`)+
+  line(3.4,20,150,cm('# certificado'))+line(4.1,20,176,`${kw('def')} prova(ctx, id, s):`)+line(4.9,20,202,`  ${cm('# só lê no ramo mine(ctx, id)')}`)+line(5.7,20,228,`  ReadScope(ctx.id, id) ${kw('✓')}`)+
   // lane B: invalid version
   `<g class="anim-fade-up" style="--d:20.2s"><rect x="0" y="300" width="440" height="200" rx="10" fill="#173a45" stroke="#dc6e52" stroke-width="2"/>${t(20,332,'versão inválida',{size:19,fill:'#f2a48c',weight:600})}</g>`+
   line(20.8,20,372,`${kw('def')} ler_nota(ctx, id):`)+line(21.5,20,400,`  ${kw('return')} read("notes", ${bad('"bob/n1"')})`)+
@@ -451,7 +451,7 @@ function processFigure(){
   packet(440,125,96,7.6,1.8,'#087869')+packet(772,125,70,12.6,1.4,'#087869')+packet(1058,125,70,15.6,1.4,'#087869')+packet(440,400,96,23.2,1.8,'#dc6e52')+
   // captions
   cap(.3,7.5,'1 · O cliente escreve o programa e a prova')+cap(7.5,9.9,'2 · Envia os dois ao banco')+cap(9.9,12.9,'3 · Dois verificadores conferem a prova')+
-  cap(12.9,16.4,'4 · Só o código aceito é compilado')+cap(16.4,20.2,'5 · Executa e publica o resultado')+cap(20.2,27,'6 · Uma versão tenta ler a nota de Bob…')+
+  cap(12.9,16.4,'4 · Compila; só executa após os dois aceitarem')+cap(16.4,20.2,'5 · Executa e publica o resultado')+cap(20.2,27,'6 · Uma versão tenta ler a nota de Bob…')+
   cap(27,31,'7 · …e é recusada antes de executar; o estado fica intacto')+cap(31,0,'Só executa o que tem prova aceita, não importa quem escreveu',true)+
   `</svg>`;
 }
@@ -488,7 +488,7 @@ const slides=[
  id:'processo',title:'O processo completo',seconds:40,
  html:`<p class="kicker">Visão geral</p><h2>O processo completo</h2>${processFigure()}`,
  bottom:'Animação ilustrativa; o código é simplificado. Os passos seguem o serviço real.',
- notes:`Antes dos detalhes, o processo inteiro. O cliente escreve o programa e, junto, o certificado: a prova de que toda leitura é das próprias notas. Envia os dois ao banco. Os dois verificadores, Bend e BendTT, conferem a prova. Só depois o código aceito é compilado, executa e publica o resultado com Commit. Agora uma versão que tenta ler a nota de Bob: a prova não fecha, os verificadores recusam, e o programa nem começa; o estado fica intacto. O banco executa só o que tem prova aceita, não importa quem escreveu o programa: uma pessoa, um LLM ou um atacante.`,
+ notes:`Antes dos detalhes, o processo inteiro. O cliente escreve o programa e, junto, o certificado: a prova de que toda leitura é das próprias notas: o programa só lê dentro do ramo em que a chave é de quem chamou. Envia os dois ao banco. Os dois verificadores, Bend e BendTT, conferem a prova. O código é compilado, e só executa depois que os dois aceitam; então publica o resultado com Commit. Agora uma versão que tenta ler a nota de Bob: a prova não fecha, os verificadores recusam, e o programa nem começa; o estado fica intacto. O banco executa só o que tem prova aceita, não importa quem escreveu o programa: uma pessoa, um LLM ou um atacante.`,
  sources:[sources.laws,sources.artifact]
 },
 {
@@ -509,7 +509,7 @@ const slides=[
  id:'leis',title:'As regras da aplicação de notas',seconds:45,
  html:`<p class="kicker">Leis instaladas pelo administrador</p><h2>As regras da aplicação de notas</h2><div class="leis-cards"><div class="anim-fade-up" ${delay(.1)}>${leisCard('key','Propriedade','Cada usuário lê e escreve apenas chaves do próprio espaço.','Alice escreve <code>alice/n1</code>','Alice lê <code>bob/n7</code>','Exigida em cada acesso','refresh','leis-when-access')}</div><div class="fragment" data-step="1"><div class="anim-fade-up">${leisCard('user','Dono da nota','A nota gravada tem como dono o usuário autenticado; o dono não muda.','<code>alice/n1</code> com dono alice','<code>alice/n1</code> com dono bob','Exigida em cada acesso','refresh','leis-when-access')}</div></div><div class="fragment" data-step="2"><div class="anim-fade-up">${leisCard('table','Diretório exato','O diretório lista todas as notas do dono e nenhuma de outra pessoa.','nota e entrada juntas','nota publicada sem entrada','Exigida na publicação','send','leis-when-publish')}</div></div></div>`,
  bottom:'A aplicação também define um administrador com leitura ampliada e sem exceção de escrita.',
- notes:`O administrador instalou três leis para essa aplicação. A primeira é propriedade: cada usuário lê e escreve apenas chaves do próprio espaço. Alice pode escrever alice/n1; ler bob/n7, não. Essa lei vale em cada acesso, inclusive no meio do programa. [→] A segunda é o dono da nota: a nota gravada tem como dono o usuário autenticado, e uma atualização não troca o dono. Também vale em cada acesso. [→] A terceira é o diretório exato: o diretório lista todas as notas do dono e nenhuma de outra pessoa. Essa é diferente: vale no estado publicado, não em cada passo. As três estão escritas em Bend e entram no tipo que o certificado precisa ter.`,
+ notes:`O administrador instalou as regras dessa aplicação; aqui elas aparecem como três obrigações. A primeira é propriedade: cada usuário lê e escreve apenas chaves do próprio espaço. Alice pode escrever alice/n1; ler bob/n7, não. Essa lei vale em cada acesso, inclusive no meio do programa. [→] A segunda é o dono da nota: a nota gravada tem como dono o usuário autenticado, e uma atualização não troca o dono. Também vale em cada acesso. [→] A terceira é o diretório exato: o diretório lista todas as notas do dono e nenhuma de outra pessoa. Essa é diferente: vale no estado publicado, não em cada passo. As três estão escritas em Bend e entram no tipo que o certificado precisa ter.`,
  sources:[sources.rls,source('Leis da aplicação de notas','applications/rls/Policy.bend')]
 },
 {
@@ -595,8 +595,8 @@ const slides=[
  sources:[sources.evidence,sources.prepared]
 },
 {
- id:'sql',title:'O protótipo ainda é mais lento que SQL',seconds:40,
- html:`<p class="kicker">E3 · ${pt(value('ScalingSmallRows'),0)} linhas · operações pontuais duráveis</p><h2>O protótipo ainda é mais lento que SQL</h2><div class="chart-area sql-chart">${sqlChart()}</div><div class="sql-takeaways"><section class="anim-fade-up" ${delay(2.1)}>${badge('check',{size:56,tone:'green'})}<p><strong>Chamada preparada: sem checagem</strong>O programa já foi admitido na preparação.</p></section><section class="anim-fade-up" ${delay(2.4)}>${badge('layers',{size:56,tone:'coral'})}<p><strong>O que ainda custa</strong>Worker, conferências de integridade e o estado completo.</p></section></div>`,
+ id:'sql',title:'SQL ainda vence nas operações pontuais',seconds:40,
+ html:`<p class="kicker">E3 · ${pt(value('ScalingSmallRows'),0)} linhas · gravação durável</p><h2>SQL ainda vence nas operações pontuais</h2><div class="chart-area sql-chart">${sqlChart()}</div><div class="sql-takeaways"><section class="anim-fade-up" ${delay(2.1)}>${badge('check',{size:56,tone:'green'})}<p><strong>Chamada preparada: sem checagem</strong>O programa já foi admitido na preparação.</p></section><section class="anim-fade-up" ${delay(2.4)}>${badge('layers',{size:56,tone:'coral'})}<p><strong>O que ainda custa</strong>Worker, conferências de integridade e o estado completo.</p></section></div>`,
  bottom:`Medianas em ms. n=${pt(value('ComparisonSamples'),0)} por operação/sistema/condição. JayDB2 preparado durável. SQLite sem regra de dono. Razão em relação ao PostgreSQL.`,
  notes:`Agora o JayDB2 preparado contra PostgreSQL e SQLite, todos duráveis, numa tabela de ${pt(value('ScalingSmallRows'),0)} linhas, em eixos logarítmicos. Na leitura, o PostgreSQL leva ${pt(value('PostgresPointReadMedianMs'),3)} milissegundos e o JayDB2 ${pt(value('JayPointReadMedianMs'),3)}: cerca de ${pt(value('JayPointReadOverPostgres'),0)} vezes mais. Na atualização durável a diferença cai para cerca de ${pt(value('JayPointUpdateOverPostgres'),0)} vezes, porque a sincronização com o disco pesa para todos. A chamada preparada não faz checagem; o custo restante vem do worker, das conferências de integridade e do estado completo. O SQLite não impõe regra de dono, e drivers e formatos de resposta diferem. A conclusão é que o protótipo custa mais que bancos convencionais, sem atribuir todo esse custo às provas.`,
  sources:[sources.evidence]
@@ -605,7 +605,7 @@ const slides=[
  id:'escala',title:'Cada operação percorre todo o estado',seconds:45,
  html:`<p class="kicker">E5 · latência conforme o número de linhas</p><h2>Cada operação percorre todo o estado</h2><div class="escala-layout">${scalePictogram()}<div class="chart-area escala-chart">${scaleChart()}</div></div>`,
  bottom:`${pt(value('ScalingSessionCount'),0)} sessão, ${pt(value('ScalingSamples'),0)} amostras por ponto/operação/modo. Medianas e intervalo interquartil. Linhas conectam medidas.`,
- notes:`Aqui aumento o número de linhas e meço uma leitura e uma atualização. No protótipo, cada operação trabalha sobre o estado inteiro: ele é transferido, decodificado e validado a cada chamada, mesmo para ler uma chave. Por isso a latência cresce quase em linha reta: a leitura volátil vai de ${pt(value('ScalingSmallVolatileReadMedianMs'))} para ${pt(value('ScalingMaximumVolatileReadMedianMs'))} milissegundos, e a atualização durável de ${pt(value('ScalingSmallPersistentUpdateMedianMs'))} para ${pt(value('ScalingMaximumPersistentUpdateMedianMs'))}. Ler a primeira chave custa o mesmo que ler a última, ${pt(value('ScalingFirstKeyLargeMs'),1)} contra ${pt(value('ScalingMaximumVolatileReadMedianMs'),1)} milissegundos; então o custo não vem da busca pela chave. Isso é consistente com o trabalho sobre o estado completo dominando, mas não isola cada mecanismo. À direita, o teto configurado: ${pt(value('StateLimitBytes'),0)} bytes, ou ${pt(value('StateMaximumRows'),0)} linhas; a linha seguinte é recusada e o estado anterior é preservado.`,
+ notes:`Aqui aumento o número de linhas e meço uma leitura e uma atualização. No protótipo, cada operação trabalha sobre o estado inteiro: ele é transferido, decodificado e validado a cada chamada, mesmo para ler uma chave. Por isso a latência cresce quase em linha reta: a leitura volátil vai de ${pt(value('ScalingSmallVolatileReadMedianMs'))} para ${pt(value('ScalingMaximumVolatileReadMedianMs'))} milissegundos, e a atualização durável de ${pt(value('ScalingSmallPersistentUpdateMedianMs'))} para ${pt(value('ScalingMaximumPersistentUpdateMedianMs'))}. Ler a primeira chave custa o mesmo que ler a última, ${pt(value('ScalingFirstKeyLargeMs'),1)} contra ${pt(value('ScalingMaximumVolatileReadMedianMs'),1)} milissegundos; então a posição da chave não muda o custo. Isso é consistente com o trabalho sobre o estado completo dominando, mas não isola cada mecanismo. À direita, o teto configurado: ${pt(value('StateLimitBytes'),0)} bytes, ou ${pt(value('StateMaximumRows'),0)} linhas; a linha seguinte é recusada e o estado anterior é preservado.`,
  sources:[sources.evidence]
 },
 {
@@ -633,7 +633,7 @@ const slides=[
  id:'conclusao',title:'JayDB2: síntese do trabalho',theme:'dark conclusion',seconds:35,
  html:`${logo('dark','anim-fade')}<p class="kicker">Conclusão</p><h2>Síntese do trabalho</h2>${closingStatements()}<p class="conclusao-thanks anim-fade" ${delay(2.2)}>Obrigado.</p>`,
  bottom:'Gabriel Jota Lizardo · PUC Minas',
- notes:`Para fechar. A pergunta foi se um programa pode chegar ao banco com a prova das regras que precisa respeitar, e se o banco pode verificá-la antes de executá-lo. A resposta construída é um serviço em que a prova fica ligada ao código exato que roda. Como evidência, quatro aplicações combinam acesso e consistência, variantes inválidas são recusadas, e custo, reuso e CUDA foram medidos. O limite principal: as garantias dependem da base de confiança T1 a T3, e o protótipo ainda é mais lento que SQL. Obrigado.`,
+ notes:`Para fechar. A pergunta foi se um programa pode chegar ao banco com a prova das regras que precisa respeitar, e se o banco pode verificá-la antes de executá-lo. A resposta construída é um serviço em que a prova fica ligada ao código exato que roda. Como evidência, quatro aplicações combinam acesso e consistência, variantes inválidas são recusadas, e custo, reuso e CUDA foram medidos. O limite principal: as garantias dependem da base de confiança T1 a T3, e as operações pontuais ainda são mais lentas que em SQL. Obrigado.`,
  sources:[sources.artifact]
 },
 {
@@ -675,7 +675,7 @@ const slides=[
  id:'b-verificador',title:'E se o verificador estiver errado?',backup:true,seconds:0,
  html:`<p class="kicker">Perguntas · base de confiança</p><h2>E se o verificador estiver errado?</h2><div class="qa-list"><section><h3>É uma premissa explícita (T1), não um teorema</h3><p>Um erro no verificador poderia aceitar uma prova falsa. O trabalho não esconde isso: a base de confiança lista os verificadores.</p></section><section><h3>Dois verificadores precisam concordar</h3><p>O verificador do Bend e o núcleo BendTT, pequeno e com consistência formalizada em Lean, conferem cada prova.</p></section><section><h3>Provas falsas precisam falhar no lugar certo</h3><p>${pt(value('NegativeFixtures'),0)} provas deliberadamente falsas são recusadas, cada uma na obrigação prevista, nos dois verificadores.</p></section></div>`,
  bottom:'A superfície de ataque deixa de ser todo o código das aplicações e passa a ser uma base pequena e listada.',
- notes:'Sim, se o verificador tiver um erro, uma prova falsa poderia passar. Isso é a premissa T1, declarada. Para reduzir o risco, dois verificadores independentes conferem cada prova, e um deles é um núcleo pequeno com consistência provada em Lean. Além disso, centenas de provas falsas precisam ser recusadas exatamente na obrigação esperada. O ganho é que, em vez de confiar em todo o código de todas as aplicações, confio numa base pequena e conhecida.',
+ notes:'Sim, se o verificador tiver um erro, uma prova falsa poderia passar. Isso é a premissa T1, declarada. Para reduzir o risco, dois verificadores distintos conferem cada prova, e um deles é um núcleo pequeno com consistência provada em Lean. Além disso, centenas de provas falsas precisam ser recusadas exatamente na obrigação esperada. O ganho é que, em vez de confiar em todo o código de todas as aplicações, confio numa base pequena e conhecida.',
  sources:[sources.proofs]
 },
 {
