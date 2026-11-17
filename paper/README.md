@@ -640,4 +640,9 @@ All values and table cells come from validated raw evidence; medians are not ker
 | `\SimulationLargeCpuSixteenMs` | E6 large complete cpu-16 request median | ms |
 | `\SimulationSmallCudaMs` | E6 small complete cuda request median | ms |
 | `\SimulationLargeCudaMs` | E6 large complete cuda request median | ms |
+| `\SimulationMidCpuSixteenMs` | E6 second-largest complete cpu-16 request median | ms |
+| `\SimulationMidPostgresMs` | E6 second-largest complete postgresql request median | ms |
+| `\SimulationMidPaths` | Second-largest E6 path count | paths |
+| `\SimulationMidSteps` | Second-largest E6 steps per path | steps |
+| `\SimulationTimeoutSeconds` | E6 SQL cancellation limit | s |
 | `\GpuSmallCudaNativeMs` | Small focused CUDA native worker median; includes process/device startup | ms |

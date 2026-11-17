@@ -494,6 +494,19 @@ def derive_compute(data):
         records=[r for r in sim['records'] if r['backend']==backend]
         for row,size in ((records[0],'Small'),(records[-1],'Large')):
             macro('Simulation'+size+label+'Ms',statistics.median(row['samples_ms']),'E6 '+size.lower()+' complete '+backend+' request median','ms')
+    mid=sim['sizes'][-2]
+    def sim_cell(backend,size):return next(r for r in sim['records'] if r['backend']==backend and r['depth']==size['depth'] and r['steps']==size['steps'])
+    for backend,label in (('cpu-16','CpuSixteen'),('postgresql','Postgres')):
+        row=sim_cell(backend,mid)
+        if row['status']!='measured':raise ValueError('Simulation middle comparison not measured')
+        macro('SimulationMid'+label+'Ms',statistics.median(row['samples_ms']),'E6 second-largest complete '+backend+' request median','ms')
+    if sim_cell('sqlite',mid)['status']!='timeout' or sim_cell('postgresql',sim['sizes'][-1])['status']!='timeout':
+        raise ValueError('Simulation SQL timeout pattern changed')
+    timeouts={r['timeout_s'] for r in sim['records'] if r['status']=='timeout'}
+    if len(timeouts)!=1:raise ValueError('Simulation timeouts differ')
+    for name,value,meaning,unit in [('SimulationMidPaths',mid['paths'],'Second-largest E6 path count','paths'),
+        ('SimulationMidSteps',mid['steps'],'Second-largest E6 steps per path','steps'),
+        ('SimulationTimeoutSeconds',timeouts.pop(),'E6 SQL cancellation limit','s')]:macro(name,value,meaning,unit)
     for run in gpu['runs']:
         if run['backend']=='cuda':
             macro('GpuSmallCudaNativeMs',statistics.median(run['records'][0]['native_worker_ms']),'Small focused CUDA native worker median; includes process/device startup','ms')
