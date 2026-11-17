@@ -61,7 +61,7 @@ que respeita as regras.
 O JayDB2 é um banco de dados experimental que só executa um programa de cliente
 depois que dois verificadores aceitam uma prova verificável por máquina, escrita
 na linguagem com tipos dependentes Bend~2, de que o programa obedece a regras de
-acesso e de consistência definidas pelo administrador. Teoremas verificados
+acesso e de consistência definidas pelo administrador. Teoremas verificados por máquina
 sobre as funções executáveis de admissão, execução e publicação ligam a prova
 aceita ao programa que de fato executa e ao estado que se torna visível, sob uma
 base de confiança explícita de verificadores, compiladores e deveres do host.
@@ -71,7 +71,7 @@ reutilizá-lo reduz uma leitura de \numbr{\OrdinaryReadMedianSeconds}~s para
 \numbr{\PreparedReadVolatileMedianMs}~ms, mas operações pontuais continuam mais
 lentas que no PostgreSQL e no SQLite, e a latência cresce com o tamanho do estado
 armazenado. Um backend opcional para GPU mantém as mesmas obrigações de prova e
-só supera a CPU em cargas grandes e de computação intensa.
+só supera a CPU em cargas grandes e de computação intensiva.
 \end{resumo}
 \selectlanguage{english}
 
@@ -82,8 +82,7 @@ may read or change which data: in a notes application, Alice may read her own
 notes but not Bob's. \emph{Consistency rules} relate pieces of data to each
 other: if each user keeps a directory of note identifiers, the directory must
 list exactly the notes the user owns. Database systems enforce such rules with
-privileges, row-level security, constraints and triggers
-\cite{bertino2005,postgresprivileges,postgresrls,postgresconstraints,postgrestrigger}.
+privileges, row-level security, constraints and triggers \cite{bertino2005}.
 These mechanisms are evaluated by the database while statements run or at
 commit. A rule that spans several statements of a transaction, such as ``the
 directory agrees with the notes when the transaction ends'', must be
@@ -154,9 +153,9 @@ access to whole objects, row-level security (RLS) policies select the rows a rol
 may see or modify, and constraints and triggers check integrity conditions when
 statements run \cite{postgresprivileges,postgresrls,postgresconstraints,postgrestrigger}.
 These are forms of runtime monitoring: a reference monitor observes each action
-and stops the execution when a policy would be violated \cite{schneider2000}.
-A monitor detects a violation when it happens and then stops or rolls back the
-execution. A certificate, in contrast, establishes before the program runs that
+and blocks it, filters the rows it can reach or aborts the transaction when a
+policy would be violated \cite{schneider2000}. A monitor therefore acts on each
+execution as it happens. A certificate, in contrast, establishes before the program runs that
 none of its possible executions violates the rules, including a rule that lets a
 directory be temporarily stale inside a transaction but requires it to be exact
 at commit. Transaction
@@ -171,7 +170,9 @@ supplies a program together with a formal proof that it satisfies the
 checker, which is much simpler than generating the proof. The consumer therefore
 needs to trust its checker, not the producer. In JayDB2 the consumer is the
 database, the policy consists of the administrator's rules, and the producer is
-any client, human or tool-assisted.
+any client, human or tool-assisted. Unlike classic PCC, whose proofs concern the
+machine code that is delivered, JayDB2 receives a proof about the source program
+and compiles it on the server, so the compiler joins the trusted base.
 
 \subsection{Dependent types and Bend 2}
 In the propositions-as-types correspondence, a proposition is read as a type
@@ -326,9 +327,9 @@ In words: for every state $s$ that is valid (its tables have the declared
 structure and all stable-state laws hold) and in which the caller $c$ is a
 registered user, and for every number of steps $n$, the trace $\op{exec}_n$
 produced by the interpreter after $n$ steps is safe. A trace is safe if every
-law holds for the current prefix, including the case in which the execution
-fails at that point, and, if the program has finished, if the laws also hold for
-the closed execution and a successful result is a valid state. The proposition
+law holds for the current prefix, including when the execution fails at that
+point. If the program has finished, the laws must also hold for the closed
+execution, and a successful result must be a valid state. The proposition
 quantifies over all valid states, so the proof cannot depend on the private data,
 and it is stated over the trace of the actual interpreter, so it covers every
 branch the program can take, including missing data and refusals. Admission also
@@ -418,10 +419,10 @@ proved.
 \section{Evaluation Methodology}
 \label{sec:method}
 The work combined construction of the system, deductive verification and
-controlled experiments. RQ1 is evaluated by the checked theorems and by negative
-proof fixtures that must be rejected; RQ2 by certified applications, invalid
-variants and native sessions; and RQ3 by the experiments E1--E3, E5 and E6.
-E4 is the retained run of the complete verification and test suite.
+controlled experiments. RQ1 is evaluated by the checked theorems and by deliberately
+false proofs that the checkers must reject; RQ2 by certified applications, invalid
+variants and sessions run against the real service; and RQ3 by the experiments E1--E3, E5 and E6.
+E4 is a recorded run of the complete verification and test suite.
 
 \subsection{Applications and invalid variants}
 Table~\ref{tab:apps} lists the four applications. Each has invalid variants
@@ -472,8 +473,8 @@ engines.
 
 JayDB2 latency is measured from sending a pre-encoded request to receiving the
 complete reply; SQL latency includes executing the statement and fetching the
-result through the driver. Initialization, warm-up, result checks and readbacks
-are outside the timed region, and all samples are retained; I report medians
+result through the driver. Initialization, warm-up, result checks and reading the data back to confirm
+the results are outside the timed region, and all samples are retained; I report medians
 and inclusive quartiles. E1--E3 use \SessionCount{} independent sessions; E5 and
 E6 use one session. E1--E5 use one native worker thread with the GPU disabled.
 Ordinary calls compile with Clang \code{-O0} and prepared programs with
@@ -514,7 +515,7 @@ statements are not vacuous, the suite instantiates them with a real application
 and proves that spoofed identities, uncertified starts and publication after a
 refusal violate the corresponding clauses. In addition, \NegativeFixtures{}
 deliberately false proofs must each fail at their intended obligation in both
-checker modes; in the retained verification run (E4), all of them do. The answer to RQ1 is thus conditional: accepted
+checkers; in the recorded verification run (E4), all of them do. The answer to RQ1 is thus conditional: accepted
 programs satisfy the installed laws at every step and publish only valid states,
 provided the assumptions T1--T3 hold.
 
@@ -525,10 +526,10 @@ separate the two laws: the variants that omit or falsify index maintenance have
 correct access proofs and fail only at the final index equality, while the
 variant that reads Bob's index fails at its first access. The \RlsNegativeFixtures{}
 shared-notes variants each fail only at their intended obligation in both
-checker modes, and the native shared-notes session checks \RlsNativeResponses{}
+checkers, and a shared-notes session against the real service checks \RlsNativeResponses{}
 responses exactly, including an unchanged complete state after rejected
 programs. The simulation's foreign-read and foreign-write variants fail at the access
-obligation in both checker modes, and on a service with CUDA enabled a
+obligation in both checkers, and on a service with CUDA enabled a
 foreign-write program is rejected before any C or GPU code is built. Table~\ref{tab:apps} shows that
 certificates are larger than the programs they describe, from about
 \num{\VoucherProofRatio} to \num{\IndexedProofRatio} times.
@@ -536,7 +537,7 @@ certificates are larger than the programs they describe, from about
 The access checks behave differently from SQL row-level security. In E3, a
 JayDB2 program by which Alice reads or updates Bob's table is rejected at
 admission and returns no value, whereas the equivalent PostgreSQL queries under
-forced RLS return or affect zero rows; in both systems, readbacks confirm that
+forced RLS return or affect zero rows; in both systems, reading the table back confirms that
 Bob's data are unchanged. SQLite, used without a policy, permits the attempts.
 
 \subsection{RQ3: cost}
@@ -573,13 +574,14 @@ tick label style={font=\small},label style={font=\small}]
 \end{axis}
 \end{tikzpicture}
 \caption{Median latency of the read program (volatile storage). Ordinary calls
-repeat checking and compilation; a prepared program pays that cost once. E1
+repeat checking and compilation; a prepared program pays that cost once
+(preparation takes longer than one ordinary call because it compiles with \code{-O2}). E1
 $n=\OrdinarySamples$; E2 calls $n=\PreparedSamples$, preparations
 $n=\RegistrationSamples$.}
 \label{fig:reuse}
 \end{figure}
 
-\begin{table}[H]\centering\small
+\begin{table}[tb]\centering\small
 \caption{E2: one-time preparation (median of \RegistrationSamples{}) and
 prepared-call latency (median [Q1, Q3] of \PreparedSamples{} calls) per program
 and storage mode.}
@@ -589,16 +591,15 @@ and storage mode.}
 
 For preparation time $R$, ordinary latency $O$ and prepared latency $P$, a
 median-based estimate of the break-even point is $\lceil R/(O-P)\rceil$ calls
-when $O>P$. With volatile storage it is \BreakEvenReadCalls{},
-\BreakEvenIndexedCalls{} and \BreakEvenVoucherCalls{} calls for the read, the
-availability update and the voucher issue, respectively. This estimate ignores start-up costs and was not observed
+when $O>P$. With volatile storage it is \BreakEvenReadCalls{} calls for each of the read, the
+availability update and the voucher issue. This estimate ignores start-up costs and was not observed
 as a cumulative experiment. The durable voucher condition has a long upper
 quartile because its session medians differ widely; all samples were retained.
 
 \paragraph{Comparison with SQL engines (E3).}
 E3 used \ComparisonSamples{} reads and updates per engine and population.
-PostgreSQL ran with \code{fsync}, synchronous commit and full-page writes over a
-local Unix socket, and SQLite with write-ahead logging and
+PostgreSQL was accessed over a local Unix socket, with \code{fsync}, synchronous
+commit and full-page writes enabled, and SQLite with write-ahead logging and
 \code{synchronous=FULL}; connections and statements were reused.
 Table~\ref{tab:sql} shows that a prepared JayDB2 point read costs about
 \whole{\JayPointReadOverPostgres} times a PostgreSQL read with
@@ -692,8 +693,9 @@ earlier timeout.}
 checkers, not on who wrote the program and its proof. A certificate written by a
 person and one generated by an LLM are treated the same way, so the producer
 stays outside the trusted base, and JayDB2 could accept certificates from the
-proof-generation tools discussed in Section~\ref{sec:background}. Whether LLMs
-can reliably generate database certificates was not tested.
+proof-generation tools discussed in Section~\ref{sec:background}. The certificates in this
+work were written with AI assistance (see the declaration at the end), but how
+reliably LLMs generate database certificates was not measured.
 
 \textbf{Scope of the guarantees.} Certificates enforce the laws as the
 administrator wrote them. The security claim concerns modeled observations and
@@ -707,8 +709,9 @@ not a proof that the GPU stack is correct; and the durability of storage after
 crashes and operating-system failures is outside the proofs. Lost-response and
 restart scenarios are tested for the voucher application, but no general crash
 theorem is proved; Crash Hoare Logic indicates a possible approach
-\cite{fscq2015}. Termination is logical and gives no bound on time or memory.
-The service is serial, with a fixed schema and fixed laws.
+\cite{fscq2015}. Termination is logical and gives no bound on time or memory, and the service is
+serial, so one slow request delays every other client; availability is not
+guaranteed. The schema and laws are fixed.
 
 \textbf{Internal validity.} Ordinary and prepared calls use different C
 optimization levels, and checking overlaps compilation, so E1 and E2 compare
@@ -754,7 +757,8 @@ Three AI assistants were used in this work. Claude Opus 5.5 (Anthropic) helped
 with planning, technical reviews, code, proofs and writing the article. GPT-6.1
 Sol (OpenAI) helped with code, proofs, tests, benchmark scripts and
 measurements, the article and the slides. Kimi K3.1 Pro (Moonshot AI) helped
-revise the article and the slides. The slide illustrations were generated with
+revise the article and the slides. All tests were written by these assistants
+under my direction. The slide illustrations were generated with
 OpenAI's image generation. I reviewed all content and take responsibility for
 it.
 
