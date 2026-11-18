@@ -97,8 +97,10 @@ A persistent worker loops: read request → run → answer operations → write 
 final frame → read the next request; EOF ends the process. Direct (ordinary)
 programs bake the request's context and arguments into their Book, so they use
 the same ABI but serve one request and exit. An operation payload is limited
-to the configured state size plus 1 KiB of framing and routing overhead. A
-larger operation frame is a protocol violation and the host kills the worker.
+to 1 GiB, a physical host bound: a program may write a value larger than the
+state limit and remove it before finishing, so the state limit itself is only
+checked at commit. A larger operation frame is a protocol violation and the
+host kills the worker.
 
 Execution has no time budget. A stalled worker blocks its session and any
 queued exclusive work, including prepare installation and migration, until it

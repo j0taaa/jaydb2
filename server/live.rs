@@ -144,11 +144,12 @@ impl Worker {
             }
             let mut tag = [0];
             self.output.read_exact(&mut tag).map_err(worker_io)?;
-            // An operation contains one row or value plus its routing fields
-            // and canonical encoding overhead.
-            const OPERATION_OVERHEAD: u64 = 1024;
+            // Physical host bound only. A program may legally write a value
+            // larger than the state limit and remove it again before finishing;
+            // the state limit is checked at commit, as R.finalize does.
+            const OPERATION_MAX: u64 = 1 << 30;
             match tag[0] {
-                2 if size - 1 > limits.state.saturating_add(OPERATION_OVERHEAD) => {
+                2 if size - 1 > OPERATION_MAX => {
                     return Err(protocol("live operation exceeds the frame budget"));
                 }
                 0 | 1 | 3 if size - 1 > limits.response.saturating_add(8) => {
@@ -375,7 +376,7 @@ mod tests {
         let snapshot =
             Snapshot::empty(store::Schema::new(vec![], limits.state).unwrap(), 0).unwrap();
         let initial = snapshot.save();
-        let oversized_header = [(limits.state + 1026).to_be_bytes().as_slice(), &[2]].concat();
+        let oversized_header = [((1u64 << 30) + 2).to_be_bytes().as_slice(), &[2]].concat();
         let bad = script(&directory, "oversize", &emit(&oversized_header));
         let mut worker = Worker::spawn(&bad, 1).unwrap();
         let Err(error) = worker.run(&bad, true, b"", &snapshot, &limits) else {
