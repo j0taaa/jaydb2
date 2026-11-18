@@ -65,9 +65,8 @@ impl Drop for Permit<'_> {
     }
 }
 
-pub fn listen(database: Database, path: &Path) -> Result<()> {
+pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
     let listener = UnixListener::bind(path)?;
-    let database = Arc::new(database);
     for client in listener.incoming() {
         let client = match client {
             Ok(client) => client,
@@ -88,7 +87,7 @@ pub fn listen(database: Database, path: &Path) -> Result<()> {
 fn serve(database: &Database, client: UnixStream) {
     let result = scheduling::serve_stream(
         &client,
-        database.limits.message,
+        || database.message_limit(),
         |body| database.request(body),
         error_frame,
     );

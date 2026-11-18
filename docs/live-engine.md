@@ -136,7 +136,7 @@ the same ABI but serve one request and exit.
   order. A torn or corrupt record at the tail is discarded (it was never
   acknowledged); corruption followed by valid records refuses to open.
 * Checkpoints are scheduled from the final snapshot of a batch when it crosses
-  a 256-commit boundary and the checkpoint queue has room. The background
+  a 256-LSN boundary and the checkpoint queue has room. The background
   writer saves a temp file, syncs it, renames it and syncs the directory before
   reclaiming older log segments.
 
@@ -155,16 +155,47 @@ Guarantees:
 
 ### 5. Schema changes
 
-An administrator submits, over `--admin-socket`, a new configuration file, a
-Bend migration `migrate(s: D.State) -> D.State` and a proof that for every `s`
-valid under the old configuration, the stable laws of the new configuration
-hold for `migrate(s)`. Structure and state limit of the result are checked at
-runtime (as `R.Valid` splits them today). Both official checkers must accept the
-migration Book. The host then quiesces new transactions, runs the migration on
-the whole state (the one place where whole-state processing is acceptable),
-writes the new state and configuration as one durable epoch record/checkpoint,
-switches configuration, retires all workers and prepared registrations, and
-resumes.
+Start the host with `--admin-socket PATH` to accept migrations on a Unix
+socket with mode `0600`. It is separate from client sessions and from
+`--inspect-socket`. Each connection takes one UTF-8 JSON line (including the
+newline, at most 65,536 bytes) and returns one JSON line before closing.
+Paths are resolved by the host from its working directory.
+
+```json
+{"command":"migrate","configuration":"/path/new/Configuration.bend","migration":"/path/Migration.bend"}
+```
+
+A successful response is `{"status":"success","lsn":42}`, where `lsn` is the
+published epoch's sequence number. A rejected request returns
+`{"status":"error","code":"data","message":"migration returned data"}`, with
+a code and diagnostic for the actual error.
+
+The migration module defines `migrate(s: D.State) -> D.State` and proves that
+it preserves the new configuration's stable laws for every state valid under
+the active configuration. The host stages and compiles the migration and new
+configuration with both official checkers while clients continue running.
+Then it queues for the existing exclusive execution permit, which blocks new
+shared attempts. In-flight attempts release their permits after execution and
+any committer reply. Exclusive work runs in queue order. The migration reads the entire canonical
+state, checks the result's structure and state limit, and loads it with the
+new schema from the conventional startup exporter.
+
+In durable mode the committer appends and syncs one WAL epoch record with the
+new descriptor and state before publishing the snapshot. Checkpoints each
+carry the descriptor of their own snapshot. Before admitting more work, the
+host installs the new authentication and control programs, frozen compilation
+environment, and logical limits. It clears the prepared registry and reaps
+all its workers. Old handles receive the usual unknown-handle response
+(`failure` for an authenticated execution request). Clients can reuse their
+connections and prepare again under the new configuration.
+
+Rejections before writing the epoch leave the database and registrations
+intact. WAL write or sync failures stop the process. Open a migrated database
+with `--storage-mode open` and the new configuration using the same frozen
+host/tooling identity. Recovery loads the latest epoch and replays its later
+commits. The previous configuration fails with the existing descriptor
+mismatch when its descriptor differs. Administrators can migrate in volatile
+mode too, with the same cutover semantics in memory.
 
 ## Trust changes (honest list)
 

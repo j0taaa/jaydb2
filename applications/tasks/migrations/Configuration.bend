@@ -3,6 +3,7 @@ import ./Data.bend as D
 import ./Semantics.bend as S
 import ./Environment.bend as E
 import ./Policy.bend as Policy
+import ./Proofs.bend as Proofs
 
 def table(name: String) -> D.SchemaTable:
   D.SchemaTable{name, "id", [D.Column{"completed", D.Boolean{}, False{}},

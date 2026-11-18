@@ -63,9 +63,19 @@ struct Submission {
     reply: mpsc::Sender<Result<Option<Completed>>>,
 }
 
+enum Command {
+    Submit(Submission),
+    Epoch {
+        snapshot: Snapshot,
+        descriptor: Vec<u8>,
+        state: Vec<u8>,
+        reply: mpsc::Sender<Result<()>>,
+    },
+}
+
 pub struct Committer {
     published: Arc<Mutex<Published>>,
-    sender: Option<mpsc::Sender<Submission>>,
+    sender: Option<mpsc::Sender<Command>>,
     thread: Option<JoinHandle<()>>,
 }
 
@@ -80,7 +90,7 @@ impl Committer {
         let state = Arc::clone(&published);
         let thread = thread::Builder::new()
             .name("jaydb-commit".into())
-            .spawn(move || run(&state, storage.as_ref(), pending))?;
+            .spawn(move || run(&state, storage, pending))?;
         Ok(Self {
             published,
             sender: Some(sender),
@@ -115,10 +125,32 @@ impl Committer {
         self.sender
             .as_ref()
             .unwrap()
-            .send(Submission {
+            .send(Command::Submit(Submission {
                 transaction,
                 response,
                 publish,
+                reply,
+            }))
+            .map_err(|_| committer_stopped())?;
+        received.recv().map_err(|_| committer_stopped())?
+    }
+
+    // Exclusive admission holds through this reply. All earlier submissions
+    // have finished, and no transaction can pin either snapshot during the switch.
+    pub fn publish_epoch(
+        &self,
+        snapshot: Snapshot,
+        descriptor: Vec<u8>,
+        state: Vec<u8>,
+    ) -> Result<()> {
+        let (reply, received) = mpsc::channel();
+        self.sender
+            .as_ref()
+            .unwrap()
+            .send(Command::Epoch {
+                snapshot,
+                descriptor,
+                state,
                 reply,
             })
             .map_err(|_| committer_stopped())?;
@@ -141,11 +173,52 @@ fn committer_stopped() -> Error {
 
 fn run(
     published: &Mutex<Published>,
-    storage: Option<&Durable>,
-    pending: mpsc::Receiver<Submission>,
+    mut storage: Option<Durable>,
+    pending: mpsc::Receiver<Command>,
 ) {
     let mut pruned_through = published.lock().unwrap().snapshot.lsn();
-    while let Ok(first) = pending.recv() {
+    let mut next = None;
+    while let Some(command) = next.take().or_else(|| pending.recv().ok()) {
+        let first = match command {
+            Command::Submit(first) => first,
+            Command::Epoch {
+                snapshot,
+                descriptor,
+                state,
+                reply,
+            } => {
+                let previous = published.lock().unwrap().snapshot.lsn();
+                let result = if previous.checked_add(1) != Some(snapshot.lsn()) {
+                    Err(Error::new("HOST_STORE", "invalid epoch sequence"))
+                } else if let Some(storage) = &mut storage {
+                    storage
+                        .append_epoch(snapshot.lsn(), descriptor, state)
+                        .and_then(|()| storage.checkpoint(previous, &snapshot))
+                } else {
+                    Ok(())
+                };
+                let failed = result.is_err();
+                if !failed {
+                    pruned_through = snapshot.lsn();
+                    published.lock().unwrap().snapshot = snapshot;
+                }
+                let _ = reply.send(result);
+                if failed {
+                    return;
+                }
+                continue;
+            }
+        };
+        let mut batch = vec![first];
+        while let Ok(command) = pending.try_recv() {
+            match command {
+                Command::Submit(submission) => batch.push(submission),
+                command => {
+                    next = Some(command);
+                    break;
+                }
+            }
+        }
         let mut current = published.lock().unwrap().snapshot.clone();
         let previous_lsn = current.lsn();
         let mut records = Vec::new();
@@ -155,7 +228,7 @@ fn run(
             response,
             publish,
             reply,
-        } in std::iter::once(first).chain(pending.try_iter().collect::<Vec<_>>())
+        } in batch
         {
             let Some(lsn) = current.lsn().checked_add(1) else {
                 let _ = reply.send(Err(Error::new(
@@ -197,7 +270,7 @@ fn run(
             replies.push((reply, outcome, logged));
         }
         let batch_size = records.len();
-        let durable = if let Some(storage) = storage.filter(|_| !records.is_empty()) {
+        let durable = if let Some(storage) = storage.as_ref().filter(|_| !records.is_empty()) {
             storage
                 .append(&records)
                 .and_then(|()| storage.checkpoint(previous_lsn, &current))

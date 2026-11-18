@@ -1,4 +1,5 @@
 //! Live engine host. Official Bend workers own computation; this process owns publication.
+mod admin;
 mod capture;
 use capture::capture;
 mod commit;
@@ -6,8 +7,11 @@ use commit::{Committer, Completed, ReadSnapshot};
 mod live;
 use live::{Decision, Worker};
 mod scheduling;
+#[cfg(test)]
 use scheduling::FrameInput;
-use scheduling::{FrameQueue, PollInput, QueueBounds};
+#[cfg(test)]
+use scheduling::QueueBounds;
+use scheduling::{FrameQueue, PollInput};
 mod session;
 mod storage;
 mod store;
@@ -25,7 +29,7 @@ use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Mutex, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use timing::{Attempt, Timing};
 
 type Result<T> = std::result::Result<T, Error>;
@@ -393,20 +397,26 @@ struct Database {
     committer: Committer,
     // Reap prepared workers before removing their parent directory.
     registry: RwLock<Registry>,
-    directory: Temporary,
+    active: RwLock<Environment>,
     stage: PathBuf,
     source: PathBuf,
     kernel: PathBuf,
-    authenticate: Program,
-    control: Program,
-    // Only exact-code replies successfully returned by the checked controller.
-    error_replies: Mutex<HashMap<String, Vec<u8>>>,
-    limits: Limits,
     inspector: Option<Mutex<Inspector>>,
     gate: session::Gate,
     threads: usize,
     timing: Option<Timing>,
     gpu_mib: usize,
+}
+
+struct Environment {
+    _directory: Temporary,
+    path: PathBuf,
+    stage: PathBuf,
+    authenticate: Program,
+    control: Program,
+    // Only exact-code replies successfully returned by the checked controller.
+    error_replies: Mutex<HashMap<String, Vec<u8>>>,
+    limits: Limits,
 }
 
 #[derive(Default)]
@@ -477,6 +487,92 @@ impl PreparedProgram {
     }
 }
 
+impl Environment {
+    fn load(directory: Temporary, path: PathBuf, report: &Value) -> Result<Self> {
+        let programs = programs(report)?;
+        Ok(Self {
+            _directory: directory,
+            path,
+            stage: text(report, "stagePath")?.into(),
+            authenticate: Program::load(text(programs, "authenticate")?.into(), 0)?,
+            control: Program::load(text(programs, "control")?.into(), 0)?,
+            error_replies: Mutex::default(),
+            limits: Limits::read(report)?,
+        })
+    }
+
+    fn descriptor(&self) -> Result<Vec<u8>> {
+        let bytes = fs::read(self.path.join("environment.bytes"))?;
+        Ok(storage::descriptor(bytes, &self.limits))
+    }
+
+    fn prefill_errors(&self, snapshot: &Snapshot, registry: &[u8], threads: usize) -> Result<()> {
+        // Exact-code denials are independent of state and registry. Keep the
+        // generally needed replies available with the controller offline.
+        for code in ["HANDLE", "PREPARED_INTEGRITY"] {
+            self.checked_error(snapshot, registry, threads, code)?;
+        }
+        Ok(())
+    }
+
+    fn checked_error(
+        &self,
+        snapshot: &Snapshot,
+        registry: &[u8],
+        threads: usize,
+        code: &str,
+    ) -> Result<Vec<u8>> {
+        let mut replies = self.error_replies.lock().unwrap();
+        if let Some(response) = replies.get(code) {
+            diagnostic(format_args!("checked denial memo hit: {code}"));
+            return Ok(response.clone());
+        }
+        diagnostic(format_args!(
+            "launching denial controller for exact code: {code}"
+        ));
+        // Canonical Value text, distinct from preparation's four-field list.
+        // No entropy, checker, compiler or prepared artifact runs on this path.
+        let mut metadata = vec![4];
+        metadata.extend_from_slice(&(code.len() as u64).to_be_bytes());
+        metadata.extend_from_slice(code.as_bytes());
+        let input = packet(
+            &metadata,
+            &packet(registry, &packet(&snapshot.authentication_root(None), &[])),
+        );
+        let output = self.control.run(&input, threads)?;
+        if output.first() != Some(&0) {
+            return Err(Error::new(
+                "HOST_TRANSPORT",
+                "invalid checked denial result",
+            ));
+        }
+        let response = &output[1..];
+        let (body, trailing) = split(response)?;
+        if !trailing.is_empty() || body.len() as u64 > self.limits.response {
+            return Err(Error::new(
+                "HOST_TRANSPORT",
+                "invalid checked denial response",
+            ));
+        }
+        replies.insert(code.to_owned(), response.to_vec());
+        Ok(response.to_vec())
+    }
+}
+
+fn programs(report: &Value) -> Result<&Value> {
+    report
+        .get("programs")
+        .ok_or_else(|| Error::new("HOST_JSON", "missing programs"))
+}
+
+fn export_schema(report: &Value, limits: &Limits, threads: usize) -> Result<Schema> {
+    let schema = Program::load(text(programs(report)?, "schema")?.into(), 0)?;
+    let schema_value = store::decode(&schema.run(&[], threads)?)
+        .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema export: {error}")))?;
+    Schema::from_value(&schema_value, limits.state)
+        .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema: {error}")))
+}
+
 impl Database {
     fn initialize(options: Options) -> Result<Self> {
         let recovering = options
@@ -515,17 +611,19 @@ impl Database {
             options.source.clone().into_os_string(),
             options.kernel.clone().into_os_string(),
         ]);
-        let report = json_helper(&options.root.join("tools/service/stage.mjs"), &arguments)?;
-        let programs = report
-            .get("programs")
-            .ok_or_else(|| Error::new("HOST_JSON", "missing programs"))?;
-        let limits = Limits::read(&report)?;
+        let stage = options.root.join("tools/service/stage.mjs");
+        let report = json_helper(&stage, &arguments)?;
         let initial = Program::load(
-            text(programs, if recovering { "recover" } else { "initialize" })?.into(),
+            text(
+                programs(&report)?,
+                if recovering { "recover" } else { "initialize" },
+            )?
+            .into(),
             0,
         )?;
-        let authenticate = Program::load(text(programs, "authenticate")?.into(), 0)?;
-        let control = Program::load(text(programs, "control")?.into(), 0)?;
+        let path = directory.path.clone();
+        let environment = Environment::load(directory, path, &report)?;
+        let limits = &environment.limits;
         let output = initial.run(&[], options.threads)?;
         if output.first() != Some(&1)
             || output.len() as u64 - 1 > limits.state
@@ -536,28 +634,23 @@ impl Database {
                 "invalid configuration or initial state",
             ));
         }
-        let schema = Program::load(text(programs, "schema")?.into(), 0)?;
-        let schema_value = store::decode(&schema.run(&[], options.threads)?).map_err(|error| {
-            Error::new("CONFIGURATION", format!("invalid schema export: {error}"))
-        })?;
-        let schema = Schema::from_value(&schema_value, limits.state)
-            .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema: {error}")))?;
+        let schema = export_schema(&report, limits, options.threads)?;
         let inspection_seed = if inspector.is_some() && !recovering {
             Some(fs::read_to_string(
-                directory.path.join("initialize/Seed.bend"),
+                environment.path.join("initialize/Seed.bend"),
             )?)
         } else {
             None
         };
-        fs::remove_dir_all(
-            directory
-                .path
-                .join(if recovering { "recover" } else { "initialize" }),
-        )?;
+        fs::remove_dir_all(environment.path.join(if recovering {
+            "recover"
+        } else {
+            "initialize"
+        }))?;
         let (storage, snapshot) = if let Some((path, mode)) = options.storage {
-            let descriptor = fs::read(directory.path.join("environment.bytes"))?;
+            let descriptor = environment.descriptor()?;
             let (storage, snapshot) =
-                storage::Durable::start(&path, mode, descriptor, &limits, schema, &output[1..])?;
+                storage::Durable::start(&path, mode, descriptor, schema, &output[1..])?;
             (Some(storage), snapshot)
         } else {
             let snapshot = Snapshot::load(schema, 0, &output[1..]).map_err(|error| {
@@ -565,17 +658,14 @@ impl Database {
             })?;
             (None, snapshot)
         };
+        environment.prefill_errors(&snapshot, &[], options.threads)?;
         let database = Self {
             committer: Committer::start(snapshot.clone(), storage)?,
             registry: RwLock::default(),
-            directory,
-            stage: text(&report, "stagePath")?.into(),
+            active: RwLock::new(environment),
+            stage,
             source: options.source,
             kernel: options.kernel,
-            authenticate,
-            control,
-            error_replies: Mutex::default(),
-            limits,
             inspector: inspector.map(|stream| {
                 Mutex::new(Inspector {
                     stream: Some(stream),
@@ -587,18 +677,12 @@ impl Database {
             timing,
             gpu_mib: options.gpu_mib,
         };
-        // HostErrorReplyTheorem states exact output independent of root, last
-        // response and registry. Limits stay immutable. Prefill each prepared
-        // code separately so these denials work with the controller offline.
-        for code in ["HANDLE", "PREPARED_INTEGRITY"] {
-            database.checked_error(&snapshot, code)?;
-        }
         if database.inspector.is_some() {
-            let environment: Value = serde_json::from_slice(&fs::read(
-                database.directory.path.join("environment.json"),
-            )?)?;
+            let active = database.active.read().unwrap();
+            let environment: Value =
+                serde_json::from_slice(&fs::read(active.path.join("environment.json"))?)?;
             let mut sources = serde_json::Map::new();
-            for entry in fs::read_dir(database.directory.path.join("public"))? {
+            for entry in fs::read_dir(active.path.join("public"))? {
                 let entry = entry?;
                 if entry.file_type()?.is_file() {
                     sources.insert(
@@ -610,8 +694,8 @@ impl Database {
             database.inspect(&snapshot, false, serde_json::json!({
                 "event": "initialized", "recovered": recovering, "environment": environment, "sources": sources,
                 "seed": inspection_seed,
-                "limits": {"message": database.limits.message,
-                    "state": database.limits.state, "response": database.limits.response}
+                "limits": {"message": active.limits.message,
+                    "state": active.limits.state, "response": active.limits.response}
             }));
         }
         Ok(database)
@@ -635,6 +719,7 @@ impl Database {
         &self,
         snapshot: &ReadSnapshot<'_>,
         proposal: Result<Decision>,
+        environment: &Environment,
     ) -> Result<Option<Completed>> {
         match proposal {
             Ok(Decision::Success {
@@ -647,7 +732,8 @@ impl Database {
             Ok(Decision::Keep { response }) => Ok(Some(Completed::new(response, snapshot))),
             Err(error) => {
                 diagnostic(format_args!("{}: {}", error.code, error.message));
-                let response = self.checked_error(snapshot, &error.code).unwrap_or_else(|failure| {
+                let registry = self.registry.read().unwrap();
+                let response = environment.checked_error(snapshot, &registry.bytes, self.threads, &error.code).unwrap_or_else(|failure| {
                     diagnostic(format_args!(
                         "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
                         error.code, failure.code, failure.message
@@ -670,6 +756,7 @@ impl Database {
     fn propose(
         &self,
         snapshot: &Snapshot,
+        environment: &Environment,
         body: &[u8],
         attempt: &mut Option<Attempt>,
         inspection_id: Option<u64>,
@@ -691,12 +778,19 @@ impl Database {
                 attempt.authenticated(&user.id);
             }
             bench_mark(&mut bench, "packet_authentication");
-            return self.run_prepared(snapshot, handle, body, &mut bench, inspection_id);
+            return self.run_prepared(
+                snapshot,
+                environment,
+                handle,
+                body,
+                &mut bench,
+                inspection_id,
+            );
         }
 
         let root = snapshot.authentication_root(credential);
         let input = packet(&root, body);
-        let authenticated = self.preprocess(&self.authenticate, &input)?;
+        let authenticated = self.preprocess(&environment.authenticate, &input)?;
         bench_mark(&mut bench, "packet_authentication");
         if authenticated[0] == 0 {
             return Ok(Decision::Keep {
@@ -714,12 +808,19 @@ impl Database {
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
         if operation == 5 {
-            return self.control_operation(&root, body);
+            return self.control_operation(&environment.control, &root, body);
         }
         if operation == 4 {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
-            return self.run_prepared(snapshot, handle, body, &mut bench, inspection_id);
+            return self.run_prepared(
+                snapshot,
+                environment,
+                handle,
+                body,
+                &mut bench,
+                inspection_id,
+            );
         }
         if self.inspector.is_some() {
             self.inspect(
@@ -734,7 +835,7 @@ impl Database {
                 }),
             );
         }
-        let mut request = Temporary::new(&self.directory.path, "request")?;
+        let mut request = Temporary::new(&environment.path, "request")?;
         let metadata = request.path.join("metadata");
         fs::create_dir(&metadata)?;
         for (name, bytes) in [
@@ -751,7 +852,7 @@ impl Database {
             } else {
                 "live-execute".into()
             },
-            self.directory.path.clone().into_os_string(),
+            environment.path.clone().into_os_string(),
             request.path.clone().into_os_string(),
             metadata.into_os_string(),
             self.source.clone().into_os_string(),
@@ -760,8 +861,8 @@ impl Database {
         if self.gpu_mib != 0 {
             arguments.push(self.gpu_mib.to_string().into());
         }
-        let report = json_helper(&self.stage, &arguments)?;
-        if Limits::read(&report)? != self.limits {
+        let report = json_helper(&environment.stage, &arguments)?;
+        if Limits::read(&report)? != environment.limits {
             return Err(Error::new(
                 "HOST_TRANSPORT",
                 "request configuration changed",
@@ -770,8 +871,14 @@ impl Database {
         let program = Program::load(text(&report, "program")?.into(), self.gpu_mib)?;
         bench_mark(&mut bench, "admission_total");
         if operation == 3 {
-            let control =
-                self.run_control(&root, body, text(&report, "certificateMode")?, code, proof)?;
+            let control = self.run_control(
+                &environment.control,
+                &root,
+                body,
+                text(&report, "certificateMode")?,
+                code,
+                proof,
+            )?;
             let (handle, registry, response) = match control {
                 ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
                 ControlDecision::Add {
@@ -784,8 +891,8 @@ impl Database {
                 }
             };
             let mut sealed = PreparedProgram::seal(&request.path)?;
-            sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
-            sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
+            sealed.extend(PreparedProgram::seal(&environment.path.join("public"))?);
+            sealed.extend(PreparedProgram::seal(&environment.path.join("runtime"))?);
             let mut registered = self.registry.write().unwrap();
             registered.prepared.insert(
                 handle,
@@ -802,7 +909,7 @@ impl Database {
             return Ok(Decision::Keep { response });
         }
         let mut worker = Worker::spawn(&program, self.threads)?;
-        let proposal = worker.run(&program, true, body, snapshot, &self.limits)?;
+        let proposal = worker.run(&program, true, body, snapshot, &environment.limits)?;
         bench_mark(&mut bench, "ordinary_worker");
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
@@ -812,6 +919,7 @@ impl Database {
     fn run_prepared(
         &self,
         snapshot: &Snapshot,
+        environment: &Environment,
         handle: &str,
         body: &[u8],
         bench: &mut Option<std::time::Instant>,
@@ -846,7 +954,13 @@ impl Database {
             None => Worker::spawn(&prepared.program, self.threads)?,
         };
         let input = packet(&registry.bytes, body);
-        let proposal = worker.run(&prepared.program, false, &input, snapshot, &self.limits)?;
+        let proposal = worker.run(
+            &prepared.program,
+            false,
+            &input,
+            snapshot,
+            &environment.limits,
+        )?;
         if prepared.program.gpu.is_some() {
             prepared.validate()?;
         }
@@ -858,48 +972,9 @@ impl Database {
         Ok(proposal)
     }
 
-    fn checked_error(&self, snapshot: &Snapshot, code: &str) -> Result<Vec<u8>> {
-        let mut replies = self.error_replies.lock().unwrap();
-        if let Some(response) = replies.get(code) {
-            diagnostic(format_args!("checked denial memo hit: {code}"));
-            return Ok(response.clone());
-        }
-        diagnostic(format_args!(
-            "launching denial controller for exact code: {code}"
-        ));
-        // Canonical Value text, distinct from preparation's four-field list.
-        // No entropy, checker, compiler or prepared artifact runs on this path.
-        let mut metadata = vec![4];
-        metadata.extend_from_slice(&(code.len() as u64).to_be_bytes());
-        metadata.extend_from_slice(code.as_bytes());
-        let input = packet(
-            &metadata,
-            &packet(
-                &self.registry.read().unwrap().bytes,
-                &packet(&snapshot.authentication_root(None), &[]),
-            ),
-        );
-        let output = self.control.run(&input, self.threads)?;
-        if output.first() != Some(&0) {
-            return Err(Error::new(
-                "HOST_TRANSPORT",
-                "invalid checked denial result",
-            ));
-        }
-        let response = &output[1..];
-        let (body, trailing) = split(response)?;
-        if !trailing.is_empty() || body.len() as u64 > self.limits.response {
-            return Err(Error::new(
-                "HOST_TRANSPORT",
-                "invalid checked denial response",
-            ));
-        }
-        replies.insert(code.to_owned(), response.to_vec());
-        Ok(response.to_vec())
-    }
-
     fn run_control(
         &self,
+        control: &Program,
         root: &[u8],
         body: &[u8],
         mode: &str,
@@ -921,7 +996,7 @@ impl Database {
             &metadata,
             &packet(&self.registry.read().unwrap().bytes, &packet(root, body)),
         );
-        let output = self.control.run(&input, self.threads)?;
+        let output = control.run(&input, self.threads)?;
         match output.first() {
             Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
             Some(tag @ (1 | 3)) => {
@@ -953,8 +1028,8 @@ impl Database {
         }
     }
 
-    fn control_operation(&self, root: &[u8], body: &[u8]) -> Result<Decision> {
-        match self.run_control(root, body, "", &[], &[])? {
+    fn control_operation(&self, control: &Program, root: &[u8], body: &[u8]) -> Result<Decision> {
+        match self.run_control(control, root, body, "", &[], &[])? {
             ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
             ControlDecision::Remove {
                 handle,
@@ -982,13 +1057,17 @@ impl Database {
         }
     }
 
-    fn serve(&self) -> Result<()> {
-        serve_serial(
-            PollInput(io::stdin()),
-            &mut io::stdout().lock(),
-            self.limits.message,
-            |body| self.request(body),
-        )
+    fn message_limit(&self) -> u64 {
+        self.active.read().unwrap().limits.message
+    }
+
+    fn serve(self: &Arc<Self>) -> Result<()> {
+        let database = Arc::clone(self);
+        let mut queue =
+            FrameQueue::start_dynamic(PollInput(io::stdin()), move || database.message_limit())?;
+        serve_queue(&mut queue, &mut io::stdout().lock(), |body| {
+            self.request(body)
+        })
     }
 }
 
@@ -1060,16 +1139,24 @@ impl Database {
             .map(|_| INSPECTION_REQUEST.fetch_add(1, Ordering::Relaxed));
         let mut retries = 0;
         loop {
-            let snapshot = self.committer.read();
-            let proposal = self.propose(&snapshot, body, &mut attempt, inspection_id);
-            let diagnostic = proposal
-                .as_ref()
-                .err()
-                .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
-            let mut bench = bench_start();
-            let outcome = self.resolve(&snapshot, proposal);
-            bench_mark(&mut bench, "publication");
-            drop(snapshot);
+            let (outcome, diagnostic) = {
+                let environment = self.active.read().unwrap();
+                // A complete frame may have been read before a limit change.
+                if body.len() as u64 > environment.limits.message {
+                    return Ok(error_frame("limit"));
+                }
+                let snapshot = self.committer.read();
+                let proposal =
+                    self.propose(&snapshot, &environment, body, &mut attempt, inspection_id);
+                let diagnostic = proposal
+                    .as_ref()
+                    .err()
+                    .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
+                let mut bench = bench_start();
+                let outcome = self.resolve(&snapshot, proposal, &environment);
+                bench_mark(&mut bench, "publication");
+                (outcome, diagnostic)
+            };
             match outcome {
                 Ok(None) if !exclusive => {
                     retries += 1;
@@ -1120,14 +1207,12 @@ impl Database {
     }
 }
 
-fn serve_serial(
-    input: impl FrameInput,
+fn serve_queue(
+    queue: &mut FrameQueue,
     output: &mut impl Write,
-    limit: u64,
     request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
 ) -> Result<()> {
-    let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
-    let result = scheduling::coordinate(&queue, output, request, error_frame);
+    let result = scheduling::coordinate(queue, output, request, error_frame);
     // This also wakes a reader still waiting on an open stdin or queue capacity.
     let cleanup = queue.close();
     result?;
@@ -1142,6 +1227,7 @@ struct Options {
     source: PathBuf,
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
+    admin_socket: Option<PathBuf>,
     listen: Option<PathBuf>,
     concurrency: usize,
     threads: usize,
@@ -1211,6 +1297,7 @@ impl Options {
         let mut configuration = None;
         let mut seed = None;
         let mut inspect_socket = None;
+        let mut admin_socket = None;
         let mut listen = None;
         let mut concurrency = None;
         let mut threads = None;
@@ -1224,7 +1311,7 @@ impl Options {
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--listen SOCKET] [--concurrency N] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in WAL persistence; create requires a new directory, open requires the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--listen SOCKET  Serve FIFO sessions on a Unix socket (default: stdin/stdout)\n--concurrency N  Maximum active socket transactions, 1 to 128 (default: available CPUs, capped at 128)\n--threads N  Native CPU workers per process, 1 to 128 (default: 1 for concurrent execution, otherwise available CPUs capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--listen SOCKET] [--concurrency N] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket INSPECTOR_SOCKET] [--admin-socket SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in WAL persistence; create requires a new directory, open requires the current durable environment/executable\n--admin-socket SOCKET  Serve administrator migration requests on an owner-only Unix socket\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--listen SOCKET  Serve FIFO sessions on a Unix socket (default: stdin/stdout)\n--concurrency N  Maximum active socket transactions, 1 to 128 (default: available CPUs, capped at 128)\n--threads N  Native CPU workers per process, 1 to 128 (default: 1 for concurrent execution, otherwise available CPUs capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
                 );
                 return Ok(None);
             }
@@ -1236,6 +1323,7 @@ impl Options {
                 Some("--seed") => seed = Some(PathBuf::from(value)),
                 Some("--bend-source") => source = PathBuf::from(value),
                 Some("--bendtt") => kernel = PathBuf::from(value),
+                Some("--admin-socket") => admin_socket = Some(PathBuf::from(value)),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 Some("--timing-log") => timing_log = Some(PathBuf::from(value)),
                 Some("--listen") => listen = Some(PathBuf::from(value)),
@@ -1308,6 +1396,7 @@ impl Options {
             source: fs::canonicalize(source)?,
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
+            admin_socket,
             listen,
             concurrency,
             threads,
@@ -1322,7 +1411,15 @@ fn main() {
     let result = (|| -> Result<()> {
         if let Some(options) = Options::read()? {
             let listen = options.listen.clone();
-            let database = Database::initialize(options)?;
+            let admin = options
+                .admin_socket
+                .as_deref()
+                .map(admin::Socket::bind)
+                .transpose()?;
+            let database = Arc::new(Database::initialize(options)?);
+            if let Some(admin) = &admin {
+                admin.start(&database)?;
+            }
             match listen {
                 Some(path) => session::listen(database, &path)?,
                 None => database.serve()?,
@@ -1386,7 +1483,8 @@ mod tests {
         limit: u64,
         request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
     ) -> Result<()> {
-        serve_serial(input, output, limit, request)
+        let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
+        serve_queue(&mut queue, output, request)
     }
 
     #[test]
@@ -1717,6 +1815,42 @@ mod tests {
     }
 
     #[test]
+    fn checkpoints_after_an_epoch_use_its_descriptor() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-epoch").unwrap();
+        let path = directory.path.join("db");
+        let schema = || Schema::new(Vec::new(), 1024).unwrap();
+        let initial = empty_test_snapshot().save();
+        let (storage, snapshot) = storage::Durable::start(
+            &path,
+            storage::Mode::Create,
+            b"old".to_vec(),
+            schema(),
+            &initial,
+        )
+        .unwrap();
+        let committer = Committer::start(snapshot, Some(storage)).unwrap();
+        let epoch = Snapshot::load(schema(), 1, &initial).unwrap();
+        committer
+            .publish_epoch(epoch, b"new".to_vec(), initial)
+            .unwrap();
+        for lsn in 2..=257 {
+            let snapshot = committer.read();
+            let completed = committer
+                .submit(&snapshot, test_write(&snapshot), Vec::new(), true)
+                .unwrap()
+                .unwrap();
+            assert_eq!(completed.snapshot.lsn(), lsn);
+        }
+        drop(committer); // Wait for the background checkpoint.
+        assert!(path.join("checkpoint-256").is_file());
+        let (_storage, recovered) =
+            storage::Durable::start(&path, storage::Mode::Open, b"new".to_vec(), schema(), &[])
+                .unwrap();
+        assert_eq!(recovered.lsn(), 257);
+        assert!(recovered.authenticate("new-token").is_some());
+    }
+
+    #[test]
     fn result_ready_follows_commit_and_precedes_final_inspector_output() {
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb-ready").unwrap();
         let path = directory.path.join("db");
@@ -1729,8 +1863,7 @@ mod tests {
         let (storage, snapshot) = storage::Durable::start(
             &path,
             storage::Mode::Create,
-            b"test environment".to_vec(),
-            &limits,
+            storage::descriptor(b"test environment".to_vec(), &limits),
             Schema::new(Vec::new(), limits.state).unwrap(),
             &initial,
         )
@@ -1740,26 +1873,30 @@ mod tests {
         let mut db = Database {
             committer: Committer::start(snapshot, Some(storage)).unwrap(),
             registry: RwLock::default(),
-            directory,
+            active: RwLock::new(Environment {
+                path: directory.path.clone(),
+                _directory: directory,
+                stage: PathBuf::new(),
+                authenticate: Program {
+                    path: PathBuf::new(),
+                    sha256: String::new(),
+                    gpu: None,
+                },
+                control: Program {
+                    path: PathBuf::new(),
+                    sha256: String::new(),
+                    gpu: None,
+                },
+                error_replies: Mutex::default(),
+                limits,
+            }),
             stage: PathBuf::new(),
             source: PathBuf::new(),
             kernel: PathBuf::new(),
-            authenticate: Program {
-                path: PathBuf::new(),
-                sha256: String::new(),
-                gpu: None,
-            },
-            limits,
             inspector: Some(Mutex::new(Inspector {
                 stream: Some(inspector),
                 sequence: u64::MAX,
             })),
-            control: Program {
-                path: PathBuf::new(),
-                sha256: String::new(),
-                gpu: None,
-            },
-            error_replies: Mutex::default(),
             gate: session::Gate::new(1),
             threads: 1,
             timing: None,
@@ -1776,6 +1913,7 @@ mod tests {
                     response: response.clone(),
                     commit: true,
                 }),
+                &db.active.read().unwrap(),
             )
             .unwrap()
             .unwrap();
@@ -1791,12 +1929,12 @@ mod tests {
         assert_eq!(db.inspector.as_ref().unwrap().lock().unwrap().sequence, 0);
         let volatile = Committer::start(db.committer.read().clone(), None).unwrap();
         drop(std::mem::replace(&mut db.committer, volatile));
+        let limits = &db.active.get_mut().unwrap().limits;
         let (_reopened, recovered) = storage::Durable::start(
             &path,
             storage::Mode::Open,
-            b"test environment".to_vec(),
-            &db.limits,
-            Schema::new(Vec::new(), db.limits.state).unwrap(),
+            storage::descriptor(b"test environment".to_vec(), limits),
+            Schema::new(Vec::new(), limits.state).unwrap(),
             &[],
         )
         .unwrap();
@@ -1806,11 +1944,11 @@ mod tests {
         // The host must forward the controller's bytes, even when a test
         // executable returns a different status from the old Rust table.
         use std::os::unix::fs::PermissionsExt;
-        let executable = db.directory.path.join("denial");
+        let executable = db.active.get_mut().unwrap().path.join("denial");
         let script = b"#!/bin/sh\ncat > \"$0.input\"\ncat \"$0.reply\"\n";
         fs::write(&executable, script).unwrap();
         fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
-        db.control = Program {
+        db.active.get_mut().unwrap().control = Program {
             path: executable.clone(),
             sha256: format!("{:x}", Sha256::digest(script)),
             gpu: None,
@@ -1853,7 +1991,15 @@ mod tests {
         );
         assert_eq!(db.committer.read().save(), committed);
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-        assert!(!db.error_replies.lock().unwrap().contains_key("HOST_IO"));
+        assert!(
+            !db.active
+                .read()
+                .unwrap()
+                .error_replies
+                .lock()
+                .unwrap()
+                .contains_key("HOST_IO")
+        );
         // A later successful exact-code reply must replace neither a prepared
         // entry nor a fallback; only this checked reply is memoized.
         let host_io_reply = error_frame("host-io-specific");
@@ -1878,7 +2024,15 @@ mod tests {
             );
             assert_eq!(db.committer.read().save(), committed);
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-            assert!(!db.error_replies.lock().unwrap().contains_key("UNSEEN_CODE"));
+            assert!(
+                !db.active
+                    .read()
+                    .unwrap()
+                    .error_replies
+                    .lock()
+                    .unwrap()
+                    .contains_key("UNSEEN_CODE")
+            );
         }
         assert_eq!(
             publish(&db, Err(Error::new("HOST_IO", "memoized"))).unwrap(),
@@ -1895,7 +2049,9 @@ mod tests {
 
     fn publish(db: &Database, proposal: Result<Decision>) -> Result<Vec<u8>> {
         let snapshot = db.committer.read();
-        let completed = db.resolve(&snapshot, proposal)?.unwrap();
+        let completed = db
+            .resolve(&snapshot, proposal, &db.active.read().unwrap())?
+            .unwrap();
         db.finish(completed, None, None)
     }
 

@@ -50,7 +50,7 @@ pub fn coordinate(
 
 pub fn serve_stream(
     stream: &UnixStream,
-    limit: u64,
+    limit: impl Fn() -> u64,
     request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
@@ -60,7 +60,7 @@ pub fn serve_stream(
         || {
             let mut read =
                 |buffer: &mut [u8]| read_up_to(|part| io::Read::read(&mut input, part), buffer);
-            match frame_size(&mut read, limit).and_then(|size| frame_body(&mut read, size)) {
+            match frame_size(&mut read, &limit).and_then(|(size, _)| frame_body(&mut read, size)) {
                 Ok(body) => FrameEvent::Request(body),
                 Err(end) => FrameEvent::End(end),
             }
@@ -170,6 +170,7 @@ pub struct FrameQueue {
 }
 
 impl FrameQueue {
+    #[cfg(test)]
     pub fn start(input: impl FrameInput, limit: u64, bounds: QueueBounds) -> io::Result<Self> {
         if bounds.items == 0
             || (bounds.bytes as u64) < limit.min(isize::MAX as u64)
@@ -179,6 +180,21 @@ impl FrameQueue {
                 "queue must hold at least one maximum allocatable frame",
             ));
         }
+        Self::start_reader(input, move || limit, Some(bounds))
+    }
+
+    pub fn start_dynamic(
+        input: impl FrameInput,
+        limit: impl Fn() -> u64 + Send + 'static,
+    ) -> io::Result<Self> {
+        Self::start_reader(input, limit, None)
+    }
+
+    fn start_reader(
+        input: impl FrameInput,
+        limit: impl Fn() -> u64 + Send + 'static,
+        bounds: Option<QueueBounds>,
+    ) -> io::Result<Self> {
         let shared = Arc::new(Shared::default());
         let (cancel, wake) = UnixStream::pair()?;
         let producer = shared.clone();
@@ -265,8 +281,8 @@ fn read_up_to(
 
 fn frame_size(
     read: &mut impl FnMut(&mut [u8]) -> io::Result<usize>,
-    limit: u64,
-) -> Result<usize, InputEnd> {
+    limit: &impl Fn() -> u64,
+) -> Result<(usize, u64), InputEnd> {
     let mut header = [0; 8];
     match read(&mut header) {
         Ok(0) => return Err(InputEnd::Eof),
@@ -275,11 +291,12 @@ fn frame_size(
         Err(error) => return Err(InputEnd::Failed(error.into())),
     }
     let size = u64::from_be_bytes(header);
+    let limit = limit();
     if size > limit {
         return Err(InputEnd::Framing("limit"));
     }
     match usize::try_from(size) {
-        Ok(size) if size <= isize::MAX as usize => Ok(size),
+        Ok(size) if size <= isize::MAX as usize => Ok((size, limit)),
         _ => Err(InputEnd::Failed(crate::Error::new(
             "HOST_TRANSPORT",
             "message length is not allocatable",
@@ -309,15 +326,16 @@ fn frame_body(
 fn receive(
     mut input: impl FrameInput,
     cancel: &UnixStream,
-    limit: u64,
-    bounds: QueueBounds,
+    limit: impl Fn() -> u64,
+    bounds: Option<QueueBounds>,
     shared: &Shared,
 ) -> InputEnd {
     let mut read = |buffer: &mut [u8]| read_up_to(|part| input.read(part, cancel), buffer);
+    let items = bounds.map_or(8, |bounds| bounds.items);
     loop {
         {
             let mut state = shared.state.lock().unwrap();
-            while !state.stopped && state.items == bounds.items {
+            while !state.stopped && state.items == items {
                 state = shared.changed.wait(state).unwrap();
             }
             if state.stopped {
@@ -326,14 +344,17 @@ fn receive(
             state.items += 1;
             shared.changed.notify_all();
         }
-        let size = match frame_size(&mut read, limit) {
-            Ok(size) => size,
+        let (size, limit) = match frame_size(&mut read, &limit) {
+            Ok(frame) => frame,
             Err(end) => return end,
         };
+        let bytes = bounds
+            .unwrap_or_else(|| QueueBounds::for_message_limit(limit))
+            .bytes;
         {
             let mut state = shared.state.lock().unwrap();
             shared.changed.notify_all();
-            while !state.stopped && size > bounds.bytes - state.bytes {
+            while !state.stopped && size > bytes.saturating_sub(state.bytes) {
                 state = shared.changed.wait(state).unwrap();
             }
             if state.stopped {

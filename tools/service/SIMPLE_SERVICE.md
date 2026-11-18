@@ -18,6 +18,22 @@ total-process memory budget, observer, or execution deadline.
 
 ## Checked migrations
 
+Enable online migration with `--admin-socket PATH`. Connect to the owner-only
+Unix socket and send one newline-terminated JSON object.
+
+```json
+{"command":"migrate","configuration":"/path/new/Configuration.bend","migration":"/path/Migration.bend"}
+```
+
+The host closes the connection after one JSON response. On success it returns
+`{"status":"success","lsn":42}` with the epoch's actual LSN. On rejection it
+returns `{"status":"error","code":"data","message":"migration returned data"}`
+with the actual error code and message. Client connections stay open across
+the cutover. Prepare programs again because every old handle is retired. For
+quiescing and durable recovery, see [Schema changes](../../docs/live-engine.md#5-schema-changes).
+
+The host uses the same staging entry point available for standalone checks.
+
 ```sh
 node --stack_size=65536 tools/service/stage.mjs migrate WORKDIR \
   OLD_CONFIG_OR_ENV NEW_CONFIG MIGRATION BEND_SOURCE BENDTT
@@ -27,7 +43,8 @@ Use a fresh private work directory and the pinned Bend source and bendtt paths.
 Pass the active frozen environment directory as `OLD_CONFIG_OR_ENV` for a
 published database. A configuration file is also accepted for standalone builds.
 `NEW_CONFIG` is a configuration file. The JSON result gives the executable
-`program`, the new `limits`, and the frozen `newEnvironment` directory.
+`program`, the new `limits`, the frozen `newEnvironment` directory, and the
+`programs` and `stagePath` used by the new environment.
 
 The migration file defines `migrate(s: D.State) -> D.State` and `preserves(s,
 valid)` with the type `S.Satisfies(New.config(), S.Stable{migrate(s)})` given
@@ -46,7 +63,7 @@ oversized result gives `limit`, and an undecodable old state or invalid new
 configuration gives `failure`. The caller supplies an old state that satisfies
 the old stable laws. The task example in `applications/tasks/migrations/` adds
 an optional integer priority. Package its new configuration with the existing
-task application's `Policy.bend`.
+task application's public helpers using `applications.tasks.app.prepare`.
 
 ## Call path
 
@@ -141,18 +158,17 @@ requires a valid checkpoint and forbids `--seed`. A single owner holds an OS
 lock. The committer appends one atomic write-set record per accepted write
 transaction and synchronizes the batch once before publishing its final snapshot
 and releasing the responses. Read-only successes use their already durable
-snapshot and skip the WAL. When a batch crosses a 256-commit boundary and the
+snapshot and skip the WAL. When a batch crosses a 256-LSN boundary and the
 queue has room, a background thread writes a checksummed checkpoint. Recovery
 loads a valid checkpoint, replays later records and truncates a torn WAL tail.
 WAL I/O failures stop the service without a response. Users and application
 tables, including any idempotency receipts, survive restart. Prepared handles
 and their allocation history are instance-local.
 
-Recovery requires the exact same environment, including actual controller
-executable bytes. Protect the storage directory and preserve that executable
-and its sources/tooling. Development databases are disposable; cross-build
-compatibility and migrations are deliberately outside this feature. Recreate a
-development database explicitly after changing its frozen environment. Process death tests do not establish hardware power-loss safety.
+Recovery requires the exact current durable environment, including actual
+controller executable bytes. After migration, open with the migrated
+configuration and preserve the controller executable and its sources/tooling.
+Process death tests do not establish hardware power-loss safety.
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
@@ -246,7 +262,8 @@ response bytes by that code. Startup prefills `HANDLE` and `PREPARED_INTEGRITY`
 separately and fails if either checked denial cannot be obtained.
 `HostErrorReplyTheorem` states that output equals
 `Messages.error(HostErrors.status(code))` for every root/last/registry, so the
-memo remains valid for later roots under immutable instance limits. Prepared
+memo remains valid for later roots under the same configuration. Migration
+prefills the same exact-code replies for the new configuration. Prepared
 map/integrity denials use these entries without another child. Other codes,
 including `HOST_IO`, use their own entry or the checked controller.
 

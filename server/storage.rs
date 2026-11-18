@@ -33,9 +33,12 @@ pub fn fault_point(point: &str) -> io::Result<()> {
 
 const CHECKPOINT_INTERVAL: u64 = 256;
 
+type Checkpoint = (Snapshot, Arc<Vec<u8>>);
+
 pub struct Durable {
     log: Arc<Log>,
-    checkpoints: Option<mpsc::SyncSender<Snapshot>>,
+    descriptor: Arc<Vec<u8>>,
+    checkpoints: Option<mpsc::SyncSender<Checkpoint>>,
     checkpoint_thread: Option<JoinHandle<()>>,
 }
 
@@ -43,16 +46,10 @@ impl Durable {
     pub fn start(
         path: &Path,
         mode: Mode,
-        mut descriptor: Vec<u8>,
-        limits: &Limits,
+        descriptor: Vec<u8>,
         schema: Schema,
         initial: &[u8],
     ) -> Result<(Self, Snapshot)> {
-        // Bind the exact frozen environment (including the controller) and
-        // the three evaluated limits, with fixed-width big-endian fields.
-        descriptor.extend_from_slice(&limits.message.to_be_bytes());
-        descriptor.extend_from_slice(&limits.state.to_be_bytes());
-        descriptor.extend_from_slice(&limits.response.to_be_bytes());
         let (log, state) = match mode {
             Mode::Create => {
                 let state = Snapshot::load(schema, 0, initial).map_err(state_error)?;
@@ -81,11 +78,11 @@ impl Durable {
         };
         let log = Arc::new(log);
         let writer = Arc::clone(&log);
-        let (checkpoints, queue) = mpsc::sync_channel::<Snapshot>(1);
+        let (checkpoints, queue) = mpsc::sync_channel::<Checkpoint>(1);
         let checkpoint_thread = thread::Builder::new()
             .name("jaydb-checkpoint".into())
             .spawn(move || {
-                for state in queue {
+                for (state, descriptor) in queue {
                     if let Err(error) = writer.checkpoint(state.lsn(), &descriptor, &state.save()) {
                         // The coordinator may be idle waiting for stdin. Stop it
                         // immediately rather than waiting for another request.
@@ -97,6 +94,7 @@ impl Durable {
         Ok((
             Self {
                 log,
+                descriptor: Arc::new(descriptor),
                 checkpoints: Some(checkpoints),
                 checkpoint_thread: Some(checkpoint_thread),
             },
@@ -109,10 +107,24 @@ impl Durable {
         fault_point("before_publish").map_err(uncertain)
     }
 
+    pub fn append_epoch(&mut self, lsn: u64, descriptor: Vec<u8>, state: Vec<u8>) -> Result<()> {
+        let record = Record::Epoch {
+            lsn,
+            descriptor,
+            state,
+        };
+        self.append(std::slice::from_ref(&record))?;
+        let Record::Epoch { descriptor, .. } = record else {
+            unreachable!()
+        };
+        self.descriptor = Arc::new(descriptor);
+        Ok(())
+    }
+
     pub fn checkpoint(&self, previous_lsn: u64, state: &Snapshot) -> Result<()> {
         if previous_lsn / CHECKPOINT_INTERVAL != state.lsn() / CHECKPOINT_INTERVAL {
             let checkpoints = self.checkpoints.as_ref().expect("checkpoint thread active");
-            match checkpoints.try_send(state.clone()) {
+            match checkpoints.try_send((state.clone(), Arc::clone(&self.descriptor))) {
                 Ok(()) | Err(mpsc::TrySendError::Full(_)) => (),
                 Err(mpsc::TrySendError::Disconnected(_)) => {
                     return Err(uncertain("checkpoint thread stopped"));
@@ -130,6 +142,14 @@ impl Drop for Durable {
             let _ = thread.join();
         }
     }
+}
+
+pub fn descriptor(mut environment: Vec<u8>, limits: &Limits) -> Vec<u8> {
+    // Bind the exact frozen environment and the three evaluated limits.
+    environment.extend_from_slice(&limits.message.to_be_bytes());
+    environment.extend_from_slice(&limits.state.to_be_bytes());
+    environment.extend_from_slice(&limits.response.to_be_bytes());
+    environment
 }
 
 fn storage_error(error: io::Error) -> Error {

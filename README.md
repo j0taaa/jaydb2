@@ -69,10 +69,12 @@ one-request workers and prepared handles reuse a pool of workers.
   with fresh credentials and arguments. Restart loses handles.
 - **[Write-ahead logging](tools/service/SIMPLE_SERVICE.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
-  compares an immutable descriptor of the exact executable/environment bytes.
-  It loads a checkpoint and replays later write sets. Development databases can be
-  recreated after changes; cross-build compatibility and migrations are outside
-  scope. Uncertain commit failures stop service rather than promise rollback.
+  compares the current durable descriptor of the exact executable and
+  environment bytes. It loads a checkpoint and replays later WAL records.
+  Uncertain commit failures stop the service.
+- **[Online migration](docs/live-engine.md#5-schema-changes):** opt-in
+  `--admin-socket PATH` for checked configuration changes. A durable database
+  reopens with the new configuration and the same host/tooling identity.
 - **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in
   `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
   Queue waiting and response delivery are excluded. Client bytes are unchanged.

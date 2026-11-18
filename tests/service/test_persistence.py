@@ -22,6 +22,7 @@ from applications.tasks.app import prepare
 BINARY = Path(os.environ.get('JAYDB_PERSISTENCE_BINARY',
     ROOT/'.build/persistence/fault/release/jaydb2'))
 MAGIC = b'jaydb2-wal-checkpoint-v1\n'
+SEGMENT_SIZE = 8 * 1024 * 1024
 
 
 def numbered(path, prefix):
@@ -40,8 +41,12 @@ def wal_records(path):
 
     for segment in numbered(path, 'segment'):
         data = segment.read_bytes()
+        preallocated = len(data) == SEGMENT_SIZE
         while data:
             size = int.from_bytes(data[:4], 'big')
+            if size == 0 and preallocated:
+                assert not data.strip(b'\0'), 'nonzero bytes after WAL padding'
+                break
             crc = int.from_bytes(data[4:8], 'big')
             record, data = data[8:8+size], data[8+size:]
             assert len(record) == size and zlib.crc32(record) == crc
@@ -305,8 +310,12 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(self.call(server, arguments='durable'), {'status': 'success', 'value': 'durable'})
         server.finish()
         segment = self.path/'segment-1'
-        entire_record = segment.read_bytes()
-        with segment.open('ab') as stream:
+        image = segment.read_bytes()
+        end = 8 + int.from_bytes(image[:4], 'big')
+        entire_record = image[:end]
+        with segment.open('r+b') as stream:
+            # Start the torn record at the logical end, inside any reservation.
+            stream.seek(end)
             stream.write(entire_record[:-5])
         reopened = self.server()
         self.assertEqual(self.call(reopened, 'durable'), {'status': 'refusal', 'value': 'cancelled'})

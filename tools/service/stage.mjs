@@ -378,7 +378,7 @@ function freeze(workdir, configuration, seed) {
     if (/\.(?:mjs|json)$/.test(name)) tooling.set(folder + '/' + name, read(path.join(ROOT, folder, name)));
   }
   for (const name of ['tools/service/stage.mjs', 'tools/service/compile.mjs', 'native/effects.bend', 'native/effects.c',
-    'server/main.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
+    'server/main.rs', 'server/admin.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
   for (const name of ['server/commit.rs', 'server/live.rs', 'server/session.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
@@ -606,30 +606,30 @@ export function migrate(workdir, oldConfiguration, newConfiguration, migration, 
   sources.set('Migration.bend', read(migration));
   const built = compile({ ...environment, sources }, path.join(workdir, 'migrate'), 'migrate',
     sourceDir, kernelPath, null, path.join(newEnvironment, 'runtime'));
-  return { ...built, newEnvironment };
+  const activation = configurationPrograms(environment, newEnvironment, ['schema', 'authenticate', 'control'],
+    sourceDir, kernelPath, built.limits);
+  return { ...built, ...activation, newEnvironment };
+}
+
+function configurationPrograms(environment, workdir, purposes, sourceDir, kernelPath, limits) {
+  const runtimeRoot = path.join(workdir, 'runtime'), programs = {};
+  for (const purpose of purposes) {
+    const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
+    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration programs disagree on limits');
+    limits = built.limits; programs[purpose] = built.program;
+  }
+  return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
 }
 
 export function initialize(workdir, configuration, seed, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
-  const environment = freeze(workdir, configuration, seed), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
-  let limits;
-  for (const purpose of ['initialize', 'schema', 'authenticate', 'control']) {
-    const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
-    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during initialization');
-    limits = built.limits; programs[purpose] = built.program;
-  }
-  return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
+  return configurationPrograms(freeze(workdir, configuration, seed), workdir,
+    ['initialize', 'schema', 'authenticate', 'control'], sourceDir, kernelPath);
 }
 export function recover(workdir, configuration, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
-  const environment = freeze(workdir, configuration, null), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
-  let limits;
-  for (const purpose of ['recover', 'schema', 'authenticate', 'control']) {
-    const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
-    if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during recovery');
-    limits = built.limits; programs[purpose] = built.program;
-  }
-  return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
+  return configurationPrograms(freeze(workdir, configuration, null), workdir,
+    ['recover', 'schema', 'authenticate', 'control'], sourceDir, kernelPath);
 }
 export function execute(workdir, directory, metadata, sourceDir, kernelPath, purpose = 'execute', gpuMiB = 0) {
   if (!Number.isInteger(gpuMiB) || (gpuMiB !== 0 && (gpuMiB < 64 || gpuMiB > 4096))) fail('USAGE', 'GPU MiB must be 0 or 64..4096');
