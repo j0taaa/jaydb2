@@ -436,6 +436,38 @@ fn store_occ_rows_and_membership() {
 }
 
 #[test]
+fn store_prunes_only_versions_no_running_snapshot_needs() {
+    let base = state(10_000);
+    let mut row_reader = base.begin();
+    row_reader.operate(read(table(), "a", "id"));
+    let mut auth_reader = base.begin();
+    assert_eq!(auth_reader.authenticate("rotated"), None);
+
+    let mut change = base.begin();
+    change.operate(remove(table(), "a"));
+    change.operate(user("alice", "rotated", "admin"));
+    let mut current = change.commit(&base, 2).unwrap();
+
+    current.prune_versions(base.lsn());
+    assert_eq!(row_reader.validate(&current), Err(StoreError::Conflict));
+    assert_eq!(auth_reader.validate(&current), Err(StoreError::Conflict));
+
+    let fresh = current.begin();
+    let canonical = current.save();
+    current.prune_versions(current.lsn());
+    assert!(
+        current
+            .collections
+            .iter()
+            .all(|(_, table)| table.last_write.is_empty())
+    );
+    assert!(current.credential_lsn.is_empty());
+    assert_eq!(fresh.validate(&current), Ok(()));
+    assert_eq!(current.save(), canonical);
+    assert_eq!(current.authenticate("rotated").unwrap().id, "alice");
+}
+
+#[test]
 fn store_credentials_and_final_order() {
     let base = state(10_000);
     let mut seen = base.begin();

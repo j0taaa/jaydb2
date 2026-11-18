@@ -381,7 +381,7 @@ function freeze(workdir, configuration, seed) {
     'server/main.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
-  for (const name of ['server/live.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
+  for (const name of ['server/commit.rs', 'server/live.rs', 'server/session.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
     .filter(name => name.endsWith('.rs')).map(name => 'server/store/' + name)]) {
     tooling.set(name, read(path.join(ROOT, name)));
   }

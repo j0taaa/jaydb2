@@ -1,15 +1,18 @@
-//! Serial host. Official Bend workers own computation; this process owns publication.
+//! Live engine host. Official Bend workers own computation; this process owns publication.
 mod capture;
 use capture::capture;
+mod commit;
+use commit::{Committer, Completed, ReadSnapshot};
 mod live;
 use live::{Decision, Worker};
 mod scheduling;
 use scheduling::FrameInput;
 use scheduling::{FrameQueue, PollInput, QueueBounds};
+mod session;
 mod storage;
 mod store;
 mod wal;
-use store::{Schema, Snapshot, StoreError};
+use store::{Schema, Snapshot};
 mod timing;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -21,8 +24,8 @@ use std::os::unix::fs::DirBuilderExt;
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, RwLock};
 use timing::{Attempt, Timing};
 
 type Result<T> = std::result::Result<T, Error>;
@@ -50,7 +53,7 @@ fn diagnostic(message: std::fmt::Arguments<'_>) {
     let _ = writeln!(io::stderr().lock(), "jaydb2: {message}");
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Error {
     code: String,
     message: String,
@@ -387,28 +390,51 @@ enum ControlDecision {
 }
 
 struct Database {
+    committer: Committer,
+    // Reap prepared workers before removing their parent directory.
+    registry: RwLock<Registry>,
     directory: Temporary,
     stage: PathBuf,
     source: PathBuf,
     kernel: PathBuf,
     authenticate: Program,
     control: Program,
-    registry: Vec<u8>,
     // Only exact-code replies successfully returned by the checked controller.
-    error_replies: HashMap<String, Vec<u8>>,
+    error_replies: Mutex<HashMap<String, Vec<u8>>>,
     limits: Limits,
-    snapshot: Snapshot,
-    inspector: Option<UnixStream>,
-    inspection_sequence: u64,
-    prepared: HashMap<String, PreparedProgram>,
+    inspector: Option<Mutex<Inspector>>,
+    gate: session::Gate,
     threads: usize,
-    timing: Option<Arc<Timing>>,
-    storage: Option<storage::Durable>,
+    timing: Option<Timing>,
     gpu_mib: usize,
 }
 
+#[derive(Default)]
+struct Registry {
+    bytes: Vec<u8>,
+    prepared: HashMap<String, PreparedProgram>,
+}
+
+struct Inspector {
+    stream: Option<UnixStream>,
+    sequence: u64,
+}
+
+#[derive(Default)]
+struct WorkerPool {
+    idle: Vec<Worker>,
+    generation: u64,
+}
+
+impl WorkerPool {
+    fn retire(&mut self) {
+        self.generation = self.generation.wrapping_add(1);
+        self.idle.clear();
+    }
+}
+
 struct PreparedProgram {
-    worker: Option<Worker>,
+    workers: Mutex<WorkerPool>,
     directory: Temporary,
     program: Program,
     original_code: Vec<u8>,
@@ -470,7 +496,7 @@ impl Database {
         let timing = options
             .timing_log
             .as_ref()
-            .map(|path| Timing::open(path).map(Arc::new))
+            .map(|path| Timing::open(path))
             .transpose()?;
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb2")?;
         let mut arguments = vec![
@@ -539,30 +565,33 @@ impl Database {
             })?;
             (None, snapshot)
         };
-        let mut database = Self {
+        let database = Self {
+            committer: Committer::start(snapshot.clone(), storage)?,
+            registry: RwLock::default(),
             directory,
             stage: text(&report, "stagePath")?.into(),
             source: options.source,
             kernel: options.kernel,
             authenticate,
             control,
-            registry: Vec::new(),
-            error_replies: HashMap::new(),
+            error_replies: Mutex::default(),
             limits,
-            snapshot,
-            inspector,
-            inspection_sequence: 0,
-            prepared: HashMap::new(),
+            inspector: inspector.map(|stream| {
+                Mutex::new(Inspector {
+                    stream: Some(stream),
+                    sequence: 0,
+                })
+            }),
+            gate: session::Gate::new(options.concurrency),
             threads: options.threads,
             timing,
-            storage,
             gpu_mib: options.gpu_mib,
         };
         // HostErrorReplyTheorem states exact output independent of root, last
         // response and registry. Limits stay immutable. Prefill each prepared
         // code separately so these denials work with the controller offline.
         for code in ["HANDLE", "PREPARED_INTEGRITY"] {
-            database.checked_error(code)?;
+            database.checked_error(&snapshot, code)?;
         }
         if database.inspector.is_some() {
             let environment: Value = serde_json::from_slice(&fs::read(
@@ -578,7 +607,7 @@ impl Database {
                     );
                 }
             }
-            database.inspect(serde_json::json!({
+            database.inspect(&snapshot, false, serde_json::json!({
                 "event": "initialized", "recovered": recovering, "environment": environment, "sources": sources,
                 "seed": inspection_seed,
                 "limits": {"message": database.limits.message,
@@ -588,78 +617,46 @@ impl Database {
         Ok(database)
     }
 
-    fn inspect(&mut self, metadata: Value) {
-        if self.inspector.is_some() {
-            inspect_snapshot(
-                &mut self.inspector,
-                self.inspection_sequence,
-                &self.snapshot.save(),
-                metadata,
-            );
+    fn inspect(&self, snapshot: &Snapshot, completed: bool, mut metadata: Value) {
+        if let Some(inspector) = &self.inspector {
+            let mut inspector = inspector.lock().unwrap();
+            if completed {
+                inspector.sequence = inspector.sequence.wrapping_add(1);
+            }
+            let sequence = inspector.sequence;
+            if inspector.stream.is_some() {
+                metadata["lsn"] = snapshot.lsn().into();
+                inspect_snapshot(&mut inspector.stream, sequence, &snapshot.save(), metadata);
+            }
         }
     }
 
-    // Timing ends at result readiness, before inspection and response delivery.
-    fn publish_with_ready(
-        &mut self,
+    fn resolve(
+        &self,
+        snapshot: &ReadSnapshot<'_>,
         proposal: Result<Decision>,
-        result_ready: impl FnOnce(),
-    ) -> Result<Vec<u8>> {
-        let mut bench = bench_start();
-        let error_metadata = proposal
-            .as_ref()
-            .err()
-            .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
-        let response = match proposal {
-            Ok(Decision::Keep { response }) => response,
+    ) -> Result<Option<Completed>> {
+        match proposal {
             Ok(Decision::Success {
                 transaction,
                 response,
                 commit,
-            }) => {
-                let lsn =
-                    self.snapshot.lsn().checked_add(1).ok_or_else(|| {
-                        Error::new("HOST_STORE", "publication sequence exhausted")
-                    })?;
-                let writes = (commit && self.storage.is_some()).then(|| transaction.write_set());
-                match transaction.commit(&self.snapshot, lsn) {
-                    Ok(next) => {
-                        if commit {
-                            if let (Some(storage), Some(writes)) = (&self.storage, writes) {
-                                storage.append(lsn, writes)?;
-                                storage.checkpoint(&next)?;
-                            }
-                            self.snapshot = next;
-                        }
-                        response
-                    }
-                    Err(StoreError::Data) => error_frame("data"),
-                    Err(StoreError::Limit) => error_frame("limit"),
-                    Err(error) => return Err(Error::new("HOST_STORE", error.to_string())),
-                }
-            }
+            }) => self
+                .committer
+                .submit(snapshot, transaction, response, commit),
+            Ok(Decision::Keep { response }) => Ok(Some(Completed::new(response, snapshot))),
             Err(error) => {
                 diagnostic(format_args!("{}: {}", error.code, error.message));
-                self.checked_error(&error.code).unwrap_or_else(|failure| {
+                let response = self.checked_error(snapshot, &error.code).unwrap_or_else(|failure| {
                     diagnostic(format_args!(
                         "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
                         error.code, failure.code, failure.message
                     ));
                     error_frame("failure")
-                })
+                });
+                Ok(Some(Completed::new(response, snapshot)))
             }
-        };
-        bench_mark(&mut bench, "publication");
-        result_ready();
-        storage::fault_point("after_publish").map_err(storage::uncertain)?;
-        advance_inspection_sequence(&mut self.inspection_sequence);
-        self.inspect(serde_json::json!({"event": "completed", "diagnostic": error_metadata}));
-        Ok(response)
-    }
-
-    #[cfg(test)]
-    fn publish(&mut self, proposal: Result<Decision>) -> Result<Vec<u8>> {
-        self.publish_with_ready(proposal, || {})
+        }
     }
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
@@ -670,7 +667,13 @@ impl Database {
         Ok(output)
     }
 
-    fn propose(&mut self, body: &[u8], attempt: &mut Option<Attempt>) -> Result<Decision> {
+    fn propose(
+        &self,
+        snapshot: &Snapshot,
+        body: &[u8],
+        attempt: &mut Option<Attempt>,
+        inspection_id: Option<u64>,
+    ) -> Result<Decision> {
         let mut bench = bench_start();
         let fields = request_fields(body);
         let credential = fields
@@ -682,16 +685,16 @@ impl Database {
         // registry and admitted source/proof before running the program.
         if let ([7, 1, ..], Some((handle, credential, proof))) = (body, &fields)
             && proof.is_empty()
-            && let Some(user) = self.snapshot.authenticate(credential)
+            && let Some(user) = snapshot.authenticate(credential)
         {
             if let Some(attempt) = attempt {
                 attempt.authenticated(&user.id);
             }
             bench_mark(&mut bench, "packet_authentication");
-            return self.run_prepared(handle, body, &mut bench);
+            return self.run_prepared(snapshot, handle, body, &mut bench, inspection_id);
         }
 
-        let root = self.snapshot.authentication_root(credential);
+        let root = snapshot.authentication_root(credential);
         let input = packet(&root, body);
         let authenticated = self.preprocess(&self.authenticate, &input)?;
         bench_mark(&mut bench, "packet_authentication");
@@ -716,16 +719,20 @@ impl Database {
         if operation == 4 {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
-            return self.run_prepared(handle, body, &mut bench);
+            return self.run_prepared(snapshot, handle, body, &mut bench, inspection_id);
         }
         if self.inspector.is_some() {
-            self.inspect(serde_json::json!({
-                "event": "authenticated",
-                "generated_sources": {
-                    "Instance.bend": String::from_utf8_lossy(instance),
-                    "Bindings.bend": String::from_utf8_lossy(bindings)
-                }
-            }));
+            self.inspect(
+                snapshot,
+                false,
+                serde_json::json!({
+                    "event": "authenticated", "request": inspection_id,
+                    "generated_sources": {
+                        "Instance.bend": String::from_utf8_lossy(instance),
+                        "Bindings.bend": String::from_utf8_lossy(bindings)
+                    }
+                }),
+            );
         }
         let mut request = Temporary::new(&self.directory.path, "request")?;
         let metadata = request.path.join("metadata");
@@ -779,10 +786,11 @@ impl Database {
             let mut sealed = PreparedProgram::seal(&request.path)?;
             sealed.extend(PreparedProgram::seal(&self.directory.path.join("public"))?);
             sealed.extend(PreparedProgram::seal(&self.directory.path.join("runtime"))?);
-            self.prepared.insert(
+            let mut registered = self.registry.write().unwrap();
+            registered.prepared.insert(
                 handle,
                 PreparedProgram {
-                    worker: None,
+                    workers: Mutex::default(),
                     directory: request,
                     program,
                     original_code: code.to_vec(),
@@ -790,11 +798,11 @@ impl Database {
                     sealed,
                 },
             );
-            self.registry = registry;
+            registered.bytes = registry;
             return Ok(Decision::Keep { response });
         }
         let mut worker = Worker::spawn(&program, self.threads)?;
-        let proposal = worker.run(&program, true, body, &self.snapshot, &self.limits)?;
+        let proposal = worker.run(&program, true, body, snapshot, &self.limits)?;
         bench_mark(&mut bench, "ordinary_worker");
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
@@ -802,54 +810,57 @@ impl Database {
     }
 
     fn run_prepared(
-        &mut self,
+        &self,
+        snapshot: &Snapshot,
         handle: &str,
         body: &[u8],
         bench: &mut Option<std::time::Instant>,
+        inspection_id: Option<u64>,
     ) -> Result<Decision> {
-        let prepared = self
+        let registry = self.registry.read().unwrap();
+        let prepared = registry
             .prepared
-            .get_mut(handle)
+            .get(handle)
             .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
         if let Err(error) = prepared.validate() {
-            prepared.worker.take();
+            prepared.workers.lock().unwrap().retire();
             return Err(error);
         }
         bench_mark(bench, "prepared_integrity");
         if self.inspector.is_some() {
             let metadata = serde_json::json!({
-                "event": "prepared-resolved", "handle": handle,
+                "event": "prepared-resolved", "handle": handle, "request": inspection_id,
                 "original_code": String::from_utf8_lossy(&prepared.original_code),
                 "universal_proof": String::from_utf8_lossy(&prepared.universal_proof)
             });
-            self.inspect(metadata);
+            self.inspect(snapshot, false, metadata);
         }
-        let prepared = self
-            .prepared
-            .get_mut(handle)
-            .expect("prepared artifact selected");
-        let mut worker = match prepared.worker.take() {
+        let (idle, generation) = {
+            let mut pool = prepared.workers.lock().unwrap();
+            (pool.idle.pop(), pool.generation)
+        };
+        // Every live process here serves a request admitted by the execution
+        // gate. If the idle pool is empty, another process fits under its bound.
+        let mut worker = match idle {
             Some(worker) => worker,
             None => Worker::spawn(&prepared.program, self.threads)?,
         };
-        let input = packet(&self.registry, body);
-        let proposal = worker.run(
-            &prepared.program,
-            false,
-            &input,
-            &self.snapshot,
-            &self.limits,
-        )?;
+        let input = packet(&registry.bytes, body);
+        let proposal = worker.run(&prepared.program, false, &input, snapshot, &self.limits)?;
         if prepared.program.gpu.is_some() {
             prepared.validate()?;
         }
-        prepared.worker = Some(worker);
+        let mut pool = prepared.workers.lock().unwrap();
+        if pool.generation == generation {
+            pool.idle.push(worker);
+        }
         bench_mark(bench, "prepared_worker");
         Ok(proposal)
     }
 
-    fn checked_error(&mut self, code: &str) -> Result<Vec<u8>> {
-        if let Some(response) = self.error_replies.get(code) {
+    fn checked_error(&self, snapshot: &Snapshot, code: &str) -> Result<Vec<u8>> {
+        let mut replies = self.error_replies.lock().unwrap();
+        if let Some(response) = replies.get(code) {
             diagnostic(format_args!("checked denial memo hit: {code}"));
             return Ok(response.clone());
         }
@@ -864,8 +875,8 @@ impl Database {
         let input = packet(
             &metadata,
             &packet(
-                &self.registry,
-                &packet(&self.snapshot.authentication_root(None), &[]),
+                &self.registry.read().unwrap().bytes,
+                &packet(&snapshot.authentication_root(None), &[]),
             ),
         );
         let output = self.control.run(&input, self.threads)?;
@@ -883,8 +894,7 @@ impl Database {
                 "invalid checked denial response",
             ));
         }
-        self.error_replies
-            .insert(code.to_owned(), response.to_vec());
+        replies.insert(code.to_owned(), response.to_vec());
         Ok(response.to_vec())
     }
 
@@ -907,7 +917,10 @@ impl Database {
             metadata.extend_from_slice(&(field.len() as u64).to_be_bytes());
             metadata.extend_from_slice(field);
         }
-        let input = packet(&metadata, &packet(&self.registry, &packet(root, body)));
+        let input = packet(
+            &metadata,
+            &packet(&self.registry.read().unwrap().bytes, &packet(root, body)),
+        );
         let output = self.control.run(&input, self.threads)?;
         match output.first() {
             Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
@@ -940,7 +953,7 @@ impl Database {
         }
     }
 
-    fn control_operation(&mut self, root: &[u8], body: &[u8]) -> Result<Decision> {
+    fn control_operation(&self, root: &[u8], body: &[u8]) -> Result<Decision> {
         match self.run_control(root, body, "", &[], &[])? {
             ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
             ControlDecision::Remove {
@@ -950,10 +963,11 @@ impl Database {
             } => {
                 // Install the checked removal before artifact cleanup: a cleanup
                 // failure must never restore execution authority.
-                self.registry = registry;
-                match self.prepared.remove(&handle) {
+                let mut registered = self.registry.write().unwrap();
+                registered.bytes = registry;
+                match registered.prepared.remove(&handle) {
                     Some(mut artifact) => {
-                        artifact.worker.take();
+                        artifact.workers.get_mut().unwrap().retire();
                         if let Err(error) = artifact.directory.remove() {
                             diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
                         }
@@ -968,7 +982,7 @@ impl Database {
         }
     }
 
-    fn serve(&mut self) -> Result<()> {
+    fn serve(&self) -> Result<()> {
         serve_serial(
             PollInput(io::stdin()),
             &mut io::stdout().lock(),
@@ -976,12 +990,6 @@ impl Database {
             |body| self.request(body),
         )
     }
-}
-
-// Administrator diagnostics use a modulo-2^64 counter. Semantic run/world/time
-// indices in the proofs are independent of this finite display identifier.
-fn advance_inspection_sequence(sequence: &mut u64) {
-    *sequence = sequence.wrapping_add(1);
 }
 
 fn inspect_snapshot(
@@ -1036,22 +1044,79 @@ fn request_fields(body: &[u8]) -> Option<(String, String, String)> {
 }
 
 impl Database {
-    // One complete request, including cleanup, durable publication and timing.
-    fn request(&mut self, body: &[u8]) -> Result<Vec<u8>> {
-        let mut attempt = self.timing.as_ref().map(|timing| timing.selected());
-        let proposal = self.propose(body, &mut attempt);
-        let timing = self.timing.clone();
-        let response = self.publish_with_ready(proposal, || {
-            if let (Some(timing), Some(attempt)) = (&timing, attempt.take()) {
-                timing.completed(attempt);
+    // One timing record per request, including retries but excluding delivery.
+    fn request(&self, body: &[u8]) -> Result<Vec<u8>> {
+        const SHARED_RETRIES: usize = 3;
+        static INSPECTION_REQUEST: AtomicU64 = AtomicU64::new(1);
+
+        // Route control opcodes to exclusive execution; checked Dispatch
+        // still parses the envelope and decides whether the request is valid.
+        let mut exclusive = matches!(body, [7, 0 | 2, ..]);
+        let mut permit = self.gate.enter(exclusive);
+        let mut attempt = self.timing.as_ref().map(Timing::selected);
+        let inspection_id = self
+            .inspector
+            .as_ref()
+            .map(|_| INSPECTION_REQUEST.fetch_add(1, Ordering::Relaxed));
+        let mut retries = 0;
+        loop {
+            let snapshot = self.committer.read();
+            let proposal = self.propose(&snapshot, body, &mut attempt, inspection_id);
+            let diagnostic = proposal
+                .as_ref()
+                .err()
+                .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
+            let mut bench = bench_start();
+            let outcome = self.resolve(&snapshot, proposal);
+            bench_mark(&mut bench, "publication");
+            drop(snapshot);
+            match outcome {
+                Ok(None) if !exclusive => {
+                    retries += 1;
+                    if let Some(attempt) = &mut attempt {
+                        attempt.retry();
+                    }
+                    drop(permit);
+                    exclusive = retries == SHARED_RETRIES;
+                    permit = self.gate.enter(exclusive);
+                }
+                outcome => {
+                    let outcome = outcome.and_then(|completed| {
+                        completed.ok_or_else(|| {
+                            Error::new("HOST_STORE", "conflict during exclusive execution")
+                        })
+                    });
+                    self.record_timing(attempt, outcome.as_ref().map_or(0, |done| done.wal_batch));
+                    let done = outcome?;
+                    return self.finish(done, inspection_id, diagnostic);
+                }
             }
-        });
-        // Fatal uncertainty can return before result-ready. Record the finished
-        // service once, without implying acknowledgment or rollback.
-        if let (Some(timing), Some(attempt)) = (&timing, attempt) {
-            timing.completed(attempt);
         }
-        response
+    }
+
+    fn record_timing(&self, attempt: Option<Attempt>, wal_batch: usize) {
+        if let (Some(timing), Some(attempt)) = (&self.timing, attempt) {
+            timing.completed(attempt, wal_batch);
+        }
+    }
+
+    fn finish(
+        &self,
+        completed: Completed,
+        inspection_id: Option<u64>,
+        diagnostic: Option<Value>,
+    ) -> Result<Vec<u8>> {
+        storage::fault_point("after_publish").map_err(storage::uncertain)?;
+        if self.inspector.is_some() {
+            self.inspect(
+                &completed.snapshot,
+                true,
+                serde_json::json!({
+                    "event": "completed", "request": inspection_id, "diagnostic": diagnostic
+                }),
+            );
+        }
+        Ok(completed.response)
     }
 }
 
@@ -1077,6 +1142,8 @@ struct Options {
     source: PathBuf,
     kernel: PathBuf,
     inspect_socket: Option<PathBuf>,
+    listen: Option<PathBuf>,
+    concurrency: usize,
     threads: usize,
     timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
@@ -1094,12 +1161,25 @@ fn default_threads() -> usize {
 }
 
 fn parse_threads(value: &OsStr) -> Result<usize> {
+    parse_count("--threads", value)
+}
+
+fn parse_concurrency(value: &OsStr) -> Result<usize> {
+    parse_count("--concurrency", value)
+}
+
+fn parse_count(option: &str, value: &OsStr) -> Result<usize> {
     value
         .to_str()
         .filter(|text| !text.is_empty() && text.bytes().all(|byte| byte.is_ascii_digit()))
         .and_then(|text| text.parse::<usize>().ok())
         .filter(|count| (1..=MAX_THREADS).contains(count))
-        .ok_or_else(|| Error::new("ARGUMENT", "--threads must be an integer from 1 to 128"))
+        .ok_or_else(|| {
+            Error::new(
+                "ARGUMENT",
+                format!("{option} must be an integer from 1 to 128"),
+            )
+        })
 }
 
 fn parse_gpu(value: &OsStr) -> Result<usize> {
@@ -1131,7 +1211,9 @@ impl Options {
         let mut configuration = None;
         let mut seed = None;
         let mut inspect_socket = None;
-        let mut threads = default_threads();
+        let mut listen = None;
+        let mut concurrency = None;
+        let mut threads = None;
         let mut gpu_mib = 0;
         let mut timing_log = None;
         let mut storage = None;
@@ -1142,7 +1224,7 @@ impl Options {
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in complete-image persistence; create requires a new directory, open requires its authoritative snapshot and the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--threads N  Native CPU workers per process, 1 to 128 (default: available CPU parallelism, capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--listen SOCKET] [--concurrency N] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket ADMIN_SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in WAL persistence; create requires a new directory, open requires the exact same environment/executable\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--listen SOCKET  Serve FIFO sessions on a Unix socket (default: stdin/stdout)\n--concurrency N  Maximum active socket transactions, 1 to 128 (default: available CPUs, capped at 128)\n--threads N  Native CPU workers per process, 1 to 128 (default: 1 for concurrent execution, otherwise available CPUs capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
                 );
                 return Ok(None);
             }
@@ -1156,7 +1238,9 @@ impl Options {
                 Some("--bendtt") => kernel = PathBuf::from(value),
                 Some("--inspect-socket") => inspect_socket = Some(PathBuf::from(value)),
                 Some("--timing-log") => timing_log = Some(PathBuf::from(value)),
-                Some("--threads") => threads = parse_threads(&value)?,
+                Some("--listen") => listen = Some(PathBuf::from(value)),
+                Some("--concurrency") => concurrency = Some(parse_concurrency(&value)?),
+                Some("--threads") => threads = Some(parse_threads(&value)?),
                 Some("--gpu") => gpu_mib = parse_gpu(&value)?,
                 Some("--storage") => storage = Some(PathBuf::from(value)),
                 Some("--storage-mode") => {
@@ -1202,6 +1286,18 @@ impl Options {
                 },
             ));
         }
+        let concurrency = if listen.is_some() && gpu_mib == 0 {
+            concurrency.unwrap_or_else(default_threads)
+        } else {
+            1
+        };
+        let threads = threads.unwrap_or_else(|| {
+            if concurrency > 1 {
+                1
+            } else {
+                default_threads()
+            }
+        });
         Ok(Some(Self {
             root,
             configuration: fs::canonicalize(
@@ -1212,6 +1308,8 @@ impl Options {
             source: fs::canonicalize(source)?,
             kernel: fs::canonicalize(kernel)?,
             inspect_socket,
+            listen,
+            concurrency,
             threads,
             timing_log,
             storage,
@@ -1223,7 +1321,12 @@ impl Options {
 fn main() {
     let result = (|| -> Result<()> {
         if let Some(options) = Options::read()? {
-            Database::initialize(options)?.serve()?;
+            let listen = options.listen.clone();
+            let database = Database::initialize(options)?;
+            match listen {
+                Some(path) => session::listen(database, &path)?,
+                None => database.serve()?,
+            }
         }
         Ok(())
     })();
@@ -1252,7 +1355,7 @@ mod tests {
         assert_eq!(sealed[0].0, path);
         assert_eq!(sealed[0].1.as_slice(), original);
         let prepared = PreparedProgram {
-            worker: None,
+            workers: Mutex::default(),
             directory,
             program: Program {
                 path: PathBuf::new(),
@@ -1309,6 +1412,30 @@ mod tests {
                 .gpu_mib,
             0
         );
+        let socket_arguments = [
+            arguments.clone(),
+            vec![
+                "--listen".into(),
+                "jaydb.sock".into(),
+                "--concurrency".into(),
+                "4".into(),
+            ],
+        ]
+        .concat();
+        let socket = Options::read_from(socket_arguments.clone())
+            .unwrap()
+            .unwrap();
+        assert_eq!((socket.concurrency, socket.threads), (4, 1));
+        let gpu = Options::read_from(
+            [
+                socket_arguments,
+                vec!["--threads".into(), "8".into(), "--gpu".into(), "64".into()],
+            ]
+            .concat(),
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!((gpu.concurrency, gpu.threads), (1, 8));
         for count in [1, 8, 128] {
             arguments.extend(["--threads".into(), count.to_string().into()]);
             assert_eq!(
@@ -1611,6 +1738,8 @@ mod tests {
         let (inspector, mut observer) = UnixStream::pair().unwrap();
         observer.set_nonblocking(true).unwrap();
         let mut db = Database {
+            committer: Committer::start(snapshot, Some(storage)).unwrap(),
+            registry: RwLock::default(),
             directory,
             stage: PathBuf::new(),
             source: PathBuf::new(),
@@ -1621,50 +1750,47 @@ mod tests {
                 gpu: None,
             },
             limits,
-            snapshot,
-            inspector: Some(inspector),
-            inspection_sequence: u64::MAX,
-            prepared: HashMap::new(),
+            inspector: Some(Mutex::new(Inspector {
+                stream: Some(inspector),
+                sequence: u64::MAX,
+            })),
             control: Program {
                 path: PathBuf::new(),
                 sha256: String::new(),
                 gpu: None,
             },
-            registry: Vec::new(),
-            error_replies: HashMap::new(),
+            error_replies: Mutex::default(),
+            gate: session::Gate::new(1),
             threads: 1,
             timing: None,
-            storage: Some(storage),
             gpu_mib: 0,
         };
-        let mut notified = false;
         let response = error_frame("success");
-        let transaction = test_write(&db.snapshot);
-        assert_eq!(
-            db.publish_with_ready(
+        let snapshot = db.committer.read();
+        let transaction = test_write(&snapshot);
+        let completed = db
+            .resolve(
+                &snapshot,
                 Ok(Decision::Success {
                     transaction,
                     response: response.clone(),
-                    commit: true
+                    commit: true,
                 }),
-                || {
-                    notified = true;
-                    assert!(path.join("segment-1").metadata().unwrap().len() > 0);
-                    let mut byte = [0];
-                    assert_eq!(
-                        observer.read(&mut byte).unwrap_err().kind(),
-                        io::ErrorKind::WouldBlock
-                    );
-                }
             )
-            .unwrap(),
-            response
+            .unwrap()
+            .unwrap();
+        drop(snapshot);
+        assert!(path.join("segment-1").metadata().unwrap().len() > 0);
+        assert_eq!(
+            observer.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
         );
-        assert!(notified);
-        let committed = db.snapshot.save();
-        assert!(db.snapshot.authenticate("new-token").is_some());
-        assert_eq!(db.inspection_sequence, 0);
-        drop(db.storage.take());
+        assert_eq!(db.finish(completed, None, None).unwrap(), response);
+        let committed = db.committer.read().save();
+        assert!(db.committer.read().authenticate("new-token").is_some());
+        assert_eq!(db.inspector.as_ref().unwrap().lock().unwrap().sequence, 0);
+        let volatile = Committer::start(db.committer.read().clone(), None).unwrap();
+        drop(std::mem::replace(&mut db.committer, volatile));
         let (_reopened, recovered) = storage::Durable::start(
             &path,
             storage::Mode::Open,
@@ -1697,10 +1823,10 @@ mod tests {
         .unwrap();
         for code in ["PRIMARY_CHECK", "HANDLE", "PREPARED_INTEGRITY"] {
             assert_eq!(
-                db.publish(Err(Error::new(code, "test failure"))).unwrap(),
+                publish(&db, Err(Error::new(code, "test failure"))).unwrap(),
                 forwarded
             );
-            assert_eq!(db.snapshot.save(), committed);
+            assert_eq!(db.committer.read().save(), committed);
             let input = fs::read(executable.with_extension("input")).unwrap();
             let (metadata, rest) = split(&input).unwrap();
             let mut expected = vec![4];
@@ -1708,7 +1834,7 @@ mod tests {
             expected.extend_from_slice(code.as_bytes());
             assert_eq!(metadata, expected);
             let (registry, rest) = split(rest).unwrap();
-            assert_eq!(registry, db.registry);
+            assert_eq!(registry, db.registry.read().unwrap().bytes);
             let (root, body) = split(rest).unwrap();
             assert_eq!(root, initial);
             assert!(body.is_empty());
@@ -1722,12 +1848,12 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            db.publish(Err(Error::new("HOST_IO", "rejected"))).unwrap(),
+            publish(&db, Err(Error::new("HOST_IO", "rejected"))).unwrap(),
             error_frame("failure")
         );
-        assert_eq!(db.snapshot.save(), committed);
+        assert_eq!(db.committer.read().save(), committed);
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-        assert!(!db.error_replies.contains_key("HOST_IO"));
+        assert!(!db.error_replies.lock().unwrap().contains_key("HOST_IO"));
         // A later successful exact-code reply must replace neither a prepared
         // entry nor a fallback; only this checked reply is memoized.
         let host_io_reply = error_frame("host-io-specific");
@@ -1737,7 +1863,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            db.publish(Err(Error::new("HOST_IO", "retry"))).unwrap(),
+            publish(&db, Err(Error::new("HOST_IO", "retry"))).unwrap(),
             host_io_reply
         );
         let input = fs::read(executable.with_extension("input")).unwrap();
@@ -1747,25 +1873,30 @@ mod tests {
         fs::remove_file(&executable).unwrap();
         for _ in 0..2 {
             assert_eq!(
-                db.publish(Err(Error::new("UNSEEN_CODE", "rejected")))
-                    .unwrap(),
+                publish(&db, Err(Error::new("UNSEEN_CODE", "rejected"))).unwrap(),
                 error_frame("failure")
             );
-            assert_eq!(db.snapshot.save(), committed);
+            assert_eq!(db.committer.read().save(), committed);
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-            assert!(!db.error_replies.contains_key("UNSEEN_CODE"));
+            assert!(!db.error_replies.lock().unwrap().contains_key("UNSEEN_CODE"));
         }
         assert_eq!(
-            db.publish(Err(Error::new("HOST_IO", "memoized"))).unwrap(),
+            publish(&db, Err(Error::new("HOST_IO", "memoized"))).unwrap(),
             host_io_reply
         );
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         for code in ["PRIMARY_CHECK", "HANDLE", "PREPARED_INTEGRITY"] {
             let error = Error::new(code, "physical prepared failure");
-            assert_eq!(db.publish(Err(error)).unwrap(), forwarded);
-            assert_eq!(db.snapshot.save(), committed);
+            assert_eq!(publish(&db, Err(error)).unwrap(), forwarded);
+            assert_eq!(db.committer.read().save(), committed);
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         }
+    }
+
+    fn publish(db: &Database, proposal: Result<Decision>) -> Result<Vec<u8>> {
+        let snapshot = db.committer.read();
+        let completed = db.resolve(&snapshot, proposal)?.unwrap();
+        db.finish(completed, None, None)
     }
 
     #[test]

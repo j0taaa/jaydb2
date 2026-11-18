@@ -42,11 +42,43 @@ pub enum FrameEvent {
 pub fn coordinate(
     queue: &FrameQueue,
     output: &mut impl io::Write,
+    request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
+    terminal_response: impl Fn(&str) -> Vec<u8>,
+) -> crate::Result<()> {
+    respond(|| queue.select(), output, request, terminal_response)
+}
+
+pub fn serve_stream(
+    stream: &UnixStream,
+    limit: u64,
+    request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
+    terminal_response: impl Fn(&str) -> Vec<u8>,
+) -> crate::Result<()> {
+    let mut input = stream;
+    let mut output = stream;
+    respond(
+        || {
+            let mut read =
+                |buffer: &mut [u8]| read_up_to(|part| io::Read::read(&mut input, part), buffer);
+            match frame_size(&mut read, limit).and_then(|size| frame_body(&mut read, size)) {
+                Ok(body) => FrameEvent::Request(body),
+                Err(end) => FrameEvent::End(end),
+            }
+        },
+        &mut output,
+        request,
+        terminal_response,
+    )
+}
+
+fn respond(
+    mut select: impl FnMut() -> FrameEvent,
+    output: &mut impl io::Write,
     mut request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
     loop {
-        let (response, terminal) = match queue.select() {
+        let (response, terminal) = match select() {
             FrameEvent::Request(body) => (request(&body)?, false),
             FrameEvent::End(InputEnd::Eof) => return Ok(()),
             FrameEvent::End(InputEnd::Failed(error)) => return Err(error),
@@ -216,13 +248,12 @@ impl Drop for FrameQueue {
 }
 
 fn read_up_to(
-    input: &mut impl FrameInput,
-    cancel: &UnixStream,
+    mut read: impl FnMut(&mut [u8]) -> io::Result<usize>,
     mut buffer: &mut [u8],
 ) -> io::Result<usize> {
     let expected = buffer.len();
     while !buffer.is_empty() {
-        match input.read(buffer, cancel) {
+        match read(buffer) {
             Ok(0) => break,
             Ok(quantity) => buffer = &mut buffer[quantity..],
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
@@ -232,6 +263,49 @@ fn read_up_to(
     Ok(expected - buffer.len())
 }
 
+fn frame_size(
+    read: &mut impl FnMut(&mut [u8]) -> io::Result<usize>,
+    limit: u64,
+) -> Result<usize, InputEnd> {
+    let mut header = [0; 8];
+    match read(&mut header) {
+        Ok(0) => return Err(InputEnd::Eof),
+        Ok(8) => (),
+        Ok(_) => return Err(InputEnd::Framing("input")),
+        Err(error) => return Err(InputEnd::Failed(error.into())),
+    }
+    let size = u64::from_be_bytes(header);
+    if size > limit {
+        return Err(InputEnd::Framing("limit"));
+    }
+    match usize::try_from(size) {
+        Ok(size) if size <= isize::MAX as usize => Ok(size),
+        _ => Err(InputEnd::Failed(crate::Error::new(
+            "HOST_TRANSPORT",
+            "message length is not allocatable",
+        ))),
+    }
+}
+
+fn frame_body(
+    read: &mut impl FnMut(&mut [u8]) -> io::Result<usize>,
+    size: usize,
+) -> Result<Vec<u8>, InputEnd> {
+    let mut body = Vec::new();
+    body.try_reserve_exact(size).map_err(|_| {
+        InputEnd::Failed(crate::Error::new(
+            "HOST_TRANSPORT",
+            "cannot allocate message body",
+        ))
+    })?;
+    body.resize(size, 0);
+    match read(&mut body) {
+        Ok(quantity) if quantity == size => Ok(body),
+        Ok(_) => Err(InputEnd::Framing("input")),
+        Err(error) => Err(InputEnd::Failed(error.into())),
+    }
+}
+
 fn receive(
     mut input: impl FrameInput,
     cancel: &UnixStream,
@@ -239,7 +313,7 @@ fn receive(
     bounds: QueueBounds,
     shared: &Shared,
 ) -> InputEnd {
-    let read = |input: &mut _, buffer: &mut [u8]| read_up_to(input, cancel, buffer);
+    let mut read = |buffer: &mut [u8]| read_up_to(|part| input.read(part, cancel), buffer);
     loop {
         {
             let mut state = shared.state.lock().unwrap();
@@ -252,25 +326,9 @@ fn receive(
             state.items += 1;
             shared.changed.notify_all();
         }
-        let mut header = [0; 8];
-        match read(&mut input, &mut header) {
-            Ok(0) => return InputEnd::Eof,
-            Ok(8) => (),
-            Ok(_) => return InputEnd::Framing("input"),
-            Err(error) => return InputEnd::Failed(error.into()),
-        }
-        let size = u64::from_be_bytes(header);
-        if size > limit {
-            return InputEnd::Framing("limit");
-        }
-        let size = match usize::try_from(size) {
-            Ok(size) if size <= isize::MAX as usize => size,
-            _ => {
-                return InputEnd::Failed(crate::Error::new(
-                    "HOST_TRANSPORT",
-                    "message length is not allocatable",
-                ));
-            }
+        let size = match frame_size(&mut read, limit) {
+            Ok(size) => size,
+            Err(end) => return end,
         };
         {
             let mut state = shared.state.lock().unwrap();
@@ -284,19 +342,10 @@ fn receive(
             state.bytes += size;
             shared.changed.notify_all();
         }
-        let mut body = Vec::new();
-        if body.try_reserve_exact(size).is_err() {
-            return InputEnd::Failed(crate::Error::new(
-                "HOST_TRANSPORT",
-                "cannot allocate message body",
-            ));
-        }
-        body.resize(size, 0);
-        match read(&mut input, &mut body) {
-            Ok(quantity) if quantity == size => (),
-            Ok(_) => return InputEnd::Framing("input"),
-            Err(error) => return InputEnd::Failed(error.into()),
-        }
+        let body = match frame_body(&mut read, size) {
+            Ok(body) => body,
+            Err(end) => return end,
+        };
         let mut state = shared.state.lock().unwrap();
         if state.stopped {
             return InputEnd::Eof;

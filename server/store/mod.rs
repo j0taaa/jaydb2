@@ -122,6 +122,14 @@ pub struct Snapshot {
     credential_lsn: OrdMap<String, u64>,
 }
 
+fn recent_versions(versions: &OrdMap<String, u64>, oldest: u64) -> OrdMap<String, u64> {
+    versions
+        .iter()
+        .filter(|(_, lsn)| **lsn > oldest)
+        .map(|(key, lsn)| (key.clone(), *lsn))
+        .collect()
+}
+
 impl Snapshot {
     fn blank(schema: Schema, lsn: u64) -> Self {
         let mut collections = OrdMap::new();
@@ -254,6 +262,16 @@ impl Snapshot {
 
     pub fn lsn(&self) -> u64 {
         self.lsn
+    }
+
+    /// A validator only needs to see writes strictly after its starting LSN.
+    pub fn prune_versions(&mut self, oldest: u64) {
+        let collections: Vec<_> = self.collections.keys().cloned().collect();
+        for collection in collections {
+            let table = self.collections.get_mut(&collection).unwrap();
+            table.last_write = recent_versions(&table.last_write, oldest);
+        }
+        self.credential_lsn = recent_versions(&self.credential_lsn, oldest);
     }
 
     pub fn canonical_size(&self) -> u64 {

@@ -5,6 +5,10 @@ import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { createServer } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Client, TransportError, ProtocolError, frame, unframe } from '../src/index.ts';
 import type { Value } from '../src/index.ts';
 
@@ -176,4 +180,30 @@ test('abort after owned process completion never signals a stale process group',
   client.abort();
   assert.deepEqual(signals, []);
   await client.close();
+});
+
+test('connect uses Unix framing and drains FIFO replies after closing requests', { timeout: 2000 }, async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'jaydb-client-'));
+  const socketPath = join(directory, 'socket');
+  const received: Buffer[] = [];
+  const listener = createServer({ allowHalfOpen: true }, socket => {
+    socket.on('data', bytes => received.push(bytes));
+    socket.on('end', () => socket.end(Buffer.concat([
+      frame({ status: 'success', value: 'first' }), frame({ status: 'success', value: 'second' }),
+    ])));
+  });
+  listener.listen(socketPath);
+  await once(listener, 'listening');
+  const client = Client.connect({ socketPath });
+  try {
+    const replies = Promise.all([client.request(request('first')), client.request(request('second'))]);
+    const closing = client.close();
+    assert.deepEqual(await replies, [{ status: 'success', value: 'first' }, { status: 'success', value: 'second' }]);
+    await closing;
+    assert.deepEqual(Buffer.concat(received), Buffer.concat([frame(request('first')), frame(request('second'))]));
+  } finally {
+    client.abort();
+    await new Promise<void>(resolve => listener.close(() => resolve()));
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

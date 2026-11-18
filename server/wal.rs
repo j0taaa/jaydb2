@@ -60,11 +60,28 @@ pub struct Recovered {
 pub struct Log {
     path: PathBuf,
     directory: File,
-    _owner: File,
     // Only checkpoint callers take this lock. They take writer briefly before
     // writing the snapshot and again after its directory entry is durable.
     checkpoints: Mutex<Checkpoints>,
     writer: Mutex<Writer>,
+    _owner: Owner,
+}
+
+struct Owner(File);
+
+impl Owner {
+    fn lock(file: File) -> io::Result<Self> {
+        file.try_lock()?;
+        Ok(Self(file))
+    }
+}
+
+impl Drop for Owner {
+    fn drop(&mut self) {
+        // A concurrent fork can hold the same open file description until
+        // exec. Release the lock when the host drops ownership.
+        let _ = self.0.unlock();
+    }
 }
 
 struct Checkpoints {
@@ -97,9 +114,8 @@ impl Log {
         if fs::read_dir(path)?.next().transpose()?.is_some() {
             return Err(input_error("WAL directory must be empty"));
         }
-        let owner = new_file(&path.join(OWNER))?;
-        owner.try_lock()?;
-        owner.sync_all()?;
+        let owner = Owner::lock(new_file(&path.join(OWNER))?)?;
+        owner.0.sync_all()?;
         let parent = path
             .parent()
             .filter(|parent| !parent.as_os_str().is_empty())
@@ -128,8 +144,7 @@ impl Log {
         let directory = open_directory(path)?;
         let owner_path = path.join(OWNER);
         require_file(&owner_path)?;
-        let owner = OpenOptions::new().read(true).write(true).open(owner_path)?;
-        owner.try_lock()?;
+        let owner = Owner::lock(OpenOptions::new().read(true).write(true).open(owner_path)?)?;
 
         let mut checkpoints = numbered_files(path, "checkpoint-")?;
         let newest_checkpoint = checkpoints

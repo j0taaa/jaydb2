@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { constants } from 'node:buffer';
+import { createConnection } from 'node:net';
 import type { Readable, Writable } from 'node:stream';
 import { decode, frame, preparedFrame } from './codec.ts';
 import type { Value } from './codec.ts';
@@ -32,6 +33,11 @@ export interface ClientOptions {
   /** Local bound on outstanding requests. Default 64. */
   maxPendingRequests?: number;
 }
+export interface ConnectOptions {
+  socketPath: string;
+  maxResponseBytes?: number;
+  maxPendingRequests?: number;
+}
 export interface SpawnOptions {
   command: string;
   args?: readonly string[];
@@ -53,7 +59,7 @@ function limits(options: Pick<ClientOptions, 'maxResponseBytes' | 'maxPendingReq
   return [response, pending];
 }
 
-/** FIFO client for one existing pipe session. No reconnect, retry or reprepare. */
+/** FIFO client for one session. No reconnect, retry or reprepare. */
 export class Client {
   #input: Writable;
   #output: Readable;
@@ -104,6 +110,13 @@ export class Client {
       this.#fail(new TransportError('Cannot attach to closed pipes; request was not submitted'));
   }
 
+  static connect(options: ConnectOptions): Client {
+    limits(options);
+    const socket = createConnection({ path: options.socketPath });
+    return new Client({ input: socket, output: socket,
+      maxResponseBytes: options.maxResponseBytes, maxPendingRequests: options.maxPendingRequests });
+  }
+
   static spawn(options: SpawnOptions): Client {
     limits(options); // Reject bad options before starting a process.
     const child = spawn(options.command, [...options.args ?? []], {
@@ -150,7 +163,7 @@ export class Client {
     return this.#send(preparedFrame(2, request.handle, request.credential));
   }
 
-  /** Close stdin, drain accepted responses, then await process exit. No deadline. */
+  /** End requests, drain accepted responses, then await any owned process. No deadline. */
   close(): Promise<void> {
     if (!this.#closePromise) {
       this.#closing = true;

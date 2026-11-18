@@ -98,27 +98,33 @@ the same ABI but serve one request and exit.
 
 ### 3. Transactions and concurrency
 
-* Each connection is a FIFO session: its next request starts after the previous
-  one has committed or been discarded. This keeps today's semantics for a single
-  client, including stdin/stdout mode. `--listen SOCKET` accepts many
-  connections on a Unix socket; different connections run concurrently.
-* Optimistic concurrency control. A transaction records what it observed:
-  `(collection, key)` for cell/existence reads, the whole collection's
-  membership for count/keys, the credential entry for authentication. At commit
-  it is valid iff nothing committed after its snapshot changed anything it
-  observed. Then its write set is applied; otherwise it is discarded and
-  re-executed on a fresh snapshot (programs are pure and deterministic, nothing
-  was published).
-* Why the theorems still hold: every execution reads one consistent snapshot of
-  a valid published state, so every prefix (including discarded runs) is a
-  genuine trace covered by the certificate. A validated transaction observed
-  exactly what it would observe on the state at its commit point, so its trace
-  and writes are those of a serial execution in commit order (strict
-  serializability).
-* A single committer thread validates, logs and publishes, batching commits so
-  one `fdatasync` covers many transactions (group commit). A response is sent
-  only after its commit is durable; a read-only response waits until the
-  snapshot it read is durable.
+* Each connection is a FIFO session. A session writes the response before
+  starting its next request. Stdin/stdout remains one session. `--listen SOCKET`
+  serves the same frames over a Unix socket, with one thread per connection.
+* `--concurrency N` bounds simultaneous socket transactions, including direct
+  compilation. The default is available CPU parallelism, capped at 128. Prepared
+  handles start workers on demand and reuse idle workers. A handle can grow up
+  to the execution bound. With concurrent execution each native process defaults
+  to one Bend runtime thread unless `--threads` is set. CUDA uses one execution
+  slot per instance.
+* Optimistic concurrency control. A transaction records the rows, collection
+  membership and credentials it observes. At commit its observations and written
+  rows are checked against writes since its snapshot. Conflicts rerun the whole
+  request on a fresh snapshot. After three conflicts a request queues for
+  exclusive execution, as do prepares and invalidations. Once queued,
+  exclusive work runs in FIFO order ahead of new shared attempts.
+* A single committer validates pending writes against the successive snapshots
+  in commit order. It appends the accepted write sets in one WAL batch and
+  publishes the final snapshot after the batch is durable. Responses are ready
+  only after that publication. Read-only successes answer from their already
+  durable snapshot, consuming no LSN or WAL record.
+* Every attempt reads a consistent snapshot of a valid published state, so
+  each prefix is a trace covered by the certificate. A validated write observes
+  what it would observe at its commit point. A read-only call takes effect at its
+  snapshot acquisition. This makes the execution strictly serializable.
+* The host pins snapshot LSNs through execution and commit. Every 256 write
+  commits, it prunes row and credential versions at or before the oldest pinned
+  LSN. No active transaction needs those versions for validation.
 
 ### 4. Durability and failures (`server/wal.rs`)
 
@@ -129,8 +135,10 @@ the same ABI but serve one request and exit.
 * Recovery loads the newest valid checkpoint and replays later records in LSN
   order. A torn or corrupt record at the tail is discarded (it was never
   acknowledged); corruption followed by valid records refuses to open.
-* Checkpoints are written from an O(1) snapshot in the background (temp file,
-  fsync, rename, fsync directory); older log segments are deleted afterwards.
+* Checkpoints are scheduled from the final snapshot of a batch when it crosses
+  a 256-commit boundary and the checkpoint queue has room. The background
+  writer saves a temp file, syncs it, renames it and syncs the directory before
+  reclaiming older log segments.
 
 Guarantees:
 

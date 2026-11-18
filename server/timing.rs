@@ -43,8 +43,14 @@ pub struct Attempt {
     started: Duration,
     sequence: u64,
     principal: Option<String>,
+    retries: usize,
 }
 impl Attempt {
+    pub fn retry(&mut self) {
+        self.retries += 1;
+        self.principal = None;
+    }
+
     pub fn authenticated(&mut self, principal: &str) {
         assert!(self.principal.is_none(), "authenticate each attempt once");
         self.principal = Some(principal.to_owned());
@@ -76,10 +82,11 @@ impl Timing {
             started: self.clock.now(),
             sequence: self.next.fetch_add(1, Ordering::Relaxed),
             principal: None,
+            retries: 0,
         }
     }
 
-    pub fn completed(&self, attempt: Attempt) {
+    pub fn completed(&self, attempt: Attempt, wal_batch: usize) {
         // Stamp before serializing or waiting for the log lock, and before any
         // client delivery. A slow administrator sink adds no service time.
         let elapsed = self
@@ -91,7 +98,9 @@ impl Timing {
             "format": "jaydb-service-timing-v1",
             "sequence": attempt.sequence,
             "principal": attempt.principal,
-            "elapsed_ns": elapsed.as_nanos().to_string()
+            "elapsed_ns": elapsed.as_nanos().to_string(),
+            "retries": attempt.retries,
+            "wal_batch": wal_batch
         }))
         .expect("timing JSON serialization");
         bytes.push(b'\n');
@@ -131,12 +140,12 @@ mod tests {
         let mut first = timing.selected();
         first.authenticated("alice");
         clock.store(540, Ordering::SeqCst);
-        timing.completed(first);
+        timing.completed(first, 0);
         clock.store(550, Ordering::SeqCst);
         let mut second = timing.selected();
         second.authenticated("bob");
         clock.store(565, Ordering::SeqCst);
-        timing.completed(second);
+        timing.completed(second, 0);
         clock.store(999, Ordering::SeqCst); // Delivery does not alter records.
         let records: Vec<serde_json::Value> = std::fs::read_to_string(path)
             .unwrap()
@@ -159,8 +168,8 @@ mod tests {
         let timing = Timing::open(&path).unwrap();
         let mut authenticated = timing.selected();
         authenticated.authenticated("");
-        timing.completed(authenticated);
-        timing.completed(timing.selected());
+        timing.completed(authenticated, 0);
+        timing.completed(timing.selected(), 0);
         let records: Vec<serde_json::Value> = std::fs::read_to_string(path)
             .unwrap()
             .lines()

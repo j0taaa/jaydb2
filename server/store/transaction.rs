@@ -208,6 +208,10 @@ impl Transaction {
         Ok(())
     }
 
+    pub fn has_writes(&self) -> bool {
+        !self.overlay.is_empty()
+    }
+
     /// Return final row changes for the WAL. Only publish them after commit succeeds.
     pub fn write_set(&self) -> Vec<Write> {
         self.overlay

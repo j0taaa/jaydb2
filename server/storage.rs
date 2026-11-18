@@ -1,5 +1,5 @@
-use crate::store::{Schema, Snapshot, Write as StoreWrite};
-use crate::wal::{Log, Record, WriteEntry};
+use crate::store::{Schema, Snapshot};
+use crate::wal::{Log, Record};
 use crate::{Error, Limits, Result, diagnostic};
 use std::path::Path;
 use std::sync::{Arc, mpsc};
@@ -104,23 +104,13 @@ impl Durable {
         ))
     }
 
-    pub fn append(&self, lsn: u64, writes: Vec<StoreWrite>) -> Result<()> {
-        let writes = writes
-            .into_iter()
-            .map(|(collection, key, row)| WriteEntry {
-                collection,
-                key,
-                row,
-            })
-            .collect();
-        self.log
-            .append(&[Record::Commit { lsn, writes }])
-            .map_err(uncertain)?;
+    pub fn append(&self, records: &[Record]) -> Result<()> {
+        self.log.append(records).map_err(uncertain)?;
         fault_point("before_publish").map_err(uncertain)
     }
 
-    pub fn checkpoint(&self, state: &Snapshot) -> Result<()> {
-        if state.lsn().is_multiple_of(CHECKPOINT_INTERVAL) {
+    pub fn checkpoint(&self, previous_lsn: u64, state: &Snapshot) -> Result<()> {
+        if previous_lsn / CHECKPOINT_INTERVAL != state.lsn() / CHECKPOINT_INTERVAL {
             let checkpoints = self.checkpoints.as_ref().expect("checkpoint thread active");
             match checkpoints.try_send(state.clone()) {
                 Ok(()) | Err(mpsc::TrySendError::Full(_)) => (),

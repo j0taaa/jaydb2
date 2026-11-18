@@ -133,7 +133,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
             self.addCleanup(retry.close)
             self.assertEqual(retry.call(code, proof, 'alice-token', args),
                              dict(status='success', value='v:lost'), retry.diagnostics())
-            self.assertEqual(list(wal_records(storage)), commits+[(2, [])])
+            self.assertEqual(list(wal_records(storage)), commits)
             self.assertEqual(retry.call(code, proof, 'alice-token', conflict),
                              dict(status='refusal', value='request conflict'))
             self.assertEqual(retry.call(code, proof, 'alice-token', ['inspect','lost']),
@@ -141,8 +141,8 @@ class ReceiptRecoveryTests(unittest.TestCase):
             self.assertEqual(retry.call(code, proof, 'alice-token', ['inspect','later']),
                              dict(status='success', value=None))
             self.assertEqual(state_bytes(storage), committed)
-            self.assertEqual(list(wal_records(storage)), commits+[(2, []), (3, []), (4, [])],
-                             'receipt hits and reads must not log any row writes')
+            self.assertEqual(list(wal_records(storage)), commits,
+                             'receipt hits and reads must leave the WAL unchanged')
             retry.finish()
 
 

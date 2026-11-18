@@ -55,16 +55,14 @@ See [the web demo](demo/README.md) for its interface and limits.
 - **[Receipt application](applications/vouchers/README.md):** application-level
   idempotency with exact inputs, current permissions and ordinary tables/laws.
 
-The service uses stdin/stdout rather than a network listener. TypeScript web
-applications can host the client in their Node backend; the client does not
-expose the database directly to a browser or add a network security policy.
+The service uses stdin/stdout by default. Use `--listen SOCKET` for local
+Unix socket sessions and `Client.connect({socketPath})` from a Node backend.
 
 ## Existing database capabilities
 
-Requests are FIFO and serial by default. The host bounds queued work and applies
-pipe backpressure. The host owns an indexed state snapshot and answers data
-operations from checked native workers. Direct calls compile one-request
-workers and prepared handles reuse workers across calls.
+Each session processes requests in FIFO order. Socket sessions can run
+concurrently against the host's indexed snapshots. Direct calls compile
+one-request workers and prepared handles reuse a pool of workers.
 
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
   a universally certified program once, then execute its instance-local handle
@@ -79,8 +77,9 @@ workers and prepared handles reuse workers across calls.
   `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
   Queue waiting and response delivery are excluded. Client bytes are unchanged.
 
-Requests are processed serially. `--threads N` selects 1–128 native CPU workers
-per process.
+`--concurrency N` bounds active socket transactions, defaulting to available
+CPUs with a cap of 128. `--threads N` selects 1–128 Bend runtime threads per
+process, defaulting to one during concurrent execution.
 
 The CPU capabilities above do not require CUDA. Opt-in experimental GPU
 programs (`--gpu MiB`) are described below; there is no Bend host replacement

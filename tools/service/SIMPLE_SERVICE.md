@@ -51,8 +51,8 @@ task application's `Policy.bend`.
 ## Call path
 
 The [prepared-program extension](PREPARED_PROGRAMS.md) checks a universal
-certificate at registration. The host starts one worker per handle on its
-first call and reuses it until invalidation or failure. Ordinary calls still
+certificate at registration. The host starts workers for each handle on
+demand, up to the execution bound, and reuses them until invalidation or failure. Ordinary calls still
 check and compile each concrete certificate and run a one-request worker.
 
 The host loads the canonical initial state into an indexed snapshot. A checked
@@ -88,32 +88,32 @@ the returned registry bytes, manages admitted artifacts and copies receipts.
 `ControlTheorem` and the mixed service fold cover those decisions; physical
 artifact integrity/cleanup and external process failures remain host duties.
 
-The serial coordinator completes execution, cleanup, and publication, then
-writes and flushes the response before selecting another request. Uncertain
-publication terminates service without a response. Prepared registry mutations
-remain inside the same exclusively owned service.
-No identity is computed/cached by the framing reader.
+Each session completes execution, cleanup and publication, then writes and
+flushes the response before selecting another request. Stdin/stdout is the
+default single session. `--listen SOCKET` serves multiple FIFO sessions on a
+Unix socket with the same frames. Socket threads read one message at a time
+and leave later frames in the socket receive buffer. Choose a new socket path
+or remove the stale socket file after stopping the service before rebinding.
 
-Queue reservations include a body currently being read: at most 8 items and
-`max(min(message limit, isize::MAX), 1 MiB)` body bytes, plus one header and one terminal slot.
-With serial execution there is one additional active request of at most the message limit, and one
-ready/emitting response subject to the existing logical response checks (or a
-fixed canonical error). The published snapshot, proposal/worker intermediates,
-prepared registry, allocator overhead and OS pipe buffers retain their existing
-costs; this is not a total-process memory ceiling. All canonical uint64 message
-limits remain valid; the accounting ceiling is not an upfront allocation. An
-actual unallocatable body under the logical limit terminates as an ordered
-technical transport failure without a false canonical limit response.
+A shared execution gate limits active transactions, and gives exclusive
+operations priority over new shared attempts. Prepare and invalidate run
+exclusively. The committer revalidates write transactions against the latest
+staged snapshot, in order. A conflict reruns the whole request from a fresh
+snapshot. After three conflicts a request runs exclusively. Direct workers
+are reaped before response readiness. Prepared workers are retired when
+their handles are invalidated, after a worker failure, or on shutdown.
 
-Clean EOF drains complete requests. Partial header/body, oversize declarations
-and input IO failure become terminal events behind earlier complete frames;
-only the coordinator may emit the canonical terminal input/limit response.
-Input IO failure retains its fatal behavior after preceding responses. No
-terminal event bypasses queued service. On output failure, no more work is
-selected and a cancellation socket wakes the reader's polling/capacity waits;
-the reader is joined before the service returns. Direct workers are reaped
-before response readiness. Prepared workers are reaped when their handles
-are invalidated or the service shuts down.
+The stdin framing queue includes a body currently being read. It holds at most
+8 items and `max(min(message limit, isize::MAX), 1 MiB)` body bytes, plus one
+header and one terminal slot. The coordinator can hold one additional request
+and response. Allocation failures for lengths inside the logical limit are
+technical transport failures. Snapshot and worker memory are separate from
+these framing bounds.
+
+Clean EOF drains complete requests. Partial header/body and oversize declarations
+produce terminal input/limit responses after preceding complete frames. Input or
+output I/O failure stops the affected session. In stdin mode a cancellation socket
+wakes the framing reader so it can be joined before the service returns.
 
 Compilation directories receive code, proofs, and public admission data, never
 private state. The seed participates only in initialization and is removed
@@ -125,7 +125,7 @@ The Rust host owns each process and its pipes. The live worker protocol
 alternates request, operation and answer frames through finalization. Startup
 and admission helpers still use concurrent input, output and stderr capture.
 
-The profile is a serial FIFO Linux CLI with trusted tools and host. Its default
+The Linux host supports stdin/stdout and local Unix sockets. Its default
 volatile mode loses RAM data when the host dies. Enable write-ahead logging
 explicitly.
 
@@ -138,10 +138,11 @@ explicitly.
 
 Create requires a new or empty directory with an existing parent. Open
 requires a valid checkpoint and forbids `--seed`. A single owner holds an OS
-lock. Each accepted commit appends one atomic write-set record and synchronizes
-the WAL before publishing the snapshot and delivering the response. This
-includes an empty write set for a successful read. A background thread writes
-a checksummed checkpoint every 256 commits when its queue has room. Recovery
+lock. The committer appends one atomic write-set record per accepted write
+transaction and synchronizes the batch once before publishing its final snapshot
+and releasing the responses. Read-only successes use their already durable
+snapshot and skip the WAL. When a batch crosses a 256-commit boundary and the
+queue has room, a background thread writes a checksummed checkpoint. Recovery
 loads a valid checkpoint, replays later records and truncates a torn WAL tail.
 WAL I/O failures stop the service without a response. Users and application
 tables, including any idempotency receipts, survive restart. Prepared handles
@@ -155,16 +156,21 @@ development database explicitly after changing its frozen environment. Process d
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
-receive the official `--threads N --gpu off` options by default. CPU workers default to
-the host's available parallelism, capped at 128 (one if detection fails).
-The host's `--threads N` option accepts 1–128 and applies to all native stages,
-including prepared execution. Each native process uses the selected budget.
-Publication and response delivery remain owned by the coordinator.
+receive the official `--threads N --gpu off` options by default. For CPU socket
+sessions, `--concurrency N` accepts 1–128 and defaults to available CPU
+parallelism capped at 128. With more than one execution slot, each Bend
+process defaults to one runtime thread. With one slot, it defaults to the
+same available CPU count. `--threads N` overrides the native thread budget
+for all stages. The committer owns publication and each session owns its
+response delivery.
 Installation of these tools is part of the trusted environment.
 
 Optional [administrator timing](SERVICE_TIMING.md) records monotonic elapsed
 service time through cleanup and result readiness, before response delivery.
-It changes no client responses or admission decisions. This integration has no quota policy.
+Each record includes the count of OCC `retries` and the `wal_batch` size
+(zero unless a durable batch published the write). The inspection socket emits
+complete metadata/state pairs, with the snapshot's `lsn` and a `request` ID
+that links concurrent events and retries.
 
 ## Verification and remaining host obligations
 
