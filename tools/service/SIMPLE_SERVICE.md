@@ -69,14 +69,14 @@ task application's public helpers using `applications.tasks.app.prepare`.
 
 The [prepared-program extension](PREPARED_PROGRAMS.md) checks a universal
 certificate at registration. The host starts workers for each handle on
-demand, up to the execution bound, and reuses them until invalidation or failure. Ordinary calls still
-check and compile each concrete certificate and run a one-request worker.
+demand and reuses workers from the instance-wide idle pool. Ordinary calls
+still check and compile each concrete certificate and run a one-request worker.
 
 The host loads the canonical initial state into an indexed snapshot. A checked
 startup executable exports the configuration's schema, and the host checks
 that the exported schema and state fit the store's representation. The
-framing reader queues complete original bodies. Concrete admission and
-controls use checked `Dispatch.authentication` with a projection containing
+framing reader queues declarations and reads ahead within its byte budget.
+Concrete admission and controls use checked `Dispatch.authentication` with a projection containing
 the table layout and the matching user, if any. Dispatch checks the envelope,
 including its full length, and decodes it before authentication and admission.
 
@@ -109,23 +109,28 @@ Each session completes execution, cleanup and publication, then writes and
 flushes the response before selecting another request. Stdin/stdout is the
 default single session. `--listen SOCKET` serves multiple FIFO sessions on a
 Unix socket with the same frames. Socket threads read one message at a time
-and leave later frames in the socket receive buffer. Choose a new socket path
+and leave later frames in the socket receive buffer. The host accepts up to
+128 live client sessions and closes extra connections. Choose a new socket path
 or remove the stale socket file after stopping the service before rebinding.
 
 A shared execution gate limits active transactions, and gives exclusive
-operations priority over new shared attempts. Prepare and invalidate run
+operations priority over new shared attempts. Prepare compilation uses a
+separate pool sized to the execution bound. Installation and invalidation run
 exclusively. The committer revalidates write transactions against the latest
 staged snapshot, in order. A conflict reruns the whole request from a fresh
 snapshot. After three conflicts a request runs exclusively. Direct workers
-are reaped before response readiness. Prepared workers are retired when
-their handles are invalidated, after a worker failure, or on shutdown.
+are reaped before response readiness. The instance keeps at most one idle
+prepared worker per execution slot and evicts the least recently used idle
+worker when the pool exceeds that budget. Prepared workers are also retired on
+invalidation, migration, worker failure or shutdown.
 
-The stdin framing queue includes a body currently being read. It holds at most
-8 items and `max(min(message limit, isize::MAX), 1 MiB)` body bytes, plus one
-header and one terminal slot. The coordinator can hold one additional request
-and response. Allocation failures for lengths inside the logical limit are
-technical transport failures. Snapshot and worker memory are separate from
-these framing bounds.
+The stdin framing queue includes a body currently being read ahead. It holds
+at most eight items and 1 MiB of speculative body bytes. A larger body waits
+for dispatch before the reader fetches it. The coordinator accounts for one
+selected request and its response. The current epoch's logical message limit
+is applied at dispatch on both stdin and sockets. Allocation failures for
+lengths inside that limit are technical transport failures. Snapshot and worker
+memory are separate from these framing bounds.
 
 Clean EOF drains complete requests. Partial header/body and oversize declarations
 produce terminal input/limit responses after preceding complete frames. Input or

@@ -1,6 +1,7 @@
 //! Private framed transport for checked, stateless Bend programs.
 use crate::store::{self, Answer, Operation, Snapshot, Transaction, Value};
 use crate::{Error, Limits, Program, Result, split};
+use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{self, BufReader, IoSlice, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd};
@@ -23,6 +24,42 @@ pub struct Worker {
     input: ChildStdin,
     output: BufReader<ChildStdout>,
     errors: File,
+}
+
+pub struct IdleWorkers {
+    limit: usize,
+    workers: VecDeque<(String, Worker)>,
+}
+
+impl IdleWorkers {
+    pub fn new(limit: usize) -> Self {
+        Self {
+            limit,
+            workers: VecDeque::new(),
+        }
+    }
+
+    pub fn take(&mut self, handle: &str) -> Option<Worker> {
+        let index = self.workers.iter().rposition(|(key, _)| key == handle)?;
+        self.workers.remove(index).map(|(_, worker)| worker)
+    }
+
+    pub fn put(&mut self, handle: &str, worker: Worker) -> Option<Worker> {
+        self.workers.push_back((handle.to_owned(), worker));
+        if self.workers.len() > self.limit {
+            self.workers.pop_front().map(|(_, worker)| worker)
+        } else {
+            None
+        }
+    }
+
+    pub fn remove(&mut self, handle: &str) {
+        self.workers.retain(|(key, _)| key != handle);
+    }
+
+    pub fn clear(&mut self) {
+        self.workers.clear();
+    }
 }
 
 impl Worker {
@@ -107,13 +144,18 @@ impl Worker {
             }
             let mut tag = [0];
             self.output.read_exact(&mut tag).map_err(worker_io)?;
-            let frame_limit = match tag[0] {
-                2 => size - 1,
-                0 | 1 | 3 => limits.response.saturating_add(8),
+            // An operation contains one row or value plus its routing fields
+            // and canonical encoding overhead.
+            const OPERATION_OVERHEAD: u64 = 1024;
+            match tag[0] {
+                2 if size - 1 > limits.state.saturating_add(OPERATION_OVERHEAD) => {
+                    return Err(protocol("live operation exceeds the frame budget"));
+                }
+                0 | 1 | 3 if size - 1 > limits.response.saturating_add(8) => {
+                    return Err(protocol("live response exceeds the configured limit"));
+                }
+                0..=3 => (),
                 _ => return Err(protocol("unknown live frame tag")),
-            };
-            if size - 1 > frame_limit {
-                return Err(protocol("live response exceeds the configured limit"));
             }
             let mut payload = Vec::new();
             self.output
@@ -271,4 +313,88 @@ fn worker_io(error: io::Error) -> Error {
 
 fn protocol(message: impl Into<String>) -> Error {
     Error::new("HOST_TRANSPORT", message)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Temporary, error_frame, packet};
+    use sha2::{Digest, Sha256};
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+
+    fn script(directory: &Temporary, name: &str, body: &str) -> Program {
+        let path = directory.path.join(name);
+        let bytes = format!("#!/bin/sh\n{body}\n");
+        fs::write(&path, &bytes).unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        Program {
+            path,
+            sha256: format!("{:x}", Sha256::digest(bytes)),
+            gpu: None,
+        }
+    }
+
+    #[test]
+    fn idle_workers_are_evicted_in_lru_order_across_handles() {
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-idle-test").unwrap();
+        let program = script(&directory, "idle", "read -r request");
+        let mut idle = IdleWorkers::new(2);
+        let first = Worker::spawn(&program, 1).unwrap();
+        let second = Worker::spawn(&program, 1).unwrap();
+        let second_pid = second.child.id();
+        assert!(idle.put("first", first).is_none());
+        assert!(idle.put("second", second).is_none());
+        let reused = idle.take("first").unwrap();
+        assert!(idle.put("first", reused).is_none());
+
+        let third = Worker::spawn(&program, 1).unwrap();
+        let evicted = idle.put("third", third).unwrap();
+        assert_eq!(evicted.child.id(), second_pid);
+        drop(evicted);
+        assert!(idle.take("second").is_none());
+        assert_eq!(idle.workers.len(), 2);
+        assert!(idle.take("first").is_some());
+        idle.remove("third");
+        assert!(idle.workers.is_empty());
+    }
+
+    #[test]
+    fn oversized_operation_retires_worker_before_reading_payload() {
+        fn emit(bytes: &[u8]) -> String {
+            let octets: String = bytes.iter().map(|byte| format!("\\{byte:03o}")).collect();
+            format!("dd bs=1 count=8 of=/dev/null 2>/dev/null\nprintf '{octets}'")
+        }
+
+        let directory = Temporary::new(&std::env::temp_dir(), "jaydb-frame-test").unwrap();
+        let limits = Limits {
+            message: 128,
+            state: 256,
+            response: 128,
+        };
+        let snapshot =
+            Snapshot::empty(store::Schema::new(vec![], limits.state).unwrap(), 0).unwrap();
+        let initial = snapshot.save();
+        let oversized_header = [(limits.state + 1026).to_be_bytes().as_slice(), &[2]].concat();
+        let bad = script(&directory, "oversize", &emit(&oversized_header));
+        let mut worker = Worker::spawn(&bad, 1).unwrap();
+        let Err(error) = worker.run(&bad, true, b"", &snapshot, &limits) else {
+            panic!("oversized declaration reached the transaction");
+        };
+        assert_eq!(error.code, "HOST_TRANSPORT");
+        assert_eq!(error.message, "live operation exceeds the frame budget");
+        assert!(worker.child.try_wait().unwrap().is_some());
+        assert_eq!(snapshot.save(), initial);
+
+        let response = error_frame("input");
+        let good_frame = packet(&[&[0], response.as_slice()].concat(), &[]);
+        let good = script(&directory, "valid", &emit(&good_frame));
+        let mut worker = Worker::spawn(&good, 1).unwrap();
+        let Decision::Keep { response: actual } =
+            worker.run(&good, true, b"", &snapshot, &limits).unwrap()
+        else {
+            panic!("expected worker to return the input response");
+        };
+        assert_eq!(actual, response);
+    }
 }

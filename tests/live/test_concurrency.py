@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
+import shutil
 import signal
 import socket
 import tempfile
@@ -40,11 +41,11 @@ def exchange(stream, message):
 
 
 class Listener(Server):
-    def __init__(self, root, *, mode='create'):
+    def __init__(self, root, *, mode='create', concurrency=16, env=None):
         self.endpoint = root / f'{mode}.sock'
         self.timing = root / f'{mode}.ndjson'
-        super().__init__(APP, seed=mode == 'create', env=dict(os.environ, TMPDIR=str(root)),
-                         arguments=['--listen', str(self.endpoint), '--concurrency', '16',
+        super().__init__(APP, seed=mode == 'create', env=env or dict(os.environ, TMPDIR=str(root)),
+                         arguments=['--listen', str(self.endpoint), '--concurrency', str(concurrency),
                                     '--storage', str(root / 'db'), '--storage-mode', mode,
                                     '--timing-log', str(self.timing)])
 
@@ -84,7 +85,6 @@ class ConcurrencyTests(unittest.TestCase):
         root = tempfile.TemporaryDirectory(prefix='jaydb-conc-', dir='/tmp')
         self.addCleanup(root.cleanup)
         self.root = Path(root.name)
-        self.server = self.start()
 
     def start(self, mode='create'):
         server = Listener(self.root, mode=mode)
@@ -102,7 +102,44 @@ class ConcurrencyTests(unittest.TestCase):
         with ThreadPoolExecutor(clients) as workers:
             return [reply for replies in workers.map(run, range(clients)) for reply in replies]
 
+    def test_warm_read_completes_while_prepare_is_compiling(self):
+        node = self.root / 'node'
+        node.write_text(
+            '#!/bin/sh\n'
+            'if [ "$3" = live-prepare ] && [ -f "$JAYDB_TEST_PREPARE_BLOCK" ]; then\n'
+            '  touch "$JAYDB_TEST_PREPARE_STARTED"\n'
+            '  while [ -f "$JAYDB_TEST_PREPARE_BLOCK" ]; do sleep 0.025; done\n'
+            'fi\n'
+            'exec "$JAYDB_TEST_REAL_NODE" "$@"\n')
+        node.chmod(0o700)
+        block = self.root / 'block-prepare'
+        started = self.root / 'prepare-started'
+        server = Listener(self.root, concurrency=1, env=dict(
+            os.environ, TMPDIR=str(self.root), PATH=str(self.root) + os.pathsep + os.environ['PATH'],
+            JAYDB_TEST_REAL_NODE=shutil.which('node'), JAYDB_TEST_PREPARE_BLOCK=str(block),
+            JAYDB_TEST_PREPARE_STARTED=str(started)))
+        self.addCleanup(server.close)
+        with server.session() as warm, server.session() as preparing, ThreadPoolExecutor(1) as pool:
+            handle = server.prepare(warm)
+            query = execute(handle, 'counter')
+            self.assertEqual(exchange(warm, query), {'status': 'success', 'value': 0})
+            block.touch()
+            pending = pool.submit(server.prepare, preparing)
+            try:
+                deadline = monotonic() + 30
+                while not started.exists():
+                    self.assertFalse(pending.done(), server.diagnostics())
+                    self.assertLess(monotonic(), deadline, 'prepare did not enter native admission')
+                    sleep(0.025)
+                warm.settimeout(5)
+                self.assertEqual(exchange(warm, query), {'status': 'success', 'value': 0})
+                self.assertFalse(pending.done(), 'prepare finished before the warm response')
+            finally:
+                block.unlink()
+            self.assertNotEqual(pending.result(180), handle)
+
     def test_read_only_fifo_lost_updates_and_transfers(self):
+        self.server = self.start()
         with self.server.session() as stream:
             handle = self.server.prepare(stream)
             query = execute(handle, 'counter')
@@ -164,6 +201,7 @@ class ConcurrencyTests(unittest.TestCase):
                          self.server.diagnostics())
 
     def test_sigkill_during_durable_transfers(self):
+        self.server = self.start()
         with self.server.session() as stream:
             handle = self.server.prepare(stream)
         message = execute(handle, ['left', 'right'])

@@ -5,7 +5,7 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::fs;
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -32,31 +32,28 @@ impl Socket {
     pub fn start(&self, database: &Arc<Database>) -> Result<()> {
         let listener = self.listener.try_clone()?;
         let database = Arc::downgrade(database);
-        thread::Builder::new().name("jaydb-admin".into()).spawn(move || {
-            for client in listener.incoming() {
-                match client {
-                    Ok(mut client) => {
-                        let result = request(&client).and_then(|(configuration, migration)| {
-                            let database = database.upgrade()
-                                .ok_or_else(|| Error::new("ADMIN", "service is shutting down"))?;
-                            database.migrate(Path::new(&configuration), Path::new(&migration))
-                        });
-                        let response = match result {
-                            Ok(lsn) => json!({"status": "success", "lsn": lsn}),
-                            Err(error) => json!({"status": "error", "code": error.code, "message": error.message}),
-                        };
-                        if let Err(error) = writeln!(client, "{response}") {
-                            diagnostic(format_args!("ADMIN: {error}"));
+        thread::Builder::new()
+            .name("jaydb-admin".into())
+            .spawn(move || {
+                loop {
+                    let mut client = crate::session::accept(&listener, "ADMIN");
+                    let result = request(&client).and_then(|(configuration, migration)| {
+                        let database = database
+                            .upgrade()
+                            .ok_or_else(|| Error::new("ADMIN", "service is shutting down"))?;
+                        database.migrate(Path::new(&configuration), Path::new(&migration))
+                    });
+                    let response = match result {
+                        Ok(lsn) => json!({"status": "success", "lsn": lsn}),
+                        Err(error) => {
+                            json!({"status": "error", "code": error.code, "message": error.message})
                         }
-                    }
-                    Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(error) => {
+                    };
+                    if let Err(error) = writeln!(client, "{response}") {
                         diagnostic(format_args!("ADMIN: {error}"));
-                        return;
                     }
                 }
-            }
-        })?;
+            })?;
         Ok(())
     }
 }
@@ -137,9 +134,10 @@ impl Database {
         if let Err(error) = self.committer.publish_epoch(snapshot, descriptor, state) {
             fail_stop(error);
         }
+        self.idle_workers.lock().unwrap().clear();
         registry.prepared.clear();
-        registry.bytes = retired;
-        *active = environment;
+        registry.bytes = retired.into();
+        *active = Arc::new(environment);
         if let Err(error) = storage::fault_point("after_publish").map_err(storage::uncertain) {
             fail_stop(error);
         }

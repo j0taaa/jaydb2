@@ -94,25 +94,42 @@ gives `limit`.
 A persistent worker loops: read request → run → answer operations → write the
 final frame → read the next request; EOF ends the process. Direct (ordinary)
 programs bake the request's context and arguments into their Book, so they use
-the same ABI but serve one request and exit.
+the same ABI but serve one request and exit. An operation payload is limited
+to the configured state size plus 1 KiB of framing and routing overhead. A
+larger operation frame is a protocol violation and the host kills the worker.
+
+Execution has no time budget. A stalled worker blocks its session and any
+queued exclusive work, including prepare installation and migration, until it
+ends.
 
 ### 3. Transactions and concurrency
 
 * Each connection is a FIFO session. A session writes the response before
   starting its next request. Stdin/stdout remains one session. `--listen SOCKET`
-  serves the same frames over a Unix socket, with one thread per connection.
+  serves the same frames over a Unix socket, with one thread per connection
+  and up to 128 live client sessions. Extra connections are closed. Transient
+  accept failures are logged and retried.
 * `--concurrency N` bounds simultaneous socket transactions, including direct
   compilation. The default is available CPU parallelism, capped at 128. Prepared
-  handles start workers on demand and reuse idle workers. A handle can grow up
-  to the execution bound. With concurrent execution each native process defaults
-  to one Bend runtime thread unless `--threads` is set. CUDA uses one execution
-  slot per instance.
+  handles start workers on demand and reuse idle workers. The instance keeps
+  at most one idle worker per execution slot and evicts the least recently used
+  idle worker whenever the pool exceeds that budget. With concurrent execution,
+  each native process defaults to one Bend runtime thread unless `--threads`
+  is set. CUDA uses one execution slot per instance.
 * Optimistic concurrency control. A transaction records the rows, collection
   membership and credentials it observes. At commit its observations and written
   rows are checked against writes since its snapshot. Conflicts rerun the whole
   request on a fresh snapshot. After three conflicts a request queues for
-  exclusive execution, as do prepares and invalidations. Once queued,
-  exclusive work runs in FIFO order ahead of new shared attempts.
+  exclusive execution. Invalidations and prepare installation also queue for
+  exclusive execution, which runs in FIFO order ahead of new shared attempts.
+  Prepare stages, checks and compiles against a pinned environment in a separate
+  pool sized to the execution bound. Installation checks that the epoch, registry
+  and authentication view still match the controller's inputs. If any changed,
+  the prepare returns `failure` and the registration is discarded.
+* The dispatcher applies the active epoch's message limit to each selected
+  declaration in FIFO order. An oversized declaration receives the canonical
+  `limit` response and ends the session. Stdin can read ahead up to eight items
+  and 1 MiB of bodies. Larger bodies wait for dispatch before being read.
 * A single committer validates pending writes against the successive snapshots
   in commit order. It appends the accepted write sets in one WAL batch and
   publishes the final snapshot after the batch is durable. Responses are ready
@@ -128,17 +145,20 @@ the same ABI but serve one request and exit.
 
 ### 4. Durability and failures (`server/wal.rs`)
 
-* Storage directory: `checkpoint-<lsn>` (canonical state bytes, LSN,
-  configuration descriptor, checksum) and a write-ahead log of records
-  `length || crc32c || lsn || kind || payload`. A commit record holds the write
-  set: `(collection, key, row canonical bytes | removed)`.
+* Storage contains `checkpoint-<lsn>` (canonical state bytes, LSN,
+  configuration descriptor, checksum) and a write-ahead log with one frame per
+  append batch. The frame starts with a length and CRC-32, followed by the
+  records. The first record repeats the batch length after its LSN and kind.
+  The checksum covers the entire frame body. A commit record holds the write
+  set `(collection, key, row canonical bytes | removed)`.
 * Recovery loads the newest valid checkpoint and replays later records in LSN
-  order. A torn or corrupt record at the tail is discarded (it was never
-  acknowledged); corruption followed by valid records refuses to open.
+  order. Recovery discards a torn or corrupt tail batch in full and refuses
+  to open if a valid batch follows the corruption.
 * Checkpoints are scheduled from the final snapshot of a batch when it crosses
   a 256-LSN boundary and the checkpoint queue has room. The background
-  writer saves a temp file, syncs it, renames it and syncs the directory before
-  reclaiming older log segments.
+  writer saves a temp file, syncs it, renames it and syncs the directory.
+  It keeps the two most recent checkpoints and reclaims only segments fully
+  covered by the older one.
 
 Guarantees:
 
@@ -198,6 +218,14 @@ mismatch when its descriptor differs. Administrators can migrate in volatile
 mode too, with the same cutover semantics in memory.
 
 ## Trust changes (honest list)
+
+The checked remote refinement proof connects the worker's reply decoder to
+`S.step` when the host applies `D.operate` to the transaction's current working
+state and sends the ABI-ordered answer within the worker's wire and count
+bounds. For finite prefixes with representable exchanges, the proof transfers
+certificate coverage and preserves the working state, operation events and
+terminal response proposal. The Rust operation-frame decoder and answer encoder
+remain part of the trusted host bridge.
 
 New trusted host code, supported by tests rather than proofs:
 

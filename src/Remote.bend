@@ -60,17 +60,24 @@ def fields(fs: List<&2, D.Field>) -> P.Partial:
 # A record's payload is a sequence of text-name/value pairs. Reframe the
 # outer record as a list of those elements for the canonical decoder. The
 # continuation checks the exact list shape, including each name and order.
-def answer_fields(ok: Bool, n: U32, rest: List<&2, U32>) -> Codec.Outcome:
+def answer_list(ok: Bool, n: U32, rest: List<&2, U32>) -> Maybe<&2, List<&2, U32>>:
   match ok:
-    case True{}: Codec.decode(Con{5, B.concatenate(B.be64(0, (n * 2 : U32)), rest)},
-      B.Number64{4294967295, 4294967295})
-    case False{}: Codec.Input{}
+    case True{}: Some{Con{5, B.concatenate(B.be64(0, (n * 2 : U32)), rest)}}
+    case False{}: None{}
 
-def answer(bytes: List<&2, U32>) -> Codec.Outcome:
+def answer_payload(bytes: List<&2, U32>) -> Maybe<&2, List<&2, U32>>:
   match bytes:
     case Con{6, Con{0, Con{0, Con{0, Con{0, Con{0, Con{0, Con{0, +n <> rest}}}}}}}}:
-      answer_fields(U32.is_le(n, 4), n, rest)
-    case _: Codec.Input{}
+      answer_list(U32.is_le(n, 4), n, rest)
+    case _: None{}
+
+def decode_answer(bytes: Maybe<&2, List<&2, U32>>) -> Codec.Outcome:
+  match bytes:
+    case Some{bs}: Codec.decode(bs, B.Number64{4294967295, 4294967295})
+    case None{}: Codec.Input{}
+
+def answer(bytes: List<&2, U32>) -> Codec.Outcome:
+  decode_answer(answer_payload(bytes))
 
 def final_bytes(tag: U32, bytes: Maybe<&2, List<&2, U32>>) -> Iteration:
   match bytes:
@@ -108,13 +115,14 @@ def error(status: S.Status) -> Iteration:
 # Answers are checked against the particular pending operation. A valid
 # data_error ends the request without invoking the program's continuation.
 # Bend's native Nat is limited to 48 bits in this toolchain version.
-def count(ok: Bool, high: U32, low: U32) -> Maybe<&2, S.Return>:
+def count_words(high: U32, low: U32, radix: Nat) -> Maybe<&2, S.Return>:
+  Some{S.Datum{D.Count{Nat.add(Nat.mul(U32.to_nat(high), radix), U32.to_nat(low))}}}
+
+def count(ok: Bool, high: U32, low: U32, half: U32) -> Maybe<&2, S.Return>:
   match ok:
     case True{}:
-      # Convert word literals at runtime to keep the BendTT term compact.
-      +half_word = U32.to_nat(65536)
-      word = Nat.mul(half_word, half_word)
-      Some{S.Datum{D.Count{Nat.add(Nat.mul(U32.to_nat(high), word), U32.to_nat(low))}}}
+      +half_word = U32.to_nat(half)
+      count_words(high, low, Nat.mul(half_word, half_word))
     case False{}: None{}
 
 def keys(strings: Maybe<&2, List<&2, String>>) -> Maybe<&2, S.Return>:
@@ -144,7 +152,8 @@ def observed(o: D.Operation, +result: String, fields: D.Value) -> Maybe<&2, S.Re
     case D.ViewExistence{_, _} D.VList{D.VText{name}, D.VList{D.VBool{exists}, D.VListEmpty{}}}:
       returned(named(result, "existence", name, "exists"), S.Datum{D.Existence{exists}})
     case D.CountRows{_} D.VList{D.VText{name}, D.VList{D.VInt{+high, low}, D.VListEmpty{}}}:
-      count(named(result, "count", name, "count") && U32.is_lt(high, 65536), high, low)
+      # Convert the word literal at runtime to keep the BendTT term compact.
+      count(named(result, "count", name, "count") && U32.is_lt(high, 65536), high, low, 65536)
     case D.EnumerateKeys{_} D.VList{D.VText{name}, D.VList{xs, D.VListEmpty{}}}:
       keys_result(named(result, "keys", name, "keys"), xs)
     case D.DefineRow{_, _, _} D.VListEmpty{}: returned(String.eq(result, "changed"), S.UnitValue{})
@@ -152,29 +161,34 @@ def observed(o: D.Operation, +result: String, fields: D.Value) -> Maybe<&2, S.Re
     case D.RemoveRow{_, _} D.VListEmpty{}: returned(String.eq(result, "changed"), S.UnitValue{})
     case _ _: None{}
 
-def resume(value: Maybe<&2, S.Return>, k: S.Return -> Iteration) -> Iteration:
+def resume(-A: Type, value: Maybe<&2, S.Return>, invalid: A, k: S.Return -> A) -> A:
   match value:
     case Some{r}: k(r)
-    case None{}: Inconsistent{}
+    case None{}: invalid
 
-def operation_result(valid: Bool, data_error: Bool, o: D.Operation, result: String,
-  fields: D.Value, k: S.Return -> Iteration) -> Iteration:
+def operation_result(-A: Type, valid: Bool, data_error: Bool, o: D.Operation, result: String,
+  fields: D.Value, invalid: A, failure: Unit -> A, k: S.Return -> A) -> A:
   match valid data_error:
-    case False{} _: Inconsistent{}
-    case True{} True{}: error(S.DataError{})
-    case True{} False{}: resume(observed(o, result, fields), k)
+    case False{} _: invalid
+    case True{} True{}: failure(Unit{})
+    case True{} False{}: resume(A, observed(o, result, fields), invalid, k)
 
 def empty_fields(fields: D.Value) -> Bool:
   match fields:
     case D.VListEmpty{}: True{}
     case _: False{}
 
-def answer_operation(o: D.Operation, reply: Codec.Outcome, k: S.Return -> Iteration) -> Iteration:
+# The reply classifier is shared by execution and the refinement model.
+def decode_operation(-A: Type, o: D.Operation, reply: Codec.Outcome,
+  invalid: A, failure: Unit -> A, k: S.Return -> A) -> A:
   match reply:
     case Codec.Decoded{D.VList{D.VText{name}, D.VList{D.VText{+result}, +fields}}}:
-      operation_result(String.eq(name, "result"), String.eq(result, "data_error") && empty_fields(fields),
-        o, result, fields, k)
-    case _: Inconsistent{}
+      operation_result(A, String.eq(name, "result"), String.eq(result, "data_error") && empty_fields(fields),
+        o, result, fields, invalid, failure, k)
+    case _: invalid
+
+def answer_operation(o: D.Operation, reply: Codec.Outcome, k: S.Return -> Iteration) -> Iteration:
+  decode_operation(Iteration, o, reply, Inconsistent{}, _ => error(S.DataError{}), k)
 
 def ask_operation(encoded: Maybe<&2, List<&2, U32>>, pending: Pending) -> Iteration:
   match encoded:
@@ -267,9 +281,12 @@ def registered_packet(~c: S.Configuration, parts: Maybe<&2, T.Parts>, code: Stri
       decoded(Dispatch.execution(Dispatch.received(S.limits(c), body, D.State{Nil{}, Nil{}})),
         Some{Worker.registry_entries(ControlBridge.decode_registry(registry))}, Worker.artifact_oracle(code, proof, admit))
 
+def reply_operation(op: D.Operation, k: S.Return -> S.Action, limit: Nat, bytes: List<&2, U32>) -> Iteration:
+  answer_operation(op, answer(bytes), r => run(k(r), limit))
+
 def reply(~c: S.Configuration, pending: Pending, bytes: List<&2, U32>) -> Iteration:
   match pending:
     case AuthenticationReply{credential, raw, entries, admit}:
       answer_authentication(answer(bytes), credential, ctx => authenticated(c, ctx, raw, entries, admit))
     case OperationReply{op, k, limit}:
-      answer_operation(op, answer(bytes), r => run(k(r), limit))
+      reply_operation(op, k, limit, bytes)

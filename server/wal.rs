@@ -13,8 +13,9 @@ const CHECKPOINT_MAGIC: &[u8] = b"jaydb2-wal-checkpoint-v1\n";
 const CHECKPOINT_TEMP: &str = ".checkpoint.tmp";
 const OWNER: &str = "owner.lock";
 const FRAME_HEADER: usize = 8;
-const RECORD_HEADER: usize = 8 + 1 + 4; // LSN, kind, repeated payload length
-const MIN_FRAME: usize = FRAME_HEADER + RECORD_HEADER + 4;
+const RECORD_HEADER: usize = 8 + 1; // LSN, kind
+const REPEATED_LENGTH: usize = FRAME_HEADER + RECORD_HEADER;
+const MIN_FRAME: usize = REPEATED_LENGTH + 4 + 4;
 const COMMIT: u8 = 1;
 const EPOCH: u8 = 2;
 
@@ -185,48 +186,50 @@ impl Log {
             let mut torn = false;
             while offset < bytes.len() {
                 let remaining = &bytes[offset..];
-                let Some((size, record)) = decode_frame(remaining) else {
+                let Some((size, records)) = decode_batch(remaining) else {
                     // A fully initialized segment may have a zero-filled suffix.
                     if bytes.len() as u64 == SEGMENT_SIZE && remaining.iter().all(|&byte| byte == 0)
                     {
                         break;
                     }
-                    if !is_tail || has_later_frame(remaining) {
+                    if !is_tail || has_later_batch(remaining) {
                         return Err(invalid(format!(
-                            "corrupt WAL record in segment {first} at byte {offset}"
+                            "corrupt WAL batch in segment {first} at byte {offset}"
                         )));
                     }
                     torn = true;
                     break;
                 };
-                let lsn = record.lsn();
-                if last.checked_add(1) != Some(lsn) {
-                    return Err(invalid(format!(
-                        "WAL LSN gap or overlap in segment {first} after {last}, found {lsn}"
-                    )));
-                }
-                last = lsn;
                 offset += size;
-                if lsn <= checkpoint_lsn {
-                    continue;
-                }
-                if recovered.lsn.checked_add(1) != Some(lsn) {
-                    return Err(invalid(format!(
-                        "WAL LSN gap or overlap after {}, found {lsn}",
-                        recovered.lsn
-                    )));
-                }
-                match record {
-                    Record::Commit { writes, .. } => recovered.commits.push((lsn, writes)),
-                    Record::Epoch {
-                        descriptor, state, ..
-                    } => {
-                        recovered.descriptor = descriptor;
-                        recovered.state = state;
-                        recovered.commits.clear();
+                for record in records {
+                    let lsn = record.lsn();
+                    if last.checked_add(1) != Some(lsn) {
+                        return Err(invalid(format!(
+                            "WAL LSN gap or overlap in segment {first} after {last}, found {lsn}"
+                        )));
                     }
+                    last = lsn;
+                    if lsn <= checkpoint_lsn {
+                        continue;
+                    }
+                    if recovered.lsn.checked_add(1) != Some(lsn) {
+                        return Err(invalid(format!(
+                            "WAL LSN gap or overlap after {}, found {lsn}",
+                            recovered.lsn
+                        )));
+                    }
+                    match record {
+                        Record::Commit { writes, .. } => recovered.commits.push((lsn, writes)),
+                        Record::Epoch {
+                            descriptor, state, ..
+                        } => {
+                            recovered.descriptor = descriptor;
+                            recovered.state = state;
+                            recovered.commits.clear();
+                        }
+                    }
+                    recovered.lsn = lsn;
                 }
-                recovered.lsn = lsn;
             }
             if is_tail {
                 tail = Some((first, last, offset as u64, bytes.len() as u64, torn));
@@ -286,7 +289,7 @@ impl Log {
         ))
     }
 
-    /// Append a consecutive batch using one data sync. An I/O failure poisons the writer.
+    /// Append a consecutive batch as one checksummed frame with one data sync.
     pub fn append(&self, records: &[Record]) -> io::Result<()> {
         let mut writer = self.writer.lock().unwrap();
         if writer.failed {
@@ -296,7 +299,6 @@ impl Log {
             return Ok(());
         };
         let mut last = writer.lsn;
-        let mut bytes = Vec::new();
         for record in records {
             if last.checked_add(1) != Some(record.lsn()) {
                 return Err(input_error(format!(
@@ -305,8 +307,8 @@ impl Log {
                 )));
             }
             last = record.lsn();
-            encode_frame(&mut bytes, record)?;
         }
+        let bytes = encode_batch(records)?;
         if let Err(error) = self.write_batch(&mut writer, first, last, &bytes) {
             writer.failed = true;
             return Err(error);
@@ -366,8 +368,7 @@ impl Log {
         }
         if lsn > checkpoints.latest {
             self.write_checkpoint(lsn, descriptor, state)?;
-            // Keep the preceding checkpoint when retained WAL can bridge to
-            // the newer one. Cleanup retries keep the same two checkpoints.
+            // Keep the preceding checkpoint and the WAL needed to replay from it.
             checkpoints.oldest = checkpoints.latest;
             checkpoints.latest = lsn;
         }
@@ -386,7 +387,7 @@ impl Log {
             writer
                 .closed
                 .iter()
-                .take_while(|&&(_, last)| last <= checkpoints.latest)
+                .take_while(|&&(_, last)| last <= checkpoints.oldest)
                 .map(|&(first, _)| first)
                 .collect::<Vec<_>>()
         };
@@ -509,42 +510,44 @@ fn input_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidInput, message.into())
 }
 
-fn encode_frame(bytes: &mut Vec<u8>, record: &Record) -> io::Result<()> {
-    let start = bytes.len();
-    bytes.extend_from_slice(&[0; FRAME_HEADER]);
-    bytes.extend_from_slice(&record.lsn().to_be_bytes());
-    bytes.push(match record {
-        Record::Commit { .. } => COMMIT,
-        Record::Epoch { .. } => EPOCH,
-    });
-    let repeated_length = bytes.len();
-    bytes.extend_from_slice(&[0; 4]);
-    match record {
-        Record::Commit { writes, .. } => {
-            bytes.extend_from_slice(&length(writes.len())?.to_be_bytes());
-            for write in writes {
-                put_optional(bytes, write.collection.as_deref().map(str::as_bytes))?;
-                put_blob(bytes, write.key.as_bytes())?;
-                put_optional(bytes, write.row.as_deref())?;
+fn encode_batch(records: &[Record]) -> io::Result<Vec<u8>> {
+    let mut bytes = vec![0; FRAME_HEADER];
+    for (index, record) in records.iter().enumerate() {
+        bytes.extend_from_slice(&record.lsn().to_be_bytes());
+        bytes.push(match record {
+            Record::Commit { .. } => COMMIT,
+            Record::Epoch { .. } => EPOCH,
+        });
+        if index == 0 {
+            bytes.extend_from_slice(&[0; 4]);
+        }
+        match record {
+            Record::Commit { writes, .. } => {
+                bytes.extend_from_slice(&length(writes.len())?.to_be_bytes());
+                for write in writes {
+                    put_optional(&mut bytes, write.collection.as_deref().map(str::as_bytes))?;
+                    put_blob(&mut bytes, write.key.as_bytes())?;
+                    put_optional(&mut bytes, write.row.as_deref())?;
+                }
+            }
+            Record::Epoch {
+                descriptor, state, ..
+            } => {
+                put_blob(&mut bytes, descriptor)?;
+                put_blob(&mut bytes, state)?;
             }
         }
-        Record::Epoch {
-            descriptor, state, ..
-        } => {
-            put_blob(bytes, descriptor)?;
-            put_blob(bytes, state)?;
-        }
     }
-    let size = length(bytes.len() - start - FRAME_HEADER)?.to_be_bytes();
-    bytes[repeated_length..repeated_length + 4].copy_from_slice(&size);
-    let crc = crc32fast::hash(&bytes[start + FRAME_HEADER..]);
-    bytes[start..start + 4].copy_from_slice(&size);
-    bytes[start + 4..start + FRAME_HEADER].copy_from_slice(&crc.to_be_bytes());
-    Ok(())
+    let size = length(bytes.len() - FRAME_HEADER)?.to_be_bytes();
+    bytes[REPEATED_LENGTH..REPEATED_LENGTH + 4].copy_from_slice(&size);
+    let crc = crc32fast::hash(&bytes[FRAME_HEADER..]);
+    bytes[..4].copy_from_slice(&size);
+    bytes[4..FRAME_HEADER].copy_from_slice(&crc.to_be_bytes());
+    Ok(bytes)
 }
 
 fn length(len: usize) -> io::Result<u32> {
-    u32::try_from(len).map_err(|_| input_error("WAL record exceeds the format size limit"))
+    u32::try_from(len).map_err(|_| input_error("WAL data exceeds the format size limit"))
 }
 
 fn put_blob(bytes: &mut Vec<u8>, value: &[u8]) -> io::Result<()> {
@@ -563,41 +566,41 @@ fn put_optional(bytes: &mut Vec<u8>, value: Option<&[u8]>) -> io::Result<()> {
     Ok(())
 }
 
-fn decode_frame(mut bytes: &[u8]) -> Option<(usize, Record)> {
+fn decode_batch(mut bytes: &[u8]) -> Option<(usize, Vec<Record>)> {
     let len = read_u32(&mut bytes)? as usize;
     let crc = read_u32(&mut bytes)?;
     let mut payload = take(&mut bytes, len)?;
     let contents = payload;
     let lsn = read_u64(&mut payload)?;
     let kind = take(&mut payload, 1)?[0];
-    if read_u32(&mut payload)? as usize != len {
+    if read_u32(&mut payload)? as usize != len || crc32fast::hash(contents) != crc {
         return None;
     }
-    let minimum = match kind {
-        COMMIT => 4,
-        EPOCH => 8,
-        _ => return None,
-    };
-    if payload.len() < minimum || crc32fast::hash(contents) != crc {
-        return None;
+    let mut records = vec![decode_record(&mut payload, lsn, kind)?];
+    while !payload.is_empty() {
+        let lsn = read_u64(&mut payload)?;
+        let kind = take(&mut payload, 1)?[0];
+        records.push(decode_record(&mut payload, lsn, kind)?);
     }
-    let record = match kind {
+    Some((FRAME_HEADER + len, records))
+}
+
+fn decode_record(payload: &mut &[u8], lsn: u64, kind: u8) -> Option<Record> {
+    Some(match kind {
         COMMIT => {
-            let count = read_u32(&mut payload)? as usize;
+            let count = read_u32(payload)? as usize;
             if count > payload.len() / 6 {
                 return None;
             }
             let mut writes = Vec::new();
             for _ in 0..count {
-                let collection = read_optional(&mut payload)?
+                let collection = read_optional(payload)?
                     .map(std::str::from_utf8)
                     .transpose()
                     .ok()?
                     .map(str::to_owned);
-                let key = std::str::from_utf8(read_blob(&mut payload)?)
-                    .ok()?
-                    .to_owned();
-                let row = read_optional(&mut payload)?.map(<[u8]>::to_vec);
+                let key = std::str::from_utf8(read_blob(payload)?).ok()?.to_owned();
+                let row = read_optional(payload)?.map(<[u8]>::to_vec);
                 writes.push(WriteEntry {
                     collection,
                     key,
@@ -608,21 +611,19 @@ fn decode_frame(mut bytes: &[u8]) -> Option<(usize, Record)> {
         }
         EPOCH => Record::Epoch {
             lsn,
-            descriptor: read_blob(&mut payload)?.to_vec(),
-            state: read_blob(&mut payload)?.to_vec(),
+            descriptor: read_blob(payload)?.to_vec(),
+            state: read_blob(payload)?.to_vec(),
         },
-        _ => unreachable!(),
-    };
-    payload.is_empty().then_some((FRAME_HEADER + len, record))
+        _ => return None,
+    })
 }
 
-fn has_later_frame(bytes: &[u8]) -> bool {
-    // The repeated length prevents a valid frame inside a torn row from
-    // masquerading as later WAL data. If the copies disagree or the length
-    // is impossible, look for a later frame without trusting the boundary.
+fn has_later_batch(bytes: &[u8]) -> bool {
+    // When both lengths agree, skip the damaged batch so a frame encoded
+    // inside an opaque row cannot masquerade as later WAL data.
     let first_length = bytes.first_chunk::<4>().copied().map(u32::from_be_bytes);
     let repeated_length = bytes
-        .get(FRAME_HEADER + RECORD_HEADER - 4..)
+        .get(REPEATED_LENGTH..)
         .and_then(<[u8]>::first_chunk::<4>)
         .copied()
         .map(u32::from_be_bytes);
@@ -635,7 +636,7 @@ fn has_later_frame(bytes: &[u8]) -> bool {
         _ => 1,
     };
     (start..bytes.len().saturating_sub(MIN_FRAME - 1))
-        .any(|offset| decode_frame(&bytes[offset..]).is_some())
+        .any(|offset| decode_batch(&bytes[offset..]).is_some())
 }
 
 fn decode_checkpoint(bytes: &[u8], expected_lsn: u64) -> Option<Recovered> {
@@ -797,8 +798,7 @@ mod tests {
         );
         assert_eq!(fs::metadata(&segment).unwrap().len(), SEGMENT_SIZE);
 
-        let mut frame = Vec::new();
-        encode_frame(&mut frame, &commit(2)).unwrap();
+        let frame = encode_batch(&[commit(2)]).unwrap();
         let mut torn = image;
         let partial = frame.len() - 1;
         torn[end..end + partial].copy_from_slice(&frame[..partial]);
@@ -815,7 +815,7 @@ mod tests {
         file.write_all_at(&frame, end as u64 + 7).unwrap();
         file.set_len(SEGMENT_SIZE).unwrap();
         let error = open_error(&path, DESCRIPTOR);
-        assert!(error.to_string().contains("corrupt WAL record"), "{error}");
+        assert!(error.to_string().contains("corrupt WAL batch"), "{error}");
     }
 
     #[test]
@@ -825,9 +825,8 @@ mod tests {
         let segment = segment_path(&path, 1);
         let start = active_bytes(&log);
         // Canonical row bytes are opaque. Even a complete encoded frame in a
-        // partially written row must not count as a later record.
-        let mut nested = Vec::new();
-        encode_frame(&mut nested, &commit(3)).unwrap();
+        // partially written row must not count as a later batch.
+        let mut nested = encode_batch(&[commit(3)]).unwrap();
         nested.extend_from_slice(b"rest of row");
         log.append(&[Record::Commit {
             lsn: 2,
@@ -856,32 +855,66 @@ mod tests {
     }
 
     #[test]
+    fn torn_block_discards_the_whole_final_batch() {
+        const BLOCK: usize = 4096;
+        let (_parent, path, log) = database();
+        log.append(&[commit(1), commit(2)]).unwrap();
+        log.append(&[commit(3)]).unwrap();
+        let start = active_bytes(&log);
+        let segment = segment_path(&path, 1);
+        log.append(&[large_commit(4, 3 * BLOCK), commit(5), commit(6)])
+            .unwrap();
+        drop(log);
+
+        // Tear an aligned block in the first row while leaving the batch
+        // header and the later records on disk intact.
+        let torn = start.next_multiple_of(BLOCK) + BLOCK;
+        OpenOptions::new()
+            .write(true)
+            .open(&segment)
+            .unwrap()
+            .write_all_at(&[0; BLOCK], torn as u64)
+            .unwrap();
+
+        let (_, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
+        assert_eq!(recovered.lsn, 3);
+        assert_eq!(recovered.commits, commits(1..=3));
+        assert_eq!(fs::metadata(&segment).unwrap().len(), start as u64);
+    }
+
+    #[test]
     fn interior_corruption_and_lsn_gaps_refuse_to_open() {
         let (_parent, path, log) = database();
         log.append(&[commit(1)]).unwrap();
         let segment = segment_path(&path, 1);
         let second = active_bytes(&log);
         log.append(&[commit(2), commit(3)]).unwrap();
+        log.append(&[commit(4)]).unwrap();
         drop(log);
         let image = fs::read(&segment).unwrap();
-        for offset in [second, second + 4, second + FRAME_HEADER] {
+        for offset in [
+            second,
+            second + 4,
+            second + FRAME_HEADER,
+            second + REPEATED_LENGTH,
+        ] {
             let mut corrupt = image.clone();
             corrupt[offset] ^= 0x80;
             fs::write(&segment, &corrupt).unwrap();
             let error = open_error(&path, DESCRIPTOR);
-            assert!(error.to_string().contains("corrupt WAL record"), "{error}");
+            assert!(error.to_string().contains("corrupt WAL batch"), "{error}");
             assert_eq!(fs::read(&segment).unwrap(), corrupt);
         }
 
         let mut gap = image[..second].to_vec();
-        encode_frame(&mut gap, &commit(3)).unwrap();
+        gap.extend_from_slice(&encode_batch(&[commit(3)]).unwrap());
         fs::write(&segment, &gap).unwrap();
         let error = open_error(&path, DESCRIPTOR);
         assert!(error.to_string().contains("LSN gap"), "{error}");
 
         // The same corruption is recoverable at the very end.
         let mut torn = image[..second].to_vec();
-        encode_frame(&mut torn, &commit(2)).unwrap();
+        torn.extend_from_slice(&encode_batch(&[commit(2)]).unwrap());
         *torn.last_mut().unwrap() ^= 1;
         fs::write(&segment, &torn).unwrap();
         assert_eq!(
@@ -942,7 +975,7 @@ mod tests {
         log.checkpoint(1, DESCRIPTOR, b"first").unwrap();
         assert_eq!(numbered_files(&path, "segment-").unwrap(), [1, 3, 4]);
         log.checkpoint(2, DESCRIPTOR, b"second").unwrap();
-        assert_eq!(numbered_files(&path, "segment-").unwrap(), [3, 4]);
+        assert_eq!(numbered_files(&path, "segment-").unwrap(), [1, 3, 4]);
         assert_eq!(numbered_files(&path, "checkpoint-").unwrap(), [1, 2]);
         drop(log);
 
@@ -954,7 +987,8 @@ mod tests {
             [3, 4]
         );
         log.checkpoint(4, DESCRIPTOR, b"fourth").unwrap();
-        assert!(numbered_files(&path, "segment-").unwrap().is_empty());
+        assert_eq!(numbered_files(&path, "segment-").unwrap(), [3, 4]);
+        assert_eq!(numbered_files(&path, "checkpoint-").unwrap(), [2, 4]);
         log.append(&[commit(5)]).unwrap();
         drop(log);
         assert_eq!(
@@ -964,10 +998,11 @@ mod tests {
     }
 
     #[test]
-    fn checkpoint_fallback_requires_a_complete_log() {
+    fn checkpoint_fallback_replays_retained_segments() {
         let (_parent, path, log) = database();
-        log.append(&[commit(1), commit(2)]).unwrap();
+        log.append(&[commit(1)]).unwrap();
         log.checkpoint(1, DESCRIPTOR, b"one").unwrap();
+        log.append(&[commit(2)]).unwrap();
         // Retrying cleanup must keep the previous checkpoint.
         log.checkpoint(1, DESCRIPTOR, b"one").unwrap();
         drop(log);
@@ -982,8 +1017,19 @@ mod tests {
         fs::write(&newest, valid).unwrap();
         let (log, _) = Log::open(&path, DESCRIPTOR).unwrap();
         log.checkpoint(2, DESCRIPTOR, b"two").unwrap();
+        assert_eq!(numbered_files(&path, "segment-").unwrap(), [2]);
         drop(log);
-        fs::write(checkpoint_path(&path, 2), b"corrupt").unwrap();
+        let checkpoint_two = checkpoint_path(&path, 2);
+        let mut corrupt = fs::read(&checkpoint_two).unwrap();
+        *corrupt.last_mut().unwrap() ^= 1;
+        fs::write(checkpoint_two, corrupt).unwrap();
+        let (log, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
+        assert_eq!(recovered.lsn, 2);
+        assert_eq!(recovered.state, b"one");
+        assert_eq!(recovered.commits, commits(2..=2));
+
+        drop(log);
+        fs::remove_file(segment_path(&path, 2)).unwrap();
         let error = open_error(&path, DESCRIPTOR);
         assert!(error.to_string().contains("retained log ends"), "{error}");
         fs::remove_file(&newest).unwrap();
@@ -1038,8 +1084,8 @@ mod tests {
             assert!(error.to_string().contains("writer failed"), "{error}");
             assert!(log.append(&[commit(2)]).is_err());
             let image = fs::read(segment_path(Path::new(&path), 1)).unwrap();
-            let (end, record) = decode_frame(&image).unwrap();
-            assert_eq!(record, commit(1));
+            let (end, records) = decode_batch(&image).unwrap();
+            assert_eq!(records, [commit(1)]);
             assert!(image[end..].iter().all(|&byte| byte == 0));
             return;
         }
@@ -1124,6 +1170,7 @@ mod tests {
 
         let (_, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
         assert!(recovered.lsn >= *reported.last().unwrap());
+        assert_eq!(recovered.lsn % 3, 0);
         assert_eq!(recovered.commits.len() as u64, recovered.lsn);
         for (lsn, entries) in recovered.commits {
             assert_eq!(

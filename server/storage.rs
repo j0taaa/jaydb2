@@ -1,7 +1,8 @@
 use crate::store::{Schema, Snapshot};
 use crate::wal::{Log, Record};
-use crate::{Error, Limits, Result, diagnostic};
+use crate::{Error, Limits, Result};
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, mpsc};
 use std::thread::{self, JoinHandle};
 
@@ -84,10 +85,7 @@ impl Durable {
             .spawn(move || {
                 for (state, descriptor) in queue {
                     if let Err(error) = writer.checkpoint(state.lsn(), &descriptor, &state.save()) {
-                        // The coordinator may be idle waiting for stdin. Stop it
-                        // immediately rather than waiting for another request.
-                        diagnostic(format_args!("STORAGE_UNCERTAIN: WAL checkpoint: {error}"));
-                        std::process::exit(1);
+                        fail_stop(format_args!("WAL checkpoint: {error}"));
                     }
                 }
             })?;
@@ -162,4 +160,24 @@ fn state_error(error: crate::store::StoreError) -> Error {
 
 pub fn uncertain(error: impl std::fmt::Display) -> Error {
     Error::new("STORAGE_UNCERTAIN", error.to_string())
+}
+
+pub fn fail_stop(error: std::fmt::Arguments<'_>) -> ! {
+    static STOPPING: AtomicBool = AtomicBool::new(false);
+
+    // Bypass Rust's stderr lock and do not wait for space in a full pipe.
+    // Only one failing thread may temporarily change the descriptor flags.
+    if !STOPPING.swap(true, Ordering::Relaxed) {
+        let message = format!("jaydb2: STORAGE_UNCERTAIN: {error}\n");
+        let fd = libc::STDERR_FILENO;
+        unsafe {
+            let flags = libc::fcntl(fd, libc::F_GETFL);
+            if flags >= 0 && libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) == 0 {
+                libc::write(fd, message.as_ptr().cast(), message.len());
+                libc::fcntl(fd, libc::F_SETFL, flags);
+            }
+        }
+    }
+    // Exit the whole process without running exit handlers or flushing streams.
+    unsafe { libc::_exit(1) }
 }

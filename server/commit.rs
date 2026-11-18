@@ -188,24 +188,20 @@ fn run(
                 reply,
             } => {
                 let previous = published.lock().unwrap().snapshot.lsn();
-                let result = if previous.checked_add(1) != Some(snapshot.lsn()) {
-                    Err(Error::new("HOST_STORE", "invalid epoch sequence"))
-                } else if let Some(storage) = &mut storage {
-                    storage
-                        .append_epoch(snapshot.lsn(), descriptor, state)
-                        .and_then(|()| storage.checkpoint(previous, &snapshot))
-                } else {
-                    Ok(())
-                };
-                let failed = result.is_err();
-                if !failed {
-                    pruned_through = snapshot.lsn();
-                    published.lock().unwrap().snapshot = snapshot;
-                }
-                let _ = reply.send(result);
-                if failed {
+                if previous.checked_add(1) != Some(snapshot.lsn()) {
+                    let _ = reply.send(Err(Error::new("HOST_STORE", "invalid epoch sequence")));
                     return;
                 }
+                if let Some(storage) = &mut storage
+                    && let Err(error) = storage
+                        .append_epoch(snapshot.lsn(), descriptor, state)
+                        .and_then(|()| storage.checkpoint(previous, &snapshot))
+                {
+                    storage::fail_stop(format_args!("{}", error.message));
+                }
+                pruned_through = snapshot.lsn();
+                published.lock().unwrap().snapshot = snapshot;
+                let _ = reply.send(Ok(()));
                 continue;
             }
         };
@@ -278,10 +274,7 @@ fn run(
             Ok(())
         };
         if let Err(error) = durable {
-            for (reply, _, _) in replies {
-                let _ = reply.send(Err(error.clone()));
-            }
-            return;
+            storage::fail_stop(format_args!("{}", error.message));
         }
         if current.lsn() != previous_lsn {
             if previous_lsn / PRUNE_INTERVAL != current.lsn() / PRUNE_INTERVAL {

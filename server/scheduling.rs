@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 use std::io;
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Condvar, Mutex, mpsc};
 use std::thread::{self, JoinHandle};
 
 #[derive(Clone, Copy, Debug)]
@@ -13,45 +13,38 @@ pub struct QueueBounds {
     pub bytes: usize,
 }
 
-impl QueueBounds {
-    pub fn for_message_limit(limit: u64) -> Self {
-        // A logical uint64 limit is valid even beyond the host address space.
-        // This is an accounting ceiling, not an upfront allocation.
-        let bytes = limit.min(isize::MAX as u64) as usize;
+impl Default for QueueBounds {
+    fn default() -> Self {
         Self {
             items: 8,
-            bytes: bytes.max(1024 * 1024),
+            bytes: 1024 * 1024,
         }
     }
 }
 
-/// Terminal events occupy one fixed slot after every complete frame.
+type Body = Result<Vec<u8>, InputEnd>;
+
 #[derive(Debug)]
-pub enum InputEnd {
+enum InputEnd {
     Eof,
     Framing(&'static str),
     Failed(crate::Error),
 }
 
-#[derive(Debug)]
-pub enum FrameEvent {
-    Request(Vec<u8>),
-    End(InputEnd),
-}
-
 pub fn coordinate(
     queue: &FrameQueue,
     output: &mut impl io::Write,
-    request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
+    limit: impl Fn() -> u64,
+    request: impl FnMut(&[u8]) -> crate::Result<Option<Vec<u8>>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
-    respond(|| queue.select(), output, request, terminal_response)
+    respond(|| queue.select(&limit), output, request, terminal_response)
 }
 
 pub fn serve_stream(
     stream: &UnixStream,
     limit: impl Fn() -> u64,
-    request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
+    request: impl FnMut(&[u8]) -> crate::Result<Option<Vec<u8>>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
     let mut input = stream;
@@ -60,10 +53,8 @@ pub fn serve_stream(
         || {
             let mut read =
                 |buffer: &mut [u8]| read_up_to(|part| io::Read::read(&mut input, part), buffer);
-            match frame_size(&mut read, &limit).and_then(|(size, _)| frame_body(&mut read, size)) {
-                Ok(body) => FrameEvent::Request(body),
-                Err(end) => FrameEvent::End(end),
-            }
+            let size = dispatch_size(frame_size(&mut read)?, limit())?;
+            frame_body(&mut read, size)
         },
         &mut output,
         request,
@@ -72,23 +63,28 @@ pub fn serve_stream(
 }
 
 fn respond(
-    mut select: impl FnMut() -> FrameEvent,
+    mut select: impl FnMut() -> Body,
     output: &mut impl io::Write,
-    mut request: impl FnMut(&[u8]) -> crate::Result<Vec<u8>>,
+    mut request: impl FnMut(&[u8]) -> crate::Result<Option<Vec<u8>>>,
     terminal_response: impl Fn(&str) -> Vec<u8>,
 ) -> crate::Result<()> {
     loop {
-        let (response, terminal) = match select() {
-            FrameEvent::Request(body) => (request(&body)?, false),
-            FrameEvent::End(InputEnd::Eof) => return Ok(()),
-            FrameEvent::End(InputEnd::Failed(error)) => return Err(error),
-            FrameEvent::End(InputEnd::Framing(status)) => (terminal_response(status), true),
+        let terminal = match select() {
+            Ok(body) => match request(&body)? {
+                Some(response) => {
+                    output.write_all(&response)?;
+                    output.flush()?;
+                    continue;
+                }
+                None => "limit", // The epoch changed between selection and execution.
+            },
+            Err(InputEnd::Eof) => return Ok(()),
+            Err(InputEnd::Failed(error)) => return Err(error),
+            Err(InputEnd::Framing(status)) => status,
         };
-        output.write_all(&response)?;
+        output.write_all(&terminal_response(terminal))?;
         output.flush()?;
-        if terminal {
-            return Ok(());
-        }
+        return Ok(());
     }
 }
 
@@ -147,9 +143,17 @@ impl<R: AsRawFd + Send + 'static> FrameInput for PollInput<R> {
     }
 }
 
+struct QueuedFrame {
+    declared: u64,
+    buffered: usize,
+    // Bodies beyond the read-ahead budget wait until dispatch allows them.
+    start: Option<mpsc::Sender<usize>>,
+    body: mpsc::Receiver<Body>,
+}
+
 #[derive(Default)]
 struct State {
-    frames: VecDeque<Vec<u8>>,
+    frames: VecDeque<QueuedFrame>,
     // Include the reader's reservation, BEFORE allocating/reading its body.
     items: usize,
     bytes: usize,
@@ -170,31 +174,10 @@ pub struct FrameQueue {
 }
 
 impl FrameQueue {
-    #[cfg(test)]
-    pub fn start(input: impl FrameInput, limit: u64, bounds: QueueBounds) -> io::Result<Self> {
-        if bounds.items == 0
-            || (bounds.bytes as u64) < limit.min(isize::MAX as u64)
-            || bounds.bytes > isize::MAX as usize
-        {
-            return Err(io::Error::other(
-                "queue must hold at least one maximum allocatable frame",
-            ));
+    pub fn start(input: impl FrameInput, bounds: QueueBounds) -> io::Result<Self> {
+        if bounds.items == 0 || bounds.bytes > isize::MAX as usize {
+            return Err(io::Error::other("invalid framing queue bounds"));
         }
-        Self::start_reader(input, move || limit, Some(bounds))
-    }
-
-    pub fn start_dynamic(
-        input: impl FrameInput,
-        limit: impl Fn() -> u64 + Send + 'static,
-    ) -> io::Result<Self> {
-        Self::start_reader(input, limit, None)
-    }
-
-    fn start_reader(
-        input: impl FrameInput,
-        limit: impl Fn() -> u64 + Send + 'static,
-        bounds: Option<QueueBounds>,
-    ) -> io::Result<Self> {
         let shared = Arc::new(Shared::default());
         let (cancel, wake) = UnixStream::pair()?;
         let producer = shared.clone();
@@ -202,14 +185,14 @@ impl FrameQueue {
             .name("jaydb2-framing".into())
             .spawn(move || {
                 let end = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    receive(input, &wake, limit, bounds, &producer)
+                    receive(input, &wake, bounds, &producer)
                 }))
                 .unwrap_or_else(|_| {
                     InputEnd::Failed(io::Error::other("framing reader panicked").into())
                 });
                 let mut state = producer.state.lock().unwrap();
                 state.items = state.frames.len();
-                state.bytes = state.frames.iter().map(Vec::len).sum();
+                state.bytes = state.frames.iter().map(|frame| frame.buffered).sum();
                 state.end = Some(end);
                 producer.changed.notify_all();
             })?;
@@ -220,19 +203,29 @@ impl FrameQueue {
         })
     }
 
-    /// Selection releases queue capacity. The owner now accounts for this one
-    /// active request. The terminal event is selected only after all frames.
-    pub fn select(&self) -> FrameEvent {
+    /// The owner accounts for the selected frame, including any body that
+    /// the reader is still filling. Apply the active limit to the declaration
+    /// before waiting for body bytes, even if the reader already saw EOF.
+    fn select(&self, limit: impl FnOnce() -> u64) -> Body {
         let mut state = self.shared.state.lock().unwrap();
         loop {
-            if let Some(body) = state.frames.pop_front() {
+            if let Some(frame) = state.frames.pop_front() {
                 state.items -= 1;
-                state.bytes -= body.len();
+                state.bytes -= frame.buffered;
                 self.shared.changed.notify_all();
-                return FrameEvent::Request(body);
+                drop(state);
+                let size = dispatch_size(frame.declared, limit())?;
+                if let Some(start) = frame.start {
+                    let _ = start.send(size);
+                }
+                return frame.body.recv().unwrap_or_else(|_| {
+                    Err(InputEnd::Failed(
+                        io::Error::other("framing reader stopped").into(),
+                    ))
+                });
             }
             if let Some(end) = state.end.take() {
-                return FrameEvent::End(end);
+                return Err(end);
             }
             state = self.shared.changed.wait(state).unwrap();
         }
@@ -243,6 +236,7 @@ impl FrameQueue {
         {
             let mut state = self.shared.state.lock().unwrap();
             state.stopped = true;
+            state.frames.clear();
             self.shared.changed.notify_all();
         }
         // HUP is part of FrameInput's cancellation contract. Drop the sole
@@ -279,24 +273,22 @@ fn read_up_to(
     Ok(expected - buffer.len())
 }
 
-fn frame_size(
-    read: &mut impl FnMut(&mut [u8]) -> io::Result<usize>,
-    limit: &impl Fn() -> u64,
-) -> Result<(usize, u64), InputEnd> {
+fn frame_size(read: &mut impl FnMut(&mut [u8]) -> io::Result<usize>) -> Result<u64, InputEnd> {
     let mut header = [0; 8];
     match read(&mut header) {
-        Ok(0) => return Err(InputEnd::Eof),
-        Ok(8) => (),
-        Ok(_) => return Err(InputEnd::Framing("input")),
-        Err(error) => return Err(InputEnd::Failed(error.into())),
+        Ok(0) => Err(InputEnd::Eof),
+        Ok(8) => Ok(u64::from_be_bytes(header)),
+        Ok(_) => Err(InputEnd::Framing("input")),
+        Err(error) => Err(InputEnd::Failed(error.into())),
     }
-    let size = u64::from_be_bytes(header);
-    let limit = limit();
+}
+
+fn dispatch_size(size: u64, limit: u64) -> Result<usize, InputEnd> {
     if size > limit {
         return Err(InputEnd::Framing("limit"));
     }
     match usize::try_from(size) {
-        Ok(size) if size <= isize::MAX as usize => Ok((size, limit)),
+        Ok(size) if size <= isize::MAX as usize => Ok(size),
         _ => Err(InputEnd::Failed(crate::Error::new(
             "HOST_TRANSPORT",
             "message length is not allocatable",
@@ -326,16 +318,14 @@ fn frame_body(
 fn receive(
     mut input: impl FrameInput,
     cancel: &UnixStream,
-    limit: impl Fn() -> u64,
-    bounds: Option<QueueBounds>,
+    bounds: QueueBounds,
     shared: &Shared,
 ) -> InputEnd {
     let mut read = |buffer: &mut [u8]| read_up_to(|part| input.read(part, cancel), buffer);
-    let items = bounds.map_or(8, |bounds| bounds.items);
     loop {
         {
             let mut state = shared.state.lock().unwrap();
-            while !state.stopped && state.items == items {
+            while !state.stopped && state.items == bounds.items {
                 state = shared.changed.wait(state).unwrap();
             }
             if state.stopped {
@@ -344,35 +334,49 @@ fn receive(
             state.items += 1;
             shared.changed.notify_all();
         }
-        let (size, limit) = match frame_size(&mut read, &limit) {
-            Ok(frame) => frame,
+        let declared = match frame_size(&mut read) {
+            Ok(size) => size,
             Err(end) => return end,
         };
-        let bytes = bounds
-            .unwrap_or_else(|| QueueBounds::for_message_limit(limit))
-            .bytes;
+        let speculative = (declared <= bounds.bytes as u64).then_some(declared as usize);
+        let (start, await_dispatch) = if speculative.is_none() {
+            let (send, receive) = mpsc::channel();
+            (Some(send), Some(receive))
+        } else {
+            (None, None)
+        };
+        let buffered = speculative.unwrap_or(0);
+        let (send, body) = mpsc::channel();
         {
             let mut state = shared.state.lock().unwrap();
             shared.changed.notify_all();
-            while !state.stopped && size > bytes.saturating_sub(state.bytes) {
+            while !state.stopped && buffered > bounds.bytes - state.bytes {
                 state = shared.changed.wait(state).unwrap();
             }
             if state.stopped {
                 return InputEnd::Eof;
             }
-            state.bytes += size;
+            state.bytes += buffered;
+            state.frames.push_back(QueuedFrame {
+                declared,
+                buffered,
+                start,
+                body,
+            });
             shared.changed.notify_all();
         }
-        let body = match frame_body(&mut read, size) {
-            Ok(body) => body,
-            Err(end) => return end,
+        let size = match await_dispatch {
+            Some(approval) => match approval.recv() {
+                Ok(size) => size,
+                Err(_) => return InputEnd::Eof,
+            },
+            None => buffered,
         };
-        let mut state = shared.state.lock().unwrap();
-        if state.stopped {
+        let body = frame_body(&mut read, size);
+        let complete = body.is_ok();
+        if send.send(body).is_err() || !complete {
             return InputEnd::Eof;
         }
-        state.frames.push_back(body);
-        shared.changed.notify_all();
     }
 }
 
@@ -408,10 +412,7 @@ mod tests {
     }
 
     fn take(queue: &FrameQueue) -> Vec<u8> {
-        match queue.select() {
-            FrameEvent::Request(body) => body,
-            other => panic!("expected frame, got {other:?}"),
-        }
+        queue.select(|| u64::MAX).expect("expected frame")
     }
 
     struct ObservedInput {
@@ -436,7 +437,7 @@ mod tests {
             ),
             consumed: consumed.clone(),
         };
-        let queue = FrameQueue::start(input, 4, QueueBounds { items: 2, bytes: 4 }).unwrap();
+        let queue = FrameQueue::start(input, QueueBounds { items: 2, bytes: 4 }).unwrap();
         // Second header fits, but no byte of its body can be consumed until
         // selection releases the first body. No scheduler sleeps or races.
         wait(&queue, |s| s.frames.len() == 1 && s.items == 2);
@@ -457,7 +458,7 @@ mod tests {
         }
         assert_eq!(take(&queue), b"efgh");
         assert_eq!(take(&queue), b"");
-        assert!(matches!(queue.select(), FrameEvent::End(InputEnd::Eof)));
+        assert!(matches!(queue.select(|| 4), Err(InputEnd::Eof)));
     }
 
     #[test]
@@ -480,20 +481,19 @@ mod tests {
             let input = Cursor::new([packet(b"one", &[]), packet(b"two", &[]), ending].concat());
             let queue = FrameQueue::start(
                 input,
-                4,
                 QueueBounds {
                     items: 4,
                     bytes: 12,
                 },
             )
             .unwrap();
-            // Ensure the read-ahead terminal is known BEFORE any selection.
-            wait(&queue, |s| s.end.is_some());
+            // Ensure the reader has seen the final declaration or EOF.
+            wait(&queue, |s| s.frames.len() == 3 || s.end.is_some());
             assert_eq!(take(&queue), b"one");
             assert_eq!(take(&queue), b"two");
-            match (queue.select(), expected) {
-                (FrameEvent::End(InputEnd::Eof), None) => (),
-                (FrameEvent::End(InputEnd::Framing(actual)), Some(expected)) => {
+            match (queue.select(|| 4), expected) {
+                (Err(InputEnd::Eof), None) => (),
+                (Err(InputEnd::Framing(actual)), Some(expected)) => {
                     assert_eq!(actual, expected)
                 }
                 other => panic!("unexpected terminal: {other:?}"),
@@ -524,14 +524,15 @@ mod tests {
             bytes: Cursor::new(packet(b"ok", &[])),
             interrupt: false,
         };
-        let queue = FrameQueue::start(input, 2, QueueBounds { items: 2, bytes: 2 }).unwrap();
+        let queue = FrameQueue::start(input, QueueBounds { items: 2, bytes: 2 }).unwrap();
         wait(&queue, |s| s.end.is_some());
         let mut service = Service::default();
         let mut output = Vec::new();
         let error = coordinate(
             &queue,
             &mut output,
-            |body| service.request(body),
+            || u64::MAX,
+            |body| service.request(body).map(Some),
             error_frame,
         )
         .unwrap_err();
@@ -562,7 +563,6 @@ mod tests {
     fn fatal_publication_emits_nothing_and_never_selects_the_next_request() {
         let queue = FrameQueue::start(
             Cursor::new([packet(b"a", &[]), packet(b"b", &[])].concat()),
-            1,
             QueueBounds { items: 3, bytes: 2 },
         )
         .unwrap();
@@ -576,7 +576,8 @@ mod tests {
             coordinate(
                 &queue,
                 &mut output,
-                |body| service.request(body),
+                || u64::MAX,
+                |body| service.request(body).map(Some),
                 error_frame
             )
             .unwrap_err()
@@ -620,7 +621,6 @@ mod tests {
         ] {
             let queue = FrameQueue::start(
                 Cursor::new([packet(b"ok", &[]), packet(b"no", &[])].concat()),
-                2,
                 QueueBounds { items: 3, bytes: 4 },
             )
             .unwrap();
@@ -635,7 +635,8 @@ mod tests {
                 coordinate(
                     &queue,
                     &mut output,
-                    |body| service.request(body),
+                    || u64::MAX,
+                    |body| service.request(body).map(Some),
                     error_frame
                 )
                 .is_err()
@@ -657,8 +658,7 @@ mod tests {
             let (mut writer, reader) = UnixStream::pair().unwrap();
             writer.write_all(&bytes).unwrap();
             let mut queue =
-                FrameQueue::start(PollInput(reader), 4, QueueBounds { items: 1, bytes: 4 })
-                    .unwrap();
+                FrameQueue::start(PollInput(reader), QueueBounds { items: 1, bytes: 4 }).unwrap();
             wait(&queue, |s| {
                 if full {
                     s.frames.len() == 1
@@ -746,7 +746,7 @@ mod tests {
         );
         let (writer, reader) = UnixStream::pair().unwrap();
         let mut queue =
-            FrameQueue::start(PollInput(reader), 1, QueueBounds { items: 1, bytes: 1 }).unwrap();
+            FrameQueue::start(PollInput(reader), QueueBounds { items: 1, bytes: 1 }).unwrap();
         wait(&queue, |state| state.items == 1);
         let result = queue.close();
         assert!(
@@ -759,21 +759,76 @@ mod tests {
     }
 
     #[test]
-    fn bounds_hold_allocatable_messages_without_restricting_canonical_limits() {
-        assert_eq!(QueueBounds::for_message_limit(0).bytes, 1024 * 1024);
-        assert_eq!(
-            QueueBounds::for_message_limit(2 * 1024 * 1024).bytes,
-            2 * 1024 * 1024
-        );
-        assert_eq!(
-            QueueBounds::for_message_limit(u64::MAX).bytes,
-            isize::MAX as usize
-        );
+    fn invalid_queue_bounds_are_rejected() {
         for bounds in [
             QueueBounds { items: 0, bytes: 4 },
-            QueueBounds { items: 1, bytes: 3 },
+            QueueBounds {
+                items: 1,
+                bytes: usize::MAX,
+            },
         ] {
-            assert!(FrameQueue::start(Cursor::new(vec![]), 4, bounds).is_err());
+            assert!(FrameQueue::start(Cursor::new(vec![]), bounds).is_err());
+        }
+    }
+
+    #[test]
+    fn queued_declarations_use_dispatch_epoch_and_limit_stays_terminal() {
+        use std::cell::Cell;
+
+        for (buffered, initial, next, expected) in [
+            (8, 3, 8, b"migratedthenlater".to_vec()),
+            (3, 3, 8, b"migratedthenlater".to_vec()),
+            (
+                8,
+                8,
+                3,
+                [b"migrated".to_vec(), error_frame("limit")].concat(),
+            ),
+            (
+                3,
+                8,
+                3,
+                [b"migrated".to_vec(), error_frame("limit")].concat(),
+            ),
+        ] {
+            // The second header is already visible when the first request
+            // dispatch advances the epoch. Exercise both speculative and
+            // deferred bodies, with another request trailing the second.
+            let input = Cursor::new(
+                [
+                    packet(b"go", &[]),
+                    packet(b"then", &[]),
+                    packet(b"later", &[]),
+                ]
+                .concat(),
+            );
+            let queue = FrameQueue::start(
+                input,
+                QueueBounds {
+                    items: 4,
+                    bytes: buffered,
+                },
+            )
+            .unwrap();
+            wait(&queue, |state| state.frames.len() >= 2);
+            let limit = Cell::new(initial);
+            let mut output = Vec::new();
+            coordinate(
+                &queue,
+                &mut output,
+                || limit.get(),
+                |body| {
+                    if body == b"go" {
+                        limit.set(next);
+                        Ok(Some(b"migrated".to_vec()))
+                    } else {
+                        Ok(Some(body.to_vec()))
+                    }
+                },
+                error_frame,
+            )
+            .unwrap();
+            assert_eq!(output, expected);
         }
     }
 
@@ -787,14 +842,14 @@ mod tests {
             ]
             .concat(),
         );
-        let queue =
-            FrameQueue::start(input, u64::MAX, QueueBounds::for_message_limit(u64::MAX)).unwrap();
+        let queue = FrameQueue::start(input, QueueBounds::default()).unwrap();
         let mut service = Service::default();
         let mut output = Vec::new();
         coordinate(
             &queue,
             &mut output,
-            |body| service.request(body),
+            || u64::MAX,
+            |body| service.request(body).map(Some),
             error_frame,
         )
         .unwrap();
@@ -809,16 +864,15 @@ mod tests {
     fn unallocatable_body_is_ordered_technical_failure_and_never_a_false_logical_limit() {
         for size in [isize::MAX as u64 + 1, u64::MAX] {
             let input = Cursor::new([packet(b"ok", &[]), size.to_be_bytes().to_vec()].concat());
-            let queue =
-                FrameQueue::start(input, u64::MAX, QueueBounds::for_message_limit(u64::MAX))
-                    .unwrap();
-            wait(&queue, |s| s.end.is_some());
+            let queue = FrameQueue::start(input, QueueBounds::default()).unwrap();
+            wait(&queue, |s| s.frames.len() == 2);
             let mut service = Service::default();
             let mut output = Vec::new();
             let error = coordinate(
                 &queue,
                 &mut output,
-                |body| service.request(body),
+                || u64::MAX,
+                |body| service.request(body).map(Some),
                 error_frame,
             )
             .unwrap_err();
@@ -864,7 +918,6 @@ mod tests {
         }
         let queue = FrameQueue::start(
             Cursor::new([packet(b"a", &[]), packet(b"b", &[]), vec![0]].concat()),
-            1,
             QueueBounds { items: 3, bytes: 2 },
         )
         .unwrap();
@@ -885,7 +938,8 @@ mod tests {
             coordinate(
                 &queue,
                 &mut output,
-                |body| service.request(body),
+                || u64::MAX,
+                |body| service.request(body).map(Some),
                 error_frame,
             )
             .unwrap();

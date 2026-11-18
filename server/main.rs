@@ -5,13 +5,11 @@ use capture::capture;
 mod commit;
 use commit::{Committer, Completed, ReadSnapshot};
 mod live;
-use live::{Decision, Worker};
+use live::{Decision, IdleWorkers, Worker};
 mod scheduling;
 #[cfg(test)]
 use scheduling::FrameInput;
-#[cfg(test)]
-use scheduling::QueueBounds;
-use scheduling::{FrameQueue, PollInput};
+use scheduling::{FrameQueue, PollInput, QueueBounds};
 mod session;
 mod storage;
 mod store;
@@ -393,16 +391,33 @@ enum ControlDecision {
     },
 }
 
+enum Proposal {
+    Execute(Decision),
+    Install(PreparedInstall),
+}
+
+struct PreparedInstall {
+    handle: String,
+    artifact: PreparedProgram,
+    registry: Arc<[u8]>,
+    checked_registry: Arc<[u8]>,
+    root: Vec<u8>,
+    credential: Option<String>,
+    response: Vec<u8>,
+}
+
 struct Database {
     committer: Committer,
     // Reap prepared workers before removing their parent directory.
+    idle_workers: Mutex<IdleWorkers>,
     registry: RwLock<Registry>,
-    active: RwLock<Environment>,
+    active: RwLock<Arc<Environment>>,
     stage: PathBuf,
     source: PathBuf,
     kernel: PathBuf,
     inspector: Option<Mutex<Inspector>>,
     gate: session::Gate,
+    prepare_gate: session::Gate,
     threads: usize,
     timing: Option<Timing>,
     gpu_mib: usize,
@@ -421,7 +436,7 @@ struct Environment {
 
 #[derive(Default)]
 struct Registry {
-    bytes: Vec<u8>,
+    bytes: Arc<[u8]>,
     prepared: HashMap<String, PreparedProgram>,
 }
 
@@ -455,7 +470,6 @@ struct Inspector {
 }
 
 struct PreparedProgram {
-    workers: Mutex<Vec<Worker>>,
     directory: Temporary,
     program: Program,
     execution_registry: Vec<u8>,
@@ -673,8 +687,9 @@ impl Database {
         environment.prefill_errors(&snapshot, &[], options.threads)?;
         let database = Self {
             committer: Committer::start(snapshot.clone(), storage)?,
+            idle_workers: Mutex::new(IdleWorkers::new(options.concurrency)),
             registry: RwLock::default(),
-            active: RwLock::new(environment),
+            active: RwLock::new(Arc::new(environment)),
             stage,
             source: options.source,
             kernel: options.kernel,
@@ -685,6 +700,7 @@ impl Database {
                 })
             }),
             gate: session::Gate::new(options.concurrency),
+            prepare_gate: session::Gate::new(options.concurrency),
             threads: options.threads,
             timing,
             gpu_mib: options.gpu_mib,
@@ -742,19 +758,23 @@ impl Database {
                 .committer
                 .submit(snapshot, transaction, response, commit),
             Ok(Decision::Keep { response }) => Ok(Some(Completed::new(response, snapshot))),
-            Err(error) => {
-                diagnostic(format_args!("{}: {}", error.code, error.message));
-                let registry = self.registry.read().unwrap();
-                let response = environment.checked_error(snapshot, &registry.bytes, self.threads, &error.code).unwrap_or_else(|failure| {
-                    diagnostic(format_args!(
-                        "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
-                        error.code, failure.code, failure.message
-                    ));
-                    error_frame("failure")
-                });
-                Ok(Some(Completed::new(response, snapshot)))
-            }
+            Err(error) => Ok(Some(Completed::new(
+                self.deny(snapshot, environment, &error),
+                snapshot,
+            ))),
         }
+    }
+
+    fn deny(&self, snapshot: &Snapshot, environment: &Environment, error: &Error) -> Vec<u8> {
+        diagnostic(format_args!("{}: {}", error.code, error.message));
+        let registry = self.registry.read().unwrap().bytes.clone();
+        environment.checked_error(snapshot, &registry, self.threads, &error.code).unwrap_or_else(|failure| {
+            diagnostic(format_args!(
+                "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
+                error.code, failure.code, failure.message
+            ));
+            error_frame("failure")
+        })
     }
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
@@ -772,7 +792,7 @@ impl Database {
         body: &[u8],
         attempt: &mut Option<Attempt>,
         inspection_id: Option<u64>,
-    ) -> Result<Decision> {
+    ) -> Result<Proposal> {
         let mut bench = bench_start();
         let fields = request_fields(body);
         let credential = fields
@@ -790,14 +810,16 @@ impl Database {
                 attempt.authenticated(&user.id);
             }
             bench_mark(&mut bench, "packet_authentication");
-            return self.run_prepared(
-                snapshot,
-                environment,
-                handle,
-                body,
-                &mut bench,
-                inspection_id,
-            );
+            return self
+                .run_prepared(
+                    snapshot,
+                    environment,
+                    handle,
+                    body,
+                    &mut bench,
+                    inspection_id,
+                )
+                .map(Proposal::Execute);
         }
 
         let root = snapshot.authentication_root(credential);
@@ -805,9 +827,9 @@ impl Database {
         let authenticated = self.preprocess(&environment.authenticate, &input)?;
         bench_mark(&mut bench, "packet_authentication");
         if authenticated[0] == 0 {
-            return Ok(Decision::Keep {
+            return Ok(Proposal::Execute(Decision::Keep {
                 response: authenticated[1..].to_vec(),
-            });
+            }));
         }
         let operation = authenticated[0];
         let (principal, metadata) = split(&authenticated[1..])?;
@@ -820,19 +842,23 @@ impl Database {
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
         if operation == 5 {
-            return self.control_operation(&environment.control, &root, body);
+            return self
+                .control_operation(&environment.control, &root, body)
+                .map(Proposal::Execute);
         }
         if operation == 4 {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
-            return self.run_prepared(
-                snapshot,
-                environment,
-                handle,
-                body,
-                &mut bench,
-                inspection_id,
-            );
+            return self
+                .run_prepared(
+                    snapshot,
+                    environment,
+                    handle,
+                    body,
+                    &mut bench,
+                    inspection_id,
+                )
+                .map(Proposal::Execute);
         }
         if self.inspector.is_some() {
             self.inspect(
@@ -883,8 +909,10 @@ impl Database {
         let program = Program::load(text(&report, "program")?.into(), self.gpu_mib)?;
         bench_mark(&mut bench, "admission_total");
         if operation == 3 {
+            let checked_registry = self.registry.read().unwrap().bytes.clone();
             let control = self.run_control(
                 &environment.control,
+                &checked_registry,
                 &root,
                 body,
                 text(&report, "certificateMode")?,
@@ -892,7 +920,9 @@ impl Database {
                 proof,
             )?;
             let (handle, registry, response) = match control {
-                ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
+                ControlDecision::Denied(response) => {
+                    return Ok(Proposal::Execute(Decision::Keep { response }));
+                }
                 ControlDecision::Add {
                     handle,
                     registry,
@@ -905,29 +935,30 @@ impl Database {
             let mut sealed = PreparedProgram::seal(&request.path)?;
             sealed.extend(PreparedProgram::seal(&environment.path.join("public"))?);
             sealed.extend(PreparedProgram::seal(&environment.path.join("runtime"))?);
-            let execution_registry = execution_registry(&registry, &handle)?;
-            let mut registered = self.registry.write().unwrap();
-            registered.prepared.insert(
+            let artifact = PreparedProgram {
+                directory: request,
+                program,
+                execution_registry: execution_registry(&registry, &handle)?,
+                original_code: code.to_vec(),
+                universal_proof: proof.to_vec(),
+                sealed,
+            };
+            return Ok(Proposal::Install(PreparedInstall {
                 handle,
-                PreparedProgram {
-                    workers: Mutex::default(),
-                    directory: request,
-                    program,
-                    execution_registry,
-                    original_code: code.to_vec(),
-                    universal_proof: proof.to_vec(),
-                    sealed,
-                },
-            );
-            registered.bytes = registry;
-            return Ok(Decision::Keep { response });
+                artifact,
+                registry: registry.into(),
+                checked_registry,
+                root,
+                credential: credential.map(str::to_owned),
+                response,
+            }));
         }
         let mut worker = Worker::spawn(&program, self.threads)?;
         let proposal = worker.run(&program, true, body, snapshot, &environment.limits)?;
         bench_mark(&mut bench, "ordinary_worker");
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
-        Ok(proposal)
+        Ok(Proposal::Execute(proposal))
     }
 
     fn run_prepared(
@@ -944,7 +975,7 @@ impl Database {
             .prepared
             .get(handle)
             .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
-        let idle = prepared.workers.lock().unwrap().pop();
+        let idle = self.idle_workers.lock().unwrap().take(handle);
         // A running CPU worker has already loaded its validated executable.
         // CUDA retains its per-call checks for the external device bundle.
         if idle.is_none() || prepared.program.gpu.is_some() {
@@ -959,8 +990,8 @@ impl Database {
             });
             self.inspect(snapshot, false, metadata);
         }
-        // Every live process here serves a request admitted by the execution
-        // gate. If the idle pool is empty, another process fits under its bound.
+        // Active workers are bounded by the execution gate. Idle workers
+        // share a separate budget across all handles.
         let mut worker = match idle {
             Some(worker) => worker,
             None => Worker::spawn(&prepared.program, self.threads)?,
@@ -976,7 +1007,8 @@ impl Database {
         if prepared.program.gpu.is_some() {
             prepared.validate()?;
         }
-        prepared.workers.lock().unwrap().push(worker);
+        let evicted = self.idle_workers.lock().unwrap().put(handle, worker);
+        drop(evicted);
         bench_mark(bench, "prepared_worker");
         Ok(proposal)
     }
@@ -984,6 +1016,7 @@ impl Database {
     fn run_control(
         &self,
         control: &Program,
+        registry: &[u8],
         root: &[u8],
         body: &[u8],
         mode: &str,
@@ -1001,10 +1034,7 @@ impl Database {
             metadata.extend_from_slice(&(field.len() as u64).to_be_bytes());
             metadata.extend_from_slice(field);
         }
-        let input = packet(
-            &metadata,
-            &packet(&self.registry.read().unwrap().bytes, &packet(root, body)),
-        );
+        let input = packet(&metadata, &packet(registry, &packet(root, body)));
         let output = control.run(&input, self.threads)?;
         match output.first() {
             Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
@@ -1038,7 +1068,8 @@ impl Database {
     }
 
     fn control_operation(&self, control: &Program, root: &[u8], body: &[u8]) -> Result<Decision> {
-        match self.run_control(control, root, body, "", &[], &[])? {
+        let current = self.registry.read().unwrap().bytes.clone();
+        match self.run_control(control, &current, root, body, "", &[], &[])? {
             ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
             ControlDecision::Remove {
                 handle,
@@ -1048,10 +1079,10 @@ impl Database {
                 // Install the checked removal before artifact cleanup: a cleanup
                 // failure must never restore execution authority.
                 let mut registered = self.registry.write().unwrap();
-                registered.bytes = registry;
+                registered.bytes = registry.into();
+                self.idle_workers.lock().unwrap().remove(&handle);
                 match registered.prepared.remove(&handle) {
                     Some(mut artifact) => {
-                        artifact.workers.get_mut().unwrap().clear();
                         if let Err(error) = artifact.directory.remove() {
                             diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
                         }
@@ -1070,13 +1101,14 @@ impl Database {
         self.active.read().unwrap().limits.message
     }
 
-    fn serve(self: &Arc<Self>) -> Result<()> {
-        let database = Arc::clone(self);
-        let mut queue =
-            FrameQueue::start_dynamic(PollInput(io::stdin()), move || database.message_limit())?;
-        serve_queue(&mut queue, &mut io::stdout().lock(), |body| {
-            self.request(body)
-        })
+    fn serve(&self) -> Result<()> {
+        let mut queue = FrameQueue::start(PollInput(io::stdin()), QueueBounds::default())?;
+        serve_queue(
+            &mut queue,
+            &mut io::stdout().lock(),
+            || self.message_limit(),
+            |body| self.request(body),
+        )
     }
 }
 
@@ -1132,35 +1164,41 @@ fn request_fields(body: &[u8]) -> Option<(String, String, String)> {
 }
 
 impl Database {
-    // One timing record per request, including retries but excluding delivery.
-    fn request(&self, body: &[u8]) -> Result<Vec<u8>> {
+    // A missing response means that the message exceeded the active limit
+    // before execution and the framing layer must end this session.
+    fn request(&self, body: &[u8]) -> Result<Option<Vec<u8>>> {
         const SHARED_RETRIES: usize = 3;
         static INSPECTION_REQUEST: AtomicU64 = AtomicU64::new(1);
 
-        // Route control opcodes to exclusive execution; checked Dispatch
-        // still parses the envelope and decides whether the request is valid.
-        let mut exclusive = matches!(body, [7, 0 | 2, ..]);
-        let mut permit = self.gate.enter(exclusive);
-        let mut attempt = self.timing.as_ref().map(Timing::selected);
         let inspection_id = self
             .inspector
             .as_ref()
             .map(|_| INSPECTION_REQUEST.fetch_add(1, Ordering::Relaxed));
+        if matches!(body, [7, 0, ..]) {
+            return self.prepare(body, inspection_id);
+        }
+
+        // Checked Dispatch still owns parsing and the control decision.
+        let mut exclusive = matches!(body, [7, 2, ..]);
+        let mut permit = self.gate.enter(exclusive);
+        let mut attempt = self.timing.as_ref().map(Timing::selected);
         let mut retries = 0;
         loop {
             let (outcome, diagnostic) = {
                 let environment = self.active.read().unwrap();
-                // A complete frame may have been read before a limit change.
                 if body.len() as u64 > environment.limits.message {
-                    return Ok(error_frame("limit"));
+                    return Ok(None);
                 }
                 let snapshot = self.committer.read();
-                let proposal =
-                    self.propose(&snapshot, &environment, body, &mut attempt, inspection_id);
-                let diagnostic = proposal
-                    .as_ref()
-                    .err()
-                    .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
+                let proposal = self
+                    .propose(&snapshot, &environment, body, &mut attempt, inspection_id)
+                    .and_then(|proposal| match proposal {
+                        Proposal::Execute(decision) => Ok(decision),
+                        Proposal::Install(_) => {
+                            Err(Error::new("HOST_TRANSPORT", "unexpected prepare decision"))
+                        }
+                    });
+                let diagnostic = proposal.as_ref().err().map(error_metadata);
                 let mut bench = bench_start();
                 let outcome = self.resolve(&snapshot, proposal, &environment);
                 bench_mark(&mut bench, "publication");
@@ -1183,11 +1221,76 @@ impl Database {
                         })
                     });
                     self.record_timing(attempt, outcome.as_ref().map_or(0, |done| done.wal_batch));
-                    let done = outcome?;
-                    return self.finish(done, inspection_id, diagnostic);
+                    return self.finish(outcome?, inspection_id, diagnostic).map(Some);
                 }
             }
         }
+    }
+
+    fn prepare(&self, body: &[u8], inspection_id: Option<u64>) -> Result<Option<Vec<u8>>> {
+        // Bound parallel preparation without queuing a long compile in the
+        // execution gate. Capture a consistent epoch and authentication view.
+        let _preparing = self.prepare_gate.enter(false);
+        let (environment, snapshot) = {
+            let _permit = self.gate.enter(false);
+            let environment = self.active.read().unwrap().clone();
+            if body.len() as u64 > environment.limits.message {
+                return Ok(None);
+            }
+            let snapshot = (*self.committer.read()).clone();
+            (environment, snapshot)
+        };
+        let mut attempt = self.timing.as_ref().map(Timing::selected);
+        let proposal = self.propose(&snapshot, &environment, body, &mut attempt, inspection_id);
+        let mut diagnostic = proposal.as_ref().err().map(error_metadata);
+        let mut bench = bench_start();
+        let completed = match proposal {
+            Ok(Proposal::Install(staged)) => {
+                self.install_prepared(&environment, staged, &mut diagnostic)
+            }
+            Ok(Proposal::Execute(Decision::Keep { response })) => {
+                Completed::new(response, &snapshot)
+            }
+            Ok(Proposal::Execute(Decision::Success { .. })) => {
+                return Err(Error::new(
+                    "HOST_STORE",
+                    "unexpected prepare execution decision",
+                ));
+            }
+            Err(error) => Completed::new(self.deny(&snapshot, &environment, &error), &snapshot),
+        };
+        bench_mark(&mut bench, "publication");
+        self.record_timing(attempt, 0);
+        self.finish(completed, inspection_id, diagnostic).map(Some)
+    }
+
+    fn install_prepared(
+        &self,
+        environment: &Arc<Environment>,
+        staged: PreparedInstall,
+        inspection: &mut Option<Value>,
+    ) -> Completed {
+        let (active, snapshot) = {
+            let _permit = self.gate.enter(true);
+            let active = self.active.read().unwrap().clone();
+            let snapshot = self.committer.read();
+            let mut registry = self.registry.write().unwrap();
+            if Arc::ptr_eq(&active, environment)
+                && Arc::ptr_eq(&registry.bytes, &staged.checked_registry)
+                && snapshot.authentication_root(staged.credential.as_deref()) == staged.root
+            {
+                registry.prepared.insert(staged.handle, staged.artifact);
+                registry.bytes = staged.registry;
+                return Completed::new(staged.response, &snapshot);
+            }
+            (active, (*snapshot).clone())
+        };
+        let error = Error::new(
+            "HOST_TRANSPORT",
+            "prepare context changed before installation",
+        );
+        *inspection = Some(error_metadata(&error));
+        Completed::new(self.deny(&snapshot, &active, &error), &snapshot)
     }
 
     fn record_timing(&self, attempt: Option<Attempt>, wal_batch: usize) {
@@ -1216,12 +1319,17 @@ impl Database {
     }
 }
 
+fn error_metadata(error: &Error) -> Value {
+    serde_json::json!({"code": error.code, "message": error.message})
+}
+
 fn serve_queue(
     queue: &mut FrameQueue,
     output: &mut impl Write,
-    request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
+    limit: impl Fn() -> u64,
+    request: impl FnMut(&[u8]) -> Result<Option<Vec<u8>>>,
 ) -> Result<()> {
-    let result = scheduling::coordinate(queue, output, request, error_frame);
+    let result = scheduling::coordinate(queue, output, limit, request, error_frame);
     // This also wakes a reader still waiting on an open stdin or queue capacity.
     let cleanup = queue.close();
     result?;
@@ -1474,7 +1582,11 @@ mod tests {
             execution_registry(&registry, "target").unwrap(),
             store::encode(&expected).unwrap()
         );
-        assert!(execution_registry(&registry, "invalidated").unwrap().is_empty());
+        assert!(
+            execution_registry(&registry, "invalidated")
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1488,7 +1600,6 @@ mod tests {
         assert_eq!(sealed[0].0, path);
         assert_eq!(sealed[0].1.as_slice(), original);
         let prepared = PreparedProgram {
-            workers: Mutex::default(),
             directory,
             program: Program {
                 path: PathBuf::new(),
@@ -1518,10 +1629,10 @@ mod tests {
         input: impl FrameInput,
         output: &mut impl Write,
         limit: u64,
-        request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
+        mut request: impl FnMut(&[u8]) -> Result<Vec<u8>>,
     ) -> Result<()> {
-        let mut queue = FrameQueue::start(input, limit, QueueBounds::for_message_limit(limit))?;
-        serve_queue(&mut queue, output, request)
+        let mut queue = FrameQueue::start(input, QueueBounds::default())?;
+        serve_queue(&mut queue, output, || limit, |body| request(body).map(Some))
     }
 
     #[test]
@@ -1909,8 +2020,9 @@ mod tests {
         observer.set_nonblocking(true).unwrap();
         let mut db = Database {
             committer: Committer::start(snapshot, Some(storage)).unwrap(),
+            idle_workers: Mutex::new(IdleWorkers::new(1)),
             registry: RwLock::default(),
-            active: RwLock::new(Environment {
+            active: RwLock::new(Arc::new(Environment {
                 path: directory.path.clone(),
                 _directory: directory,
                 stage: PathBuf::new(),
@@ -1926,7 +2038,7 @@ mod tests {
                 },
                 error_replies: Mutex::default(),
                 limits,
-            }),
+            })),
             stage: PathBuf::new(),
             source: PathBuf::new(),
             kernel: PathBuf::new(),
@@ -1935,6 +2047,7 @@ mod tests {
                 sequence: u64::MAX,
             })),
             gate: session::Gate::new(1),
+            prepare_gate: session::Gate::new(1),
             threads: 1,
             timing: None,
             gpu_mib: 0,
@@ -1985,7 +2098,7 @@ mod tests {
         let script = b"#!/bin/sh\ncat > \"$0.input\"\ncat \"$0.reply\"\n";
         fs::write(&executable, script).unwrap();
         fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
-        db.active.get_mut().unwrap().control = Program {
+        Arc::get_mut(db.active.get_mut().unwrap()).unwrap().control = Program {
             path: executable.clone(),
             sha256: format!("{:x}", Sha256::digest(script)),
             gpu: None,
@@ -2009,7 +2122,7 @@ mod tests {
             expected.extend_from_slice(code.as_bytes());
             assert_eq!(metadata, expected);
             let (registry, rest) = split(rest).unwrap();
-            assert_eq!(registry, db.registry.read().unwrap().bytes);
+            assert_eq!(registry, db.registry.read().unwrap().bytes.as_ref());
             let (root, body) = split(rest).unwrap();
             assert_eq!(root, initial);
             assert!(body.is_empty());

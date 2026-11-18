@@ -7,8 +7,10 @@ use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
+use std::time::Duration;
 
 /// Admission for execution and commit, with FIFO priority for exclusive work.
 pub struct Gate {
@@ -70,23 +72,59 @@ impl Drop for Permit<'_> {
     }
 }
 
+const MAX_SESSIONS: usize = 128;
+
+struct SessionSlot(Arc<AtomicUsize>);
+
+impl SessionSlot {
+    fn acquire(active: &Arc<AtomicUsize>) -> Option<Self> {
+        active
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |count| {
+                (count < MAX_SESSIONS).then_some(count + 1)
+            })
+            .ok()
+            .map(|_| Self(Arc::clone(active)))
+    }
+}
+
+impl Drop for SessionSlot {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::Relaxed);
+    }
+}
+
 pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
     let listener = bind(path)?;
-    for client in listener.incoming() {
-        let client = match client {
-            Ok(client) => client,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => return Err(error.into()),
+    let active = Arc::new(AtomicUsize::new(0));
+    loop {
+        let client = accept(&listener, "SESSION");
+        let Some(slot) = SessionSlot::acquire(&active) else {
+            continue; // Dropping the socket refuses this session.
         };
         let database = Arc::clone(&database);
         if let Err(error) = thread::Builder::new()
             .name("jaydb-session".into())
-            .spawn(move || serve(&database, client))
+            .spawn(move || {
+                let _slot = slot;
+                serve(&database, client);
+            })
         {
             diagnostic(format_args!("SESSION: {error}"));
         }
     }
-    Ok(())
+}
+
+pub fn accept(listener: &UnixListener, service: &str) -> UnixStream {
+    loop {
+        match listener.accept() {
+            Ok((client, _)) => return client,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => {
+                diagnostic(format_args!("{service} accept: {error}"));
+                thread::sleep(Duration::from_millis(50));
+            }
+        }
+    }
 }
 
 pub fn bind(path: &Path) -> io::Result<UnixListener> {
@@ -153,6 +191,20 @@ fn serve(database: &Database, client: UnixStream) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn live_sessions_are_capped_and_released_on_close() {
+        let active = Arc::new(AtomicUsize::new(0));
+        let mut sessions: Vec<_> = (0..MAX_SESSIONS)
+            .map(|_| SessionSlot::acquire(&active).unwrap())
+            .collect();
+        assert!(SessionSlot::acquire(&active).is_none());
+        drop(sessions.pop());
+        sessions.push(SessionSlot::acquire(&active).unwrap());
+        assert!(SessionSlot::acquire(&active).is_none());
+        drop(sessions);
+        assert_eq!(active.load(Ordering::Relaxed), 0);
+    }
 
     #[test]
     fn bind_reclaims_only_stale_socket_paths() {
