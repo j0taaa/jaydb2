@@ -425,28 +425,40 @@ struct Registry {
     prepared: HashMap<String, PreparedProgram>,
 }
 
+// Control adds and removes whole entries. Cache each new entry in the worker
+// format until its handle is invalidated or its environment is retired.
+fn execution_registry(registry: &[u8], handle: &str) -> Result<Vec<u8>> {
+    use store::Value::{List, Text};
+
+    let invalid = || Error::new("HOST_TRANSPORT", "invalid prepared registry");
+    let decoded = store::decode(registry).map_err(|_| invalid())?;
+    let List(parts) = &decoded else {
+        return Err(invalid());
+    };
+    let [List(entries), List(_)] = parts.as_slice() else {
+        return Err(invalid());
+    };
+    let entry = entries.iter().find(|entry| {
+        matches!(entry, List(fields) if matches!(fields.get(1), Some(Text(key)) if key == handle))
+    });
+    match entry {
+        Some(entry) => store::encode(&List(vec![List(vec![entry.clone()]), List(Vec::new())]))
+            .map_err(|_| invalid()),
+        // The checked decoder accepts zero bytes as an empty registry.
+        None => Ok(Vec::new()),
+    }
+}
+
 struct Inspector {
     stream: Option<UnixStream>,
     sequence: u64,
 }
 
-#[derive(Default)]
-struct WorkerPool {
-    idle: Vec<Worker>,
-    generation: u64,
-}
-
-impl WorkerPool {
-    fn retire(&mut self) {
-        self.generation = self.generation.wrapping_add(1);
-        self.idle.clear();
-    }
-}
-
 struct PreparedProgram {
-    workers: Mutex<WorkerPool>,
+    workers: Mutex<Vec<Worker>>,
     directory: Temporary,
     program: Program,
+    execution_registry: Vec<u8>,
     original_code: Vec<u8>,
     universal_proof: Vec<u8>,
     // Exact host-owned bytes, not a hash-equality assumption. Rechecking these
@@ -893,6 +905,7 @@ impl Database {
             let mut sealed = PreparedProgram::seal(&request.path)?;
             sealed.extend(PreparedProgram::seal(&environment.path.join("public"))?);
             sealed.extend(PreparedProgram::seal(&environment.path.join("runtime"))?);
+            let execution_registry = execution_registry(&registry, &handle)?;
             let mut registered = self.registry.write().unwrap();
             registered.prepared.insert(
                 handle,
@@ -900,6 +913,7 @@ impl Database {
                     workers: Mutex::default(),
                     directory: request,
                     program,
+                    execution_registry,
                     original_code: code.to_vec(),
                     universal_proof: proof.to_vec(),
                     sealed,
@@ -930,9 +944,11 @@ impl Database {
             .prepared
             .get(handle)
             .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
-        if let Err(error) = prepared.validate() {
-            prepared.workers.lock().unwrap().retire();
-            return Err(error);
+        let idle = prepared.workers.lock().unwrap().pop();
+        // A running CPU worker has already loaded its validated executable.
+        // CUDA retains its per-call checks for the external device bundle.
+        if idle.is_none() || prepared.program.gpu.is_some() {
+            prepared.validate()?;
         }
         bench_mark(bench, "prepared_integrity");
         if self.inspector.is_some() {
@@ -943,17 +959,13 @@ impl Database {
             });
             self.inspect(snapshot, false, metadata);
         }
-        let (idle, generation) = {
-            let mut pool = prepared.workers.lock().unwrap();
-            (pool.idle.pop(), pool.generation)
-        };
         // Every live process here serves a request admitted by the execution
         // gate. If the idle pool is empty, another process fits under its bound.
         let mut worker = match idle {
             Some(worker) => worker,
             None => Worker::spawn(&prepared.program, self.threads)?,
         };
-        let input = packet(&registry.bytes, body);
+        let input = packet(&prepared.execution_registry, body);
         let proposal = worker.run(
             &prepared.program,
             false,
@@ -964,10 +976,7 @@ impl Database {
         if prepared.program.gpu.is_some() {
             prepared.validate()?;
         }
-        let mut pool = prepared.workers.lock().unwrap();
-        if pool.generation == generation {
-            pool.idle.push(worker);
-        }
+        prepared.workers.lock().unwrap().push(worker);
         bench_mark(bench, "prepared_worker");
         Ok(proposal)
     }
@@ -1042,7 +1051,7 @@ impl Database {
                 registered.bytes = registry;
                 match registered.prepared.remove(&handle) {
                     Some(mut artifact) => {
-                        artifact.workers.get_mut().unwrap().retire();
+                        artifact.workers.get_mut().unwrap().clear();
                         if let Err(error) = artifact.directory.remove() {
                             diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
                         }
@@ -1442,6 +1451,33 @@ mod tests {
     use std::io::Cursor;
 
     #[test]
+    fn execution_registry_contains_only_the_requested_live_entry() {
+        use store::Value::{Bool, List, Text};
+        let entry = |handle: &str, code: &str| {
+            List(vec![
+                Text("instance".into()),
+                Text(handle.into()),
+                Text(code.into()),
+                Text("\u{feff}proof".into()),
+                Bool(false),
+                Text(String::new()),
+            ])
+        };
+        let selected = entry("target", "código");
+        let registry = store::encode(&List(vec![
+            List(vec![entry("other", "other code"), selected.clone()]),
+            List(vec![Text("invalidated".into())]),
+        ]))
+        .unwrap();
+        let expected = List(vec![List(vec![selected]), List(Vec::new())]);
+        assert_eq!(
+            execution_registry(&registry, "target").unwrap(),
+            store::encode(&expected).unwrap()
+        );
+        assert!(execution_registry(&registry, "invalidated").unwrap().is_empty());
+    }
+
+    #[test]
     fn prepared_integrity_keeps_and_checks_exact_original_bytes() {
         let directory = Temporary::new(&std::env::temp_dir(), "jaydb-sealed-bytes").unwrap();
         let path = directory.path.join("artifact");
@@ -1459,6 +1495,7 @@ mod tests {
                 sha256: String::new(),
                 gpu: None,
             },
+            execution_registry: Vec::new(),
             original_code: Vec::new(),
             universal_proof: Vec::new(),
             sealed,

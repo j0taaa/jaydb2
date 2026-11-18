@@ -21,7 +21,7 @@ impl Socket {
     // socket has mode 0600 from the moment its pathname becomes visible.
     pub fn bind(path: &Path) -> Result<Self> {
         let mask = unsafe { libc::umask(0o177) };
-        let listener = UnixListener::bind(path);
+        let listener = crate::session::bind(path);
         unsafe { libc::umask(mask) };
         Ok(Self {
             path: path.to_owned(),

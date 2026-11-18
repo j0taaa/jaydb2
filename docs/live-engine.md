@@ -207,5 +207,8 @@ New trusted host code, supported by tests rather than proofs:
 * the log, checkpoint and recovery;
 * the `serve` loop effect in C.
 
+For prepared execution, T3 requires the host to forward only the controller-issued
+entry for the requested handle, or an empty registry when no live entry exists.
+
 The contract theorems are untouched and still verified. The old whole-state
 worker modules stay in the tree because the contract proofs refer to them.

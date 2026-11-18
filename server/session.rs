@@ -1,5 +1,10 @@
 use crate::{Database, Result, diagnostic, error_frame, scheduling};
+use std::ffi::c_char;
+use std::fs;
 use std::io;
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::unix::ffi::OsStrExt;
+use std::os::unix::fs::{FileTypeExt, MetadataExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
 use std::sync::{Arc, Condvar, Mutex};
@@ -66,7 +71,7 @@ impl Drop for Permit<'_> {
 }
 
 pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
-    let listener = UnixListener::bind(path)?;
+    let listener = bind(path)?;
     for client in listener.incoming() {
         let client = match client {
             Ok(client) => client,
@@ -84,6 +89,52 @@ pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
     Ok(())
 }
 
+pub fn bind(path: &Path) -> io::Result<UnixListener> {
+    let occupied = match UnixListener::bind(path) {
+        Err(error) if error.kind() == io::ErrorKind::AddrInUse => error,
+        result => return result,
+    };
+    let existing = fs::symlink_metadata(path)?;
+    if !existing.file_type().is_socket() || !connection_refused(path)? {
+        return Err(occupied);
+    }
+    let current = fs::symlink_metadata(path)?;
+    if (current.dev(), current.ino()) != (existing.dev(), existing.ino()) {
+        return Err(occupied);
+    }
+    fs::remove_file(path)?;
+    UnixListener::bind(path)
+}
+
+fn connection_refused(path: &Path) -> io::Result<bool> {
+    // A full backlog on a live socket must not block startup.
+    let fd = unsafe {
+        libc::socket(
+            libc::AF_UNIX,
+            libc::SOCK_STREAM | libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC,
+            0,
+        )
+    };
+    if fd == -1 {
+        return Err(io::Error::last_os_error());
+    }
+    let fd = unsafe { OwnedFd::from_raw_fd(fd) };
+    // bind already checked the pathname length and absence of NUL bytes.
+    let mut address: libc::sockaddr_un = unsafe { std::mem::zeroed() };
+    address.sun_family = libc::AF_UNIX as libc::sa_family_t;
+    for (slot, &byte) in address.sun_path.iter_mut().zip(path.as_os_str().as_bytes()) {
+        *slot = byte as c_char;
+    }
+    let result = unsafe {
+        libc::connect(
+            fd.as_raw_fd(),
+            (&raw const address).cast(),
+            std::mem::size_of_val(&address) as libc::socklen_t,
+        )
+    };
+    Ok(result == -1 && io::Error::last_os_error().raw_os_error() == Some(libc::ECONNREFUSED))
+}
+
 fn serve(database: &Database, client: UnixStream) {
     let result = scheduling::serve_stream(
         &client,
@@ -96,5 +147,33 @@ fn serve(database: &Database, client: UnixStream) {
         if matches!(error.code.as_str(), "STORAGE_UNCERTAIN" | "HOST_STORE") {
             std::process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bind_reclaims_only_stale_socket_paths() {
+        let directory = crate::Temporary::new(&std::env::temp_dir(), "jaydb-socket").unwrap();
+        let path = directory.path.join("service.sock");
+        let listener = bind(&path).unwrap();
+        assert_eq!(bind(&path).unwrap_err().kind(), io::ErrorKind::AddrInUse);
+        listener.accept().unwrap();
+        drop(listener);
+        drop(bind(&path).unwrap());
+
+        fs::remove_file(&path).unwrap();
+        fs::write(&path, b"keep").unwrap();
+        assert_eq!(bind(&path).unwrap_err().kind(), io::ErrorKind::AddrInUse);
+        assert_eq!(fs::read(&path).unwrap(), b"keep");
+
+        fs::remove_file(&path).unwrap();
+        let target = directory.path.join("stale.sock");
+        drop(bind(&target).unwrap());
+        std::os::unix::fs::symlink(&target, &path).unwrap();
+        assert_eq!(bind(&path).unwrap_err().kind(), io::ErrorKind::AddrInUse);
+        assert_eq!(fs::read_link(&path).unwrap(), target);
     }
 }

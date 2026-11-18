@@ -276,7 +276,8 @@ def preserves(s: D.State, valid: R.Valid(Old.config(), s)) -> Unit:
         self.assertEqual(refused.process.wait(timeout=180), 1, refused.diagnostics())
         self.assertIn('incompatible WAL environment descriptor', refused.diagnostics())
 
-        recovered, endpoint, _ = self.service('new', self.new, 'open')
+        # SIGKILL left both socket paths behind. Reuse them on recovery.
+        recovered, endpoint, _ = self.service('create', self.new, 'open')
         with self.connection(recovered, endpoint) as stream:
             handle = self.prepare_client(recovered, stream, with_priority=True)
             self.assertEqual(self.call(stream, handle, ['list']),

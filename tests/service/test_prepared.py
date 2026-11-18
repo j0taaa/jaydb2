@@ -94,7 +94,7 @@ class PreparedTests(unittest.TestCase):
                 {'status': 'success', 'value': 'alice-final'}, server.diagnostics())
 
             # Runtime, admitted source, and admitted dependency tampering all
-            # fail before running a prepared action or publishing anything.
+            # prevent launching a replacement worker.
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             self.assertFalse((private/'decode').exists(), 'redundant decoder was compiled')
             # Exercise the checked control executable directly with private
@@ -244,7 +244,7 @@ class PreparedTests(unittest.TestCase):
             diagnostic_start = len(server.diagnostics())
             try:
                 self.assertEqual(host_reply('missing-handle'), not_found_reply)
-                for artifact in (next(prepared.glob('*.program')), prepared/'Client.bend', prepared/'Size.bend',
+                for artifact in (executable, prepared/'Client.bend', prepared/'Size.bend',
                                  private/'runtime/tools/service/stage.mjs'):
                     # Linux denies in-place writes to a running executable.
                     # Replace the directory entry to test the same seal check.
@@ -252,6 +252,13 @@ class PreparedTests(unittest.TestCase):
                     artifact.rename(original)
                     try:
                         artifact.write_bytes(original.read_bytes()+b'\nchanged')
+                        if artifact == executable:
+                            # The mapped executable survives replacement of its path.
+                            self.assertEqual(server.prepared(1, handle, 'alice-final'),
+                                {'status': 'refusal', 'value': 'cancelled'})
+                            self.assertEqual(children.read_text().split(), [replacement_pid])
+                            os.kill(int(replacement_pid), signal.SIGKILL)
+                            self.assertEqual(host_reply(handle), absent_registration_reply)
                         self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
                         self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
                     finally:
