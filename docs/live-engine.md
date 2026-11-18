@@ -52,7 +52,9 @@ stdin/stdout are `u64 big-endian length || payload`.
   program, the original request body.
 * worker → host, data operation: `0x02 || canonical value of the operation`.
   The host replies with one frame holding the canonical value of the answer.
-* worker → host, end of request: `0x01 || response bytes` (Commit) or
+* worker → host, end of request: `0x01 || response bytes` (Commit),
+  `0x03 || response bytes` (the program proposed success but the response
+  checks failed: the host still runs the state checks first, never commits) or
   `0x00 || response bytes` (Keep).
 
 Operations and answers are records (fields in exactly this order); the
@@ -234,6 +236,11 @@ New trusted host code, supported by tests rather than proofs:
 * OCC validation and the committer;
 * the log, checkpoint and recovery;
 * the `serve` loop effect in C.
+
+As on `main`, the native worker compiled from the admitted Book is trusted
+(T2): the host checks frame shape, authentication order and the final checks,
+but cannot tell whether a faulty worker's operations are the admitted program's.
+The refinement proof covers the checked Bend side of that worker.
 
 For prepared execution, T3 requires the host to forward only the controller-issued
 entry for the requested handle, or an empty registry when no live entry exists.
