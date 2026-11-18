@@ -45,7 +45,8 @@ kernel distribution. Private-repository downloads require an authorized local
 reject substituted sources and executables; no checker is rebuilt.
 
 The complete path adds the general/contract/library/receipt proof aggregates in
-both official modes, proof-negative controls, real native and service tests,
+both official modes, including the live worker refinement in `proof/Remote*.bend`.
+It runs proof-negative controls, real native and service tests,
 library applications, storage-fault and lost-response recovery tests, the web
 demo, TypeScript real-service checks, the starter templates, and persistent task
 usage, plus generated SQL certificates and real Drizzle CRUD/rollback/recovery
@@ -60,6 +61,28 @@ release.
 GitHub Actions. It installs the pinned tools into a fresh checkout. It validates
 the selected revision; it does not publish a package, create a release, or deploy
 anything.
+
+## Live engine integration tests
+
+Run the live worker, socket concurrency and online migration tests directly
+after installing the pinned toolchain.
+
+```sh
+flock /tmp/jaydb2-experiments-heavy.lock bash -c '
+  ulimit -s unlimited &&
+  make build &&
+  python3 -B -m unittest tests.live.test_remote_worker tests.live.test_concurrency tests.live.test_migration -v
+'
+```
+
+These tests compare worker replies with the reference execution, exercise FIFO
+and conflicting writes, and test cutover and recovery. The Rust host tests
+exercise the store and WAL. The proof aggregate checks representable operation
+exchanges under faithful host responses. Store, concurrency and durability
+correctness remain trusted host duties. See the
+[proof guide](../proof/README.md#trusted-base).
+
+## Test lock and logs
 
 Both check modes take `/tmp/jaydb2-experiments-heavy.lock` once. An externally
 locked run must set `JAYDB_HEAVY_LOCK_FD` to the inherited descriptor holding

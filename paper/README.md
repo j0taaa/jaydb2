@@ -1,5 +1,9 @@
 # TCC article and defense presentation
 
+The article, slides and evidence describe the thesis version (tag
+`thesis-2026`), which passes whole state to a fresh process per call.
+The current engine is described in [docs/live-engine.md](../docs/live-engine.md).
+
 The main article is the English SBC manuscript in `main.tex`. The Portuguese
 defense is now an editable **16:9 HTML slide deck**, with 24 main slides and nine
 slides for questions. The current article has **16 pages including 40 references**.

@@ -16,59 +16,47 @@ flush or durability promise. Treat them as administrator data: they contain
 exact authenticated principal IDs. Workers do not inherit the log descriptor.
 No logging is enabled by default. Quota enforcement is excluded from integration.
 
-A completed selected request produces a record such as:
+A completed request produces a record such as:
 
 ```json
-{"format":"jaydb-service-timing-v1","sequence":2,"principal":"alice","elapsed_ns":"42000000"}
+{"format":"jaydb-service-timing-v1","sequence":2,"principal":"alice","elapsed_ns":"42000000","retries":0,"wal_batch":1}
 ```
 
-`sequence` is dispatch order, starting at one per service instance. `principal`
-is null if authentication did not succeed; an authenticated empty ID is the empty string. Nanoseconds are exact
-decimal strings. The log is an observation, not an acknowledgment, result cache,
-rollback assertion, or new protocol response.
+- `sequence` counts timing starts from one per process. Concurrent requests
+  can finish and log out of sequence.
+- `principal` is the identity authenticated on the final attempt, or null
+  when authentication did not succeed. An authenticated empty ID is an
+  empty string.
+- `elapsed_ns` is monotonic wall time in nanoseconds, encoded as a decimal
+  string.
+- `retries` counts optimistic concurrency conflicts that reran the request.
+- `wal_batch` is the number of write records in the durable batch that
+  published this request's write. It is zero for other outcomes.
+
+The counter resets on restart. Existing logs are appended to, so records from
+separate instances can have the same sequence number.
 
 ## Measurement boundary
 
-The metric is monotonic wall service time, not CPU usage. It starts when a
-complete frame is selected for service, before decoding and authentication.
-Reception, prior queue waits, startup and terminal framing events are excluded.
+Timing starts after the complete frame obtains its initial execution permit
+and before authentication. Preparation starts timing after taking its initial
+snapshot and environment. Reception, initial queue waits, startup and terminal
+framing events are outside the interval.
 
-The interval includes snapshot packet copying, authentication, artifact checks,
-proof admission/compilation where applicable, native execution, child and pipe
-cleanup, proposal validation and publication. Completion is stamped
-at `publish_with_ready`: after any durable snapshot commit and RAM publication,
-before final inspection and client delivery. A fatal commit uncertainty before
-that hook is measured once at the fatal return; service still stops with no
-response or later dispatch. A log cannot determine whether an uncertain commit
-reached storage.
+Timing includes authentication, applicable artifact checks, admission and
+compilation, worker exchanges, direct-worker cleanup and result readiness.
+It includes OCC retries and their later permit waits. For writes it includes
+committer waiting and durable publication. Prepare includes waiting for
+exclusive installation. The host stamps completion before serializing or writing the record, final
+inspection and client delivery. A kill, panic, fail-stop or stalled worker can leave no completion record.
 
-Intermediate inspection during execution remains part of service time; final
-inspection, log serialization/write/lock waiting, and client write/flush are
-excluded. A process kill, panic or request that never finishes can leave no
-completion record. No cancellation or deadline is added. The sequence counter
-resets on restart, including durable reopen. An existing log file is appended to, so separate instances can produce
-the same sequence numbers. The counter is process-local and not persistent.
+## Authentication and proof scope
 
-## Authentication transport and proof scope
+The ordinary preprocessing helper supplies the principal from the same checked
+context that produces the generated instance. The normal prepared execution
+path records the principal from the snapshot's credential index. The worker
+authenticates the user again through the private operation protocol.
 
-The private native authenticator success format is:
-
-```
-1 || u64be(id_utf8_length) || exact_context_id_utf8
-  || u64be(code_length) || code || u64be(proof_length) || proof
-  || u64be(instance_length) || instance || links_remainder
-```
-
-Rejection remains `0 || ordinary_response_frame`; invalid internal transport
-remains `2`. `Messages.authentication` obtains principal and generated instance
-from the same freshly authenticated `Input.Analysis.Received` context. All
-ordinary and prepared consumers parse that exact format. Current
-credentials and administrator laws still apply; no client identity assertion,
-authority, cached authentication or admission bypass is introduced.
-
-The two Messages principal laws prove this source-level identity binding.
-The Rust/Node/native byte bridge, monotonic clock, completion hooks and OS log
-writes remain trusted host behavior covered by controlled-clock and actual
-worker tests. Existing serial theorems are not silently extended to
-prove those effects. All three canonical byte limits and ordinary response
-bytes remain unchanged.
+The two `Messages` principal laws prove the preprocessing helper's
+source-level identity binding. The host credential lookup, Rust and native
+byte exchange, clock, timing hooks and log writes remain trusted.

@@ -67,10 +67,9 @@ node applications/tasks/tasks.ts --workspace .build/tasks/personal --storage-mod
 node applications/tasks/tasks.ts --workspace .build/tasks/personal --storage-mode open --credential bob-token --command list
 ```
 
-Each command starts and gracefully closes one real database instance. The second
-and subsequent commands load the authoritative image, authenticate afresh and
-submit the existing ordinary certificate. Handles are not persisted and this
-application does not synthesize a universal proof or silently retry writes.
+Each command starts and closes one database process. Open loads a checkpoint
+and replays subsequent WAL records. Each command authenticates and submits
+its concrete certificate. The client does not retry writes.
 `--command` prints one JSON response: exit 0 is success, 2 is a canonical
 non-success response such as authentication/refusal, and 1 is a startup/transport
 error whose write outcome may be unknown. `--help` describes the command syntax.
@@ -89,17 +88,14 @@ Without workspace options it retains its existing disposable RAM behavior.
 native worker for these small commands.
 
 Workspace layout is `app/` (frozen example modules) and `db/` (owned by JayDB).
-Create refuses any existing workspace; open never resets, recopies or requires a
-seed. The startup image still requires the exact database build and public
-environment; after code/configuration updates, use a new disposable development
-workspace. A failed create may leave a partial directory; inspect it and choose
-a new path rather than relying on an automatic cleanup/reset policy. One process
-owns a database directory at a time: exit the interactive client before opening
-it from another command.
+Create requires a new workspace. Open uses the exact database executable and
+durable environment without a seed. A failed create may leave a partial
+workspace. One process owns the database directory at a time. Exit the
+interactive client before opening it from another command.
 
-Alice/Bob credentials are public example credentials. The workspace stores an
-ordinary demonstration database, not a production account system. No automatic
-user onboarding, credential provisioning or migration is added here.
+Alice and Bob use public demonstration credentials. The example
+`migrations/` adds an optional integer priority through the host's checked
+[administrator migration socket](../../tools/service/SIMPLE_SERVICE.md#checked-migrations).
 
 ## Application laws
 
@@ -171,30 +167,6 @@ is a local test and not part of server execution.
 The scope of the eight laws and integration assumptions remain those in
 [proof guide](../../proof/README.md). This application adds no
 compiler, verifier, runtime, physical quota, or database parser.
-
-### Original delivery result
-
-The complete check ran against a clean JayDB2 v0.1.0 checkout (commit `d14b911`)
-with original Bend 2.0.39 and BendTT. The session's 17 calls and invalid-seed
-control passed; both mutated sources were rejected by the primary checker,
-and positive sources passed the real primary checker, BendTT, and native
-execution. The interactive interface was also exercised in the current
-working directory. No GitHub Actions workflows were run or modified.
-
-These results describe the pre-translation delivery. The English module and
-protocol names require the current database checkout rather than the v0.1.0
-API; translating these files alone does not establish a new test result.
-
-The English version was subsequently checked against the current database:
-all 17 session calls and the invalid-seed control passed again. Positive
-submissions used both official checkers and native execution; the two mutated
-programs were rejected by the primary checker without changing published state.
-
-The main friction was `out of fuel` while checking a certificate that
-recomputed concrete arguments inside its proof. A parameterized lemma resolved
-the tested cases within original limits. This improves the application proof's
-formulation; it is not a Bend change or a promise to accept any title/program
-within fixed cost.
 
 ## Accessory acceptance and regular use
 

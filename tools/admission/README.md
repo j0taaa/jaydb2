@@ -41,7 +41,11 @@ checkers, source binding, purity policy and checked-Book compilation.
 
 ## Kernel boundary
 
-`admitKernel` admits trusted JayDB wrappers. Only their registered foreign declarations receive integration permission; clients do not receive that capability. Initialization requires a seed-validity proof for the actual configuration. The host compiles official C without rewriting it and runs each call in a child process, retaining publication in the host.
+`admitKernel` admits trusted JayDB wrappers. Only their registered foreign
+declarations receive integration permission. Initialization requires a
+seed-validity proof for the actual configuration. The host compiles the
+official C as emitted. Direct workers serve one request. Prepared workers
+serve repeated requests. The host answers data operations and owns publication.
 
 Use the commands in the root README. There is no derived verifier installation, stack addon, physical budget, or per-request deadline. The official tools' own limitations remain unchanged. Admission soundness and exact source/Book binding form T1; compiler/runtime preservation and numbered host plumbing are T2/T3 in the [proof guide](../../proof/README.md).
 

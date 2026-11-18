@@ -29,7 +29,7 @@ authenticate `gh` with an authorized account.
 ```sh
 gh repo clone j0taaa/jaydb2
 cd jaydb2
-git checkout main
+git checkout experimental/live-engine
 mkdir -p .tools/bootstrap
 gh release download v0.1.0 --repo j0taaa/jaydb2 \
   --pattern bendtt-linux-x86_64.tar.gz --dir .tools/bootstrap
@@ -46,8 +46,7 @@ requires authorized `gh` access for the release download. Supplying an existing
 kernel path (`bash tools/ci/bootstrap.sh /path/to/bendtt`) avoids that download.
 Neither route builds a substitute checker.
 
-The checkout is current English-language `main`; the v0.1.0 release download
-is used only for the unchanged pinned BendTT distribution.
+The v0.1.0 release download supplies the pinned BendTT distribution.
 
 Bootstrap downloads and checks the official Bend 2.0.39 sources.
 `tools/bend.py` downloads the official distribution and must print
@@ -99,11 +98,13 @@ and refuse afterward.
 Each `make demo` starts from the seed. Exiting loses the RAM instance. This
 example neither writes a database to disk nor starts a network listener.
 
-Native programs use the host's available CPU parallelism by default (at most
-128 workers), while requests are processed serially. Pass `--threads N` to
-`./jaydb2` to select 1–128 workers per native process. `--threads 1` selects single-threaded
-execution and can reduce overhead for small sequential programs or when
-running many instances. GPU execution is disabled by default; opt in with `--gpu 512` as described below.
+Stdin/stdout serves one FIFO session. Use `--listen SOCKET` for concurrent
+Unix socket sessions and `--concurrency N` to cap active CPU transactions.
+The default socket concurrency is the available CPU count, capped at 128.
+Each native process defaults to one Bend thread with concurrent execution,
+or to available CPU parallelism capped at 128 with one execution slot.
+`--threads N` overrides this with 1–128 threads. GPU execution is opt-in and
+uses one execution slot.
 
 For your own application, supply configuration and a seed with a validity
 proof, then send programs/proofs through the same stdin/stdout protocol.

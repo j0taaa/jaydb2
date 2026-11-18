@@ -60,10 +60,12 @@ Business and receipt rows may temporarily differ after the first write or
 retirement delete. Only the complete specified path can publish success.
 Other programs can be certified if they prove the same observable protocol;
 a bare final-state assertion cannot authorize early reads or incomplete writes.
-Retention is explicit and unbounded until retirement or the ordinary state size
-limit. There is no expiration clock, cleanup worker, retry loop, response cache,
-concurrent host protocol or guarantee after retirement. Restart protection uses the accepted persistence extension and protected
-authoritative state. Run the real create/open receipt check with:
+The application retains receipts until explicit retirement, subject to the
+state size limit. Durable mode commits the business row and its receipt in
+the same WAL transaction. A retry after restart can see the recovered
+receipt. The receipt guarantee ends at retirement.
+
+Run the create/open receipt check:
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock python3 -B applications/vouchers/check.py --restart
@@ -95,8 +97,8 @@ Run the focused durability test under the common heavy lock:
 flock /tmp/jaydb2-experiments-heavy.lock make test-idempotency-recovery
 ```
 
-It kills the opt-in fault-build service after the issue/receipt pair is durable
-but before a response, then performs a seed-free reopen, identical retry and
-conflicting reuse check. A native trace oracle on the recovered bytes verifies
+It kills the fault-injection build after the issue/receipt pair is durable in
+the WAL and before a response. It reopens without a seed, repeats the same
+request and checks conflicting reuse. A native trace oracle on the recovered bytes verifies
 the receipt-hit path performs no business/receipt writes, with a fresh-state
 positive write control. Hooks are absent from normal builds.

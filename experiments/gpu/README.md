@@ -1,10 +1,8 @@
 # Experimental GPU programs
 
-Ported from archived `archive/experiment-gpu` (`4ff823d`) and its integration
-`ad79983`, adapted to the current checked metadata controller, exact prepared
-byte seals, persistence, FIFO scheduler and timing boundary. Old measurements
-were deliberately not copied. Current results live in
-[the evidence note](../../paper/evidence/gpu-programs.md).
+The live engine runs official CUDA workers with one execution slot per
+instance. The retained [thesis measurements](../../paper/evidence/gpu-programs.md)
+cover the engine tagged `thesis-2026`.
 
 `Client.bend` computes a U32 mixing tree with 64 rounds per leaf.
 `HeavyClient.bend` uses depth × 4096 rounds. Depth is the runtime credential
@@ -27,7 +25,7 @@ flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited;
   python3 tools/client.py --decode'
 ```
 
-To prepare once and submit multiple runtime inputs on the same process:
+To prepare once and submit multiple inputs through the same session:
 
 ```sh
 flock /tmp/jaydb2-experiments-heavy.lock bash -c 'ulimit -s unlimited; python3 - <<'\''PY'\''

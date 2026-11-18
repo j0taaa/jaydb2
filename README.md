@@ -1,8 +1,8 @@
 # JayDB2
 
 An experimental database that runs Bend programs accompanied by proofs against
-administrator-defined laws. Every request authenticates against published state,
-executes on a private proposal, and publishes only an accepted complete result.
+administrator-defined laws. Transactions authenticate against a published snapshot,
+execute with private writes and publish only after successful validation.
 
 Start with **[your first durable TypeScript application](QUICKSTART.md)**.
 It saves a task, exits, reopens the database, and demonstrates isolation and
@@ -60,13 +60,14 @@ Unix socket sessions and `Client.connect({socketPath})` from a Node backend.
 
 ## Existing database capabilities
 
-Each session processes requests in FIFO order. Socket sessions can run
-concurrently against the host's indexed snapshots. Direct calls compile
-one-request workers and prepared handles reuse a pool of workers.
+Each session processes requests in FIFO order. Socket sessions execute
+against the host's indexed snapshots. Optimistic concurrency control
+retries conflicting writes, and one committer orders publication.
+Direct calls compile one-request workers. Prepared handles reuse workers.
 
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
   a universally certified program once, then execute its instance-local handle
-  with fresh credentials and arguments. Restart loses handles.
+  with per-call credentials and arguments. Restart and migration retire handles.
 - **[Write-ahead logging](tools/service/SIMPLE_SERVICE.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
   compares the current durable descriptor of the exact executable and
@@ -77,7 +78,8 @@ one-request workers and prepared handles reuse a pool of workers.
   reopens with the new configuration and the same host/tooling identity.
 - **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in
   `--timing-log FILE` (or `-` for stderr), through cleanup and publication.
-  Queue waiting and response delivery are excluded. Client bytes are unchanged.
+  Initial queue waiting and response delivery are excluded. Records include
+  conflict retries and the durable WAL batch size.
 
 `--concurrency N` bounds active socket transactions, defaulting to available
 CPUs with a cap of 128. `--threads N` selects 1–128 Bend runtime threads per
@@ -92,15 +94,16 @@ deadline. A fatal failure can terminate an instance; volatile data is then lost.
 
 ## Branches
 
-`main` contains the accepted CPU capabilities, optional SQL/Drizzle frontend
-and TCC sources. SQL/Drizzle is an application layer;
-it does not replace the engine or change its core laws.
+`experimental/live-engine` is the experimental host engine described in
+[docs/live-engine.md](docs/live-engine.md). It serves concurrent local sessions
+with persistent prepared workers, WAL recovery and checked online migration.
+`main` contains the thesis-era engine and the SQL/Drizzle application layer.
+The article, slides and benchmark evidence describe the version tagged
+`thesis-2026`.
 
-The opt-in experimental GPU support (`--gpu MiB`, default off) ports the
-archived `archive/experiment-gpu` and `archive/experiment-integration` designs
-onto the current service; see [GPU programs](experiments/gpu/README.md) and the
-certified table-driven [simulation application](applications/simulation/README.md).
-The Bend controller replacement and quota enforcement are outside this work.
+The live branch also supports opt-in experimental CUDA. See
+[GPU programs](experiments/gpu/README.md) and the certified
+[simulation application](applications/simulation/README.md).
 
 ## Checks
 
@@ -140,12 +143,13 @@ T1 admits the exact seed-validity declaration before initialization runs. The
 the trusted base: T1 admission soundness and exact source/Book binding,
 T2 compiler/runtime preservation, and T3 numbered host plumbing obligations.
 
-The native worker executes the checked `Gate`/interpreter/finalizer path;
-compiler/runtime preservation and physical host plumbing remain T2/T3.
+The [live worker refinement](proof/README.md#live-worker-refinement) links
+the Bend operation exchange to the contract interpreter. The Rust store,
+concurrency control, durability and migration cutover remain host duties.
 
-Authentication uses current published state; configuration and dependencies
-remain immutable. Scoped cached universal prepared admission specializes at
-lookup for the current context and arguments under T1. Durability of
+Authentication uses the attempt's published snapshot. Configuration and
+dependencies are frozen within each epoch. Scoped cached universal admission
+specializes to the current context and arguments under T1. Durability of
 persistence, OS failures, resource availability and checker completeness or
 adequacy are outside the proved guarantees. Rust/Node/C and physical IO remain
 trusted integration components supported by tests.

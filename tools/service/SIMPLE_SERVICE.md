@@ -12,14 +12,14 @@ frozen public helper without keeping another local copy.
 The active entry is `./jaydb2` → `server/main.rs` → `tools/service/stage.mjs`.
 The host is Rust, admission and compilation are coordinated by Node, and each
 compiled program uses the official Bend runtime. Python is not part of service
-execution. Configuration contains only `message`, `state`, and `response`,
-measured in canonical bytes. Equality with a ceiling is allowed. There is no
-total-process memory budget, observer, or execution deadline.
+execution. The three logical limits measure canonical message, state and
+response bytes. Equality with a ceiling is allowed. Execution has no
+total-process memory budget or deadline.
 
 ## Checked migrations
 
 Enable online migration with `--admin-socket PATH`. Connect to the owner-only
-Unix socket and send one newline-terminated JSON object.
+Unix socket and send one UTF-8 JSON line of up to 65,536 bytes including the newline.
 
 ```json
 {"command":"migrate","configuration":"/path/new/Configuration.bend","migration":"/path/Migration.bend"}
@@ -76,26 +76,28 @@ The host loads the canonical initial state into an indexed snapshot. A checked
 startup executable exports the configuration's schema, and the host checks
 that the exported schema and state fit the store's representation. The
 framing reader queues declarations and reads ahead within its byte budget.
-Concrete admission and controls use checked `Dispatch.authentication` with a projection containing
-the table layout and the matching user, if any. Dispatch checks the envelope,
-including its full length, and decodes it before authentication and admission.
+Concrete admission and controls use checked `Dispatch.authentication` with
+a projection containing the table layout and matching user, if any. Dispatch
+checks and decodes the full envelope before authentication and admission.
 
 The generated entry calls `Remote.packet` (ordinary) or
-`Remote.registered_packet` (prepared). The prepared worker receives the latest
-controller registry and original request body. It authenticates through the
-host's credential index before looking up the handle, then checks that the
-resolved source and proof match the artifact's frozen bindings. The concrete
+`Remote.registered_packet` (prepared). The prepared worker receives the
+controller-issued entry for the requested live handle and the original
+request body. It authenticates through the host's credential index before
+resolving the handle, then checks the resolved source and proof against the
+artifact's frozen bindings. The concrete
 oracle also compares the context and structural arguments with its admitted
 instance. Both workers ask for data operations over private framed pipes.
 The host applies those operations to a transaction on the current snapshot.
 
 A worker final frame contains a tag and the exact framed response. Tag 0 keeps
 the current state. Tags 1 and 3 both propose success, so the host checks the
-candidate state's structure and credentials before checking its encoded size.
-If those checks pass, tag 1 publishes the transaction and tag 3 forwards the
-worker's response-check error. A malformed frame or worker failure discards
-the transaction and returns `failure`. A subsequent call starts a replacement
-worker for a failed prepared handle.
+candidate state before choosing the final response. The store maintains row
+structure on writes and checks credentials and canonical size at commit.
+After successful validation, tag 1 can publish and tag 3 forwards the
+worker's response-check error without publication. A malformed frame or
+worker failure discards the transaction and returns `failure`. A later
+prepared call reuses another idle worker or spawns one on demand.
 
 Prepare/invalidate use the separately checked `Control.control` transition through
 `ControlBridge.packet`, compiled at startup. The native controller checks the
@@ -110,13 +112,15 @@ flushes the response before selecting another request. Stdin/stdout is the
 default single session. `--listen SOCKET` serves multiple FIFO sessions on a
 Unix socket with the same frames. Socket threads read one message at a time
 and leave later frames in the socket receive buffer. The host accepts up to
-128 live client sessions and closes extra connections. Choose a new socket path
-or remove the stale socket file after stopping the service before rebinding.
+128 live client sessions and closes extra connections. The listener can
+reclaim a stale socket pathname when a connection is refused. Non-socket
+paths and active listeners are left alone.
 
 A shared execution gate limits active transactions, and gives exclusive
 operations priority over new shared attempts. Prepare compilation uses a
 separate pool sized to the execution bound. Installation and invalidation run
-exclusively. The committer revalidates write transactions against the latest
+exclusively. Installation rechecks the epoch, registry and authentication
+view used by the controller. The committer revalidates write transactions against the latest
 staged snapshot, in order. A conflict reruns the whole request from a fresh
 snapshot. After three conflicts a request runs exclusively. Direct workers
 are reaped before response readiness. The instance keeps at most one idle
@@ -138,8 +142,10 @@ output I/O failure stops the affected session. In stdin mode a cancellation sock
 wakes the framing reader so it can be joined before the service returns.
 
 Compilation directories receive code, proofs, and public admission data, never
-private state. The seed participates only in initialization and is removed
-before serving. The full state stays in the host during calls.
+a full transaction snapshot. The seed participates only in initialization
+and is removed before serving. Execution workers receive requests and
+answers and send operations and final responses. A migration reads the full
+state over its private pipe.
 
 ## Ownership and failures
 
@@ -165,8 +171,11 @@ transaction and synchronizes the batch once before publishing its final snapshot
 and releasing the responses. Read-only successes use their already durable
 snapshot and skip the WAL. When a batch crosses a 256-LSN boundary and the
 queue has room, a background thread writes a checksummed checkpoint. Recovery
-loads a valid checkpoint, replays later records and truncates a torn WAL tail.
-WAL I/O failures stop the service without a response. Users and application
+loads the newest valid checkpoint and replays later records in LSN order.
+It can discard a damaged final batch. It rejects interior corruption, LSN
+gaps and a damaged checkpoint whose LSN the retained log cannot reach. WAL
+batch bodies use a 32-bit length field. An append or sync failure stops the
+process. Users and application
 tables, including any idempotency receipts, survive restart. Prepared handles
 and their allocation history are instance-local.
 
@@ -195,65 +204,27 @@ that links concurrent events and retries.
 
 ## Verification and remaining host obligations
 
-`proof/WorkerBridge.bend::worker_body_equals_ingress_composition` proves that,
-for any final reference trace, finite unrolling of the actual worker adapter
-produces exactly the Gate composition's output. It reuses
-`ExecutionAdapter.finite_execution_reaches_exact_adapter_result`;
-`worker_unified_equals_gate_composition` covers actual Resolve selection.
-`DispatchBridge.dispatch_denials_equal_ingress_unified_early` proves that every
-Dispatch tag-0 reply has the exact bounded early-response bytes and unchanged
-root in the Ingress/Unified composition. Dispatch and Worker share private-root
-and body decoding. `CertifiedWorker.checked_prepared` covers the literal prepared
-packet and its real registry; `WorkerDecision.completion_emits_exact_decision` states exact
-Keep/Commit correspondence with the publication path and next root/bytes.
-Halted paths use `Gate.early` and cannot resume. The generated checked Book
-also proves the Native iteration conversion/step equations.
-Core's progress witness supplies the finite index; production has no fuel
-limit and never replays prefixes. These lemmas connect the emitted decision
-and bytes to Ingress/UnifiedCore under their existing validity and sound-oracle
-premises, without assuming compiler or C-loop preservation as a Bend proof.
+The [remote refinement proofs](../../proof/README.md#live-worker-refinement)
+connect representable data exchanges to `S.step` and lift the result to
+finite certified prefixes. The generated `generated_oracle_sound` law
+supplies the logical oracle premise. Reference worker and control proofs
+remain part of the contract aggregate.
 
-The generated `generated_oracle_sound` law supplies the logical oracle premise.
-T1 retains official checker soundness, exact source/Book/artifact binding and
-the source/purity audit.
-T2 remains preservation by the official compiler, native runtime and foreign
-loop. The remaining T3 plumbing obligations are:
-
-1. Freeze checked configuration, dependency/tool bytes and the checked initial
-   root; keep private state separate from client input.
-2. Frame bounded complete original bodies with the specified EOF ordering;
-   supply the current authentication projection to checked preprocessing and controls.
-3. Admit exactly the tuple selected by checked dispatch; compile and load the
-   same immutable checked Book and preserve its context, arguments and proof.
-4. Run the checked live entry and answer each operation from the transaction
-   with the corresponding `D.operate` result.
-5. Collect and validate complete frames, retire failed workers and finish
-   direct worker cleanup. Forward observed error codes to the checked
-   controller; denial-executable/transport failure retains the fixed technical
-   fallback. Memo hits forward checked bytes for the exact observed code.
-6. Check the candidate state for every success proposal, log accepted write
-   sets before publication, and use the resulting snapshot for the next request.
-7. Forward the latest controller-emitted registry bytes unchanged, supply the
-   exact T1 admission tuple to controls, install only checked deltas, preserve
-   allocation history, and manage the matching artifacts. Physical map/integrity
-   checks must prevent execution of an unavailable or changed artifact. Cache
-   only checked replies by exact observed code; prefill both prepared codes at
-   startup. `HostErrorReplyTheorem` states their independence from root/last/registry.
-8. Deliver exactly the returned bytes; delivery failure cannot undo a commit.
-   EOF/shutdown between requests closes the channel without a transaction.
-
-FIFO scheduling and timing/inspection must preserve these obligations.
-Durability and recovery retain their separate physical assumptions; handles
-remain in memory. Registry bytes are unauthenticated: stale or fabricated
-bytes can break invalidation and handle/program correspondence. Universally
-certified execution under T1 and generated source/proof matching still applies.
+The [proof guide](../../proof/README.md#trusted-base) numbers the host's T3
+duties. They include exact input and artifact binding, supplying the
+controller-issued prepared entry, faithful store operations and validation,
+FIFO sessions, OCC, atomic WAL-backed publication, recovery and migration
+cutover. T1 supplies checker soundness and exact source/Book binding.
+T2 supplies compiler and runtime preservation. The native loop effect,
+Rust bridge and physical IO are trusted.
 
 Error-code classification and response construction execute in the existing
 checked native controller. Its private metadata is a canonical text value
 containing the exact observed error code, distinct from the four-text prepare
 metadata list. The remaining packet contains the latest registry, the empty
-authentication projection and an empty body. `ControlBridge.run` calls `Control.host_error`, which
-uses the total table in `contract/HostErrors.bend` and `Control.finish`'s denial.
+authentication projection and an empty body. `ControlBridge.run` calls
+`Control.host_error`, which uses the table in `contract/HostErrors.bend`
+and `Control.finish`'s denial.
 `HostErrorReplyTheorem` proves bounded canonical framing and preservation of
 root/last-response/registry. The 17 named admission codes map to `certificate`;
 all other strings map to `failure`, including `HOST_COMPILE`, `HANDLE` and
@@ -272,31 +243,23 @@ prefills the same exact-code replies for the new configuration. Prepared
 map/integrity denials use these entries without another child. Other codes,
 including `HOST_IO`, use their own entry or the checked controller.
 
-The status table and reply construction moved into checked Bend. Detection of
-handle-map misses and integrity failures, passing the exact observed code,
-cache forwarding and the technical fallback remain trusted within the
-corresponding host duties. The proof guide reorganizes these duties into eight
-items; it does not claim a reduction from eleven to eight trusted duties.
-The 17-code certificate table is a contract specification, with no proof that
-it equals the Node tools' proof-rejection codes (`ORACLE_PROOF`, `ADT` and
-`INSTANCE_MATCH` map to `failure`). A literal-code inventory test guards
-against new codes without deliberate classification.
+Detection of handle misses and integrity failures, exact code forwarding
+and the technical fallback remain host duties. A literal-code inventory test
+checks the classification of codes found in the Node tools.
 
 If the denial controller or its transport fails, Rust keeps the root and emits
 the fixed technical fallback with an explicit stderr diagnostic. The fallback
 is never memoized. Startup performs two checked denial computations.
 
 Prepare/invalidate replies come from the controller under `ControlTheorem`,
-not the worker's denial branch. The Dispatch bridge compares tag-0 output to
-Ingress/Unified; it does not prove correspondence with controller replies.
-`ControlRegistryBytes.control_output_registry_decodes` connects successful
-controller registry serialization/framing to the exact decoder used by the
-prepared worker, subject to representable lengths and octet blocks.
+with bounded receipts and checked registry changes. The Dispatch bridge
+covers early dispatch denials. `ControlRegistryBytes` proves the reference
+registry round trip. The live host must project the requested entry faithfully.
 
 `make test` rebuilds before native/integration tests. `make verify-contract`
 and `make verify` check the inhabited executable Init/Core/Ingress/UnifiedCore/
-Fold, wire and worker-bridge theorems with both official tools, including
-causal negative controls for refusal publication and forged worker context.
+Fold, wire and reference worker theorems with both official tools.
+`make verify` also checks the live remote refinement and causal negatives.
 The [proof guide](../../proof/README.md) maps their premises and the T1–T3
 integration obligations. Native/integration tests check real compilation,
 effects, persistence and responses; they do not prove T1, T2 or Rust/OS
@@ -352,9 +315,8 @@ C, the executable and their hashes are provisional during that overlap.
 Both paths must settle and their children exit before admission returns a
 handle. `compile.mjs` withholds successful C/native receipts until both checkers
 accept and the seal and artifact hashes match. `stage.mjs` validates those
-hashes before releasing a program path; Rust retains its existing artifact
-verification before a fresh worker launch. A
-checker/build/binding failure releases no worker. On every reported failure,
+hashes before releasing a program path. Rust checks the artifact before
+launching a worker. A checking, build or binding failure releases no worker. On every reported failure,
 the checking/build paths have settled and provisional files are discarded.
 Uncatchable V8 OOM or a hard kill of the direct child can orphan kernel/Clang
 processes or leave provisional files. T1 rests on withheld receipts and seal/hash
@@ -368,17 +330,16 @@ span of translation and the kernel child; it overlaps `c_emission` and
 round trip to infer an exclusive remainder. Child completion can be observed
 after synchronous C emission yields the Node event loop. `admission_total`
 remains the inclusive wall time of admission/build. Staging, worker, cleanup
-and publication hooks retain their original boundaries. With `--gpu`, checking
-and building are sequential (no overlap), and the CUDA-only post-run artifact
-rechecks fall inside `ordinary_worker` / `prepared_worker`.
+and publication are measured separately. With `--gpu`, checking precedes
+building. The post-run CUDA checks fall inside `ordinary_worker` or
+`prepared_worker`.
 
 ## Experimental GPU programs
 
 Opt in on Linux/NVIDIA with `--gpu 512`: integer corpus MiB from 64 through
 4096; the default remains `--gpu off`. Initialization, authentication and the
-checked metadata controller always use CPU. CUDA executions are exclusive and
-serial per service instance, including read-only programs; administrators must
-coordinate separate instances. The corpus setting does not change the three
+checked metadata controller always use CPU. CUDA uses one execution slot
+per instance, including for read-only programs. The corpus setting does not change the three
 canonical byte limits, and does not cap total device/driver memory.
 
 Programs and proofs use the ordinary request or prepared protocol unchanged.
@@ -401,9 +362,9 @@ registration; `nvcc` is not needed. The report binds source, executable and
 resolved `libcuda`/`libnvrtc` paths and SHA-256: these vendor libraries and the
 `cuda.h`/`nvrtc.h` headers come from the host environment and are trusted, not
 attested. Private executable/cubin files must be regular files and match before
-each run and before accepting output; CUDA prepared execution rechecks all exact
-sealed bytes after each exchange. The default CPU path keeps its original
-pre-run checks, now also requiring the executable to be a regular file.
+each exchange and before accepting output. CUDA prepared execution checks the
+sealed bytes before and after each exchange. CPU prepared artifacts are
+validated at spawn.
 An official `bend: compiling the GPU program` notice fails even if rebuilt
 bytes happen to match. Substitution, removal, incompatible artifacts and device
 errors discard the proposal, preserving the current published/durable root.
@@ -434,11 +395,9 @@ production and benchmarks. `make benchmark-gpu` uses the heavy lock and
 `paper/bench/fixed-clock.sh`; both targets reuse an inherited
 `JAYDB_HEAVY_LOCK_FD` to avoid nested-lock deadlock.
 
-The proof concerns the checked Book's semantics, with the same obligations
-and checked Gate/finisher path for CPU and GPU; no CUDA validity axiom exists.
+CPU and GPU use the same checked live worker and satisfy the same laws.
 T2 now also trusts the official emitted runtime's CUDA path, NVRTC, CUDA driver,
 managed memory and GPU hardware. Differential testing is evidence, not proof.
 Host artifact checks assume protected tools/files and do not defeat a hostile
-same-UID file-use race. The live worker receives the same configured GPU
-option as ordinary execution.
-See [raw measurements and limits](../../paper/evidence/gpu-programs.md).
+same-UID file-use race.
+See [thesis measurements and limits](../../paper/evidence/gpu-programs.md).

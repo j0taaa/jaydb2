@@ -168,8 +168,8 @@ can be built with constraints, triggers and functions.
 PostgreSQL references: [row security policies](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)
 and [CREATE POLICY](https://www.postgresql.org/docs/current/sql-createpolicy.html).
 JayDB's broader proposition interface does not imply automatic proof discovery.
-Its existing [T1–T3 assumptions](../../proof/README.md) still apply, including
-compiler/runtime preservation and native host plumbing. Physical timing and
+The [T1–T3 assumptions](../../proof/README.md#trusted-base) include
+compiler preservation and faithful operations and publication by the live host. Physical timing and
 resource-consumption channels remain outside the confidentiality guarantee.
 
 ## Files
@@ -310,28 +310,10 @@ Certificate/program ratio: **2.54**. All local proof files/program: **7.77**.
 The two-slot version had 91 program lines, 112 certificate lines (1.23) and 482
 local proof lines (5.30).
 
-## Validation result
+## Validation
 
-Validated with the pinned official toolchain (BendTT and native
-sources reused through a temporary `.tools` symlink to the existing local
-toolchain). All heavy commands ran under the shared lock with unlimited stack:
-`make build`, `python3 -B applications/rls/check.py` (full default),
-`make test-rls`, `make verify`, `make test`. No checker fuel, state limit,
-contract, host or library file changed.
-
-| Command | Result |
-| --- | --- |
-| `make build` | Passed. |
-| `python3 -B applications/rls/check.py` | Positive certificate/termination/seed and the universal certificate passed both official modes; all twelve negatives failed only at `false` in both modes; native session passed with 253 checked responses and twelve admission denials, each followed by a complete unchanged-state check, plus largest-id deletion/reuse with replacement content. |
-| `make test-rls` | The same full RLS gate passed, including all twelve negatives in both modes and the 253-response native session. |
-| `make verify` | Import coverage and the existing positive roots passed in both modes; 397 negative fixtures / 794 official-mode rejections; this application's proof gate (as above, without the native session) passed. |
-| `make test` | 47 admission/verifier tests, 10 native runtime tests, 36 Rust host tests and 16 service integration tests passed, followed by another passing RLS gate (253-response native session). |
-
-Generated roots, intended-failure diagnostics and the host log stay under the
-ignored `applications/rls/.build/`.
-
-Integration with checked host error replies also emits controller/memo diagnostics
-containing `PRIMARY_CHECK`. The native test counts anchored actual error headers,
-requires exactly one `false` location for each negative, and retains all twelve
-complete unchanged-state checks. The aggregate and standalone RLS gate passed
-after this diagnostic-counter adjustment.
+Run `make test-rls` under the shared test lock with unlimited stack. The check
+runs the positive proofs in both official modes and requires all twelve
+negative fixtures to fail at `false`. The native session checks refusal
+rollback, cross-user isolation and unchanged state after admission denials.
+Generated roots and host diagnostics stay in `applications/rls/.build/`.

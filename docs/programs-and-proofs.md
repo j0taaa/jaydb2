@@ -130,7 +130,7 @@ policy. Deleting/retiring a receipt ends its deduplication protection. The
 example uses fixed principal identities; applications allowing identifier reuse
 must define a suitable principal-incarnation or equivalent namespace policy.
 Persist the database for restart survival. Prepared handles themselves remain
-instance-local and must be prepared again explicitly after restart.
+instance-local and must be prepared again explicitly after restart or migration.
 
 The TypeScript client returns ordinary refusal/authentication/certificate
 responses as responses. A transport failure may leave the commit outcome

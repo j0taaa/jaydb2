@@ -1,13 +1,9 @@
 # Prepared programs (optional protocol extension)
 
 An instance can check and compile arbitrary client Bend source with a universal
-certificate once, then execute its frozen official native executable repeatedly.
+certificate once, then execute it in persistent native workers.
 The ordinary four-field submission and its concrete proof remain supported.
 There is no transaction catalog, alternate checker, or modified runtime.
-
-The user authorized the additive prepared contract on 2026-11-06. Its wire,
-registry and control obligations supplement the unchanged eight core laws;
-the legacy ordinary-wire aggregate does not automatically prove this interface.
 
 ## Wire and lifecycle
 
@@ -39,9 +35,8 @@ invalid credential returns `authentication` before semantic handle
 resolution/proof-field validation. Malformed inner records are rejected before
 authentication. Control failures leave the published state/response pair
 unchanged. Invalidation removes the registration before deleting its directory;
-if cleanup fails, the handle remains removed and the checked `invalidated`
-receipt is still returned; the cleanup error is diagnostic only. This corrects
-the former `failure`-after-removal behavior, which contradicted denial purity.
+if cleanup fails, the checked `invalidated` receipt is still returned and
+the cleanup error is logged.
 
 `prepared` and `invalidated` are **control metadata receipts**, outside
 `Semantics.Status`. They do not execute a transaction, publish working state,
@@ -57,9 +52,10 @@ IDs use host-supplied random 256-bit candidates, encoded as 64 lowercase
 hexadecimal characters. `Control` checks the shape and rejects a candidate
 already live or ever allocated, including an invalidated handle. Entropy is
 not an authority or a fairness assumption; a collision returns `failure`.
-The registry and allocated-handle history are instance-local and in memory;
-they do not survive instance exit. Losing a receipt does not roll back a
-registration or invalidation, and this interface has no deduplication.
+The registry and allocated-handle history are instance-local and in memory.
+They disappear on instance exit. Migration retires the live registrations
+and retains allocated-handle history. Losing a receipt does not roll back a
+registration or invalidation.
 
 The client supports `--prepare --code FILE --proof FILE --credential TOKEN`,
 `--handle HANDLE --credential TOKEN --arguments JSON`, and
@@ -81,12 +77,16 @@ Scoped removal eliminates the named lookup; allocated history prevents revival.
 
 Initialization/recovery compile a separate native control executable through
 the same official checked-Book mechanism as other service programs.
-`ControlBridge.packet` decodes the original body/current root and current
-registry bytes, then calls `Control.control` and serializes its typed result. Rust
-supplies the exact source/proof and certificate mode from completed admission
-(T1), plus an entropy candidate. Bend compares that tuple to the decoded
-prepare request and immutable instance. Rust stores the returned registry bytes,
-keeps/deletes the named artifacts and copies the returned receipt (T3).
+`ControlBridge.packet` receives the original body, an authentication
+projection from the snapshot and the full registry. It calls `Control.control`
+and serializes the result. For preparation, Rust supplies the exact source,
+proof and certificate mode from completed admission, plus an entropy candidate.
+Bend compares the tuple with the decoded request. Preparation stages and
+compiles against a pinned environment in a separate pool. Installation is
+exclusive and requires the same epoch, registry and authentication view.
+If they changed, the host discards the registration and returns `failure`.
+Invalidation runs exclusively. Rust installs the checked registry delta,
+manages the artifact and forwards the receipt.
 No registry/certificate/receipt decision is inferred from public status text.
 The same executable accepts canonical private text error codes. Rust separately
 supplies `HANDLE` and `PREPARED_INTEGRITY` during startup and memoizes their
@@ -103,9 +103,8 @@ If the denial executable or transport fails for an uncached code, the host emits
 the technical fallback with an explicit stderr diagnostic and never memoizes it.
 The 17-code certificate table specifies the contract; no theorem equates it to
 the Node tools' proof-rejection codes (`ORACLE_PROOF`, `ADT` and `INSTANCE_MATCH`
-map to `failure`). Healthy prepared execution and map/integrity denials with the
-prefilled codes keep their original process/check counts. Artifact integrity
-and physical cleanup remain host obligations.
+map to `failure`). Prefilled denials need no controller launch. Artifact
+integrity and physical cleanup remain host obligations.
 
 ## Proof target and capture boundary
 
@@ -151,41 +150,29 @@ The Rust registration owns its temporary directory, executable path/hash,
 immutable original source bytes, universal proof bytes, and hashes of the
 prepared files and frozen public/runtime environment. The directory retains
 the exact dependencies, manifests, bindings, emitted C and native artifact.
-All sealed existing files must remain regular and byte-identical on reuse;
-missing/changed artifacts return a technical `failure` before execution. An
-artifact integrity failure does not establish that the original certificate
-is mathematically invalid. Original administrator/client
-input paths may change after freezing without affecting the instance.
+Before spawning a worker, the host checks that sealed files remain regular
+and byte-identical. Warm CPU workers reuse their validated, loaded executable.
+CUDA also checks sealed bytes before and after each exchange. The host starts
+workers on demand and keeps at most one idle worker per execution slot across
+all handles. It evicts the least recently used idle worker when the pool is
+full. Invalidation and migration retire the affected workers.
 
 For raw execute request `r` and registration `p`, the resolved logical request
 is `{code:p.original_code, proof:p.universal_proof,
-credential:r.credential, arguments:r.arguments}`. **The handle is never the
-executed source identity.** The worker receives a private packet consisting of
-current state bytes plus the decoded ordinary raw handle request (the control
-prefix is removed). Its existing `Input.analyze` authenticates that credential
-again and obtains context from this same state. The checked
-`Prepared.resolve_analysis` then replaces only code/proof with the exact frozen
-`Bindings.code()` and `Bindings.proof_source()` literals. It preserves the
-state, credential, context and arguments, and leaves rejections unchanged.
-The entry passes those actual arguments
-to `E.start(Client.program(), ctx, arguments, state)`. Its compiled
-`Client.program` is the original admitted AST. The code/proof fields of that
-raw handle request select no Bend function and supply no runtime capability.
-The universal certificate specializes to this actual context/arguments/state,
-with the registration's original source identity.
+credential:r.credential, arguments:r.arguments}`. The host sends the
+original prepared request body and a registry projection containing only the
+controller-issued entry for that handle. The checked worker decodes the
+body, asks the host for the user matching the credential, and authenticates
+that row before resolving the handle. It binds the resolved source and proof
+to the loaded artifact and runs with the current context and arguments.
 
-No checker, BendTT, Node staging helper, or C compiler runs on prepared
-executions. The existing native authenticator still emits public metadata
-strings; handle calls discard these instead of writing/checking sources.
-Host integrity hashing still runs, and native
-authentication/execution children run normally. The authenticator itself
-decodes first; there is no separate decode child. Both children remain fresh
-processes, and the execution child retains its own current input analysis.
-The private worker
-proposal is accepted only after complete output, child exit, transport/size
-checks, and the ordinary atomic publication step. A later refusal or native
-failure preserves the previous published root. The admitted directory stays
-alive until invalidation or instance exit rather than being deleted per call.
+The normal authenticated execute path uses the host credential index to
+locate the artifact. Other request shapes may use the checked preprocessing
+helper. Prepared execution uses no checker or compiler. The persistent worker
+exchanges data operations with the host using the attempt's snapshot and
+private writes. The host validates and publishes the result. A conflict may
+rerun the request on a new snapshot. Refusal and worker failure discard
+the private writes.
 
 ## Evidence and scope
 
@@ -199,13 +186,11 @@ preparation: handle executions still work without attempting Node, while an
 ordinary submission reaches that disabled gate and fails. Admission tests
 also exercise exact universal targets/source linkage and transitive captures.
 
-`src/Prepared.bend` is used by the universal entry, while ordinary submissions
-keep their original entry. `proof/PreparedPrograms.bend`, included in the
-general aggregate, proves source/proof resolution, preserved current
-authentication/state/context/arguments, specialization of the universal
-certificate, and faithful preparation/valid publication using the actual Core
-functions. Its premises include the current state and actual execution result;
-they do not assume final-state validity or publication permission.
+`src/Remote.bend` implements the active direct and prepared entries.
+[The remote refinement proofs](../../proof/README.md#live-worker-refinement)
+cover its data exchanges under faithful host replies. The separate
+`proof/PreparedPrograms.bend` checks the reference source/proof resolution,
+authentication, certificate specialization and Core publication lemmas.
 
 `contract/PreparedProtocol.bend` specifies prepared prefixes, valid physical
 reception and exact receipt encodings. `contract/PreparedRegistry.bend` retains
@@ -221,6 +206,6 @@ actual Core preparation/publication lemmas.
 `ControlTheorem` covers prepare/invalidate decisions, exact bounded receipts
 before mutation, lifetime freshness and scoped registry changes. The mixed
 service fold preserves root validity and accepted-admission lookup provenance.
-Current artifact integrity, T1 admission-result delivery, forwarding the latest registry bytes
-unchanged and physical receipt delivery remain integration obligations. The
+Artifact integrity, T1 admission-result delivery, forwarding the selected
+live entry and physical receipt delivery remain integration obligations. The
 [proof guide](../../proof/README.md) lists T1–T3 and the native worker bridge.

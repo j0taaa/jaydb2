@@ -38,9 +38,9 @@ fuel. It proves the access law for every prefix and outcome, including failed
 operations and refusal, using the standard trace/termination lemmas. Its `Safe`
 induction bounds the Action chain by five constructors (three reads, one write,
 one finish); the official structural termination checker additionally checks
-all recursive numerical functions. The existing checked finalizer enforces
-structure, canonical state and response size limits, and publication. Both
-official checkers admit the complete sealed Book before compilation/CUDA.
+all recursive numerical functions. The live worker checks the response. The
+host checks state structure and canonical size before publication. CUDA
+compilation begins after both official checkers accept the sealed Book.
 The certificate proves access safety and termination, not a theorem of the
 numerical formula's statistical properties or compiler/GPU correctness.
 
@@ -62,7 +62,6 @@ see `tests/service/test_simulation.py` for a complete session.
 from preparation, plus in-database PostgreSQL PL/pgSQL and SQLite recursive SQL,
 with a NumPy oracle at each size. No Python SQL UDF is used. PostgreSQL uses the
 same extracted package and cluster helper as E3; provide `pg` and `python`
-under `.build/paper-bench` as described by the paper benchmark setup. The raw
-results and fairness limitations are in `paper/evidence/simulation.json` and
-`paper/evidence/simulation.md`. The CUDA corpus is 512 MiB; GPU clock is not
-fixed and the device also drives the desktop. No engine/toolchain code changed.
+under `.build/paper-bench` as described by the paper benchmark setup.
+The retained measurements cover the engine tagged `thesis-2026`.
+See [thesis simulation measurements](../../paper/evidence/simulation.md). The CUDA corpus is 512 MiB.

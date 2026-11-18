@@ -7,8 +7,9 @@ Every public theorem type has an inhabited witness checked by official Bend
 2.0.39 and BendTT. The [proof guide](../proof/README.md) maps each theorem to
 its witness, non-vacuity evidence and trusted base T1–T3.
 
-The native worker executes the checked `Gate`/interpreter/finalizer path;
-compiler/runtime preservation and physical host plumbing remain T2/T3.
+The live native worker exchanges data operations with the host. The
+[remote refinement proofs](../proof/README.md#live-worker-refinement) connect
+those exchanges to the contract interpreter under faithful host replies.
 
 | Module | Purpose |
 | --- | --- |
@@ -55,17 +56,17 @@ certificate row and the default, including prepared map/integrity failures.
 `HostErrorReply` states that emitted bytes equal
 `Messages.error(HostErrors.status(code))` for every root/last/registry, permitting
 checked replies to be memoized by exact code. Startup prefills `HANDLE` and
-`PREPARED_INTEGRITY` separately for offline prepared denials. The host still
-detects failures, forwards the actual code/current snapshot (or the exact
-memoized reply for that code), and prevents execution after an integrity failure. Failure of the denial
+`PREPARED_INTEGRITY` separately for offline prepared denials. The host detects failures, forwards the actual code with an empty
+authentication projection or reuses the exact checked reply, and prevents
+execution after an integrity failure. Failure of the denial
 executable/transport retains a fixed host technical fallback, diagnosed on stderr
 and never memoized. The 17-code table specifies the contract; it is not proved
 equal to the Node tools' proof-rejection codes. `ORACLE_PROOF`, `ADT` and
 `INSTANCE_MATCH`, for example, map to `failure`.
-Artifact IO, admission-token delivery, physical IO and atomic root replacement
-remain host obligations. The proof guide numbers the required host
-plumbing; compiler/runtime preservation is T2. Durability, OS failures and
-checker completeness/adequacy have separate scope.
+Artifact binding, admission-token delivery, the versioned store, OCC,
+publication and migration cutover remain T3 host obligations. Compiler and
+runtime preservation is T2. Durability, OS failures and checker
+completeness/adequacy have separate scope.
 
 Run `make verify-contract` for both official modes; `make verify` adds complete
 maintained import coverage, public library proofs and causal negatives.

@@ -35,9 +35,9 @@ Expected response:
 {"status":"success","value":"t1"}
 ```
 
-The process has now exited. Its complete database image is in
-`.build/tasks/first/db/`, and its frozen example modules are in `app/` beside
-that directory. Alice's task is saved on disk.
+The process has exited. The checkpoint and write-ahead log are in
+`.build/tasks/first/db/`. The workspace's example modules are in the sibling
+`app/` directory. Alice's task is saved on disk.
 
 ## 3. Reopen, update and read
 
@@ -56,11 +56,11 @@ The final response is:
 {"status":"success","value":{"completed":true,"id":"t1","owner":"alice","title":"Try JayDB2 from TypeScript"}}
 ```
 
-Every command starts a fresh instance, reopens the same image, authenticates the
-request and checks the actual program/certificate. Open neither reads nor
-recreates the seed. It requires the same executable and public environment;
-after development changes, choose a new disposable workspace. There is no
-migration or compatibility layer.
+Each command starts a service process, opens the checkpoint and WAL,
+authenticates the request and checks its concrete certificate. Open needs
+the matching executable and current durable environment, and takes no seed.
+For a checked configuration change, use the host's
+[administrator migration socket](docs/live-engine.md#5-schema-changes).
 
 ## 4. Try isolation and rollback
 
@@ -117,15 +117,16 @@ For your own TypeScript host application, see the
 [client API and example](clients/typescript/README.md). The package can be built
 and installed locally into a separate TS project; publishing to npm is not
 required. It handles ordinary requests and optional prepared handles, while
-your Bend program and proof remain explicit inputs. Requests execute one at a
-time; `--threads N` controls the CPU workers within each native process.
+your Bend program and proof remain explicit inputs. The task CLI uses one FIFO
+session. A server started with `--listen SOCKET` can serve several sessions
+concurrently. `--threads N` controls the Bend CPU threads per native process.
 
 ## Troubleshooting
 
 - `EEXIST` on create: reopen the existing workspace, or choose a fresh path.
   Create never resets a directory. A failed create can leave a partial workspace.
-- An incompatible saved image: use its original exact build/environment or a
-  new development workspace. Open never silently falls back to empty data.
+- For a durable environment mismatch, use the exact executable and environment
+  recorded for the latest epoch, or create a separate development workspace.
 - Authentication/refusal/certificate response: inspect its status and the
   server's stderr. These differ from transport failure or an unknown outcome.
 - Unsupported stack limit/toolchain: follow the prerequisite checks in

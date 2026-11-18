@@ -114,10 +114,9 @@ credential and authenticates against current published state. Handles do not
 grant identity. The default local cache is bounded to 64 source shapes; a full
 cache reports an error. The local queue is bounded to 64 outstanding queries,
 configurable through `maxPendingQueries`; excess queries are rejected before
-submission. Use one SQL client per pipe session. There is no
-automatic invalidation, reprepare or reconnect; restart requires a fresh client.
-Await query promises before closing the underlying pipe so its shutdown can
-follow all work queued by the SQL frontend.
+submission. Use one SQL client per JayDB2 session. Restart or migration
+retires server handles, so create a new SQL client after either event. Await
+query promises before closing the underlying session.
 
 The generated safety proof covers the actual program's accesses, all execution
 prefixes, ownership preservation and termination. No administrator law is

@@ -5,100 +5,104 @@ The emitted C is compiled literally by `tools/service/stage.mjs` with Clang 19.
 There is no C rewriting, replacement runtime, custom Nat/Array representation,
 DSO ABI, or derived verifier.
 
-Each call runs that program in a new child process with the official options
-`+RTS --threads N --gpu off -RTS` (with the host's opt-in `--gpu MiB`, submitted
-programs instead receive e.g. `--gpu 512MB`; see `tools/service/SIMPLE_SERVICE.md`). The host selects its available CPU parallelism
-by default, capped at 128 workers, and falls back to one worker if detection
-fails. The host's `--threads N` option accepts 1–128 to override that selection.
-The selection applies to initialization, decoding within authentication, ordinary
-execution, and prepared-program execution. Independent Bend computations can
-run in parallel; the host serves requests and publishes state serially.
-Published state belongs to the host.
-Input and output travel through pipes; state is not written to the compilation
-directory. The process exits and the operating system releases its resources
-before the host accepts a proposal for publication.
+Prepared programs run in persistent native workers. The host starts them on
+demand and caches idle workers by handle. Direct calls compile a concrete
+worker that serves one request and exits. Stdin/stdout serves one FIFO client
+session, while `--listen SOCKET` allows concurrent sessions. The host owns
+state, transaction overlays and publication.
+
+Native processes use the official options `+RTS --threads N --gpu off -RTS`
+by default. One execution slot defaults to available CPU parallelism capped
+at 128, with a fallback of one. Concurrent execution defaults to one native
+thread per process. `--threads N` sets 1–128 threads. Experimental
+`--gpu MiB` gives submitted workers the corresponding official option, for
+example `--gpu 512MB`, and uses one execution slot.
 
 ## Checked worker path
 
-The generated closed entry calls `Worker.packet` or, for a live prepared
-registration, `Worker.registered_packet`. Private state is decoded once and
-kept through every early-error branch. Ordinary request ingress is
-`Input.read_message`; prepared execution uses `Resolve.select` with the exact
-live registration supplied separately from the original request. Both enter
-`Gate.begin`: fresh authentication precedes the statically admitted oracle,
-and rejection leaves client program construction suspended.
+`tools/service/stage.mjs` builds `live-execute` and `live-prepare`. The
+generated closed entry calls `Remote.packet` or `Remote.registered_packet`.
+The worker decodes the original request and sends its credential to the host.
+It checks the returned user with `D.authenticate`. Prepared execution then
+resolves the supplied controller-issued entry. The checked oracle binds the
+exact source, proof and configuration. A concrete call also binds its admitted
+context and arguments. A universal prepared certificate specializes to the
+actual call.
 
-The oracle binds the frozen source/proof and configuration; concrete execution
-also binds the admitted context and structural arguments, while a universal
-prepared certificate specializes to the current values. Its only Accept branch
-constructs that checked `Client.program()`. The checked Book proves `generated_oracle_sound` for this exact oracle.
-Checker soundness, source/purity audit and exact source/Book/artifact binding
-remain T1; the environment guard does not purport to compare arbitrary
-function-valued configurations.
+`Remote.admitted` starts the program and `Remote.run` advances its Action
+tree. Each Access sends an operation and suspends the continuation until an
+answer arrives. The host uses the transaction's versioned snapshot plus its own
+writes. Bend checks the response. The host validates the candidate state for
+success proposals and gives state errors priority over response errors.
+[The remote refinement proofs](../proof/README.md#live-worker-refinement)
+connect representable exchanges to the contract interpreter.
 
-The loop still consumes one `Execution.advance` step at a time, using
-`Core.advance`. The stopped branch now calls `Gate.finish`; early branches call
-`Gate.early`. Checked `Execution.decision` then selects Commit or Keep and
-encodes the exact framed bytes. The unchanged private ABI is
-`1 || frame(root) || response` for Commit and `0 || response` for Keep.
-Rust obeys this decision after cleanup and optional durable publication.
-`WorkerBridge.worker_body_equals_ingress_composition` and
-`worker_unified_equals_gate_composition` reuse the existing ExecutionAdapter
-proof to connect finite loop results to the theorem's Gate composition.
-The actual generated entry, iteration conversion and step equations are also
-checked in its admitted Book. Fuel belongs only to the proof, not the native
-execution policy.
+## Live worker ABI
+
+Each private frame is `u64be(payload length) || payload`. A direct request
+payload is the original body. A prepared request payload is a length-framed
+registry containing the selected entry, followed by the original body.
+One tag identifies each worker frame.
+
+| Tag | Payload after the tag |
+| --- | --- |
+| `0x02` | Ordered operation record. The host sends the ordered answer record in its own untagged frame. |
+| `0x01` | Framed public success response, pending host validation and commit. |
+| `0x03` | Framed response-check error after a success proposal, subject to host state checks. |
+| `0x00` | Framed public response. Discard private writes. |
+
+Operation records have a 1 GiB payload bound excluding the tag. The state
+limit applies to publication. The ordered fields and their canonical value
+encodings are specified in the [live engine ABI](../docs/live-engine.md#2-remote-worker-abi-srcremotebend-nativeeffects).
 
 ## Application effects
 
-`effects.bend` declares the kernel's only trusted effects. `effects.c`
-implements them through Bend's documented foreign mechanism (`io_eff`):
-
-- `read` receives bytes until EOF and builds the list with official `io_list`.
-- `write` uses official `io_cbuf` and `io_out`, without UTF-8 conversion of bytes.
-- `loop` applies a closed step to the linear state cell until completion.
-
-The Bend wrapper carries that cell as a `Unit -> StateExecution` function.
-This uses the official function BOX and transfers the capture once; it neither
-reconstructs the state's internal layout nor changes the compiler to force a
-representation. The step function is closed and fixed by the host. Client
-code receives neither these effects nor the state cell.
+The live wrapper uses `Native.serve`, a foreign effect in `effects.c`.
+It reads frames with stdio and writes them with Bend's byte IO, flushing
+each frame. The closed step carries a pending continuation as a one-use
+function capture and resumes it with the host's reply. EOF between requests
+ends a worker cleanly. A truncated exchange or inconsistent continuation
+fails the worker. The startup and control helpers use the separate
+`read` and `write` effects. Submitted programs cannot call these effects.
 
 ## Identity and failures
 
-The manifest records SHA-256 of literal C, the executable, and Clang, together
-with the actual compiler arguments. The Rust host checks the executable before
-every call. A child failure preserves published state. The host publishes only
-after receiving and validating complete output and reaping the process.
+Stage receipts record hashes of emitted C, the executable and the compiler
+with its arguments. Rust validates executable identity at launch. For
+prepared workers it checks the sealed files at spawn. Idle CPU workers reuse
+their loaded code. CUDA workers retain pre- and post-exchange artifact checks.
+The host reaps a direct worker and removes its request directory before
+publication. A failed exchange discards the transaction and retires its worker.
 
-State and response sizes are checked on the complete proposal; they are not
-RAM quotas. There is no program timeout or resource observer. A fatal failure
-of the database process can still lose the RAM instance.
+The three canonical size limits govern message, published state and response
+bytes. Execution has no deadline or total memory quota.
 
 ## Remaining T3 plumbing obligations
 
-1. Pin valid initial root, configuration, source, tool and executable bytes;
-   preserve the exact checked admission tuple and prepared registration.
-2. Supply complete original bodies and one current private root, with outer
-   framing bounds and FIFO/EOF behavior preserved.
-3. Run the same admitted Book through a fresh worker and the exact checked
-   step conversion; expose no publication capability to client code.
-4. Collect complete packets, reap children and finish rollback-capable cleanup
-   before accepting Commit; technical failures before commit preserve the root.
-5. Physically publish only Commit's exact root/response pair and deliver the
-   returned bytes. After commit, delivery failure preserves publication.
-6. Keep persistence, registry control receipts, timing and inspection ordering
-   faithful to their separate host specifications. They are not proved by the
-   core worker bridge. Compiler/runtime/foreign-loop preservation remains T2.
+1. Bind the checked Book, its epoch and admission tuple to the loaded code.
+   Preserve the original request and its selected prepared entry.
+2. Answer authentication from the attempt's snapshot and each operation from
+   the working transaction. Preserve the framed ABI and `D.operate` semantics.
+3. Check final frames, retire failed workers, and complete required artifact
+   checks and direct-worker cleanup.
+4. Validate write conflicts and state conditions, then publish only successful
+   transactions. Sync WAL batches before durable publication and deliver the
+   ready response in session order.
+5. Keep registry changes, migration cutover, recovery and observer output
+   faithful to the [numbered host duties](../proof/README.md#trusted-base).
+
+Compiler and runtime preservation remain T2. The C effect, Rust bridge and
+physical publication remain trusted.
 
 ## Optional administrator inspection
 
 `--inspect-socket ADMIN_SOCKET` enables a diagnostic administrator output over
 a Unix socket, separate from the client protocol. The host sends JSON metadata
 and canonical published-state bytes, each with an 8-byte length header.
-Initialization includes frozen public sources, the seed, and limits;
-authenticated calls include the actual context and bindings; call completion
-includes published state and any diagnostic. Workers do not inherit the
+Initialization includes frozen public sources, limits and the seed on create
+or volatile startup. Execution can emit generated bindings or prepared source
+identity. Completion includes a published snapshot and any diagnostic.
+Metadata includes the snapshot LSN and links request events by request ID. Workers do not inherit the
 descriptor. Observer failures disable this output without changing the call's
 response or publication.
 
@@ -125,22 +129,3 @@ latency. Initialization, authentication and reusable prepared workers retain
 `-O2`; prepared execution amortizes that optimization cost. Both paths compile
 the literal official C with the same runtime and checker modes. Programs with
 substantial computation should use prepared execution to retain optimized C.
-
-## Live worker ABI
-
-Stage `live-prepare` for a persistent prepared worker or `live-execute` for
-a concrete worker that exits after one request. Both Books use the usual
-checked admission oracle and pass its closed entry to `Native.serve`.
-The pending authentication or data operation moves through the native loop
-in a one-use function capture. This keeps the step structurally nonrecursive
-in Bend 2.0.39 while allowing arbitrarily many host exchanges.
-
-Every live frame is a big-endian u64 payload length followed by the payload.
-A prepared request contains a length-framed prepared registry followed by
-the original request body. A direct request contains the original body.
-Tag 2 precedes a worker operation record, whose answer is an untagged record
-in its own frame. The outer records use the field order specified in the
-live-engine ABI. Each field value uses the canonical encoding. Tag 1
-(Success) or 0 (Keep) precedes the usual length-framed public response. The
-worker flushes each frame, exits cleanly on EOF between requests, and fails
-on a truncated frame or inconsistent answer.

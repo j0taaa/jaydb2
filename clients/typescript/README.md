@@ -1,8 +1,8 @@
 # Optional TypeScript client
 
-A small Node 24+ client for the existing JayDB2 stdin/stdout protocol. It changes
-no database behavior. Runtime dependencies: none. Linux x86-64 and the pinned
-database toolchain are still required to run the database itself.
+A small Node 24+ client for JayDB2 over pipes or a Unix socket. It has no
+runtime dependencies. The database runs on Linux x86-64 with the pinned
+toolchain.
 
 ## Use from a separate TypeScript application
 
@@ -62,11 +62,25 @@ Inside this checkout on Node 24, applications can instead import
 `./clients/typescript/src/index.ts` by a suitable relative path. This uses Node's
 ordinary TypeScript type stripping and has no runtime install step.
 
+## Connect to a running instance
+
+Start the service with `--listen /path/to/jaydb2.sock` in addition to the
+configuration and startup options. Use the same request methods on the socket.
+
+```ts
+const client = Client.connect({ socketPath: '/path/to/jaydb2.sock' });
+```
+
+Call `await client.close()` to end that session and drain responses. The server
+continues serving other sessions.
+
 ## Requests, preparation and responses
 
 - `Client.spawn({command, args?, cwd?, env?, stderr?})` starts one session with
   piped stdin/stdout and inherited stderr by default. Arguments are an array;
   no shell is used. The owned process has its own process group on Linux.
+- `Client.connect({socketPath, maxPendingRequests?, maxResponseBytes?})`
+  opens one FIFO Unix socket session on a running service.
 - `new Client({input, output, completion?})` attaches to existing binary Node
   streams. `input` is the writable request pipe; `output` is the readable
   response pipe. Do not call `setEncoding` on the response stream. A supplied
@@ -78,15 +92,15 @@ ordinary TypeScript type stripping and has no runtime install step.
   convert, fabricate or prove it.
 - `execute({credential, handle, arguments})` and
   `invalidate({credential, handle})` use the existing handle protocol.
-- `await close()` ends stdin, drains all accepted responses and waits for owned
-  process exit. It has no deadline. A canonical `refusal`, `authentication`,
-  `certificate`, `data`, `limit` or `failure` is a returned response, not a
-  JavaScript exception. Preparation/invalidation return their metadata receipts.
+- `await close()` ends the request stream, drains accepted responses and
+  waits for an owned process to exit. It has no deadline. Canonical
+  `refusal`, `authentication`, `certificate`, `data`, `limit` and `failure`
+  resolve to response objects. Prepare and invalidate return metadata receipts.
 
 Concurrent calls are pipelined in invocation order and responses are matched
-FIFO. This does not promise concurrent database execution. Prepared handles
-belong to one instance and are lost on restart. The client does not reconnect,
-retry, reprepare or cache credentials. Another user can use a valid handle with
+FIFO on each session. Separate socket sessions can execute concurrently.
+Prepared handles belong to one instance. Restart and migration retire them.
+The client does not reconnect, retry, reprepare or cache credentials. Another user can use a valid handle with
 their own credential, subject to the normal current authentication and laws.
 
 ## Values and failure semantics
@@ -112,7 +126,7 @@ the same unknown-outcome semantics. It cannot undo a commit.
 
 Local input validation and a full pending queue reject a new call before writing
 it. The default bounds are 64 outstanding calls and 16 MiB per response body;
-configure `maxPendingRequests` and `maxResponseBytes` on either constructor.
+configure `maxPendingRequests` and `maxResponseBytes` when opening the client.
 These are client allocation policies, separate from administrator database size
 limits. The parser handles fragmented/coalesced frames and checks declared
 lengths before allocation. The stream constructor does not own external process

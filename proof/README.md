@@ -6,7 +6,8 @@ All public theorem types below have witnesses checked by official Bend 2.0.39
 and BendTT. The four Core clauses share the same universal premises: valid
 configuration, valid starting state, and sound admission for the exact request.
 
-The native worker computes its result through `Gate` (see `WorkerBridge` below).
+The theorem table includes the reference worker and its private packet.
+The live service uses `src/Remote.bend` and the refinement below.
 
 ## Theorems and witnesses
 
@@ -28,10 +29,10 @@ The native worker computes its result through `Gate` (see `WorkerBridge` below).
 | `HostErrorReplyTheorem`, `PreparedHostErrorsTheorem` | The total, exact case-sensitive error-code table computes a bounded canonical denial through the native controller, preserving root, last published response and registry. All 17 certificate codes have checked rows; every other code is `failure`, including `HANDLE` and `PREPARED_INTEGRITY`. `HostErrorReply` states exact emitted bytes independent of root/last/registry, justifying a memo keyed by exact observed code; both prepared codes are prefilled at startup. | `HostErrors.host_error_reply_theorem`, `HostErrors.prepared_host_errors_theorem`, `HostErrors.native_error_branch`, `HostErrors.emitted_frame`, `HostErrors.other_codes_fail`, `HostErrors.row_*` |
 | `ControlTheorem` | Controls authenticate against the current root; prepare compares the exact admission tuple and checks lifetime freshness. Receipts are bounded and precede deltas; root/last response are preserved. These structural conclusions need no admission-soundness premise. | `ControlClauses.control_theorem` |
 | `ServiceFoldTheorem` | Mixed transactions/controls preserve root validity, exact registry transition history and sound universal sources for live lookups from an empty registry. Invalidation removes scoped entries and preserves allocation history; every later position refuses reuse of an allocated handle, and `ServiceNoRevivalTheorem` preserves its absence. Controls carry the exact T1 admission-soundness premise. | `ControlHistory.service_fold_theorem` |
-| `ControlRegistryBytes` | Successfully encoded and framed controller metadata yields exactly its next registry through the prepared worker's `ControlBridge.decode_registry`, given representable byte length within its uint64 ceiling and octet blocks. This connects the mixed fold's registry to worker selection when forwarded unchanged. | `ControlRegistryBytes.control_output_registry_decodes`, `ControlRegistryBytes.registry_bytes_decode` |
+| `ControlRegistryBytes` | Successfully encoded and framed controller metadata yields exactly its next registry through the prepared worker's `ControlBridge.decode_registry`, given representable byte length within its uint64 ceiling and octet blocks. This connects the mixed fold's registry to reference worker selection when forwarded unchanged. | `ControlRegistryBytes.control_output_registry_decodes`, `ControlRegistryBytes.registry_bytes_decode` |
 | `CodecRoundtrip` | A successful canonical encoding decodes to the same value when its body length is representable in uint64 and within the decoder ceiling. | `WireTheorems.codec_roundtrip`, `WireTheorems.bend` |
 | `CodecCanonical` | Every accepted value re-encodes to exactly the original bytes. | `WireTheorems.codec_canonical`, `WireTheorems.bend` |
-| `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the private packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
+| `FramingRoundtrip` | A successfully joined private two-block packet separates into the original octet blocks. This is the reference worker packet format; the public frame is specified by `Protocol.frame`. | `WireTheorems.framing_roundtrip`, `WireTheorems.bend` |
 
 `RequestFacts` contains shared pure request/termination predicates.
 The supporting proofs cover authentication, interpreter fidelity, finalization,
@@ -52,6 +53,24 @@ supplies completion for accepted starts. These generic corollaries are checked
 with the repository proofs, rather than imported into every admission Book:
 inlining the full bridge graph into a generated Book exhausts the pinned
 BendTT default fuel in `worker_body_equals_ingress_composition.qv_1`.
+
+## Live worker refinement
+
+- [RemoteRefinement.bend](RemoteRefinement.bend) connects the live worker's
+  operation request and reply continuation to `S.step`. The host must apply
+  `D.operate` to the current working state and supply the matching reply.
+- [RemoteReplyBytes.bend](RemoteReplyBytes.bend) proves the ordered answer
+  encoding round trip. [RemoteCount.bend](RemoteCount.bend) covers the count
+  conversion for representable nonnegative results.
+- [RemoteTrace.bend](RemoteTrace.bend) lifts the step result to finite
+  prefixes. `all_remote_prefixes_refine_execute` preserves the working
+  state, operation events and terminal proposal. `certificate_covers_remote_prefixes`
+  transfers the certificate to those prefixes from a valid initial state
+  with the authenticated context present.
+
+Each exchange must fit its wire and count bounds. The proofs begin from the
+logical program start. Native authentication, Rust decoding and encoding,
+final host checks, scheduling and publication require the trusted bridge below.
 
 ## Non-vacuity and checking
 
@@ -99,12 +118,14 @@ matching uses proved String/context/structural-value equality; universal
 certificates specialize at the current context and arguments. T1 still trusts
 the soundness of both pinned official checkers, the source/target/purity audit
 (including isolation from host effects), and that the very checked Book is the
-Book passed to C compilation and bound to the loaded artifact. The
+Book passed to C compilation and bound to the loaded artifact. T1 also binds
+the exact checked migration function and its preservation proof to the
+executable run during cutover. The
 [service release boundary](../tools/service/SIMPLE_SERVICE.md#admission-and-artifact-release)
-describes concurrent checking/building, seals and receipt/hash gates. T1 rests
-on those gates, not on cleanup; on every reported failure provisional files
-are discarded, while hard kills or uncatchable OOM can bypass cleanup. Initialization
-validity uses `assertInitialization`: it requires a filled checked declaration
+describes concurrent checking/building, seals and receipt/hash gates.
+Reported failures discard provisional files. Hard kills or uncatchable OOM
+can bypass cleanup. Initialization uses `assertInitialization` to require a
+filled checked declaration
 with exactly `Requirements.Valid(configuration(), state())` and closed pure
 configuration/seed definitions before the startup Book can run. The initializer
 receives no proof value and cannot detect whether admission ran. `StartupTheorem`
@@ -125,68 +146,66 @@ resolved paths and hashes are recorded, not pinned like the Bend toolchain.
 No Bend compiler, runtime or emitted C is patched. CPU and GPU
 programs must discharge identical certificate, termination, access/RLS and size
 obligations on the same sealed Book, through both official checkers. CUDA
-compilation/prebuild begins only after both accept. The checked Gate/finisher
-and publication validation are unchanged; no GPU-specific permission or
-validity axiom is introduced. Executable and prebuilt cubin hashes are bound in
-the artifact report and rechecked before execution and accepting results;
-prepared programs additionally compare exact sealed bytes. Runtime rebuilds
+compilation and prebuild begin after both accept. CPU and GPU use the same
+checked live entry and host validation. With CUDA, executable and prebuilt
+cubin hashes are checked before the exchange
+and before accepting the result. CUDA prepared calls also check the exact
+sealed bytes. CPU prepared workers are validated at launch. Runtime rebuilds
 and artifact changes fail with no publication. These checks are T1/T3 bridge
 obligations, not a proof of T2. CPU/GPU differential tests and independent
 numeric oracles provide evidence, not proof of CUDA implementation correctness.
 See [measured scope and limitations](../paper/evidence/gpu-programs.md).
 
-**T3 — host plumbing for the serial in-memory service.**
+**T3 — live host and physical integration.**
 
-1. Pin configuration, source and tool bytes after initialization; use exactly
-   the checked seed root. Keep private state separate from client inputs.
-2. Read one bounded outer u64 frame with the specified EOF behavior. Supply
-   the complete original body and one current-root snapshot to the checked
-   decoder/controller; count prepared opcode bytes in the input limit.
-3. Admit only the tuple selected by checked authentication/dispatch. Compile
-   and load its exact checked program and gate with immutable dependencies;
-   preserve context, arguments and proof between checking and launch.
-4. Run a fresh private worker through the checked gate/advance/finalizer using
-   the trusted native loop. Give it no publication capability. Preserve the
-   logical observation trace on interruption.
-5. Collect the complete result/response and finish rollback-capable cleanup
-   before publication. An actual pre-commit tool/process/transport failure keeps
-   the prior root and emits the fixed failure frame when possible; fatal loss
-   may stop the process without a reply. Supply admission/other observed error
-   codes, current root and registry to the checked controller and forward its
-   denial; a memo hit forwards the checked bytes for that exact observed code.
-   If that executable or transport itself fails, the fixed technical fallback
-   remains host plumbing; it cannot produce a certificate rejection.
-6. Atomically publish exactly the checked Commit root and paired response;
-   otherwise preserve the prior root. Send no reply before this decision.
-   Start the next transaction with the resulting root.
-7. Supply prepared execution exactly the latest controller-emitted registry
-   bytes unchanged and the original root/body; before any control, the registry
-   is the empty byte string, decoded as the empty registry. These canonical
-   bytes are unauthenticated. "Invalidated means not executable" and the
-   correspondence between a handle and its registered program hold only while
-   the host forwards those latest bytes unchanged. Stale or fabricated registry bytes can break those
-   properties; executed programs remain universally certified under T1 and the
-   generated source/proof matching regardless. Supply controls the exact T1
-   universal-admission tuple, original body, current root and latest registry;
-   install only the checked registry delta and manage the matching artifact.
-   Preserve allocated history and the root/last-response pair. Receipt delivery
-   never rolls back a control. Keep the physical artifact-map lookup and exact
-   byte-integrity checks; never execute an artifact whose integrity check failed.
-   Those observations and fail-before-execution ordering remain trusted. Cache
-   only controller-emitted bytes by exact observed code, prefilling `HANDLE` and
-   `PREPARED_INTEGRITY` separately at startup. `HostErrorReplyTheorem` states
-   output independence from root, last response and registry; limits remain
-   immutable for the instance. Never cache a technical fallback.
-8. Deliver exactly the returned bytes. After a post-commit delivery failure,
-   retain the committed root and stop/close as appropriate. EOF or shutdown
-   between requests terminates the channel rather than creating a transaction.
+1. Pin the checked configuration, source, tool and executable bytes for
+   each epoch. Install exactly the checked seed or the recovered snapshot.
+   Export the matching schema and keep private state out of admission files.
+2. Apply the active message limit to the complete original body, including
+   prepared opcode bytes, with the specified framing and EOF behavior.
+   Keep FIFO order per session. Supply checked dispatch and controls with
+   the schema and matching user projected from the attempt's snapshot.
+3. Admit the exact authenticated tuple and launch the exact checked Book.
+   For prepared execution reuse only workers loaded from the matching
+   admitted artifact. Check sealed bytes before launching a CPU prepared
+   worker, and before and after CUDA prepared execution.
+4. Run the private framed `Native.serve` loop. Bind authentication to the
+   attempt's snapshot and answer one operation at a time against its
+   working state, with the same results and changes as `D.operate`.
+   Preserve ABI tags, field order and wire bounds. The worker has no
+   publication capability. A worker crash or protocol violation discards
+   its transaction and retires that worker.
+5. Forward the original prepared request body and only the controller-issued
+   entry for the requested live handle. An absent entry must never resolve
+   to a program. Give controls the full current registry and exact T1
+   admission tuple. Install only the checked delta for a matching epoch,
+   registry and authentication view. Preserve allocated-handle history and
+   keep artifacts and live workers consistent with invalidation. A delivery
+   failure does not undo a control.
+6. Validate success proposals against the serial commit order. Check tracked
+   row reads and writes, collection membership and credentials against later
+   versions. Pin versions needed by running attempts. Retry conflicts on a
+   new snapshot, using exclusive execution after three conflicts. Read-only
+   outcomes use their published snapshot. Validate structure and canonical
+   state size so state errors take precedence over response-check errors.
+7. Publish only a validated success. Finish direct-worker execution and
+   cleanup before publication. In durable mode, sync each accepted WAL
+   batch before publishing its final snapshot and releasing its replies.
+   Recovery must restore the matching checkpoint and replay the committed
+   prefix in order. WAL write or sync failure stops the process.
+8. Run the exact checked migration on the latest state under exclusive
+   execution. Validate its output and sync the epoch record in durable
+   mode. Switch snapshot, schema, limits, authentication and control as one
+   cutover for client work. Retire registrations and workers while retaining
+   allocated-handle history.
+9. Use the exact observed code for checked denials and cache only the checked
+   bytes by that code within its epoch. Prefill `HANDLE` and
+   `PREPARED_INTEGRITY` for each epoch. A failing denial executable or
+   transport uses a fixed technical fallback outside the memo.
+10. Deliver the selected framed response once the outcome is ready. Preserve
+    a commit if delivery fails. EOF between messages closes the session.
+    Timing and inspection must preserve execution and publication ordering.
 
-The status table and construction of admission, handle-miss and integrity
-replies moved from Rust into checked Bend under `HostErrorReplyTheorem`.
-The eight items above reorganize the host obligations; they do not represent a
-reduction from eleven to eight trusted duties. Detection of handle-map misses
-and integrity failures, passing the exact observed code, cache forwarding and
-the technical fallback remain trusted, folded into duties 5 and 7.
 `contract/HostErrors.bend` lists `IMPORT`, `IMPORT_CYCLE`, `DEPENDENCY`, `PARSE`,
 `META`, `UNSAFE`, `FOREIGN`, `IO`, `OPEN_LAW`, `SHADOW`, `REDEFINITION`,
 `PRIMARY_CHECK`, `BENDTT_CHECK`, `TARGET`, `SOURCE_BINDING`, `HOST_CAPTURE`,
@@ -195,7 +214,7 @@ the technical fallback remain trusted, folded into duties 5 and 7.
 followed by a worker-check failure reports `HOST_COMPILE`. Native-build errors
 (`phase: compile`) occur only after both checkers accept, skip pure rechecking
 and report `HELPER`; both map to `failure`.
-These failures reject before the request's Gate runs. The host supplies the
+These failures reject before the submitted program runs. The host supplies the
 actual observed code; checked code does not prove the tool produced it.
 The 17-code certificate table is a contract specification. Nothing proves
 that it equals the set of codes the Node tools use for proof rejection;
@@ -204,7 +223,7 @@ that it equals the set of codes the Node tools use for proof rejection;
 admission/service tools against the table and deliberate failure classifications;
 it detects inventory drift, not semantic equivalence or dynamically supplied codes.
 The controller computes `HANDLE` and `PREPARED_INTEGRITY` replies separately
-at startup. `HostErrorReplyTheorem` quantifies over every root, last response
+for each epoch. `HostErrorReplyTheorem` quantifies over every root, last response
 and registry and states that emitted bytes equal `Messages.error(HostErrors.status(code))`.
 This justifies memoizing checked replies by exact code for later roots.
 Other observed codes, including `HOST_IO`, use their own memo entry or invoke
@@ -217,10 +236,8 @@ against the original certificate. Neither denial executes that artifact.
 
 The error-reply theorem and `HostErrors.native_error_branch` bridge cover the
 native controller's decoded private text metadata branch, typed transition and
-exact serialization. It
-proves denial, framing/bounds and root preservation, not physical failure
-detection, artifact integrity, process execution or publication. Healthy ordinary
-success and prepared calls run no additional child or checker.
+exact serialization. They prove denial, bounded framing and root preservation. Physical failure
+detection, artifact integrity, process execution and publication remain T3.
 
 Durability of persistence, OS failures and physical resource availability,
 and checker completeness/adequacy are outside the proved theorems. Accepted
@@ -229,13 +246,8 @@ proof requires a separate adequacy assumption. Syscall progress and scheduling
 require host/runtime assumptions. The pure persistence lemmas concern supplied
 transitions and recovered bytes, not device durability.
 
-The optional durable host stores canonical state, immutable environment binding
-and limits, plus a checksum. It does not persist the instance-local last response
-or prepared registry/allocation history. Host duties 6 and 7 still require the exact
-root/response pair in RAM, including on equal-root successful transactions and
-controls. A byte-identical state Commit may reuse an already durable complete
-image while publishing its new paired response. Create establishes durability;
-open synchronizes the validated authoritative file and directory before serving;
-every changed state (including an application receipt row) completes file sync,
-replacement and directory sync before publication. This optimization changes no
-T3 duty and adds no response-replay promise across restart.
+In durable mode the host stores checksummed checkpoints and WAL batches.
+Checkpoints and migration records carry their epoch's environment descriptor.
+Write records contain row changes. Read-only successes use an already durable
+snapshot. Prepared registrations, allocation history and responses are
+instance-local; durable recovery does not replay responses.

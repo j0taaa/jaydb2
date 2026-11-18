@@ -1,4 +1,4 @@
-JayDB is an in-memory database that executes Bend programs accompanied by proofs. It provides typed data, authentication, and atomic publication of changes. The administrator defines the application's meaning and permissions through laws.
+JayDB is a database that executes Bend programs accompanied by proofs. It provides typed data, authentication, and atomic publication of changes. The administrator defines the application's meaning and permissions through laws.
 
 This contract contains the data model and eight English laws mapped to inhabited executable theorems in `contract/Theorems.bend`. The definitions below are part of the contract. The [proof guide](proof/README.md) identifies the witnesses and trusted base T1–T3.
 
@@ -12,8 +12,9 @@ specialized at lookup is part of T1's source/program/artifact binding.
 Preparation and invalidation use the checked `Control` plan/delta.
 Artifact IO and delivery of T1 admission tokens remain host obligations.
 
-The native worker executes the checked `Gate`/interpreter/finalizer path;
-compiler/runtime preservation and physical host plumbing remain T2/T3.
+The live native worker runs the admitted program and exchanges one operation
+at a time with the host. The [remote refinement proofs](proof/README.md#live-worker-refinement)
+connect these exchanges to the contract interpreter under T2 and T3.
 
 `HostErrorReplyTheorem` covers the native controller's total exact error-code
 classification and canonical response construction, preserving the published
@@ -22,14 +23,13 @@ the certificate-code table; every other code, including `HANDLE` and
 `PREPARED_INTEGRITY`, produces `failure`. Rust forwards the observed code and
 returned bytes, memoized by exact code. Startup separately prefills `HANDLE`
 and `PREPARED_INTEGRITY`; `HostErrorReplyTheorem` states the emitted bytes equal
-`Messages.error(HostErrors.status(code))` for every root/last/registry. Memo reuse
-therefore preserves the exact checked denial at later roots and adds no process
+`Messages.error(HostErrors.status(code))` for every root/last/registry. Within
+each epoch, memo reuse preserves the exact checked denial at later roots and adds no process
 to prepared denials with those codes. Physical artifact lookup/integrity, detection
 of actual failures and preventing execution after a failed integrity check remain
 host duties.
 If the denial executable/transport itself fails, the host retains the existing
 fixed technical failure fallback, diagnosed on stderr and never memoized.
-Successful calls use the same execution path.
 
 # Database concept
 
@@ -52,7 +52,32 @@ Read control covers information inspected by the program even when it is not ret
 
 The kernel defines no record ownership, role hierarchy, private fields, self-promotion ban, balance conservation, cross-table relationships, application cryptography, or authorization necessarily based on prior state. Administrator laws may express all of these. Reading and changing are independent permissions.
 
-The service processes requests serially over standard input/output, using native CPU Bend in a fresh child process per call. CPU is the default (`--gpu off`). The experimental `--gpu MiB` option enables the official CUDA backend for explicit `f!(x)` calls inside submitted programs, with one executing worker per instance. Initialization, authentication and metadata control remain on CPU. The host retains published state in RAM; the child receives a private proposal and does not publish directly. Schema and laws remain fixed for the instance; data and users may change. Without opt-in complete-image persistence, exiting loses the data. Persistence reopening checks the frozen configuration without evaluating a seed; durability remains outside the pure source theorems.
+The host owns an indexed, versioned store. Native Bend workers request one
+data operation at a time against a snapshot with private writes. Each direct
+call compiles a one-request worker for its concrete certificate. Prepared
+handles reuse persistent workers. Stdin/stdout is one FIFO session.
+`--listen SOCKET` serves concurrent FIFO sessions over a Unix socket. The
+host uses optimistic concurrency control and a single committer to provide
+strictly serializable execution. Conflicting writes rerun on a new snapshot.
+
+CPU is the default (`--gpu off`). Experimental `--gpu MiB` enables official
+CUDA for explicit `f!(x)` calls and limits execution to one slot per
+instance. Initialization, authentication helpers and metadata control run
+on CPU.
+
+Storage is volatile by default. Set `--storage DIRECTORY` and
+`--storage-mode create|open` for durable mode. The committer syncs accepted
+write sets in WAL batches before publication. The host writes background
+checkpoints. Open checks the
+active durable environment and replays the log without evaluating a seed.
+Durability is outside the pure source theorems.
+
+`--admin-socket PATH` enables checked online changes to configuration,
+including schema, laws and limits. A migration proves that it maps states
+valid under the active configuration to states satisfying the new stable
+laws. The host checks the result's structure and size, installs it
+exclusively and retires all prepared handles. See the
+[live engine guide](docs/live-engine.md).
 
 GPU programs have exactly the same certificate, termination, access/RLS and
 canonical-size obligations as CPU programs. Both official checkers (`--check-only`
@@ -63,8 +88,7 @@ the private artifact report, checked before execution and before accepting its
 proposal. Prepared registrations additionally retain exact artifact/source/proof
 bytes. Missing or changed artifacts, an official runtime rebuild notice, or GPU
 failure discard the proposal. Requested bang execution never falls back to CPU.
-The existing checked Gate, worker finisher and validation/publication path still
-make the decision. No GPU permission or validity axiom is added.
+CPU and GPU use the same checked live worker and host publication rules.
 
 These theorems concern the checked Book's semantics. With CUDA enabled, trusted
 base T2 additionally includes the official CUDA path in the emitted runtime,
@@ -75,7 +99,10 @@ toolchain. Differential tests are
 evidence of implementation behavior, not a proof of compiler/runtime or GPU
 correctness. See [GPU evidence and limits](paper/evidence/gpu-programs.md).
 
-Outside this version: a network database daemon, distribution, guaranteed parallel request execution, dynamic schema changes, migrations, configurable indexes, history, auditing, sessions, password recovery, preinstalled programs, mandatory caching, automatic retries, and request deduplication. The database does not generate or repair proofs.
+Outside this version are TCP service, distribution, configurable indexes,
+queryable history, auditing, password recovery, preinstalled programs,
+mandatory caching and request deduplication. Conflict retries are internal
+to the host. The database does not generate or repair proofs.
 
 Every transaction uses code and a proof, either supplied in the request or
 resolved from an instance-local prepared registration. Preparation is optional
@@ -205,7 +232,7 @@ opening a seed. Recovery-byte validity and durability have separate scope.
 the runtime initializer does not receive or test a proof value. `InitTheorem`
 is an abstract seed-admission helper for `FoldTheorem`, which derives validity
 of every reached root under the same configuration. T3 installs exactly the
-checked root and pins the configuration/source bytes.
+checked root and pins the configuration/source bytes for its epoch.
 
 `ServiceFoldTheorem` extends validity to interleaved transactions and checked
 controls starting with an empty registry, with exact registry transition history
@@ -269,9 +296,8 @@ The `Completed` clause proves the exact finisher, `Requirements.finalize`,
 `Semantics.publish` and validity of the next root. Success selects the whole
 working root; every other status preserves the initial root. `FoldTheorem`
 derives validity throughout finite serial runs whose steps carry the actual
-gate, final-trace and publication equations. T3 performs atomic root/response
-replacement only after preparation and cleanup, and feeds exactly that root
-to the next request. Physical atomicity and serial dispatch are host obligations.
+gate, final-trace and publication equations. T3 enforces atomic publication
+and strict serializability across the live sessions.
 
 ## Law 7 Exact results and interruptions
 
@@ -321,13 +347,13 @@ Processing follows this order: frame and decode the request, authenticate, admit
 
 A response contains exactly `status` and `value`. For the six fixed errors, `value` is absence. For the two program outcomes, it is the produced value. The response channel adds no compiler messages, private data, proofs, or variable diagnostics.
 
-Limits are three fixed public parameters: message, published-state, and response sizes. They are finite canonical-byte quantities representable in 64 bits; the response limit accommodates fixed errors. Results are never truncated, data automatically removed, or state partially published to fit a limit.
+Each configuration fixes three public parameters: message, published-state, and response sizes. They are finite canonical-byte quantities representable in 64 bits; the response limit accommodates fixed errors. Results are never truncated, data automatically removed, or state partially published to fit a limit.
 
-The kernel neither measures nor imposes physical memory or per-stage time. It does not promise to turn every resource exhaustion into a recoverable response. A mathematically terminating program may occupy the serial instance for a long time; a fatal failure may lose the process and RAM data without a response. Recoverable failures before publication preserve published state. Later delivery failure does not undo publication. Correct execution remains required when the environment permits; implementation may not invent failure or deny processability to hide improper rejection.
+The kernel neither measures nor imposes physical memory or per-stage time. It does not promise to turn every resource exhaustion into a recoverable response. A mathematically terminating program may occupy its session and delay queued exclusive work for a long time. A fatal failure may lose the process and volatile data without a response. Recoverable failures before publication preserve published state. Later delivery failure does not undo publication. Correct execution remains required when the environment permits; implementation may not invent failure or deny processability to hide improper rejection.
 
 External operational protections are optional and outside the database proof. If they terminate the process, they can lose the entire instance. They are not presented as a per-request budget.
 
-EOF between messages or operator-requested shutdown ends service between calls. Incomplete header/body closes the channel with `input`; a declared size above the ceiling closes it with `limit`. These errors are sent when the channel still allows. A complete body within the limit that is malformed produces `input` and permits the next message. A failure making the process unusable ends the instance. Shutdown does not save data, and response delivery is not promised when the channel or process itself fails.
+EOF between messages ends that session. Incomplete header/body closes the channel with `input`; a declared size above the ceiling closes it with `limit`. These errors are sent when the channel still allows. A complete body within the limit that is malformed produces `input` and permits the next message. A failure making the process unusable ends the instance. Volatile data is lost on shutdown. Response delivery is not promised when the channel or process itself fails.
 
 ## Minimal canonical encoding
 
@@ -355,10 +381,10 @@ not execute a transaction or replace the published state/response pair. These
 receipts are separate from the eight transaction statuses. Lifecycle and exact
 wire details are specified in [PREPARED_PROGRAMS.md](tools/service/PREPARED_PROGRAMS.md).
 
-A prepared execution authenticates against the current published state. The
-worker's checked resolver preserves that state, context, credential and actual
-arguments while substituting the registration's exact original source/proof
-identity. The universal certificate specializes to that resolved logical call.
+A prepared execution authenticates against its published snapshot. The
+worker's checked resolver preserves the context, credential and actual arguments
+while substituting the registration's exact original source/proof identity.
+The universal certificate specializes to that resolved logical call.
 All program observations, administrator laws, private execution, size checks
 and atomic publication continue to apply. No checker or compiler is needed on
 reuse. An unavailable or altered registration produces a technical/control
