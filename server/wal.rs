@@ -4,7 +4,7 @@
 use crate::storage::fault_point;
 use std::fs::{self, DirBuilder, File, OpenOptions};
 use std::io::{self, Write};
-use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
+use std::os::unix::fs::{DirBuilderExt, FileExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -100,6 +100,7 @@ struct Writer {
 struct Segment {
     first: u64,
     bytes: u64,
+    capacity: u64,
     file: File,
 }
 
@@ -181,14 +182,21 @@ impl Log {
             let bytes = fs::read(&file_path)?;
             let mut offset = 0;
             let mut last = first - 1;
+            let mut torn = false;
             while offset < bytes.len() {
                 let remaining = &bytes[offset..];
                 let Some((size, record)) = decode_frame(remaining) else {
+                    // A fully initialized segment may have a zero-filled suffix.
+                    if bytes.len() as u64 == SEGMENT_SIZE && remaining.iter().all(|&byte| byte == 0)
+                    {
+                        break;
+                    }
                     if !is_tail || has_later_frame(remaining) {
                         return Err(invalid(format!(
                             "corrupt WAL record in segment {first} at byte {offset}"
                         )));
                     }
+                    torn = true;
                     break;
                 };
                 let lsn = record.lsn();
@@ -221,7 +229,7 @@ impl Log {
                 recovered.lsn = lsn;
             }
             if is_tail {
-                tail = Some((first, last, offset as u64, bytes.len() as u64));
+                tail = Some((first, last, offset as u64, bytes.len() as u64, torn));
             } else if last < first {
                 return Err(invalid(format!("empty non-final WAL segment {first}")));
             } else {
@@ -238,17 +246,23 @@ impl Log {
             return Err(input_error("incompatible WAL environment descriptor"));
         }
 
-        if let Some((first, last, bytes, original_bytes)) = tail {
+        if let Some((first, last, bytes, mut capacity, torn)) = tail {
             let file = OpenOptions::new()
-                .append(true)
+                .write(true)
                 .open(segment_path(path, first))?;
-            if bytes != original_bytes {
+            if torn {
                 file.set_len(bytes)?;
+                capacity = bytes;
             }
             // The preceding process may have died before syncing this segment.
             file.sync_data()?;
             if last == recovered.lsn {
-                writer.active = Some(Segment { first, bytes, file });
+                writer.active = Some(Segment {
+                    first,
+                    bytes,
+                    capacity,
+                    file,
+                });
             } else if last >= first {
                 writer.closed.push((first, last));
             } else {
@@ -320,19 +334,25 @@ impl Log {
             writer.active = Some(Segment {
                 first,
                 bytes: 0,
+                capacity: 0,
                 file,
             });
         }
         let segment = writer.active.as_mut().unwrap();
         fault_point("wal_before_write")?;
-        segment.file.write_all(bytes)?;
+        let end = segment.bytes + len;
+        if end <= SEGMENT_SIZE && segment.capacity < SEGMENT_SIZE {
+            segment.reserve()?;
+        }
+        segment.file.write_all_at(bytes, segment.bytes)?;
         fault_point("wal_before_sync")?;
         segment.file.sync_data()?;
         if created {
             // fdatasync covers the bytes. A new segment also needs its name synced.
             self.directory.sync_all()?;
         }
-        segment.bytes += len;
+        segment.bytes = end;
+        segment.capacity = segment.capacity.max(end);
         writer.lsn = last;
         Ok(())
     }
@@ -402,6 +422,20 @@ impl Log {
         file.sync_all()?;
         fs::rename(temporary, checkpoint_path(&self.path, lsn))?;
         self.directory.sync_all()
+    }
+}
+
+impl Segment {
+    fn reserve(&mut self) -> io::Result<()> {
+        // Materialize the zeroes so later appends overwrite written blocks.
+        // The batch's data sync also makes the newly reserved space durable.
+        const ZEROES: [u8; 64 * 1024] = [0; 64 * 1024];
+        while self.capacity < SEGMENT_SIZE {
+            let len = (SEGMENT_SIZE - self.capacity).min(ZEROES.len() as u64) as usize;
+            self.file.write_all_at(&ZEROES[..len], self.capacity)?;
+            self.capacity += len as u64;
+        }
+        Ok(())
     }
 }
 
@@ -584,15 +618,19 @@ fn decode_frame(mut bytes: &[u8]) -> Option<(usize, Record)> {
 
 fn has_later_frame(bytes: &[u8]) -> bool {
     // The repeated length prevents a valid frame inside a torn row from
-    // masquerading as later WAL data. If the copies disagree, look for a
-    // later frame without trusting either claimed boundary.
-    let first_length = bytes.first_chunk::<4>();
+    // masquerading as later WAL data. If the copies disagree or the length
+    // is impossible, look for a later frame without trusting the boundary.
+    let first_length = bytes.first_chunk::<4>().copied().map(u32::from_be_bytes);
     let repeated_length = bytes
         .get(FRAME_HEADER + RECORD_HEADER - 4..)
-        .and_then(<[u8]>::first_chunk::<4>);
+        .and_then(<[u8]>::first_chunk::<4>)
+        .copied()
+        .map(u32::from_be_bytes);
     let start = match (first_length, repeated_length) {
-        (Some(length), Some(repeated)) if length == repeated => {
-            FRAME_HEADER.saturating_add(u32::from_be_bytes(*length) as usize)
+        (Some(length), Some(repeated))
+            if length == repeated && length as usize >= MIN_FRAME - FRAME_HEADER =>
+        {
+            FRAME_HEADER.saturating_add(length as usize)
         }
         _ => 1,
     };
@@ -709,6 +747,10 @@ mod tests {
         Log::open(path, descriptor).err().expect("open should fail")
     }
 
+    fn active_bytes(log: &Log) -> usize {
+        log.writer.lock().unwrap().active.as_ref().unwrap().bytes as usize
+    }
+
     #[test]
     fn round_trip_and_consecutive_lsn() {
         let (_parent, path, log) = database();
@@ -733,11 +775,55 @@ mod tests {
     }
 
     #[test]
+    fn zero_filled_tail_recovers_at_the_logical_end() {
+        let (_parent, path, log) = database();
+        log.append(&[commit(1)]).unwrap();
+        let segment = segment_path(&path, 1);
+        let end = active_bytes(&log);
+        drop(log);
+        let image = fs::read(&segment).unwrap();
+        assert_eq!(image.len() as u64, SEGMENT_SIZE);
+        assert!(image[end..].iter().all(|&byte| byte == 0));
+
+        let (log, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
+        assert_eq!(recovered.commits, commits(1..=1));
+        assert_eq!(active_bytes(&log), end);
+        assert_eq!(fs::metadata(&segment).unwrap().len(), SEGMENT_SIZE);
+        log.append(&[commit(2)]).unwrap();
+        drop(log);
+        assert_eq!(
+            Log::open(&path, DESCRIPTOR).unwrap().1.commits,
+            commits(1..=2)
+        );
+        assert_eq!(fs::metadata(&segment).unwrap().len(), SEGMENT_SIZE);
+
+        let mut frame = Vec::new();
+        encode_frame(&mut frame, &commit(2)).unwrap();
+        let mut torn = image;
+        let partial = frame.len() - 1;
+        torn[end..end + partial].copy_from_slice(&frame[..partial]);
+        fs::write(&segment, &torn).unwrap();
+        assert_eq!(
+            Log::open(&path, DESCRIPTOR).unwrap().1.commits,
+            commits(1..=1)
+        );
+        assert_eq!(fs::metadata(&segment).unwrap().len(), end as u64);
+
+        // A zero header followed by a valid frame is corruption.
+        fs::write(&segment, &torn[..end]).unwrap();
+        let file = OpenOptions::new().write(true).open(&segment).unwrap();
+        file.write_all_at(&frame, end as u64 + 7).unwrap();
+        file.set_len(SEGMENT_SIZE).unwrap();
+        let error = open_error(&path, DESCRIPTOR);
+        assert!(error.to_string().contains("corrupt WAL record"), "{error}");
+    }
+
+    #[test]
     fn every_torn_tail_byte_recovers_the_prefix() {
         let (_parent, path, log) = database();
         log.append(&[commit(1)]).unwrap();
         let segment = segment_path(&path, 1);
-        let start = fs::metadata(&segment).unwrap().len() as usize;
+        let start = active_bytes(&log);
         // Canonical row bytes are opaque. Even a complete encoded frame in a
         // partially written row must not count as a later record.
         let mut nested = Vec::new();
@@ -752,9 +838,10 @@ mod tests {
             }],
         }])
         .unwrap();
+        let record_end = active_bytes(&log);
         drop(log);
         let image = fs::read(&segment).unwrap();
-        for end in start..image.len() {
+        for end in start..record_end {
             fs::write(&segment, &image[..end]).unwrap();
             let (log, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
             assert_eq!(recovered.lsn, 1, "truncation at {end}");
@@ -773,7 +860,7 @@ mod tests {
         let (_parent, path, log) = database();
         log.append(&[commit(1)]).unwrap();
         let segment = segment_path(&path, 1);
-        let second = fs::metadata(&segment).unwrap().len() as usize;
+        let second = active_bytes(&log);
         log.append(&[commit(2), commit(3)]).unwrap();
         drop(log);
         let image = fs::read(&segment).unwrap();
@@ -950,16 +1037,10 @@ mod tests {
             let error = log.append(&[commit(1)]).unwrap_err();
             assert!(error.to_string().contains("writer failed"), "{error}");
             assert!(log.append(&[commit(2)]).is_err());
-            assert_eq!(
-                fs::metadata(segment_path(Path::new(&path), 1))
-                    .unwrap()
-                    .len(),
-                {
-                    let mut bytes = Vec::new();
-                    encode_frame(&mut bytes, &commit(1)).unwrap();
-                    bytes.len() as u64
-                }
-            );
+            let image = fs::read(segment_path(Path::new(&path), 1)).unwrap();
+            let (end, record) = decode_frame(&image).unwrap();
+            assert_eq!(record, commit(1));
+            assert!(image[end..].iter().all(|&byte| byte == 0));
             return;
         }
 

@@ -2,7 +2,7 @@
 use crate::store::{self, Answer, Operation, Snapshot, Transaction, Value};
 use crate::{Error, Limits, Program, Result, split};
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io::{self, BufReader, IoSlice, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd};
 use std::os::unix::fs::FileExt;
 use std::process::{Child, ChildStdin, ChildStdout, Stdio};
@@ -21,7 +21,7 @@ pub enum Decision {
 pub struct Worker {
     child: Child,
     input: ChildStdin,
-    output: ChildStdout,
+    output: BufReader<ChildStdout>,
     errors: File,
 }
 
@@ -44,7 +44,7 @@ impl Worker {
             .spawn()?;
         Ok(Self {
             input: child.stdin.take().expect("piped stdin"),
-            output: child.stdout.take().expect("piped stdout"),
+            output: BufReader::new(child.stdout.take().expect("piped stdout")),
             child,
             errors,
         })
@@ -185,8 +185,11 @@ impl Worker {
         if let Some(status) = self.child.try_wait().map_err(worker_io)? {
             return Err(Error::new("NATIVE", format!("worker {status}")));
         }
+        if !self.output.buffer().is_empty() {
+            return Err(protocol("unsolicited output or closed live worker"));
+        }
         let mut descriptor = libc::pollfd {
-            fd: self.output.as_raw_fd(),
+            fd: self.output.get_ref().as_raw_fd(),
             events: libc::POLLIN,
             revents: 0,
         };
@@ -205,10 +208,17 @@ impl Worker {
     }
 
     fn write_frame(&mut self, body: &[u8]) -> Result<()> {
-        self.input
-            .write_all(&(body.len() as u64).to_be_bytes())
-            .map_err(worker_io)?;
-        self.input.write_all(body).map_err(worker_io)
+        let header = (body.len() as u64).to_be_bytes();
+        let mut parts = &mut [IoSlice::new(&header), IoSlice::new(body)][..];
+        while !parts.is_empty() {
+            match self.input.write_vectored(parts) {
+                Ok(0) => return Err(worker_io(io::ErrorKind::WriteZero.into())),
+                Ok(n) => IoSlice::advance_slices(&mut parts, n),
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(worker_io(error)),
+            }
+        }
+        Ok(())
     }
 
     fn diagnostics(&self) -> String {
