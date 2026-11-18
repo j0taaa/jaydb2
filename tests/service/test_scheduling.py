@@ -88,7 +88,7 @@ class SchedulingTests(unittest.TestCase):
                                        self.ordinary('new', 'must-not-run') + self.ordinary('bob-token', 'no'))
             server.process.stdin.flush()  # intentionally KEEP input open
             self.assertEqual(server.process.wait(timeout=180), 0, server.diagnostics())
-            self.assertEqual(log.read_text().splitlines().count('execute'), 1,
+            self.assertEqual(log.read_text().splitlines().count('live-execute'), 1,
                              'queued request entered admission after failed response delivery')
             self.assertFalse(private.exists(), 'owned prepared/request/native artifacts leaked')
 

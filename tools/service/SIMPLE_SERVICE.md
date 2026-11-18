@@ -16,55 +16,69 @@ execution. Configuration contains only `message`, `state`, and `response`,
 measured in canonical bytes. Equality with a ceiling is allowed. There is no
 total-process memory budget, observer, or execution deadline.
 
+## Checked migrations
+
+```sh
+node --stack_size=65536 tools/service/stage.mjs migrate WORKDIR \
+  OLD_CONFIG_OR_ENV NEW_CONFIG MIGRATION BEND_SOURCE BENDTT
+```
+
+Use a fresh private work directory and the pinned Bend source and bendtt paths.
+Pass the active frozen environment directory as `OLD_CONFIG_OR_ENV` for a
+published database. A configuration file is also accepted for standalone builds.
+`NEW_CONFIG` is a configuration file. The JSON result gives the executable
+`program`, the new `limits`, and the frozen `newEnvironment` directory.
+
+The migration file defines `migrate(s: D.State) -> D.State` and `preserves(s,
+valid)` with the type `S.Satisfies(New.config(), S.Stable{migrate(s)})` given
+`valid: R.Valid(Old.config(), s)`. Import the old configuration from
+`./Old/Configuration.bend` and the new one from `./Configuration.bend`. Old
+administrator helpers are under `Old/`, and the new graph uses its usual paths.
+Both graphs share the same repository contract and runtime modules. The new
+graph reserves `Old/` and `Migration.bend`; the migration file can import the
+frozen graphs and repository modules. The generated Book checks the proof
+against the same migration function it runs and requires both official checkers.
+
+Run the executable with the complete old canonical state on stdin, then close
+stdin. Stdout is `1 || new canonical state` after the structure and size checks,
+or `0 || framed error response`. Invalid result structure gives `data`, an
+oversized result gives `limit`, and an undecodable old state or invalid new
+configuration gives `failure`. The caller supplies an old state that satisfies
+the old stable laws. The task example in `applications/tasks/migrations/` adds
+an optional integer priority. Package its new configuration with the existing
+task application's `Policy.bend`.
+
 ## Call path
 
-The optional [prepared-program extension](PREPARED_PROGRAMS.md) checks a
-universal certificate and compiles once, then reuses an instance-local native
-executable in fresh processes with current authentication, state, and arguments. Its controls and
-receipts have a separate protocol boundary from the ordinary path below.
+The [prepared-program extension](PREPARED_PROGRAMS.md) checks a universal
+certificate at registration. The host starts one worker per handle on its
+first call and reuses it until invalidation or failure. Ordinary calls still
+check and compile each concrete certificate and run a one-request worker.
 
-The framing reader queues complete original bodies. The checked native
-`Dispatch.authentication` classifies ordinary versus prepared envelopes,
-checks the full body length (including extension bytes), decodes before
-fresh authentication, and enforces the empty handle-proof rule. Its tagged
-metadata selects external admission or a prepared artifact; Rust copies the
-checked source/context/arguments bindings to staging.
+The host loads the canonical initial state into an indexed snapshot. A checked
+startup executable exports the configuration's schema, and the host checks
+that the exported schema and state fit the store's representation. The
+framing reader queues complete original bodies. Concrete admission and
+controls use checked `Dispatch.authentication` with a projection containing
+the table layout and the matching user, if any. Dispatch checks the envelope,
+including its full length, and decodes it before authentication and admission.
 
-The generated entry calls `Worker.packet` (ordinary) or
-`Worker.registered_packet` (prepared). Both decode the private published root
-and retain it on early errors. Ordinary bodies use `Input.read_message`.
-Prepared execution receives the latest unchanged registry bytes from the
-checked controller separately from the original body, decodes it with
-`ControlBridge.decode_registry`, and calls `Resolve.select` over all live entries.
-The generated oracle's `matches` compares resolved source/proof with the
-artifact's frozen bindings under T1; `Worker.artifact_oracle` adds a second
-integrity guard before that oracle can accept. Missing, removed, malformed or
-mismatched entries emit a fixed denial with Keep. Rust's map locates the
-executable file and can reject missing artifacts before the worker runs. Selection then
-reaches the same `Gate.begin`.
-The gate authenticates against this root and invokes the generated admission
-oracle. It starts exactly the admitted program with that authenticated context
-and the actual arguments, or calls `Gate.early` without constructing a program.
+The generated entry calls `Remote.packet` (ordinary) or
+`Remote.registered_packet` (prepared). The prepared worker receives the latest
+controller registry and original request body. It authenticates through the
+host's credential index before looking up the handle, then checks that the
+resolved source and proof match the artifact's frozen bindings. The concrete
+oracle also compares the context and structural arguments with its admitted
+instance. Both workers ask for data operations over private framed pipes.
+The host applies those operations to a transaction on the current snapshot.
 
-For concrete admission the oracle matches the exact source/proof strings,
-authenticated context and structural arguments. Universal prepared admission
-matches the frozen source/proof and specializes the checked universal proof to
-the current context/arguments. Configuration is the same closed declaration at
-every call site; the environment comparison is an additional integrity guard,
-not an equality test for arbitrary configurations containing functions. T1
-includes the binding of these declarations, certificate targets and actual
-elaborated program to the immutable admitted Book. The oracle never elaborates
-or approves new source at runtime.
-
-The native loop drives `Execution.advance` / `Core.advance` incrementally.
-On stopping, `Gate.finish` performs finalization, publication selection and
-exact response framing. `Execution.decision` computes `Commit{root, bytes}` or
-`Keep{bytes}` in checked Bend; its private encoding remains
-`1 || frame(root) || response` or `0 || response`. Rust parses that sum, reaps
-the child, completes rollback-capable cleanup, persists a Commit if enabled,
-and physically replaces the published root/last-successful-response pair only
-on Commit. It writes the returned response bytes unchanged. Packet framing and
-size checks in Rust are integrity defenses, not a second finalizer.
+A worker final frame contains a tag and the exact framed response. Tag 0 keeps
+the current state. Tags 1 and 3 both propose success, so the host checks the
+candidate state's structure and credentials before checking its encoded size.
+If those checks pass, tag 1 publishes the transaction and tag 3 forwards the
+worker's response-check error. A malformed frame or worker failure discards
+the transaction and returns `failure`. A subsequent call starts a replacement
+worker for a failed prepared handle.
 
 Prepare/invalidate use the separately checked `Control.control` transition through
 `ControlBridge.packet`, compiled at startup. The native controller checks the
@@ -84,7 +98,7 @@ Queue reservations include a body currently being read: at most 8 items and
 `max(min(message limit, isize::MAX), 1 MiB)` body bytes, plus one header and one terminal slot.
 With serial execution there is one additional active request of at most the message limit, and one
 ready/emitting response subject to the existing logical response checks (or a
-fixed canonical error). The published pair, proposal/worker intermediates,
+fixed canonical error). The published snapshot, proposal/worker intermediates,
 prepared registry, allocator overhead and OS pipe buffers retain their existing
 costs; this is not a total-process memory ceiling. All canonical uint64 message
 limits remain valid; the accounting ceiling is not an upfront allocation. An
@@ -97,28 +111,23 @@ only the coordinator may emit the canonical terminal input/limit response.
 Input IO failure retains its fatal behavior after preceding responses. No
 terminal event bypasses queued service. On output failure, no more work is
 selected and a cancellation socket wakes the reader's polling/capacity waits;
-the reader is joined before the service returns. Workers are already reaped
-before response-ready. This adds no execution or delivery timeout.
+the reader is joined before the service returns. Direct workers are reaped
+before response readiness. Prepared workers are reaped when their handles
+are invalidated or the service shuts down.
 
 Compilation directories receive code, proofs, and public admission data, never
 private state. The seed participates only in initialization and is removed
-before serving. Per-call state crosses pipes in RAM, never a temporary input
-file.
+before serving. The full state stays in the host during calls.
 
 ## Ownership and failures
 
-The Rust host owns each process and its pipes. Local threads feed input and
-drain stdout/stderr concurrently to avoid pipe deadlocks. The host waits for
-child exit and complete reading before accepting a proposal.
-
-There is no DSO, lease, `dlclose`, or replacement runtime. Child exit
-releases its resources. A child failure returns `failure` without publishing, and
-the host can serve the next call. Uncertain ownership ends use of the instance
-without repeating a potentially consumed operation.
+The Rust host owns each process and its pipes. The live worker protocol
+alternates request, operation and answer frames through finalization. Startup
+and admission helpers still use concurrent input, output and stderr capture.
 
 The profile is a serial FIFO Linux CLI with trusted tools and host. Its default
-volatile mode loses RAM data when the host dies. Optional complete-image
-persistence is enabled explicitly:
+volatile mode loses RAM data when the host dies. Enable write-ahead logging
+explicitly.
 
 ```sh
 ./jaydb2 --configuration examples/access/Configuration.bend \
@@ -127,23 +136,16 @@ persistence is enabled explicitly:
   --storage DATABASE --storage-mode open
 ```
 
-Create requires a new directory with an existing parent; open requires the
-authoritative snapshot and forbids `--seed`. A single owner holds an OS lock.
-Every successful proposal whose canonical state bytes differ from the current
-published state writes and synchronizes a complete temporary image, atomically
-replaces the authoritative image, and synchronizes the directory before RAM
-publication and response delivery. An identical state reuses the already durable
-image; it still publishes the checked Commit root/response pair in RAM. The image
-contains the immutable environment identity, limits, canonical state and checksum,
-with no separate per-request response, sequence or prepared registry. Application
-idempotency receipts are ordinary rows within that state, so creating or changing
-a receipt still requires the full durable commit. The last response and allocated
-handle history are instance-local and are not recovered after restart. Open
-synchronizes the validated authoritative file and directory once: the previous
-process may have died between rename and directory synchronization. Errors from
-replacement onward stop the instance with no response, since rollback may be false. Missing,
-corrupt or incompatible images stop startup; no seed or older image is used as
-fallback. Users and all tables survive; prepared handles do not.
+Create requires a new or empty directory with an existing parent. Open
+requires a valid checkpoint and forbids `--seed`. A single owner holds an OS
+lock. Each accepted commit appends one atomic write-set record and synchronizes
+the WAL before publishing the snapshot and delivering the response. This
+includes an empty write set for a successful read. A background thread writes
+a checksummed checkpoint every 256 commits when its queue has room. Recovery
+loads a valid checkpoint, replays later records and truncates a torn WAL tail.
+WAL I/O failures stop the service without a response. Users and application
+tables, including any idempotency receipts, survive restart. Prepared handles
+and their allocation history are instance-local.
 
 Recovery requires the exact same environment, including actual controller
 executable bytes. Protect the storage directory and preserve that executable
@@ -193,17 +195,17 @@ loop. The remaining T3 plumbing obligations are:
 1. Freeze checked configuration, dependency/tool bytes and the checked initial
    root; keep private state separate from client input.
 2. Frame bounded complete original bodies with the specified EOF ordering;
-   supply the current root to the checked decoder/controller.
+   supply the current authentication projection to checked preprocessing and controls.
 3. Admit exactly the tuple selected by checked dispatch; compile and load the
    same immutable checked Book and preserve its context, arguments and proof.
-4. Run a fresh private worker through the checked gate/advance/finalizer and
-   native loop, without publication capability.
-5. Collect complete output, reap children and finish rollback-capable cleanup.
-   Forward admission/other observed error codes/current snapshots to the checked
+4. Run the checked live entry and answer each operation from the transaction
+   with the corresponding `D.operate` result.
+5. Collect and validate complete frames, retire failed workers and finish
+   direct worker cleanup. Forward observed error codes to the checked
    controller; denial-executable/transport failure retains the fixed technical
    fallback. Memo hits forward checked bytes for the exact observed code.
-6. Obey Commit/Keep exactly and atomically publish the paired root/response;
-   feed the resulting root to the next request.
+6. Check the candidate state for every success proposal, log accepted write
+   sets before publication, and use the resulting snapshot for the next request.
 7. Forward the latest controller-emitted registry bytes unchanged, supply the
    exact T1 admission tuple to controls, install only checked deltas, preserve
    allocation history, and manage the matching artifacts. Physical map/integrity
@@ -222,8 +224,8 @@ certified execution under T1 and generated source/proof matching still applies.
 Error-code classification and response construction execute in the existing
 checked native controller. Its private metadata is a canonical text value
 containing the exact observed error code, distinct from the four-text prepare
-metadata list; the remaining packet contains the latest registry and current
-root, with an empty body. `ControlBridge.run` calls `Control.host_error`, which
+metadata list. The remaining packet contains the latest registry, the empty
+authentication projection and an empty body. `ControlBridge.run` calls `Control.host_error`, which
 uses the total table in `contract/HostErrors.bend` and `Control.finish`'s denial.
 `HostErrorReplyTheorem` proves bounded canonical framing and preservation of
 root/last-response/registry. The 17 named admission codes map to `certificate`;
@@ -254,8 +256,7 @@ against new codes without deliberate classification.
 
 If the denial controller or its transport fails, Rust keeps the root and emits
 the fixed technical fallback with an explicit stderr diagnostic. The fallback
-is never memoized. Ordinary success and healthy prepared execution retain
-their process/check counts; startup performs two checked denial computations.
+is never memoized. Startup performs two checked denial computations.
 
 Prepare/invalidate replies come from the controller under `ControlTheorem`,
 not the worker's denial branch. The Dispatch bridge compares tag-0 output to
@@ -373,7 +374,7 @@ resolved `libcuda`/`libnvrtc` paths and SHA-256: these vendor libraries and the
 `cuda.h`/`nvrtc.h` headers come from the host environment and are trusted, not
 attested. Private executable/cubin files must be regular files and match before
 each run and before accepting output; CUDA prepared execution rechecks all exact
-sealed bytes after the child exits too. The default CPU path keeps its original
+sealed bytes after each exchange. The default CPU path keeps its original
 pre-run checks, now also requiring the executable to be a regular file.
 An official `bend: compiling the GPU program` notice fails even if rebuilt
 bytes happen to match. Substitution, removal, incompatible artifacts and device
@@ -410,6 +411,6 @@ and checked Gate/finisher path for CPU and GPU; no CUDA validity axiom exists.
 T2 now also trusts the official emitted runtime's CUDA path, NVRTC, CUDA driver,
 managed memory and GPU hardware. Differential testing is evidence, not proof.
 Host artifact checks assume protected tools/files and do not defeat a hostile
-same-UID file-use race. There are no persistent GPU workers, execution timeout,
-multi-GPU selection, portability guarantee or general performance claim.
+same-UID file-use race. The live worker receives the same configured GPU
+option as ordinary execution.
 See [raw measurements and limits](../../paper/evidence/gpu-programs.md).

@@ -1,4 +1,4 @@
-"""Exercise the checked native live ABI against the fresh-process task service."""
+"""Exercise the checked native live ABI against the integrated task service."""
 
 from contextlib import contextmanager
 import json
@@ -117,14 +117,16 @@ def read(child):
     return exact(int.from_bytes(exact(8), 'big'))
 
 
-def exchange(child, request, host):
+def exchange(child, request, host, final_tag=None):
     working = host.transaction()
     write(child, request)
     while (packet := read(child))[0] == 2:
         write(child, host.reply(packet[1:], working))
     response = packet[1:]
-    assert packet[0] == int(unframe(response)['status'] == 'success')
-    if packet[0]:
+    if final_tag is None:
+        final_tag = int(unframe(response)['status'] == 'success')
+    assert packet[0] == final_tag, packet[0]
+    if packet[0] == 1:
         host.rows = working
     return response
 
@@ -180,6 +182,9 @@ class LiveWorkerTest(unittest.TestCase):
             app = tmp/'app'
             app.mkdir()
             prepare(app)
+            configuration = app/'Configuration.bend'
+            configuration.write_text(configuration.read_text().replace(
+                '65536n, 32768n', '65536n, 256n'))
             code = (app/'Client.bend').read_text()
             proof = (app/'ClientProof.bend').read_text()
             universal = proof.replace('def B.certificate(s, valid, identity, n):',
@@ -224,6 +229,16 @@ class LiveWorkerTest(unittest.TestCase):
                 if credential == 'bob-token':
                     self.assertIsNone(unframe(actual)['value'])
 
+            oversized = 'x'*300
+            request = prepared_frame(1, handle, 'alice-token', ['save', 'wide', oversized, False])
+            self.assertEqual(exchange(child, registry + request[8:], host), baseline(server, request))
+            request = prepared_frame(1, handle, 'alice-token', ['view', 'wide'])
+            expected_limit = frame({'status': 'limit', 'value': None})
+            self.assertEqual(baseline(server, request), expected_limit)
+            self.assertEqual(exchange(child, registry + request[8:], host, final_tag=3), expected_limit)
+            request = prepared_frame(1, handle, 'alice-token', ['remove', 'wide'])
+            self.assertEqual(exchange(child, registry + request[8:], host), baseline(server, request))
+
             # A syntactically valid row for a different credential cannot
             # authenticate, even if the handle and its proof check would fail.
             invalid = prepared_frame(1, 'unknown', 'wrong-token', proof='invalid')
@@ -242,11 +257,10 @@ class LiveWorkerTest(unittest.TestCase):
             write(child, answer('data_error'))
             self.assertEqual(read(child), b'\0' + frame({'status': 'data', 'value': None}))
 
-            # Compare wall time with the public prepared path, which starts
-            # fresh authentication and execution subprocesses for every call.
+            # Compare the bare ABI with the public path through the Rust host.
             expected = baseline(server, point)
             warmup, count, benchmark = 500, 3500, 40
-            samples, live_ms, fresh_ms = [], [], []
+            samples, live_ms, service_ms = [], [], []
             for i in range(count):
                 if i % 25 == 0:
                     for request, response in comparisons:
@@ -261,9 +275,9 @@ class LiveWorkerTest(unittest.TestCase):
                     live_ms.append(ms)
                     start = perf_counter()
                     self.assertEqual(baseline(server, point), expected)
-                    fresh_ms.append((perf_counter() - start) * 1000)
+                    service_ms.append((perf_counter() - start) * 1000)
             print(f'point read median over {benchmark} requests: '
-                  f'persistent {median(live_ms):.3f} ms, fresh service {median(fresh_ms):.3f} ms')
+                  f'persistent {median(live_ms):.3f} ms, integrated service {median(service_ms):.3f} ms')
             print(f'RSS after warmup, KiB, over {count} reads and recurring mixed requests: {samples}')
             self.assertLessEqual(max(samples) - min(samples), 2048)
             child.stdin.close()

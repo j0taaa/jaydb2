@@ -40,6 +40,55 @@ import ./Environment.bend as Environment
 def main() -> IO(Unit):
   Native.write(CheckedConfiguration.recover(C.config(), Environment.identity()))
 `;
+const MIGRATE = COMMON + `import ./Old/Configuration.bend as Old
+import ./Migration.bend as Migration
+import ./ConfigurationCheck.bend as CheckedConfiguration
+import ./Environment.bend as Environment
+import ./Requirements.bend as R
+import ./Dispatch.bend as Dispatch
+import ./Messages.bend as Messages
+import ./Protocol.bend as P
+import ./Bytes.bend as B
+
+law migration_preserves_laws:
+  for +s: D.State
+  for valid: R.Valid(Old.config(), s)
+  S.Satisfies(C.config(), S.Stable{Migration.migrate(s)})
+def migration_preserves_laws(s, valid):
+  Migration.preserves(s, valid)
+
+def emit_state(fits: Bool, bytes: List<&2, U32>) -> List<&2, U32>:
+  match fits:
+    case False{}: Messages.error(S.Limit{})
+    case True{}: Con{1, bytes}
+
+def within_limit(limit: Nat, encoded: Maybe<&2, List<&2, U32>>) -> List<&2, U32>:
+  match encoded:
+    case None{}: Messages.error(S.Limit{})
+    case Some{+bytes}: emit_state(Nat.is_le(B.length(bytes), limit), bytes)
+
+def proposal(valid: Bool, s: D.State) -> List<&2, U32>:
+  match valid:
+    case False{}: Messages.error(S.DataError{})
+    case True{}: within_limit(R.limit_state(S.limits(C.config())), P.encode(D.state_value(s)))
+
+def old_state(decoded: Maybe<&2, D.State>) -> List<&2, U32>:
+  match decoded:
+    case None{}: Messages.error(S.Failure{})
+    case Some{s}:
+      +migrated = Migration.migrate(s)
+      proposal(D.structure(S.schema(C.config()), migrated), migrated)
+
+def migration_packet(valid: Bool, bytes: List<&2, U32>) -> List<&2, U32>:
+  match valid:
+    case False{}: Messages.error(S.Failure{})
+    case True{}: old_state(Dispatch.read_root(bytes, S.schema(Old.config()), S.limits(Old.config())))
+
+def main() -> IO(Unit):
+  do IO<Unit>:
+    bytes : List<&2, U32> <- Native.read()
+    Native.write(migration_packet(CheckedConfiguration.is_valid(C.config(), Environment.identity()), bytes))
+`;
 // Messages.authentication private success: 1 || frame(exact Context.id UTF-8)
 // || frame(code) || frame(proof) || frame(instance) || links remainder.
 const PREPROCESS = COMMON + `import ./Input.bend as E
@@ -222,7 +271,7 @@ function imports(data) {
 }
 
 // Both the executable and its pure check use the same staged import graph.
-function sourceClosure(available, entries, missing, reverseImports = true) {
+function sourceClosure(available, entries, missing, reverseImports = true, moduleImports = imports) {
   const selected = new Map(), pending = [...entries];
   while (pending.length) {
     const name = pending.pop();
@@ -230,7 +279,7 @@ function sourceClosure(available, entries, missing, reverseImports = true) {
     if (!available.has(name)) fail('DEPENDENCY', missing + name);
     const data = available.get(name);
     selected.set(name, data);
-    const children = imports(data).map(imp => path.posix.normalize(path.posix.join(path.posix.dirname(name), imp)));
+    const children = moduleImports(data, name).map(imp => path.posix.normalize(path.posix.join(path.posix.dirname(name), imp)));
     pending.push(...(reverseImports ? children.reverse() : children));
   }
   return selected;
@@ -332,6 +381,10 @@ function freeze(workdir, configuration, seed) {
     'server/main.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
+  for (const name of ['server/live.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
+    .filter(name => name.endsWith('.rs')).map(name => 'server/store/' + name)]) {
+    tooling.set(name, read(path.join(ROOT, name)));
+  }
   // Linux exposes the actual calling controller, not a guessed build path.
   const controller = read(`/proc/${process.ppid}/exe`);
   const identityEntries = [...sources].map(([name, data]) => [name, digest(data)]).sort();
@@ -376,6 +429,12 @@ function stage(environment, directory, purpose, metadata) {
   let main;
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
   else if (purpose === 'recover') main = RECOVER;
+  else if (purpose === 'migrate') main = MIGRATE;
+  else if (purpose === 'schema') main = COMMON + `import ./HostSchema.bend as HostSchema
+
+def main() -> IO(Unit):
+  Native.write(HostSchema.encode(S.schema(C.config())))
+`;
   else if (purpose === 'decode') main = PREPROCESS.replace('FUNCTION', 'framing').replace('PARSER', 'decode');
   else if (purpose === 'authenticate') main = COMMON + `import ./Dispatch.bend as Dispatch
 
@@ -414,7 +473,8 @@ def main() -> IO(Unit):
   } else fail('DEPENDENCY', 'Invalid purpose');
   available.set('Main.bend', Buffer.from(main));
   const entries = executing ? ['Main.bend', 'RequestFacts.bend'] : ['Main.bend'];
-  const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
+  const selected = sourceClosure(available, entries, 'Unadmitted dependency: ', true,
+    purpose === 'migrate' ? migrationImports : imports);
   const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [],
     nativeOptimization: executing && !prepared ? '-O0' : '-O2' };
   for (const [name, original] of selected) {
@@ -502,11 +562,58 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   return { program: executable, limits, certificateMode: report.admission.certificateMode };
 }
 
+function migrationImports(data, name) {
+  // Only relocated old modules have host-generated parent-relative imports.
+  if (!name.startsWith('Old/')) return imports(data);
+  return header(utf8(data), name).imports.map(imp => imp.specifier).filter(specifier => specifier !== 'Base');
+}
+
+function addOldConfiguration(sources, previous) {
+  const shared = new Set(['contract', 'src'].flatMap(folder =>
+    fs.readdirSync(path.join(ROOT, folder)).filter(name => name.endsWith('.bend'))));
+  const old = sourceClosure(previous, ['Configuration.bend'], 'Unadmitted old dependency: ');
+  const relocated = name => shared.has(name) ? name : 'Old/' + name;
+  for (const [name, data] of old) {
+    if (shared.has(name)) {
+      if (!sources.get(name)?.equals(data) || imports(data).some(dependency => !shared.has(dependency)))
+        fail('DEPENDENCY', 'Cannot share frozen runtime module: ' + name);
+      continue;
+    }
+    const target = relocated(name);
+    const { imports: dependencies, body } = header(utf8(data), name);
+    const lines = dependencies.map(({ specifier, alias }) => {
+      if (specifier === 'Base') return 'import Base';
+      const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(name), specifier));
+      const relative = path.posix.relative(path.posix.dirname(target), relocated(dependency));
+      return 'import ' + (relative.startsWith('../') ? '' : './') + relative + ' as ' + alias;
+    });
+    sources.set(target, Buffer.from(lines.join('\n') + '\n' + body));
+  }
+}
+
+export function migrate(workdir, oldConfiguration, newConfiguration, migration, sourceDir, kernelPath) {
+  workdir = path.resolve(workdir);
+  const newEnvironment = path.join(workdir, 'new');
+  const previous = fs.statSync(oldConfiguration).isDirectory()
+    ? reopen(path.resolve(oldConfiguration))
+    : freeze(path.join(workdir, 'old'), oldConfiguration, null);
+  const environment = freeze(newEnvironment, newConfiguration, null);
+  const sources = new Map(environment.sources);
+  for (const name of sources.keys())
+    if (name === 'Migration.bend' || name.startsWith('Old/'))
+      fail('DEPENDENCY', 'Reserved migration module: ' + name);
+  addOldConfiguration(sources, previous.sources);
+  sources.set('Migration.bend', read(migration));
+  const built = compile({ ...environment, sources }, path.join(workdir, 'migrate'), 'migrate',
+    sourceDir, kernelPath, null, path.join(newEnvironment, 'runtime'));
+  return { ...built, newEnvironment };
+}
+
 export function initialize(workdir, configuration, seed, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   const environment = freeze(workdir, configuration, seed), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
   let limits;
-  for (const purpose of ['initialize', 'authenticate', 'control']) {
+  for (const purpose of ['initialize', 'schema', 'authenticate', 'control']) {
     const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
     if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during initialization');
     limits = built.limits; programs[purpose] = built.program;
@@ -517,7 +624,7 @@ export function recover(workdir, configuration, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   const environment = freeze(workdir, configuration, null), runtimeRoot = path.join(workdir, 'runtime'), programs = {};
   let limits;
-  for (const purpose of ['recover', 'authenticate', 'control']) {
+  for (const purpose of ['recover', 'schema', 'authenticate', 'control']) {
     const built = compile(environment, path.join(workdir, purpose), purpose, sourceDir, kernelPath, null, runtimeRoot);
     if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration changed during recovery');
     limits = built.limits; programs[purpose] = built.program;
@@ -535,11 +642,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
     else if (operation === 'recover' && args.length === 4) result = recover(...args);
+    else if (operation === 'migrate' && args.length === 6) result = migrate(...args);
     else if (executionPurposes.includes(operation) && [5, 6].includes(args.length)) {
       if (args.length === 6 && !/^[1-9][0-9]{1,3}$/.test(args[5])) fail('USAGE', 'GPU MiB must be 64..4096');
       result = execute(...args.slice(0, 5), operation, args.length === 6 ? Number(args[5]) : 0);
     }
-    else fail('USAGE', 'stage.mjs initialize|execute|prepare|live-execute|live-prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
+    else fail('USAGE', 'stage.mjs initialize|execute|prepare|live-execute|live-prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT; migrate WORKDIR OLD_CONFIG_OR_ENV NEW_CONFIG MIGRATION BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {
     process.stderr.write(JSON.stringify({ code: error.code ?? 'STAGING', message: error.message }) + '\n');

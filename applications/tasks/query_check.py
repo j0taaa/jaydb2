@@ -95,7 +95,7 @@ def main():
                 print(errors.read().decode('utf-8', 'replace'), file=sys.stderr)
         errors.seek(0)
         diagnostics = errors.read()
-        assert (diagnostics.count(b'PRIMARY_CHECK') == 3 and b'- expected :' in diagnostics
+        assert (diagnostics.count(b'jaydb2: PRIMARY_CHECK: ') == 3 and b'- expected :' in diagnostics
             and b'- observed :' in diagnostics and b'Location: visit_safe' in diagnostics), diagnostics.decode('utf-8', 'replace')
     print('PASS: selected fields, filtering/projection, missing rows, ownership, batch writes/deletes, conditional insert/replace, refusal rollback, prohibited-read proof rejection.')
 

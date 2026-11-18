@@ -1,346 +1,18 @@
-//! One authoritative complete image, with a single directory owner.
-//! Storage bytes are not a validity proof.
-use crate::{Error, Limits, Result};
-use sha2::{Digest, Sha256};
-use std::fs::{self, DirBuilder, File, OpenOptions};
-use std::io::{self, Read, Write};
-use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
-use std::path::{Path, PathBuf};
+use crate::store::{Schema, Snapshot, Write as StoreWrite};
+use crate::wal::{Log, Record, WriteEntry};
+use crate::{Error, Limits, Result, diagnostic};
+use std::path::Path;
+use std::sync::{Arc, mpsc};
+use std::thread::{self, JoinHandle};
 
-const MAGIC: &[u8] = b"jaydb2-image-v1\n";
-const OVERHEAD: usize = MAGIC.len() + 64 + 4 * 8 + 32;
-const IMAGE: &str = "snapshot";
-const TEMP: &str = ".snapshot.tmp";
-const ENVIRONMENT: &str = "environment";
+use std::io;
+#[cfg(feature = "storage-fault-injection")]
+use std::io::{Read, Write};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
     Create,
     Open,
-}
-
-pub struct Storage {
-    path: PathBuf,
-    directory: File,
-    // Never unlink or replace this file: its locked inode identifies ownership.
-    _owner: File,
-    temporary: Option<File>,
-    creating: bool,
-    environment_bound: bool,
-}
-
-#[derive(Debug)]
-pub struct CommitError {
-    pub uncertain: bool,
-    pub cause: io::Error,
-}
-
-impl From<CommitError> for Error {
-    fn from(error: CommitError) -> Self {
-        Self::new(
-            if error.uncertain {
-                "STORAGE_UNCERTAIN"
-            } else {
-                "STORAGE_IO"
-            },
-            error.cause.to_string(),
-        )
-    }
-}
-
-// This is the actual commit algorithm, used by both the OS and the fault model.
-// Replacement may have happened even if replace() returns an error. From that
-// call onward no failure may be reported as an ordinary rolled-back request.
-trait ImageIo {
-    fn write_temp(&mut self, image: &[u8]) -> io::Result<()>;
-    fn sync_temp(&mut self) -> io::Result<()>;
-    fn replace(&mut self) -> io::Result<()>;
-    fn sync_directory(&mut self) -> io::Result<()>;
-}
-
-fn commit(io: &mut impl ImageIo, image: &[u8]) -> std::result::Result<(), CommitError> {
-    io.write_temp(image)
-        .and_then(|()| io.sync_temp())
-        .map_err(|cause| CommitError {
-            uncertain: false,
-            cause,
-        })?;
-    io.replace()
-        .and_then(|()| io.sync_directory())
-        .map_err(|cause| CommitError {
-            uncertain: true,
-            cause,
-        })
-}
-
-fn storage_error(error: impl std::fmt::Display) -> Error {
-    Error::new("STORAGE", error.to_string())
-}
-
-impl Storage {
-    pub fn begin(path: &Path, mode: Mode) -> Result<Self> {
-        if mode == Mode::Create {
-            // An existing, empty or interrupted directory is never reseeded.
-            DirBuilder::new()
-                .mode(0o700)
-                .create(path)
-                .map_err(storage_error)?;
-            let parent = path
-                .parent()
-                .filter(|p| !p.as_os_str().is_empty())
-                .unwrap_or(Path::new("."));
-            File::open(parent)
-                .and_then(|file| file.sync_all())
-                .map_err(storage_error)?;
-        }
-        if !fs::symlink_metadata(path)
-            .map_err(storage_error)?
-            .file_type()
-            .is_dir()
-        {
-            return Err(storage_error("storage must be a real directory"));
-        }
-        let owner_path = path.join("owner.lock");
-        if mode == Mode::Open
-            && !fs::symlink_metadata(&owner_path)
-                .map_err(storage_error)?
-                .file_type()
-                .is_file()
-        {
-            return Err(storage_error("missing or nonregular owner.lock"));
-        }
-        let owner = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create_new(mode == Mode::Create)
-            .mode(0o600)
-            .open(owner_path)
-            .map_err(storage_error)?;
-        owner.try_lock().map_err(storage_error)?;
-        let directory = File::open(path).map_err(storage_error)?;
-        if mode == Mode::Create {
-            owner
-                .sync_all()
-                .and_then(|()| directory.sync_all())
-                .map_err(storage_error)?;
-        } else if !fs::symlink_metadata(path.join(IMAGE))
-            .map_err(storage_error)?
-            .file_type()
-            .is_file()
-        {
-            return Err(storage_error(
-                "missing or nonregular authoritative snapshot",
-            ));
-        }
-        Ok(Self {
-            path: path.to_owned(),
-            directory,
-            _owner: owner,
-            temporary: None,
-            creating: mode == Mode::Create,
-            environment_bound: false,
-        })
-    }
-
-    // Bind once, before reading or writing any authoritative image. The
-    // immutable descriptor contains exact public source/tooling/controller
-    // bytes. Hashes in images remain diagnostics and corruption checks.
-    pub fn bind_environment(&mut self, expected: &[u8]) -> Result<()> {
-        if self.environment_bound {
-            return Err(storage_error("environment already bound"));
-        }
-        let path = self.path.join(ENVIRONMENT);
-        if self.creating {
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .mode(0o600)
-                .open(path)
-                .map_err(storage_error)?;
-            file.write_all(expected)
-                .and_then(|()| file.sync_all())
-                .and_then(|()| self.directory.sync_all())
-                .map_err(storage_error)?;
-        } else {
-            if !fs::symlink_metadata(&path)
-                .map_err(storage_error)?
-                .file_type()
-                .is_file()
-            {
-                return Err(storage_error(
-                    "missing or nonregular exact environment descriptor",
-                ));
-            }
-            let file = File::open(path).map_err(storage_error)?;
-            let size = expected.len() as u64;
-            if file.metadata().map_err(storage_error)?.len() != size {
-                return Err(storage_error(
-                    "incompatible image environment (exact descriptor size differs)",
-                ));
-            }
-            let mut actual = Vec::new();
-            file.take(size.saturating_add(1))
-                .read_to_end(&mut actual)
-                .map_err(storage_error)?;
-            if actual != expected {
-                return Err(storage_error(
-                    "incompatible image environment (exact source or controller bytes differ)",
-                ));
-            }
-        }
-        self.environment_bound = true;
-        Ok(())
-    }
-
-    pub fn recover(&self, environment: &str, limits: &Limits) -> Result<Vec<u8>> {
-        if !self.environment_bound {
-            return Err(storage_error(
-                "exact environment descriptor has not been bound",
-            ));
-        }
-        // Bound allocation before reading untrusted/corrupt lengths. There is
-        // exactly one candidate; a leftover temp image is never recovery input.
-        // The logical limit may be u64::MAX. Header overhead must not narrow
-        // that domain or make a small image impossible to reopen.
-        let maximum = limits.state.saturating_add(OVERHEAD as u64);
-        let file = File::open(self.path.join(IMAGE)).map_err(storage_error)?;
-        if file.metadata().map_err(storage_error)?.len() > maximum {
-            return Err(storage_error("oversized authoritative snapshot"));
-        }
-        let mut bytes = Vec::new();
-        (&file)
-            .take(maximum.saturating_add(1))
-            .read_to_end(&mut bytes)
-            .map_err(storage_error)?;
-        let state = decode_image(&bytes, environment, limits)?;
-        // A previous process may have died after rename but before directory
-        // sync. Establish durability once on open before identical-state
-        // Commits may reuse this image without another write.
-        file.sync_all()
-            .and_then(|()| self.directory.sync_all())
-            .map_err(storage_error)?;
-        Ok(state)
-    }
-
-    pub fn persist(
-        &mut self,
-        environment: &str,
-        limits: &Limits,
-        state: &[u8],
-    ) -> std::result::Result<(), CommitError> {
-        if !self.environment_bound {
-            return Err(CommitError {
-                uncertain: false,
-                cause: io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "exact environment descriptor has not been bound",
-                ),
-            });
-        }
-        let bytes = encode_image(environment, limits, state).map_err(|cause| CommitError {
-            uncertain: false,
-            cause,
-        })?;
-        let result = commit(self, &bytes);
-        // Closing the already synced file requires no further rollback-capable
-        // work. A failed temp is removable before the next attempt, under lock.
-        self.temporary = None;
-        result
-    }
-}
-
-impl ImageIo for Storage {
-    fn write_temp(&mut self, image: &[u8]) -> io::Result<()> {
-        fault_point("before_write")?;
-        match fs::remove_file(self.path.join(TEMP)) {
-            Ok(()) => (),
-            Err(error) if error.kind() == io::ErrorKind::NotFound => (),
-            Err(error) => return Err(error),
-        }
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o600)
-            .open(self.path.join(TEMP))?;
-        file.write_all(image)?;
-        self.temporary = Some(file);
-        fault_point("after_write")
-    }
-    fn sync_temp(&mut self) -> io::Result<()> {
-        self.temporary
-            .as_ref()
-            .expect("written temporary image")
-            .sync_all()?;
-        fault_point("after_file_sync")
-    }
-    fn replace(&mut self) -> io::Result<()> {
-        fault_point("before_replace")?;
-        fs::rename(self.path.join(TEMP), self.path.join(IMAGE))?;
-        fault_point("after_replace")
-    }
-    fn sync_directory(&mut self) -> io::Result<()> {
-        self.directory.sync_all()?;
-        fault_point("after_directory_sync")
-    }
-}
-
-fn encode_image(environment: &str, limits: &Limits, state: &[u8]) -> io::Result<Vec<u8>> {
-    if environment.len() != 64
-        || !environment.bytes().all(|b| b.is_ascii_hexdigit())
-        || state.len() as u64 > limits.state
-    {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid image binding or state size",
-        ));
-    }
-    let mut bytes = Vec::with_capacity(OVERHEAD + state.len());
-    bytes.extend_from_slice(MAGIC);
-    bytes.extend_from_slice(environment.as_bytes());
-    for n in [
-        limits.message,
-        limits.state,
-        limits.response,
-        state.len() as u64,
-    ] {
-        bytes.extend_from_slice(&n.to_be_bytes());
-    }
-    bytes.extend_from_slice(state);
-    bytes.extend_from_slice(&Sha256::digest(&bytes));
-    Ok(bytes)
-}
-
-fn decode_image(bytes: &[u8], environment: &str, limits: &Limits) -> Result<Vec<u8>> {
-    if bytes.len() < OVERHEAD || !bytes.starts_with(MAGIC) {
-        return Err(storage_error("invalid image format"));
-    }
-    let end = bytes.len() - 32;
-    if Sha256::digest(&bytes[..end])[..] != bytes[end..] {
-        return Err(storage_error("image checksum mismatch"));
-    }
-    let mut offset = MAGIC.len();
-    if bytes[offset..offset + 64] != *environment.as_bytes() {
-        return Err(storage_error(
-            "incompatible image environment (requires the same executable and configuration)",
-        ));
-    }
-    offset += 64;
-    for expected in [
-        limits.message,
-        limits.state,
-        limits.response,
-        (bytes.len() - OVERHEAD) as u64,
-    ] {
-        let n = u64::from_be_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        if n != expected {
-            return Err(storage_error("image limits or length mismatch"));
-        }
-        offset += 8;
-    }
-    if (end - offset) as u64 > limits.state {
-        return Err(storage_error("image state limit"));
-    }
-    Ok(bytes[offset..end].to_vec())
 }
 
 // Not compiled into production. Tests arm the hook only after initialization.
@@ -359,205 +31,125 @@ pub fn fault_point(point: &str) -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Temporary;
+const CHECKPOINT_INTERVAL: u64 = 256;
 
-    fn limits() -> Limits {
-        Limits {
-            message: 100,
-            state: 1000,
-            response: 100,
-        }
-    }
-    fn environment() -> String {
-        "a".repeat(64)
-    }
+pub struct Durable {
+    log: Arc<Log>,
+    checkpoints: Option<mpsc::SyncSender<Snapshot>>,
+    checkpoint_thread: Option<JoinHandle<()>>,
+}
 
-    fn bound_storage(path: &Path, mode: Mode) -> Storage {
-        let mut storage = Storage::begin(path, mode).unwrap();
-        storage.bind_environment(b"exact test environment").unwrap();
-        storage
-    }
-
-    #[test]
-    fn descriptor_is_required_exact_and_immutable() {
-        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage-binding").unwrap();
-        let path = parent.path.join("db");
-        let mut storage = Storage::begin(&path, Mode::Create).unwrap();
-        assert!(
-            !storage
-                .persist(&environment(), &limits(), b"old")
-                .unwrap_err()
-                .uncertain
-        );
-        assert!(!path.join(IMAGE).exists());
-        storage.bind_environment(b"original environment").unwrap();
-        assert!(storage.bind_environment(b"different descriptor").is_err());
-        assert_eq!(
-            fs::read(path.join(ENVIRONMENT)).unwrap(),
-            b"original environment"
-        );
-        storage.persist(&environment(), &limits(), b"old").unwrap();
-        drop(storage);
-        let mut storage = Storage::begin(&path, Mode::Open).unwrap();
-        assert!(storage.recover(&environment(), &limits()).is_err());
-        // Same image digest and same-length descriptor still cannot bind
-        // changed bytes. No SHA collision-resistance premise is involved.
-        assert!(storage.bind_environment(b"changed! environment").is_err());
-        assert_eq!(
-            fs::read(path.join(ENVIRONMENT)).unwrap(),
-            b"original environment"
-        );
-        storage.bind_environment(b"original environment").unwrap();
-        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"old");
-        drop(storage);
-        fs::remove_file(path.join(ENVIRONMENT)).unwrap();
-        let mut storage = Storage::begin(&path, Mode::Open).unwrap();
-        assert!(storage.bind_environment(b"original environment").is_err());
-        assert!(!path.join(ENVIRONMENT).exists());
-    }
-
-    #[test]
-    fn image_is_exact_bound_and_fail_closed() {
-        let state: Vec<_> = (0..=255).collect();
-        let image = encode_image(&environment(), &limits(), &state).unwrap();
-        assert_eq!(
-            decode_image(&image, &environment(), &limits()).unwrap(),
-            state
-        );
-        assert!(decode_image(&image, &"b".repeat(64), &limits()).is_err());
-        let mut other = limits();
-        other.message += 1;
-        assert!(decode_image(&image, &environment(), &other).is_err());
-        for i in 0..image.len() {
-            let mut corrupt = image.clone();
-            corrupt[i] ^= 1;
-            assert!(decode_image(&corrupt, &environment(), &limits()).is_err());
-            assert!(decode_image(&image[..i], &environment(), &limits()).is_err());
-        }
-        let mut extended = image;
-        extended.push(0);
-        assert!(decode_image(&extended, &environment(), &limits()).is_err());
-    }
-
-    #[test]
-    fn real_storage_owns_and_recovers_only_authoritative_image() {
-        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage").unwrap();
-        let path = parent.path.join("db");
-        assert!(Storage::begin(&path, Mode::Open).is_err());
-        let mut storage = bound_storage(&path, Mode::Create);
-        assert!(Storage::begin(&path, Mode::Create).is_err());
-        assert!(Storage::begin(&path, Mode::Open).is_err());
-        storage.persist(&environment(), &limits(), b"old").unwrap();
-        assert!(Storage::begin(&path, Mode::Open).is_err());
-        storage.persist(&environment(), &limits(), b"new").unwrap();
-        drop(storage);
-        fs::write(path.join(TEMP), b"orphan").unwrap();
-        let storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &limits()).unwrap(), b"new");
-        fs::write(path.join(IMAGE), b"corrupt").unwrap();
-        assert!(storage.recover(&environment(), &limits()).is_err());
-        fs::remove_file(path.join(IMAGE)).unwrap();
-        drop(storage);
-        assert!(Storage::begin(&path, Mode::Open).is_err());
-        assert!(Storage::begin(&path, Mode::Create).is_err());
-    }
-
-    #[test]
-    fn largest_logical_limit_still_recovers_a_small_complete_image() {
-        let parent = Temporary::new(&std::env::temp_dir(), "jaydb-storage-limit").unwrap();
-        let path = parent.path.join("db");
-        let mut limits = limits();
-        limits.state = u64::MAX;
-        let mut storage = bound_storage(&path, Mode::Create);
-        storage.persist(&environment(), &limits, b"small").unwrap();
-        drop(storage);
-        let storage = bound_storage(&path, Mode::Open);
-        assert_eq!(storage.recover(&environment(), &limits).unwrap(), b"small");
-    }
-
-    // A deliberately small power-loss model: file data is persistent after
-    // file sync; a rename before directory sync can recover old OR new. A torn
-    // temp never becomes authoritative. Errors can occur before/after effects.
-    struct Model {
-        stage: usize,
-        fail: usize,
-        after: bool,
-        temp: Vec<u8>,
-        synced: bool,
-        replaced: bool,
-        directory_synced: bool,
-    }
-    impl Model {
-        fn step(&mut self, effect: impl FnOnce(&mut Self)) -> io::Result<()> {
-            self.stage += 1;
-            if self.stage == self.fail && !self.after {
-                return Err(io::Error::from_raw_os_error(28));
+impl Durable {
+    pub fn start(
+        path: &Path,
+        mode: Mode,
+        mut descriptor: Vec<u8>,
+        limits: &Limits,
+        schema: Schema,
+        initial: &[u8],
+    ) -> Result<(Self, Snapshot)> {
+        // Bind the exact frozen environment (including the controller) and
+        // the three evaluated limits, with fixed-width big-endian fields.
+        descriptor.extend_from_slice(&limits.message.to_be_bytes());
+        descriptor.extend_from_slice(&limits.state.to_be_bytes());
+        descriptor.extend_from_slice(&limits.response.to_be_bytes());
+        let (log, state) = match mode {
+            Mode::Create => {
+                let state = Snapshot::load(schema, 0, initial).map_err(state_error)?;
+                (
+                    Log::create(path, &descriptor, initial).map_err(storage_error)?,
+                    state,
+                )
             }
-            effect(self);
-            if self.stage == self.fail {
-                return Err(io::Error::from_raw_os_error(5));
+            Mode::Open => {
+                let (log, recovered) = Log::open(path, &descriptor).map_err(storage_error)?;
+                let base_lsn = recovered
+                    .commits
+                    .first()
+                    .map_or(recovered.lsn, |(lsn, _)| lsn - 1);
+                let mut state =
+                    Snapshot::load(schema, base_lsn, &recovered.state).map_err(state_error)?;
+                for (lsn, writes) in recovered.commits {
+                    let writes: Vec<_> = writes
+                        .into_iter()
+                        .map(|entry| (entry.collection, entry.key, entry.row))
+                        .collect();
+                    state = state.apply_write_set(lsn, &writes).map_err(state_error)?;
+                }
+                (log, state)
             }
-            Ok(())
-        }
-        fn crash_images(&self) -> Vec<&[u8]> {
-            if self.directory_synced {
-                vec![&self.temp]
-            } else if self.replaced {
-                vec![b"old", &self.temp]
-            } else {
-                vec![b"old"]
-            }
-        }
+        };
+        let log = Arc::new(log);
+        let writer = Arc::clone(&log);
+        let (checkpoints, queue) = mpsc::sync_channel::<Snapshot>(1);
+        let checkpoint_thread = thread::Builder::new()
+            .name("jaydb-checkpoint".into())
+            .spawn(move || {
+                for state in queue {
+                    if let Err(error) = writer.checkpoint(state.lsn(), &descriptor, &state.save()) {
+                        // The coordinator may be idle waiting for stdin. Stop it
+                        // immediately rather than waiting for another request.
+                        diagnostic(format_args!("STORAGE_UNCERTAIN: WAL checkpoint: {error}"));
+                        std::process::exit(1);
+                    }
+                }
+            })?;
+        Ok((
+            Self {
+                log,
+                checkpoints: Some(checkpoints),
+                checkpoint_thread: Some(checkpoint_thread),
+            },
+            state,
+        ))
     }
-    impl ImageIo for Model {
-        fn write_temp(&mut self, image: &[u8]) -> io::Result<()> {
-            self.step(|m| m.temp = image.to_vec())
-        }
-        fn sync_temp(&mut self) -> io::Result<()> {
-            self.step(|m| m.synced = true)
-        }
-        fn replace(&mut self) -> io::Result<()> {
-            self.step(|m| {
-                assert!(m.synced);
-                m.replaced = true;
+
+    pub fn append(&self, lsn: u64, writes: Vec<StoreWrite>) -> Result<()> {
+        let writes = writes
+            .into_iter()
+            .map(|(collection, key, row)| WriteEntry {
+                collection,
+                key,
+                row,
             })
-        }
-        fn sync_directory(&mut self) -> io::Result<()> {
-            self.step(|m| m.directory_synced = true)
-        }
+            .collect();
+        self.log
+            .append(&[Record::Commit { lsn, writes }])
+            .map_err(uncertain)?;
+        fault_point("before_publish").map_err(uncertain)
     }
 
-    #[test]
-    fn actual_commit_algorithm_covers_every_fault_and_crash_boundary() {
-        for fail in 0..=4 {
-            for after in [false, true] {
-                let mut m = Model {
-                    stage: 0,
-                    fail,
-                    after,
-                    temp: vec![],
-                    synced: false,
-                    replaced: false,
-                    directory_synced: false,
-                };
-                let result = commit(&mut m, b"new");
-                if fail == 0 {
-                    assert!(result.is_ok());
-                    assert_eq!(m.crash_images(), [b"new".as_slice()]);
-                } else {
-                    let error = result.unwrap_err();
-                    assert_eq!(error.uncertain, fail >= 3);
-                    if !error.uncertain {
-                        assert_eq!(m.crash_images(), [b"old".as_slice()]);
-                    }
-                    for recovered in m.crash_images() {
-                        assert!(recovered == b"old" || recovered == b"new");
-                    }
+    pub fn checkpoint(&self, state: &Snapshot) -> Result<()> {
+        if state.lsn().is_multiple_of(CHECKPOINT_INTERVAL) {
+            let checkpoints = self.checkpoints.as_ref().expect("checkpoint thread active");
+            match checkpoints.try_send(state.clone()) {
+                Ok(()) | Err(mpsc::TrySendError::Full(_)) => (),
+                Err(mpsc::TrySendError::Disconnected(_)) => {
+                    return Err(uncertain("checkpoint thread stopped"));
                 }
             }
         }
+        Ok(())
     }
+}
+
+impl Drop for Durable {
+    fn drop(&mut self) {
+        drop(self.checkpoints.take());
+        if let Some(thread) = self.checkpoint_thread.take() {
+            let _ = thread.join();
+        }
+    }
+}
+
+fn storage_error(error: io::Error) -> Error {
+    Error::new("STORAGE", error.to_string())
+}
+
+fn state_error(error: crate::store::StoreError) -> Error {
+    Error::new("STORAGE", format!("invalid WAL state: {error}"))
+}
+
+pub fn uncertain(error: impl std::fmt::Display) -> Error {
+    Error::new("STORAGE_UNCERTAIN", error.to_string())
 }

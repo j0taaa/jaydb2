@@ -77,18 +77,33 @@ def final_bytes(tag: U32, bytes: Maybe<&2, List<&2, U32>>) -> Iteration:
     case None{}: Inconsistent{}
     case Some{bs}: Final{Con{tag, bs}}
 
-def final_response(+r: S.Response) -> Iteration:
-  match r:
-    case S.Response{S.Success{}, v}: final_bytes(1, P.frame(S.response_value(r)))
-    case _: final_bytes(0, P.frame(S.response_value(r)))
+# 0 keeps, 1 commits after host state validation, and 3 validates the
+# proposed success state before keeping the worker's response failure.
+def final_response(tag: U32, r: S.Response) -> Iteration:
+  final_bytes(tag, P.frame(S.response_value(r)))
 
-def finalize(status: S.Status, +value: D.Value, +limit: Nat) -> Iteration:
+def finish_success(+r: S.Response) -> Iteration:
+  match r:
+    case S.Response{S.Success{}, v}: final_response(1, r)
+    case _: final_response(3, r)
+
+def proposed_success(status: S.Status) -> Bool:
+  match status:
+    case S.Success{}: True{}
+    case _: False{}
+
+def checked_response(success: Bool, r: S.Response) -> Iteration:
+  match success:
+    case True{}: finish_success(r)
+    case False{}: final_response(0, r)
+
+def finalize(+status: S.Status, +value: D.Value, +limit: Nat) -> Iteration:
   +r = {S.Response{status, value} : S.Response}
-  final_response(R.response_technique_cases(D.value_valid(value),
+  checked_response(proposed_success(status), R.response_technique_cases(D.value_valid(value),
     R.fits(limit, S.response_value(r)), r))
 
 def error(status: S.Status) -> Iteration:
-  final_response(S.response_error(status))
+  final_response(0, S.response_error(status))
 
 # Answers are checked against the particular pending operation. A valid
 # data_error ends the request without invoking the program's continuation.

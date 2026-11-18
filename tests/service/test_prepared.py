@@ -2,12 +2,14 @@
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import tempfile
 import unittest
 
 from tests.service.test_end_to_end import ROOT, Server
-from tools.client import encode, prepared_frame, unframe
+from tests.live.test_remote_worker import answer, read, worker, write
+from tools.client import decode, encode, prepared_frame, unframe
 
 
 def universal_access_proof(proof):
@@ -66,10 +68,21 @@ class PreparedTests(unittest.TestCase):
             for name in ('Configuration.bend', 'Size.bend', 'Seed.bend', 'Client.bend', 'ClientProof.bend'):
                 (folder/name).write_text('changed-original-input')
 
+            children = Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children')
+            self.assertEqual(children.read_text().split(), [], 'workers must start lazily')
             self.assertEqual(server.prepared(1, handle, 'alice-token', 'alice-new'),
                 {'status': 'success', 'value': 'alice-new'}, server.diagnostics())
+            live_pid, = children.read_text().split()
             self.assertEqual(server.prepared(1, handle, 'bob-token', 'bob-new'),
                 {'status': 'success', 'value': 'bob-new'}, server.diagnostics())
+            self.assertEqual(children.read_text().split(), [live_pid])
+            os.kill(int(live_pid), signal.SIGKILL)
+            self.assertEqual(server.prepared(1, handle, 'alice-new', 'never-published'),
+                {'status': 'failure', 'value': None}, server.diagnostics())
+            self.assertEqual(server.prepared(1, handle, 'alice-new'),
+                {'status': 'refusal', 'value': 'cancelled'}, server.diagnostics())
+            replacement_pid, = children.read_text().split()
+            self.assertNotEqual(replacement_pid, live_pid)
             self.assertEqual(server.prepared(1, handle, 'alice-token', 'stale'),
                 {'status': 'authentication', 'value': None})
             self.assertEqual(server.prepared(1, handle, 'alice-new'),
@@ -152,15 +165,29 @@ class PreparedTests(unittest.TestCase):
             self.assertEqual(unframe(run_control(foreign, 2, candidate)[1:])['status'], 'failure')
             self.assertEqual(unframe(run_control(foreign, 0, code, proof)[1:])['status'], 'failure')
             prepared = next(p for p in private.glob('request-*') if (p/'Client.bend').read_text() == code)
-            self.assertIn('Worker.registered_packet(', (prepared/'Main.bend').read_text())
+            self.assertIn('Remote.registered_packet(', (prepared/'Main.bend').read_text())
             self.assertIn('Bindings.proof_source()', (prepared/'Main.bend').read_text())
             # Exercise Resolve/Gate in the compiled worker directly, bypassing
             # Rust's artifact selection. Only the checked registry and the
             # artifact's frozen source/proof may authorize execution.
-            root = encode({'tables': [], 'users': [
-                {'credential': 'alice-token', 'id': 'alice', 'kind': 'user'}]})
-            def private_packet(first, rest):
-                return len(first).to_bytes(8, 'big') + first + rest
+            def private_reply(registry, raw, credential):
+                with worker(executable) as (child, _):
+                    write(child, block(registry, raw))
+                    self.assertEqual(read(child)[0], 2)
+                    if credential == 'invalid':
+                        write(child, answer('no_user'))
+                    else:
+                        write(child, answer('user', id='alice', kind='user', credential=credential))
+                    while (result := read(child))[0] == 2:
+                        operation = result[1:]
+                        field_count = int.from_bytes(operation[1:9], 'big')
+                        fields = decode(b'\x05' + (2*field_count).to_bytes(8, 'big') + operation[9:])
+                        replies = {'define_column': answer('changed'), 'read_cell': answer('cell', value='discarded')}
+                        write(child, replies[fields[1]])
+                    child.stdin.close()
+                    self.assertEqual(child.wait(timeout=10), 0)
+                    return result
+
             executable = next(prepared.glob('*.program'))
             mismatched_code = run_control(b'', 0, failing, proof, admitted_code=failing)
             _, rest = split_control(mismatched_code[1:])
@@ -188,27 +215,18 @@ class PreparedTests(unittest.TestCase):
                     # argument to test its Keep path alongside the denials.
                     if status == 'refusal':
                         raw = prepared_frame(1, requested, credential, proof=supplied_proof)[8:]
-                    worker = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
-                        input=private_packet(registry, private_packet(root, raw)),
-                        capture_output=True, timeout=30)
-                    self.assertEqual(worker.returncode, 0, worker.stderr.decode())
-                    self.assertEqual(worker.stdout[0], 0, 'early result must be Keep')
-                    self.assertEqual(unframe(worker.stdout[1:])['status'], status)
+                    result = private_reply(registry, raw, credential)
+                    self.assertEqual(result[0], 0, 'early result must be Keep')
+                    self.assertEqual(unframe(result[1:])['status'], status)
             # Compare exact public bytes at the same published root. Map-miss
             # and integrity detection remain physical host duties; their denial
             # bytes now come from the separately checked native controller.
-            current_root = encode({'tables': [], 'users': [
-                {'credential': 'alice-final', 'id': 'alice', 'kind': 'user'},
-                {'credential': 'bob-new', 'id': 'bob', 'kind': 'user'}]})
             def checked_missing_reply(requested):
                 raw = prepared_frame(1, requested, 'alice-final', 'tampered')[8:]
-                result = subprocess.run([str(executable), '+RTS', '--threads', '1', '--gpu', 'off', '-RTS'],
-                    input=private_packet(dead_registry, private_packet(current_root, raw)),
-                    capture_output=True, timeout=30)
-                self.assertEqual(result.returncode, 0, result.stderr.decode())
-                self.assertEqual(result.stdout[0], 0, 'not-found denial must be Keep')
-                self.assertEqual(unframe(result.stdout[1:]), {'status': 'failure', 'value': None})
-                return result.stdout[1:]
+                result = private_reply(dead_registry, raw, 'alice-final')
+                self.assertEqual(result[0], 0, 'not-found denial must be Keep')
+                self.assertEqual(unframe(result[1:]), {'status': 'failure', 'value': None})
+                return result[1:]
             def host_reply(requested):
                 server.process.stdin.write(prepared_frame(1, requested, 'alice-final', 'tampered'))
                 server.process.stdin.flush()
@@ -228,13 +246,16 @@ class PreparedTests(unittest.TestCase):
                 self.assertEqual(host_reply('missing-handle'), not_found_reply)
                 for artifact in (next(prepared.glob('*.program')), prepared/'Client.bend', prepared/'Size.bend',
                                  private/'runtime/tools/service/stage.mjs'):
-                    original = artifact.read_bytes()
+                    # Linux denies in-place writes to a running executable.
+                    # Replace the directory entry to test the same seal check.
+                    original = artifact.with_name(artifact.name+'.original')
+                    artifact.rename(original)
                     try:
-                        artifact.write_bytes(original+b'\nchanged')
+                        artifact.write_bytes(original.read_bytes()+b'\nchanged')
                         self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
                         self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
                     finally:
-                        artifact.write_bytes(original)
+                        original.replace(artifact)
                 self.assertEqual(server.prepared(1, handle, 'alice-final', 'alice-final'),
                     {'status': 'success', 'value': 'alice-final'})
                 diagnostics = server.diagnostics()[diagnostic_start:]
@@ -278,6 +299,7 @@ class PreparedTests(unittest.TestCase):
                 self.assertEqual(server.exchange(len(unknown).to_bytes(8, 'big')+unknown),
                     {'status': 'input', 'value': None})
             self.assertEqual(server.prepared(2, handle, 'alice-final'), {'status': 'invalidated', 'value': None})
+            self.assertEqual(children.read_text().split(), [], 'invalidation must reap the worker')
             self.assertEqual(host_reply(handle), absent_registration_reply, server.diagnostics())
             self.assertEqual(server.prepared(1, bad['value'], 'alice-final'),
                 {'status': 'refusal', 'value': 'cancelled'})

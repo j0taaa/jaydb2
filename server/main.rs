@@ -1,12 +1,15 @@
 //! Serial host. Official Bend workers own computation; this process owns publication.
 mod capture;
 use capture::capture;
+mod live;
+use live::{Decision, Worker};
 mod scheduling;
 use scheduling::FrameInput;
 use scheduling::{FrameQueue, PollInput, QueueBounds};
 mod storage;
 mod store;
 mod wal;
+use store::{Schema, Snapshot, StoreError};
 mod timing;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -266,22 +269,25 @@ impl Program {
         Ok(())
     }
 
-    fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
-        self.validate()?;
+    fn command(&self, threads: usize) -> Command {
         let gpu_option = self
             .gpu
             .as_ref()
             .map(|(mib, _)| format!("{mib}MB"))
             .unwrap_or_else(|| "off".into());
-        let output = capture(
-            Command::new(&self.path)
-                // The host owns runtime policy, including early-exit flags.
-                .env("BENDRTS", "")
-                .args(["+RTS", "--threads"])
-                .arg(threads.to_string())
-                .args(["--gpu", &gpu_option, "-RTS"]),
-            input,
-        )?;
+        let mut command = Command::new(&self.path);
+        command
+            // The host owns runtime policy, including early-exit flags.
+            .env("BENDRTS", "")
+            .args(["+RTS", "--threads"])
+            .arg(threads.to_string())
+            .args(["--gpu", &gpu_option, "-RTS"]);
+        command
+    }
+
+    fn run(&self, input: &[u8], threads: usize) -> Result<Vec<u8>> {
+        self.validate()?;
+        let output = capture(&mut self.command(threads), input)?;
         if !output.status.success() {
             return Err(Error::new(
                 "NATIVE",
@@ -308,11 +314,11 @@ impl Program {
     }
 }
 
-fn packet(state: &[u8], body: &[u8]) -> Vec<u8> {
-    let mut result = Vec::new();
-    result.extend_from_slice(&(state.len() as u64).to_be_bytes());
-    result.extend_from_slice(state);
-    result.extend_from_slice(body);
+fn packet(first: &[u8], rest: &[u8]) -> Vec<u8> {
+    let mut result = Vec::with_capacity(8 + first.len() + rest.len());
+    result.extend_from_slice(&(first.len() as u64).to_be_bytes());
+    result.extend_from_slice(first);
+    result.extend_from_slice(rest);
     result
 }
 
@@ -349,61 +355,6 @@ fn response_frame(status: &str, value: Option<&str>) -> Vec<u8> {
         None => body.push(0),
     }
     packet(&body, &[])
-}
-
-// Exact checked worker decision; Rust never derives publication from status.
-enum Decision {
-    Commit { state: Vec<u8>, response: Vec<u8> },
-    Keep { response: Vec<u8> },
-}
-
-struct Published {
-    state: Vec<u8>,
-    response: Vec<u8>,
-}
-
-impl Published {
-    fn finish(&mut self, proposal: Decision) -> Vec<u8> {
-        match proposal {
-            Decision::Commit { state, response } => {
-                // Both values and all cleanup are complete before this store.
-                *self = Self { state, response };
-                self.response.clone()
-            }
-            Decision::Keep { response } => response,
-        }
-    }
-}
-
-// Framing/size checks here defend the private ABI against corruption.
-// Gate.finish already decided limits, status, publication and exact bytes.
-fn parse_decision(output: &[u8], limits: &Limits) -> Result<Decision> {
-    let (state, response) = match output.first() {
-        Some(1) => {
-            let (state, response) = split(&output[1..])?;
-            (Some(state), response)
-        }
-        Some(0) => (None, &output[1..]),
-        _ => return Err(Error::new("HOST_TRANSPORT", "invalid publication marker")),
-    };
-    if state.is_some_and(|state| state.len() as u64 > limits.state) {
-        return Err(Error::new(
-            "HOST_TRANSPORT",
-            "proposed state exceeds logical limit",
-        ));
-    }
-    let (response_body, trailing) = split(response)?;
-    if !trailing.is_empty() || response_body.len() as u64 > limits.response {
-        return Err(Error::new("HOST_TRANSPORT", "invalid proposed response"));
-    }
-    let response = response.to_vec();
-    Ok(match state {
-        Some(state) => Decision::Commit {
-            state: state.to_vec(),
-            response,
-        },
-        None => Decision::Keep { response },
-    })
 }
 
 // One entropy candidate retains the ordinary random-handle behavior. After a
@@ -446,18 +397,18 @@ struct Database {
     // Only exact-code replies successfully returned by the checked controller.
     error_replies: HashMap<String, Vec<u8>>,
     limits: Limits,
-    published: Published,
+    snapshot: Snapshot,
     inspector: Option<UnixStream>,
     inspection_sequence: u64,
     prepared: HashMap<String, PreparedProgram>,
     threads: usize,
     timing: Option<Arc<Timing>>,
-    storage: Option<storage::Storage>,
-    environment: String,
+    storage: Option<storage::Durable>,
     gpu_mib: usize,
 }
 
 struct PreparedProgram {
+    worker: Option<Worker>,
     directory: Temporary,
     program: Program,
     original_code: Vec<u8>,
@@ -502,11 +453,6 @@ impl PreparedProgram {
 
 impl Database {
     fn initialize(options: Options) -> Result<Self> {
-        let mut storage = options
-            .storage
-            .as_ref()
-            .map(|(path, mode)| storage::Storage::begin(path, *mode))
-            .transpose()?;
         let recovering = options
             .storage
             .as_ref()
@@ -564,20 +510,12 @@ impl Database {
                 "invalid configuration or initial state",
             ));
         }
-        let environment: Value =
-            serde_json::from_slice(&fs::read(directory.path.join("environment.json"))?)?;
-        let environment = text(&environment, "identity")?.to_owned();
-        if let Some(storage) = &mut storage {
-            storage.bind_environment(&fs::read(directory.path.join("environment.bytes"))?)?;
-        }
-        let state = if recovering {
-            storage
-                .as_ref()
-                .expect("recovery storage")
-                .recover(&environment, &limits)?
-        } else {
-            output[1..].to_vec()
-        };
+        let schema = Program::load(text(programs, "schema")?.into(), 0)?;
+        let schema_value = store::decode(&schema.run(&[], options.threads)?).map_err(|error| {
+            Error::new("CONFIGURATION", format!("invalid schema export: {error}"))
+        })?;
+        let schema = Schema::from_value(&schema_value, limits.state)
+            .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema: {error}")))?;
         let inspection_seed = if inspector.is_some() && !recovering {
             Some(fs::read_to_string(
                 directory.path.join("initialize/Seed.bend"),
@@ -590,11 +528,17 @@ impl Database {
                 .path
                 .join(if recovering { "recover" } else { "initialize" }),
         )?;
-        // Certified initialization and all worker cleanup precede the first
-        // durable image. Failed creates leave a directory requiring inspection.
-        if !recovering && let Some(storage) = &mut storage {
-            storage.persist(&environment, &limits, &state)?;
-        }
+        let (storage, snapshot) = if let Some((path, mode)) = options.storage {
+            let descriptor = fs::read(directory.path.join("environment.bytes"))?;
+            let (storage, snapshot) =
+                storage::Durable::start(&path, mode, descriptor, &limits, schema, &output[1..])?;
+            (Some(storage), snapshot)
+        } else {
+            let snapshot = Snapshot::load(schema, 0, &output[1..]).map_err(|error| {
+                Error::new("CONFIGURATION", format!("invalid initial state: {error}"))
+            })?;
+            (None, snapshot)
+        };
         let mut database = Self {
             directory,
             stage: text(&report, "stagePath")?.into(),
@@ -605,17 +549,13 @@ impl Database {
             registry: Vec::new(),
             error_replies: HashMap::new(),
             limits,
-            published: Published {
-                state,
-                response: Vec::new(),
-            },
+            snapshot,
             inspector,
             inspection_sequence: 0,
             prepared: HashMap::new(),
             threads: options.threads,
             timing,
             storage,
-            environment,
             gpu_mib: options.gpu_mib,
         };
         // HostErrorReplyTheorem states exact output independent of root, last
@@ -649,76 +589,77 @@ impl Database {
     }
 
     fn inspect(&mut self, metadata: Value) {
-        inspect_snapshot(
-            &mut self.inspector,
-            self.inspection_sequence,
-            &self.published.state,
-            metadata,
-        );
+        if self.inspector.is_some() {
+            inspect_snapshot(
+                &mut self.inspector,
+                self.inspection_sequence,
+                &self.snapshot.save(),
+                metadata,
+            );
+        }
     }
 
-    // Reusable service boundary: input is a complete checked proposal after
-    // worker cleanup. Ok is result-ready; Err is fatal (no response or dispatch).
-    // Scheduling/timing can wrap this method without moving the durable point.
-    fn publish(&mut self, proposal: Result<Decision>) -> Result<Vec<u8>> {
-        self.publish_with_ready(proposal, || {})
-    }
-
-    // Timing records its endpoint here; final inspector/log/client delivery is
-    // outside the measured interval. The callback only records readiness and
-    // cannot turn an already committed result into an ordinary failure.
+    // Timing ends at result readiness, before inspection and response delivery.
     fn publish_with_ready(
         &mut self,
-        mut proposal: Result<Decision>,
+        proposal: Result<Decision>,
         result_ready: impl FnOnce(),
     ) -> Result<Vec<u8>> {
         let mut bench = bench_start();
-        // The current state is already durable after create/recovery and every
-        // accepted publication. Environment and limits are immutable; state is
-        // the image's only varying field. Equal bytes need no new durable image.
-        // Still publish Commit's exact response below, even when it differs.
-        if let Ok(Decision::Commit { state, .. }) = &proposal
-            && state != &self.published.state
-            && let Some(storage) = &mut self.storage
-        {
-            if let Err(error) = storage.persist(&self.environment, &self.limits, state) {
-                if error.uncertain {
-                    return Err(error.into());
-                }
-                proposal = Err(error.into());
-            } else {
-                // Test hook only. Once directory sync succeeds, even a failure
-                // before RAM publication must stop without a rollback response.
-                storage::fault_point("before_publish")
-                    .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
-            }
-        }
         let error_metadata = proposal
             .as_ref()
             .err()
             .map(|error| serde_json::json!({"code": error.code, "message": error.message}));
-        let decision = match proposal {
-            Ok(decision) => decision,
+        let response = match proposal {
+            Ok(Decision::Keep { response }) => response,
+            Ok(Decision::Success {
+                transaction,
+                response,
+                commit,
+            }) => {
+                let lsn =
+                    self.snapshot.lsn().checked_add(1).ok_or_else(|| {
+                        Error::new("HOST_STORE", "publication sequence exhausted")
+                    })?;
+                let writes = (commit && self.storage.is_some()).then(|| transaction.write_set());
+                match transaction.commit(&self.snapshot, lsn) {
+                    Ok(next) => {
+                        if commit {
+                            if let (Some(storage), Some(writes)) = (&self.storage, writes) {
+                                storage.append(lsn, writes)?;
+                                storage.checkpoint(&next)?;
+                            }
+                            self.snapshot = next;
+                        }
+                        response
+                    }
+                    Err(StoreError::Data) => error_frame("data"),
+                    Err(StoreError::Limit) => error_frame("limit"),
+                    Err(error) => return Err(Error::new("HOST_STORE", error.to_string())),
+                }
+            }
             Err(error) => {
                 diagnostic(format_args!("{}: {}", error.code, error.message));
-                let response = self.checked_error(&error.code).unwrap_or_else(|failure| {
+                self.checked_error(&error.code).unwrap_or_else(|failure| {
                     diagnostic(format_args!(
                         "denial controller failed for {}: {}: {}; using technical failure fallback (not memoized)",
                         error.code, failure.code, failure.message
                     ));
                     error_frame("failure")
-                });
-                Decision::Keep { response }
+                })
             }
         };
-        let response = self.published.finish(decision);
         bench_mark(&mut bench, "publication");
         result_ready();
-        storage::fault_point("after_publish")
-            .map_err(|e| Error::new("STORAGE_UNCERTAIN", e.to_string()))?;
+        storage::fault_point("after_publish").map_err(storage::uncertain)?;
         advance_inspection_sequence(&mut self.inspection_sequence);
         self.inspect(serde_json::json!({"event": "completed", "diagnostic": error_metadata}));
         Ok(response)
+    }
+
+    #[cfg(test)]
+    fn publish(&mut self, proposal: Result<Decision>) -> Result<Vec<u8>> {
+        self.publish_with_ready(proposal, || {})
     }
 
     fn preprocess(&self, program: &Program, input: &[u8]) -> Result<Vec<u8>> {
@@ -731,10 +672,27 @@ impl Database {
 
     fn propose(&mut self, body: &[u8], attempt: &mut Option<Attempt>) -> Result<Decision> {
         let mut bench = bench_start();
-        let input = packet(&self.published.state, body);
-        // Input.analyze decodes before authenticating and preserves decode
-        // errors. A separate decode child would repeat that entire pass.
-        // The worker decodes this same packet and enters through Gate.begin.
+        let fields = request_fields(body);
+        let credential = fields
+            .as_ref()
+            .map(|(_, credential, _)| credential.as_str());
+
+        // Rust locates an artifact for an authenticated, well-shaped execution
+        // request. The worker still checks the public request, current identity,
+        // registry and admitted source/proof before running the program.
+        if let ([7, 1, ..], Some((handle, credential, proof))) = (body, &fields)
+            && proof.is_empty()
+            && let Some(user) = self.snapshot.authenticate(credential)
+        {
+            if let Some(attempt) = attempt {
+                attempt.authenticated(&user.id);
+            }
+            bench_mark(&mut bench, "packet_authentication");
+            return self.run_prepared(handle, body, &mut bench);
+        }
+
+        let root = self.snapshot.authentication_root(credential);
+        let input = packet(&root, body);
         let authenticated = self.preprocess(&self.authenticate, &input)?;
         bench_mark(&mut bench, "packet_authentication");
         if authenticated[0] == 0 {
@@ -752,37 +710,13 @@ impl Database {
         let (code, rest) = split(metadata)?;
         let (proof, rest) = split(rest)?;
         let (instance, bindings) = split(rest)?;
-        if matches!(operation, 4 | 5) {
+        if operation == 5 {
+            return self.control_operation(&root, body);
+        }
+        if operation == 4 {
             let handle =
                 std::str::from_utf8(code).map_err(|_| Error::new("HANDLE", "invalid handle"))?;
-            if operation == 5 {
-                return self.control_operation(body, "", &[], &[]);
-            }
-            let prepared = self
-                .prepared
-                .get(handle)
-                .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
-            prepared.validate()?;
-            bench_mark(&mut bench, "prepared_integrity");
-            if self.inspector.is_some() {
-                self.inspect(serde_json::json!({
-                    "event": "prepared-resolved", "handle": handle,
-                    "original_code": String::from_utf8_lossy(&prepared.original_code),
-                    "universal_proof": String::from_utf8_lossy(&prepared.universal_proof)
-                }));
-            }
-            let prepared = &self.prepared[handle];
-            // The map locates the artifact; only checked registry lookup authorizes
-            // execution. Bend also binds the selected source/proof to this artifact.
-            let output = prepared
-                .program
-                .run(&packet(&self.registry, &input), self.threads)?;
-            if prepared.program.gpu.is_some() {
-                // CUDA only: the sealed bundle must be unchanged after the run.
-                prepared.validate()?;
-            }
-            bench_mark(&mut bench, "prepared_worker");
-            return parse_decision(&output, &self.limits);
+            return self.run_prepared(handle, body, &mut bench);
         }
         if self.inspector.is_some() {
             self.inspect(serde_json::json!({
@@ -806,9 +740,9 @@ impl Database {
         }
         let mut arguments: Vec<OsString> = vec![
             if operation == 3 {
-                "prepare".into()
+                "live-prepare".into()
             } else {
-                "execute".into()
+                "live-execute".into()
             },
             self.directory.path.clone().into_os_string(),
             request.path.clone().into_os_string(),
@@ -816,7 +750,6 @@ impl Database {
             self.source.clone().into_os_string(),
             self.kernel.clone().into_os_string(),
         ];
-        // The CPU default keeps main's exact staging arguments.
         if self.gpu_mib != 0 {
             arguments.push(self.gpu_mib.to_string().into());
         }
@@ -830,7 +763,8 @@ impl Database {
         let program = Program::load(text(&report, "program")?.into(), self.gpu_mib)?;
         bench_mark(&mut bench, "admission_total");
         if operation == 3 {
-            let control = self.run_control(body, text(&report, "certificateMode")?, code, proof)?;
+            let control =
+                self.run_control(&root, body, text(&report, "certificateMode")?, code, proof)?;
             let (handle, registry, response) = match control {
                 ControlDecision::Denied(response) => return Ok(Decision::Keep { response }),
                 ControlDecision::Add {
@@ -848,6 +782,7 @@ impl Database {
             self.prepared.insert(
                 handle,
                 PreparedProgram {
+                    worker: None,
                     directory: request,
                     program,
                     original_code: code.to_vec(),
@@ -858,11 +793,58 @@ impl Database {
             self.registry = registry;
             return Ok(Decision::Keep { response });
         }
-        let output = program.run(&input, self.threads)?;
+        let mut worker = Worker::spawn(&program, self.threads)?;
+        let proposal = worker.run(&program, true, body, &self.snapshot, &self.limits)?;
         bench_mark(&mut bench, "ordinary_worker");
-        let proposal = parse_decision(&output, &self.limits)?;
         request.remove()?;
         bench_mark(&mut bench, "proposal_cleanup");
+        Ok(proposal)
+    }
+
+    fn run_prepared(
+        &mut self,
+        handle: &str,
+        body: &[u8],
+        bench: &mut Option<std::time::Instant>,
+    ) -> Result<Decision> {
+        let prepared = self
+            .prepared
+            .get_mut(handle)
+            .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
+        if let Err(error) = prepared.validate() {
+            prepared.worker.take();
+            return Err(error);
+        }
+        bench_mark(bench, "prepared_integrity");
+        if self.inspector.is_some() {
+            let metadata = serde_json::json!({
+                "event": "prepared-resolved", "handle": handle,
+                "original_code": String::from_utf8_lossy(&prepared.original_code),
+                "universal_proof": String::from_utf8_lossy(&prepared.universal_proof)
+            });
+            self.inspect(metadata);
+        }
+        let prepared = self
+            .prepared
+            .get_mut(handle)
+            .expect("prepared artifact selected");
+        let mut worker = match prepared.worker.take() {
+            Some(worker) => worker,
+            None => Worker::spawn(&prepared.program, self.threads)?,
+        };
+        let input = packet(&self.registry, body);
+        let proposal = worker.run(
+            &prepared.program,
+            false,
+            &input,
+            &self.snapshot,
+            &self.limits,
+        )?;
+        if prepared.program.gpu.is_some() {
+            prepared.validate()?;
+        }
+        prepared.worker = Some(worker);
+        bench_mark(bench, "prepared_worker");
         Ok(proposal)
     }
 
@@ -881,7 +863,10 @@ impl Database {
         metadata.extend_from_slice(code.as_bytes());
         let input = packet(
             &metadata,
-            &packet(&self.registry, &packet(&self.published.state, &[])),
+            &packet(
+                &self.registry,
+                &packet(&self.snapshot.authentication_root(None), &[]),
+            ),
         );
         let output = self.control.run(&input, self.threads)?;
         if output.first() != Some(&0) {
@@ -890,17 +875,22 @@ impl Database {
                 "invalid checked denial result",
             ));
         }
-        match parse_decision(&output, &self.limits)? {
-            Decision::Keep { response } => {
-                self.error_replies.insert(code.to_owned(), response.clone());
-                Ok(response)
-            }
-            Decision::Commit { .. } => unreachable!("denial tag checked above"),
+        let response = &output[1..];
+        let (body, trailing) = split(response)?;
+        if !trailing.is_empty() || body.len() as u64 > self.limits.response {
+            return Err(Error::new(
+                "HOST_TRANSPORT",
+                "invalid checked denial response",
+            ));
         }
+        self.error_replies
+            .insert(code.to_owned(), response.to_vec());
+        Ok(response.to_vec())
     }
 
     fn run_control(
         &self,
+        root: &[u8],
         body: &[u8],
         mode: &str,
         code: &[u8],
@@ -917,10 +907,7 @@ impl Database {
             metadata.extend_from_slice(&(field.len() as u64).to_be_bytes());
             metadata.extend_from_slice(field);
         }
-        let input = packet(
-            &metadata,
-            &packet(&self.registry, &packet(&self.published.state, body)),
-        );
+        let input = packet(&metadata, &packet(&self.registry, &packet(root, body)));
         let output = self.control.run(&input, self.threads)?;
         match output.first() {
             Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
@@ -953,14 +940,8 @@ impl Database {
         }
     }
 
-    fn control_operation(
-        &mut self,
-        body: &[u8],
-        mode: &str,
-        code: &[u8],
-        proof: &[u8],
-    ) -> Result<Decision> {
-        match self.run_control(body, mode, code, proof)? {
+    fn control_operation(&mut self, root: &[u8], body: &[u8]) -> Result<Decision> {
+        match self.run_control(root, body, "", &[], &[])? {
             ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
             ControlDecision::Remove {
                 handle,
@@ -972,6 +953,7 @@ impl Database {
                 self.registry = registry;
                 match self.prepared.remove(&handle) {
                     Some(mut artifact) => {
+                        artifact.worker.take();
                         if let Err(error) = artifact.directory.remove() {
                             diagnostic(format_args!("invalidated artifact cleanup: {error:?}"));
                         }
@@ -1025,14 +1007,39 @@ fn inspect_snapshot(
     }
 }
 
+// Read only the routing fields of a canonical public request. Bend still
+// validates the envelope and owns all admission and control decisions.
+fn request_fields(body: &[u8]) -> Option<(String, String, String)> {
+    let body = match body {
+        [7, _, payload @ ..] => payload,
+        _ => body,
+    };
+    let request = store::decode(body).ok()?;
+    let store::Value::Record(fields) = &request else {
+        return None;
+    };
+    match fields.as_slice() {
+        [
+            (args, _),
+            (code, store::Value::Text(handle)),
+            (credential, store::Value::Text(token)),
+            (proof, store::Value::Text(certificate)),
+        ] if args == "arguments"
+            && code == "code"
+            && credential == "credential"
+            && proof == "proof" =>
+        {
+            Some((handle.clone(), token.clone(), certificate.clone()))
+        }
+        _ => None,
+    }
+}
+
 impl Database {
     // One complete request, including cleanup, durable publication and timing.
     fn request(&mut self, body: &[u8]) -> Result<Vec<u8>> {
         let mut attempt = self.timing.as_ref().map(|timing| timing.selected());
         let proposal = self.propose(body, &mut attempt);
-        if self.timing.is_none() {
-            return self.publish(proposal);
-        }
         let timing = self.timing.clone();
         let response = self.publish_with_ready(proposal, || {
             if let (Some(timing), Some(attempt)) = (&timing, attempt.take()) {
@@ -1245,6 +1252,7 @@ mod tests {
         assert_eq!(sealed[0].0, path);
         assert_eq!(sealed[0].1.as_slice(), original);
         let prepared = PreparedProgram {
+            worker: None,
             directory,
             program: Program {
                 path: PathBuf::new(),
@@ -1518,48 +1526,6 @@ mod tests {
     }
 
     #[test]
-    fn only_a_complete_valid_proposal_replaces_the_published_pair() {
-        let limits = Limits {
-            message: 100,
-            state: 3,
-            response: error_frame("success").len() as u64 - 8,
-        };
-        let mut published = Published {
-            state: b"old".to_vec(),
-            response: Vec::new(),
-        };
-        let success = [vec![1], packet(b"new", &error_frame("success"))].concat();
-        assert_eq!(
-            published.finish(parse_decision(&success, &limits).unwrap()),
-            error_frame("success")
-        );
-        let refusal = [vec![0], error_frame("refusal")].concat();
-        assert_eq!(
-            published.finish(parse_decision(&refusal, &limits).unwrap()),
-            error_frame("refusal")
-        );
-        for invalid in [
-            vec![],
-            vec![2],
-            vec![1, 0],
-            [vec![0], error_frame("certificate")].concat(),
-            [vec![1], packet(b"long", &error_frame("success"))].concat(),
-            [vec![1], packet(b"new", &error_frame("certificate"))].concat(),
-            [vec![1], packet(b"new", b"unframed")].concat(),
-            [
-                vec![1],
-                packet(b"new", &[error_frame("success"), vec![0]].concat()),
-            ]
-            .concat(),
-        ] {
-            assert!(parse_decision(&invalid, &limits).is_err());
-            assert_eq!(published.state, b"new");
-            assert_eq!(published.response, error_frame("success"));
-        }
-        assert_eq!(published.state, b"new");
-    }
-
-    #[test]
     fn delivery_failure_after_publication_does_not_undo_the_state() {
         struct BrokenOutput;
         impl Write for BrokenOutput {
@@ -1570,24 +1536,41 @@ mod tests {
                 Ok(())
             }
         }
-        let mut published = Published {
-            state: b"old".to_vec(),
-            response: Vec::new(),
-        };
+        let mut snapshot = empty_test_snapshot();
         let result = serve_stream(
             Cursor::new(packet(b"call", &[])),
             &mut BrokenOutput,
             4,
             |_| {
-                Ok(published.finish(Decision::Commit {
-                    state: b"new".to_vec(),
-                    response: error_frame("success"),
-                }))
+                snapshot = test_write(&snapshot).commit(&snapshot, 1).unwrap();
+                Ok(error_frame("success"))
             },
         );
         assert!(result.is_err());
-        assert_eq!(published.state, b"new");
-        assert_eq!(published.response, error_frame("success"));
+        assert!(snapshot.authenticate("new-token").is_some());
+    }
+
+    fn empty_test_snapshot() -> Snapshot {
+        Snapshot::empty(Schema::new(Vec::new(), 1024).unwrap(), 0).unwrap()
+    }
+
+    fn test_write(snapshot: &Snapshot) -> store::Transaction {
+        let mut transaction = snapshot.begin();
+        let fields = [
+            ("credential", "new-token"),
+            ("id", "user"),
+            ("kind", "user"),
+        ]
+        .map(|(key, value)| (key.into(), store::Value::Text(value.into())));
+        assert_eq!(
+            transaction.operate(store::Operation::DefineRow {
+                collection: None,
+                key: "user".into(),
+                fields: fields.into(),
+            }),
+            store::Answer::Changed
+        );
+        transaction
     }
 
     #[test]
@@ -1612,16 +1595,19 @@ mod tests {
         let path = directory.path.join("db");
         let limits = Limits {
             message: 100,
-            state: 10,
+            state: 1024,
             response: 100,
         };
-        let environment = "a".repeat(64);
-        let mut storage = storage::Storage::begin(&path, storage::Mode::Create).unwrap();
-        storage
-            .bind_environment(b"publication test environment")
-            .unwrap();
-        storage.persist(&environment, &limits, b"old").unwrap();
-        let previous = fs::read(path.join("snapshot")).unwrap();
+        let initial = empty_test_snapshot().save();
+        let (storage, snapshot) = storage::Durable::start(
+            &path,
+            storage::Mode::Create,
+            b"test environment".to_vec(),
+            &limits,
+            Schema::new(Vec::new(), limits.state).unwrap(),
+            &initial,
+        )
+        .unwrap();
         let (inspector, mut observer) = UnixStream::pair().unwrap();
         observer.set_nonblocking(true).unwrap();
         let mut db = Database {
@@ -1635,10 +1621,7 @@ mod tests {
                 gpu: None,
             },
             limits,
-            published: Published {
-                state: b"old".to_vec(),
-                response: Vec::new(),
-            },
+            snapshot,
             inspector: Some(inspector),
             inspection_sequence: u64::MAX,
             prepared: HashMap::new(),
@@ -1652,41 +1635,21 @@ mod tests {
             threads: 1,
             timing: None,
             storage: Some(storage),
-            environment,
             gpu_mib: 0,
         };
-        // Equal state with a different response still publishes the pair, but
-        // must not replace the durable inode. Keep it open to prevent inode reuse.
-        use std::os::unix::fs::MetadataExt;
-        let durable = fs::File::open(path.join("snapshot")).unwrap();
-        let inode = durable.metadata().unwrap().ino();
-        let first_response = error_frame("first-success");
-        assert_eq!(
-            db.publish(Ok(Decision::Commit {
-                state: b"old".to_vec(),
-                response: first_response.clone(),
-            }))
-            .unwrap(),
-            first_response
-        );
-        assert_eq!(db.published.response, first_response);
-        assert_eq!(db.published.state, b"old");
-        assert_eq!(fs::metadata(path.join("snapshot")).unwrap().ino(), inode);
-        assert_eq!(fs::read(path.join("snapshot")).unwrap(), previous);
-        // Drain this completion's inspection event before checking readiness.
-        assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
-        db.inspection_sequence = u64::MAX;
         let mut notified = false;
         let response = error_frame("success");
+        let transaction = test_write(&db.snapshot);
         assert_eq!(
             db.publish_with_ready(
-                Ok(Decision::Commit {
-                    state: b"new".to_vec(),
-                    response: response.clone()
+                Ok(Decision::Success {
+                    transaction,
+                    response: response.clone(),
+                    commit: true
                 }),
                 || {
                     notified = true;
-                    assert_ne!(fs::read(path.join("snapshot")).unwrap(), previous);
+                    assert!(path.join("segment-1").metadata().unwrap().len() > 0);
                     let mut byte = [0];
                     assert_eq!(
                         observer.read(&mut byte).unwrap_err().kind(),
@@ -1698,16 +1661,20 @@ mod tests {
             response
         );
         assert!(notified);
-        assert_eq!(db.published.state, b"new");
+        let committed = db.snapshot.save();
+        assert!(db.snapshot.authenticate("new-token").is_some());
         assert_eq!(db.inspection_sequence, 0);
-        assert_eq!(
-            db.storage
-                .as_ref()
-                .unwrap()
-                .recover(&db.environment, &db.limits)
-                .unwrap(),
-            b"new"
-        );
+        drop(db.storage.take());
+        let (_reopened, recovered) = storage::Durable::start(
+            &path,
+            storage::Mode::Open,
+            b"test environment".to_vec(),
+            &db.limits,
+            Schema::new(Vec::new(), db.limits.state).unwrap(),
+            &[],
+        )
+        .unwrap();
+        assert_eq!(recovered.save(), committed);
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
 
         // The host must forward the controller's bytes, even when a test
@@ -1733,8 +1700,7 @@ mod tests {
                 db.publish(Err(Error::new(code, "test failure"))).unwrap(),
                 forwarded
             );
-            assert_eq!(db.published.state, b"new");
-            assert_eq!(db.published.response, response);
+            assert_eq!(db.snapshot.save(), committed);
             let input = fs::read(executable.with_extension("input")).unwrap();
             let (metadata, rest) = split(&input).unwrap();
             let mut expected = vec![4];
@@ -1744,7 +1710,7 @@ mod tests {
             let (registry, rest) = split(rest).unwrap();
             assert_eq!(registry, db.registry);
             let (root, body) = split(rest).unwrap();
-            assert_eq!(root, b"new");
+            assert_eq!(root, initial);
             assert!(body.is_empty());
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         }
@@ -1759,8 +1725,7 @@ mod tests {
             db.publish(Err(Error::new("HOST_IO", "rejected"))).unwrap(),
             error_frame("failure")
         );
-        assert_eq!(db.published.state, b"new");
-        assert_eq!(db.published.response, response);
+        assert_eq!(db.snapshot.save(), committed);
         assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         assert!(!db.error_replies.contains_key("HOST_IO"));
         // A later successful exact-code reply must replace neither a prepared
@@ -1786,8 +1751,7 @@ mod tests {
                     .unwrap(),
                 error_frame("failure")
             );
-            assert_eq!(db.published.state, b"new");
-            assert_eq!(db.published.response, response);
+            assert_eq!(db.snapshot.save(), committed);
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
             assert!(!db.error_replies.contains_key("UNSEEN_CODE"));
         }
@@ -1799,8 +1763,7 @@ mod tests {
         for code in ["PRIMARY_CHECK", "HANDLE", "PREPARED_INTEGRITY"] {
             let error = Error::new(code, "physical prepared failure");
             assert_eq!(db.publish(Err(error)).unwrap(), forwarded);
-            assert_eq!(db.published.state, b"new");
-            assert_eq!(db.published.response, response);
+            assert_eq!(db.snapshot.save(), committed);
             assert!(observer.read(&mut [0; 1024]).unwrap() > 0);
         }
     }

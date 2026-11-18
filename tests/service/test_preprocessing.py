@@ -166,12 +166,13 @@ class PreprocessingTests(unittest.TestCase):
             if trace:
                 launches = [line for line in Path(trace).read_text().splitlines()
                             if 'execve(' in line and '.program"' in line and '= 0' in line]
-                counts = {'initialize': 0, 'authenticate': 0, 'execute': 0}
+                counts = {'initialize': 0, 'schema': 0, 'authenticate': 0, 'control': 0, 'execute': 0}
                 for line in launches:
                     self.assertNotIn('/decode/', line)
-                    key = 'authenticate' if '/authenticate/' in line else 'initialize' if '/initialize/' in line else 'execute'
+                    key = next((purpose for purpose in ('initialize', 'schema', 'authenticate', 'control')
+                                if f'/{purpose}/' in line), 'execute')
                     counts[key] += 1
-                self.assertEqual(counts, {'initialize': 1, 'authenticate': 18, 'execute': 2})
+                self.assertEqual(counts, {'initialize': 1, 'schema': 1, 'authenticate': 17, 'control': 4, 'execute': 2})
                 print('host native launches: '+json.dumps(counts), flush=True)
 
 

@@ -128,6 +128,32 @@ class EndToEndTests(unittest.TestCase):
                          {'status': 'authentication', 'value': None}, server.diagnostics())
         server.finish()
 
+    def test_success_checks_state_before_a_failed_response(self):
+        folder = ROOT/'examples/credential-exchange'
+        with tempfile.TemporaryDirectory(prefix='jaydb-final-order-') as tmp:
+            tmp = Path(tmp)
+            configuration = (folder/'Configuration.bend').read_text().replace('65536n, 32768n', '768n, 128n')
+            (tmp/'Configuration.bend').write_text(configuration)
+            (tmp/'Seed.bend').write_bytes((folder/'Seed.bend').read_bytes())
+            code, proof = ((folder/name).read_text() for name in ('Client.bend', 'ClientProof.bend'))
+            server = Server(tmp, threads=1)
+            self.addCleanup(server.close)
+            duplicate = 'd'*200
+            self.assertEqual(server.call(code, proof, 'alice-token', [duplicate, duplicate]),
+                             {'status': 'data', 'value': None}, server.diagnostics())
+            self.assertEqual(server.call(code, proof, 'alice-token', ['r'*200, 'second']),
+                             {'status': 'limit', 'value': None}, server.diagnostics())
+            # This response is structurally invalid while the candidate state
+            # is valid in structure but exceeds the state size limit.
+            invalid = code.replace('S.Finish{value}', 'S.Finish{D.VRecord{"bad-name", value, D.VRecordEmpty{}}}')
+            self.assertEqual(server.call(invalid, proof, 'alice-token', ['l'*680, 'second']),
+                             {'status': 'limit', 'value': None}, server.diagnostics())
+            self.assertEqual(server.call(invalid, proof, 'alice-token', ['first', 'second']),
+                             {'status': 'data', 'value': None}, server.diagnostics())
+            self.assertEqual(server.call(code, proof, 'alice-token'),
+                             {'status': 'success', 'value': 'bob-token'}, server.diagnostics())
+            server.finish()
+
     def test_initialization_rejects_another_environment_identity(self):
         with tempfile.TemporaryDirectory(prefix='jaydb-identity-test-') as temporary:
             folder = Path(temporary)

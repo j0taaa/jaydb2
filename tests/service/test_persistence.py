@@ -3,7 +3,6 @@
 Build the opt-in fault binary with `make test-persistence`. Hooks are absent
 from the normal binary. Run this heavy suite under the shared flock.
 """
-import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -11,24 +10,79 @@ import signal
 import socket
 import subprocess
 import tempfile
+import time
 import unittest
+import zlib
 
 from tests.service.test_end_to_end import ROOT, Server
 from tests.service.test_prepared import universal_access_proof
-from tools.client import frame, unframe
+from tools.client import decode, encode, frame, prepared_frame
 from applications.tasks.app import prepare
 
 BINARY = Path(os.environ.get('JAYDB_PERSISTENCE_BINARY',
     ROOT/'.build/persistence/fault/release/jaydb2'))
-MAGIC = b'jaydb2-image-v1\n'
-OVERHEAD = len(MAGIC) + 64 + 32 + 32
+MAGIC = b'jaydb2-wal-checkpoint-v1\n'
+
+
+def numbered(path, prefix):
+    return sorted(path.glob(prefix+'-*'), key=lambda file: int(file.name.split('-')[1]))
+
+
+def wal_records(path):
+    def blob(data):
+        size = int.from_bytes(data[:4], 'big')
+        assert len(data) >= 4 + size
+        return data[4:4+size], data[4+size:]
+
+    def optional(data):
+        assert data[0] in (0, 1)
+        return blob(data[1:]) if data[0] else (None, data[1:])
+
+    for segment in numbered(path, 'segment'):
+        data = segment.read_bytes()
+        while data:
+            size = int.from_bytes(data[:4], 'big')
+            crc = int.from_bytes(data[4:8], 'big')
+            record, data = data[8:8+size], data[8+size:]
+            assert len(record) == size and zlib.crc32(record) == crc
+            lsn = int.from_bytes(record[:8], 'big')
+            assert record[8] == 1 and int.from_bytes(record[9:13], 'big') == size
+            count = int.from_bytes(record[13:17], 'big')
+            payload, writes = record[17:], []
+            for _ in range(count):
+                collection, payload = optional(payload)
+                key, payload = blob(payload)
+                row, payload = optional(payload)
+                writes.append((collection.decode() if collection is not None else None,
+                               key.decode(), decode(row) if row is not None else None))
+            assert not payload
+            yield lsn, writes
 
 
 def state_bytes(path):
-    image = (path/'snapshot').read_bytes()
-    assert hashlib.sha256(image[:-32]).digest() == image[-32:]
-    assert image.startswith(MAGIC)
-    return image[OVERHEAD-32:-32]
+    checkpoint = numbered(path, 'checkpoint')[-1].read_bytes()
+    checked, crc = checkpoint[:-4], checkpoint[-4:]
+    assert checked.startswith(MAGIC) and zlib.crc32(checked) == int.from_bytes(crc, 'big')
+    lsn = int.from_bytes(checked[len(MAGIC):len(MAGIC)+8], 'big')
+    descriptor_size = int.from_bytes(checked[len(MAGIC)+8:len(MAGIC)+16], 'big')
+    state = decode(checked[len(MAGIC)+16+descriptor_size:])
+    collections = {table['name']: table['rows'] for table in state['tables']}
+    collections[None] = state['users']
+    indexed = {collection: {fields['id']: fields for fields in rows}
+               for collection, rows in collections.items()}
+    for commit_lsn, writes in wal_records(path):
+        if commit_lsn <= lsn:
+            continue
+        assert commit_lsn == lsn + 1
+        lsn = commit_lsn
+        for collection, key, row in writes:
+            if row is None:
+                indexed[collection].pop(key, None)
+            else:
+                indexed[collection][key] = row
+    for collection, rows in collections.items():
+        rows[:] = [row for _, row in sorted(indexed[collection].items())]
+    return encode(state)
 
 
 class PersistenceTests(unittest.TestCase):
@@ -84,7 +138,7 @@ class PersistenceTests(unittest.TestCase):
         handle = server.prepared(0, self.code, 'alice-token', proof=universal_access_proof(self.proof))['value']
         self.assertEqual(server.prepared(1, handle, 'alice-token', 'durable'),
                          {'status': 'success', 'value': 'durable'}, server.diagnostics())
-        committed = (self.path/'snapshot').read_bytes()
+        committed = (self.path/'segment-1').read_bytes()
         # The real official worker writes privately, then fails consuming a
         # Nat beyond its immediate representation. It must never enter storage.
         failing = self.code.replace('S.Finish{value}',
@@ -92,7 +146,7 @@ class PersistenceTests(unittest.TestCase):
         self.assertNotEqual(failing, self.code)
         self.assertEqual(server.call(failing, self.proof, 'durable', 'never-published'),
                          {'status': 'failure', 'value': None}, server.diagnostics())
-        self.assertEqual((self.path/'snapshot').read_bytes(), committed)
+        self.assertEqual((self.path/'segment-1').read_bytes(), committed)
         server.finish()
         # Seed disappearance is immaterial: recover stages only configuration.
         local = self.directory/'app'; local.mkdir()
@@ -102,7 +156,7 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(self.call(server), {'status': 'authentication', 'value': None})
         self.assertEqual(self.call(server, 'durable'), {'status': 'refusal', 'value': 'cancelled'})
         self.assertEqual(server.prepared(1, handle, 'durable', 'foreign'), {'status': 'failure', 'value': None})
-        self.assertEqual((self.path/'snapshot').read_bytes(), committed)
+        self.assertEqual((self.path/'segment-1').read_bytes(), committed)
         self.assertEqual(self.call(server, 'bob-token', 'bob-durable'), {'status': 'success', 'value': 'bob-durable'})
         server.finish()
         # Normal shutdown is unnecessary once the successful response arrived.
@@ -137,55 +191,39 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(state_bytes(self.path), exact)
         server.finish()
 
-    def test_missing_corrupt_incompatible_and_no_fallback(self):
-        image = (self.path/'snapshot').read_bytes()
-        (self.path/'.snapshot.tmp').write_bytes(image)
-        (self.path/'snapshot.old').write_bytes(image)
-        (self.path/'snapshot').unlink()
-        self.assertIn(b'STORAGE', self.open_failure().stderr)
-        (self.path/'snapshot').write_bytes(image[:-1])
-        self.assertIn(b'STORAGE', self.open_failure().stderr)
-        corrupt = bytearray(image); corrupt[-40] ^= 1
-        (self.path/'snapshot').write_bytes(corrupt)
-        self.assertIn(b'checksum', self.open_failure().stderr)
-        # A checksum is not a configuration/version certificate.
-        incompatible = bytearray(image); incompatible[len(MAGIC)] ^= 1
-        incompatible[-32:] = hashlib.sha256(incompatible[:-32]).digest()
-        (self.path/'snapshot').write_bytes(incompatible)
-        self.assertIn(b'incompatible image environment', self.open_failure().stderr)
-        (self.path/'snapshot').write_bytes(image)
+    def test_missing_corrupt_or_incompatible_checkpoint_and_descriptor(self):
+        path = self.path/'checkpoint-0'
+        checkpoint = path.read_bytes()
+        (self.path/'.checkpoint.tmp').write_bytes(checkpoint)
+        path.unlink()
+        self.assertIn(b'no checkpoint', self.open_failure().stderr)
+        path.write_bytes(checkpoint[:-1])
+        self.assertIn(b'no valid checkpoint', self.open_failure().stderr)
+        corrupt = bytearray(checkpoint); corrupt[-10] ^= 1
+        path.write_bytes(corrupt)
+        self.assertIn(b'no valid checkpoint', self.open_failure().stderr)
+        incompatible = bytearray(checkpoint)
+        incompatible[len(MAGIC)+16] ^= 1
+        incompatible[-4:] = zlib.crc32(incompatible[:-4]).to_bytes(4, 'big')
+        path.write_bytes(incompatible)
+        self.assertIn(b'incompatible WAL environment', self.open_failure().stderr)
+        external = self.directory/'external-checkpoint'
+        external.write_bytes(checkpoint)
+        path.unlink(); path.symlink_to(external)
+        self.assertIn(b'nonregular', self.open_failure().stderr)
+        path.unlink(); path.write_bytes(checkpoint)
         # Same source, different actual executable bytes must not reopen.
         other = self.directory/'other-controller'
         other.write_bytes(BINARY.read_bytes()+b'\x00'); other.chmod(0o700)
         result = self.run_cli('--storage', self.path, '--storage-mode', 'open', binary=other)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn(b'incompatible image environment', result.stderr)
+        self.assertIn(b'incompatible WAL environment', result.stderr)
         changed = self.directory/'changed'; changed.mkdir()
         (changed/'Configuration.bend').write_text((self.folder/'Configuration.bend').read_text()+'\n# changed binding\n')
         result = self.run_cli('--storage', self.path, '--storage-mode', 'open', folder=changed)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn(b'incompatible image environment', result.stderr)
-        self.assertEqual((self.path/'snapshot').read_bytes(), image)
-
-    def test_exact_descriptor_missing_modified_and_symlinked_are_rejected(self):
-        descriptor = self.path/'environment'
-        original = descriptor.read_bytes()
-        image = (self.path/'snapshot').read_bytes()
-        descriptor.unlink()
-        self.assertIn(b'STORAGE', self.open_failure().stderr)
-        self.assertFalse(descriptor.exists(), 'opening cannot silently create a missing binding')
-        changed = bytearray(original); changed[-1] ^= 1
-        descriptor.write_bytes(changed)
-        self.assertIn(b'exact source or controller bytes', self.open_failure().stderr)
-        self.assertEqual(descriptor.read_bytes(), changed, 'opening cannot repair a mismatched binding')
-        external = self.directory/'other-environment'; external.write_bytes(original)
-        descriptor.unlink(); descriptor.symlink_to(external)
-        self.assertIn(b'nonregular', self.open_failure().stderr)
-        descriptor.unlink(); descriptor.write_bytes(original)
-        server = self.server()
-        self.assertEqual(self.call(server)['status'], 'refusal', server.diagnostics())
-        server.finish()
-        self.assertEqual((self.path/'snapshot').read_bytes(), image)
+        self.assertIn(b'incompatible WAL environment', result.stderr)
+        self.assertEqual(path.read_bytes(), checkpoint)
 
     def test_create_open_policy_and_real_owner_contention(self):
         self.assertNotEqual(self.run_cli('--storage', self.path).returncode, 0)
@@ -198,24 +236,88 @@ class PersistenceTests(unittest.TestCase):
         result = self.open_failure()
         self.assertIn(b'lock', result.stderr.lower())
         server.finish()
-        # An orphan temp never wins over an acknowledged authoritative image.
-        (self.path/'.snapshot.tmp').write_bytes(b'not an image')
+        # An orphan checkpoint temp never participates in recovery.
+        (self.path/'.checkpoint.tmp').write_bytes(b'not a checkpoint')
         server = self.server()
         self.assertEqual(self.call(server)['status'], 'refusal')
         server.finish()
 
-    def test_real_filesystem_temp_failure_leaves_ram_and_image_unchanged(self):
+    def test_real_segment_creation_failure_is_fatal(self):
         server = self.server()
         self.assertEqual(self.call(server)['status'], 'refusal')
-        (self.path/'.snapshot.tmp').mkdir()
-        self.assertEqual(self.call(server, arguments='not-committed'), {'status': 'failure', 'value': None})
+        segment = self.path/'segment-1'
+        segment.mkdir()
+        request = frame(dict(code=self.code, proof=self.proof, credential='alice-token',
+                             arguments='not-committed'))
+        server.process.stdin.write(request)
+        server.process.stdin.flush()
+        self.assertNotEqual(server.process.wait(timeout=180), 0, server.diagnostics())
+        self.assertEqual(server.process.stdout.read(), b'')
+        self.assertIn('STORAGE_UNCERTAIN', server.diagnostics())
+        segment.rmdir()
         self.assertEqual(state_bytes(self.path), self.initial)
-        self.assertEqual(self.call(server, 'not-committed')['status'], 'authentication')
-        (self.path/'.snapshot.tmp').rmdir()
-        self.assertEqual(self.call(server, arguments='retry-after-repair'), {'status': 'success', 'value': 'retry-after-repair'})
-        server.finish()
+        recovered = self.server()
+        self.assertEqual(self.call(recovered, arguments='retry-after-repair'),
+                         {'status': 'success', 'value': 'retry-after-repair'})
+        recovered.finish()
 
-    def run_boundary(self, point, kill, expected_new, uncertain):
+    def test_many_commits_sigkill_then_checkpoint_and_replay_are_atomic(self):
+        from paper.bench.fixtures import bulk_population, package
+        app = package(self.directory/'point', 'read', rows=0)
+        self.path = self.directory/'point-data'
+        code, proof, universal = ((app/name).read_text()
+            for name in ('Client.bend', 'ClientProof.bend', 'PreparedProof.bend'))
+        populate, certificate = bulk_population(proof)
+        server = self.server(mode='create', folder=app)
+        receipt = server.prepared(0, populate, 'alice-token', proof=certificate)
+        self.assertEqual(receipt['status'], 'prepared', server.diagnostics())
+        handle = receipt['value']
+        pairs = [[f'key{i:03d}a', f'key{i:03d}b'] for i in range(281)]
+        for i, pair in enumerate(pairs[:-1]):
+            self.assertEqual(server.prepared(1, handle, 'alice-token', pair),
+                             {'status': 'success', 'value': 2*(i+1)}, server.diagnostics())
+        deadline = time.monotonic() + 10
+        while not (self.path/'checkpoint-256').is_file():
+            self.assertLess(time.monotonic(), deadline, 'background checkpoint did not run')
+            time.sleep(0.01)
+        server.process.stdin.write(prepared_frame(1, handle, 'alice-token', pairs[-1]))
+        server.process.stdin.flush()
+        os.kill(server.process.pid, signal.SIGKILL)
+        server.process.wait(timeout=10)
+        server.close()
+
+        reopened = self.server(folder=app)
+        receipt = reopened.prepared(0, code, 'alice-token', proof=universal)
+        self.assertEqual(receipt['status'], 'prepared', reopened.diagnostics())
+        self.assertTrue(any(lsn > 256 for lsn, _ in wal_records(self.path)))
+        handle = receipt['value']
+        for pair in pairs[:-1]:
+            for key in pair:
+                self.assertEqual(reopened.prepared(1, handle, 'alice-token', ['read', key]),
+                                 {'status': 'success', 'value': 0})
+        result = [reopened.prepared(1, handle, 'alice-token', ['read', key]) for key in pairs[-1]]
+        self.assertEqual(result[0], result[1], 'the unacknowledged transaction must be atomic')
+        self.assertIn(result[0], [{'status': 'success', 'value': 0}, {'status': 'refusal', 'value': None}])
+        reopened.finish()
+
+    def test_torn_tail_is_truncated_and_the_next_commit_replays(self):
+        server = self.server()
+        self.assertEqual(self.call(server, arguments='durable'), {'status': 'success', 'value': 'durable'})
+        server.finish()
+        segment = self.path/'segment-1'
+        entire_record = segment.read_bytes()
+        with segment.open('ab') as stream:
+            stream.write(entire_record[:-5])
+        reopened = self.server()
+        self.assertEqual(self.call(reopened, 'durable'), {'status': 'refusal', 'value': 'cancelled'})
+        self.assertEqual(segment.read_bytes(), entire_record)
+        self.assertEqual(self.call(reopened, 'durable', 'after-tail'), {'status': 'success', 'value': 'after-tail'})
+        reopened.finish()
+        final = self.server()
+        self.assertEqual(self.call(final, 'after-tail'), {'status': 'refusal', 'value': 'cancelled'})
+        final.finish()
+
+    def run_boundary(self, point, kill, expected_new):
         path = self.directory/point
         shutil.copytree(self.base, path); self.path = path
         env = dict(os.environ, JAYDB_STORAGE_FAULT=point)
@@ -251,18 +353,10 @@ class PersistenceTests(unittest.TestCase):
             finally:
                 listener.close(); socket_path.unlink(missing_ok=True)
             self.assertEqual(server.process.stdout.read(), b'')
-        elif uncertain:
+        else:
             self.assertNotEqual(server.process.wait(timeout=180), 0, server.diagnostics())
             self.assertEqual(server.process.stdout.read(), b'')
             self.assertIn('STORAGE_UNCERTAIN', server.diagnostics())
-        else:
-            header = server.read(8)
-            self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'failure', 'value': None})
-            # Safe failure allows the next frame; RAM authentication stays old.
-            header = server.read(8)
-            self.assertEqual(unframe(header+server.read(int.from_bytes(header, 'big'))), {'status': 'authentication', 'value': None})
-            self.assertEqual(self.call(server, 'new-token')['status'], 'authentication')
-            server.finish()
         recovered = self.server()
         credential = 'new-token' if expected_new else 'alice-token'
         self.assertEqual(self.call(recovered, credential), {'status': 'refusal', 'value': 'cancelled'}, recovered.diagnostics())
@@ -271,22 +365,17 @@ class PersistenceTests(unittest.TestCase):
         if not expected_new:
             self.assertEqual(state_bytes(self.path), self.initial)
 
-    def test_process_death_at_meaningful_commit_boundaries(self):
-        # SIGKILL confirms process recovery, not power-loss safety. The unit
-        # fault model additionally admits old/new rename outcomes before fsync.
-        for point, new in [('after_file_sync', False), ('after_replace', True),
-                           ('after_directory_sync', True), ('after_publish', True)]:
+    def test_process_death_at_wal_boundaries(self):
+        for point, new in [('wal_before_write', False), ('before_publish', True),
+                           ('after_publish', True)]:
             with self.subTest(point=point):
-                self.run_boundary(point, kill=True, expected_new=new, uncertain=True)
+                self.run_boundary(point, kill=True, expected_new=new)
 
-    def test_disk_errors_and_uncertain_failure_never_emit_false_rollback(self):
-        for point, new, uncertain in [('before_write', False, False),
-                                       ('after_file_sync', False, False),
-                                       ('before_replace', False, True),
-                                       ('after_replace', True, True),
-                                       ('after_directory_sync', True, True)]:
+    def test_wal_errors_stop_without_a_rollback_response(self):
+        # Before fdatasync, a complete record can still survive process exit.
+        for point, new in [('wal_before_write', False), ('wal_before_sync', True)]:
             with self.subTest(point=point):
-                self.run_boundary(point, kill=False, expected_new=new, uncertain=uncertain)
+                self.run_boundary(point, kill=False, expected_new=new)
 
 
 if __name__ == '__main__':

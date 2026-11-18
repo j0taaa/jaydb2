@@ -62,16 +62,17 @@ expose the database directly to a browser or add a network security policy.
 ## Existing database capabilities
 
 Requests are FIFO and serial by default. The host bounds queued work and applies
-pipe backpressure. Each call uses fresh native workers emitted by the official
-compiler; the host retains the last published state.
+pipe backpressure. The host owns an indexed state snapshot and answers data
+operations from checked native workers. Direct calls compile one-request
+workers and prepared handles reuse workers across calls.
 
 - **[Prepared programs](tools/service/PREPARED_PROGRAMS.md):** check and compile
   a universally certified program once, then execute its instance-local handle
   with fresh credentials and arguments. Restart loses handles.
-- **[Complete-image persistence](tools/service/SIMPLE_SERVICE.md):** opt-in
+- **[Write-ahead logging](tools/service/SIMPLE_SERVICE.md):** opt-in
   `--storage DIRECTORY --storage-mode create|open`. Open reads no seed and
   compares an immutable descriptor of the exact executable/environment bytes.
-  Development databases can be
+  It loads a checkpoint and replays later write sets. Development databases can be
   recreated after changes; cross-build compatibility and migrations are outside
   scope. Uncertain commit failures stop service rather than promise rollback.
 - **[Administrator timing](tools/service/SERVICE_TIMING.md):** opt-in

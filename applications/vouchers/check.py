@@ -166,7 +166,7 @@ def main():
                     check_call(db, ['issue', 'message-limit', 'z'*33000, False], 'limit')
             errors.seek(0)
             diagnostics = errors.read()
-            assert diagnostics.count(b'PRIMARY_CHECK') == negatives, diagnostics.decode('utf-8', 'replace')
+            assert diagnostics.count(b'jaydb2: PRIMARY_CHECK: ') == negatives, diagnostics.decode('utf-8', 'replace')
             if negatives:
                 assert b'- expected :' in diagnostics and b'- observed :' in diagnostics
                 assert diagnostics.count(b'Location: certify') >= 2, diagnostics.decode('utf-8', 'replace')

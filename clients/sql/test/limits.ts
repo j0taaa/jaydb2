@@ -1,7 +1,7 @@
 /** Real SQL size-limit and rollback checks. Caller owns the heavy-work lock. */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,10 +20,14 @@ function open(mode: 'create' | 'open') {
       ...mode === 'create' ? ['--seed', join(app, 'Seed.bend')] : [], '--threads', '1'] });
   frontend = new SqlClient(pipe, { credential: 'alice-token' });
 }
+function durableFiles() {
+  return readdirSync(storage).filter(name => /^(checkpoint|segment)-/.test(name)).sort()
+    .map(name => [name, readFileSync(join(storage, name))] as const);
+}
 async function limited(sql: string, params: unknown[]) {
-  const before = readFileSync(join(storage, 'snapshot'));
+  const before = durableFiles();
   await assert.rejects(frontend.query(sql, params), error => error instanceof SqlExecutionError && error.response.status === 'limit');
-  assert.deepEqual(readFileSync(join(storage, 'snapshot')), before, 'A failed statement must not change durable state');
+  assert.deepEqual(durableFiles(), before, 'A failed statement must not change durable state');
   checks++;
 }
 async function title(id: string, expected: string | undefined) {

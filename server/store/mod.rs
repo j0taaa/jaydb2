@@ -203,22 +203,52 @@ impl Snapshot {
     }
 
     pub fn save(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(self.size);
+        self.save_rows(true, None)
+    }
+
+    // The checked admission and control helpers inspect the root only for
+    // authentication. Supply its table layout and at most the matching user.
+    pub fn authentication_root(&self, credential: Option<&str>) -> Vec<u8> {
+        let user = credential
+            .and_then(|credential| self.credentials.get(credential))
+            .map(|key| &*self.collections[&None].rows[key]);
+        self.save_rows(false, user)
+    }
+
+    fn save_rows(&self, all: bool, user: Option<&Row>) -> Vec<u8> {
+        let mut out = if all {
+            Vec::with_capacity(self.size)
+        } else {
+            Vec::new()
+        };
         write_record_header(&mut out, 2);
         write_text(&mut out, "tables");
         write_list_header(&mut out, self.schema.tables().len());
-        for (name, table) in &self.collections {
-            if let Some(name) = name {
-                write_record_header(&mut out, 2);
-                write_text(&mut out, "name");
-                write_text(&mut out, name);
-                write_text(&mut out, "rows");
+        for (name, table) in self
+            .collections
+            .iter()
+            .filter_map(|(name, table)| Some((name.as_ref()?, table)))
+        {
+            write_record_header(&mut out, 2);
+            write_text(&mut out, "name");
+            write_text(&mut out, name);
+            write_text(&mut out, "rows");
+            if all {
                 write_rows(&mut out, &table.rows);
+            } else {
+                write_list_header(&mut out, 0);
             }
         }
         write_text(&mut out, "users");
-        write_rows(&mut out, &self.collections[&None].rows);
-        debug_assert_eq!(out.len(), self.size);
+        if all {
+            write_rows(&mut out, &self.collections[&None].rows);
+            debug_assert_eq!(out.len(), self.size);
+        } else {
+            write_list_header(&mut out, usize::from(user.is_some()));
+            if let Some(row) = user {
+                write_value(&mut out, &row.value).expect("stored rows are canonical");
+            }
+        }
         out
     }
 

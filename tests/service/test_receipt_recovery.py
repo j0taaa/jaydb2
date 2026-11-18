@@ -8,7 +8,6 @@ import os
 import resource
 from pathlib import Path
 import shutil
-import signal
 import socket
 import subprocess
 import tempfile
@@ -16,7 +15,7 @@ import unittest
 
 from applications.vouchers.check import prepare
 from tests.service.test_end_to_end import ROOT, Server
-from tests.service.test_persistence import state_bytes
+from tests.service.test_persistence import state_bytes, wal_records
 from tools.client import decode, encode, prepared_frame
 
 BINARY = Path(os.environ.get('JAYDB_IDEMPOTENCY_BINARY',
@@ -85,7 +84,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
                 path = str(Path(gate)/'socket')
                 with socket.socket(socket.AF_UNIX) as listener:
                     listener.bind(path); listener.listen(1); listener.settimeout(180)
-                    env = dict(os.environ, JAYDB_STORAGE_FAULT='after_directory_sync',
+                    env = dict(os.environ, JAYDB_STORAGE_FAULT='before_publish',
                                JAYDB_STORAGE_BARRIER=path)
                     pending = Server(app, binary=BINARY, threads=1, env=env, seed=False,
                         arguments=['--storage', str(storage), '--storage-mode', 'open'])
@@ -102,25 +101,22 @@ class ReceiptRecoveryTests(unittest.TestCase):
                     stream, _ = listener.accept()
                     with stream:
                         stream.settimeout(30)
-                        expected = b'after_directory_sync'; received = bytearray()
+                        expected = b'before_publish'; received = bytearray()
                         while len(received) < len(expected):
                             part = stream.recv(len(expected)-len(received))
                             self.assertTrue(part); received.extend(part)
                         self.assertEqual(received, expected)
                         committed = state_bytes(storage)
                         self.assertNotEqual(committed, before)
-                        # All request workers were cleaned up before durability.
+                        # Keep the prepared worker alive until the crash.
                         children = Path(f'/proc/{pending.process.pid}/task/{pending.process.pid}/children')
-                        self.assertEqual(children.read_text().strip(), '')
-                        os.kill(pending.process.pid, signal.SIGKILL)
+                        self.assertEqual(len(children.read_text().split()), 1)
+                        pending.process.kill()
                         pending.process.wait(timeout=10)
                     self.assertEqual(pending.process.stdout.read(), b'', 'no acknowledgement or later response may escape')
-            image = (storage/'snapshot').read_bytes()
-            # Hold the old inode live so an accidental rewrite cannot hide
-            # behind inode-number reuse. Recovery and receipt hits reuse it.
-            durable_file = (storage/'snapshot').open('rb')
-            self.addCleanup(durable_file.close)
-            durable_inode = os.fstat(durable_file.fileno()).st_ino
+            commits = list(wal_records(storage))
+            self.assertEqual(len(commits), 1)
+            self.assertEqual(len(commits[0][1]), 2)
             tables = {table['name']: table['rows'] for table in decode(committed)['tables']}
             self.assertEqual({r['id'] for r in tables['alice']}, {'permission','r:lost','v:lost'})
             self.assertEqual({r['id'] for r in tables['bob']}, {'permission'})
@@ -137,7 +133,7 @@ class ReceiptRecoveryTests(unittest.TestCase):
             self.addCleanup(retry.close)
             self.assertEqual(retry.call(code, proof, 'alice-token', args),
                              dict(status='success', value='v:lost'), retry.diagnostics())
-            self.assertEqual((storage/'snapshot').read_bytes(), image)
+            self.assertEqual(list(wal_records(storage)), commits+[(2, [])])
             self.assertEqual(retry.call(code, proof, 'alice-token', conflict),
                              dict(status='refusal', value='request conflict'))
             self.assertEqual(retry.call(code, proof, 'alice-token', ['inspect','lost']),
@@ -145,8 +141,8 @@ class ReceiptRecoveryTests(unittest.TestCase):
             self.assertEqual(retry.call(code, proof, 'alice-token', ['inspect','later']),
                              dict(status='success', value=None))
             self.assertEqual(state_bytes(storage), committed)
-            self.assertEqual((storage/'snapshot').stat().st_ino, durable_inode,
-                             'receipt hits and reads must reuse the durable image')
+            self.assertEqual(list(wal_records(storage)), commits+[(2, []), (3, []), (4, [])],
+                             'receipt hits and reads must not log any row writes')
             retry.finish()
 
 

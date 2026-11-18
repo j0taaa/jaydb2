@@ -64,7 +64,7 @@ def main():
                 print(errors.read().decode("utf-8", "replace"), file=sys.stderr)
         errors.seek(0)
         diagnostics = errors.read()
-        assert diagnostics.count(b'PRIMARY_CHECK') == 2, diagnostics.decode('utf-8', 'replace')
+        assert diagnostics.count(b'jaydb2: PRIMARY_CHECK: ') == 2, diagnostics.decode('utf-8', 'replace')
     with tempfile.TemporaryDirectory(prefix='jaydb-tasks-seed-') as tmp:
         directory = Path(tmp)
         prepare(directory, root)

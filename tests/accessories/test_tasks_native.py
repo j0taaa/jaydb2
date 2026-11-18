@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from applications.tasks.app import ROOT, database
+from tests.service.test_persistence import wal_records
 
 
 class PersistentTaskWorkflowTests(unittest.TestCase):
@@ -46,13 +47,13 @@ class PersistentTaskWorkflowTests(unittest.TestCase):
                 'completed':False,'id':'review','owner':'bob','title':'Bob separate task'}})
             self.assertEqual(self.ts(workspace, 'open', ['list'], credential='invalid-token', status=2),
                              {'status':'authentication','value':None})
-            image = (workspace/'db/snapshot').read_bytes()
+            commits = list(wal_records(workspace/'db'))
             refusal = self.ts(workspace, 'open', ['cancel','review','No publication'], status=2)
             self.assertEqual(refusal, {'status':'refusal','value':'cancelled'})
-            self.assertEqual((workspace/'db/snapshot').read_bytes(), image)
+            self.assertEqual(list(wal_records(workspace/'db')), commits)
             rejected = self.ts(workspace, 'create', ['list'], status=1)
             self.assertIn('EEXIST', rejected.stderr)
-            self.assertEqual((workspace/'db/snapshot').read_bytes(), image)
+            self.assertEqual(list(wal_records(workspace/'db')), commits)
             self.assertEqual((workspace/'app/Configuration.bend').read_bytes(), configuration)
             self.assertFalse((workspace/'app/Seed.bend').exists(), 'open must not copy or read the seed')
 
