@@ -130,13 +130,15 @@ export function preflight({ submissionDir, entry, dependencies, openTargets, can
     }
     let kernelPlan = null;
     if (kernel !== undefined) {
+      const looping = Array.isArray(kernel?.primitives) && kernel.primitives.some(k => k === 'loop' || k === 'serve');
       if (!kernel || Object.keys(kernel).some(k => !['module', 'primitives', 'foreign', 'loopStep'].includes(k))
           || records.get(kernel.module)?.role !== 'kernel' || kernel.module === entry
           || !Array.isArray(kernel.primitives) || !kernel.primitives.length
           || new Set(kernel.primitives).size !== kernel.primitives.length
-          || kernel.primitives.some(k => !['read', 'write', 'loop'].includes(k))
-          || (kernel.primitives.includes('loop') && (typeof kernel.loopStep !== 'string' || !kernel.loopStep.length))
-          || (!kernel.primitives.includes('loop') && kernel.loopStep !== undefined)
+          || kernel.primitives.some(k => !['read', 'write', 'loop', 'serve'].includes(k))
+          || (kernel.primitives.includes('serve') && kernel.primitives.length !== 1)
+          || (looping && (typeof kernel.loopStep !== 'string' || !kernel.loopStep.length))
+          || (!looping && kernel.loopStep !== undefined)
           || !kernel.foreign || Object.keys(kernel.foreign).some(k => !['path', 'sha256'].includes(k))
           || typeof kernel.foreign.path !== 'string' || !/^[a-f0-9]{64}$/.test(kernel.foreign.sha256)) {
         fail('KERNEL_ABI', 'Kernel boundary requires a host-pinned module, ABI primitives and C source');

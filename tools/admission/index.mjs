@@ -370,7 +370,8 @@ async function admit(options, kernelOnly, build) {
     const kernel = plan.kernel && Object.freeze({ module: plan.kernel.module,
       primitives: Object.freeze([...state.primitives]), foreign: Object.freeze({ path: plan.kernel.foreign.path, sha256: plan.kernel.foreign.sha256 }),
       loopStep: plan.kernel.loopStep,
-      contract: plan.kernel.primitives.includes('loop') ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
+      contract: plan.kernel.primitives.includes('serve') ? 'jaydb-native-io-v3' :
+        plan.kernel.primitives.includes('loop') ? 'jaydb-native-io-v2' : 'jaydb-native-io-v1', boundary: 'trusted-runtime-effects' });
     const report = Object.freeze({ version: tc.info.version, primary: true, bendtt: true,
       purpose: plan.purpose, certificateMode: plan.certificateMode, canonicalRefs: plan.canonicalRefs, kernel,
       initialization: plan.purpose === 'initialize' ? Object.freeze({ ...plan.initialization }) : null,

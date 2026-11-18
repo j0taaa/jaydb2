@@ -17,6 +17,8 @@ const fail = (code, message) => { throw Object.assign(new Error(message), { code
 const literal = text => '"' + [...text].map(c => c === '"' ? '\\"' : c === '\\' ? '\\\\'
   : c.codePointAt(0) < 32 ? `\\u{${c.codePointAt(0).toString(16).padStart(2, '0')}}` : c).join('') + '"';
 
+const executionPurposes = ['execute', 'prepare', 'live-execute', 'live-prepare'];
+
 const COMMON = `import Base
 import ./Native.bend as Native
 import ./Data.bend as D
@@ -48,9 +50,10 @@ def main() -> IO(Unit):
     bytes : List<&2, U32> <- Native.read()
     Native.write(M.FUNCTION(E.PARSER(bytes, S.schema(C.config()), S.limits(C.config()))))
 `;
-const EXECUTE = COMMON + `import ./Input.bend as Input
+const EXECUTION_IMPORTS = COMMON + `import ./Input.bend as Input
 import ./Execution.bend as E
 import ./Worker.bend as Worker
+import ./Remote.bend as Remote
 import ./Gate.bend as Gate
 import ./Protocol.bend as P
 import ./Instance.bend as Instance
@@ -66,7 +69,8 @@ import ./WorkerProofOrders.bend as Orders
 import ./WorkerProofFoundations.bend as Foundations
 import ./WorkerProofOracleEvidence.bend as Evidence
 
-# The function capture owns the provisional state and moves once to the step.
+`;
+const ITERATION = `# The function capture owns the provisional state and moves once to the step.
 def convert(i: E.Iteration) -> Native.Iteration<(Unit -> E.StateExecution)>:
   match i:
     case E.Continue{s}:
@@ -107,7 +111,8 @@ law step_preserves_exact_execution_advance:
 def step_preserves_exact_execution_advance(state):
   conversion_preserves_exact_iteration(E.advance(state(Unit{}), C.config()))
 
-# c is always the closed C.config() at the only call site. Comparing its
+`;
+const ORACLE = `# c is always the closed C.config() at the only call site. Comparing its
 # environment also fails closed on a mismatched private binding (T1).
 def verdict(accepted: Bool) -> Gate.Verdict:
   match accepted:
@@ -129,7 +134,8 @@ def admit(c: S.Configuration, r: P.Request, ctx: D.Context) -> Gate.Verdict:
 
 ORACLE_PROOF
 
-def launch(iteration: E.Iteration) -> IO(Unit):
+`;
+const EXECUTE = `def launch(iteration: E.Iteration) -> IO(Unit):
   match iteration:
     case E.Continue{state}: Native.loop((Unit -> E.StateExecution), step, u => state)
     case E.Prepare{state}: Native.loop((Unit -> E.StateExecution), step, u => state)
@@ -144,6 +150,21 @@ def main() -> IO(Unit):
     bytes : List<&2, U32> <- Native.read()
     launch(entry(bytes))
 
+`;
+
+const liveEntry = single => `def convert(i: Remote.Iteration) -> Native.Exchange<(Unit -> Remote.Pending)>:
+  match i:
+    case Remote.Ask{bytes, pending}: Native.AskFrame{bytes, u => pending}
+    case Remote.Final{bytes}: Native.FinalFrame{bytes}
+    case Remote.Inconsistent{}: Native.InvalidFrame{}
+
+def step(incoming: Native.Incoming<(Unit -> Remote.Pending)>) -> Native.Exchange<(Unit -> Remote.Pending)>:
+  match incoming:
+    case Native.RequestFrame{bytes}: convert(WORKER_ENTRY)
+    case Native.ReplyFrame{pending, bytes}: convert(Remote.reply(C.config(), pending(Unit{}), bytes))
+
+def main() -> IO(Unit):
+  Native.serve((Unit -> Remote.Pending), step, ${single ? 'True{}' : 'False{}'})
 `;
 
 function oracleProof(universal) {
@@ -349,6 +370,9 @@ function reopen(workdir) {
 function stage(environment, directory, purpose, metadata) {
   fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
   const available = new Map(environment.sources);
+  const executing = executionPurposes.includes(purpose);
+  const prepared = purpose === 'prepare' || purpose === 'live-prepare';
+  const live = purpose === 'live-prepare' || purpose === 'live-execute';
   let main;
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
   else if (purpose === 'recover') main = RECOVER;
@@ -367,9 +391,9 @@ def main() -> IO(Unit):
     bytes : List<&2, U32> <- Native.read()
     Native.write(ControlBridge.packet(C.config(), bytes))
 `;
-  else if (['execute', 'prepare'].includes(purpose)) {
+  else if (executing) {
     for (const name of ['Client.bend', 'ClientProof.bend', 'Instance.bend', 'Bindings.bend']) available.set(name, read(path.join(metadata, name)));
-    if (purpose === 'prepare') {
+    if (prepared) {
       // Match the generated declaration, whose text may also occur inside code().
       const concrete = '\nlaw certificate:\n  R.Certifies(I.config(), code(), Client.program(), I.context(), I.arguments())\n';
       const links = utf8(available.get('Bindings.bend'));
@@ -379,21 +403,27 @@ def main() -> IO(Unit):
     }
     available.set('Bindings.bend', Buffer.from(utf8(available.get('Bindings.bend')) +
       '\ndef proof_source() -> String:\n  ' + literal(utf8(available.get('ClientProof.bend'))) + '\n'));
-    main = EXECUTE.replace('INSTANCE_MATCH', purpose === 'prepare' ? 'True{}' :
+    const worker = live ? 'Remote' : 'Worker';
+    const oracle = ORACLE.replace('INSTANCE_MATCH', prepared ? 'True{}' :
       'D.context_equal(ctx, Instance.context()) && Equality.arguments_equal(Gate.arguments(r), Instance.arguments())')
-      .replace('ORACLE_PROOF', oracleProof(purpose === 'prepare'))
-      .replace('WORKER_ENTRY', purpose === 'prepare'
-        ? 'Worker.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)'
-        : 'Worker.packet(C.config(), bytes, admit)');
+      .replace('ORACLE_PROOF', oracleProof(prepared));
+    main = EXECUTION_IMPORTS + (live ? '' : ITERATION) + oracle + (live ? liveEntry(!prepared) : EXECUTE)
+      .replace('WORKER_ENTRY', prepared
+        ? `${worker}.registered_packet(C.config(), Transport.separate(bytes), Bindings.code(), Bindings.proof_source(), admit)`
+        : `${worker}.packet(C.config(), bytes, admit)`);
   } else fail('DEPENDENCY', 'Invalid purpose');
-  const executing = ['execute', 'prepare'].includes(purpose);
   available.set('Main.bend', Buffer.from(main));
   const entries = executing ? ['Main.bend', 'RequestFacts.bend'] : ['Main.bend'];
   const selected = sourceClosure(available, entries, 'Unadmitted dependency: ');
   const manifest = { submissionDir: path.resolve(directory), entry: 'Main.bend', dependencies: [],
-    nativeOptimization: purpose === 'execute' ? '-O0' : '-O2' };
+    nativeOptimization: executing && !prepared ? '-O0' : '-O2' };
   for (const [name, original] of selected) {
-    const data = name === 'Native.bend' && !executing ? original.subarray(0, original.indexOf('\ntype Iteration')) : original;
+    let data = original;
+    if (name === 'Native.bend') {
+      const exchange = original.indexOf('\ntype Incoming');
+      if (live) data = Buffer.concat([Buffer.from('import Base\n'), original.subarray(exchange)]);
+      else data = original.subarray(0, executing ? (exchange < 0 ? undefined : exchange) : original.indexOf('\ntype Iteration'));
+    }
     write(path.join(directory, name), data);
     let role = 'library', exports = [];
     if (name === 'Native.bend') role = 'kernel';
@@ -408,12 +438,14 @@ def main() -> IO(Unit):
     manifest.dependencies.push({ path: name, role, sha256: digest(data), ...(role === 'host' ? { exports } : {}) });
   }
   const marker = environment.foreign.indexOf('// JayDB iteration effect');
-  const foreign = executing ? environment.foreign : environment.foreign.subarray(0, marker < 0 ? undefined : marker);
+  const framed = environment.foreign.indexOf('// JayDB framed execution effect');
+  const foreign = live ? environment.foreign.subarray(framed) :
+    environment.foreign.subarray(0, executing ? (framed < 0 ? undefined : framed) : (marker < 0 ? undefined : marker));
   write(path.join(directory, 'effects.c'), foreign);
-  manifest.kernel = { module: 'Native.bend', primitives: executing ? ['read', 'write', 'loop'] : ['read', 'write'],
+  manifest.kernel = { module: 'Native.bend', primitives: live ? ['serve'] : executing ? ['read', 'write', 'loop'] : ['read', 'write'],
     foreign: { path: 'effects.c', sha256: digest(foreign) } };
   if (executing) {
-    manifest.certificateMode = purpose === 'prepare' ? 'universal' : 'concrete';
+    manifest.certificateMode = prepared ? 'universal' : 'concrete';
     manifest.kernel.loopStep = 'step';
     manifest.openTargets = { 'Bindings:certificate': 'ClientProof.bend', 'Bindings:terminates': 'ClientProof.bend' };
   } else manifest.purpose = purpose === 'initialize' ? 'initialize' : 'preprocess';
@@ -446,7 +478,7 @@ function compile(environment, directory, purpose, sourceDir, kernelPath, metadat
   if (timing) try { process.stderr.write('JAYDB_BENCH ' + JSON.stringify({phase: 'staging', ns: String(process.hrtime.bigint() - started)}) + '\n'); } catch {}
   const source = path.join(directory, 'checked.c');
   try { command(process.execPath, ['--stack_size=65536', path.join(runtimeRoot, 'tools/service/compile.mjs'), path.join(directory, 'manifest.json'), source, sourceDir, kernelPath,
-    ...(['initialize', 'execute', 'prepare'].includes(purpose) ? [path.join(directory, 'check-manifest.json')] : []),
+    ...((purpose === 'initialize' || executionPurposes.includes(purpose)) ? [path.join(directory, 'check-manifest.json')] : []),
     ...(gpuMiB ? [String(gpuMiB)] : [])]); }
   catch (e) {
     const errorPath = source + '.error.json';
@@ -503,11 +535,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let result;
     if (operation === 'initialize' && args.length === 5) result = initialize(...args);
     else if (operation === 'recover' && args.length === 4) result = recover(...args);
-    else if (['execute', 'prepare'].includes(operation) && [5, 6].includes(args.length)) {
+    else if (executionPurposes.includes(operation) && [5, 6].includes(args.length)) {
       if (args.length === 6 && !/^[1-9][0-9]{1,3}$/.test(args[5])) fail('USAGE', 'GPU MiB must be 64..4096');
       result = execute(...args.slice(0, 5), operation, args.length === 6 ? Number(args[5]) : 0);
     }
-    else fail('USAGE', 'stage.mjs initialize|execute|prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
+    else fail('USAGE', 'stage.mjs initialize|execute|prepare|live-execute|live-prepare WORKDIR CONFIG|REQUEST SEED|METADATA BEND_SOURCE BENDTT [GPU_MIB]; recover WORKDIR CONFIG BEND_SOURCE BENDTT');
     process.stdout.write(JSON.stringify(result) + '\n');
   } catch (error) {
     process.stderr.write(JSON.stringify({ code: error.code ?? 'STAGING', message: error.message }) + '\n');

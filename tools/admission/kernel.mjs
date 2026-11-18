@@ -18,6 +18,18 @@ type Iteration<-A: Type> is Type:
   FinishOutput{bytes: List<&2, U32>}
   Inconsistent{}
 
+type Incoming<-A: Type> is Type:
+  RequestFrame{bytes: List<&2, U32>}
+  ReplyFrame{pending: A, bytes: List<&2, U32>}
+
+type Exchange<-A: Type> is Type:
+  AskFrame{bytes: List<&2, U32>, pending: A}
+  FinalFrame{bytes: List<&2, U32>}
+  InvalidFrame{}
+
+def serve(-A: Type, step: Incoming<A> -> Exchange<A>, single: Bool) -> IO(Unit):
+  import "./effects.c"
+
 def read() -> IO(List<&2, U32>):
   import "./effects.c"
 
@@ -45,12 +57,15 @@ export function prepareKernel(B, state) {
     }
     state.primitives.add(k);
   }
-  if (primitives.includes('loop')) {
-    const k = ns + ':Iteration', t = book.tlds[k], want = expected.tlds[k];
-    if (state.owners.get(k)?.path !== module || t?.$ !== 'ADT' || t.b || t.n !== want.n
-        || shape(B, t.T) !== shape(B, want.T) || t.c.length !== want.c.length
-        || t.c.some((c, i) => c.k !== want.c[i].k || c.n !== want.c[i].n || shape(B, c.T) !== shape(B, want.c[i].T))) {
-      fail(`Invalid ABI iteration type: ${k}`);
+  if (primitives.includes('loop') || primitives.includes('serve')) {
+    const abiTypes = primitives.includes('serve') ? ['Incoming', 'Exchange'] : ['Iteration'];
+    for (const name of abiTypes) {
+      const k = ns + ':' + name, t = book.tlds[k], want = expected.tlds[k];
+      if (state.owners.get(k)?.path !== module || t?.$ !== 'ADT' || t.b || t.n !== want.n
+          || shape(B, t.T) !== shape(B, want.T) || t.c.length !== want.c.length
+          || t.c.some((c, i) => c.k !== want.c[i].k || c.n !== want.c[i].n || shape(B, c.T) !== shape(B, want.c[i].T))) {
+        fail(`Invalid ABI iteration type: ${k}`);
+      }
     }
     const step = book.tlds[plan.kernel.loopStep], owner = state.owners.get(plan.kernel.loopStep);
     if (step?.$ !== 'Def' || step.n !== 1 || step.x !== 0 || step.u || step.i !== undefined || step.v === null
@@ -70,19 +85,23 @@ export function prepareKernel(B, state) {
 
 export function auditLoopCalls(B, state) {
   if (!state.plan.kernel) return;
-  const loop = state.plan.kernel.ns + ':loop', step = state.plan.kernel.loopStep;
+  const { ns, primitives, loopStep: step } = state.plan.kernel;
+  const live = primitives.includes('serve');
+  const effect = live ? 'serve' : 'loop';
+  const loop = ns + ':' + effect;
   function visit(t) {
     if (!t || typeof t !== 'object') return;
     if (t.$ === 'App') {
       let head = t, args = [];
       while (head.$ === 'App') { args.unshift(head.x); head = head.f; }
       if (head.$ === 'Ref' && head.k === loop) {
-        if (args.length !== 3 || args[1].$ !== 'Ref' || args[1].k !== step) fail(`loop requires the closed host-pinned step: ${step}`);
+        if (args.length !== 3 || args[1].$ !== 'Ref' || args[1].k !== step)
+          fail(`${effect} requires the closed host-pinned step: ${step}`);
         for (const a of args) visit(a);
         return;
       }
     }
-    if (t.$ === 'Ref' && t.k === loop) fail('loop cannot be used as an alias or first-class value');
+    if (t.$ === 'Ref' && t.k === loop) fail(`${effect} cannot be used as an alias or first-class value`);
     for (const [k, v] of Object.entries(t)) if (k !== 's' && v && typeof v === 'object') visit(v);
   }
   for (const [k, t] of Object.entries(state.book.tlds)) {

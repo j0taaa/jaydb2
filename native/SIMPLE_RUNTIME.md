@@ -125,3 +125,22 @@ latency. Initialization, authentication and reusable prepared workers retain
 `-O2`; prepared execution amortizes that optimization cost. Both paths compile
 the literal official C with the same runtime and checker modes. Programs with
 substantial computation should use prepared execution to retain optimized C.
+
+## Live worker ABI
+
+Stage `live-prepare` for a persistent prepared worker or `live-execute` for
+a concrete worker that exits after one request. Both Books use the usual
+checked admission oracle and pass its closed entry to `Native.serve`.
+The pending authentication or data operation moves through the native loop
+in a one-use function capture. This keeps the step structurally nonrecursive
+in Bend 2.0.39 while allowing arbitrarily many host exchanges.
+
+Every live frame is a big-endian u64 payload length followed by the payload.
+A prepared request contains a length-framed prepared registry followed by
+the original request body. A direct request contains the original body.
+Tag 2 precedes a worker operation record, whose answer is an untagged record
+in its own frame. The outer records use the field order specified in the
+live-engine ABI. Each field value uses the canonical encoding. Tag 1
+(Success) or 0 (Keep) precedes the usual length-framed public response. The
+worker flushes each frame, exits cleanly on EOF between requests, and fails
+on a truncated frame or inconsistent answer.

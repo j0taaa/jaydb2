@@ -80,3 +80,89 @@ static void __attribute__((constructor)) jaydb_loop_use(void) {
   io_eff(CID(loop), jaydb_loop_run);
 }
 #endif
+
+// JayDB framed execution effect.
+#ifdef CID(serve)
+static bool jaydb_read_frame(Env e, Term* bytes, bool request) {
+  unsigned char header[8];
+  size_t got = fread(header, 1, sizeof(header), stdin);
+  if (got == 0 && request && feof(stdin) && !ferror(stdin)) return false;
+  if (got != sizeof(header)) err_fail("JayDB truncated live frame header");
+
+  uint64_t remaining = 0;
+  for (size_t i = 0; i < sizeof(header); ++i)
+    remaining = (remaining << 8) | header[i];
+  if (remaining > SIZE_MAX) err_fail("JayDB live frame is not addressable");
+
+  // Grow only as bytes arrive. An incomplete frame cannot force allocation
+  // of the size declared in its header.
+  char chunk[65536];
+  char* data = NULL;
+  size_t length = 0, capacity = 0, total = (size_t)remaining;
+  while (remaining) {
+    size_t part = remaining < sizeof(chunk) ? (size_t)remaining : sizeof(chunk);
+    if (fread(chunk, 1, part, stdin) != part)
+      err_fail("JayDB truncated live frame body");
+    if (part > capacity - length) {
+      capacity = capacity <= total / 2 ? capacity * 2 : total;
+      if (capacity < length + part) capacity = length + part;
+      data = io_mem(realloc(data, capacity));
+    }
+    memcpy(data + length, chunk, part);
+    length += part;
+    remaining -= part;
+  }
+  *bytes = io_list(e, data, length);
+  free(data);
+  return true;
+}
+
+static void jaydb_write_frame(Env e, Term bytes) {
+  u64 length;
+  char* data = io_cbuf(e, bytes, &length, CID(Con));
+  if (!data) err_fail("JayDB live frame contains a non-octet");
+  char header[8];
+  for (size_t i = 0; i < sizeof(header); ++i)
+    header[i] = (char)(length >> (8 * (sizeof(header) - 1 - i)));
+  io_out(stdout, header, sizeof(header));
+  io_out(stdout, data, length);
+  io_sync();
+  free(data);
+}
+
+static Term jaydb_apply(Env e, Term function, Term argument) {
+  u64 at = task_node(e, FID(Clo~apply), TERM_HOLE, 0, 0);
+  e.mem[at] = function;
+  e.mem[at + 1] = argument;
+  return corpus_eval(e.mem, term_tsk(FID(Clo~apply), at));
+}
+
+static Term jaydb_serve(Env e, Term* fields, IoWork* work) {
+  (void)work;
+  Term entry = fields[0], bytes;
+  bool single = term_aux(fields[1]) == CID(True);
+  if (term_tag(entry) != TAG_CLO || term_loc(entry) != 0 || term_rfc(entry)
+      || fid_arity((u32)term_aux(entry)) != 1)
+    err_fail("JayDB live entry must be closed");
+  while (jaydb_read_frame(e, &bytes, true)) {
+    Term result = jaydb_apply(e, entry, io_box(e, CID(RequestFrame), bytes));
+    while (term_tag(result) == TAG_CTR && term_aux(result) == CID(AskFrame)) {
+      Term ask[2], reply;
+      spare_free(e, cls_fit(2), ctr_take(e, result, 2, ask));
+      jaydb_write_frame(e, ask[0]);
+      jaydb_read_frame(e, &reply, false);
+      result = jaydb_apply(e, entry, io_node(e, CID(ReplyFrame), ask[1], reply));
+    }
+    if (term_tag(result) != TAG_CTR || term_aux(result) != CID(FinalFrame))
+      err_fail("JayDB live iteration is inconsistent");
+    spare_free(e, cls_fit(1), ctr_take(e, result, 1, &bytes));
+    jaydb_write_frame(e, bytes);
+    if (single) break;
+  }
+  return term_pak(CID(Unit), 0);
+}
+
+static void __attribute__((constructor)) jaydb_serve_use(void) {
+  io_eff(CID(serve), jaydb_serve);
+}
+#endif
