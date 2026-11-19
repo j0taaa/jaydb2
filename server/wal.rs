@@ -139,6 +139,8 @@ impl Log {
             }),
         };
         log.write_checkpoint(0, descriptor, initial_state)?;
+        #[cfg(feature = "storage-fault-injection")]
+        power_loss::start(path)?;
         Ok(log)
     }
 
@@ -245,6 +247,8 @@ impl Log {
                 recovered.lsn
             )));
         }
+        #[cfg(feature = "storage-fault-injection")]
+        let expected_descriptor: &[u8] = &power_loss::bind(expected_descriptor)?;
         if recovered.descriptor != expected_descriptor {
             return Err(input_error("incompatible WAL environment descriptor"));
         }
@@ -274,6 +278,8 @@ impl Log {
         }
         directory.sync_all()?;
         writer.lsn = recovered.lsn;
+        #[cfg(feature = "storage-fault-injection")]
+        power_loss::start(path)?;
         Ok((
             Self {
                 path: path.to_owned(),
@@ -349,7 +355,11 @@ impl Log {
         segment.file.write_all_at(bytes, segment.bytes)?;
         fault_point("wal_before_sync")?;
         segment.file.sync_data()?;
+        #[cfg(feature = "storage-fault-injection")]
+        power_loss::synced(&segment.file, Some((segment.bytes, bytes)), "wal")?;
         if created {
+            #[cfg(feature = "storage-fault-injection")]
+            let _synced = power_loss::DirectorySync::begin(&self.path, "segment-name")?;
             // fdatasync covers the bytes. A new segment also needs its name synced.
             self.directory.sync_all()?;
         }
@@ -399,12 +409,16 @@ impl Log {
                 remove_if_present(&checkpoint_path(&self.path, old))?;
             }
         }
+        #[cfg(feature = "storage-fault-injection")]
+        let _synced = power_loss::DirectorySync::begin(&self.path, "reclaim")?;
         self.directory.sync_all()?;
         self.writer.lock().unwrap().closed.drain(..covered.len());
         Ok(())
     }
 
     fn write_checkpoint(&self, lsn: u64, descriptor: &[u8], state: &[u8]) -> io::Result<()> {
+        #[cfg(feature = "storage-fault-injection")]
+        let descriptor: &[u8] = &power_loss::bind(descriptor)?;
         let temporary = self.path.join(CHECKPOINT_TEMP);
         remove_if_present(&temporary)?;
         let mut file = new_file(&temporary)?;
@@ -421,7 +435,11 @@ impl Log {
         }
         file.write_all(&checksum.finalize().to_be_bytes())?;
         file.sync_all()?;
+        #[cfg(feature = "storage-fault-injection")]
+        power_loss::synced(&file, None, "checkpoint")?;
         fs::rename(temporary, checkpoint_path(&self.path, lsn))?;
+        #[cfg(feature = "storage-fault-injection")]
+        let _synced = power_loss::DirectorySync::begin(&self.path, "checkpoint-name")?;
         self.directory.sync_all()
     }
 }
@@ -533,6 +551,8 @@ fn encode_batch(records: &[Record]) -> io::Result<Vec<u8>> {
             Record::Epoch {
                 descriptor, state, ..
             } => {
+                #[cfg(feature = "storage-fault-injection")]
+                let descriptor: &[u8] = &power_loss::bind(descriptor)?;
                 put_blob(&mut bytes, descriptor)?;
                 put_blob(&mut bytes, state)?;
             }
@@ -684,6 +704,360 @@ fn read_optional<'a>(bytes: &mut &'a [u8]) -> Option<Option<&'a [u8]>> {
         0 => Some(None),
         1 => Some(Some(read_blob(bytes)?)),
         _ => None,
+    }
+}
+
+#[cfg(feature = "storage-fault-injection")]
+mod power_loss {
+    //! Simulated power loss for tests/live/test_crash_power_loss.py. The
+    //! tracker keeps what the last successful sync of each file and of the
+    //! storage directory made durable. Each hook runs after its sync returns
+    //! and before the caller relies on it, and first offers a cut: the chosen
+    //! hook copies the directory with every unsynced 4 KiB block kept,
+    //! reverted or torn and every unsynced name change applied or not, then
+    //! exits. Other threads wait at their next hook until the process exits.
+    use super::{Record, decode_batch, input_error, read_u64, take};
+    use serde_json::{Value, json};
+    use std::collections::{BTreeMap, BTreeSet, HashMap};
+    use std::fs::{self, File};
+    use std::io;
+    use std::os::fd::AsRawFd;
+    use std::os::unix::fs::MetadataExt;
+    use std::path::{Path, PathBuf};
+    use std::sync::Mutex;
+    use std::time::UNIX_EPOCH;
+
+    const BLOCK: usize = 4096;
+    const SECTOR: usize = 512;
+
+    /// Inode and birth time, so a reused inode is a different file.
+    type Id = (u64, u128);
+    type Names = BTreeMap<String, Id>;
+
+    struct Tracker {
+        path: PathBuf,
+        kind: String,
+        remaining: u64,
+        output: PathBuf,
+        seed: u64,
+        trials: u64,
+        names: Names,
+        names_ticket: u64,
+        tickets: u64,
+        /// Durable length and contents; bytes past the vector are zeros.
+        images: HashMap<Id, (usize, Vec<u8>)>,
+        /// Synced WAL batches by first LSN, for the test oracle.
+        batches: BTreeMap<u64, Value>,
+    }
+
+    static TRACKER: Mutex<Option<Tracker>> = Mutex::new(None);
+
+    pub(super) fn start(path: &Path) -> io::Result<()> {
+        let Some(spec) = std::env::var_os("JAYDB_POWER_LOSS_CUT") else {
+            return Ok(());
+        };
+        let (kind, remaining) = spec
+            .to_str()
+            .and_then(|spec| spec.split_once(':'))
+            .and_then(|(kind, n)| Some((kind.to_owned(), n.parse().ok().filter(|&n| n > 0)?)))
+            .ok_or_else(|| input_error("JAYDB_POWER_LOSS_CUT must be kind:occurrence"))?;
+        let number = |name| {
+            std::env::var(name).map_or(Ok(0), |value| {
+                value
+                    .parse()
+                    .map_err(|_| input_error(format!("invalid {name}")))
+            })
+        };
+        // Everything the host found or created is durable when it starts.
+        let names = listing(path)?;
+        let mut images = HashMap::new();
+        for (name, id) in &names {
+            images.insert(*id, trimmed(fs::read(path.join(name))?));
+        }
+        *TRACKER.lock().unwrap() = Some(Tracker {
+            path: path.to_owned(),
+            kind,
+            remaining,
+            output: std::env::var_os("JAYDB_POWER_LOSS_DIR")
+                .ok_or_else(|| input_error("JAYDB_POWER_LOSS_DIR is required"))?
+                .into(),
+            seed: number("JAYDB_POWER_LOSS_SEED")?,
+            trials: number("JAYDB_POWER_LOSS_TRIALS")?.max(1),
+            names,
+            names_ticket: 0,
+            tickets: 0,
+            images,
+            batches: BTreeMap::new(),
+        });
+        Ok(())
+    }
+
+    /// After a file sync. `write` is all data written since the previous
+    /// sync, as for WAL frames; without it the file is read back.
+    pub(super) fn synced(file: &File, write: Option<(u64, &[u8])>, kind: &str) -> io::Result<()> {
+        let mut guard = TRACKER.lock().unwrap();
+        let Some(tracker) = guard.as_mut() else {
+            return Ok(());
+        };
+        let batch = write.map(|(_, bytes)| summary(bytes));
+        // A WAL batch with an epoch record is offered as its own kind.
+        let epoch = batch.as_ref().is_some_and(|batch| batch.2);
+        tracker.offer(if epoch { "epoch" } else { kind })?;
+        let metadata = file.metadata()?;
+        let image = tracker.images.entry(id(&metadata)).or_default();
+        if let (Some((offset, bytes)), Some((first, batch, _))) = (write, batch) {
+            let end = offset as usize + bytes.len();
+            image.1.resize(image.1.len().max(end), 0);
+            image.1[offset as usize..end].copy_from_slice(bytes);
+            image.0 = metadata.len() as usize;
+            tracker.batches.insert(first, batch);
+        } else {
+            *image = trimmed(fs::read(format!("/proc/self/fd/{}", file.as_raw_fd()))?);
+        }
+        Ok(())
+    }
+
+    /// Lists the directory before its sync and records the listing as durable
+    /// when dropped after the sync returns.
+    pub(super) struct DirectorySync(Option<(Names, u64)>, &'static str);
+
+    impl DirectorySync {
+        pub(super) fn begin(path: &Path, kind: &'static str) -> io::Result<Self> {
+            let mut guard = TRACKER.lock().unwrap();
+            let Some(tracker) = guard.as_mut() else {
+                return Ok(Self(None, kind));
+            };
+            tracker.tickets += 1;
+            Ok(Self(Some((listing(path)?, tracker.tickets)), kind))
+        }
+    }
+
+    impl Drop for DirectorySync {
+        fn drop(&mut self) {
+            let Some((names, ticket)) = self.0.take() else {
+                return;
+            };
+            let mut guard = TRACKER.lock().unwrap();
+            let tracker = guard.as_mut().unwrap();
+            tracker.offer(self.1).expect("power-loss cut");
+            // Concurrent syncs may finish out of order. The latest listing wins.
+            if ticket > tracker.names_ticket {
+                let current = listing(&tracker.path).expect("WAL directory listing");
+                let live: BTreeSet<_> = names.values().chain(current.values()).collect();
+                tracker.images.retain(|id, _| live.contains(id));
+                tracker.names = names;
+                tracker.names_ticket = ticket;
+            }
+        }
+    }
+
+    /// Rebinds a descriptor's controller entry to the normal executable, so
+    /// the uninstrumented server can open the copies.
+    pub(super) fn bind(descriptor: &[u8]) -> io::Result<Vec<u8>> {
+        let Some(controller) = std::env::var_os("JAYDB_POWER_LOSS_CONTROLLER") else {
+            return Ok(descriptor.to_vec());
+        };
+        fn blob<'a>(rest: &mut &'a [u8]) -> Option<&'a [u8]> {
+            let len = usize::try_from(read_u64(rest)?).ok()?;
+            take(rest, len)
+        }
+        let malformed = || input_error("descriptor has no server/controller entry");
+        let mut rest = descriptor
+            .strip_prefix(b"jaydb2-environment-v1\n")
+            .ok_or_else(malformed)?;
+        // Name and byte blobs, followed by the three u64 limits.
+        while rest.len() > 24 {
+            let name = blob(&mut rest).ok_or_else(malformed)?;
+            let start = descriptor.len() - rest.len();
+            blob(&mut rest).ok_or_else(malformed)?;
+            if name == b"server/controller" {
+                let controller = fs::read(controller)?;
+                let mut bound = descriptor[..start].to_vec();
+                bound.extend_from_slice(&(controller.len() as u64).to_be_bytes());
+                bound.extend_from_slice(&controller);
+                bound.extend_from_slice(rest);
+                return Ok(bound);
+            }
+        }
+        Err(malformed())
+    }
+
+    impl Tracker {
+        fn offer(&mut self, kind: &str) -> io::Result<()> {
+            if self.kind == kind || self.kind == "any" {
+                self.remaining -= 1;
+                if self.remaining == 0 {
+                    self.cut()?;
+                    std::process::exit(86);
+                }
+            }
+            Ok(())
+        }
+
+        fn cut(&self) -> io::Result<()> {
+            let mut now = Names::new();
+            let mut contents = HashMap::new();
+            for (name, id) in listing(&self.path)? {
+                match fs::read(self.path.join(&name)) {
+                    Ok(bytes) => {
+                        now.insert(name, id);
+                        contents.insert(id, bytes);
+                    }
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => (),
+                    Err(error) => return Err(error),
+                }
+            }
+            // Unsynced frames exist only in the files.
+            let mut batches = self.batches.clone();
+            for id in now.iter().filter(|(name, _)| name.starts_with("segment-")) {
+                let mut rest = &contents[id.1][..];
+                while let Some((size, _)) = decode_batch(rest) {
+                    let (first, batch, _) = summary(&rest[..size]);
+                    batches.insert(first, batch);
+                    rest = &rest[size..];
+                }
+            }
+            fs::create_dir(&self.output)?;
+            let changed: BTreeSet<_> = (self.names.keys().chain(now.keys()))
+                .filter(|&name| self.names.get(name) != now.get(name))
+                .collect();
+            for seed in (0..self.trials).map(|trial| self.seed.wrapping_add(trial)) {
+                let mut random = Random(seed ^ 0x6a09e667f3bcc909);
+                let directory = self.output.join(format!("trial-{seed}"));
+                fs::create_dir(&directory)?;
+                let mut names = self.names.clone();
+                for &name in &changed {
+                    if random.next() & 1 == 0 {
+                        match now.get(name) {
+                            Some(id) => names.insert(name.clone(), *id),
+                            None => names.remove(name),
+                        };
+                    }
+                }
+                for (name, id) in &names {
+                    let mut synced = Vec::new();
+                    if let Some((len, bytes)) = self.images.get(id) {
+                        synced.extend_from_slice(bytes);
+                        synced.resize(*len, 0);
+                    }
+                    let len = synced.len();
+                    let old = |index: usize| synced.get(index).copied().unwrap_or(0);
+                    let Some(current) = contents.get(id) else {
+                        fs::write(directory.join(name), &synced)?;
+                        continue;
+                    };
+                    let (low, high) = (len.min(current.len()), len.max(current.len()));
+                    let size = match random.below(3) {
+                        _ if low == high => high,
+                        0 => len,
+                        1 => current.len(),
+                        _ => low + random.below(high - low + 1),
+                    };
+                    let mut bytes = current.clone();
+                    bytes.resize(size, 0);
+                    for start in (0..size).step_by(BLOCK) {
+                        let block = start..(start + BLOCK).min(size);
+                        if block.clone().all(|index| old(index) == bytes[index]) {
+                            continue;
+                        }
+                        // Keep, revert, or tear at sector granularity.
+                        let choice = random.below(3);
+                        for sector in block.clone().step_by(SECTOR) {
+                            if choice == 1 || (choice == 2 && random.next() & 1 == 0) {
+                                let end = (sector + SECTOR).min(block.end);
+                                for (index, byte) in (sector..end).zip(&mut bytes[sector..end]) {
+                                    *byte = old(index);
+                                }
+                            }
+                        }
+                    }
+                    fs::write(directory.join(name), bytes)?;
+                }
+            }
+            let manifest = json!({"kind": self.kind, "seed": self.seed, "trials": self.trials,
+                                  "batches": batches.into_values().collect::<Vec<_>>()});
+            fs::write(
+                self.output.join("manifest.json"),
+                serde_json::to_vec(&manifest)?,
+            )
+        }
+    }
+
+    fn id(metadata: &fs::Metadata) -> Id {
+        let born = metadata
+            .created()
+            .ok()
+            .and_then(|time| time.duration_since(UNIX_EPOCH).ok());
+        (metadata.ino(), born.map_or(0, |born| born.as_nanos()))
+    }
+
+    fn listing(path: &Path) -> io::Result<Names> {
+        let mut names = Names::new();
+        for entry in fs::read_dir(path)? {
+            let entry = entry?;
+            match entry.metadata() {
+                Ok(metadata) => {
+                    names.insert(
+                        entry.file_name().to_string_lossy().into_owned(),
+                        id(&metadata),
+                    );
+                }
+                Err(error) if error.kind() == io::ErrorKind::NotFound => (),
+                Err(error) => return Err(error),
+            }
+        }
+        Ok(names)
+    }
+
+    fn trimmed(mut bytes: Vec<u8>) -> (usize, Vec<u8>) {
+        let len = bytes.len();
+        bytes.truncate(
+            bytes
+                .iter()
+                .rposition(|&byte| byte != 0)
+                .map_or(0, |last| last + 1),
+        );
+        (len, bytes)
+    }
+
+    fn summary(frame: &[u8]) -> (u64, Value, bool) {
+        let (_, records) = decode_batch(frame).expect("encoded WAL batch");
+        let records: Vec<_> = records
+            .into_iter()
+            .map(|record| match record {
+                Record::Commit { lsn, writes } => {
+                    let keys: Vec<String> = writes
+                        .iter()
+                        .map(|write| write.key.chars().take(64).collect())
+                        .collect();
+                    json!({"lsn": lsn, "keys": keys})
+                }
+                Record::Epoch { lsn, .. } => json!({"lsn": lsn, "epoch": true}),
+            })
+            .collect();
+        let epoch = records.iter().any(|record| record.get("epoch").is_some());
+        (
+            records[0]["lsn"].as_u64().unwrap(),
+            Value::Array(records),
+            epoch,
+        )
+    }
+
+    /// SplitMix64, so each seed reproduces the same copy of the same cut.
+    struct Random(u64);
+
+    impl Random {
+        fn next(&mut self) -> u64 {
+            self.0 = self.0.wrapping_add(0x9e3779b97f4a7c15);
+            let mut value = self.0;
+            value = (value ^ (value >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+            value = (value ^ (value >> 27)).wrapping_mul(0x94d049bb133111eb);
+            value ^ (value >> 31)
+        }
+
+        fn below(&mut self, n: usize) -> usize {
+            (self.next() % n as u64) as usize
+        }
     }
 }
 
