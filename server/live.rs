@@ -73,6 +73,12 @@ impl Worker {
             return Err(io::Error::last_os_error().into());
         }
         let errors = unsafe { File::from_raw_fd(fd) };
+        // Append keeps the child's next write at EOF when a completed CUDA
+        // exchange clears the file, regardless of its old descriptor offset.
+        if program.gpu.is_some() && unsafe { libc::fcntl(fd, libc::F_SETFL, libc::O_APPEND) } == -1
+        {
+            return Err(io::Error::last_os_error().into());
+        }
         let mut child = program
             .command(threads)
             .stdin(Stdio::piped())
@@ -108,16 +114,8 @@ impl Worker {
             }
         };
         if program.gpu.is_some() {
+            self.check_gpu_diagnostics()?;
             program.validate()?;
-            if self
-                .diagnostics()
-                .contains("bend: compiling the GPU program")
-            {
-                return Err(Error::new(
-                    "GPU_REBUILD",
-                    "GPU artifact is incompatible; prepare again",
-                ));
-            }
         }
         Ok(decision)
     }
@@ -272,6 +270,38 @@ impl Worker {
             .errors
             .read_exact_at(&mut bytes, size.saturating_sub(MAX));
         String::from_utf8_lossy(&bytes).into_owned()
+    }
+
+    fn check_gpu_diagnostics(&self) -> Result<()> {
+        const NOTICE: &[u8] = b"bend: compiling the GPU program";
+        const OVERLAP: usize = NOTICE.len() - 1;
+        let size = self.errors.metadata()?.len();
+        if size == 0 {
+            return Ok(());
+        }
+        let mut buffer = [0; 8192];
+        let mut offset = 0;
+        while offset < size {
+            let length = (size - offset).min(buffer.len() as u64) as usize;
+            self.errors.read_exact_at(&mut buffer[..length], offset)?;
+            if buffer[..length]
+                .windows(NOTICE.len())
+                .any(|window| window == NOTICE)
+            {
+                return Err(Error::new(
+                    "GPU_REBUILD",
+                    "GPU artifact is incompatible; prepare again",
+                ));
+            }
+            if offset + length as u64 == size {
+                break;
+            }
+            offset += (length - OVERLAP) as u64;
+        }
+        // Bend completes its CUDA diagnostics before sending the final frame.
+        // Keep no stderr history from completed exchanges on a reused worker.
+        self.errors.set_len(0)?;
+        Ok(())
     }
 
     fn stop(&mut self) {

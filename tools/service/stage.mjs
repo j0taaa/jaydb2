@@ -381,7 +381,7 @@ function freeze(workdir, configuration, seed) {
     'server/main.rs', 'server/admin.rs', 'server/capture.rs', 'server/scheduling.rs', 'server/storage.rs', 'server/timing.rs', 'Cargo.toml', 'Cargo.lock']) {
     if (fs.existsSync(path.join(ROOT, name))) tooling.set(name, read(path.join(ROOT, name)));
   }
-  for (const name of ['server/commit.rs', 'server/live.rs', 'server/session.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
+  for (const name of ['server/commit.rs', 'server/live.rs', 'server/session.rs', 'server/upgrade.rs', 'server/wal.rs', ...fs.readdirSync(path.join(ROOT, 'server/store'))
     .filter(name => name.endsWith('.rs')).map(name => 'server/store/' + name)]) {
     tooling.set(name, read(path.join(ROOT, name)));
   }
@@ -430,18 +430,21 @@ function stage(environment, directory, purpose, metadata) {
   if (purpose === 'initialize') { for (const [k, v] of environment.seedSources) available.set(k, v); main = INITIALIZE; }
   else if (purpose === 'recover') main = RECOVER;
   else if (purpose === 'migrate') main = MIGRATE;
-  else if (purpose === 'schema') main = COMMON + `import ./HostSchema.bend as HostSchema
-
-def main() -> IO(Unit):
-  Native.write(HostSchema.encode(S.schema(C.config())))
-`;
   else if (purpose === 'decode') main = PREPROCESS.replace('FUNCTION', 'framing').replace('PARSER', 'decode');
   else if (purpose === 'authenticate') main = COMMON + `import ./Dispatch.bend as Dispatch
+import ./HostSchema.bend as HostSchema
+
+# The host sends a one-byte selector to export the schema. Authentication starts
+# with a private length frame, even when the public request body is empty.
+def answer(bytes: List<&2, U32>) -> List<&2, U32>:
+  match bytes:
+    case Con{1, Nil{}}: HostSchema.encode(S.schema(C.config()))
+    case other: Dispatch.authentication(other, S.schema(C.config()), S.limits(C.config()))
 
 def main() -> IO(Unit):
   do IO<Unit>:
     bytes : List<&2, U32> <- Native.read()
-    Native.write(Dispatch.authentication(bytes, S.schema(C.config()), S.limits(C.config())))
+    Native.write(answer(bytes))
 `;
   else if (purpose === 'control') main = COMMON + `import ./ControlBridge.bend as ControlBridge
 
@@ -606,7 +609,7 @@ export function migrate(workdir, oldConfiguration, newConfiguration, migration, 
   sources.set('Migration.bend', read(migration));
   const built = compile({ ...environment, sources }, path.join(workdir, 'migrate'), 'migrate',
     sourceDir, kernelPath, null, path.join(newEnvironment, 'runtime'));
-  const activation = configurationPrograms(environment, newEnvironment, ['schema', 'authenticate', 'control'],
+  const activation = configurationPrograms(environment, newEnvironment, ['authenticate', 'control'],
     sourceDir, kernelPath, built.limits);
   return { ...built, ...activation, newEnvironment };
 }
@@ -618,18 +621,19 @@ function configurationPrograms(environment, workdir, purposes, sourceDir, kernel
     if (limits && JSON.stringify(limits) !== JSON.stringify(built.limits)) fail('CONFIGURATION', 'Configuration programs disagree on limits');
     limits = built.limits; programs[purpose] = built.program;
   }
+  programs.schema = programs.authenticate;
   return { programs, limits, stagePath: path.join(runtimeRoot, 'tools/service/stage.mjs') };
 }
 
 export function initialize(workdir, configuration, seed, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   return configurationPrograms(freeze(workdir, configuration, seed), workdir,
-    ['initialize', 'schema', 'authenticate', 'control'], sourceDir, kernelPath);
+    ['initialize', 'authenticate', 'control'], sourceDir, kernelPath);
 }
 export function recover(workdir, configuration, sourceDir, kernelPath) {
   workdir = path.resolve(workdir); fs.mkdirSync(workdir, { recursive: true, mode: 0o700 });
   return configurationPrograms(freeze(workdir, configuration, null), workdir,
-    ['recover', 'schema', 'authenticate', 'control'], sourceDir, kernelPath);
+    ['recover', 'authenticate', 'control'], sourceDir, kernelPath);
 }
 export function execute(workdir, directory, metadata, sourceDir, kernelPath, purpose = 'execute', gpuMiB = 0) {
   if (!Number.isInteger(gpuMiB) || (gpuMiB !== 0 && (gpuMiB < 64 || gpuMiB > 4096))) fail('USAGE', 'GPU MiB must be 0 or 64..4096');

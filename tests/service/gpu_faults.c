@@ -45,6 +45,18 @@ CUresult cuMemAllocManaged(CUdeviceptr *p, size_t n, unsigned int flags) {
   CUresult r = fault("allocation") ? CUDA_ERROR_OUT_OF_MEMORY : real(p, n, flags);
   note("allocation", r); return r;
 }
+CUresult cuModuleGetFunction(CUfunction *fn, CUmodule module, const char *name) {
+  CUresult (*real)(CUfunction *, CUmodule, const char *) = dlsym(RTLD_NEXT, "cuModuleGetFunction");
+  CUresult r = real(fn, module, name);
+  if (r == CUDA_SUCCESS && fault("rebuild")) {
+    // A rebuild notice must still be seen if later stderr exceeds the error tail.
+    char padding[1024];
+    memset(padding, '.', sizeof(padding));
+    padding[sizeof(padding)-1] = '\n';
+    for (int i = 0; i < 80; ++i) (void)fwrite(padding, 1, sizeof(padding), stderr);
+  }
+  return r;
+}
 static int launched;
 static int tampered;
 CUresult cuLaunchKernel(CUfunction fn, unsigned int gx, unsigned int gy, unsigned int gz,

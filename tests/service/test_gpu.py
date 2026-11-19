@@ -202,7 +202,9 @@ class GpuTests(unittest.TestCase):
             env = dict(os.environ, LD_PRELOAD=str(library),
                        JAYDB_TEST_GPU_FAULT=str(fault), JAYDB_TEST_GPU_TRACE=str(trace),
                        JAYDB_TEST_GPU_BUNDLE_PATH=str(server_env_path))
-            server = self.server(env=env)
+            feed = StateFeed(folder/'admin.sock')
+            self.addCleanup(feed.listener.close)
+            server = self.server(env=env, options=['--inspect-socket', str(folder/'admin.sock')])
             handle = self.register(server)
             private = next(Path(tempfile.gettempdir()).glob(f'jaydb2-{server.process.pid}-*'))
             native = next(private.glob('request-*/*.program'))
@@ -231,9 +233,18 @@ class GpuTests(unittest.TestCase):
                          native.parent/'Client.bend', native.parent/'ClientProof.bend']:
                 original = path.read_bytes()
                 for mutation in ['missing', 'substituted']:
+                    if path in (native, device):
+                        self.execute(server, handle, 'abc', 'abc')
                     try:
-                        if mutation == 'missing': path.unlink()
-                        else: path.write_bytes(original+b'substitute')
+                        if mutation == 'missing':
+                            path.unlink()
+                        else:
+                            # Linux protects the inode of a running executable
+                            # from writes, so replace the pathname atomically.
+                            replacement = folder/'substitute'
+                            replacement.write_bytes(original+b'substitute')
+                            replacement.chmod(path.stat().st_mode & 0o777)
+                            replacement.replace(path)
                         trace.write_text('')
                         self.assertEqual(server.prepared(1, handle, 'abc', 'never-published'),
                             {'status': 'failure', 'value': None}, server.diagnostics())
@@ -243,33 +254,36 @@ class GpuTests(unittest.TestCase):
                         path.write_bytes(original)
                         if path == native: path.chmod(0o700)
             self.assertIn('PREPARED_INTEGRITY', server.diagnostics())
-            for kind, diagnostic in [('device', 'cuInit failed'), ('allocation', 'corpus reservation failed'),
-                                     ('launch', 'device launch failed'), ('runtime', 'device fault')]:
+            original_device = device.read_bytes()
+            server_env_path.write_text(str(device))
+
+            def reject(kind, diagnostic, warm):
+                trace.write_text('')
                 fault.write_text(kind)
                 before = len(server.diagnostics())
-                self.assertEqual(server.prepared(1, handle, 'abc', 'never-published'),
-                    {'status': 'failure', 'value': None}, server.diagnostics())
-                self.assertIn(diagnostic, server.diagnostics()[before:])
-                fault.unlink()
-                # A fresh child still sees old credentials, including after a
-                # failure at the GPU bang following the private credential write.
-                self.execute(server, handle, 'abc', 'abc')
-            # Mutate only after the host's pre-execution integrity gate. A real
-            # runtime rebuild (even if byte-identical) or a post-launch changed
-            # cubin must discard the otherwise successful private proposal.
-            original_device = device.read_bytes()
-            for kind in ['rebuild', 'changed']:
                 try:
-                    fault.write_text(kind)
-                    server_env_path.write_text(str(device))
-                    before = len(server.diagnostics())
-                    self.assertEqual(server.prepared(1, handle, 'abc', 'never-published'),
+                    self.assertEqual(server.prepared(1, handle, 'abc', 'abcd'),
                                      {'status': 'failure', 'value': None}, server.diagnostics())
-                    self.assertTrue(any(message in server.diagnostics()[before:] for message in
-                                        ['GPU_REBUILD', 'changed or nonregular artifact']))
+                    self.assertIn(diagnostic, server.diagnostics()[before:])
+                    events = trace.read_text().splitlines()
+                    self.assertEqual(warm, not any(event.startswith('init ') for event in events))
                 finally:
-                    fault.unlink(missing_ok=True)
-                    device.write_bytes(original_device)
+                    fault.unlink()
+                    if kind in ('rebuild', 'changed'):
+                        device.write_bytes(original_device)
+
+            # Integrity refusal retired the previous worker. Startup faults
+            # each run cold and leave no worker for the next call to reuse.
+            for kind, diagnostic in [('device', 'cuInit failed'),
+                                     ('allocation', 'corpus reservation failed'),
+                                     ('rebuild', 'GPU_REBUILD')]:
+                reject(kind, diagnostic, warm=False)
+            self.execute(server, handle, 'abc', 'abc')
+            # On a warm worker, each fault follows a private credential write.
+            # The old credential must still work on the replacement worker.
+            for kind, diagnostic in [('launch', 'device launch failed'), ('runtime', 'device fault'),
+                                     ('changed', 'changed or nonregular artifact')]:
+                reject(kind, diagnostic, warm=True)
                 self.execute(server, handle, 'abc', 'abc')
             # Ordinary device failure cannot register anything or mutate state.
             fault.write_text('device')
@@ -295,6 +309,70 @@ class GpuTests(unittest.TestCase):
                 'sourceSha256': heavy_report['sourceSha256'], 'hasBangs': True,
                 'launch_successes': heavy_events.count('launch 0'),
                 'synchronize_successes': heavy_events.count('sync 0')}), flush=True)
+            server.finish()
+            feed.finish()
+            rejected_states = [state for event, state in zip(feed.events, feed.states)
+                               if event['event'] == 'completed' and event['diagnostic'] is not None]
+            published = {'tables': [], 'users': [
+                {'id': 'alice', 'kind': 'user', 'credential': 'abc'},
+                {'id': 'bob', 'kind': 'user', 'credential': 'bob-token'}]}
+            self.assertEqual(rejected_states, [published] * 19)
+
+    def test_prepared_gpu_worker_reuses_context_without_memory_growth(self):
+        def rss_kib(pid):
+            return int(next(line.split()[1] for line in Path(f'/proc/{pid}/status').read_text().splitlines()
+                            if line.startswith('VmRSS:')))
+
+        server = self.server()
+        handle = self.register(server)
+        replacements = ('abcdef', 'abcdefg')
+        expected = {value: {'status': 'success', 'value': oracle(len(value))}
+                    for value in replacements}
+        credential = 'alice-token'
+        samples = []
+        for request in range(1, 1001):
+            replacement = replacements[request % len(replacements)]
+            self.assertEqual(server.prepared(1, handle, credential, replacement),
+                             expected[replacement], server.diagnostics())
+            credential = replacement
+            if request in (1, 20, 100, 300, 600, 1000):
+                apps = subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid,used_gpu_memory',
+                                                '--format=csv,noheader,nounits'], text=True)
+                children = Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children')
+                children = {int(pid) for pid in children.read_text().split()}
+                worker, = [(int(pid), int(memory)) for pid, memory in
+                           (line.split(',') for line in apps.splitlines()) if int(pid) in children]
+                pid, gpu_mib = worker
+                samples.append(dict(request=request, pid=pid, worker_rss_kib=rss_kib(pid),
+                                    server_rss_kib=rss_kib(server.process.pid), gpu_mib=gpu_mib))
+        print('Persistent CUDA worker memory: ' + json.dumps(samples), flush=True)
+        self.assertEqual(len({sample['pid'] for sample in samples}), 1)
+        # Allow bounded warm-up and driver/allocator fluctuations.
+        for metric, allowance in [('worker_rss_kib', 8192), ('server_rss_kib', 8192), ('gpu_mib', 8)]:
+            values = [sample[metric] for sample in samples[1:]]
+            self.assertLessEqual(max(values) - min(values), allowance, samples)
+        server.finish()
+
+    def test_bang_free_program_runs_on_cpu_with_gpu_enabled(self):
+        from tests.service.test_prepared import universal_access_proof
+
+        with tempfile.TemporaryDirectory(prefix='gpu-cpu-program-') as tmp:
+            folder = Path(tmp)
+            library, trace = folder/'faults.so', folder/'trace'
+            subprocess.run(['gcc', '-shared', '-fPIC', str(ROOT/'tests/service/gpu_faults.c'),
+                            '-o', str(library), '-ldl'], check=True)
+            env = dict(os.environ, LD_PRELOAD=str(library), JAYDB_TEST_GPU_TRACE=str(trace))
+            server = self.server(env=env)
+            code = (ROOT/'examples/access/Client.bend').read_text()
+            self.assertEqual(server.call(code, CONCRETE, 'alice-token', 'first'),
+                             {'status': 'success', 'value': 'first'}, server.diagnostics())
+            receipt = server.prepared(0, code, 'first', proof=universal_access_proof(CONCRETE))
+            self.assertEqual(receipt['status'], 'prepared', server.diagnostics())
+            trace.write_text('')
+            for credential, replacement in [('first', 'second'), ('second', 'third')]:
+                self.assertEqual(server.prepared(1, receipt['value'], credential, replacement),
+                                 {'status': 'success', 'value': replacement}, server.diagnostics())
+            self.assertEqual(trace.read_text(), '', 'bang-free execution entered CUDA')
             server.finish()
 
     def test_unwrapped_unavailable_device_has_no_auto_fallback(self):

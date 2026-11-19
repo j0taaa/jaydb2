@@ -6,6 +6,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, mpsc};
 use std::thread::{self, JoinHandle};
 
+#[path = "upgrade.rs"]
+pub mod upgrade;
+
 use std::io;
 #[cfg(feature = "storage-fault-injection")]
 use std::io::{Read, Write};

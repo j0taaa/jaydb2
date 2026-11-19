@@ -184,6 +184,10 @@ controller executable bytes. After migration, open with the migrated
 configuration and preserve the controller executable and its sources/tooling.
 Process death tests do not establish hardware power-loss safety.
 
+With the old service stopped, run `./jaydb2 --configuration FILE --storage NEW_DIR --upgrade-from OLD_DIR --legacy-jaydb2 /path/to/main/target/release/jaydb2` for a one-way upgrade to a new directory.
+Keep the original trusted executable and its source checkout available so the upgrader can verify the exact legacy environment, checksum, and limits on a private copy while leaving `OLD_DIR` untouched.
+After the upgrader verifies that the canonical state loads under the current schema, open `NEW_DIR` normally with `--storage-mode open`.
+
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
 receive the official `--threads N --gpu off` options by default. For CPU socket

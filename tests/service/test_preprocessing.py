@@ -33,6 +33,7 @@ class PreprocessingTests(unittest.TestCase):
                              {'status': 'authentication', 'value': None}, server.diagnostics())
             private, = folder.glob('jaydb2-*')
             self.assertFalse((private/'decode').exists())
+            self.assertFalse((private/'schema').exists())
             self.assertFalse(list(private.rglob('Seed.bend')))
             authenticator, = (private/'authenticate').glob('*.program')
 
@@ -58,6 +59,8 @@ class PreprocessingTests(unittest.TestCase):
                     input=incoming, capture_output=True, timeout=30)
                 self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
                 return result.stdout
+
+            self.assertEqual(native(authenticator, b'\1'), encode({'tables': []}))
 
             def compare(incoming, status=None):
                 decoded = native(decoder, incoming)
@@ -166,13 +169,13 @@ class PreprocessingTests(unittest.TestCase):
             if trace:
                 launches = [line for line in Path(trace).read_text().splitlines()
                             if 'execve(' in line and '.program"' in line and '= 0' in line]
-                counts = {'initialize': 0, 'schema': 0, 'authenticate': 0, 'control': 0, 'execute': 0}
+                counts = {'initialize': 0, 'authenticate': 0, 'control': 0, 'execute': 0}
                 for line in launches:
                     self.assertNotIn('/decode/', line)
-                    key = next((purpose for purpose in ('initialize', 'schema', 'authenticate', 'control')
+                    key = next((purpose for purpose in ('initialize', 'authenticate', 'control')
                                 if f'/{purpose}/' in line), 'execute')
                     counts[key] += 1
-                self.assertEqual(counts, {'initialize': 1, 'schema': 1, 'authenticate': 17, 'control': 4, 'execute': 2})
+                self.assertEqual(counts, {'initialize': 1, 'authenticate': 18, 'control': 4, 'execute': 2})
                 print('host native launches: '+json.dumps(counts), flush=True)
 
 

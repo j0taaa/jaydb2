@@ -593,7 +593,7 @@ fn programs(report: &Value) -> Result<&Value> {
 
 fn export_schema(report: &Value, limits: &Limits, threads: usize) -> Result<Schema> {
     let schema = Program::load(text(programs(report)?, "schema")?.into(), 0)?;
-    let schema_value = store::decode(&schema.run(&[], threads)?)
+    let schema_value = store::decode(&schema.run(&[1], threads)?)
         .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema export: {error}")))?;
     Schema::from_value(&schema_value, limits.state)
         .map_err(|error| Error::new("CONFIGURATION", format!("invalid schema: {error}")))
@@ -975,12 +975,6 @@ impl Database {
             .get(handle)
             .ok_or_else(|| Error::new("HANDLE", "unknown or invalidated handle"))?;
         let idle = self.idle_workers.lock().unwrap().take(handle);
-        // A running CPU worker has already loaded its validated executable.
-        // CUDA retains its per-call checks for the external device bundle.
-        if idle.is_none() || prepared.program.gpu.is_some() {
-            prepared.validate()?;
-        }
-        bench_mark(bench, "prepared_integrity");
         if self.inspector.is_some() {
             let metadata = serde_json::json!({
                 "event": "prepared-resolved", "handle": handle, "request": inspection_id,
@@ -989,6 +983,12 @@ impl Database {
             });
             self.inspect(snapshot, false, metadata);
         }
+        // Check the CUDA seal at the execution boundary, even for a warm
+        // worker. The inspector can block, so keep it outside this check.
+        if idle.is_none() || prepared.program.gpu.is_some() {
+            prepared.validate()?;
+        }
+        bench_mark(bench, "prepared_integrity");
         // Active workers are bounded by the execution gate. Idle workers
         // share a separate budget across all handles.
         let mut worker = match idle {
@@ -1348,6 +1348,7 @@ struct Options {
     threads: usize,
     timing_log: Option<PathBuf>,
     storage: Option<(PathBuf, storage::Mode)>,
+    upgrade: Option<(PathBuf, storage::upgrade::Source)>,
     gpu_mib: usize,
 }
 
@@ -1420,13 +1421,15 @@ impl Options {
         let mut timing_log = None;
         let mut storage = None;
         let mut storage_mode = None;
+        let mut upgrade_from = None;
+        let mut legacy_jaydb2 = None;
         let mut source = root.join(format!(".tools/bend-source-{}", text(&lock, "version")?));
         let mut kernel = root.join(format!(".tools/bendtt-{}", text(&lock, "kernelSha256")?));
         let mut arguments = arguments.into_iter();
         while let Some(argument) = arguments.next() {
             if argument == "--help" || argument == "-h" {
                 println!(
-                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--listen SOCKET] [--concurrency N] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket INSPECTOR_SOCKET] [--admin-socket SOCKET] [--timing-log FILE|-]\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open\n--storage DIRECTORY --storage-mode create|open  Opt-in WAL persistence; create requires a new directory, open requires the current durable environment/executable\n--admin-socket SOCKET  Serve administrator migration requests on an owner-only Unix socket\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--listen SOCKET  Serve FIFO sessions on a Unix socket (default: stdin/stdout)\n--concurrency N  Maximum active socket transactions, 1 to 128 (default: available CPUs, capped at 128)\n--threads N  Native CPU workers per process, 1 to 128 (default: 1 for concurrent execution, otherwise available CPUs capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
+                    "Usage: jaydb2 --configuration FILE [--seed FILE] [--storage DIRECTORY --storage-mode create|open] [--listen SOCKET] [--concurrency N] [--threads N] [--gpu off|MiB] [--bend-source DIR] [--bendtt FILE] [--inspect-socket INSPECTOR_SOCKET] [--admin-socket SOCKET] [--timing-log FILE|-]\n       jaydb2 --configuration FILE --storage NEW_DIRECTORY --upgrade-from OLD_DIRECTORY --legacy-jaydb2 FILE\n\n--seed FILE  Required for volatile mode and storage create; forbidden for storage open and upgrade\n--storage DIRECTORY --storage-mode create|open  Opt-in WAL persistence; create requires a new or empty directory, open requires the current durable environment/executable\n--upgrade-from OLD_DIRECTORY --legacy-jaydb2 FILE  Offline upgrade with the original complete-image executable and its tooling\n--admin-socket SOCKET  Serve administrator migration requests on an owner-only Unix socket\n--timing-log FILE|-  Administrator elapsed-service NDJSON, - selects stderr\n--listen SOCKET  Serve FIFO sessions on a Unix socket (default: stdin/stdout)\n--concurrency N  Maximum active socket transactions, 1 to 128 (default: available CPUs, capped at 128)\n--threads N  Native CPU workers per process, 1 to 128 (default: 1 for concurrent execution, otherwise available CPUs capped at 128)\n--gpu off|MiB  Official CUDA for ! calls, 64..4096 MiB (default: off); executions stay serial"
                 );
                 return Ok(None);
             }
@@ -1446,6 +1449,8 @@ impl Options {
                 Some("--threads") => threads = Some(parse_threads(&value)?),
                 Some("--gpu") => gpu_mib = parse_gpu(&value)?,
                 Some("--storage") => storage = Some(PathBuf::from(value)),
+                Some("--upgrade-from") => upgrade_from = Some(PathBuf::from(value)),
+                Some("--legacy-jaydb2") => legacy_jaydb2 = Some(PathBuf::from(value)),
                 Some("--storage-mode") => {
                     storage_mode = Some(match value.to_str() {
                         Some("create") => storage::Mode::Create,
@@ -1466,20 +1471,42 @@ impl Options {
                 }
             }
         }
-        let storage = match (storage, storage_mode) {
-            (Some(path), Some(mode)) => Some((path, mode)),
-            (None, None) => None,
+        let (storage, upgrade) = match (storage, storage_mode, upgrade_from, legacy_jaydb2) {
+            (Some(path), Some(mode), None, None) => (Some((path, mode)), None),
+            (None, None, None, None) => (None, None),
+            (Some(path), None, Some(directory), Some(executable)) => (
+                None,
+                Some((
+                    path,
+                    storage::upgrade::Source {
+                        directory,
+                        executable,
+                    },
+                )),
+            ),
             _ => {
                 return Err(Error::new(
                     "ARGUMENT",
-                    "--storage and --storage-mode are required together",
+                    "--storage requires either --storage-mode or both --upgrade-from and --legacy-jaydb2",
                 ));
             }
         };
+        if upgrade.is_some()
+            && (seed.is_some()
+                || inspect_socket.is_some()
+                || admin_socket.is_some()
+                || listen.is_some()
+                || timing_log.is_some())
+        {
+            return Err(Error::new(
+                "ARGUMENT",
+                "storage upgrade is offline and forbids --seed, socket options and --timing-log",
+            ));
+        }
         let recovering = storage
             .as_ref()
             .is_some_and(|(_, mode)| *mode == storage::Mode::Open);
-        if recovering == seed.is_some() {
+        if upgrade.is_none() && recovering == seed.is_some() {
             return Err(Error::new(
                 "ARGUMENT",
                 if recovering {
@@ -1517,6 +1544,7 @@ impl Options {
             threads,
             timing_log,
             storage,
+            upgrade,
             gpu_mib,
         }))
     }
@@ -1525,6 +1553,9 @@ impl Options {
 fn main() {
     let result = (|| -> Result<()> {
         if let Some(options) = Options::read()? {
+            if let Some((path, source)) = &options.upgrade {
+                return storage::upgrade::run(&options, path, source);
+            }
             let listen = options.listen.clone();
             let admin = options
                 .admin_socket
