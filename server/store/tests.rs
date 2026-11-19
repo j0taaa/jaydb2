@@ -605,8 +605,10 @@ fn store_abi() {
 #[ignore = "run python3 tools/live/store_reference.py to generate the Bend oracle fixtures"]
 fn store_reference() {
     fn from_hex(hex: &str) -> Vec<u8> {
-        hex.as_bytes()
-            .chunks_exact(2)
+        let (octets, remainder) = hex.as_bytes().as_chunks::<2>();
+        assert!(remainder.is_empty(), "incomplete fixture octet");
+        octets
+            .iter()
             .map(|octet| u8::from_str_radix(std::str::from_utf8(octet).unwrap(), 16).unwrap())
             .collect()
     }

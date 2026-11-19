@@ -430,7 +430,7 @@ impl Segment {
     fn reserve(&mut self) -> io::Result<()> {
         // Materialize the zeroes so later appends overwrite written blocks.
         // The batch's data sync also makes the newly reserved space durable.
-        const ZEROES: [u8; 64 * 1024] = [0; 64 * 1024];
+        static ZEROES: [u8; 64 * 1024] = [0; 64 * 1024];
         while self.capacity < SEGMENT_SIZE {
             let len = (SEGMENT_SIZE - self.capacity).min(ZEROES.len() as u64) as usize;
             self.file.write_all_at(&ZEROES[..len], self.capacity)?;

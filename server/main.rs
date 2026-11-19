@@ -843,7 +843,7 @@ impl Database {
         let (instance, bindings) = split(rest)?;
         if operation == 5 {
             return self
-                .control_operation(&environment.control, &root, body)
+                .control_operation(&environment.control, &input)
                 .map(Proposal::Execute);
         }
         if operation == 4 {
@@ -913,8 +913,7 @@ impl Database {
             let control = self.run_control(
                 &environment.control,
                 &checked_registry,
-                &root,
-                body,
+                &input,
                 text(&report, "certificateMode")?,
                 code,
                 proof,
@@ -1017,8 +1016,7 @@ impl Database {
         &self,
         control: &Program,
         registry: &[u8],
-        root: &[u8],
-        body: &[u8],
+        request: &[u8],
         mode: &str,
         code: &[u8],
         proof: &[u8],
@@ -1034,7 +1032,7 @@ impl Database {
             metadata.extend_from_slice(&(field.len() as u64).to_be_bytes());
             metadata.extend_from_slice(field);
         }
-        let input = packet(&metadata, &packet(registry, &packet(root, body)));
+        let input = packet(&metadata, &packet(registry, request));
         let output = control.run(&input, self.threads)?;
         match output.first() {
             Some(0) => Ok(ControlDecision::Denied(output[1..].to_vec())),
@@ -1067,9 +1065,9 @@ impl Database {
         }
     }
 
-    fn control_operation(&self, control: &Program, root: &[u8], body: &[u8]) -> Result<Decision> {
+    fn control_operation(&self, control: &Program, request: &[u8]) -> Result<Decision> {
         let current = self.registry.read().unwrap().bytes.clone();
-        match self.run_control(control, &current, root, body, "", &[], &[])? {
+        match self.run_control(control, &current, request, "", &[], &[])? {
             ControlDecision::Denied(response) => Ok(Decision::Keep { response }),
             ControlDecision::Remove {
                 handle,
