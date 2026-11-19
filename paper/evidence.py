@@ -11,6 +11,36 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 OUT=ROOT/'.build/tcc'
+# The retained evidence describes the thesis version. Source fingerprints,
+# inventories and the host-duty list are read from that tag, so later engine
+# work on main does not invalidate or silently change the article.
+THESIS_REF='thesis-2026'
+
+
+@functools.cache
+def thesis_tree():
+    import subprocess
+    listing=subprocess.run(['git','-C',str(ROOT),'ls-tree','-r','--name-only',THESIS_REF],capture_output=True,text=True)
+    return set(listing.stdout.splitlines()) if listing.returncode==0 else None
+
+
+def thesis_bytes(relative):
+    import subprocess
+    if thesis_tree() is None or Path(relative).is_absolute():return (ROOT/relative).read_bytes()
+    return subprocess.run(['git','-C',str(ROOT),'show',f'{THESIS_REF}:{relative}'],check=True,capture_output=True).stdout
+
+
+def thesis_text(relative):
+    return thesis_bytes(relative).decode()
+
+
+def thesis_files(directory,suffix,recursive=True):
+    tree=thesis_tree()
+    if tree is None or not Path(directory).is_relative_to(ROOT):
+        found=Path(directory).rglob('*'+suffix) if recursive else Path(directory).glob('*'+suffix)
+        return sorted(str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path) for path in found)
+    prefix=str(Path(directory).relative_to(ROOT))+'/'
+    return sorted(f for f in tree if f.startswith(prefix) and f.endswith(suffix) and (recursive or '/' not in f[len(prefix):]))
 FILES=('ordinary','prepared','comparison','verification','scaling','scaling-seed-attempt','gpu-programs','simulation')
 PROGRAMS={'read':'Read','indexed':'Indexed','voucher':'Voucher'}
 # Article-facing names (the indexed program is the availability application).
@@ -161,7 +191,7 @@ def validate(data):
     rls=data['verification'].get('rls_validation',{})
     if native is None or rls!={'native_responses':int(native[1]),'negative_fixtures':int(native[2])}:
         raise ValueError('RLS inventory disagrees with completed native validation')
-    duties=(ROOT/'proof/README.md').read_text().split('**T3 —',1)[1].split('\nThe status table',1)[0]
+    duties=thesis_text('proof/README.md').split('**T3 —',1)[1].split('\nThe status table',1)[0]
     if data['verification'].get('host_duty_count')!=len(re.findall(r'^\d+\. ',duties,re.M)):
         raise ValueError('Host duty inventory disagrees with proof/README.md')
     # Failed measurements remain visible; they are never replaced with estimates.
@@ -274,12 +304,12 @@ def validate_compute(data):
     from paper.bench.gpu_programs import state as gpu_state
     gpu=data['gpu-programs'];sim=data['simulation']
     expected_fixtures={'experiments/gpu/HeavyClient.bend','experiments/gpu/ClientProof.bend','paper/bench/gpu_programs.py'}
-    expected_simulation={str(p.relative_to(ROOT)) for p in (ROOT/'applications/simulation').glob('*.bend')} | {'paper/bench/simulation.py','paper/bench/simulation-postgres.sql','paper/bench/simulation-sqlite.sql','tests/service/test_simulation.py'}
+    expected_simulation=set(thesis_files(ROOT/'applications/simulation','.bend',recursive=False)) | {'paper/bench/simulation.py','paper/bench/simulation-postgres.sql','paper/bench/simulation-sqlite.sql','tests/service/test_simulation.py'}
     if set(gpu['fixture_sha256'])!=expected_fixtures or set(sim['source_sha256'])!=expected_simulation:
         raise ValueError('Compute fixture fingerprint coverage')
     for d,field in ((gpu,'fixture_sha256'),(sim,'source_sha256')):
         for name,digest in d[field].items():
-            if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest:
+            if hashlib.sha256(thesis_bytes(name)).hexdigest()!=digest:
                 raise ValueError('Compute fixture fingerprint: '+name)
     if gpu['revision']!=gpu['metadata']['commit'] or gpu['dirty']!=[] or gpu['binary_sha256']!=gpu['metadata']['binary_sha256'] or canonical(gpu['toolchain'])!=canonical(gpu['metadata']['toolchain']):
         raise ValueError('GPU metadata disagrees')
@@ -415,9 +445,9 @@ def table(name,columns,rows):
 
 def source_inventory(directory):
     """Count maintained Bend files and nonblank physical lines, including comments."""
-    files=sorted(directory.rglob('*.bend'))
+    files=thesis_files(directory,'.bend')
     return dict(files=len(files), nonblank_lines=sum(
-        bool(line.strip()) for path in files for line in path.read_text().splitlines()))
+        bool(line.strip()) for path in files for line in thesis_text(path).splitlines()))
 
 
 def write_compute_reports(data):
@@ -685,7 +715,7 @@ def derive(data):
         macro(name,v[key],key.replace('_',' '),'count')
     macro('ProofTheoremWitnesses',len(v['theorem_witnesses']),'Named top-level theorem witnesses (names ending theorem); excludes supporting lemmas','witnesses')
     wire_witnesses=re.findall(r'^def \w+\(\) -> C\.(\w+)\(\):',
-        (ROOT/'proof/WireTheorems.bend').read_text(),re.MULTILINE)
+        thesis_text('proof/WireTheorems.bend'),re.MULTILINE)
     macro('PublicTheoremWitnesses',len(v['theorem_witnesses'])+len(wire_witnesses),
         'Named top-level theorem witnesses plus the separately named codec/framing witnesses','witnesses')
     for area,s in v['sizes'].items():macro(area.title()+'NonblankLines',s['nonblank_lines'],area+' source nonblank lines (comments included)','lines')
@@ -753,7 +783,7 @@ def derive(data):
     for name,files in [('SimulationClientLines',['applications/simulation/Client.bend']),
                        ('SimulationProofLines',['applications/simulation/ClientProof.bend'])]:
         if any(f not in sim_sources for f in files):raise ValueError('Simulation size source not pinned')
-        count=sum(1 for f in files for line in (ROOT/f).read_text().splitlines() if line.strip())
+        count=sum(1 for f in files for line in thesis_text(f).splitlines() if line.strip())
         macro(name,count,'Nonblank lines of the hash-pinned simulation '+('client program' if 'Client' in name and 'Proof' not in name else 'certificate'),'lines')
     rls=v['rls_validation']
     macro('RlsNegativeFixtures',rls['negative_fixtures'],'RLS causal negatives checked in both official modes','fixtures')

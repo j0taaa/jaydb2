@@ -136,7 +136,7 @@ def main():
             device=subprocess.check_output(['nvidia-smi', '--query-gpu=name,driver_version,memory.total', '--format=csv'], text=True)),
             cpu_threads=[1, 16], numpy=__import__('numpy').__version__), preparations=[], records=[], published_states={}, limitations=[
             'JayDB2 RAM state, PostgreSQL temporary tables (no table WAL), SQLite :memory:; no durability comparison.',
-            'JayDB2 reuses prepared workers across requests, with fresh authentication and complete publication; CUDA checks artifact integrity on every request. Proof admission is timed separately.',
+            'JayDB2 fresh child per request, fresh authentication, integrity checks and complete publication; proof admission timed separately.',
             'SQL execute/fetch includes parameter reads, simulation, upsert and returning all aggregates; no host-language UDF.',
             'SQL is an arithmetic baseline without equivalent proof admission or authentication/RLS.',
             'PostgreSQL PL/pgSQL is interpreted; SQLite recursive CTE is not designed for heavy numerical compute.',
