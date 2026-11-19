@@ -112,6 +112,22 @@ proof, then send programs/proofs through the same stdin/stdout protocol.
 `tools/client.py` generates frames and decodes responses. The client's Bend
 function accesses data exclusively through database operations.
 
+## Upgrade a complete-image database
+
+Leave the old checkout at the revision used to build the legacy executable and
+keep both at their original paths. The executable loads its staging code from
+the checkout path embedded at compile time. Build the live engine in a second
+checkout and stop the old service before running the upgrade from that checkout.
+
+```sh
+./jaydb2 --configuration FILE --storage NEW_DIR --upgrade-from OLD_DIR \
+  --legacy-jaydb2 /path/to/old/checkout/target/release/jaydb2
+```
+
+Use a new destination path. After a successful upgrade, start the live engine
+with `--storage NEW_DIR --storage-mode open`. The original storage remains
+available in `OLD_DIR`.
+
 ## Verify the installation
 
 The optional TypeScript client has development dependencies only for building,

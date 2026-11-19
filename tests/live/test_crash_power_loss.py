@@ -15,6 +15,14 @@ last sync is kept, reverted or torn, and every directory change since the last
 directory sync is applied or not. The server then exits with status 86. Each
 copy must open with the normal build and hold a batch-boundary prefix of the
 commit order that contains every acknowledged transfer, with no partial one.
+
+As a unit test (python3 -B -m unittest tests.live.test_crash_power_loss) it
+runs a small deterministic campaign: run n cuts at kind n mod 6, cycling over
+every kind (epoch and size-based segment rotation in migration runs) at low
+occurrences, with a fixed seed. It builds both binaries under .build/power-loss from this tree
+unless JAYDB_POWER_LOSS_FAULT_BINARY and JAYDB_POWER_LOSS_NORMAL_BINARY name
+them. JAYDB_POWER_LOSS_RUNS (default 6), JAYDB_POWER_LOSS_TRIALS (default 2)
+and JAYDB_POWER_LOSS_SEED (default 93821) scale it.
 """
 
 import argparse
@@ -31,6 +39,7 @@ import tempfile
 from threading import Barrier
 from time import monotonic
 import traceback
+import unittest
 
 from tests.live.test_concurrency import APP, INITIAL_LEFT, Listener, TOKEN, exchange, execute
 from tests.service.test_end_to_end import ROOT, Server
@@ -244,10 +253,20 @@ def check_copy(candidates, database, root, normal, pairs, acknowledged, prefixes
 
 def run_once(root, number, args, random):
     root.mkdir()
-    migrations = args.migrations if number % args.migration_every == args.migration_every - 1 else 0
-    kinds = sorted(kind for kind in KINDS if KINDS[kind][bool(migrations)])
-    kind = args.kind if args.kind in kinds else random.choice(kinds)
+    if args.cycle_kinds:
+        # Deterministic coverage: every kind in turn. Cycles alternate which
+        # kinds migrate; epoch cuts always do.
+        kind = sorted(KINDS)[number % len(KINDS)]
+        odd = number // len(KINDS) % 2 == 1
+        migrating = KINDS[kind][0] is None or (kind == 'segment-name') != odd
+        migrations = args.migrations if migrating else 0
+    else:
+        migrations = args.migrations if number % args.migration_every == args.migration_every - 1 else 0
+        kinds = sorted(kind for kind in KINDS if KINDS[kind][bool(migrations)])
+        kind = args.kind if args.kind in kinds else random.choice(kinds)
     low, high = KINDS[kind][bool(migrations)]
+    if args.quick:
+        high = min(high, 100 if kind == 'wal' else max(low, 2))
     occurrence = random.randint(low, min(high, migrations) if kind == 'epoch' else high)
     seed = args.seed + number * args.trials
     app, pairs = fixture(root)
@@ -357,13 +376,17 @@ def run(root, args):
     return int(bool(totals['failed'] or totals['aborted'] or totals['no_cut']))
 
 
-def main():
+def parser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--fault-binary', type=Path, required=True)
     parser.add_argument('--normal-binary', type=Path, default=ROOT / 'target/release/jaydb2')
     parser.add_argument('--runs', type=int, default=20, help='Workloads, each cut once')
     parser.add_argument('--trials', type=int, default=8, help='Randomized copies per cut')
     parser.add_argument('--kind', choices=sorted(KINDS), help='Prefer this hook kind where it applies')
+    parser.add_argument('--cycle-kinds', action='store_true',
+                        help='Run n cuts at kind n mod 6 instead of a random kind')
+    parser.add_argument('--quick', action='store_true',
+                        help='Cap cut occurrences (wal at 100, others at 2) for short runs')
     parser.add_argument('--migrations', type=int, default=4,
                         help='Online migrations per migration run; their epoch frames rotate a segment')
     parser.add_argument('--migration-every', type=int, default=3, help='Every n-th run migrates')
@@ -372,13 +395,19 @@ def main():
     parser.add_argument('--run-limit', type=float, default=300, help='Seconds before a run without a cut stops')
     parser.add_argument('--seed', type=int, default=93821)
     parser.add_argument('--keep', action='store_true', help='Keep the copies and fixtures')
-    args = parser.parse_args()
+    return parser
+
+
+def campaign(argv):
+    """Runs the campaign; returns 0 if every copy recovered."""
+    options = parser()
+    args = options.parse_args(argv)
     args.fault_binary = args.fault_binary.resolve()
     args.normal_binary = args.normal_binary.resolve()
     if min(args.runs, args.trials, args.parallel, args.migration_every) < 1:
-        parser.error('runs, trials and parallel must be positive')
+        options.error('runs, trials and parallel must be positive')
     if args.fault_binary == args.normal_binary:
-        parser.error('provide separate fault-injection and normal binaries')
+        options.error('provide separate fault-injection and normal binaries')
     _, hard_limit = resource.getrlimit(resource.RLIMIT_STACK)
     resource.setrlimit(resource.RLIMIT_STACK, (hard_limit, hard_limit))
     workspace = Path(tempfile.mkdtemp(prefix='jaydb-power-', dir=os.environ.get('TMPDIR', '/tmp')))
@@ -388,6 +417,34 @@ def main():
     finally:
         if not args.keep:
             shutil.rmtree(workspace, ignore_errors=True)
+
+
+def build(features, name):
+    target = ROOT / '.build/power-loss' / name
+    subprocess.run(['cargo', 'build', '--locked', '--release', '--quiet', *features,
+                    '--target-dir', str(target)], cwd=ROOT, check=True)
+    return target / 'release/jaydb2'
+
+
+class PowerLossTest(unittest.TestCase):
+    def test_every_cut_kind_recovers_an_acknowledged_prefix(self):
+        fault = os.environ.get('JAYDB_POWER_LOSS_FAULT_BINARY')
+        normal = os.environ.get('JAYDB_POWER_LOSS_NORMAL_BINARY')
+        if not (fault and normal):
+            fault = build(['--features', 'storage-fault-injection'], 'fault')
+            normal = build([], 'normal')
+        status = campaign([
+            '--fault-binary', str(fault), '--normal-binary', str(normal), '--cycle-kinds',
+            '--runs', os.environ.get('JAYDB_POWER_LOSS_RUNS', str(len(KINDS))),
+            '--trials', os.environ.get('JAYDB_POWER_LOSS_TRIALS', '2'),
+            '--seed', os.environ.get('JAYDB_POWER_LOSS_SEED', '93821'),
+            '--quick', '--burst', '1',
+        ])
+        self.assertEqual(status, 0, 'see the summary event above')
+
+
+def main():
+    return campaign(None)
 
 
 if __name__ == '__main__':

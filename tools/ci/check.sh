@@ -32,6 +32,30 @@ cargo test --locked
 cargo fmt --check
 cargo clippy --locked --all-targets -- -D warnings
 if [[ "$mode" == full ]]; then
+  # The complete-image executable embeds its source checkout path at build time.
+  if ! legacy_commit=$(git rev-parse --verify --quiet 'refs/tags/thesis-2026^{commit}'); then
+    echo 'Please fetch tag thesis-2026 with git fetch origin tag thesis-2026.' >&2
+    exit 1
+  fi
+  legacy="$root/.build/release-legacy/$legacy_commit"
+  mkdir -p "$(dirname "$legacy")"
+  if [[ ! -d $legacy ]]; then
+    git worktree add --detach "$legacy" "$legacy_commit"
+  fi
+  if [[ ! -e $legacy/.tools ]]; then
+    ln -s "$root/.tools" "$legacy/.tools"
+  fi
+  cargo build --locked --release --manifest-path "$legacy/Cargo.toml" --target-dir "$legacy/target"
+  make build
+  fault_target="$root/.build/integration/fault"
+  cargo build --locked --release --features storage-fault-injection --target-dir "$fault_target"
+  JAYDB_LEGACY_BINARY="$legacy/target/release/jaydb2" \
+    JAYDB_POWER_LOSS_FAULT_BINARY="$fault_target/release/jaydb2" \
+    JAYDB_POWER_LOSS_NORMAL_BINARY="$root/target/release/jaydb2" \
+    python3 -B -m unittest -v \
+    tests.live.test_remote_worker tests.live.test_migration tests.live.test_concurrency \
+    tests.live.test_storage_upgrade tests.live.test_crash_power_loss
+  python3 -B tools/live/store_reference.py
   # Fail on new application/client boundaries before the longer core aggregates.
-  make build test-accessories-native verify-integration test test-library test-feature-integration test-recovery-integration test-demo-web
+  make test-accessories-native verify-integration test test-library test-feature-integration test-recovery-integration test-demo-web
 fi

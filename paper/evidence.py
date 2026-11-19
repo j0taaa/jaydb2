@@ -20,14 +20,17 @@ THESIS_REF='thesis-2026'
 @functools.cache
 def thesis_tree():
     import subprocess
-    listing=subprocess.run(['git','-C',str(ROOT),'ls-tree','-r','--name-only',THESIS_REF],capture_output=True,text=True)
-    return set(listing.stdout.splitlines()) if listing.returncode==0 else None
+    listing=subprocess.run(['git','-C',str(ROOT),'ls-tree','-r','--name-only',f'refs/tags/{THESIS_REF}'],capture_output=True,text=True)
+    if listing.returncode != 0:
+        raise SystemExit(f'Cannot read the thesis sources. Please fetch tag {THESIS_REF} (git fetch origin tag {THESIS_REF}).')
+    return set(listing.stdout.splitlines())
 
 
 def thesis_bytes(relative):
     import subprocess
-    if thesis_tree() is None or Path(relative).is_absolute():return (ROOT/relative).read_bytes()
-    return subprocess.run(['git','-C',str(ROOT),'show',f'{THESIS_REF}:{relative}'],check=True,capture_output=True).stdout
+    thesis_tree()
+    if Path(relative).is_absolute():return Path(relative).read_bytes()
+    return subprocess.run(['git','-C',str(ROOT),'show',f'refs/tags/{THESIS_REF}:{relative}'],check=True,capture_output=True).stdout
 
 
 def thesis_text(relative):
@@ -36,7 +39,7 @@ def thesis_text(relative):
 
 def thesis_files(directory,suffix,recursive=True):
     tree=thesis_tree()
-    if tree is None or not Path(directory).is_relative_to(ROOT):
+    if not Path(directory).is_relative_to(ROOT):
         found=Path(directory).rglob('*'+suffix) if recursive else Path(directory).glob('*'+suffix)
         return sorted(str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path) for path in found)
     prefix=str(Path(directory).relative_to(ROOT))+'/'
@@ -414,6 +417,7 @@ def validate_compute(data):
 
 
 def load():
+    thesis_tree()
     return validate({n:json.loads((ROOT/'paper/evidence'/f'{n}.json').read_text()) for n in FILES})
 
 

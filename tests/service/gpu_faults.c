@@ -4,6 +4,7 @@
 #define _GNU_SOURCE
 #include <cuda.h>
 #include <dlfcn.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,14 @@ static void tamper(int key) {
   fclose(bundle);
 }
 CUresult cuInit(unsigned int flags) {
+  const char *prior = getenv("JAYDB_TEST_GPU_RETIRED_PID");
+  FILE *file = prior ? fopen(prior, "r") : NULL;
+  if (file) {
+    int pid;
+    if (fscanf(file, "%d", &pid) == 1 && pid > 0 && kill(pid, 0) == 0)
+      note("overlap", CUDA_SUCCESS);
+    fclose(file);
+  }
   CUresult (*real)(unsigned int) = dlsym(RTLD_NEXT, "cuInit");
   CUresult r = fault("device") ? CUDA_ERROR_NO_DEVICE : real(flags);
   if (r == CUDA_SUCCESS && fault("rebuild")) tamper(1);

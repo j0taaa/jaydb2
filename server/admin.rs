@@ -6,14 +6,14 @@ use crate::{
 use serde_json::{Value, json};
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
-use std::os::unix::net::{UnixListener, UnixStream};
+use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::thread;
 
 pub struct Socket {
     path: PathBuf,
-    listener: UnixListener,
+    listener: Arc<crate::session::Listener>,
 }
 
 impl Socket {
@@ -25,18 +25,18 @@ impl Socket {
         unsafe { libc::umask(mask) };
         Ok(Self {
             path: path.to_owned(),
-            listener: listener?,
+            listener: Arc::new(listener?),
         })
     }
 
     pub fn start(&self, database: &Arc<Database>) -> Result<()> {
-        let listener = self.listener.try_clone()?;
+        let listener = Arc::clone(&self.listener);
         let database = Arc::downgrade(database);
         thread::Builder::new()
             .name("jaydb-admin".into())
             .spawn(move || {
                 loop {
-                    let mut client = crate::session::accept(&listener, "ADMIN");
+                    let mut client = listener.accept("ADMIN");
                     let result = request(&client).and_then(|(configuration, migration)| {
                         let database = database
                             .upgrade()

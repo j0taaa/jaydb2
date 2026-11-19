@@ -14,6 +14,7 @@ const ENVIRONMENT: &str = "environment";
 const OWNER: &str = "owner.lock";
 const MAGIC: &[u8] = b"jaydb2-image-v1\n";
 const OVERHEAD: usize = MAGIC.len() + 64 + 4 * 8 + 32;
+const LEGACY_PATHS: &str = "Keep the old checkout and binary at their original paths and run the upgrader from a second checkout.";
 
 pub(crate) struct Source {
     pub directory: PathBuf,
@@ -118,10 +119,16 @@ pub(crate) fn run(options: &Options, destination: &Path, source: &Source) -> Res
             .arg(&options.kernel)
             .env("TMPDIR", &temp),
         &[],
-    )?;
+    )
+    .map_err(|error| {
+        failure(format!(
+            "legacy open failed: {}. {LEGACY_PATHS}",
+            error.message
+        ))
+    })?;
     if !output.status.success() {
         return Err(failure(format!(
-            "legacy open failed: {}",
+            "legacy open failed: {}\n{LEGACY_PATHS}",
             String::from_utf8_lossy(&output.stderr).trim()
         )));
     }
@@ -172,9 +179,9 @@ fn check_controller(environment: &mut File, executable: &Path) -> Result<()> {
         .is_err()
         || stored != entry
     {
-        return Err(failure(
-            "legacy environment descriptor requires the original controller executable",
-        ));
+        return Err(failure(format!(
+            "legacy environment descriptor requires the original controller executable. {LEGACY_PATHS}"
+        )));
     }
     environment.rewind().map_err(storage_error)
 }

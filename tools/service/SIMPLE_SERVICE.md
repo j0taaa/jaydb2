@@ -113,7 +113,9 @@ default single session. `--listen SOCKET` serves multiple FIFO sessions on a
 Unix socket with the same frames. Socket threads read one message at a time
 and leave later frames in the socket receive buffer. The host accepts up to
 128 live client sessions and closes extra connections. The listener can
-reclaim a stale socket pathname when a connection is refused. Non-socket
+reclaim a stale socket pathname when a connection is refused. Client and admin
+listeners hold an exclusive lock on their adjacent `PATH.lock` file until the
+listener closes. The lock file stays in place for later startups. Non-socket
 paths and active listeners are left alone.
 
 A shared execution gate limits active transactions, and gives exclusive
@@ -184,9 +186,21 @@ controller executable bytes. After migration, open with the migrated
 configuration and preserve the controller executable and its sources/tooling.
 Process death tests do not establish hardware power-loss safety.
 
-With the old service stopped, run `./jaydb2 --configuration FILE --storage NEW_DIR --upgrade-from OLD_DIR --legacy-jaydb2 /path/to/main/target/release/jaydb2` for a one-way upgrade to a new directory.
-Keep the original trusted executable and its source checkout available so the upgrader can verify the exact legacy environment, checksum, and limits on a private copy while leaving `OLD_DIR` untouched.
-After the upgrader verifies that the canonical state loads under the current schema, open `NEW_DIR` normally with `--storage-mode open`.
+Leave the legacy checkout at the revision used to build the original executable
+and keep both at their original paths. The legacy executable loads its staging
+code from the checkout path embedded at compile time. Build the live engine in
+a second checkout and stop the legacy service. Run the upgrader from the second
+checkout with a new destination path.
+
+```sh
+./jaydb2 --configuration FILE --storage NEW_DIR --upgrade-from OLD_DIR \
+  --legacy-jaydb2 /path/to/old/checkout/target/release/jaydb2
+```
+
+The upgrader checks the exact legacy environment, checksum and limits on a
+private copy and checks that the canonical state loads under the current schema.
+Open `NEW_DIR` with `--storage-mode open` after a successful upgrade. `OLD_DIR`
+retains the legacy database.
 
 The Node helper uses only a public stack-size option, without an addon or Bend
 change. The stage uses Clang 19 with `--no-default-config`; native programs
@@ -395,8 +409,11 @@ unwrapped CPU/GPU results and complete state, bad proofs before compilation,
 missing/substituted bundles, runtime rebuild/change, device/allocation/launch/
 synchronization failures, unavailable devices and durable reopen. The test
 interposer never supplies synthetic successful results and is absent from
-production and benchmarks. `make benchmark-gpu` uses the heavy lock and
-`paper/bench/fixed-clock.sh`; both targets reuse an inherited
+production and benchmarks. `make benchmark-gpu` and `make benchmark-simulation`
+use the heavy lock and `paper/bench/fixed-clock.sh`. They write to
+`.build/live-engine-bench/gpu-programs.json` and
+`.build/live-engine-bench/simulation.json` respectively and refuse an existing
+destination. The GPU and simulation targets reuse an inherited
 `JAYDB_HEAVY_LOCK_FD` to avoid nested-lock deadlock.
 
 CPU and GPU use the same checked live worker and satisfy the same laws.

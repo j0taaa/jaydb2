@@ -1,8 +1,10 @@
 """Run with JAYDB_LEGACY_BINARY pointing to a built complete-image controller."""
 
+import json
 import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import tempfile
 import unittest
@@ -11,7 +13,7 @@ from applications.tasks.app import prepare
 from tests.service.test_end_to_end import ROOT, Server
 
 
-@unittest.skipUnless(os.environ.get('JAYDB_LEGACY_BINARY'), 'requires a built main worktree')
+@unittest.skipUnless(os.environ.get('JAYDB_LEGACY_BINARY'), 'requires a built thesis-2026 worktree')
 class StorageUpgradeTest(unittest.TestCase):
     def test_legacy_tasks_upgrade_and_rejections(self):
         legacy = Path(os.environ['JAYDB_LEGACY_BINARY']).resolve()
@@ -21,6 +23,11 @@ class StorageUpgradeTest(unittest.TestCase):
             app.mkdir()
             prepare(app)
             config = app / 'Configuration.bend'
+            # This application module name was legal in the complete-image engine.
+            (app / 'HostSchema.bend').write_text('import Base\n\ndef message_limit() -> Nat:\n  32768n\n')
+            config.write_text(config.read_text().replace(
+                'import Base\n', 'import Base\nimport ./HostSchema.bend as HostSchema\n', 1,
+            ).replace('S.Limits{32768n,', 'S.Limits{HostSchema.message_limit(),'))
             code = (app / 'Client.bend').read_text()
             proof = (app / 'ClientProof.bend').read_text().replace(
                 'def B.certificate(s, valid, identity, n):\n'
@@ -31,9 +38,10 @@ class StorageUpgradeTest(unittest.TestCase):
             old = directory / 'old'
             new = directory / 'new'
 
-            def service(path, mode, binary=None):
+            def service(path, mode, binary=None, options=()):
                 return Server(app, binary=binary, threads=1, seed=mode == 'create',
-                              arguments=['--storage', str(path), '--storage-mode', mode])
+                              arguments=['--storage', str(path), '--storage-mode', mode],
+                              options=options)
 
             def upgrade(source, destination, configuration=config, executable=legacy):
                 return subprocess.run(
@@ -72,22 +80,39 @@ class StorageUpgradeTest(unittest.TestCase):
             self.assertEqual(result.stdout, b'')
             self.assertEqual({path.name: path.read_bytes() for path in old.iterdir()}, before)
 
-            checkpoint = (new / 'checkpoint-0').read_bytes()
-            header = len(b'jaydb2-wal-checkpoint-v1\n')
-            descriptor_size = int.from_bytes(checkpoint[header + 8:header + 16], 'big')
             state_offset = len(b'jaydb2-image-v1\n') + 64 + 4 * 8
-            self.assertEqual(checkpoint[header + 16 + descriptor_size:-4],
-                             before['snapshot'][state_offset:-32])
+            # Compare exact canonical state bytes through the inspector so the
+            # assertion does not depend on the live checkpoint's disk format.
+            endpoint = str(directory / 'inspect.sock')
+            with socket.socket(socket.AF_UNIX) as listener:
+                listener.bind(endpoint)
+                listener.listen(1)
+                listener.settimeout(180)
+                recovered = service(new, 'open', options=['--inspect-socket', endpoint])
+                try:
+                    peer, _ = listener.accept()
+                    with peer, peer.makefile('rb') as feed:
+                        peer.settimeout(180)
 
-            recovered = service(new, 'open')
-            try:
-                handle = register(recovered)
-                for user, key, title, completed in rows:
-                    call(recovered, handle, user, ['view', key],
-                         dict(id=key, owner=user, title=title, completed=completed))
-                recovered.finish()
-            finally:
-                recovered.close()
+                        def frame():
+                            header = feed.read(8)
+                            self.assertEqual(len(header), 8)
+                            size = int.from_bytes(header, 'big')
+                            body = feed.read(size)
+                            self.assertEqual(len(body), size)
+                            return body
+
+                        metadata = json.loads(frame())
+                        self.assertEqual(metadata['event'], 'initialized')
+                        self.assertEqual(metadata['lsn'], 0)
+                        self.assertEqual(frame(), before['snapshot'][state_offset:-32])
+                    handle = register(recovered)
+                    for user, key, title, completed in rows:
+                        call(recovered, handle, user, ['view', key],
+                             dict(id=key, owner=user, title=title, completed=completed))
+                    recovered.finish()
+                finally:
+                    recovered.close()
 
             occupied = directory / 'empty'
             occupied.mkdir()
@@ -107,6 +132,8 @@ class StorageUpgradeTest(unittest.TestCase):
             result = upgrade(old, rejected, configuration=changed)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(b'incompatible image environment', result.stderr)
+            self.assertIn(b'keep the old checkout and binary at their original paths', result.stderr.lower())
+            self.assertIn(b'run the upgrader from a second checkout', result.stderr)
             self.assertFalse(rejected.exists())
 
             corrupt = directory / 'corrupt'

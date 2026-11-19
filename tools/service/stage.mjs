@@ -432,13 +432,43 @@ function stage(environment, directory, purpose, metadata) {
   else if (purpose === 'migrate') main = MIGRATE;
   else if (purpose === 'decode') main = PREPROCESS.replace('FUNCTION', 'framing').replace('PARSER', 'decode');
   else if (purpose === 'authenticate') main = COMMON + `import ./Dispatch.bend as Dispatch
-import ./HostSchema.bend as HostSchema
+import ./Protocol.bend as P
+
+# Export the checked configuration schema without reserving an application module.
+def kind_name(kind: D.ColumnKind) -> String:
+  match kind:
+    case D.TextValue{}: "TextValue"
+    case D.Boolean{}: "Boolean"
+    case D.Integer{}: "Integer"
+
+def columns(cs: List<&2, D.Column>) -> D.Value:
+  match cs:
+    case Nil{}: D.VListEmpty{}
+    case Con{D.Column{name, kind, optional}, rest}:
+      D.VList{D.fields_value([D.Field{"kind", D.VText{kind_name(kind)}},
+        D.Field{"name", D.VText{name}}, D.Field{"optional", D.VBool{optional}}]), columns(rest)}
+
+def tables(ts: List<&2, D.SchemaTable>) -> D.Value:
+  match ts:
+    case Nil{}: D.VListEmpty{}
+    case Con{D.SchemaTable{name, key, cs}, rest}:
+      D.VList{D.fields_value([D.Field{"columns", columns(cs)}, D.Field{"key", D.VText{key}},
+        D.Field{"name", D.VText{name}}]), tables(rest)}
+
+def encoded(result: Maybe<&2, List<&2, U32>>) -> List<&2, U32>:
+  match result:
+    case Some{bytes}: bytes
+    case None{}: Nil{}
+
+def encode_host_schema(schema: D.Schema) -> List<&2, U32>:
+  D.Schema{ts} = schema
+  encoded(P.encode(D.fields_value([D.Field{"tables", tables(ts)}])))
 
 # The host sends a one-byte selector to export the schema. Authentication starts
 # with a private length frame, even when the public request body is empty.
 def answer(bytes: List<&2, U32>) -> List<&2, U32>:
   match bytes:
-    case Con{1, Nil{}}: HostSchema.encode(S.schema(C.config()))
+    case Con{1, Nil{}}: encode_host_schema(S.schema(C.config()))
     case other: Dispatch.authentication(other, S.schema(C.config()), S.limits(C.config()))
 
 def main() -> IO(Unit):

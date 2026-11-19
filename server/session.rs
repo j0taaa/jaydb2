@@ -1,10 +1,10 @@
 use crate::{Database, Result, diagnostic, error_frame, scheduling};
 use std::ffi::c_char;
-use std::fs;
+use std::fs::{self, File, OpenOptions, TryLockError};
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{FileTypeExt, MetadataExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -97,7 +97,7 @@ pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
     let listener = bind(path)?;
     let active = Arc::new(AtomicUsize::new(0));
     loop {
-        let client = accept(&listener, "SESSION");
+        let client = listener.accept("SESSION");
         let Some(slot) = SessionSlot::acquire(&active) else {
             continue; // Dropping the socket refuses this session.
         };
@@ -114,20 +114,71 @@ pub fn listen(database: Arc<Database>, path: &Path) -> Result<()> {
     }
 }
 
-pub fn accept(listener: &UnixListener, service: &str) -> UnixStream {
-    loop {
-        match listener.accept() {
-            Ok((client, _)) => return client,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => {
-                diagnostic(format_args!("{service} accept: {error}"));
-                thread::sleep(Duration::from_millis(50));
+#[derive(Debug)]
+pub struct Listener {
+    socket: UnixListener,
+    _lock: SocketLock,
+}
+
+#[derive(Debug)]
+struct SocketLock(File);
+
+impl Drop for SocketLock {
+    fn drop(&mut self) {
+        // The listener is closed first. Release the lock even if a forked
+        // helper still shares the file description before its exec.
+        let _ = self.0.unlock();
+    }
+}
+
+impl Listener {
+    pub fn accept(&self, service: &str) -> UnixStream {
+        loop {
+            match self.socket.accept() {
+                Ok((client, _)) => return client,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => {
+                    diagnostic(format_args!("{service} accept: {error}"));
+                    thread::sleep(Duration::from_millis(50));
+                }
             }
         }
     }
 }
 
-pub fn bind(path: &Path) -> io::Result<UnixListener> {
+pub fn bind(path: &Path) -> io::Result<Listener> {
+    let mut lock_path = path.as_os_str().to_os_string();
+    lock_path.push(".lock");
+    // Keep the lock file at this pathname so every starter locks the same inode.
+    let lock = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+        .open(lock_path)?;
+    if !lock.metadata()?.is_file() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "nonregular socket lock file",
+        ));
+    }
+    lock.try_lock().map_err(|error| match error {
+        TryLockError::WouldBlock => {
+            io::Error::new(io::ErrorKind::AddrInUse, "socket path is locked")
+        }
+        TryLockError::Error(error) => error,
+    })?;
+    let lock = SocketLock(lock);
+    let socket = bind_or_reclaim(path)?;
+    Ok(Listener {
+        socket,
+        _lock: lock,
+    })
+}
+
+fn bind_or_reclaim(path: &Path) -> io::Result<UnixListener> {
     let occupied = match UnixListener::bind(path) {
         Err(error) if error.kind() == io::ErrorKind::AddrInUse => error,
         result => return result,
@@ -212,7 +263,8 @@ mod tests {
         let path = directory.path.join("service.sock");
         let listener = bind(&path).unwrap();
         assert_eq!(bind(&path).unwrap_err().kind(), io::ErrorKind::AddrInUse);
-        listener.accept().unwrap();
+        UnixStream::connect(&path).unwrap();
+        listener.socket.accept().unwrap();
         drop(listener);
         drop(bind(&path).unwrap());
 
@@ -227,5 +279,37 @@ mod tests {
         std::os::unix::fs::symlink(&target, &path).unwrap();
         assert_eq!(bind(&path).unwrap_err().kind(), io::ErrorKind::AddrInUse);
         assert_eq!(fs::read_link(&path).unwrap(), target);
+    }
+
+    #[test]
+    fn only_one_concurrent_starter_reclaims_a_stale_socket() {
+        let directory = crate::Temporary::new(&std::env::temp_dir(), "jaydb-socket-race").unwrap();
+        let path = directory.path.join("service.sock");
+        drop(UnixListener::bind(&path).unwrap());
+        let start = std::sync::Barrier::new(8);
+        let results = thread::scope(|scope| {
+            let starters: Vec<_> = (0..8)
+                .map(|_| {
+                    scope.spawn(|| {
+                        start.wait();
+                        bind(&path)
+                    })
+                })
+                .collect();
+            starters
+                .into_iter()
+                .map(|starter| starter.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        let mut listeners = Vec::new();
+        for result in results {
+            match result {
+                Ok(listener) => listeners.push(listener),
+                Err(error) => assert_eq!(error.kind(), io::ErrorKind::AddrInUse),
+            }
+        }
+        assert_eq!(listeners.len(), 1);
+        UnixStream::connect(&path).unwrap();
+        listeners[0].socket.accept().unwrap();
     }
 }

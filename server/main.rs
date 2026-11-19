@@ -897,6 +897,9 @@ impl Database {
             self.kernel.clone().into_os_string(),
         ];
         if self.gpu_mib != 0 {
+            // The official prebuild opens a CUDA context. Reap the previous
+            // worker before invoking it, while holding the sole execution slot.
+            self.idle_workers.lock().unwrap().clear();
             arguments.push(self.gpu_mib.to_string().into());
         }
         let report = json_helper(&environment.stage, &arguments)?;
@@ -993,7 +996,12 @@ impl Database {
         // share a separate budget across all handles.
         let mut worker = match idle {
             Some(worker) => worker,
-            None => Worker::spawn(&prepared.program, self.threads)?,
+            None => {
+                if prepared.program.gpu.is_some() {
+                    self.idle_workers.lock().unwrap().clear();
+                }
+                Worker::spawn(&prepared.program, self.threads)?
+            }
         };
         let input = packet(&prepared.execution_registry, body);
         let proposal = worker.run(
@@ -1229,17 +1237,20 @@ impl Database {
         // Bound parallel preparation without queuing a long compile in the
         // execution gate. Capture a consistent epoch and authentication view.
         let _preparing = self.prepare_gate.enter(false);
-        let (environment, snapshot) = {
-            let _permit = self.gate.enter(false);
+        let (environment, snapshot, gpu_permit) = {
+            let permit = self.gate.enter(false);
             let environment = self.active.read().unwrap().clone();
             if body.len() as u64 > environment.limits.message {
                 return Ok(None);
             }
             let snapshot = (*self.committer.read()).clone();
-            (environment, snapshot)
+            // CPU admission runs outside the execution gate. CUDA prebuild
+            // needs the execution slot until it releases its device context.
+            (environment, snapshot, (self.gpu_mib != 0).then_some(permit))
         };
         let mut attempt = self.timing.as_ref().map(Timing::selected);
         let proposal = self.propose(&snapshot, &environment, body, &mut attempt, inspection_id);
+        drop(gpu_permit);
         let mut diagnostic = proposal.as_ref().err().map(error_metadata);
         let mut bench = bench_start();
         let completed = match proposal {

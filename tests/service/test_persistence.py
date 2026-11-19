@@ -3,6 +3,7 @@
 Build the opt-in fault binary with `make test-persistence`. Hooks are absent
 from the normal binary. Run this heavy suite under the shared flock.
 """
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -21,7 +22,12 @@ from applications.tasks.app import prepare
 
 BINARY = Path(os.environ.get('JAYDB_PERSISTENCE_BINARY',
     ROOT/'.build/persistence/fault/release/jaydb2'))
-MAGIC = b'jaydb2-wal-checkpoint-v1\n'
+CHECKPOINT_MAGIC = b'jaydb2-wal-checkpoint-v2\n'
+SEGMENT_MAGIC = b'jaydb2-wal-segment-v2\n'
+SALT_SIZE = 16
+CHECKPOINT_LSN_OFFSET = len(CHECKPOINT_MAGIC) + SALT_SIZE
+SEGMENT_HEADER_SIZE = len(SEGMENT_MAGIC) + SALT_SIZE + 8 + 4
+FRAME_HEADER_SIZE = 8 + 4 + 8
 SEGMENT_SIZE = 8 * 1024 * 1024
 
 
@@ -31,9 +37,9 @@ def numbered(path, prefix):
 
 def wal_records(path):
     def blob(data):
-        size = int.from_bytes(data[:4], 'big')
-        assert len(data) >= 4 + size
-        return data[4:4+size], data[4+size:]
+        size = int.from_bytes(data[:8], 'big')
+        assert len(data) >= 8 + size
+        return data[8:8+size], data[8+size:]
 
     def optional(data):
         assert data[0] in (0, 1)
@@ -42,35 +48,43 @@ def wal_records(path):
     for segment in numbered(path, 'segment'):
         data = segment.read_bytes()
         preallocated = len(data) == SEGMENT_SIZE
+        header, data = data[:SEGMENT_HEADER_SIZE], data[SEGMENT_HEADER_SIZE:]
+        assert header.startswith(SEGMENT_MAGIC)
+        assert zlib.crc32(header[:-4]) == int.from_bytes(header[-4:], 'big')
+        salt = header[len(SEGMENT_MAGIC):len(SEGMENT_MAGIC)+SALT_SIZE]
         while data:
-            size = int.from_bytes(data[:4], 'big')
+            size = int.from_bytes(data[:8], 'big')
             if size == 0 and preallocated:
                 assert not data.strip(b'\0'), 'nonzero bytes after WAL padding'
                 break
-            crc = int.from_bytes(data[4:8], 'big')
-            record, data = data[8:8+size], data[8+size:]
-            assert len(record) == size and zlib.crc32(record) == crc
-            lsn = int.from_bytes(record[:8], 'big')
-            assert record[8] == 1 and int.from_bytes(record[9:13], 'big') == size
-            count = int.from_bytes(record[13:17], 'big')
-            payload, writes = record[17:], []
-            for _ in range(count):
-                collection, payload = optional(payload)
-                key, payload = blob(payload)
-                row, payload = optional(payload)
-                writes.append((collection.decode() if collection is not None else None,
-                               key.decode(), decode(row) if row is not None else None))
-            assert not payload
-            yield lsn, writes
+            crc = int.from_bytes(data[8:12], 'big')
+            tag = hashlib.sha256(b'jaydb2-wal-frame-v2\0' + salt + data[:12]).digest()[:8]
+            assert data[12:FRAME_HEADER_SIZE] == tag
+            end = FRAME_HEADER_SIZE + size
+            payload, data = data[FRAME_HEADER_SIZE:end], data[end:]
+            assert len(payload) == size and zlib.crc32(payload) == crc
+            while payload:
+                lsn = int.from_bytes(payload[:8], 'big')
+                assert payload[8] == 1  # These test databases have no migrations.
+                count = int.from_bytes(payload[9:17], 'big')
+                payload, writes = payload[17:], []
+                for _ in range(count):
+                    collection, payload = optional(payload)
+                    key, payload = blob(payload)
+                    row, payload = optional(payload)
+                    writes.append((collection.decode() if collection is not None else None,
+                                   key.decode(), decode(row) if row is not None else None))
+                yield lsn, writes
 
 
 def state_bytes(path):
     checkpoint = numbered(path, 'checkpoint')[-1].read_bytes()
     checked, crc = checkpoint[:-4], checkpoint[-4:]
-    assert checked.startswith(MAGIC) and zlib.crc32(checked) == int.from_bytes(crc, 'big')
-    lsn = int.from_bytes(checked[len(MAGIC):len(MAGIC)+8], 'big')
-    descriptor_size = int.from_bytes(checked[len(MAGIC)+8:len(MAGIC)+16], 'big')
-    state = decode(checked[len(MAGIC)+16+descriptor_size:])
+    assert checked.startswith(CHECKPOINT_MAGIC) and zlib.crc32(checked) == int.from_bytes(crc, 'big')
+    start = CHECKPOINT_LSN_OFFSET
+    lsn = int.from_bytes(checked[start:start+8], 'big')
+    descriptor_size = int.from_bytes(checked[start+8:start+16], 'big')
+    state = decode(checked[start+16+descriptor_size:])
     collections = {table['name']: table['rows'] for table in state['tables']}
     collections[None] = state['users']
     indexed = {collection: {fields['id']: fields for fields in rows}
@@ -208,7 +222,7 @@ class PersistenceTests(unittest.TestCase):
         path.write_bytes(corrupt)
         self.assertIn(b'no valid checkpoint', self.open_failure().stderr)
         incompatible = bytearray(checkpoint)
-        incompatible[len(MAGIC)+16] ^= 1
+        incompatible[CHECKPOINT_LSN_OFFSET+16] ^= 1
         incompatible[-4:] = zlib.crc32(incompatible[:-4]).to_bytes(4, 'big')
         path.write_bytes(incompatible)
         self.assertIn(b'incompatible WAL environment', self.open_failure().stderr)
@@ -311,12 +325,13 @@ class PersistenceTests(unittest.TestCase):
         server.finish()
         segment = self.path/'segment-1'
         image = segment.read_bytes()
-        end = 8 + int.from_bytes(image[:4], 'big')
+        start = SEGMENT_HEADER_SIZE
+        end = start + FRAME_HEADER_SIZE + int.from_bytes(image[start:start+8], 'big')
         entire_record = image[:end]
         with segment.open('r+b') as stream:
             # Start the torn record at the logical end, inside any reservation.
             stream.seek(end)
-            stream.write(entire_record[:-5])
+            stream.write(entire_record[start:-5])
         reopened = self.server()
         self.assertEqual(self.call(reopened, 'durable'), {'status': 'refusal', 'value': 'cancelled'})
         self.assertEqual(segment.read_bytes(), entire_record)

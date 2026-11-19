@@ -1,7 +1,7 @@
 //! The committer is the sole writer of the published snapshot and WAL.
 use crate::storage::{self, Durable};
 use crate::store::{Snapshot, StoreError, Transaction};
-use crate::wal::{Record, WriteEntry};
+use crate::wal::{FRAME_TARGET, Record, WriteEntry};
 use crate::{Error, Result, error_frame};
 use std::collections::BTreeMap;
 use std::ops::Deref;
@@ -217,7 +217,9 @@ fn run(
         }
         let mut current = published.lock().unwrap().snapshot.clone();
         let previous_lsn = current.lsn();
-        let mut records = Vec::new();
+        // Each frame is appended and synced in order; recovery keeps a
+        // prefix of whole frames, so every transaction stays atomic.
+        let mut frames = Vec::new();
         let mut replies = Vec::new();
         for Submission {
             transaction,
@@ -234,11 +236,11 @@ fn run(
                 return;
             };
             let writes = (publish && storage.is_some()).then(|| transaction.write_set());
-            let mut logged = false;
+            let mut logged = None;
             let outcome = match transaction.commit(&current, lsn) {
                 Ok(next) if publish => {
                     if let Some(writes) = writes {
-                        records.push(Record::Commit {
+                        let record = Record::Commit {
                             lsn,
                             writes: writes
                                 .into_iter()
@@ -248,8 +250,8 @@ fn run(
                                     row,
                                 })
                                 .collect(),
-                        });
-                        logged = true;
+                        };
+                        logged = Some(add_to_frames(&mut frames, record));
                     }
                     current = next;
                     Some(Completed::new(response, &current))
@@ -265,10 +267,11 @@ fn run(
             };
             replies.push((reply, outcome, logged));
         }
-        let batch_size = records.len();
-        let durable = if let Some(storage) = storage.as_ref().filter(|_| !records.is_empty()) {
-            storage
-                .append(&records)
+        let frame_sizes: Vec<usize> = frames.iter().map(|(records, _)| records.len()).collect();
+        let durable = if let Some(storage) = storage.as_ref().filter(|_| !frames.is_empty()) {
+            frames
+                .iter()
+                .try_for_each(|(records, _)| storage.append(records))
                 .and_then(|()| storage.checkpoint(previous_lsn, &current))
         } else {
             Ok(())
@@ -293,10 +296,66 @@ fn run(
             published.lock().unwrap().snapshot = current;
         }
         for (reply, mut outcome, logged) in replies {
-            if logged {
-                outcome.as_mut().unwrap().wal_batch = batch_size;
+            if let Some(frame) = logged {
+                outcome.as_mut().unwrap().wal_batch = frame_sizes[frame];
             }
             let _ = reply.send(Ok(outcome));
+        }
+    }
+}
+
+/// Adds a record to the last frame, or starts a new one when the encoded size
+/// would pass FRAME_TARGET. A larger record gets a frame of its own. Returns
+/// the record's frame index.
+fn add_to_frames(frames: &mut Vec<(Vec<Record>, usize)>, record: Record) -> usize {
+    let size = record.encoded_len();
+    match frames.last_mut() {
+        Some((records, bytes)) if bytes.saturating_add(size) <= FRAME_TARGET => {
+            records.push(record);
+            *bytes += size;
+        }
+        _ => frames.push((vec![record], size)),
+    }
+    frames.len() - 1
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn record(lsn: u64, size: usize) -> Record {
+        Record::Commit {
+            lsn,
+            writes: vec![WriteEntry {
+                collection: None,
+                key: lsn.to_string(),
+                row: Some(vec![0; size]),
+            }],
+        }
+    }
+
+    #[test]
+    fn groups_split_into_frames_by_encoded_size() {
+        let mut frames = Vec::new();
+        let sizes = [
+            10,
+            FRAME_TARGET / 2,
+            FRAME_TARGET / 2,
+            3 * FRAME_TARGET,
+            10,
+            10,
+        ];
+        let indexes: Vec<usize> = (1..)
+            .zip(sizes)
+            .map(|(lsn, size)| add_to_frames(&mut frames, record(lsn, size)))
+            .collect();
+        assert_eq!(indexes, [0, 0, 1, 2, 3, 3]);
+        for (records, bytes) in &frames {
+            assert_eq!(
+                *bytes,
+                records.iter().map(Record::encoded_len).sum::<usize>()
+            );
+            assert!(records.len() == 1 || *bytes <= FRAME_TARGET);
         }
     }
 }

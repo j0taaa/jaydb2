@@ -79,12 +79,30 @@ impl Worker {
         {
             return Err(io::Error::last_os_error().into());
         }
-        let mut child = program
-            .command(threads)
+        let mut command = program.command(threads);
+        command
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(errors.try_clone()?)
-            .spawn()?;
+            .stderr(errors.try_clone()?);
+        let child = command.spawn();
+        #[cfg(test)]
+        let child = {
+            let mut attempt = child;
+            // A parallel test can fork while a generated script is open for
+            // writing. Linux rejects exec until that child closes its copy.
+            for _ in 0..20 {
+                if !attempt
+                    .as_ref()
+                    .is_err_and(|error| error.raw_os_error() == Some(libc::ETXTBSY))
+                {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                attempt = command.spawn();
+            }
+            attempt
+        };
+        let mut child = child?;
         Ok(Self {
             input: child.stdin.take().expect("piped stdin"),
             output: BufReader::new(child.stdout.take().expect("piped stdout")),

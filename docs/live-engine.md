@@ -4,7 +4,7 @@ This branch changes how the host runs certified programs. The contract, the
 laws, the certificates and admission are unchanged. What changes is where the
 state lives and how long workers live.
 
-| Today (`main`) | Live engine |
+| Thesis engine (tag `thesis-2026`) | Live engine |
 | - | - |
 | Every call ships the whole canonical state to a fresh process and receives a whole new state back | The host keeps the state in an indexed, versioned store; the worker asks for one data operation at a time |
 | One fresh process per call | Prepared programs run in long-lived worker processes that serve many requests |
@@ -119,7 +119,8 @@ ends.
   at most one idle worker per execution slot and evicts the least recently used
   idle worker whenever the pool exceeds that budget. With concurrent execution,
   each native process defaults to one Bend runtime thread unless `--threads`
-  is set. CUDA uses one execution slot per instance.
+  is set. CUDA uses one execution slot per instance. The host reaps an idle
+  CUDA worker before prebuilding a new program or launching a different worker.
 * Optimistic concurrency control. A transaction records the rows, collection
   membership and credentials it observes. At commit its observations and written
   rows are checked against writes since its snapshot. Conflicts rerun the whole
@@ -149,15 +150,29 @@ ends.
 
 ### 4. Durability and failures (`server/wal.rs`)
 
-* Storage contains `checkpoint-<lsn>` (canonical state bytes, LSN,
-  configuration descriptor, checksum) and a write-ahead log with one frame per
-  append batch. The frame starts with a length and CRC-32, followed by the
-  records. The first record repeats the batch length after its LSN and kind.
-  The checksum covers the entire frame body. A commit record holds the write
-  set `(collection, key, row canonical bytes | removed)`.
+* Storage contains `checkpoint-<lsn>` (salt, canonical state bytes, LSN,
+  configuration descriptor, checksum) and a write-ahead log of 8 MiB
+  segments. `Log::create` draws a random 16-byte salt; every checkpoint and
+  every segment header (magic, salt, first LSN, CRC-32) stores it.
+* A frame is a 20-byte header — body length (u64), CRC-32 of the body, and an
+  8-byte tag, SHA-256(salt, length, CRC) truncated — followed by whole
+  records. A commit record holds the write set
+  `(collection, key, row canonical bytes | removed)`; all lengths are u64, so
+  any in-memory transaction or epoch encodes. A frame verifies only with the
+  log's salt, so frame images inside user rows never count as WAL data. The
+  committer appends each group as frames of at most 4 MiB of records (a larger
+  record gets its own frame), each written and synced before the next.
 * Recovery loads the newest valid checkpoint and replays later records in LSN
-  order. Recovery discards a torn or corrupt tail batch in full and refuses
-  to open if a valid batch follows the corruption.
+  order. It never trusts a length read from a frame that fails to verify. At
+  such a frame it searches every later byte of the segment for a frame that
+  verifies: if one exists (or a later segment exists) the log is corrupt and
+  the host refuses to open; otherwise the frame is a torn tail, discarded in
+  full and truncated. A zero-filled preallocated suffix ends the log. A final
+  segment whose header does not verify and holds no verifying frame is a lost
+  first sync and is removed; a header with another log's salt is refused.
+  Limit: damage that destroys every frame of the final segment (for example,
+  all of them inside one overwritten sector) leaves no evidence and looks
+  like a lost first sync.
 * Checkpoints are scheduled from the final snapshot of a batch when it crosses
   a 256-LSN boundary and the checkpoint queue has room. The background
   writer saves a temp file, syncs it, renames it and syncs the directory.

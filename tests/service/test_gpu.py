@@ -353,6 +353,43 @@ class GpuTests(unittest.TestCase):
             self.assertLessEqual(max(values) - min(values), allowance, samples)
         server.finish()
 
+    def test_gpu_worker_exits_before_starting_a_different_program(self):
+        with tempfile.TemporaryDirectory(prefix='gpu-residency-') as tmp:
+            folder = Path(tmp)
+            library, trace, retired = folder/'trace.so', folder/'trace', folder/'retired'
+            subprocess.run(['gcc', '-shared', '-fPIC', str(ROOT/'tests/service/gpu_faults.c'),
+                            '-o', str(library), '-ldl'], check=True)
+            server = self.server(env=dict(os.environ, LD_PRELOAD=str(library),
+                                          JAYDB_TEST_GPU_TRACE=str(trace),
+                                          JAYDB_TEST_GPU_RETIRED_PID=str(retired)))
+            first = self.register(server)
+            second = self.register(server)
+            self.assertNotEqual(first, second)
+
+            def watch_resident_worker():
+                children = Path(f'/proc/{server.process.pid}/task/{server.process.pid}/children')
+                gpu_pids = subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                                    '--format=csv,noheader,nounits'], text=True)
+                worker, = set(children.read_text().split()) & set(gpu_pids.split())
+                retired.write_text(worker)
+                trace.write_text('')
+
+            def check_launch():
+                events = trace.read_text().splitlines()
+                self.assertIn('allocation 0', events)
+                self.assertIn('launch 0', events)
+                self.assertNotIn('overlap 0', events)
+
+            self.execute(server, first, 'alice-token', 'abc')
+            watch_resident_worker()
+            self.execute(server, second, 'abc', 'abcd')
+            check_launch()
+            watch_resident_worker()
+            self.assertEqual(server.call(CODE, CONCRETE, 'abcd', 'abcde'),
+                             {'status': 'success', 'value': oracle(5)}, server.diagnostics())
+            check_launch()
+            server.finish()
+
     def test_bang_free_program_runs_on_cpu_with_gpu_enabled(self):
         from tests.service.test_prepared import universal_access_proof
 

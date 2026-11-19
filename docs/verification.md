@@ -49,7 +49,14 @@ both official modes, including the live worker refinement in `proof/Remote*.bend
 It runs proof-negative controls, real native and service tests,
 library applications, storage-fault and lost-response recovery tests, the web
 demo, TypeScript real-service checks, the starter templates, and persistent task
-usage, plus generated SQL certificates and real Drizzle CRUD/rollback/recovery
+usage. It also runs the live worker, migration, concurrency, offline storage
+upgrade and power-loss suites and compares the store with the Bend reference.
+The offline upgrade uses a legacy controller built from tag `thesis-2026` in a
+separate cached worktree under `.build/release-legacy/`. Fetch that tag with
+`git fetch origin tag thesis-2026` if it is absent. Real CUDA tests run separately
+with `make test-gpu`.
+
+The gate runs generated SQL certificates and real Drizzle CRUD/rollback/recovery
 (`make test-sql-native`) and seeded SQL/Drizzle differential checks against
 SQLite with real native workers (`make test-sql-stress`). The latter runs 600
 randomized operations by default plus rollback, concurrency, authentication

@@ -2,22 +2,36 @@
 #![allow(dead_code)]
 
 use crate::storage::fault_point;
+use sha2::{Digest, Sha256};
 use std::fs::{self, DirBuilder, File, OpenOptions};
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 use std::os::unix::fs::{DirBuilderExt, FileExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 const SEGMENT_SIZE: u64 = 8 * 1024 * 1024;
-const CHECKPOINT_MAGIC: &[u8] = b"jaydb2-wal-checkpoint-v1\n";
+/// Callers split larger groups into several frames, each synced in order.
+pub const FRAME_TARGET: usize = 4 * 1024 * 1024;
+const CHECKPOINT_MAGIC: &[u8] = b"jaydb2-wal-checkpoint-v2\n";
 const CHECKPOINT_TEMP: &str = ".checkpoint.tmp";
 const OWNER: &str = "owner.lock";
-const FRAME_HEADER: usize = 8;
+const SALT: usize = 16;
+const SEGMENT_MAGIC: &[u8] = b"jaydb2-wal-segment-v2\n";
+/// Magic, salt, first LSN, CRC-32 of the preceding fields.
+const SEGMENT_HEADER: usize = SEGMENT_MAGIC.len() + SALT + 8 + 4;
+const FRAME_TAG: &[u8] = b"jaydb2-wal-frame-v2\0";
+/// Body length (u64), body CRC-32, salted tag of the two (8 bytes).
+const FRAME_HEADER: usize = 8 + 4 + 8;
 const RECORD_HEADER: usize = 8 + 1; // LSN, kind
-const REPEATED_LENGTH: usize = FRAME_HEADER + RECORD_HEADER;
-const MIN_FRAME: usize = REPEATED_LENGTH + 4 + 4;
+const MIN_BODY: usize = RECORD_HEADER + 8; // A commit with no writes.
+const MIN_FRAME: usize = FRAME_HEADER + MIN_BODY;
+const MIN_WRITE: usize = 1 + 8 + 1;
 const COMMIT: u8 = 1;
 const EPOCH: u8 = 2;
+
+/// Random per-log value in every checkpoint and segment header. Frame tags
+/// include it, so bytes inside user rows cannot form a frame that verifies.
+type Salt = [u8; SALT];
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct WriteEntry {
@@ -45,6 +59,29 @@ impl Record {
             Self::Commit { lsn, .. } | Self::Epoch { lsn, .. } => *lsn,
         }
     }
+
+    /// Bytes this record adds to a frame body (approximate for epochs under
+    /// storage-fault-injection, which rebinds the descriptor).
+    pub fn encoded_len(&self) -> usize {
+        let optional = |value: Option<usize>| 1 + value.map_or(0, |len| 8 + len);
+        RECORD_HEADER
+            + match self {
+                Self::Commit { writes, .. } => {
+                    8 + writes
+                        .iter()
+                        .map(|write| {
+                            optional(write.collection.as_ref().map(String::len))
+                                + 8
+                                + write.key.len()
+                                + optional(write.row.as_ref().map(Vec::len))
+                        })
+                        .sum::<usize>()
+                }
+                Self::Epoch {
+                    descriptor, state, ..
+                } => 8 + descriptor.len() + 8 + state.len(),
+            }
+    }
 }
 
 #[derive(Debug)]
@@ -61,6 +98,7 @@ pub struct Recovered {
 pub struct Log {
     path: PathBuf,
     directory: File,
+    salt: Salt,
     // Only checkpoint callers take this lock. They take writer briefly before
     // writing the snapshot and again after its directory entry is durable.
     checkpoints: Mutex<Checkpoints>,
@@ -123,9 +161,12 @@ impl Log {
             .filter(|parent| !parent.as_os_str().is_empty())
             .unwrap_or(Path::new("."));
         File::open(parent)?.sync_all()?;
+        let mut salt = [0; SALT];
+        File::open("/dev/urandom")?.read_exact(&mut salt)?;
         let log = Self {
             path: path.to_owned(),
             directory,
+            salt,
             _owner: owner,
             checkpoints: Mutex::new(Checkpoints {
                 latest: 0,
@@ -140,7 +181,7 @@ impl Log {
         };
         log.write_checkpoint(0, descriptor, initial_state)?;
         #[cfg(feature = "storage-fault-injection")]
-        power_loss::start(path)?;
+        power_loss::start(path, salt)?;
         Ok(log)
     }
 
@@ -155,15 +196,16 @@ impl Log {
             .last()
             .copied()
             .ok_or_else(|| invalid("WAL has no checkpoint"))?;
-        let mut recovered = loop {
+        let recovered = loop {
             let lsn = checkpoints
                 .pop()
                 .ok_or_else(|| invalid("WAL has no valid checkpoint"))?;
             let bytes = fs::read(checkpoint_path(path, lsn))?;
-            if let Some(recovered) = decode_checkpoint(&bytes, lsn) {
-                break recovered;
+            if let Some(found) = decode_checkpoint(&bytes, lsn) {
+                break found;
             }
         };
+        let (salt, mut recovered) = recovered;
         let checkpoint_lsn = recovered.lsn;
         let mut writer = Writer {
             lsn: checkpoint_lsn,
@@ -183,21 +225,41 @@ impl Log {
             }
             let is_tail = Some(&first) == segments.last();
             let bytes = fs::read(&file_path)?;
-            let mut offset = 0;
+            let corrupt = |offset: usize| {
+                invalid(format!(
+                    "corrupt WAL batch in segment {first} at byte {offset}"
+                ))
+            };
             let mut last = first - 1;
             let mut torn = false;
+            let mut offset = match decode_segment_header(&bytes) {
+                Some((found, start)) if found == salt && start == first => SEGMENT_HEADER,
+                Some(_) => {
+                    return Err(invalid(format!(
+                        "WAL segment {first} belongs to another log"
+                    )));
+                }
+                // Only the final segment's first sync may be torn, and only if
+                // no frame that verifies follows.
+                None if is_tail && !has_valid_frame(&bytes, &salt) => {
+                    torn = true;
+                    bytes.len()
+                }
+                None => return Err(corrupt(0)),
+            };
+            let header = !torn;
             while offset < bytes.len() {
                 let remaining = &bytes[offset..];
-                let Some((size, records)) = decode_batch(remaining) else {
+                let Some((size, records)) = decode_frame(remaining, &salt) else {
                     // A fully initialized segment may have a zero-filled suffix.
                     if bytes.len() as u64 == SEGMENT_SIZE && remaining.iter().all(|&byte| byte == 0)
                     {
                         break;
                     }
-                    if !is_tail || has_later_batch(remaining) {
-                        return Err(invalid(format!(
-                            "corrupt WAL batch in segment {first} at byte {offset}"
-                        )));
+                    // Never trust a length from a frame that failed to verify:
+                    // search every later byte for a frame that verifies.
+                    if !is_tail || has_valid_frame(&remaining[1..], &salt) {
+                        return Err(corrupt(offset));
                     }
                     torn = true;
                     break;
@@ -234,7 +296,7 @@ impl Log {
                 }
             }
             if is_tail {
-                tail = Some((first, last, offset as u64, bytes.len() as u64, torn));
+                tail = Some((first, last, offset as u64, bytes.len() as u64, torn, header));
             } else if last < first {
                 return Err(invalid(format!("empty non-final WAL segment {first}")));
             } else {
@@ -253,7 +315,10 @@ impl Log {
             return Err(input_error("incompatible WAL environment descriptor"));
         }
 
-        if let Some((first, last, bytes, mut capacity, torn)) = tail {
+        if let Some((first, _, _, _, _, false)) = tail {
+            // A segment whose header never became durable holds nothing.
+            fs::remove_file(segment_path(path, first))?;
+        } else if let Some((first, last, bytes, mut capacity, torn, _)) = tail {
             let file = OpenOptions::new()
                 .write(true)
                 .open(segment_path(path, first))?;
@@ -279,11 +344,12 @@ impl Log {
         directory.sync_all()?;
         writer.lsn = recovered.lsn;
         #[cfg(feature = "storage-fault-injection")]
-        power_loss::start(path)?;
+        power_loss::start(path, salt)?;
         Ok((
             Self {
                 path: path.to_owned(),
                 directory,
+                salt,
                 _owner: owner,
                 checkpoints: Mutex::new(Checkpoints {
                     latest: checkpoint_lsn,
@@ -314,7 +380,7 @@ impl Log {
             }
             last = record.lsn();
         }
-        let bytes = encode_batch(records)?;
+        let bytes = encode_frame(records, &self.salt)?;
         if let Err(error) = self.write_batch(&mut writer, first, last, &bytes) {
             writer.failed = true;
             return Err(error);
@@ -327,16 +393,20 @@ impl Log {
         writer: &mut Writer,
         first: u64,
         last: u64,
-        bytes: &[u8],
+        frame: &[u8],
     ) -> io::Result<()> {
-        let len = bytes.len() as u64;
+        // Before any file is created, so a failure here leaves no new segment.
+        fault_point("wal_before_write")?;
+        let len = frame.len() as u64;
         if writer.active.as_ref().is_some_and(|segment| {
-            segment.bytes != 0 && segment.bytes.saturating_add(len) > SEGMENT_SIZE
+            segment.bytes > SEGMENT_HEADER as u64
+                && segment.bytes.saturating_add(len) > SEGMENT_SIZE
         }) {
             let segment = writer.active.take().unwrap();
             writer.closed.push((segment.first, writer.lsn));
         }
         let created = writer.active.is_none();
+        let mut data = Vec::new();
         if created {
             let file = new_file(&segment_path(&self.path, first))?;
             writer.active = Some(Segment {
@@ -345,18 +415,21 @@ impl Log {
                 capacity: 0,
                 file,
             });
+            // The header and the first frame share one write and one sync.
+            data = encode_segment_header(&self.salt, first);
+            data.extend_from_slice(frame);
         }
+        let data = if created { &data[..] } else { frame };
         let segment = writer.active.as_mut().unwrap();
-        fault_point("wal_before_write")?;
-        let end = segment.bytes + len;
+        let end = segment.bytes + data.len() as u64;
         if end <= SEGMENT_SIZE && segment.capacity < SEGMENT_SIZE {
             segment.reserve()?;
         }
-        segment.file.write_all_at(bytes, segment.bytes)?;
+        segment.file.write_all_at(data, segment.bytes)?;
         fault_point("wal_before_sync")?;
         segment.file.sync_data()?;
         #[cfg(feature = "storage-fault-injection")]
-        power_loss::synced(&segment.file, Some((segment.bytes, bytes)), "wal")?;
+        power_loss::synced(&segment.file, Some((segment.bytes, data, frame)), "wal")?;
         if created {
             #[cfg(feature = "storage-fault-injection")]
             let _synced = power_loss::DirectorySync::begin(&self.path, "segment-name")?;
@@ -388,7 +461,7 @@ impl Log {
                 && writer
                     .active
                     .as_ref()
-                    .is_some_and(|segment| segment.bytes != 0)
+                    .is_some_and(|segment| segment.bytes > SEGMENT_HEADER as u64)
             {
                 let segment = writer.active.take().unwrap();
                 let end = writer.lsn;
@@ -425,6 +498,7 @@ impl Log {
         let mut checksum = crc32fast::Hasher::new();
         for bytes in [
             CHECKPOINT_MAGIC,
+            &self.salt,
             &lsn.to_be_bytes(),
             &(descriptor.len() as u64).to_be_bytes(),
             descriptor,
@@ -528,88 +602,112 @@ fn input_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidInput, message.into())
 }
 
-fn encode_batch(records: &[Record]) -> io::Result<Vec<u8>> {
-    let mut bytes = vec![0; FRAME_HEADER];
-    for (index, record) in records.iter().enumerate() {
+fn encode_segment_header(salt: &Salt, first: u64) -> Vec<u8> {
+    let mut bytes = [SEGMENT_MAGIC, salt, &first.to_be_bytes()].concat();
+    let crc = crc32fast::hash(&bytes);
+    bytes.extend_from_slice(&crc.to_be_bytes());
+    bytes
+}
+
+/// Salt and first LSN of a segment whose header verifies.
+fn decode_segment_header(bytes: &[u8]) -> Option<(Salt, u64)> {
+    let (header, crc) = bytes.get(..SEGMENT_HEADER)?.split_last_chunk::<4>()?;
+    let mut rest = header.strip_prefix(SEGMENT_MAGIC)?;
+    if crc32fast::hash(header) != u32::from_be_bytes(*crc) {
+        return None;
+    }
+    let salt = *rest.split_first_chunk::<SALT>()?.0;
+    rest = &rest[SALT..];
+    Some((salt, read_u64(&mut rest)?))
+}
+
+fn frame_tag(salt: &Salt, len: u64, crc: u32) -> [u8; 8] {
+    let digest = Sha256::new()
+        .chain_update(FRAME_TAG)
+        .chain_update(salt)
+        .chain_update(len.to_be_bytes())
+        .chain_update(crc.to_be_bytes())
+        .finalize();
+    *digest.first_chunk().unwrap()
+}
+
+fn encode_frame(records: &[Record], salt: &Salt) -> io::Result<Vec<u8>> {
+    let capacity = FRAME_HEADER + records.iter().map(Record::encoded_len).sum::<usize>();
+    let mut bytes = Vec::with_capacity(capacity);
+    bytes.resize(FRAME_HEADER, 0);
+    for record in records {
         bytes.extend_from_slice(&record.lsn().to_be_bytes());
-        bytes.push(match record {
-            Record::Commit { .. } => COMMIT,
-            Record::Epoch { .. } => EPOCH,
-        });
-        if index == 0 {
-            bytes.extend_from_slice(&[0; 4]);
-        }
         match record {
             Record::Commit { writes, .. } => {
-                bytes.extend_from_slice(&length(writes.len())?.to_be_bytes());
+                bytes.push(COMMIT);
+                bytes.extend_from_slice(&(writes.len() as u64).to_be_bytes());
                 for write in writes {
-                    put_optional(&mut bytes, write.collection.as_deref().map(str::as_bytes))?;
-                    put_blob(&mut bytes, write.key.as_bytes())?;
-                    put_optional(&mut bytes, write.row.as_deref())?;
+                    put_optional(&mut bytes, write.collection.as_deref().map(str::as_bytes));
+                    put_blob(&mut bytes, write.key.as_bytes());
+                    put_optional(&mut bytes, write.row.as_deref());
                 }
             }
             Record::Epoch {
                 descriptor, state, ..
             } => {
+                bytes.push(EPOCH);
                 #[cfg(feature = "storage-fault-injection")]
                 let descriptor: &[u8] = &power_loss::bind(descriptor)?;
-                put_blob(&mut bytes, descriptor)?;
-                put_blob(&mut bytes, state)?;
+                put_blob(&mut bytes, descriptor);
+                put_blob(&mut bytes, state);
             }
         }
     }
-    let size = length(bytes.len() - FRAME_HEADER)?.to_be_bytes();
-    bytes[REPEATED_LENGTH..REPEATED_LENGTH + 4].copy_from_slice(&size);
+    let len = (bytes.len() - FRAME_HEADER) as u64;
     let crc = crc32fast::hash(&bytes[FRAME_HEADER..]);
-    bytes[..4].copy_from_slice(&size);
-    bytes[4..FRAME_HEADER].copy_from_slice(&crc.to_be_bytes());
+    bytes[..8].copy_from_slice(&len.to_be_bytes());
+    bytes[8..12].copy_from_slice(&crc.to_be_bytes());
+    bytes[12..FRAME_HEADER].copy_from_slice(&frame_tag(salt, len, crc));
     Ok(bytes)
 }
 
-fn length(len: usize) -> io::Result<u32> {
-    u32::try_from(len).map_err(|_| input_error("WAL data exceeds the format size limit"))
-}
-
-fn put_blob(bytes: &mut Vec<u8>, value: &[u8]) -> io::Result<()> {
-    bytes.extend_from_slice(&length(value.len())?.to_be_bytes());
+fn put_blob(bytes: &mut Vec<u8>, value: &[u8]) {
+    bytes.extend_from_slice(&(value.len() as u64).to_be_bytes());
     bytes.extend_from_slice(value);
-    Ok(())
 }
 
-fn put_optional(bytes: &mut Vec<u8>, value: Option<&[u8]>) -> io::Result<()> {
+fn put_optional(bytes: &mut Vec<u8>, value: Option<&[u8]>) {
     if let Some(value) = value {
         bytes.push(1);
-        put_blob(bytes, value)?;
+        put_blob(bytes, value);
     } else {
         bytes.push(0);
     }
-    Ok(())
 }
 
-fn decode_batch(mut bytes: &[u8]) -> Option<(usize, Vec<Record>)> {
-    let len = read_u32(&mut bytes)? as usize;
-    let crc = read_u32(&mut bytes)?;
-    let mut payload = take(&mut bytes, len)?;
-    let contents = payload;
-    let lsn = read_u64(&mut payload)?;
-    let kind = take(&mut payload, 1)?[0];
-    if read_u32(&mut payload)? as usize != len || crc32fast::hash(contents) != crc {
+/// A frame that verifies at the start of `bytes`: its size and records.
+fn decode_frame(bytes: &[u8], salt: &Salt) -> Option<(usize, Vec<Record>)> {
+    let (header, rest) = bytes.split_first_chunk::<FRAME_HEADER>()?;
+    let len = u64::from_be_bytes(*header.first_chunk().unwrap());
+    let crc = u32::from_be_bytes(header[8..12].try_into().unwrap());
+    // Cheap bounds first; the salted tag before reading the body.
+    if len < MIN_BODY as u64 || len > rest.len() as u64 || frame_tag(salt, len, crc) != header[12..]
+    {
         return None;
     }
-    let mut records = vec![decode_record(&mut payload, lsn, kind)?];
+    let mut payload = &rest[..len as usize];
+    if crc32fast::hash(payload) != crc {
+        return None;
+    }
+    let mut records = Vec::new();
     while !payload.is_empty() {
         let lsn = read_u64(&mut payload)?;
         let kind = take(&mut payload, 1)?[0];
         records.push(decode_record(&mut payload, lsn, kind)?);
     }
-    Some((FRAME_HEADER + len, records))
+    Some((FRAME_HEADER + len as usize, records))
 }
 
 fn decode_record(payload: &mut &[u8], lsn: u64, kind: u8) -> Option<Record> {
     Some(match kind {
         COMMIT => {
-            let count = read_u32(payload)? as usize;
-            if count > payload.len() / 6 {
+            let count = read_u64(payload)?;
+            if count > (payload.len() / MIN_WRITE) as u64 {
                 return None;
             }
             let mut writes = Vec::new();
@@ -638,54 +736,38 @@ fn decode_record(payload: &mut &[u8], lsn: u64, kind: u8) -> Option<Record> {
     })
 }
 
-fn has_later_batch(bytes: &[u8]) -> bool {
-    // When both lengths agree, skip the damaged batch so a frame encoded
-    // inside an opaque row cannot masquerade as later WAL data.
-    let first_length = bytes.first_chunk::<4>().copied().map(u32::from_be_bytes);
-    let repeated_length = bytes
-        .get(REPEATED_LENGTH..)
-        .and_then(<[u8]>::first_chunk::<4>)
-        .copied()
-        .map(u32::from_be_bytes);
-    let start = match (first_length, repeated_length) {
-        (Some(length), Some(repeated))
-            if length == repeated && length as usize >= MIN_FRAME - FRAME_HEADER =>
-        {
-            FRAME_HEADER.saturating_add(length as usize)
-        }
-        _ => 1,
-    };
-    (start..bytes.len().saturating_sub(MIN_FRAME - 1))
-        .any(|offset| decode_batch(&bytes[offset..]).is_some())
+/// Whether a frame that verifies starts at any offset. Lengths read from
+/// damaged frames are never used to skip ahead.
+fn has_valid_frame(bytes: &[u8], salt: &Salt) -> bool {
+    (0..bytes.len().saturating_sub(MIN_FRAME - 1))
+        .any(|offset| decode_frame(&bytes[offset..], salt).is_some())
 }
 
-fn decode_checkpoint(bytes: &[u8], expected_lsn: u64) -> Option<Recovered> {
+fn decode_checkpoint(bytes: &[u8], expected_lsn: u64) -> Option<(Salt, Recovered)> {
     let (body, crc) = bytes.split_last_chunk::<4>()?;
-    let mut contents = body.strip_prefix(CHECKPOINT_MAGIC)?;
+    let contents = body.strip_prefix(CHECKPOINT_MAGIC)?;
+    let (salt, mut contents) = contents.split_first_chunk::<SALT>()?;
     let lsn = read_u64(&mut contents)?;
     if lsn != expected_lsn || u32::from_be_bytes(*crc) != crc32fast::hash(body) {
         return None;
     }
     let len = usize::try_from(read_u64(&mut contents)?).ok()?;
     let descriptor = take(&mut contents, len)?.to_vec();
-    Some(Recovered {
-        lsn,
-        descriptor,
-        state: contents.to_vec(),
-        commits: Vec::new(),
-    })
+    Some((
+        *salt,
+        Recovered {
+            lsn,
+            descriptor,
+            state: contents.to_vec(),
+            commits: Vec::new(),
+        },
+    ))
 }
 
 fn take<'a>(bytes: &mut &'a [u8], len: usize) -> Option<&'a [u8]> {
     let (value, rest) = bytes.split_at_checked(len)?;
     *bytes = rest;
     Some(value)
-}
-
-fn read_u32(bytes: &mut &[u8]) -> Option<u32> {
-    let (value, rest) = bytes.split_first_chunk()?;
-    *bytes = rest;
-    Some(u32::from_be_bytes(*value))
 }
 
 fn read_u64(bytes: &mut &[u8]) -> Option<u64> {
@@ -695,7 +777,7 @@ fn read_u64(bytes: &mut &[u8]) -> Option<u64> {
 }
 
 fn read_blob<'a>(bytes: &mut &'a [u8]) -> Option<&'a [u8]> {
-    let len = read_u32(bytes)? as usize;
+    let len = usize::try_from(read_u64(bytes)?).ok()?;
     take(bytes, len)
 }
 
@@ -716,7 +798,10 @@ mod power_loss {
     //! hook copies the directory with every unsynced 4 KiB block kept,
     //! reverted or torn and every unsynced name change applied or not, then
     //! exits. Other threads wait at their next hook until the process exits.
-    use super::{Record, decode_batch, input_error, read_u64, take};
+    use super::{
+        Record, SEGMENT_HEADER, Salt, decode_frame, decode_segment_header, input_error, read_u64,
+        take,
+    };
     use serde_json::{Value, json};
     use std::collections::{BTreeMap, BTreeSet, HashMap};
     use std::fs::{self, File};
@@ -736,6 +821,7 @@ mod power_loss {
 
     struct Tracker {
         path: PathBuf,
+        salt: Salt,
         kind: String,
         remaining: u64,
         output: PathBuf,
@@ -752,7 +838,7 @@ mod power_loss {
 
     static TRACKER: Mutex<Option<Tracker>> = Mutex::new(None);
 
-    pub(super) fn start(path: &Path) -> io::Result<()> {
+    pub(super) fn start(path: &Path, salt: Salt) -> io::Result<()> {
         let Some(spec) = std::env::var_os("JAYDB_POWER_LOSS_CUT") else {
             return Ok(());
         };
@@ -776,6 +862,7 @@ mod power_loss {
         }
         *TRACKER.lock().unwrap() = Some(Tracker {
             path: path.to_owned(),
+            salt,
             kind,
             remaining,
             output: std::env::var_os("JAYDB_POWER_LOSS_DIR")
@@ -793,19 +880,23 @@ mod power_loss {
     }
 
     /// After a file sync. `write` is all data written since the previous
-    /// sync, as for WAL frames; without it the file is read back.
-    pub(super) fn synced(file: &File, write: Option<(u64, &[u8])>, kind: &str) -> io::Result<()> {
+    /// sync and the WAL frame within it; without it the file is read back.
+    pub(super) fn synced(
+        file: &File,
+        write: Option<(u64, &[u8], &[u8])>,
+        kind: &str,
+    ) -> io::Result<()> {
         let mut guard = TRACKER.lock().unwrap();
         let Some(tracker) = guard.as_mut() else {
             return Ok(());
         };
-        let batch = write.map(|(_, bytes)| summary(bytes));
+        let batch = write.map(|(_, _, frame)| summary(frame, &tracker.salt));
         // A WAL batch with an epoch record is offered as its own kind.
         let epoch = batch.as_ref().is_some_and(|batch| batch.2);
         tracker.offer(if epoch { "epoch" } else { kind })?;
         let metadata = file.metadata()?;
         let image = tracker.images.entry(id(&metadata)).or_default();
-        if let (Some((offset, bytes)), Some((first, batch, _))) = (write, batch) {
+        if let (Some((offset, bytes, _)), Some((first, batch, _))) = (write, batch) {
             let end = offset as usize + bytes.len();
             image.1.resize(image.1.len().max(end), 0);
             image.1[offset as usize..end].copy_from_slice(bytes);
@@ -910,9 +1001,13 @@ mod power_loss {
             // Unsynced frames exist only in the files.
             let mut batches = self.batches.clone();
             for id in now.iter().filter(|(name, _)| name.starts_with("segment-")) {
-                let mut rest = &contents[id.1][..];
-                while let Some((size, _)) = decode_batch(rest) {
-                    let (first, batch, _) = summary(&rest[..size]);
+                let bytes = &contents[id.1][..];
+                if decode_segment_header(bytes).is_none() {
+                    continue;
+                }
+                let mut rest = &bytes[SEGMENT_HEADER..];
+                while let Some((size, _)) = decode_frame(rest, &self.salt) {
+                    let (first, batch, _) = summary(&rest[..size], &self.salt);
                     batches.insert(first, batch);
                     rest = &rest[size..];
                 }
@@ -1020,8 +1115,8 @@ mod power_loss {
         (len, bytes)
     }
 
-    fn summary(frame: &[u8]) -> (u64, Value, bool) {
-        let (_, records) = decode_batch(frame).expect("encoded WAL batch");
+    fn summary(frame: &[u8], salt: &Salt) -> (u64, Value, bool) {
+        let (_, records) = decode_frame(frame, salt).expect("encoded WAL batch");
         let records: Vec<_> = records
             .into_iter()
             .map(|record| match record {
@@ -1073,6 +1168,9 @@ mod tests {
     const DESCRIPTOR: &[u8] = b"schema and limits";
     const INITIAL: &[u8] = b"initial state";
     const CHILD_PATH: &str = "JAYDB_TEST_WAL_CHILD_PATH";
+    /// What a user who plants frame images in rows can produce: any salt
+    /// but the log's own.
+    const FOREIGN: Salt = [0x5a; SALT];
 
     fn database() -> (Temporary, PathBuf, Log) {
         let parent = Temporary::new(&std::env::temp_dir(), "jaydb-wal").unwrap();
@@ -1155,6 +1253,7 @@ mod tests {
         log.append(&[commit(1)]).unwrap();
         let segment = segment_path(&path, 1);
         let end = active_bytes(&log);
+        let salt = log.salt;
         drop(log);
         let image = fs::read(&segment).unwrap();
         assert_eq!(image.len() as u64, SEGMENT_SIZE);
@@ -1172,7 +1271,7 @@ mod tests {
         );
         assert_eq!(fs::metadata(&segment).unwrap().len(), SEGMENT_SIZE);
 
-        let frame = encode_batch(&[commit(2)]).unwrap();
+        let frame = encode_frame(&[commit(2)], &salt).unwrap();
         let mut torn = image;
         let partial = frame.len() - 1;
         torn[end..end + partial].copy_from_slice(&frame[..partial]);
@@ -1198,9 +1297,9 @@ mod tests {
         log.append(&[commit(1)]).unwrap();
         let segment = segment_path(&path, 1);
         let start = active_bytes(&log);
-        // Canonical row bytes are opaque. Even a complete encoded frame in a
-        // partially written row must not count as a later batch.
-        let mut nested = encode_batch(&[commit(3)]).unwrap();
+        // Canonical row bytes are opaque. A complete frame image in a
+        // partially written row cannot verify without the log's salt.
+        let mut nested = encode_frame(&[commit(3)], &FOREIGN).unwrap();
         nested.extend_from_slice(b"rest of row");
         log.append(&[Record::Commit {
             lsn: 2,
@@ -1264,13 +1363,18 @@ mod tests {
         let second = active_bytes(&log);
         log.append(&[commit(2), commit(3)]).unwrap();
         log.append(&[commit(4)]).unwrap();
+        let salt = log.salt;
         drop(log);
         let image = fs::read(&segment).unwrap();
         for offset in [
+            0,
+            SEGMENT_MAGIC.len(),
             second,
-            second + 4,
+            second + 7,
+            second + 8,
+            second + 12,
             second + FRAME_HEADER,
-            second + REPEATED_LENGTH,
+            second + FRAME_HEADER + RECORD_HEADER,
         ] {
             let mut corrupt = image.clone();
             corrupt[offset] ^= 0x80;
@@ -1281,14 +1385,14 @@ mod tests {
         }
 
         let mut gap = image[..second].to_vec();
-        gap.extend_from_slice(&encode_batch(&[commit(3)]).unwrap());
+        gap.extend_from_slice(&encode_frame(&[commit(3)], &salt).unwrap());
         fs::write(&segment, &gap).unwrap();
         let error = open_error(&path, DESCRIPTOR);
         assert!(error.to_string().contains("LSN gap"), "{error}");
 
         // The same corruption is recoverable at the very end.
         let mut torn = image[..second].to_vec();
-        torn.extend_from_slice(&encode_batch(&[commit(2)]).unwrap());
+        torn.extend_from_slice(&encode_frame(&[commit(2)], &salt).unwrap());
         *torn.last_mut().unwrap() ^= 1;
         fs::write(&segment, &torn).unwrap();
         assert_eq!(
@@ -1296,6 +1400,179 @@ mod tests {
             commits(1..=1)
         );
         assert_eq!(fs::metadata(&segment).unwrap().len(), second as u64);
+    }
+
+    #[test]
+    fn frame_lengths_are_exact_and_salted() {
+        let records = [
+            commit(1),
+            large_commit(2, 1000),
+            Record::Commit {
+                lsn: 3,
+                writes: Vec::new(),
+            },
+        ];
+        let salt = [7; SALT];
+        let frame = encode_frame(&records, &salt).unwrap();
+        assert_eq!(
+            frame.len(),
+            FRAME_HEADER + records.iter().map(Record::encoded_len).sum::<usize>()
+        );
+        assert_eq!(
+            decode_frame(&frame, &salt).unwrap(),
+            (frame.len(), records.into())
+        );
+        assert!(decode_frame(&frame, &FOREIGN).is_none());
+        assert!(has_valid_frame(&[&[0; 3][..], &frame].concat(), &salt));
+        assert!(!has_valid_frame(&[&[0; 3][..], &frame].concat(), &FOREIGN));
+    }
+
+    #[test]
+    fn damaged_first_header_with_later_batches_refuses_to_open() {
+        // Scenario A: media corruption overwrites the sector holding the first
+        // batch's header with 0xff. Both lengths read u32::MAX in the former
+        // format; recovery must not skip by them and truncate acknowledged data.
+        const SECTOR: usize = 512;
+        // Later batches must survive outside the damaged sector; if the
+        // whole log fits in it, nothing distinguishes it from a lost first sync.
+        for (spread, row) in [
+            (SEGMENT_HEADER..SEGMENT_HEADER + FRAME_HEADER, 8),
+            (0..SECTOR, 300),
+            (0..SECTOR, 3000),
+        ] {
+            let (_parent, path, log) = database();
+            for lsn in 1..=4 {
+                log.append(&[large_commit(lsn, row)]).unwrap();
+            }
+            drop(log);
+            let segment = segment_path(&path, 1);
+            let mut image = fs::read(&segment).unwrap();
+            image[spread.clone()].fill(0xff);
+            fs::write(&segment, &image).unwrap();
+            let error = open_error(&path, DESCRIPTOR);
+            assert!(
+                error.to_string().contains("corrupt WAL batch"),
+                "{spread:?}: {error}"
+            );
+            assert_eq!(
+                fs::read(&segment).unwrap(),
+                image,
+                "recovery changed the segment"
+            );
+        }
+
+        // The same overwrite of the final, unacknowledged batch is a torn tail.
+        let (_parent, path, log) = database();
+        log.append(&[commit(1)]).unwrap();
+        let start = active_bytes(&log);
+        log.append(&[commit(2)]).unwrap();
+        drop(log);
+        let segment = segment_path(&path, 1);
+        let mut image = fs::read(&segment).unwrap();
+        image[start..start + FRAME_HEADER].fill(0xff);
+        fs::write(&segment, &image).unwrap();
+        assert_eq!(
+            Log::open(&path, DESCRIPTOR).unwrap().1.commits,
+            commits(1..=1)
+        );
+        assert_eq!(fs::metadata(&segment).unwrap().len(), start as u64);
+    }
+
+    #[test]
+    fn planted_frame_images_in_a_torn_tail_do_not_block_recovery() {
+        // Scenario B: the final, unacknowledged append loses its header sector
+        // and keeps its payload, whose row holds frame images a user planted.
+        const SECTOR: usize = 512;
+        let (_parent, path, log) = database();
+        log.append(&[commit(1), commit(2)]).unwrap();
+        let start = active_bytes(&log);
+        let mut row = vec![0x11; 700];
+        for salt in [FOREIGN, [0; SALT], [0xff; SALT]] {
+            for record in [commit(3), commit(4), large_commit(3, 100)] {
+                row.extend_from_slice(&encode_frame(&[record], &salt).unwrap());
+            }
+        }
+        row.extend_from_slice(&[0; 64]);
+        log.append(&[Record::Commit {
+            lsn: 3,
+            writes: vec![WriteEntry {
+                collection: Some("planted".into()),
+                key: "row".into(),
+                row: Some(row),
+            }],
+        }])
+        .unwrap();
+        let end = active_bytes(&log);
+        drop(log);
+        let segment = segment_path(&path, 1);
+        let image = fs::read(&segment).unwrap();
+        let sector_end = (start / SECTOR + 1) * SECTOR;
+        assert!(
+            sector_end < end,
+            "the payload must extend past the header sector"
+        );
+        // Lost: the sector reverts to its earlier contents (zeros past the
+        // acknowledged batches) or reads as 0xff.
+        for fill in [0, 0xff] {
+            let mut torn = image.clone();
+            torn[start..sector_end].fill(fill);
+            fs::write(&segment, &torn).unwrap();
+            let (log, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
+            assert_eq!(recovered.commits, commits(1..=2), "fill {fill:#x}");
+            assert_eq!(fs::metadata(&segment).unwrap().len(), start as u64);
+            log.append(&[commit(3)]).unwrap();
+            drop(log);
+            assert_eq!(
+                Log::open(&path, DESCRIPTOR).unwrap().1.commits,
+                commits(1..=3)
+            );
+        }
+    }
+
+    #[test]
+    fn segment_headers_bind_the_log_and_may_tear_only_without_frames() {
+        let (_parent, path, log) = database();
+        log.append(&[large_commit(1, SEGMENT_SIZE as usize)])
+            .unwrap();
+        log.append(&[commit(2)]).unwrap();
+        assert_eq!(numbered_files(&path, "segment-").unwrap(), [1, 2]);
+        drop(log);
+        let tail = segment_path(&path, 2);
+        let image = fs::read(&tail).unwrap();
+
+        // The first sync of a new segment was lost: nothing in it verifies.
+        for torn in [vec![0; image.len()], image[..SEGMENT_HEADER / 2].to_vec()] {
+            fs::write(&tail, torn).unwrap();
+            let (log, recovered) = Log::open(&path, DESCRIPTOR).unwrap();
+            assert_eq!(recovered.lsn, 1);
+            assert_eq!(numbered_files(&path, "segment-").unwrap(), [1]);
+            log.append(&[commit(2)]).unwrap();
+            drop(log);
+            assert_eq!(Log::open(&path, DESCRIPTOR).unwrap().1.lsn, 2);
+        }
+
+        // A damaged header before a frame that verifies is corruption, and a
+        // segment from another log is refused.
+        let image = fs::read(&tail).unwrap();
+        let mut damaged = image.clone();
+        damaged[3] ^= 1;
+        fs::write(&tail, &damaged).unwrap();
+        let error = open_error(&path, DESCRIPTOR);
+        assert!(error.to_string().contains("corrupt WAL batch"), "{error}");
+        let mut foreign = encode_segment_header(&FOREIGN, 2);
+        foreign.extend_from_slice(&image[SEGMENT_HEADER..]);
+        fs::write(&tail, &foreign).unwrap();
+        let error = open_error(&path, DESCRIPTOR);
+        assert!(error.to_string().contains("another log"), "{error}");
+        fs::write(&tail, &image).unwrap();
+
+        // The head segment's header cannot tear: a later segment exists.
+        let head = segment_path(&path, 1);
+        let mut head_image = fs::read(&head).unwrap();
+        head_image[..SEGMENT_HEADER].fill(0);
+        fs::write(&head, &head_image).unwrap();
+        let error = open_error(&path, DESCRIPTOR);
+        assert!(error.to_string().contains("corrupt WAL batch"), "{error}");
     }
 
     #[test]
@@ -1458,9 +1735,10 @@ mod tests {
             assert!(error.to_string().contains("writer failed"), "{error}");
             assert!(log.append(&[commit(2)]).is_err());
             let image = fs::read(segment_path(Path::new(&path), 1)).unwrap();
-            let (end, records) = decode_batch(&image).unwrap();
+            assert_eq!(decode_segment_header(&image), Some((log.salt, 1)));
+            let (end, records) = decode_frame(&image[SEGMENT_HEADER..], &log.salt).unwrap();
             assert_eq!(records, [commit(1)]);
-            assert!(image[end..].iter().all(|&byte| byte == 0));
+            assert!(image[SEGMENT_HEADER + end..].iter().all(|&byte| byte == 0));
             return;
         }
 

@@ -13,5 +13,4 @@ import ./src/Termination.bend as Termination
 import ./src/Prepared.bend as Prepared
 import ./src/Worker.bend as Worker
 import ./src/Remote.bend as Remote
-import ./src/HostSchema.bend as HostSchema
 import ./proof/RemoteTrace.bend as RemoteTrace
