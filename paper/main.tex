@@ -168,19 +168,19 @@ and a proof of the proposition is a program of that type; checking the proof is
 type checking \cite{wadler2015}. With \emph{dependent types}, a type may mention
 values, so a type can state, for example, that every execution of a given
 program from every valid state accesses only the caller's rows. A
-certificate is then simply a term whose type is that statement.
+certificate is then simply a definition whose type is that statement.
 
 JayDB2 is written in Bend~2 \cite{bend}, a pure, dependently typed language
 whose releases began in September 2026. Its syntax resembles
-Python, while its semantics are closer to Haskell or Lean. Propositions are
-types and proofs are ordinary definitions, without tactics. Recursive calls must
-be on structurally smaller arguments, so checked definitions terminate. The
+Python, while its semantics are closer to Haskell or Lean. Proofs are
+written as ordinary definitions. Recursion must be on smaller arguments, so
+checked definitions terminate. The
 compiler translates checked definitions into a single C file, which Clang
 compiles for the CPU and CUDA can compile for NVIDIA GPUs. A call written with
 \code{!} hands that call, and the parallel calls inside it, to the GPU; without
 a GPU it runs in parallel on the CPU. Besides its main checker, Bend provides BendTT, a
-small kernel distributed with a Lean formalization of its consistency (no
-accepted definition inhabits the empty type) \cite{bend}. Bend~2 was chosen
+small second checker with a Lean proof that it is consistent, that is, that it
+cannot prove a contradiction \cite{bend}. Bend~2 was chosen
 because one language expresses the program, the rules and the proofs, the
 checked definitions themselves are compiled, and two checkers check every proof.
 
@@ -292,9 +292,9 @@ A state contains finite tables and a registry of users. Keys are unique text
 values, and cells hold Unicode text, Booleans or signed 64-bit integers.
 Authentication maps a credential to a \emph{context}, which identifies the
 caller and their role. A program is a Bend value that either requests a
-database action and supplies a continuation for its result, finishes with a
+database action and says how to continue with its result, finishes with a
 response, or refuses. The interpreter performs the action on the proposal and
-passes the result to the continuation. Actions include reading a value, testing
+passes the result back to the program. Actions include reading a value, testing
 whether a row exists, counting rows, enumerating keys, writing and deleting.
 Every read counts as an observation, even if the program discards the result,
 and later reads in the same transaction see earlier writes.
@@ -302,9 +302,9 @@ and later reads in the same transaction see earlier writes.
 A law is a proposition about a \emph{situation}, of which there are three
 kinds: a stable published state; an execution in progress, described by the
 starting state, the context, the proposal and the list of actions performed so
-far (a \emph{prefix} of the execution); and a closed execution, which adds the
+far (a \emph{prefix} of the execution); and a finished execution, which adds the
 response. An access law constrains every prefix; a consistency law such as the
-index agreement constrains stable states and successful closed executions.
+index agreement constrains stable states and successful finished executions.
 
 \subsection{Certificates}
 Let $C$ be the configuration, $\sigma$ the program's source text, $p$ the
@@ -323,12 +323,12 @@ structure and all stable-state laws hold) and in which the caller $c$ is a
 registered user, and for every number of steps $n$, the trace $\op{exec}_n$
 produced by the interpreter after $n$ steps is safe. A trace is safe if every
 law holds for the current prefix, including when the execution fails at that
-point. If the program has finished, the laws must also hold for the closed
+point. If the program has finished, the laws must also hold for the finished
 execution, and a successful result must be a valid state. The proposition
 quantifies over all valid states, so the proof cannot depend on the private data,
 and it is stated over the trace of the actual interpreter, so it covers every
 branch the program can take, including missing data and refusals. Admission also
-requires a proof that the program terminates for the admitted inputs; this is a
+requires a proof that the program finishes after a finite number of actions; this is a
 logical bound, not a wall-clock deadline.
 
 \subsection{Binding the certificate to the program that runs}
@@ -340,7 +340,7 @@ them. Both official checkers,
 Bend and BendTT, must accept this Book before anything runs. The same Book is
 compiled to C and by Clang to a native executable (on the CPU path this overlaps
 the BendTT check, but the executable is released only after both accept), without modifying the Bend compiler, runtime
-or emitted C. Cryptographic hashes of the Book and of the generated artifacts (\emph{seals}),
+or the C it generates. Cryptographic hashes of the Book and of the generated files,
 checked before and after compilation and again before execution, ensure that the compiled artifact comes from the checked Book.
 The generated Book also proves that its admission decision is sound for the
 exact program and certificate it contains.
@@ -375,11 +375,11 @@ device error discards the proposal; marked computations never fall back silently
 to the CPU.
 
 \subsection{Guarantees and trusted base}
-The main theorem is stated over the executable gate function $\op{begin}$,
-which authenticates the caller and applies the admission decision, and over the
+The main theorem is stated over $\op{begin}$, the executable function that
+starts each execution by authenticating the caller and applying the admission decision, and over the
 actual interpreter and finalizer run on the machine it starts, not over a
 separate model. For every configuration $C$, state $s$, request $r$, admission
-function $\alpha$ and clause $k$,
+function $\alpha$ and each of the four clauses $k$ of the guarantee,
 \[
 \op{ValidConf}(C)\wedge\op{Valid}(C,s)\wedge
 \op{Sound}(C,r,\alpha)\;\Longrightarrow\;
@@ -387,10 +387,9 @@ function $\alpha$ and clause $k$,
 \]
 The premises say that the configuration and the starting state are valid and
 that the admission function accepts a request only if its certificate and
-termination proof hold for the exact program (\code{OracleSoundness} in the
-repository). This premise is not left open: the admission function the service
-uses is packaged with a checked proof of its soundness, and corollaries checked
-in the repository derive the clauses from the validity of the configuration and
+termination proof hold for the exact program. This premise is not left open: the admission function the service
+uses is packaged with a checked proof of its soundness, and further checked results
+derive the clauses from the validity of the configuration and
 of the state alone. The four clauses state that: an execution starts only for the
 currently authenticated caller and an accepted program (\emph{Admitted}); every
 prefix of the actual execution satisfies all laws (\emph{Safe}); every finished
