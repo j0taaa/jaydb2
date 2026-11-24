@@ -131,6 +131,23 @@ functions, with an explicit trusted base; four certified applications with
 targeted invalid variants; and a measured evaluation whose source code, proofs
 and raw data are public \cite{artifact}.
 
+\paragraph{Main results.}
+Accepted programs satisfy the laws at every step and publish only valid states,
+assuming that the checkers, the compilers and the host are correct (RQ1). All
+four applications are accepted, and every invalid variant is rejected at the
+obligation it violates (RQ2). Reusing a checked program reduces a read from
+\num{\OrdinaryReadMedianSeconds}~s to \num{\PreparedReadVolatileMedianMs}~ms;
+point operations remain slower than in PostgreSQL and SQLite, but on a
+compute-heavy simulation JayDB2 is faster than both at large sizes, and its GPU
+backend is the fastest at the largest workload (RQ3).
+
+\paragraph{Organization.}
+Section~\ref{sec:background} presents the background and related work,
+Section~\ref{sec:design} the design of JayDB2 and its guarantees,
+Section~\ref{sec:method} the evaluation methodology and
+Section~\ref{sec:results} the results. Section~\ref{sec:discussion} discusses
+limitations and threats to validity, and Section~\ref{sec:conclusion} concludes.
+
 \section{Background and Related Work}
 \label{sec:background}
 \subsection{Access control and integrity in databases}
