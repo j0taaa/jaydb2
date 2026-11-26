@@ -390,8 +390,13 @@
 .slide.entered#slide-processo .pr-caption{animation:pr-blink var(--dur,3s) var(--d,0s) both linear}
 @keyframes pr-move{0%{opacity:0;transform:translateX(0)}12%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(var(--dx,0px))}}
 @keyframes pr-blink{0%{opacity:0}6%{opacity:1}94%{opacity:1}100%{opacity:0}}
+/* Packets and blinking captions inside a stage wait until that stage is revealed. A holding caption
+   stays until the next stage is revealed; print shows only the final caption. */
+.slide.entered#slide-processo .fragment:not(.shown) :is(.pr-packet,.pr-caption){animation:none}
+#slide-processo .process-figure:has(.fragment[data-step="1"].shown) .pr-hold-0,
+#slide-processo .process-figure:has(.fragment[data-step="2"].shown) .pr-hold-1{opacity:0}
 @media(prefers-reduced-motion:reduce){#slide-processo .pr-packet,#slide-processo .pr-caption{animation:none!important;opacity:0}}
-@media print{#slide-processo .pr-packet,#slide-processo .pr-caption{animation:none!important;opacity:0}}
+@media print{#slide-processo .pr-packet,#slide-processo .pr-caption,#slide-processo .pr-hold{animation:none!important;opacity:0}}
 /* backup slides: plain question/answer layout. */
 .qa-list{display:grid;gap:30px;margin-top:46px;max-width:1380px}
 .qa-list section{border-top:3px solid var(--deck-green);padding-top:18px}

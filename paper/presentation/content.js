@@ -43,6 +43,7 @@ const sources={
   simulation:source('Simulação certificada','applications/simulation/README.md'),
   compute:source('E6: dados e limites','paper/evidence/simulation.md'),
   ai:source('Declaração de uso de IA','paper/main.tex'),
+  necula:{label:'Necula (1997), Proof-carrying code, POPL',url:'https://doi.org/10.1145/263699.263712'},
   servicenow:{label:'BleepingComputer: ServiceNow, 09/06/2026',url:'https://www.bleepingcomputer.com/news/security/servicenow-discloses-security-incident-exposing-customer-data/'},
   gtig:{label:'Google Threat Intelligence Group, 16/11/2026',url:'https://cloud.google.com/blog/topics/threat-intelligence/agentic-threat-activity-crosses-a-significant-threshold'},
   baldur:{label:'First et al. (2023), Baldur, ESEC/FSE',url:'https://doi.org/10.1145/3611643.3616243'},
@@ -211,7 +212,7 @@ function simulationChart(){
   const series=[
     {backend:'cpu-1',name:'CPU-1',color:'#087869',dash:'9 7',width:3,mark:'circle-open'},
     {backend:'cpu-16',name:'CPU-16',color:'#087869',dash:'',width:5,mark:'circle'},
-    {backend:'cuda',name:'CUDA',color:'#d0703a',dash:'',width:5,mark:'square'},
+    {backend:'cuda',name:'CUDA',color:'#d0703a',labelColor:'#a8521f',dash:'',width:5,mark:'square'},
     {backend:'postgresql',name:'PostgreSQL',color:'#6b7c76',dash:'',width:3,mark:'diamond'},
     {backend:'sqlite',name:'SQLite',color:'#6b7c76',dash:'12 6',width:3,mark:'triangle'}
   ];
@@ -241,11 +242,12 @@ function simulationChart(){
       svg+=`<g class="anim-fade" ${td}><line x1="${x(last.i)}" y1="${y(last.c.median_ms)}" x2="${cx}" y2="${cy}" stroke="${s.color}" stroke-width="2" stroke-opacity=".55" stroke-dasharray="1 7" stroke-linecap="round"/></g>`;
       svg+=`<g class="anim-pop" ${td}><path d="M${cx-9} ${cy-9}L${cx+9} ${cy+9}M${cx+9} ${cy-9}L${cx-9} ${cy+9}" stroke="${s.color}" stroke-width="4"><title>${s.name}: limite de ${pt(timeout.c.timeout_s,0)} s</title></path></g>`;}
     svg+=measured.map(p=>`<g class="anim-pop" style="--d:${(.3+p.i*.45).toFixed(2)}s">${marker(s.mark,x(p.i),y(p.c.median_ms),s.color,`${s.name}, ${pt(rows[p.i].paths,0)} × ${pt(rows[p.i].steps,0)}: ${pt(p.c.median_ms,3)} ms`)}</g>`).join('');
-    if(measured.length&&measured[measured.length-1].i===rows.length-1){const v=measured[measured.length-1].c.median_ms;ends.push({name:s.name,v,yy:y(v)});}
+    if(measured.length&&measured[measured.length-1].i===rows.length-1){const v=measured[measured.length-1].c.median_ms;ends.push({s,v,yy:y(v)});}
   }
   ends.sort((a,b)=>a.yy-b.yy);
   for(let k=1;k<ends.length;k++)if(ends[k].yy-ends[k-1].yy<30)ends[k].yy=ends[k-1].yy+30;
-  svg+=ends.map(e=>`<text class="series-label anim-fade" style="--d:1.9s" x="${right+14}" y="${e.yy+8}">${e.name} · ${pt(e.v,0)} ms</text>`).join('');
+  // End labels carry the series marker and color (text uses a darker shade where needed for contrast).
+  svg+=ends.map(e=>`<g class="anim-fade" style="--d:1.9s">${marker(e.s.mark,right+24,e.yy,e.s.color,e.s.name)}<text class="series-label" x="${right+42}" y="${e.yy+8}" style="fill:${e.s.labelColor||e.s.color}">${e.s.name} · ${pt(e.v,0)} ms</text></g>`).join('');
   const legend=series.map((s,k)=>{const lx=left+k*205;return `<line x1="${lx}" y1="18" x2="${lx+44}" y2="18" stroke="${s.color}" stroke-width="${s.width}" ${s.dash?`stroke-dasharray="${s.dash}"`:''}/>${marker(s.mark,lx+22,18,s.color,s.name)}<text class="legend-label" x="${lx+56}" y="26">${s.name}</text>`;}).join('');
   const label=rows.map(r=>`${pt(r.paths,0)} × ${pt(r.steps,0)}: `+r.cells.map(c=>`${c.backend} ${c.status==='measured'?pt(c.median_ms,1)+' ms':c.status==='timeout'?'limite':'não executado'}`).join(', ')).join('; ');
   return `<svg viewBox="0 0 1400 430" role="img" aria-label="Medianas de chamadas completas em milissegundos, eixo logarítmico. ${label}.">${legend}${svg}<text class="axis-label" x="${(left+right)/2}" y="${bottom+70}" text-anchor="middle">Caminhos × passos</text><text class="axis-label" transform="translate(30 ${(top+bottom)/2}) rotate(-90)" text-anchor="middle">ms · escala log</text></svg>`;
@@ -364,7 +366,7 @@ function closingStatements(){
   const items=[
     ['proof','green','Pergunta.','Um programa pode chegar ao banco com a prova das regras que precisa respeitar, para o banco verificá-la antes de executá-lo?'],
     ['database','green','Construção.','Um serviço executável em que a prova fica ligada ao código exato que roda.'],
-    ['flask','green','Evidência.','Quatro aplicações exercitam acesso e consistência; variantes inválidas são recusadas; custo, reuso e CUDA foram medidos.'],
+    ['flask','green','Evidência.','Quatro aplicações exercitam acesso, três delas também consistência; variantes inválidas são recusadas; custo, reuso e CUDA foram medidos.'],
     ['warning','gold','Limite.','As garantias dependem da base de confiança T1–T3, e operações pontuais são mais lentas que em SQL.']
   ];
   return `<div class="conclusao-points">${items.map(([ic,tone,lead,text],i)=>`<div class="conclusao-point anim-fade-up" ${delay(.35+i*.4)}>${icon(ic,{size:46,cls:'tone-'+tone})}<p><strong>${lead}</strong> ${text}</p></div>`).join('')}</div>`;
@@ -409,7 +411,7 @@ function contextoRaceVisual(){
   `<path class="anim-draw" ${delay(1.2)} d="M434 124C364 172 260 172 190 124" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round"/><path class="anim-fade" ${delay(2)} d="M204 138L188 122L210 118" stroke="#b4e6c8" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`+
   `<g class="anim-pop" ${delay(2.1)}>${iconAt('infinity',282,66,60,'tone-gold')}</g></svg>`;
 }
-// Slide processo: an animated, ~32 s walk through the whole process (top lane valid, bottom lane invalid).
+// Slide processo: animated walk through the whole process in three click-advanced stages (valid admission, execution and Commit, invalid version refused).
 // Every element's resting style is the final frame, which print/PDF and reduced motion show.
 function processFigure(){
   const F='font-family="DeckInter,Arial,sans-serif"', M=`font-family="'DejaVu Sans Mono','Courier New',monospace"`;
@@ -417,42 +419,44 @@ function processFigure(){
   const line=(d,x,y,s,o={})=>`<g class="anim-fade" style="--d:${d}s;--dur:.35s">${t(x,y,s,{mono:true,size:19,fill:o.fill||'#dce9df'})}</g>`;
   const kw=w=>`<tspan fill="#b4e6c8">${w}</tspan>`, cm=w=>`<tspan fill="#8fa9a4">${w}</tspan>`, bad=w=>`<tspan fill="#f2a48c">${w}</tspan>`;
   const packet=(x,y,dx,d,dur,col)=>`<g class="pr-packet" style="--d:${d}s;--dur:${dur}s;--dx:${dx}px"><rect x="${x}" y="${y-19}" width="58" height="38" rx="7" fill="${col}"/>${iconAt('file',x+8,y-15,30,'tone-paper')}${iconAt(col==='#087869'?'proof':'x',x+30,y-12,24,'tone-paper')}</g>`;
-  const cap=(a,b,s,final)=>`<g class="${final?'anim-fade':'pr-caption'}" style="--d:${a}s;--dur:${final?.5:b-a}s">${t(706,600,s,{size:27,anchor:'middle',weight:600,fill:final?'#087869':'#102f3b'})}</g>`;
-  return `<svg class="process-figure" viewBox="0 0 1412 620" role="img" aria-label="Animação do processo: o cliente escreve programa e prova; os dois verificadores aceitam; o código é compilado, executa e publica com Commit. Uma versão que lê a nota de Bob é recusada pelos verificadores e o estado fica intacto.">`+
-  // lane A: valid program and proof
+  // Captions: blink (shown a→b), hold (stays until the next step is revealed; deck.css hides it) or final.
+  const cap=(a,b,s,mode='')=>{const txt=t(706,600,s,{size:27,anchor:'middle',weight:600,fill:mode==='final'?'#087869':'#102f3b'});
+    return mode==='final'?`<g class="anim-fade" style="--d:${a}s;--dur:.5s">${txt}</g>`:mode?`<g class="pr-hold ${mode}"><g class="anim-fade" style="--d:${a}s;--dur:.35s">${txt}</g></g>`:`<g class="pr-caption" style="--d:${a}s;--dur:${b-a}s">${txt}</g>`;};
+  return `<svg class="process-figure" viewBox="0 0 1412 620" role="img" aria-label="Animação do processo em três etapas: o cliente escreve programa e prova, e os dois verificadores aceitam; o código é compilado, executa e publica com Commit; uma versão que lê a nota de Bob é recusada pelos verificadores e o estado fica intacto.">`+
+  // static frame: lane A, checkers, compile box, database
   `<rect x="0" y="0" width="440" height="250" rx="10" fill="#173a45"/>`+t(20,32,'programa + prova',{size:19,fill:'#b3c8c6',weight:600})+t(420,32,'ilustração',{size:16,fill:'#8fa9a4',anchor:'end'})+
-  line(1.0,20,66,`${kw('def')} ler_nota(ctx, id):`)+line(1.6,20,92,`  ${kw('if')} mine(ctx, id):`)+line(2.2,20,118,`    ${kw('return')} read("notes", id)`)+
-  line(3.4,20,150,cm('# certificado'))+line(4.1,20,176,`${kw('def')} prova(ctx, id, s):`)+line(4.9,20,202,`  ${cm('# só lê no ramo mine(ctx, id)')}`)+line(5.7,20,228,`  ReadScope(ctx.id, id) ${kw('✓')}`)+
-  // lane B: invalid version
-  `<g class="anim-fade-up" style="--d:20.2s"><rect x="0" y="300" width="440" height="200" rx="10" fill="#173a45" stroke="#dc6e52" stroke-width="2"/>${t(20,332,'versão inválida',{size:19,fill:'#f2a48c',weight:600})}</g>`+
-  line(20.8,20,372,`${kw('def')} ler_nota(ctx, id):`)+line(21.5,20,400,`  ${kw('return')} read("notes", ${bad('"bob/n1"')})`)+
-  line(22.3,20,440,`${kw('def')} prova(ctx, id, s):`)+line(22.9,20,468,`  ReadScope(ctx.id, ${bad('"bob/n1"')}) ${bad('?')}`)+
-  // checkers (shared column)
   `<rect x="540" y="0" width="230" height="500" rx="12" fill="#d8edda" stroke="#087869" stroke-width="3"/>`+
   `<g>${iconAt('shield-check',563,18,40,'tone-green')}</g>`+t(613,46,'Verificadores',{size:23,weight:600})+
   `<rect x="562" y="70" width="186" height="44" rx="8" fill="#f4f1e8" stroke="#a3b3a8"/>${t(580,100,'Bend',{size:22})}`+
   `<rect x="562" y="124" width="186" height="44" rx="8" fill="#f4f1e8" stroke="#a3b3a8"/>${t(580,154,'BendTT',{size:22})}`+
-  `<g class="anim-pop" style="--d:10.2s">${iconAt('check',708,78,30,'tone-green')}</g><g class="anim-pop" style="--d:11.2s">${iconAt('check',708,132,30,'tone-green')}</g>`+
-  `<g class="anim-fade" style="--d:11.8s">${t(655,212,'aceito',{size:24,weight:600,fill:'#087869',anchor:'middle'})}</g>`+
-  `<g class="anim-pop" style="--d:25.4s"><circle cx="655" cy="400" r="34" fill="#dc6e52"/>${iconAt('x',637,382,36,'tone-paper')}</g>`+
-  `<g class="anim-fade" style="--d:26.1s">${t(655,462,'recusado',{size:24,weight:600,fill:'#a14732',anchor:'middle'})}${t(655,488,'antes de executar',{size:18,fill:'#a14732',anchor:'middle'})}</g>`+
-  // compile (lane A only)
   `<rect x="845" y="55" width="210" height="140" rx="12" fill="#f4f1e8" stroke="#a3b3a8" stroke-width="2"/>${iconAt('gear',868,72,40,'tone-green')}${t(918,100,'Compila',{size:23,weight:600})}${t(868,140,'C nativo · GPU',{size:20,fill:'#637574'})}`+
-  `<g class="anim-fade" style="--d:15s">${t(868,175,'executável selado',{size:18,fill:'#087869'})}</g>`+
-  // database
   `<rect x="1130" y="0" width="282" height="500" rx="12" fill="#f4f1e8" stroke="#a3b3a8" stroke-width="2"/>${iconAt('database',1150,16,40,'tone-green')}${t(1200,46,'Banco',{size:23,weight:600})}`+
   [['alice/n1','#087869'],['alice/n2','#087869'],['bob/n1','#dc6e52']].map(([k,c],i)=>`<rect x="1150" y="${70+i*44}" width="242" height="36" rx="6" fill="#fbf9f1" stroke="#d4d8cb"/><circle cx="1170" cy="${88+i*44}" r="7" fill="${c}"/>${t(1186,95+i*44,k,{mono:true,size:19})}`).join('')+
-  `<g class="anim-fade" style="--d:17s"><rect x="1150" y="70" width="242" height="36" rx="6" fill="none" stroke="#087869" stroke-width="3"/></g>`+
-  `<g class="anim-pop" style="--d:17.6s"><rect x="1150" y="212" width="242" height="48" rx="24" fill="#087869"/>${t(1271,244,'Commit · publica',{size:21,weight:600,fill:'#f4f1e8',anchor:'middle'})}</g>`+
-  `<g class="anim-pop" style="--d:27.4s"><rect x="1150" y="376" width="242" height="48" rx="24" fill="#e2e6dc" stroke="#637574"/>${t(1271,408,'Keep · estado intacto',{size:20,weight:600,anchor:'middle'})}</g>`+
-  // connectors
-  `<path class="anim-draw" style="--d:7.6s" d="M444 125H536" stroke="#087869" stroke-width="3" fill="none"/><path class="anim-draw" style="--d:12.6s" d="M774 125H841" stroke="#087869" stroke-width="3" fill="none"/><path class="anim-draw" style="--d:15.6s" d="M1059 125H1126" stroke="#087869" stroke-width="3" fill="none"/>`+
-  `<path class="anim-draw" style="--d:23.2s" d="M444 400H536" stroke="#dc6e52" stroke-width="3" fill="none"/><path class="anim-fade" style="--d:27s" d="M774 400H1126" stroke="#a3b3a8" stroke-width="3" stroke-dasharray="8 8" fill="none"/>`+
-  packet(440,125,96,7.6,1.8,'#087869')+packet(772,125,70,12.6,1.4,'#087869')+packet(1058,125,70,15.6,1.4,'#087869')+packet(440,400,96,23.2,1.8,'#dc6e52')+
-  // captions
-  cap(.3,7.5,'1 · O cliente escreve o programa e a prova')+cap(7.5,9.9,'2 · Envia os dois ao banco')+cap(9.9,12.9,'3 · Dois verificadores conferem a prova')+
-  cap(12.9,16.4,'4 · Compila; só executa após os dois aceitarem')+cap(16.4,20.2,'5 · Executa e publica o resultado')+cap(20.2,27,'6 · Uma versão tenta ler a nota de Bob…')+
-  cap(27,31,'7 · …e é recusada antes de executar; o estado fica intacto')+cap(31,0,'Só executa o que tem prova aceita, não importa quem escreveu',true)+
+  // stage 0 (on entry): write program and proof, send, both checkers accept
+  line(1.0,20,66,`${kw('def')} ler_nota(ctx, id):`)+line(1.6,20,92,`  ${kw('if')} mine(ctx, id):`)+line(2.2,20,118,`    ${kw('return')} read("notes", id)`)+
+  line(3.4,20,150,cm('# certificado'))+line(4.1,20,176,`${kw('def')} prova(ctx, id, s):`)+line(4.9,20,202,`  ${cm('# só lê no ramo mine(ctx, id)')}`)+line(5.7,20,228,`  ReadScope(ctx.id, id) ${kw('✓')}`)+
+  `<path class="anim-draw" style="--d:7.6s" d="M444 125H536" stroke="#087869" stroke-width="3" fill="none"/>`+packet(440,125,96,7.6,1.8,'#087869')+
+  `<g class="anim-pop" style="--d:10.2s">${iconAt('check',708,78,30,'tone-green')}</g><g class="anim-pop" style="--d:11.2s">${iconAt('check',708,132,30,'tone-green')}</g>`+
+  `<g class="anim-fade" style="--d:11.8s">${t(655,212,'aceito',{size:24,weight:600,fill:'#087869',anchor:'middle'})}</g>`+
+  cap(.3,7.5,'1 · O cliente escreve o programa e a prova')+cap(7.5,9.9,'2 · Envia os dois ao banco')+cap(9.9,0,'3 · Dois verificadores conferem a prova','pr-hold-0')+
+  // stage 1 (→): compile, execute, Commit
+  step(1,`<path class="anim-draw" style="--d:.2s" d="M774 125H841" stroke="#087869" stroke-width="3" fill="none"/>`+packet(772,125,70,.2,1.4,'#087869')+
+   `<g class="anim-fade" style="--d:2.6s">${t(868,175,'executável selado',{size:18,fill:'#087869'})}</g>`+
+   `<path class="anim-draw" style="--d:3.2s" d="M1059 125H1126" stroke="#087869" stroke-width="3" fill="none"/>`+packet(1058,125,70,3.2,1.4,'#087869')+
+   `<g class="anim-fade" style="--d:4.6s"><rect x="1150" y="70" width="242" height="36" rx="6" fill="none" stroke="#087869" stroke-width="3"/></g>`+
+   `<g class="anim-pop" style="--d:5.2s"><rect x="1150" y="212" width="242" height="48" rx="24" fill="#087869"/>${t(1271,244,'Commit · publica',{size:21,weight:600,fill:'#f4f1e8',anchor:'middle'})}</g>`+
+   cap(.3,3.8,'4 · Compila; só executa após os dois aceitarem')+cap(3.8,0,'5 · Executa e publica o resultado','pr-hold-1'))+
+  // stage 2 (→): an invalid version is refused before running
+  step(2,`<g class="anim-fade-up"><rect x="0" y="300" width="440" height="200" rx="10" fill="#173a45" stroke="#dc6e52" stroke-width="2"/>${t(20,332,'versão inválida',{size:19,fill:'#f2a48c',weight:600})}</g>`+
+   line(.6,20,372,`${kw('def')} ler_nota(ctx, id):`)+line(1.3,20,400,`  ${kw('return')} read("notes", ${bad('"bob/n1"')})`)+
+   line(2.1,20,440,`${kw('def')} prova(ctx, id, s):`)+line(2.7,20,468,`  ReadScope(ctx.id, ${bad('"bob/n1"')}) ${bad('?')}`)+
+   `<path class="anim-draw" style="--d:3s" d="M444 400H536" stroke="#dc6e52" stroke-width="3" fill="none"/>`+packet(440,400,96,3,1.8,'#dc6e52')+
+   `<g class="anim-pop" style="--d:5.2s"><circle cx="655" cy="400" r="34" fill="#dc6e52"/>${iconAt('x',637,382,36,'tone-paper')}</g>`+
+   `<g class="anim-fade" style="--d:5.9s">${t(655,462,'recusado',{size:24,weight:600,fill:'#a14732',anchor:'middle'})}${t(655,488,'antes de executar',{size:18,fill:'#a14732',anchor:'middle'})}</g>`+
+   `<path class="anim-fade" style="--d:6.8s" d="M774 400H1126" stroke="#a3b3a8" stroke-width="3" stroke-dasharray="8 8" fill="none"/>`+
+   `<g class="anim-pop" style="--d:7.2s"><rect x="1150" y="376" width="242" height="48" rx="24" fill="#e2e6dc" stroke="#637574"/>${t(1271,408,'Keep · estado intacto',{size:20,weight:600,anchor:'middle'})}</g>`+
+   cap(0,6.8,'6 · Uma versão tenta ler a nota de Bob…')+cap(6.8,10.8,'7 · …e é recusada antes de executar; o estado fica intacto')+
+   cap(10.8,0,'Só executa o que tem prova aceita, não importa quem escreveu','final'))+
   `</svg>`;
 }
 const slides=[
@@ -473,9 +477,9 @@ const slides=[
 {
  id:'o-que-e',title:'O que é o JayDB2',seconds:40,
  html:`<p class="kicker">A proposta</p><h2>O que é o JayDB2</h2><div class="oquee-layout"><ul class="oquee-list">${oqueeRow(1,'database','Banco de dados','Guarda as tabelas e o estado publicado.',.1)}${oqueeRow(2,'admin','Leis do administrador','Esquema e regras da aplicação.',.35)}${oqueeRow(3,'code','Cliente','Envia um programa e seu certificado.',.6)}${oqueeRow(4,'shield-check','Verificação','Só executa com prova aceita.',.85)}</ul><figure class="oquee-figure anim-fade" style="--dur:.8s"><div class="oquee-image"><img src="assets/jaydb2-system.webp" alt="Ilustração conceitual: blocos de banco de dados com um portal de vidro verde na entrada, uma folha dourada de regras sobre o portal e folhas de papel diante dele.">${oqueePin(1,70,24,.3)}${oqueePin(2,33,38,.55)}${oqueePin(3,15,70,.8)}${oqueePin(4,44,63,1.05)}</div></figure></div><div class="oquee-band anim-fade-up" ${delay(1.2)}><span class="oquee-band-label">${icon('refresh',{size:32,cls:'tone-green'})}Fim da transação:</span><span class="oquee-chip oquee-commit">${icon('send',{size:30})}<span><strong>Commit</strong> publica o resultado completo</span></span><span class="oquee-chip oquee-keep">${icon('database',{size:30})}<span><strong>Keep</strong> preserva o estado anterior</span></span></div>`,
- bottom:'',
- notes:`O que é o JayDB2? Primeiro, é um banco de dados: guarda as tabelas e o estado publicado, e os clientes operam sobre ele por transações. Segundo, o administrador instala o esquema e as leis, as regras que todo programa precisa respeitar; na ilustração, a folha dourada. Terceiro, o cliente não envia SQL: envia um programa e um certificado de que ele respeita as leis. Quarto, na entrada o banco verifica o certificado, e só um programa com prova aceita executa. Cada programa aceito é uma transação: Commit publica o resultado completo; Keep preserva o estado anterior.`,
- sources:[sources.artifact,sources.laws]
+ bottom:'Ideia de origem: proof-carrying code (Necula, 1997).',
+ notes:`O que é o JayDB2? Primeiro, é um banco de dados: guarda as tabelas e o estado publicado, e os clientes operam sobre ele por transações. Segundo, o administrador instala o esquema e as leis, as regras que todo programa precisa respeitar; na ilustração, a folha dourada. Terceiro, o cliente não envia SQL: envia um programa e um certificado de que ele respeita as leis. Quarto, na entrada o banco verifica o certificado, e só um programa com prova aceita executa. Cada programa aceito é uma transação: Commit publica o resultado completo; Keep preserva o estado anterior. A ideia vem do proof-carrying code, de Necula, em 1997: quem produz o código envia a prova, e quem executa só a confere.`,
+ sources:[sources.artifact,sources.laws,sources.necula]
 },
 {
  id:'bend',title:'O que é Bend 2',seconds:60,
@@ -488,7 +492,7 @@ const slides=[
  id:'processo',title:'O processo completo',seconds:40,
  html:`<p class="kicker">Visão geral</p><h2>O processo completo</h2>${processFigure()}`,
  bottom:'Animação ilustrativa; o código é simplificado. Os passos seguem o serviço real.',
- notes:`Antes dos detalhes, o processo inteiro. O cliente escreve o programa e, junto, o certificado: a prova de que toda leitura é das próprias notas: o programa só lê dentro do ramo em que a chave é de quem chamou. Envia os dois ao banco. Os dois verificadores, Bend e BendTT, conferem a prova. O código é compilado, e só executa depois que os dois aceitam; então publica o resultado com Commit. Agora uma versão que tenta ler a nota de Bob: a prova não fecha, os verificadores recusam, e o programa nem começa; o estado fica intacto. O banco executa só o que tem prova aceita, não importa quem escreveu o programa: uma pessoa, um LLM ou um atacante.`,
+ notes:`Antes dos detalhes, o processo inteiro. O cliente escreve o programa e, junto, o certificado: a prova de que toda leitura é das próprias notas: o programa só lê dentro do ramo em que a chave é de quem chamou. Envia os dois ao banco. Os dois verificadores, Bend e BendTT, conferem a prova. [→] O código é compilado, e só executa depois que os dois aceitam; então publica o resultado com Commit. [→] Agora uma versão que tenta ler a nota de Bob: a prova não fecha, os verificadores recusam, e o programa nem começa; o estado fica intacto. O banco executa só o que tem prova aceita, não importa quem escreveu o programa: uma pessoa, um LLM ou um atacante.`,
  sources:[sources.laws,sources.artifact]
 },
 {
@@ -633,7 +637,7 @@ const slides=[
  id:'conclusao',title:'JayDB2: síntese do trabalho',theme:'dark conclusion',seconds:35,
  html:`${logo('dark','anim-fade')}<p class="kicker">Conclusão</p><h2>Síntese do trabalho</h2>${closingStatements()}<p class="conclusao-thanks anim-fade" ${delay(2.2)}>Obrigado.</p>`,
  bottom:'Gabriel Jota Lizardo · PUC Minas',
- notes:`Para fechar. A pergunta foi se um programa pode chegar ao banco com a prova das regras que precisa respeitar, e se o banco pode verificá-la antes de executá-lo. A resposta construída é um serviço em que a prova fica ligada ao código exato que roda. Como evidência, quatro aplicações combinam acesso e consistência, variantes inválidas são recusadas, e custo, reuso e CUDA foram medidos. O limite principal: as garantias dependem da base de confiança T1 a T3, e as operações pontuais ainda são mais lentas que em SQL. Obrigado.`,
+ notes:`Para fechar. A pergunta foi se um programa pode chegar ao banco com a prova das regras que precisa respeitar, e se o banco pode verificá-la antes de executá-lo. A resposta construída é um serviço em que a prova fica ligada ao código exato que roda. Como evidência, quatro aplicações exercitam acesso, três delas também consistência, variantes inválidas são recusadas, e custo, reuso e CUDA foram medidos. O limite principal: as garantias dependem da base de confiança T1 a T3, e as operações pontuais ainda são mais lentas que em SQL. Obrigado.`,
  sources:[sources.artifact]
 },
 {
@@ -673,9 +677,9 @@ const slides=[
 },
 {
  id:'b-verificador',title:'E se o verificador estiver errado?',backup:true,seconds:0,
- html:`<p class="kicker">Perguntas · base de confiança</p><h2>E se o verificador estiver errado?</h2><div class="qa-list"><section><h3>É uma premissa explícita (T1), não um teorema</h3><p>Um erro no verificador poderia aceitar uma prova falsa. O trabalho não esconde isso: a base de confiança lista os verificadores.</p></section><section><h3>Dois verificadores precisam concordar</h3><p>O verificador do Bend e o núcleo BendTT, pequeno e com consistência formalizada em Lean, conferem cada prova.</p></section><section><h3>Provas falsas precisam falhar no lugar certo</h3><p>${pt(value('NegativeFixtures'),0)} provas deliberadamente falsas são recusadas, cada uma na obrigação prevista, nos dois verificadores.</p></section></div>`,
+ html:`<p class="kicker">Perguntas · base de confiança</p><h2>E se o verificador estiver errado?</h2><div class="qa-list"><section><h3>É uma premissa explícita (T1), não um teorema</h3><p>Um erro no verificador poderia aceitar uma prova falsa. O trabalho não esconde isso: a base de confiança lista os verificadores.</p></section><section><h3>Dois verificadores precisam concordar</h3><p>O verificador do Bend e o núcleo BendTT, pequeno e com consistência formalizada em Lean, conferem cada prova. Como vêm do mesmo projeto, a concordância reduz o risco, mas não é evidência independente.</p></section><section><h3>Provas falsas precisam falhar no lugar certo</h3><p>${pt(value('NegativeFixtures'),0)} provas deliberadamente falsas são recusadas, cada uma na obrigação prevista, nos dois verificadores.</p></section></div>`,
  bottom:'A superfície de ataque deixa de ser todo o código das aplicações e passa a ser uma base pequena e listada.',
- notes:'Sim, se o verificador tiver um erro, uma prova falsa poderia passar. Isso é a premissa T1, declarada. Para reduzir o risco, dois verificadores distintos conferem cada prova, e um deles é um núcleo pequeno com consistência provada em Lean. Além disso, centenas de provas falsas precisam ser recusadas exatamente na obrigação esperada. O ganho é que, em vez de confiar em todo o código de todas as aplicações, confio numa base pequena e conhecida.',
+ notes:'Sim, se o verificador tiver um erro, uma prova falsa poderia passar. Isso é a premissa T1, declarada. Para reduzir o risco, dois verificadores conferem cada prova, e um deles é um núcleo pequeno com consistência provada em Lean. Os dois vêm do mesmo projeto, então a concordância reduz o risco, mas não é evidência independente. Além disso, centenas de provas falsas precisam ser recusadas exatamente na obrigação esperada. O ganho é que, em vez de confiar em todo o código de todas as aplicações, confio numa base pequena e conhecida.',
  sources:[sources.proofs]
 },
 {
